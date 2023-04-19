@@ -31,42 +31,23 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDevice implements Device {
+record PhysicalDevice(@NotNull Key key,
+                      @NotNull Type type,
+                      @NotNull LaunchCompatibility launchCompatibility,
+                      @Nullable Instant connectionTime,
+                      @NotNull String name,
+                      @NotNull AndroidDevice androidDevice) implements Device {
   private static final Icon ourPhoneIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
   private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
   private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
 
-  @NotNull
-  private final Key myKey;
-
-  @NotNull
-  private final Type myType;
-
-  @NotNull
-  private final LaunchCompatibility myLaunchCompatibility;
-
-  @Nullable
-  private final Instant myConnectionTime;
-
-  @NotNull
-  private final String myName;
-
-  @NotNull
-  private final AndroidDevice myAndroidDevice;
-
   private PhysicalDevice(@NotNull Builder builder) {
-    assert builder.myKey != null;
-    myKey = builder.myKey;
-
-    myType = builder.myType;
-    myLaunchCompatibility = builder.myLaunchCompatibility;
-    myConnectionTime = builder.myConnectionTime;
-
-    assert builder.myName != null;
-    myName = builder.myName;
-
-    assert builder.myAndroidDevice != null;
-    myAndroidDevice = builder.myAndroidDevice;
+    this(Objects.requireNonNull(builder.myKey),
+         builder.myType,
+         builder.myLaunchCompatibility,
+         builder.myConnectionTime,
+         Objects.requireNonNull(builder.myName),
+         Objects.requireNonNull(builder.myAndroidDevice));
   }
 
   static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
@@ -135,36 +116,18 @@ final class PhysicalDevice implements Device {
 
   @NotNull
   @Override
-  public Key key() {
-    return myKey;
-  }
-
-  @NotNull
-  @Override
   public Icon icon() {
-    var icon = switch (myType) {
+    var icon = switch (type) {
       case TV -> ourTvIcon;
       case WEAR -> ourWearIcon;
       case PHONE -> ourPhoneIcon;
     };
 
-    return switch (myLaunchCompatibility.getState()) {
+    return switch (launchCompatibility.getState()) {
       case ERROR -> new LayeredIcon(icon, StudioIcons.Common.ERROR_DECORATOR);
       case WARNING -> new LayeredIcon(icon, AllIcons.General.WarningDecorator);
       case OK -> icon;
     };
-  }
-
-  @NotNull
-  @Override
-  public Type type() {
-    return myType;
-  }
-
-  @NotNull
-  @Override
-  public LaunchCompatibility launchCompatibility() {
-    return myLaunchCompatibility;
   }
 
   /**
@@ -176,18 +139,6 @@ final class PhysicalDevice implements Device {
     return true;
   }
 
-  @Nullable
-  @Override
-  public Instant connectionTime() {
-    return myConnectionTime;
-  }
-
-  @NotNull
-  @Override
-  public String name() {
-    return myName;
-  }
-
   @NotNull
   @Override
   public Collection<Snapshot> snapshots() {
@@ -197,43 +148,18 @@ final class PhysicalDevice implements Device {
   @NotNull
   @Override
   public Target defaultTarget() {
-    return new RunningDeviceTarget(myKey);
+    return new RunningDeviceTarget(key);
   }
 
   @NotNull
   @Override
   public Collection<Target> targets() {
-    return List.of(new RunningDeviceTarget(myKey));
-  }
-
-  @NotNull
-  @Override
-  public AndroidDevice androidDevice() {
-    return myAndroidDevice;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(myKey, myType, myLaunchCompatibility, myConnectionTime, myName, myAndroidDevice);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof PhysicalDevice device)) {
-      return false;
-    }
-
-    return myKey.equals(device.myKey) &&
-           myType.equals(device.myType) &&
-           myLaunchCompatibility.equals(device.myLaunchCompatibility) &&
-           Objects.equals(myConnectionTime, device.myConnectionTime) &&
-           myName.equals(device.myName) &&
-           myAndroidDevice.equals(device.myAndroidDevice);
+    return List.of(new RunningDeviceTarget(key));
   }
 
   @NotNull
   @Override
   public String toString() {
-    return myName;
+    return name;
   }
 }
