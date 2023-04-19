@@ -39,6 +39,7 @@ import com.android.tools.idea.logcat.devices.FakeDeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
+import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
 import com.android.tools.idea.logcat.filters.ProjectAppFilter
 import com.android.tools.idea.logcat.filters.StringFilter
@@ -1176,6 +1177,22 @@ class LogcatMainPanelTest {
       "SpecialCharHandler",
       "PasteHandler",
     )
+  }
+
+  @RunsInEdt
+  @Test
+  fun countFilterMatches_excludesSystemMessages() {
+    val logcatMainPanel = logcatMainPanel()
+    val messageBacklog = logcatMainPanel.messageBacklog.get()
+    val messages = messageBacklog.messages
+    val filter = StringFilter("Foo", TAG, EMPTY_RANGE)
+    messageBacklog.addAll(listOf(
+      logcatMessage(tag = "Foo"),
+      LogcatMessage (SYSTEM_HEADER, ""),
+    ))
+
+    assertThat(LogcatMasterFilter(filter).filter(messages)).hasSize(2)
+    assertThat(logcatMainPanel.countFilterMatches(filter)).isEqualTo(1)
   }
 
   private fun logcatMainPanel(

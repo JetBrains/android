@@ -564,7 +564,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   override fun getSelectedDevice() = headerPanel.getSelectedDevice()
 
   override fun countFilterMatches(filter: LogcatFilter?): Int {
-    return LogcatMasterFilter(filter).filter(messageBacklog.get().messages).size
+    return LogcatMasterFilter(filter).filter(messageBacklog.get().messages).filter { it.header != SYSTEM_HEADER }.size
   }
 
   override fun getTags(): Set<String> = tags
