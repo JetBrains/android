@@ -16,44 +16,60 @@
 package org.jetbrains.android.actions;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import javax.swing.JComponent;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
-import org.jetbrains.android.AndroidTestCase;
+import org.junit.Rule;
+import org.junit.Test;
 
-public final class CreateXmlResourcePanelImplTest extends AndroidTestCase {
+@RunsInEdt
+public final class CreateXmlResourcePanelImplTest {
+  @Rule
+  public final AndroidProjectRule myProjectRule = AndroidProjectRule.onDisk();
 
+  @Rule
+  public final EdtRule myEdtRule = new EdtRule();
+
+  @Test
   public void testExistingResourceValidation_resourceExists() {
-    myFixture.addFileToProject("res/values/strings.xml",
+    myProjectRule.getFixture().addFileToProject("res/values/strings.xml",
                                //language=XML
                                "<resources>" +
                                "  <string name=\"foo\">foo</string>" +
                                "  <string name=\"bar\">@string/foo</string>" +
                                "</resources>");
-    CreateXmlResourcePanelImpl xmlResourcePanel = new CreateXmlResourcePanelImpl(myModule, ResourceType.STRING, ResourceFolderType.VALUES,
+    CreateXmlResourcePanelImpl xmlResourcePanel = new CreateXmlResourcePanelImpl(myProjectRule.getModule(), ResourceType.STRING, ResourceFolderType.VALUES,
                                                                                  "foo", "foobar", false, false, false, null, null,
                                                                                  validatorModule -> IdeResourceNameValidator
                                                                                    .forResourceName(ResourceType.STRING));
     ValidationInfo validationInfo = xmlResourcePanel.doValidate();
-    assertThat(((JTextField)validationInfo.component).getText()).isEqualTo("foo");
+    assertNotNull(validationInfo);
+    JTextField validationComponent = (JTextField)validationInfo.component;
+    assertNotNull(validationComponent);
+    assertThat(validationComponent.getText()).isEqualTo("foo");
     assertThat(validationInfo.message).isEqualTo("foo is a resource that already exists");
   }
 
+  @Test
   public void testExistingResourceValidation_resourceDoesNotExist() {
-    myFixture.addFileToProject("res/values/strings.xml",
+    myProjectRule.getFixture().addFileToProject("res/values/strings.xml",
                                //language=XML
                                "<resources>" +
                                "  <string name=\"foo\">foo</string>" +
                                "  <string name=\"bar\">@string/foo</string>" +
                                "</resources>");
-    CreateXmlResourcePanelImpl correctResourcePanel = new CreateXmlResourcePanelImpl(myModule, ResourceType.STRING,
+    CreateXmlResourcePanelImpl correctResourcePanel = new CreateXmlResourcePanelImpl(myProjectRule.getModule(), ResourceType.STRING,
                                                                                      ResourceFolderType.VALUES, "brandnewname", "foobar",
                                                                                      false, false, false, null, null,
                                                                                      validatorModule -> IdeResourceNameValidator
@@ -61,6 +77,7 @@ public final class CreateXmlResourcePanelImplTest extends AndroidTestCase {
     assertThat(correctResourcePanel.doValidate()).isNull();
   }
 
+  @Test
   public void testStringResourceNotEncoded() {
     // See b/196248641. This panel should show the "plain-text" version of a string, since users aren't expected to input a value here with
     // correct Android encoding. The string is encoded later at the point where it is written into the resource file.
@@ -68,8 +85,8 @@ public final class CreateXmlResourcePanelImplTest extends AndroidTestCase {
     testStringResourceNotEncoded("value with double quote \"");
     testStringResourceNotEncoded("value with trailing space ");
     testStringResourceNotEncoded("value with emoji " + "\uD83D\uDE00" + "😛");
-    testStringResourceNotEncoded("value with Unicode chars \u00e3\u00e4");
-    testStringResourceNotEncoded("value with escape sequences \t\b\n\r\f\'\"\\");
+    testStringResourceNotEncoded("value with Unicode chars ãä");
+    testStringResourceNotEncoded("value with escape sequences \t\b\n\r\f'\"\\");
     StringBuilder allAscii = new StringBuilder();
     for (int i = 0; i < 256; i++) {
       allAscii.append((char)i);
@@ -78,7 +95,7 @@ public final class CreateXmlResourcePanelImplTest extends AndroidTestCase {
   }
 
   private void testStringResourceNotEncoded(String resourceValue) {
-    CreateXmlResourcePanelImpl correctResourcePanel = new CreateXmlResourcePanelImpl(myModule, ResourceType.STRING,
+    CreateXmlResourcePanelImpl correctResourcePanel = new CreateXmlResourcePanelImpl(myProjectRule.getModule(), ResourceType.STRING,
                                                                                      ResourceFolderType.VALUES, "resName",
                                                                                      resourceValue,
                                                                                      false, true, false, null, null,
@@ -88,20 +105,24 @@ public final class CreateXmlResourcePanelImplTest extends AndroidTestCase {
     assertThat(correctResourcePanel.getValue()).isEqualTo(resourceValue);
   }
 
+  @Test
   public void testFocusedValueFieldWhenResourceNameIsGivenForString() {
-    testFocusedValueFieldWhenResourceNameIsGiven(myModule, "string_name", ResourceType.STRING, JTextArea.class);
+    testFocusedValueFieldWhenResourceNameIsGiven(myProjectRule.getModule(), "string_name", ResourceType.STRING, JTextArea.class);
   }
 
+  @Test
   public void testFocusedValueFieldWhenResourceNameIsGivenForColor() {
-    testFocusedValueFieldWhenResourceNameIsGiven(myModule, "color_name", ResourceType.COLOR, JTextField.class);
+    testFocusedValueFieldWhenResourceNameIsGiven(myProjectRule.getModule(), "color_name", ResourceType.COLOR, JTextField.class);
   }
 
+  @Test
   public void testFocusedNameFieldWhenResourceValueIsGivenForString() {
-    testFocusedNameFieldWhenResourceValueIsGiven(myModule, "string_value", ResourceType.STRING);
+    testFocusedNameFieldWhenResourceValueIsGiven(myProjectRule.getModule(), "string_value", ResourceType.STRING);
   }
 
+  @Test
   public void testFocusedNameFieldWhenResourceValueIsGivenForColor() {
-    testFocusedNameFieldWhenResourceValueIsGiven(myModule, "#AFA", ResourceType.COLOR);
+    testFocusedNameFieldWhenResourceValueIsGiven(myProjectRule.getModule(), "#AFA", ResourceType.COLOR);
   }
 
   private static void testFocusedNameFieldWhenResourceValueIsGiven(Module module, String resourceValue, ResourceType type) {
