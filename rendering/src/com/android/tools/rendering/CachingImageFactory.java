@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import com.android.ide.common.rendering.api.IImageFactory;
 import com.intellij.reference.SoftReference;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * {@link IImageFactory} that caches the image so it is not re-created on every call.
  */
-class CachingImageFactory implements IImageFactory {
+public class CachingImageFactory implements IImageFactory {
   private SoftReference<BufferedImage> myCachedImageReference;
 
   private final IImageFactory myDelegate;
   private int myCachedWidth;
   private int myCachedHeight;
 
-  CachingImageFactory(IImageFactory delegate) {
+  public CachingImageFactory(IImageFactory delegate) {
     myDelegate = delegate;
   }
 
