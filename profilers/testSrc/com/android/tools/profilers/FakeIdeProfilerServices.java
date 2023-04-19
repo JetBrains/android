@@ -120,6 +120,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myProfileablsBuildsEnabled = true;
 
   /**
+   * Whether the task-based UX should be visible.
+   */
+  private boolean myTaskBasedUxEnabled = false;
+
+  /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
    * which graph display style will be used for the power and battery tracks.
    */
@@ -270,7 +275,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isTaskBasedUxEnabled() {
-        return false;
+        return myTaskBasedUxEnabled;
       }
     };
   }
@@ -418,5 +423,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode mode) {
     mySystemTracePowerProfilerDisplayMode = mode;
+  }
+
+  public void enableTaskBasedUx(boolean enabled) {
+    myTaskBasedUxEnabled = enabled;
   }
 }

@@ -39,17 +39,22 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.content.Content
 import java.awt.BorderLayout
 import java.io.File
 import java.util.function.Supplier
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private val project: Project) : AspectObserver(), Disposable {
   private val ideProfilerServices: IntellijProfilerServices
   private val ideProfilerComponents: IdeProfilerComponents
   val profilers: StudioProfilers
-  private val profilersTab: StudioProfilersTab
-  val profilersPanel: JPanel
+  private lateinit var homeTab: StudioProfilersHomeTab
+  private lateinit var homePanel: JPanel
+  private lateinit var profilersTab: StudioProfilersTab
+  lateinit var profilersPanel: JPanel
+    private set
 
   init {
     val symbolSource: SymbolSource = ProjectSymbolSource(project)
@@ -82,7 +87,45 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
 
     ideProfilerComponents = IntellijProfilerComponents(project, ideProfilerServices.featureTracker)
 
-    profilersTab = StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
+    if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
+      homeTab = StudioProfilersHomeTab(project, profilers, ideProfilerComponents)
+      homePanel = JPanel(BorderLayout())
+      homePanel.removeAll()
+      homePanel.add(homeTab.view.panel)
+      homePanel.revalidate()
+      homePanel.repaint()
+    }
+    else {
+      initializeTaskTabContent()
+    }
+  }
+
+  private fun createTaskTab() {
+    createNewTab(profilersPanel, "<Task Name>", true)
+  }
+
+  private fun createNewTab(component: JComponent, tabName: String, isCloseable: Boolean) {
+    val contentManager = window.getContentManager()
+    val content = contentManager.factory.createContent(component, tabName, false).also { content ->
+      content.isCloseable = isCloseable
+    }
+    contentManager.addContent(content)
+    contentManager.setSelectedContent(content)
+  }
+
+  private fun findTaskTab(): Content? {
+    val contentManager = window.getContentManager()
+    return when (contentManager.contentCount) {
+      0 -> null
+      1 -> null
+      2 -> contentManager.getContent(1)
+      else -> throw RuntimeException("Profiler window has more than 2 tabs")
+    }
+  }
+
+  private fun initializeTaskTabContent() {
+    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, ideProfilerComponents)
+    else StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
     Disposer.register(this, profilersTab)
 
     profilersPanel = JPanel(BorderLayout())
@@ -90,6 +133,26 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     profilersPanel.add(profilersTab.view.component)
     profilersPanel.revalidate()
     profilersPanel.repaint()
+
+    // TODO(b/277797528) Remove once the task tab supports an L2 or L3 stage.
+    if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
+      profilers.setDefaultStage()
+    }
+  }
+
+  fun openHomeTab() {
+    createNewTab(homePanel, PROFILER_HOME_TAB_NAME, false)
+  }
+
+  fun openTaskTab() {
+    val content = findTaskTab()
+    if (content != null) {
+      window.getContentManager().setSelectedContent(content)
+    }
+    else {
+      initializeTaskTabContent()
+      createTaskTab()
+    }
   }
 
   /** Sets the profiler's auto-profiling process in case it has been unset.  */
@@ -127,6 +190,9 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   companion object {
+
+    private const val PROFILER_HOME_TAB_NAME = "Home"
+
     /**
      * Key for storing the last app that was run when the profiler window was not opened. This allows the Profilers to start auto-profiling
      * that app when the user opens the window at a later time.

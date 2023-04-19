@@ -28,7 +28,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import icons.StudioIcons
 
 /**
- * A tab in the Profiler window containing a [SessionProfilersView] (i.e. view with a sessions panel).
+ * A tab in the Profiler window containing a [SessionProfilersView].
  */
 class StudioProfilersSessionTab(private val profilers: StudioProfilers,
                                 private val window: ToolWindowWrapper,

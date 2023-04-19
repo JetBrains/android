@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers
+package com.android.tools.profilers.tasks
 
-import com.android.tools.profilers.StudioProfilersView
-import com.intellij.openapi.Disposable
-
-/**
- * A tab in the Profiler tool window, wrapping a [StudioProfilersView].
- */
-interface StudioProfilersTab : Disposable {
-  val view: StudioProfilersView
+enum class ProfilerTaskType(val description: String) {
+  UNSPECIFIED("Unspecified"),
+  IMPORT("Import"),
+  CALLSTACK_SAMPLE("Callstack Sample"),
+  SYSTEM_TRACE("System Trace"),
+  JAVA_KOTLIN_METHOD_TRACE("Java/Kotlin Method Trace"),
+  JAVA_KOTLIN_METHOD_SAMPLE("Java/Kotlin Method Sample (legacy)"),
+  HEAP_DUMP("Heap Dump"),
+  NATIVE_ALLOCATIONS("Native Allocations"),
+  JAVA_KOTLIN_ALLOCATIONS("Java/Kotlin Allocations")
 }

@@ -15,12 +15,20 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.profilers.IdeProfilerComponents
+import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.intellij.openapi.Disposable
+import com.android.tools.profilers.TaskProfilersView
 
 /**
- * A tab in the Profiler tool window, wrapping a [StudioProfilersView].
+ * A tab in the Profiler window containing a [TaskProfilersView].
  */
-interface StudioProfilersTab : Disposable {
-  val view: StudioProfilersView
+class StudioProfilersTaskTab(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) : StudioProfilersTab {
+  override val view: StudioProfilersView
+
+  init {
+    view = TaskProfilersView(profilers, ideProfilerComponents, this)
+  }
+
+  override fun dispose() {}
 }

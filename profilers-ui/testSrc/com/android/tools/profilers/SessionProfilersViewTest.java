@@ -73,7 +73,7 @@ public class SessionProfilersViewTest {
     myService = isTestingProfileable
                 ? new FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
                 : new FakeTransportService(myTimer);
-    myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService);
+    myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("SessionProfilersViewTestChannel", myService);
   }
 
   @Rule public final FakeGrpcServer myGrpcChannel;

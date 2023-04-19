@@ -57,7 +57,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A view containing a sessions panel, toolbar, and stage view.
+ * A view containing a sessions panel, a {@link StageWithToolbarView}, and a {@link ViewBinder} that binds {@link Stage}s and
+ * {@link StageView}s.
  */
 public class SessionProfilersView implements StudioProfilersView {
 

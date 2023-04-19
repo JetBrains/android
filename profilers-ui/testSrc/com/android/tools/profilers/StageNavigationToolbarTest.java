@@ -64,7 +64,7 @@ public class StageNavigationToolbarTest {
     myService = isTestingProfileable
                 ? new FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
                 : new FakeTransportService(myTimer);
-    myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService);
+    myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("StageNavigationToolbarTestChannel", myService);
   }
 
   private StudioProfilers myProfilers;

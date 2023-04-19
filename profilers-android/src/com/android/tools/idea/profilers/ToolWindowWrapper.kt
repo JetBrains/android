@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.ui.content.ContentManager
 import javax.swing.Icon
 
 /** Wrapper of [ToolWindow] that abstracts away Intellij's tool window infrastructure from profiler code. */
@@ -25,6 +26,8 @@ interface ToolWindowWrapper {
   fun setTitle(title: String?)
 
   fun setIcon(icon: Icon)
+
+  fun getContentManager(): ContentManager
 
   fun removeContent()
 }
@@ -39,6 +42,8 @@ class ToolWindowWrapperImpl(project: Project, private val toolWindow: ToolWindow
   override fun setIcon(icon: Icon) {
       toolWindow.setIcon(icon)
   }
+
+  override fun getContentManager() = toolWindow.contentManager
 
   override fun removeContent() {
     AndroidProfilerToolWindowFactory.removeContent(toolWindow)

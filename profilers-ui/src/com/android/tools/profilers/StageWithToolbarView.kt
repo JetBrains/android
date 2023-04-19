@@ -121,8 +121,10 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     toolbar.border = DEFAULT_BOTTOM_BORDER
     toolbar.preferredSize = Dimension(0, ProfilerLayout.TOOLBAR_HEIGHT)
 
-    stageNavigationToolbar = StageNavigationToolbar(studioProfilers)
-    toolbar.add(stageNavigationToolbar, BorderLayout.WEST)
+    if (!studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+      stageNavigationToolbar = StageNavigationToolbar(studioProfilers)
+      toolbar.add(stageNavigationToolbar, BorderLayout.WEST)
+    }
 
     timelineNavigationToolbar = JPanel(ProfilerLayout.createToolbarLayout())
     toolbar.add(timelineNavigationToolbar, BorderLayout.EAST)
@@ -311,7 +313,9 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     goLiveToolbar.isVisible = stageView!!.supportsStreaming()
 
     val topLevel = stageView!!.needsProcessSelection()
-    stageNavigationToolbar.isVisible = !topLevel && stageView!!.supportsStageNavigation()
+    if (!studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled) {
+      stageNavigationToolbar.isVisible = !topLevel && stageView!!.supportsStageNavigation()
+    }
     timelineNavigationToolbar.isVisible = stage.isInteractingWithTimeline
   }
 

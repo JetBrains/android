@@ -202,7 +202,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
     myClient = client;
     myIdeServices = ideServices;
-    myStage = new NullMonitorStage(this);
+    myStage = createDefaultStage();
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
@@ -244,7 +244,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     });
 
     registerSessionChangeListener(Common.SessionMetaData.SessionType.FULL, () -> {
-      setStage(new StudioMonitorStage(this));
+      if (!ideServices.getFeatureConfig().isTaskBasedUxEnabled()) {
+        setStage(new StudioMonitorStage(this));
+      }
       if (SessionsManager.isSessionAlive(mySelectedSession)) {
         // The session is live - move the timeline to the current time.
         TimeResponse timeResponse = myClient.getTransportClient().getCurrentTime(
@@ -536,6 +538,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return null;
   }
 
+  public void setDefaultStage() {
+    setStage(createDefaultStage());
+  }
+
   public void setMonitoringStage() {
     setStage(new StudioMonitorStage(this));
   }
@@ -625,7 +631,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (Common.Session.getDefaultInstance().equals(newSession)) {
       // No selected session - go to the null stage.
       myTimeline.setIsPaused(true);
-      setStage(new NullMonitorStage(this));
+      setDefaultStage();
       return;
     }
 
@@ -950,6 +956,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
       // will not happen
     }
+  }
+
+  private StreamingStage createDefaultStage() {
+    return new NullMonitorStage(this);
   }
 
   @NotNull

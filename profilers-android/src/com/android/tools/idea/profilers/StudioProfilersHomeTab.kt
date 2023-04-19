@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.tools.profilers.StudioProfilersView
-import com.intellij.openapi.Disposable
+import com.android.tools.profilers.IdeProfilerComponents
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersHomeView
+import com.intellij.openapi.project.Project
 
 /**
- * A tab in the Profiler tool window, wrapping a [StudioProfilersView].
+ * A tab in the Profiler tool window, wrapping a [StudioProfilersHomeView].
  */
-interface StudioProfilersTab : Disposable {
-  val view: StudioProfilersView
+class StudioProfilersHomeTab(project: Project, profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
+  val view = StudioProfilersHomeView(project, profilers, ideProfilerComponents)
 }

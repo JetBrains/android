@@ -43,7 +43,7 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
 
   @JvmField
   @Rule
-  val grpcChannel: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", service)
+  val grpcChannel: FakeGrpcServer = FakeGrpcServer.createFakeGrpcServer("StageWithToolbarViewTestChannel", service)
 
   private val ideProfilerServices = FakeIdeProfilerServices()
   private lateinit var studioProfilers: StudioProfilers
