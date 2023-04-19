@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.debug.render
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.debugger.impl.DebuggerUtilsAsync
 import com.intellij.debugger.settings.NodeRendererSettings
 import com.intellij.debugger.ui.tree.render.ChildrenRenderer
@@ -41,11 +40,7 @@ class KotlinMapEntryRenderer : CompoundRendererProvider() {
     it.name == "Map.Entry"
   }
 
-  override fun isEnabled(): Boolean {
-    if (StudioFlags.COMPOSE_STATE_OBJECT_CUSTOM_RENDERER.get()) return true
-
-    return false
-  }
+  override fun isEnabled() = true
 
   override fun getName(): String {
     return "Kotlin MapEntry"

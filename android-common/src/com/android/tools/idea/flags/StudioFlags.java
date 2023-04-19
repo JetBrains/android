@@ -1296,13 +1296,6 @@ public final class StudioFlags {
     30
   );
 
-  public static final Flag<Boolean> COMPOSE_STATE_OBJECT_CUSTOM_RENDERER = Flag.create(
-    COMPOSE, "custom.renderer.for.compose.state.objects",
-    "Enable custom renderers for compose state objects",
-    "If enabled, a given compose 'StateObject' type object will be rendered by the corresponding custom renderer",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG = Flag.create(
     COMPOSE, "preview.animation.coordination.drag",
     "Enable animation dragging in timeline for Animation Inspector",
