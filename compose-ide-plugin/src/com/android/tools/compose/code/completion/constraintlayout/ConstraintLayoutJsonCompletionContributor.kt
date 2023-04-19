@@ -26,7 +26,6 @@ import com.android.tools.compose.code.completion.constraintlayout.provider.KeyFr
 import com.android.tools.compose.code.completion.constraintlayout.provider.KeyFramesFieldsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.OnSwipeFieldsProvider
 import com.android.tools.compose.code.completion.constraintlayout.provider.TransitionFieldsProvider
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -207,9 +206,7 @@ class ConstraintLayoutJsonCompletionContributor : CompletionContributor() {
   }
 
   override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
-    if (!StudioFlags.COMPOSE_CONSTRAINTLAYOUT_COMPLETION.get() ||
-        parameters.position.getModuleSystem()?.usesCompose != true ||
-        parameters.position.language != JsonLanguage.INSTANCE) {
+    if (parameters.position.getModuleSystem()?.usesCompose != true || parameters.position.language != JsonLanguage.INSTANCE) {
       // TODO(b/207030860): Allow in other contexts once the syntax is supported outside Compose
       return
     }

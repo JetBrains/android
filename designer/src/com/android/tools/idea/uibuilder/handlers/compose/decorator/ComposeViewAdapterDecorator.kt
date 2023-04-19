@@ -26,7 +26,6 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.decorator.SceneDecorator
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnection
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawHorizontalGuideline
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawVerticalGuideline
@@ -44,7 +43,6 @@ class ComposeViewAdapterDecorator : SceneDecorator() {
 
   override fun addContent(list: DisplayList, time: Long, sceneContext: SceneContext, component: SceneComponent) {
     super.addContent(list, time, sceneContext, component)
-    if (!StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get()) return
 
     restoreDesignInfoList(component).forEach { designInfo ->
       addConstraints(list, designInfo.content, sceneContext, time)

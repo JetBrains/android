@@ -1162,13 +1162,6 @@ public final class StudioFlags {
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
     false);
 
-  public static final Flag<Boolean> COMPOSE_CONSTRAINTLAYOUT_COMPLETION = Flag.create(
-    COMPOSE, "editor.completion.constraintlayout.json",
-    "Completion for ConstraintLayout JSON syntax",
-    "If enabled, code completion will be abailable for the JSON syntax of Compose ConstraintLayout.",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
     COMPOSE, "editor.auto.documentation",
     "Show quick documentation automatically for Compose",
@@ -1280,13 +1273,6 @@ public final class StudioFlags {
     "Include Zoom Controls in the Compose Preview dropdown action",
     "If enabled, the zoom controls will also be displayed in the Compose Preview dropdown action, located on the top-left corner",
     false
-  );
-
-  public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
-    COMPOSE, "constraint.visualization",
-    "Enable ConstraintLayout visualization in Compose previews",
-    "If enabled, constraints from a ConstraintLayout composable will be shown in the preview",
-    true
   );
 
   public static final Flag<Integer> COMPOSE_INTERACTIVE_FPS_LIMIT = Flag.create(

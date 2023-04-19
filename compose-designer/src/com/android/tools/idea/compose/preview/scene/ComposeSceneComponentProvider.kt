@@ -27,7 +27,6 @@ import com.android.tools.idea.compose.preview.PxBounds
 import com.android.tools.idea.compose.preview.designinfo.parseDesignInfoList
 import com.android.tools.idea.compose.preview.isEmpty
 import com.android.tools.idea.compose.preview.parseViewInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.diagnostic.Logger
 
@@ -112,12 +111,8 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
         }
       )
 
-    if (StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get()) {
-      sceneComponents
-        .getOrNull(0)
-        ?.myCache
-        ?.put(DESIGN_INFO_LIST_KEY, parseDesignInfoList(viewInfo))
-    }
+    sceneComponents.getOrNull(0)?.myCache?.put(DESIGN_INFO_LIST_KEY, parseDesignInfoList(viewInfo))
+
     return sceneComponents
   }
 

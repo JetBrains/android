@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.code.completion.constraintlayout
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -24,7 +23,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.json.json5.Json5FileType
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.intellij.lang.annotations.Language
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,13 +37,7 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Before
   fun setup() {
-    StudioFlags.COMPOSE_CONSTRAINTLAYOUT_COMPLETION.override(true)
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-  }
-
-  @After
-  fun teardown() {
-    StudioFlags.COMPOSE_CONSTRAINTLAYOUT_COMPLETION.clearOverride()
   }
 
   @Test
