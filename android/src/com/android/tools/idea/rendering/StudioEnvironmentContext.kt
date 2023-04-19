@@ -20,27 +20,51 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
+import com.android.tools.idea.projectsystem.requiresAndroidModel
+import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.layoutlib.LayoutlibContext
+import com.android.tools.rendering.IRenderLogger
+import com.android.tools.rendering.ProblemSeverity
 import com.android.tools.rendering.RenderProblem
+import com.android.tools.rendering.api.EnvironmentContext
+import com.android.tools.rendering.api.IncludeReference
+import com.android.tools.rendering.api.NavGraphResolver
 import com.android.tools.rendering.parsers.RenderXmlFile
-import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.getStartDestLayoutId
+import org.jetbrains.android.sdk.AndroidSdkUtils
 
 /** Studio-specific implementation of [EnvironmentContext]. */
-class StudioEnvironmentContext(private val project: Project) : EnvironmentContext {
-  override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(project)
+class StudioEnvironmentContext(private val module: Module) : EnvironmentContext {
+  override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(module.project)
 
   override val runnableFixFactory: RenderProblem.RunnableFixFactory = ShowFixFactory
+
+  override fun reportMissingSdkDependency(logger: IRenderLogger) {
+    val message = RenderProblem.create(ProblemSeverity.ERROR)
+    logger.addMessage(message)
+    message.htmlBuilder.addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
+                                logger.linkManager.createRunnableLink {
+                                  val project = module.project
+                                  val service = ProjectSettingsService.getInstance(project)
+                                  if (project.requiresAndroidModel() && service is AndroidProjectSettingsService) {
+                                    (service as AndroidProjectSettingsService).openSdkSettings()
+                                    return@createRunnableLink
+                                  }
+                                  AndroidSdkUtils.openModuleDependenciesConfigurable(module)
+                                })
+  }
 
   override fun createIncludeReference(xmlFile: RenderXmlFile, resolver: RenderResources): IncludeReference =
     PsiIncludeReference.get(xmlFile, resolver)
@@ -48,7 +72,7 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
   override fun getFileText(fileName: String): String? {
     val virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName)
     if (virtualFile != null) {
-      val psiFile = AndroidPsiUtils.getPsiFileSafely(project, virtualFile)
+      val psiFile = AndroidPsiUtils.getPsiFileSafely(module.project, virtualFile)
       if (psiFile != null) {
         return if (ApplicationManager.getApplication().isReadAccessAllowed) psiFile.text
         else ApplicationManager.getApplication().runReadAction(
@@ -60,11 +84,11 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
 
   override fun getXmlFile(filePath: PathString): RenderXmlFile? {
     val file = filePath.toVirtualFile()
-    return file?.let { AndroidPsiUtils.getPsiFileSafely(project, it) as? XmlFile }?.let { PsiXmlFile(it) }
+    return file?.let { AndroidPsiUtils.getPsiFileSafely(module.project, it) as? XmlFile }?.let { PsiXmlFile(it) }
   }
 
   override fun getNavGraphResolver(resourceResolver: ResourceResolver): NavGraphResolver {
-    return NavGraphResolver { navGraph -> getStartDestLayoutId(navGraph, project, resourceResolver) }
+    return NavGraphResolver { navGraph -> getStartDestLayoutId(navGraph, module.project, resourceResolver) }
   }
 
   override fun createRenderSecurityManager(projectPath: String?, platform: AndroidPlatform?): RenderSecurityManager {

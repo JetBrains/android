@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering.api
 
-import com.android.ide.common.rendering.api.ResourceValue
-import com.android.tools.dom.ActivityAttributesSnapshot
-
-/** Android application manifest representation for rendering. */
-interface RenderModelManifest {
-  val isRtlSupported: Boolean
-
-  val applicationLabel: ResourceValue?
-
-  val applicationIcon: ResourceValue?
-
-  fun getActivityAttributes(activity: String): ActivityAttributesSnapshot?
+/**
+ * Mapping that based on app:navGraph attribute value returns the corresponding @layout for the corresponding fragment or null is not found.
+ */
+fun interface NavGraphResolver {
+  fun resolve(navGraph: String): String?
 }

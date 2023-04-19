@@ -40,6 +40,7 @@ import com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.api.RenderModelModule;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

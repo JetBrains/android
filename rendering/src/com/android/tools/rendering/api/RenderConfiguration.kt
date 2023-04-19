@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering.api
 
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.configurations.AdaptiveIconShape
+import com.android.tools.configurations.AdaptiveIconShape
 
 /** Facade on decoupling rendering from [com.android.tools.idea.configurations.Configuration]. */
 interface RenderConfiguration {

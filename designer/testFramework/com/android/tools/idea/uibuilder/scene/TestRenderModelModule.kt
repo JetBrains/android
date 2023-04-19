@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.rendering.RenderMergedManifest
-import com.android.tools.idea.rendering.RenderModelManifest
-import com.android.tools.idea.rendering.RenderModelModule
+import com.android.tools.rendering.api.RenderModelModule
+import com.android.tools.rendering.api.RenderModelManifest
 
 /** Studio specific [RenderModelModule] implementation for testing. */
 internal class TestRenderModelModule(

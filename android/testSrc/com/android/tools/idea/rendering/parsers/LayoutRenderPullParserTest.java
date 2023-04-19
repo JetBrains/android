@@ -43,10 +43,10 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.rendering.NavGraphResolver;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.idea.rendering.StudioEnvironmentContext;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.rendering.api.NavGraphResolver;
 import com.android.tools.rendering.parsers.AaptAttrAttributeSnapshot;
 import com.android.tools.rendering.parsers.LayoutPullParser;
 import com.android.tools.rendering.parsers.RenderXmlAttribute;
@@ -654,7 +654,7 @@ public class LayoutRenderPullParserTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(psiFile.getVirtualFile());
     ResourceResolver resourceResolver = configuration.getResourceResolver();
-    NavGraphResolver navGraphResolver = new StudioEnvironmentContext(myModule.getProject()).getNavGraphResolver(resourceResolver);
+    NavGraphResolver navGraphResolver = new StudioEnvironmentContext(myModule).getNavGraphResolver(resourceResolver);
 
     LayoutRenderPullParser parser =
       LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
@@ -700,7 +700,7 @@ public class LayoutRenderPullParserTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(psiFile.getVirtualFile());
     ResourceResolver resourceResolver = configuration.getResourceResolver();
-    NavGraphResolver navGraphResolver = new StudioEnvironmentContext(myModule.getProject()).getNavGraphResolver(resourceResolver);
+    NavGraphResolver navGraphResolver = new StudioEnvironmentContext(myModule).getNavGraphResolver(resourceResolver);
 
     LayoutRenderPullParser parser =
       LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,

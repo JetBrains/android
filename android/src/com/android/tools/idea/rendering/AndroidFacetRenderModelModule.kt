@@ -24,6 +24,10 @@ import com.android.tools.idea.res.AssetRepositoryImpl
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.res.ids.ResourceIdManager
+import com.android.tools.module.ModuleDependencies
+import com.android.tools.rendering.api.EnvironmentContext
+import com.android.tools.rendering.api.RenderModelManifest
+import com.android.tools.rendering.api.RenderModelModule
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -96,5 +100,5 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
 
   override val name: String
     get() = facet.module.name
-  override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module.project)
+  override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module)
 }

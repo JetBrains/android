@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering.parsers;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
-import com.android.tools.idea.rendering.ModuleDependencies;
+import com.android.tools.module.ModuleDependencies;
 import com.android.tools.rendering.parsers.DomPullParser;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.utils.SdkUtils;

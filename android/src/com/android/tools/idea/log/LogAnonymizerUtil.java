@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.log;
 
-import com.android.tools.idea.rendering.RenderModelModule;
+import com.android.tools.rendering.api.RenderModelModule;
 import com.google.common.hash.Hashing;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

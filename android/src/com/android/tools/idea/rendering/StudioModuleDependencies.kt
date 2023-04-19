@@ -18,23 +18,17 @@ package com.android.tools.idea.rendering
 import com.android.SdkConstants
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalAndroidLibrary
-import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.dependsOnAndroidx
-import com.android.tools.rendering.IRenderLogger
-import com.android.tools.rendering.ProblemSeverity
-import com.android.tools.rendering.RenderProblem
+import com.android.tools.module.ModuleDependencies
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.IOException
 
 /** Studio specific implementation of [ModuleDependencies]. */
@@ -53,21 +47,6 @@ class StudioModuleDependencies(private val module: Module) : ModuleDependencies 
 
   override val dependsOnAndroidX: Boolean
     get() = module.dependsOnAndroidx()
-
-  override fun reportMissingSdkDependency(logger: IRenderLogger) {
-    val message = RenderProblem.create(ProblemSeverity.ERROR)
-    logger.addMessage(message)
-    message.htmlBuilder.addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-                                logger.linkManager.createRunnableLink {
-                                  val project = module.project
-                                  val service = ProjectSettingsService.getInstance(project)
-                                  if (project.requiresAndroidModel() && service is AndroidProjectSettingsService) {
-                                    (service as AndroidProjectSettingsService).openSdkSettings()
-                                    return@createRunnableLink
-                                  }
-                                  AndroidSdkUtils.openModuleDependenciesConfigurable(module)
-                                })
-  }
 
   override val rClassesNames: List<String>
     get() =

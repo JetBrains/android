@@ -26,7 +26,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.log.LogAnonymizerUtil;
 import com.android.tools.log.LogAnonymizer;
 import com.android.tools.rendering.IRenderLogger;
-import com.android.tools.idea.rendering.RenderModelModule;
+import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;

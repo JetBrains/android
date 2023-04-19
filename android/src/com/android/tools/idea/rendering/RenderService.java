@@ -29,8 +29,11 @@ import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.layoutlib.LayoutlibFactory;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
+import com.android.tools.rendering.RenderContext;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.api.RenderConfiguration;
+import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
@@ -498,7 +501,7 @@ final public class RenderService implements Disposable {
         IAndroidTarget target = myContext.getConfiguration().getTarget();
 
         if (module.getAndroidPlatform() == null) {
-          myContext.getModule().getDependencies().reportMissingSdkDependency(myLogger);
+          myContext.getModule().getEnvironment().reportMissingSdkDependency(myLogger);
           return null;
         }
 

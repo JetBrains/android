@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering
 
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.rendering.api.RenderConfiguration
+import com.android.tools.rendering.api.RenderModelModule
 
 /**
- * Information required for rendering. Currently, this is [RenderModelModule] and [Configuration].
+ * Information required for rendering. Currently, this is [RenderModelModule] and [RenderConfiguration].
  */
 class RenderContext(
   val module: RenderModelModule,

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.log;
 
-import com.android.tools.idea.rendering.RenderModelModule;
+import com.android.tools.rendering.api.RenderModelModule;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

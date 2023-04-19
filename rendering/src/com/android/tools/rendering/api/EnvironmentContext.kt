@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering.api
 
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
 import com.android.tools.layoutlib.LayoutlibContext
+import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.RenderProblem
+import com.android.tools.rendering.api.IncludeReference
+import com.android.tools.rendering.api.NavGraphResolver
 import com.android.tools.rendering.parsers.RenderXmlFile
 import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.sdk.AndroidPlatform
@@ -34,6 +37,8 @@ interface EnvironmentContext {
   val layoutlibContext: LayoutlibContext
 
   val runnableFixFactory: RenderProblem.RunnableFixFactory
+
+  fun reportMissingSdkDependency(logger: IRenderLogger)
 
   fun createIncludeReference(xmlFile: RenderXmlFile, resolver: RenderResources): IncludeReference
 

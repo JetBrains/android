@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.IdeaModuleProvider
+import com.android.tools.rendering.api.IdeaModuleProvider
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiFile
 import org.jetbrains.annotations.TestOnly

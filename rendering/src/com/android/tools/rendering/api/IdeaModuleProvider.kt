@@ -13,26 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering.api
 
-import com.android.tools.rendering.parsers.RenderXmlFile
-import com.intellij.openapi.project.Project
-import java.io.File
+import com.intellij.openapi.module.Module
 
-/** A reference to a particular file in the project. */
-interface IncludeReference {
-  fun getFromXmlFile(project: Project): RenderXmlFile?
-
-  val fromPath: File
-
-  val fromResourceUrl: String
-
-  companion object {
-    @JvmField
-    val NONE = object : IncludeReference {
-      override fun getFromXmlFile(project: Project): RenderXmlFile? = null
-      override val fromPath: File = File("")
-      override val fromResourceUrl: String = ""
-    }
-  }
+/** Interface providing [Module]. */
+fun interface IdeaModuleProvider {
+  /** Reference to [Module]. Should only be accessed from studio code, because it can not be implemented outside of studio. */
+  fun getIdeaModule(): Module
 }

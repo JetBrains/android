@@ -23,6 +23,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.rendering.api.IncludeReference;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.utils.SdkUtils;

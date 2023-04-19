@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.module
 
-import com.android.tools.rendering.IRenderLogger
 import com.intellij.psi.PsiClass
 
 /** Information about module dependencies required for rendering. */
@@ -29,8 +28,6 @@ interface ModuleDependencies {
   val dependsOnAndroidXDesign: Boolean
 
   val dependsOnAndroidX: Boolean
-
-  fun reportMissingSdkDependency(logger: IRenderLogger)
 
   /** Returns a list R-classes fqcns from the module and all of its dependencies. */
   val rClassesNames: List<String>

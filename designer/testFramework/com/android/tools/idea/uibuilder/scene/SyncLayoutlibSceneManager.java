@@ -24,7 +24,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
-import com.android.tools.idea.rendering.RenderModelModule;
+import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;

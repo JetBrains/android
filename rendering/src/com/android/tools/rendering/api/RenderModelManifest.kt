@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering.api
 
-import com.intellij.openapi.module.Module
+import com.android.ide.common.rendering.api.ResourceValue
+import com.android.tools.dom.ActivityAttributesSnapshot
 
-/** Interface providing [Module]. */
-fun interface IdeaModuleProvider {
-  /** Reference to [Module]. Should only be accessed from studio code, because it can not be implemented outside of studio. */
-  fun getIdeaModule(): Module
+/** Android application manifest representation for rendering. */
+interface RenderModelManifest {
+  val isRtlSupported: Boolean
+
+  val applicationLabel: ResourceValue?
+
+  val applicationIcon: ResourceValue?
+
+  fun getActivityAttributes(activity: String): ActivityAttributesSnapshot?
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.configurations.AdaptiveIconShape;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
