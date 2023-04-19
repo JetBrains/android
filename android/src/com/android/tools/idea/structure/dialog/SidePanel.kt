@@ -20,12 +20,8 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.roots.ui.configuration.SidePanelSeparator
 import com.intellij.openapi.ui.popup.ListItemDescriptor
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.ui.AbstractExpandableItemsHandler
-import com.intellij.ui.ExpandableItemsHandler
-import com.intellij.ui.Gray
-import com.intellij.ui.JBColor
+import com.intellij.ui.*
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
-import com.intellij.ui.SeparatorWithText
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.ui.navigation.History
@@ -38,19 +34,8 @@ import com.intellij.util.ui.GraphicsUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Component
-import java.awt.Font
-import java.awt.Graphics
-import javax.swing.CellRendererPane
-import javax.swing.DefaultListModel
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JList
-import javax.swing.JPanel
-import javax.swing.ListCellRenderer
+import java.awt.*
+import javax.swing.*
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.border.EmptyBorder
 
@@ -110,13 +95,13 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
       val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
       updateCountLabel(isSelected, value)
       layout()
-      if (UIUtil.isClientPropertyTrue(list, ExpandableItemsHandler.EXPANDED_RENDERER)) {
+      if (ClientProperty.isTrue(list, ExpandableItemsHandler.EXPANDED_RENDERER)) {
         val bounds = list.getCellBounds(index, index)
         bounds.setSize(component.preferredSize.getWidth().toInt(), bounds.getHeight().toInt())
         extraPanel?.let {
           AbstractExpandableItemsHandler.setRelativeBounds(component, bounds, it, validationParent)
           it.setSize(it.preferredSize.getWidth().toInt(), it.height)
-          UIUtil.putClientProperty(it, ExpandableItemsHandler.USE_RENDERER_BOUNDS, true)
+          it.putClientProperty(ExpandableItemsHandler.USE_RENDERER_BOUNDS, true)
           return it
         }
       }

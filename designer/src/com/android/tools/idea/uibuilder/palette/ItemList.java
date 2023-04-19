@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.intellij.openapi.util.Pair;
+import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.components.JBLabel;
@@ -25,16 +26,11 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
 
 /**
  * A list control for displaying palette items.
@@ -74,7 +70,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
   }
 
   private boolean displayFittedTextIfNecessary(int index) {
-    return !UIUtil.isClientPropertyTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
+    return !ClientProperty.isTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
            !getExpandableItemsHandler().getExpandedItems().contains(index);
   }
 
