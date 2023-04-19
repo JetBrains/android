@@ -99,75 +99,75 @@ final class ConnectedDevice implements Device {
   }
 
   boolean isVirtualDevice() {
-    return getAndroidDevice().isVirtual();
+    return myAndroidDevice.isVirtual();
   }
 
   boolean isPhysicalDevice() {
-    return !getAndroidDevice().isVirtual();
+    return !myAndroidDevice.isVirtual();
   }
 
   @NotNull
   @Override
-  public Key getKey() {
+  public Key key() {
     return myKey;
   }
 
   @NotNull
   @Override
-  public Icon getIcon() {
+  public Icon icon() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  public Type getType() {
+  public Type type() {
     return myType;
   }
 
   @NotNull
   @Override
-  public LaunchCompatibility getLaunchCompatibility() {
+  public LaunchCompatibility launchCompatibility() {
     return myLaunchCompatibility;
   }
 
   @Override
-  public boolean isConnected() {
+  public boolean connected() {
     throw new UnsupportedOperationException();
   }
 
   @Nullable
   @Override
-  public Instant getConnectionTime() {
+  public Instant connectionTime() {
     return myConnectionTime;
   }
 
   @NotNull
   @Override
-  public String getName() {
+  public String name() {
     return myName;
   }
 
   @NotNull
   @Override
-  public Collection<Snapshot> getSnapshots() {
+  public Collection<Snapshot> snapshots() {
     return Collections.emptyList();
   }
 
   @NotNull
   @Override
-  public Target getDefaultTarget() {
+  public Target defaultTarget() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  public Collection<Target> getTargets() {
+  public Collection<Target> targets() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  public AndroidDevice getAndroidDevice() {
+  public AndroidDevice androidDevice() {
     return myAndroidDevice;
   }
 

@@ -29,7 +29,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import javax.swing.Icon;
@@ -109,17 +109,17 @@ final class VirtualDevice implements Device {
       device = virtualDevice;
     }
 
-    Key key = device.getKey();
+    var key = device.key();
 
     return new Builder()
       .setKey(key)
       .setNameKey(nameKey)
-      .setType(device.getType())
-      .setLaunchCompatibility(connectedDevice.getLaunchCompatibility())
+      .setType(device.type())
+      .setLaunchCompatibility(connectedDevice.launchCompatibility())
       .setConnectionTime(map.get(key))
-      .setName(device.getName())
-      .addAllSnapshots(device.getSnapshots())
-      .setAndroidDevice(connectedDevice.getAndroidDevice())
+      .setName(device.name())
+      .addAllSnapshots(device.snapshots())
+      .setAndroidDevice(connectedDevice.androidDevice())
       .build();
   }
 
@@ -199,20 +199,20 @@ final class VirtualDevice implements Device {
   }
 
   void coldBoot(@NotNull Project project) {
-    ((LaunchableAndroidDevice)getAndroidDevice()).coldBoot(project);
+    ((LaunchableAndroidDevice)myAndroidDevice).coldBoot(project);
   }
 
   void quickBoot(@NotNull Project project) {
-    ((LaunchableAndroidDevice)getAndroidDevice()).quickBoot(project);
+    ((LaunchableAndroidDevice)myAndroidDevice).quickBoot(project);
   }
 
   void bootWithSnapshot(@NotNull Project project, @NotNull Path snapshot) {
-    ((LaunchableAndroidDevice)getAndroidDevice()).bootWithSnapshot(project, snapshot.toString());
+    ((LaunchableAndroidDevice)myAndroidDevice).bootWithSnapshot(project, snapshot.toString());
   }
 
   @NotNull
   @Override
-  public Key getKey() {
+  public Key key() {
     return myKey;
   }
 
@@ -223,18 +223,18 @@ final class VirtualDevice implements Device {
 
   @NotNull
   @Override
-  public Icon getIcon() {
-    var icon = switch (getType()) {
+  public Icon icon() {
+    var icon = switch (myType) {
       case PHONE -> ourPhoneIcon;
       case WEAR -> ourWearIcon;
       case TV -> ourTvIcon;
     };
 
-    if (isConnected()) {
+    if (connected()) {
       icon = ExecutionUtil.getLiveIndicator(icon);
     }
 
-    return switch (getLaunchCompatibility().getState()) {
+    return switch (myLaunchCompatibility.getState()) {
       case OK -> icon;
       case WARNING -> new LayeredIcon(icon, AllIcons.General.WarningDecorator);
       case ERROR -> new LayeredIcon(icon, StudioIcons.Common.ERROR_DECORATOR);
@@ -243,77 +243,76 @@ final class VirtualDevice implements Device {
 
   @NotNull
   @Override
-  public Type getType() {
+  public Type type() {
     return myType;
   }
 
   @NotNull
   @Override
-  public LaunchCompatibility getLaunchCompatibility() {
+  public LaunchCompatibility launchCompatibility() {
     return myLaunchCompatibility;
   }
 
   @Override
-  public boolean isConnected() {
-    return getConnectionTime() != null;
+  public boolean connected() {
+    return myConnectionTime != null;
   }
 
   @Nullable
   @Override
-  public Instant getConnectionTime() {
+  public Instant connectionTime() {
     return myConnectionTime;
   }
 
   @NotNull
   @Override
-  public String getName() {
+  public String name() {
     return myName;
   }
 
   @NotNull
   @Override
-  public Collection<Snapshot> getSnapshots() {
+  public Collection<Snapshot> snapshots() {
     return mySnapshots;
   }
 
   @NotNull
   @Override
-  public Target getDefaultTarget() {
+  public Target defaultTarget() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      return new QuickBootTarget(getKey());
+      return new QuickBootTarget(myKey);
     }
 
-    if (isConnected()) {
-      return new RunningDeviceTarget(getKey());
+    if (connected()) {
+      return new RunningDeviceTarget(myKey);
     }
 
-    return new QuickBootTarget(getKey());
+    return new QuickBootTarget(myKey);
   }
 
   @NotNull
   @Override
-  public Collection<Target> getTargets() {
+  public Collection<Target> targets() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      return Collections.singletonList(new QuickBootTarget(getKey()));
+      return List.of(new QuickBootTarget(myKey));
     }
 
-    if (isConnected()) {
-      return Collections.singletonList(new RunningDeviceTarget(getKey()));
+    if (connected()) {
+      return List.of(new RunningDeviceTarget(myKey));
     }
 
     if (mySnapshots.isEmpty()) {
-      return Collections.singletonList(new QuickBootTarget(getKey()));
+      return List.of(new QuickBootTarget(myKey));
     }
 
     Collection<Target> targets = new ArrayList<>(2 + mySnapshots.size());
-    Key deviceKey = getKey();
 
-    targets.add(new ColdBootTarget(deviceKey));
-    targets.add(new QuickBootTarget(deviceKey));
+    targets.add(new ColdBootTarget(myKey));
+    targets.add(new QuickBootTarget(myKey));
 
     mySnapshots.stream()
       .map(Snapshot::getDirectory)
-      .map(snapshotKey -> new BootWithSnapshotTarget(deviceKey, snapshotKey))
+      .map(snapshotKey -> new BootWithSnapshotTarget(myKey, snapshotKey))
       .forEach(targets::add);
 
     return targets;
@@ -321,7 +320,7 @@ final class VirtualDevice implements Device {
 
   @NotNull
   @Override
-  public AndroidDevice getAndroidDevice() {
+  public AndroidDevice androidDevice() {
     return myAndroidDevice;
   }
 

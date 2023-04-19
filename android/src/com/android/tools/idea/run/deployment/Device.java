@@ -49,49 +49,108 @@ interface Device {
     abstract Device build();
   }
 
+  @NotNull
+  Key key();
+
   /**
    * A physical device will always return a serial number. A virtual device will usually return a virtual device path. But if Studio doesn't
    * know about the virtual device (it's outside the scope of the AVD Manager because it uses a locally built system image, for example) it
    * can return a virtual device path (probably not but I'm not going to assume), virtual device name, or serial number depending on what
    * the IDevice returned.
    */
+  @Deprecated
   @NotNull
   @SuppressWarnings("GrazieInspection")
-  Key getKey();
+  default Key getKey() {
+    return key();
+  }
 
   @NotNull
-  Icon getIcon();
+  Icon icon();
+
+  @Deprecated
+  @NotNull
+  default Icon getIcon() {
+    return icon();
+  }
 
   @NotNull
-  Type getType();
+  Type type();
 
   enum Type {PHONE, WEAR, TV}
 
   @NotNull
-  LaunchCompatibility getLaunchCompatibility();
+  LaunchCompatibility launchCompatibility();
 
-  boolean isConnected();
+  @Deprecated
+  @NotNull
+  default LaunchCompatibility getLaunchCompatibility() {
+    return launchCompatibility();
+  }
+
+  boolean connected();
+
+  @Deprecated
+  default boolean isConnected() {
+    return connected();
+  }
 
   @Nullable
-  Instant getConnectionTime();
+  Instant connectionTime();
+
+  @Deprecated
+  @Nullable
+  default Instant getConnectionTime() {
+    return connectionTime();
+  }
 
   @NotNull
-  String getName();
+  String name();
+
+  @Deprecated
+  @NotNull
+  default String getName() {
+    return name();
+  }
 
   @NotNull
-  Collection<Snapshot> getSnapshots();
+  Collection<Snapshot> snapshots();
+
+  @Deprecated
+  @NotNull
+  default Collection<Snapshot> getSnapshots() {
+    return snapshots();
+  }
 
   @NotNull
-  Target getDefaultTarget();
+  Target defaultTarget();
+
+  @Deprecated
+  @NotNull
+  default Target getDefaultTarget() {
+    return defaultTarget();
+  }
 
   @NotNull
-  Collection<Target> getTargets();
+  Collection<Target> targets();
+
+  @Deprecated
+  @NotNull
+  default Collection<Target> getTargets() {
+    return targets();
+  }
 
   @NotNull
-  AndroidDevice getAndroidDevice();
+  AndroidDevice androidDevice();
+
+  @Deprecated
+  @NotNull
+  default AndroidDevice getAndroidDevice() {
+    return androidDevice();
+  }
 
   @NotNull
-  default ListenableFuture<IDevice> getDdmlibDeviceAsync() {
+  default ListenableFuture<IDevice> ddmlibDeviceAsync() {
     AndroidDevice device = getAndroidDevice();
 
     if (!device.isRunning()) {
@@ -99,5 +158,11 @@ interface Device {
     }
 
     return device.getLaunchedDevice();
+  }
+
+  @Deprecated
+  @NotNull
+  default ListenableFuture<IDevice> getDdmlibDeviceAsync() {
+    return ddmlibDeviceAsync();
   }
 }

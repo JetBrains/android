@@ -25,6 +25,7 @@ import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
@@ -69,15 +70,15 @@ final class PhysicalDevice implements Device {
   }
 
   static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
-    Key key = device.getKey();
+    var key = device.key();
 
     return new Builder()
       .setKey(key)
-      .setType(device.getType())
-      .setLaunchCompatibility(device.getLaunchCompatibility())
+      .setType(device.type())
+      .setLaunchCompatibility(device.launchCompatibility())
       .setConnectionTime(map.get(key))
-      .setName(device.getName())
-      .setAndroidDevice(device.getAndroidDevice())
+      .setName(device.name())
+      .setAndroidDevice(device.androidDevice())
       .build();
   }
 
@@ -134,20 +135,20 @@ final class PhysicalDevice implements Device {
 
   @NotNull
   @Override
-  public Key getKey() {
+  public Key key() {
     return myKey;
   }
 
   @NotNull
   @Override
-  public Icon getIcon() {
-    Icon icon = switch (getType()) {
+  public Icon icon() {
+    var icon = switch (myType) {
       case TV -> ourTvIcon;
       case WEAR -> ourWearIcon;
       case PHONE -> ourPhoneIcon;
     };
 
-    return switch (getLaunchCompatibility().getState()) {
+    return switch (myLaunchCompatibility.getState()) {
       case ERROR -> new LayeredIcon(icon, StudioIcons.Common.ERROR_DECORATOR);
       case WARNING -> new LayeredIcon(icon, AllIcons.General.WarningDecorator);
       case OK -> icon;
@@ -156,13 +157,13 @@ final class PhysicalDevice implements Device {
 
   @NotNull
   @Override
-  public Type getType() {
+  public Type type() {
     return myType;
   }
 
   @NotNull
   @Override
-  public LaunchCompatibility getLaunchCompatibility() {
+  public LaunchCompatibility launchCompatibility() {
     return myLaunchCompatibility;
   }
 
@@ -171,43 +172,43 @@ final class PhysicalDevice implements Device {
    * disconnected physical devices.
    */
   @Override
-  public boolean isConnected() {
+  public boolean connected() {
     return true;
   }
 
   @Nullable
   @Override
-  public Instant getConnectionTime() {
+  public Instant connectionTime() {
     return myConnectionTime;
   }
 
   @NotNull
   @Override
-  public String getName() {
+  public String name() {
     return myName;
   }
 
   @NotNull
   @Override
-  public Collection<Snapshot> getSnapshots() {
+  public Collection<Snapshot> snapshots() {
     return Collections.emptyList();
   }
 
   @NotNull
   @Override
-  public Target getDefaultTarget() {
-    return new RunningDeviceTarget(getKey());
+  public Target defaultTarget() {
+    return new RunningDeviceTarget(myKey);
   }
 
   @NotNull
   @Override
-  public Collection<Target> getTargets() {
-    return Collections.singletonList(new RunningDeviceTarget(getKey()));
+  public Collection<Target> targets() {
+    return List.of(new RunningDeviceTarget(myKey));
   }
 
   @NotNull
   @Override
-  public AndroidDevice getAndroidDevice() {
+  public AndroidDevice androidDevice() {
     return myAndroidDevice;
   }
 
