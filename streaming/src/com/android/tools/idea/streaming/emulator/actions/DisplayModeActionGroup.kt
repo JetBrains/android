@@ -23,20 +23,17 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import icons.StudioIcons
 
 /**
  * Displays a popup menu of display modes of a resizable AVD.
  */
-internal class DisplayModeActionGroup : DefaultActionGroup() {
+internal class DisplayModeActionGroup : DefaultActionGroup(), DumbAware {
 
   init {
     templatePresentation.isPerformGroup = true
-  }
-
-  override fun isDumbAware(): Boolean {
-    return true
   }
 
   override fun actionPerformed(event: AnActionEvent) {
