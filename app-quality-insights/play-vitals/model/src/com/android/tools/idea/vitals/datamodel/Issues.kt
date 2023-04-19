@@ -50,11 +50,7 @@ internal fun ErrorReport.toSampleEvent(): Event {
     eventData =
       EventData(
         device = Device.fromProto(deviceModel),
-        operatingSystemInfo =
-          OperatingSystemInfo(
-            displayVersion = "",
-            displayName = ""
-          ), // TODO: update this once API is updated.
+        operatingSystemInfo = OperatingSystemInfo.fromProto(osVersion),
         eventTime = eventTime.toJavaInstant()
       ),
     stacktraceGroup =
