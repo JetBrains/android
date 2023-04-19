@@ -27,6 +27,7 @@ import com.android.resources.ScreenSize;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
+import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.configurations.ThemeUtils;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.google.common.collect.ImmutableList;

@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.manifmerger.Actions;
 import com.android.manifmerger.MergingReport;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;

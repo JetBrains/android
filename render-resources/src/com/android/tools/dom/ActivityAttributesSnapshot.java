@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.model;
+package com.android.tools.dom;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ public final class ActivityAttributesSnapshot {
   @Nullable private final String myTheme;
   @Nullable private final String myUiOptions;
 
-  ActivityAttributesSnapshot(@NotNull Element element,
+  public ActivityAttributesSnapshot(@NotNull Element element,
                              @Nullable ResourceValue icon,
                              @Nullable ResourceValue label,
                              @NotNull String name,

@@ -49,7 +49,7 @@ import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
-import com.android.tools.idea.model.ActivityAttributesSnapshot;
+import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.CachingImageFactory;
 import com.android.tools.rendering.imagepool.ImagePool;

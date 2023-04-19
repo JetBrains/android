@@ -28,7 +28,7 @@ import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
-import com.android.tools.idea.model.ActivityAttributesSnapshot
+import com.android.tools.dom.ActivityAttributesSnapshot
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.StudioAndroidModuleInfo

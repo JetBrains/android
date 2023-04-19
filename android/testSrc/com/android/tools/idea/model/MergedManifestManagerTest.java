@@ -30,6 +30,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
+import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.res.IdeResourcesUtil;

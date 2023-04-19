@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.ResourceValue
-import com.android.tools.idea.model.ActivityAttributesSnapshot
+import com.android.tools.dom.ActivityAttributesSnapshot
 
 /** Android application manifest representation for rendering. */
 interface RenderModelManifest {
