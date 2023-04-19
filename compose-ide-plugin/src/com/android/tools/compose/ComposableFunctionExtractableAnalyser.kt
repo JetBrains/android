@@ -16,7 +16,6 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
@@ -50,8 +49,7 @@ class ComposableFunctionExtractableAnalyser : AdditionalExtractableAnalyser {
   }
 
   override fun amendDescriptor(descriptor: ExtractableCodeDescriptor): ExtractableCodeDescriptor {
-    if (!StudioFlags.COMPOSE_FUNCTION_EXTRACTION.get() ||
-        descriptor.extractionData.commonParent.getModuleSystem()?.usesCompose != true) {
+    if (descriptor.extractionData.commonParent.getModuleSystem()?.usesCompose != true) {
       return descriptor
     }
 

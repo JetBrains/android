@@ -1162,13 +1162,6 @@ public final class StudioFlags {
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
     false);
 
-  public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
-    COMPOSE, "editor.auto.documentation",
-    "Show quick documentation automatically for Compose",
-    "If enabled, during code completion popup with documentation shows automatically",
-    true
-  );
-
   public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
     COMPOSE, "editor.render.sample",
     "Render samples of compose elements inside documentation",
@@ -1181,13 +1174,6 @@ public final class StudioFlags {
     "Slow down rendering of samples of compose elements inside documentation",
     "If enabled, slow down rendering of samples of compose elements inside documentation, this flag is used for demonstration of non-blocking behavior",
     false
-  );
-
-  public static final Flag<Boolean> COMPOSE_FUNCTION_EXTRACTION = Flag.create(
-    COMPOSE, "editor.function.extraction",
-    "Enables extracting @Composable function from other composables",
-    "If enabled, function extracted from @Composable function will annotated @Composable",
-    true
   );
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT = Flag.create(
