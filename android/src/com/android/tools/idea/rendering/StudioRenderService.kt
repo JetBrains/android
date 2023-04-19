@@ -20,6 +20,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.RenderingException
+import com.android.tools.layoutlib.getLayoutLibrary
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -84,14 +85,16 @@ fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration)
   taskBuilder(facet, configuration, createLogger(facet.module.project))
 
 fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
-  val environment = StudioEnvironmentContext(module.project)
+  val context = StudioLayoutlibContext(module.project)
+  val platform = getInstance(module)
+  if (target == null || platform == null) {
+    return null
+  }
+
   return try {
-    RenderService.getLayoutLibrary(target, getInstance(module), environment)
+    getLayoutLibrary(target, platform, context)
   }
   catch (e: RenderingException) {
-    null
-  }
-  catch (e: InsufficientDataException) {
     null
   }
 }

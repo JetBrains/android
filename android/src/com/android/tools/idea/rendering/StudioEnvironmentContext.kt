@@ -21,12 +21,11 @@ import com.android.ide.common.util.PathString
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
+import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.parsers.RenderXmlFile
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.xml.XmlFile
@@ -34,9 +33,8 @@ import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 
 /** Studio-specific implementation of [EnvironmentContext]. */
 class StudioEnvironmentContext(private val project: Project) : EnvironmentContext {
-  override val parentDisposable: Disposable
-    get() = (project as ProjectEx).earlyDisposable
-  override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
+  override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(project)
+
   override val runnableFixFactory: RenderProblem.RunnableFixFactory = ShowFixFactory
 
   override fun createIncludeReference(xmlFile: RenderXmlFile, resolver: RenderResources): IncludeReference =
