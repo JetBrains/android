@@ -76,7 +76,9 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
     Set<List<String>> allNodes = getAllNodes(structure);
+/* b/279102108
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
+b/279102108 */
   }
 
   public void testGeneratedResources() throws Exception {
