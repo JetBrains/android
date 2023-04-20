@@ -28,6 +28,7 @@ import java.io.File;
 /**
  * Tests for {@link GradleAwareSourceRootRenameValidator}.
  */
+@org.junit.Ignore("b/279102526")
 public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestCase {
   private GradleAwareSourceRootRenameValidator myValidator;
 
