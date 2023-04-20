@@ -59,9 +59,7 @@ public class IntelliJStackTraceViewTest {
     "java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1133)\n" +
     "java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:607)\n" +
     "java.lang.Thread.run(Thread.java:761)";
-  private static final List<CodeLocation> CODE_LOCATIONS = Arrays.stream(STACK_STRING.split("\\n"))
-    .map(StackFrameParser::parseFrame)
-    .collect(Collectors.toList());
+  private static final List<CodeLocation> CODE_LOCATIONS = StackFrameParser.parseStack(STACK_STRING);
 
   @Rule
   public final EdtRule myEdtRule = new EdtRule();

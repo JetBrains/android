@@ -41,9 +41,4 @@ class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView)
 }
 
 /** Captures the stacktrace content contained in an [HttpData] object. */
-private fun HttpData.codeLocations(): List<CodeLocation> =
-  trace
-    .split('\n')
-    .map { line -> line.trim { it <= ' ' } }
-    .filter { line -> line.isNotEmpty() }
-    .mapNotNull { line -> StackFrameParser.parseFrame(line) }
+private fun HttpData.codeLocations(): List<CodeLocation> = StackFrameParser.parseStack(trace)

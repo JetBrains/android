@@ -35,6 +35,12 @@ object StackFrameParser {
 
   private val expressions = patterns.map { Regex(it, RegexOption.IGNORE_CASE) }
 
+  /**
+   * Parse a Java stack trace. Any lines that could not be parsed will be ignored.
+   */
+  @JvmStatic
+  fun parseStack(lines: String): List<CodeLocation> = lines.lines().mapNotNull{ parseFrame(it) }
+
   @JvmStatic
   fun parseFrame(line: String): CodeLocation? = tryParseFrame(expressions.firstNotNullOfOrNull { it.matchEntire(line) })
 
