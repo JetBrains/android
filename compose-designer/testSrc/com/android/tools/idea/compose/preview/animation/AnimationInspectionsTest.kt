@@ -107,6 +107,9 @@ class AnimationInspectionsTest {
       """
       package androidx.compose.animation
 
+      import androidx.compose.animation.core.InfiniteTransition
+      import androidx.compose.animation.core.Transition
+
       fun Transition.animateColor(transitionSpec: () -> Unit, label: String = "ColorAnimation") {}
       fun InfiniteTransition.animateColor(initialValue: Any, targetValue: Any, label: String = "ColorAnimation") {}
       """
