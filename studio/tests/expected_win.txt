@@ -531,7 +531,7 @@ android-studio/lib/jps-model.jar
 android-studio/lib/jsp-base.jar
 android-studio/lib/junit.jar
 android-studio/lib/junit4.jar
-android-studio/lib/native/win/x86_64/sqlitejdbc.dll
+android-studio/lib/native/win-x86_64/sqliteij.dll
 android-studio/lib/platform-objectSerializer-annotations.jar
 android-studio/lib/platform-statistics-devkit.jar
 android-studio/lib/protobuf.jar
@@ -544,6 +544,7 @@ android-studio/lib/resources.jar
 android-studio/lib/stats.jar
 android-studio/lib/testFramework.jar
 android-studio/lib/tools-testsBootstrap.jar
+android-studio/lib/util-8.jar
 android-studio/lib/util.jar
 android-studio/lib/util_rt.jar
 android-studio/lib/xml-dom-impl.jar
@@ -648,6 +649,7 @@ android-studio/plugins/Kotlin/kotlinc/lib/allopen-compiler-plugin.jar
 android-studio/plugins/Kotlin/kotlinc/lib/android-extensions-compiler.jar
 android-studio/plugins/Kotlin/kotlinc/lib/android-extensions-runtime.jar
 android-studio/plugins/Kotlin/kotlinc/lib/annotations-13.0.jar
+android-studio/plugins/Kotlin/kotlinc/lib/assignment-compiler-plugin.jar
 android-studio/plugins/Kotlin/kotlinc/lib/js.engines.jar
 android-studio/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
@@ -727,7 +729,6 @@ android-studio/plugins/Kotlin/kotlinc/license/third_party/lombok_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/maven_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/mocha-teamcity-reporter_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/okhttp_license.txt
-android-studio/plugins/Kotlin/kotlinc/license/third_party/pcollections_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/prototype_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/qunit_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/rhino_LICENSE.txt
@@ -2076,6 +2077,7 @@ android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
 android-studio/plugins/gradle/lib/gradle-wrapper-7.5.1.jar
 android-studio/plugins/gradle/lib/gradle.jar
+android-studio/plugins/html-tools/lib/html-tools.jar
 android-studio/plugins/java-coverage/lib/jacoco.jar
 android-studio/plugins/java-coverage/lib/java-coverage-rt.jar
 android-studio/plugins/java-coverage/lib/java-coverage.jar
@@ -2123,7 +2125,7 @@ android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 android-studio/plugins/tasks/lib/tasks-core.jar
 android-studio/plugins/terminal/.zshenv
-android-studio/plugins/terminal/fish/config.fish
+android-studio/plugins/terminal/fish/init.fish
 android-studio/plugins/terminal/jediterm-bash.in
 android-studio/plugins/terminal/lib/terminal.jar
 android-studio/plugins/test-recorder/lib/swt.jar
@@ -2294,7 +2296,6 @@ android-studio/plugins/textmate/lib/bundles/julia/package.json
 android-studio/plugins/textmate/lib/bundles/julia/package.nls.json
 android-studio/plugins/textmate/lib/bundles/julia/syntaxes/julia.tmLanguage.json
 android-studio/plugins/textmate/lib/bundles/kotlin/info.plist
-android-studio/plugins/textmate/lib/bundles/kotlin/package.json
 android-studio/plugins/textmate/lib/bundles/kotlin/snippets/class.tmSnippet
 android-studio/plugins/textmate/lib/bundles/kotlin/snippets/println.tmSnippet
 android-studio/plugins/textmate/lib/bundles/kotlin/syntaxes/Kotlin.tmLanguage

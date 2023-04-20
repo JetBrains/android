@@ -466,7 +466,7 @@ Android Studio Preview.app/Contents/lib/jps-model.jar
 Android Studio Preview.app/Contents/lib/jsp-base.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
-Android Studio Preview.app/Contents/lib/native/mac/aarch64/libsqlitejdbc.jnilib
+Android Studio Preview.app/Contents/lib/native/mac-aarch64/libsqliteij.jnilib
 Android Studio Preview.app/Contents/lib/platform-objectSerializer-annotations.jar
 Android Studio Preview.app/Contents/lib/platform-statistics-devkit.jar
 Android Studio Preview.app/Contents/lib/protobuf.jar
@@ -476,6 +476,7 @@ Android Studio Preview.app/Contents/lib/resources.jar
 Android Studio Preview.app/Contents/lib/stats.jar
 Android Studio Preview.app/Contents/lib/testFramework.jar
 Android Studio Preview.app/Contents/lib/tools-testsBootstrap.jar
+Android Studio Preview.app/Contents/lib/util-8.jar
 Android Studio Preview.app/Contents/lib/util.jar
 Android Studio Preview.app/Contents/lib/util_rt.jar
 Android Studio Preview.app/Contents/lib/xml-dom-impl.jar
@@ -580,6 +581,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/allopen-compiler-
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/android-extensions-compiler.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/android-extensions-runtime.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/annotations-13.0.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/assignment-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/js.engines.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
@@ -659,7 +661,6 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/l
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/maven_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/mocha-teamcity-reporter_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/okhttp_license.txt
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/pcollections_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/prototype_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/qunit_license.txt
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/license/third_party/rhino_LICENSE.txt
@@ -2754,6 +2755,7 @@ Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-tooling-extension-impl.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-wrapper-7.5.1.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle.jar
+Android Studio Preview.app/Contents/plugins/html-tools/lib/html-tools.jar
 Android Studio Preview.app/Contents/plugins/java-coverage/lib/jacoco.jar
 Android Studio Preview.app/Contents/plugins/java-coverage/lib/java-coverage-rt.jar
 Android Studio Preview.app/Contents/plugins/java-coverage/lib/java-coverage.jar
@@ -2801,7 +2803,7 @@ Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar
 Android Studio Preview.app/Contents/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/tasks-core.jar
 Android Studio Preview.app/Contents/plugins/terminal/.zshenv
-Android Studio Preview.app/Contents/plugins/terminal/fish/config.fish
+Android Studio Preview.app/Contents/plugins/terminal/fish/init.fish
 Android Studio Preview.app/Contents/plugins/terminal/jediterm-bash.in
 Android Studio Preview.app/Contents/plugins/terminal/lib/terminal.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/swt.jar
@@ -2972,7 +2974,6 @@ Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/julia/package.j
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/julia/package.nls.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/julia/syntaxes/julia.tmLanguage.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/kotlin/info.plist
-Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/kotlin/package.json
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/kotlin/snippets/class.tmSnippet
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/kotlin/snippets/println.tmSnippet
 Android Studio Preview.app/Contents/plugins/textmate/lib/bundles/kotlin/syntaxes/Kotlin.tmLanguage

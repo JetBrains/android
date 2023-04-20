@@ -25,6 +25,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/resources.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/stats.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/tools-testsBootstrap.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/util-8.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/util.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/util_rt.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/xml-dom-impl.jar!/" />

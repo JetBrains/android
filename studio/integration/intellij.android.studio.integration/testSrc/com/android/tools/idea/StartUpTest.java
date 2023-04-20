@@ -86,6 +86,7 @@ public class StartUpTest {
         "Gradle managed device code completion",
         "Gradle-Java",
         "Groovy",
+        "HTML Tools",
         "IDEA CORE",
         "Images",
         "IntelliLang",
