@@ -61,10 +61,11 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
+import com.android.tools.idea.rendering.EnvironmentContext;
+import com.android.tools.idea.rendering.InsufficientDataException;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.ResourceUtils;
-import com.android.tools.layoutlib.LayoutlibContext;
-import com.android.tools.layoutlib.LayoutlibFactory;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -469,7 +470,7 @@ public class Configuration implements Disposable, ModificationTracker {
     if (currentConfig != null) {
       if (locale.hasLanguage()) {
         currentConfig.setLocaleQualifier(locale.qualifier);
-        LayoutLibrary layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getLayoutlibContext());
+        LayoutLibrary layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getEnvironmentContext());
         if (layoutLib != null) {
           if (layoutLib.isRtl(locale.toLocaleId())) {
             currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
@@ -481,15 +482,10 @@ public class Configuration implements Disposable, ModificationTracker {
     return currentConfig;
   }
 
-  private static LayoutLibrary getLayoutLibrary(
-    @Nullable IAndroidTarget target, @Nullable AndroidPlatform platform, @NotNull LayoutlibContext context) {
-    if (target == null || platform == null) {
-      return null;
-    }
-
+  private static LayoutLibrary getLayoutLibrary(IAndroidTarget target, AndroidPlatform platform, EnvironmentContext context) {
     try {
-      return LayoutlibFactory.getLayoutLibrary(target, platform, context);
-    } catch (RenderingException ignored) {
+      return RenderService.getLayoutLibrary(target, platform, context);
+    } catch (RenderingException | InsufficientDataException ignored) {
       return null;
     }
   }
@@ -1115,7 +1111,7 @@ public class Configuration implements Disposable, ModificationTracker {
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
     } else {
       ConfigurationModelModule configModule = myManager.getConfigModule();
-      LayoutLibrary layoutLib = getLayoutLibrary(getTarget(), configModule.getAndroidPlatform(), configModule.getLayoutlibContext());
+      LayoutLibrary layoutLib = getLayoutLibrary(getTarget(), configModule.getAndroidPlatform(), configModule.getEnvironmentContext());
       if (layoutLib != null) {
         if (layoutLib.isRtl(locale.toLocaleId())) {
           myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));

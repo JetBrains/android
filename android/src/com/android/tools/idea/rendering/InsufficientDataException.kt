@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.layoutlib.LayoutlibContext
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectEx
+/** An exception raised when there is insufficient data to perform rendering. */
+internal sealed class InsufficientDataException : Exception()
 
-/** Studio-specific implementation of [LayoutlibContext]. */
-class StudioLayoutlibContext(private val project: Project) : LayoutlibContext {
-  override val parentDisposable: Disposable
-    get() = (project as ProjectEx).earlyDisposable
+/** An exception raised when there is no [AndroidPlatform] specified. */
+internal class NoAndroidPlatformException : InsufficientDataException()
 
-  override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
-}
+/** An exception raised when there is no [IAndroidTarget] specified. */
+internal class NoAndroidTargetException : InsufficientDataException()

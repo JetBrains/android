@@ -18,9 +18,9 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
-import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.parsers.RenderXmlFile
+import com.intellij.openapi.Disposable
 
 /**
  * An interface proving access to the general environment specific functionality, primarily related to Intellij IDEA. The interface itself
@@ -29,7 +29,9 @@ import com.android.tools.rendering.parsers.RenderXmlFile
  * In the future, functionality related to DumbService, read/writeAction etc. can be added here.
  */
 interface EnvironmentContext {
-  val layoutlibContext: LayoutlibContext
+  val parentDisposable: Disposable
+
+  fun hasLayoutlibCrash(): Boolean
 
   val runnableFixFactory: RenderProblem.RunnableFixFactory
 

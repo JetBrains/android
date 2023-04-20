@@ -27,7 +27,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
-import com.android.tools.layoutlib.LayoutlibFactory;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
@@ -50,6 +49,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidTargetData;
 import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
@@ -74,7 +75,7 @@ final public class RenderService implements Disposable {
     ourExecutor = RenderExecutor.create();
   }
 
-  static void shutdownRenderExecutor() {
+  protected static void shutdownRenderExecutor() {
     ourExecutor.shutdown();
   }
 
@@ -102,7 +103,23 @@ final public class RenderService implements Disposable {
     return ourExecutor;
   }
 
-  RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
+  @Nullable
+  public static LayoutLibrary getLayoutLibrary(
+    @Nullable IAndroidTarget target,
+    @Nullable AndroidPlatform platform,
+    @NotNull EnvironmentContext environment
+  ) throws RenderingException, NoAndroidTargetException, NoAndroidPlatformException {
+    if (platform == null) {
+      throw new NoAndroidPlatformException();
+    }
+    if (target == null) {
+      throw new NoAndroidTargetException();
+    }
+    return AndroidTargetData.get(platform.getSdkData(), target)
+      .getLayoutLibrary(environment.getParentDisposable(), environment::hasLayoutlibCrash);
+  }
+
+  protected RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
     myConfigureBuilder = configureBuilder;
   }
 
@@ -494,19 +511,9 @@ final public class RenderService implements Disposable {
         }
         IAndroidTarget target = myContext.getConfiguration().getTarget();
 
-        if (module.getAndroidPlatform() == null) {
-          myContext.getModule().getDependencies().reportMissingSdkDependency(myLogger);
-          return null;
-        }
-
-        if (target == null) {
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
-          return null;
-        }
-
         LayoutLibrary layoutLib;
         try {
-          layoutLib = LayoutlibFactory.getLayoutLibrary(target, module.getAndroidPlatform(), module.getEnvironment().getLayoutlibContext());
+          layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getEnvironment());
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
@@ -523,6 +530,14 @@ final public class RenderService implements Disposable {
           myLogger.addMessage(
             RenderProblem.createPlain(
               ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableFixFactory()));
+          return null;
+        }
+        catch (NoAndroidTargetException e) {
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
+          return null;
+        }
+        catch (NoAndroidPlatformException e) {
+          myContext.getModule().getDependencies().reportMissingSdkDependency(myLogger);
           return null;
         }
 
