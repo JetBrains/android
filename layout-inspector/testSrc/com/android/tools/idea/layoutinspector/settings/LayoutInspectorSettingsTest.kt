@@ -31,17 +31,17 @@ class LayoutInspectorSettingsTest {
     val layoutInspectorSettings = LayoutInspectorSettings.getInstance()
     assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
 
-    layoutInspectorSettings.setAutoConnectEnabledInSettings(false)
+    layoutInspectorSettings.autoConnectEnabled = false
     assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
 
     runWithFlagState(false) {
       assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
-      layoutInspectorSettings.setAutoConnectEnabledInSettings(true)
+      layoutInspectorSettings.autoConnectEnabled = true
       assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
     }
 
     runWithFlagState(true) {
-      layoutInspectorSettings.setAutoConnectEnabledInSettings(true)
+      layoutInspectorSettings.autoConnectEnabled = true
       assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
     }
   }
