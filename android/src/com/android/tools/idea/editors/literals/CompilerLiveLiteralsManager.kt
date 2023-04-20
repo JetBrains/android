@@ -21,6 +21,7 @@ import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.literals.internal.MethodData
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.roots.ProjectFileIndex
@@ -64,7 +65,9 @@ private fun findLiteralsInClasses(classes: Collection<ByteArray>): List<Compiler
 
 @VisibleForTesting
 internal fun PsiFile.getRelativePath(): String? =
-  ProjectFileIndex.getInstance(project).getSourceRootForFile(virtualFile)?.let { sourceRoot ->
+  runReadAction {
+    ProjectFileIndex.getInstance(project).getSourceRootForFile(virtualFile)
+  }?.let { sourceRoot ->
     VfsUtilCore.getRelativePath(virtualFile, sourceRoot)
   }
 
