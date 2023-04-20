@@ -473,7 +473,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun removePanel(panel: RunningDevicePanel) {
     val contentManager = toolWindow.contentManager
     val content = contentManager.getContent(panel)
-    contentManager.removeContent(content, true)
+    if (content != null) {
+      contentManager.removeContent(content, true)
+    }
   }
 
   private fun createEmptyStatePanel() {
