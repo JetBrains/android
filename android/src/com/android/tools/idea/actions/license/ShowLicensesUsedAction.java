@@ -26,8 +26,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.JBDimension;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +52,7 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = getEventProject(e);
 
-    new Task.Backgroundable(project, "Collecting Licenses", true) {
+    new Task.Backgroundable(project, "Collecting licenses", true) {
       public String myLicenseText;
 
       @Override
@@ -92,8 +91,8 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
       }
 
       @Override
-      public void onError(@NotNull Exception error) {
-        Messages.showErrorDialog(project, "Error collecting licenses: " + error.toString(), "Show Licenses");
+      public void onThrowable(@NotNull Throwable error) {
+        Messages.showErrorDialog(project, "Error collecting licenses: " + error, "Show Licenses");
       }
     }.queue();
   }
@@ -103,7 +102,6 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
 
     protected LicenseDialog(@Nullable Project project, @NotNull String licenseText) {
       super(project);
-      getWindow().setMinimumSize(JBUI.size(600, 400));
       myLicenseText = licenseText;
     }
 
@@ -117,11 +115,15 @@ public class ShowLicensesUsedAction extends DumbAwareAction {
     protected JComponent createCenterPanel() {
       JPanel panel = new JPanel(new BorderLayout());
 
-      JLabel label = new JLabel();
-      label.setText(myLicenseText);
-      JBScrollPane pane = new JBScrollPane(label);
+      JTextArea textArea = new JTextArea();
+      textArea.setText(myLicenseText);
+      textArea.setEditable(false);
+      textArea.setCaretPosition(0);
 
-      pane.setPreferredSize(JBUI.size(600, 400));
+      JBScrollPane pane = new JBScrollPane(textArea);
+      pane.setMinimumSize(new JBDimension(600, 400));
+      pane.setPreferredSize(new JBDimension(600, 400));
+
       panel.add(pane, BorderLayout.CENTER);
       return panel;
     }

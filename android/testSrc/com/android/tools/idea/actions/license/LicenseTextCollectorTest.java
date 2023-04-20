@@ -36,16 +36,41 @@ public class LicenseTextCollectorTest {
       new LicenseTextCollector(ideHome, new LicensesLocator(ideHome, false).getLicenseFiles()).getLicenseText();
 
     String expected =
-      "------------ License file: NOTICE.txt------------<br><br>main notice<br><br>" +
-      "------------ License file: LICENSE.txt------------<br><br>main license<br><br>" +
-      "------------ License file: license/ant_license.txt------------<br><br>ant<br><br>" +
-      "------------ License file: plugins/android/lib/licenses/antlr4-runtime-4.5.3.jar-NOTICE------------<br><br>antlr4<br><br>" +
-      "------------ License file: plugins/android/lib/licenses/asm-5.0.3-NOTICE------------<br><br>asm5<br><br>";
+      "------------ License file: NOTICE.txt------------\n" +
+      "\n" +
+      "main notice\n" +
+      "\n" +
+      "------------ License file: LICENSE.txt------------\n" +
+      "\n" +
+      "main license\n" +
+      "\n" +
+      "------------ License file: license/ant_license.txt------------\n" +
+      "\n" +
+      "ant\n" +
+      "\n" +
+      "------------ License file: license/third-party-libraries.html------------\n" +
+      "\n" +
+      "\n" +
+      "\n" +
+      "  SoftwareLicense\n" +
+      "  \n" +
+      "    ANTLR 4.9 Runtime 4.9.2\n" +
+      "    BSD 3-Clause\n" +
+      "  \n" +
+      "\n" +
+      "\n" +
+      "------------ License file: plugins/android/lib/licenses/antlr4-runtime-4.5.3.jar-NOTICE------------\n" +
+      "\n" +
+      "antlr4\n" +
+      "\n" +
+      "------------ License file: plugins/android/lib/licenses/asm-5.0.3-NOTICE------------\n" +
+      "\n" +
+      "asm5\n" +
+      "\n";
 
     if (SystemInfo.isWindows) {
       expected = expected.replace('/', '\\');
     }
-    expected = "<html>" + expected + "</html>";
 
     assertThat(cf.get(20, TimeUnit.SECONDS)).isEqualTo(expected);
   }
