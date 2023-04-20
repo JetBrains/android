@@ -15,15 +15,9 @@
  */
 package com.android.tools.compose.code.completion
 
-import com.android.tools.compose.COMPOSE_ALIGNMENT
-import com.android.tools.compose.COMPOSE_ALIGNMENT_HORIZONTAL
-import com.android.tools.compose.COMPOSE_ALIGNMENT_VERTICAL
-import com.android.tools.compose.COMPOSE_ARRANGEMENT
-import com.android.tools.compose.COMPOSE_ARRANGEMENT_HORIZONTAL
-import com.android.tools.compose.COMPOSE_ARRANGEMENT_VERTICAL
-import com.android.tools.compose.matchingParamTypeFqName
-import com.android.tools.compose.isClassOrExtendsClass
 import com.android.tools.compose.isComposeEnabled
+import com.android.tools.compose.matchingParamTypeFqName
+import com.android.tools.compose.returnTypeFqName
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -33,121 +27,101 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.base.util.allScope
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
- * Suggests and orders completion for the Alignment and Arrangement interfaces. Both interfaces have Horizontal, Vertical, and other
- * variants which the default auto-completion intermixes, even though only one subset is generally applicable in any given completion.
+ * Represents a class in the Compose library containing Alignment or Arrangement properties which might be suggested as completions.
  */
-class ComposePositioningCompletionContributor : CompletionContributor() {
+private data class ClassWithDeclarationsToSuggest(
+  /** Package on which this class resides. */
+  private val packageName: String,
+  /** Short(er) name of the class containing properties that can be suggested. This may contain multiple dot-separated pieces, and is
+   * intended to be concatenated with [packageName] to get the interface's fully-qualified name.
+   */
+  private val classShortName: String,
+  /** Short name of the class to be imported when a suggestion is made. This differs from [classShortName] in the case of Companions. */
+  private val classShortNameToImport: String = classShortName,
+  /**
+   * Prefix applied to the property when completing. This is most often the same as [classShortName], but may contain nested classes (e.g.
+   * "Arrangement.Absolute").
+   */
+  private val propertyCompletionPrefix: String = classShortName,
+) {
 
-  override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
-    val elementToComplete = parameters.position
-    if (!isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
-      return
-    }
-    val elementToCompleteTypeFqName = elementToComplete.argumentTypeFqName ?: elementToComplete.propertyTypeFqName
+  private val classFqName = "$packageName.$classShortName"
+  private val classToImport = "$packageName.$classShortNameToImport"
+
+  /**
+   * Returns [LookupElement]s for the given [PsiElement].
+   *
+   * @param typeToSuggest Fully-qualified name of the type required for suggested properties.
+   * @typeText Display text of the type to be used when rendering the [LookupElement]/
+   */
+  fun getLookupElements(elementToComplete: PsiElement, typeToSuggest: String, typeText: String): List<LookupElement> {
     val project = elementToComplete.project
-    val (elementsToSuggest, classForImport) = when (elementToCompleteTypeFqName) {
-      COMPOSE_ALIGNMENT_HORIZONTAL -> Pair(getAlignments(project, COMPOSE_ALIGNMENT_HORIZONTAL), COMPOSE_ALIGNMENT)
-      COMPOSE_ALIGNMENT_VERTICAL -> Pair(getAlignments(project, COMPOSE_ALIGNMENT_VERTICAL), COMPOSE_ALIGNMENT)
-      COMPOSE_ARRANGEMENT_HORIZONTAL -> Pair(getArrangements(project, COMPOSE_ARRANGEMENT_HORIZONTAL), COMPOSE_ARRANGEMENT)
-      COMPOSE_ARRANGEMENT_VERTICAL -> Pair(getArrangements(project, COMPOSE_ARRANGEMENT_VERTICAL), COMPOSE_ARRANGEMENT)
-      else -> return
-    }
 
-    val isNewElement = elementToComplete.parentOfType<KtDotQualifiedExpression>() == null
-    val lookupElements = elementsToSuggest.map {
-      getStaticPropertyLookupElement(it, classForImport, elementToCompleteTypeFqName, isNewElement)
-    }
-    result.addAllElements(lookupElements)
-
-    if (!isNewElement) {
-      val addedElementsNames = elementsToSuggest.mapNotNull { it.name }
-      result.runRemainingContributors(parameters) { completionResult ->
-        val skipResult = (completionResult.lookupElement.psiElement as? KtProperty)?.name?.let { addedElementsNames.contains(it) }
-        if (skipResult != true) {
-          result.passResult(completionResult)
-        }
-      }
-    }
+    // It's necessary to ensure these are distinct, because in some circumstances there may be multiple versions of the class returned when
+    // searching with 'allScope'.
+    return KotlinFullClassNameIndex.get(classFqName, project, project.allScope())
+      .flatMap { it.getPropertiesByType(project)[typeToSuggest] ?: emptyList() }
+      .distinctBy { it.kotlinFqName }
+      .mapNotNull { createLookupElement(it, elementToComplete, typeText) }
   }
 
-  private fun getKotlinClass(project: Project, classFqName: String): KtClassOrObject? {
-    return KotlinFullClassNameIndex.getInstance()
-      .get(classFqName, project, project.allScope())
-      .firstOrNull()
-  }
+  private fun createLookupElement(elementToSuggest: KtDeclaration, elementToComplete: PsiElement, typeText: String): LookupElement? {
+    val lookupStringWithClass = "${propertyCompletionPrefix}.${elementToSuggest.name}"
+    val presentableTailText = " ($packageName)"
 
-  private fun getAlignments(project: Project, alignmentFqName: String): Collection<KtDeclaration> {
-    val alignmentClass = getKotlinClass(project, alignmentFqName) ?: return emptyList()
-    return CachedValuesManager.getManager(project).getCachedValue(alignmentClass) {
-      val alignmentTopLevelClass = getKotlinClass(project, COMPOSE_ALIGNMENT)!!
-      val companionObject = alignmentTopLevelClass.companionObjects.firstOrNull()
-      val alignments = companionObject?.declarations?.filter {
-        it is KtProperty && it.type()?.isClassOrExtendsClass(alignmentFqName) == true
-      }
-      CachedValueProvider.Result.create(alignments, ProjectRootModificationTracker.getInstance(project))
-    }
-  }
+    // If the user's already typed part of a dot expression, then not all the given suggestions from this class will be applicable.
+    // For example, if the user has typed "Arrangement.Absolute.L", we want to exclude "Arrangement.Left".
+    val alreadyCompletedPrefix =
+      elementToComplete.parentOfType<KtDotQualifiedExpression>()?.receiverExpression?.normalizedExpressionText()?.let { "$it." } ?: ""
 
-  private fun getArrangements(project: Project, arrangementFqName: String): Collection<KtDeclaration> {
-    val arrangementClass = getKotlinClass(project, arrangementFqName) ?: return emptyList()
-    return CachedValuesManager.getManager(project).getCachedValue(arrangementClass) {
-      val arrangementTopLevelClass = getKotlinClass(project, COMPOSE_ARRANGEMENT)!!
-      val arrangements = arrangementTopLevelClass.declarations.filter {
-        it is KtProperty && it.type()?.isClassOrExtendsClass(arrangementFqName) == true
-      }
-      CachedValueProvider.Result.create(arrangements, ProjectRootModificationTracker.getInstance(project))
-    }
-  }
+    if (!lookupStringWithClass.startsWith(alreadyCompletedPrefix)) return null
 
-  private fun getStaticPropertyLookupElement(psiElement: KtDeclaration, ktClassName: String, elementToCompleteTypeFqName: String, isNewElement: Boolean): LookupElement {
-    val fqName = FqName(ktClassName)
-    val mainLookupString = if (isNewElement) "${fqName.shortName()}.${psiElement.name}" else psiElement.name!!
-
-    // For all the cases handled by this contributor, the classes involved are in the form
-    // "longpackage.(Arrangement|Alignment).(Vertical|Horizontal)". We want to show those last two tokens to help the user understand what
-    // they're choosing.
-    val typeText = elementToCompleteTypeFqName.split('.').takeLast(2).joinToString(".")
+    // When completing one of these properties with a dot expression, we want the lookup string to exclude any full piece that's already
+    // been typed. For example, if the suggestion is "Arrangement.Absolute.Left" and the user has types "Arrangement.Ab", we want the
+    // resulting lookup string to be "Absolute.Left".
+    val mainLookupString = lookupStringWithClass.removePrefix(alreadyCompletedPrefix)
 
     val builder = LookupElementBuilder
-      .create(psiElement, mainLookupString)
-      .withLookupString(psiElement.name!!)
+      .create(elementToSuggest, mainLookupString)
       .bold()
-      .withTailText(" (${ktClassName.substringBeforeLast('.')})", true)
+      .withTailText(presentableTailText, true)
       .withTypeText(typeText)
-      .withInsertHandler lambda@{ context, item ->
-        //Add import.
+      .withInsertHandler lambda@{ context, _ ->
+        // Add import in addition to filling in the completion.
         val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
         val ktFile = context.file as KtFile
-        val modifierDescriptor = ktFile.resolveImportReference(fqName).singleOrNull() ?: return@lambda
-        ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, modifierDescriptor)
-        psiDocumentManager.commitAllDocuments()
-        psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+        val modifierDescriptor = ktFile.resolveImportReference(FqName(classToImport)).singleOrNull()
+        if (modifierDescriptor != null) {
+          ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, modifierDescriptor)
+          psiDocumentManager.commitAllDocuments()
+          psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+        }
       }
 
     return object : LookupElementDecorator<LookupElement>(builder) {
@@ -158,22 +132,189 @@ class ComposePositioningCompletionContributor : CompletionContributor() {
     }
   }
 
-  private val PsiElement.propertyTypeFqName: String?
-    get() {
-      val property = contextOfType<KtProperty>() ?: return null
-      return property.type()?.fqName?.asString()
+  companion object {
+    /** Gets a list of this class's properties grouped by their fully-qualified type name. This result is cached for fast retrieval. */
+    private fun KtClassOrObject.getPropertiesByType(project: Project): Map<String, List<KtProperty>> {
+      return CachedValuesManager.getManager(project).getCachedValue(this) {
+        val result = declarations
+          .filterIsInstance<KtProperty>()
+          .mapNotNull { property ->
+            property.returnTypeFqName()?.asString()?.let { Pair(it, property) }
+          }
+          .groupBy({ it.first }, { it.second })
+        CachedValueProvider.Result.create(result, this)
+      }
     }
 
-  private val PsiElement.argumentTypeFqName: String?
-    get() {
-      val argument = contextOfType<KtValueArgument>().takeIf { it !is KtLambdaArgument } ?: return null
+    /**
+     * Given a dot-qualified expression, returns a normalized form of the name. This removes inconsistencies that may be introduced by
+     * whitespace within the name; so the expression "com . foo   .bar" will be reduced to "com.foo.bar".
+     */
+    private fun KtExpression.normalizedExpressionText(): String? {
+      return when(this) {
+        is KtDotQualifiedExpression -> {
+          val leftSide = receiverExpression.normalizedExpressionText() ?: return null
+          val rightSide = selectorExpression?.normalizedExpressionText() ?: return null
+          "$leftSide.$rightSide"
+        }
+        is KtSimpleNameExpression -> getIdentifier()?.text
+        else -> null
+      }
+    }
+  }
+}
 
-      val callExpression = argument.parentOfType<KtCallElement>() ?: return null
-      val callee = callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction ?: return null
+/** Represents one of the interface types used to specify Alignment or Arrangement. */
+private data class PositioningInterface(
+  /** Package on which this interface resides. */
+  private val packageName: String,
+  /**
+   * Short(er) name of the interface. This may contain multiple dot-separated pieces, and is intended to be concatenated with [packageName]
+   * to get the interface's fully-qualified name.
+   */
+  private val interfaceName: String,
+  /** A list of classes on which to search for properties implementing this interface, which can be used for suggestions. */
+  private val suggestedCompletionPropertyClasses: List<ClassWithDeclarationsToSuggest>,
+  /** An additional type that is allowed for suggestions in addition to [interfaceName]. The type must reside on the same [packageName]. */
+  private val additionalTypeToSuggest: String? = null,
+) {
 
-      val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
+  val interfaceFqName = "$packageName.$interfaceName"
 
-      return argumentTypeFqName?.asString()
+  /**
+   * A list of types that are allowed for suggestions.
+   *
+   * The first [String] in this [Pair] represents the fully-qualified name of the type. The second [String] in this [Pair] represents a
+   * shorter version of the type that can be displayed on the right side of the auto-completion dialog.
+   */
+  private val typesToSuggest: List<Pair<String, String>> = buildList {
+    add("$packageName.$interfaceName" to interfaceName)
+    additionalTypeToSuggest?.let { add("$packageName.$it" to it) }
+  }
+
+  /** Returns [LookupElement]s for the given [PsiElement]. */
+  fun getSuggestedCompletions(elementToComplete: PsiElement): List<LookupElement> {
+    return suggestedCompletionPropertyClasses.flatMap { clazz ->
+      typesToSuggest.flatMap { typeToSuggest ->
+        clazz.getLookupElements(elementToComplete, typeToSuggest.first, typeToSuggest.second)
+      }
+    }
+  }
+
+  companion object {
+
+    /** Returns an applicable [PositioningInterface] for the given [PsiElement] if one exists. */
+    fun forCompletionElement(psiElement: PsiElement): PositioningInterface? {
+      // Arrangement and Alignment completions are handled when completing arguments and properties only.
+      val elementToCompleteTypeFqName = psiElement.argumentTypeFqName ?: psiElement.propertyTypeFqName ?: return null
+      return VALUES[elementToCompleteTypeFqName]
     }
 
+    private val PsiElement.propertyTypeFqName: String?
+      get() {
+        val property = contextOfType<KtProperty>() ?: return null
+        return property.returnTypeFqName()?.asString()
+      }
+
+    private val PsiElement.argumentTypeFqName: String?
+      get() {
+        val argument = contextOfType<KtValueArgument>().takeIf { it !is KtLambdaArgument } ?: return null
+
+        val callExpression = argument.parentOfType<KtCallElement>() ?: return null
+        val callee = callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction ?: return null
+
+        val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
+
+        return argumentTypeFqName?.asString()
+      }
+
+    private const val ALIGNMENT_PACKAGE = "androidx.compose.ui"
+    private const val ARRANGEMENT_PACKAGE = "androidx.compose.foundation.layout"
+
+    private val ALIGNMENT_CLASSES_FOR_SUGGESTIONS = listOf(
+      ClassWithDeclarationsToSuggest(
+        packageName = ALIGNMENT_PACKAGE,
+        classShortName = "Alignment.Companion",
+        classShortNameToImport = "Alignment",
+        propertyCompletionPrefix = "Alignment",
+      ),
+      ClassWithDeclarationsToSuggest(
+        packageName = ALIGNMENT_PACKAGE,
+        classShortName = "AbsoluteAlignment",
+      ),
+    )
+
+    private val ARRANGEMENT_CLASSES_FOR_SUGGESTIONS = listOf(
+      ClassWithDeclarationsToSuggest(
+        packageName = ARRANGEMENT_PACKAGE,
+        classShortName = "Arrangement",
+      ),
+      ClassWithDeclarationsToSuggest(
+        packageName = ARRANGEMENT_PACKAGE,
+        classShortName = "Arrangement.Absolute",
+        classShortNameToImport = "Arrangement",
+      ),
+    )
+
+    private val VALUES = listOf(
+      PositioningInterface(
+        packageName = ALIGNMENT_PACKAGE,
+        interfaceName = "Alignment",
+        ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
+      ),
+      PositioningInterface(
+        packageName = ALIGNMENT_PACKAGE,
+        interfaceName = "Alignment.Horizontal",
+        ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
+      ),
+      PositioningInterface(
+        packageName = ALIGNMENT_PACKAGE,
+        interfaceName = "Alignment.Vertical",
+        ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
+      ),
+
+      PositioningInterface(
+        packageName = ARRANGEMENT_PACKAGE,
+        interfaceName = "Arrangement.Horizontal",
+        ARRANGEMENT_CLASSES_FOR_SUGGESTIONS,
+        additionalTypeToSuggest = "Arrangement.HorizontalOrVertical",
+      ),
+      PositioningInterface(
+        packageName = ARRANGEMENT_PACKAGE,
+        interfaceName = "Arrangement.Vertical",
+        ARRANGEMENT_CLASSES_FOR_SUGGESTIONS,
+        additionalTypeToSuggest = "Arrangement.HorizontalOrVertical",
+      ),
+      PositioningInterface(
+        packageName = ARRANGEMENT_PACKAGE,
+        interfaceName = "Arrangement.HorizontalOrVertical",
+        ARRANGEMENT_CLASSES_FOR_SUGGESTIONS,
+      ),
+    ).associateBy { it.interfaceFqName }
+  }
+}
+
+/**
+ * Suggests and orders completion for the Alignment and Arrangement interfaces. Both interfaces have Horizontal and Vertical variants which
+ * the default auto-completion intermixes, even though only one subset is generally applicable in any given completion.
+ */
+class ComposePositioningCompletionContributor : CompletionContributor() {
+  override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
+    val elementToComplete = parameters.position
+
+    if (!isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) return
+
+    // Add any suggested elements needed for this element.
+    val lookupElements = PositioningInterface.forCompletionElement(elementToComplete)?.getSuggestedCompletions(elementToComplete) ?: return
+    result.addAllElements(lookupElements)
+
+    // Run the remaining contributors, removing any duplicates of the items that have already been suggested.
+    val addedElements = lookupElements.mapNotNull { it.psiElement?.kotlinFqName }.toSet()
+    result.runRemainingContributors(parameters) { completionResult ->
+      val alreadyAddedElement = completionResult.lookupElement.psiElement?.kotlinFqName?.let { addedElements.contains(it) } ?: false
+      if (!alreadyAddedElement) {
+        result.passResult(completionResult)
+      }
+    }
+  }
 }
