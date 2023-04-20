@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.actions.license;
 
-import com.google.common.io.Files;
-import java.io.File;
+import java.nio.file.Files;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import org.jetbrains.annotations.NotNull;
 
 public class LicenseTextCollector {
   private final Path myHome;
@@ -41,25 +41,24 @@ public class LicenseTextCollector {
   private String getLicenseTextSync() {
     StringBuilder sb = new StringBuilder(10*1024);
 
-    sb.append("<html>");
     for (Path license : myLicenses) {
       sb.append("------------ License file: ");
-      sb.append(myHome.relativize(license).toString());
+      sb.append(myHome.relativize(license));
       sb.append("------------");
-      sb.append("<br><br>");
-      sb.append(getLicenseText(license.toFile()));
-      sb.append("<br><br>");
+      sb.append("\n\n");
+      sb.append(getLicenseText(license));
+      sb.append("\n\n");;
     }
-    sb.append("</html>");
 
     return sb.toString();
   }
 
   @NotNull
-  private static String getLicenseText(@NotNull File f) {
+  private static String getLicenseText(@NotNull Path path) {
     try {
-      return Files
-        .toString(f, StandardCharsets.UTF_8).replaceAll("\\<.*?\\>", "").replace("\n", "<br>");
+      return Files.readString(path, StandardCharsets.UTF_8)
+        .replaceAll("(?s)<style(\\s*)>.*?</style(\\s*)>", "")
+        .replaceAll("<.*?>", "");
     }
     catch (IOException e) {
       return "";
