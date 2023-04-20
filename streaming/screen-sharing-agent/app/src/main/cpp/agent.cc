@@ -68,7 +68,7 @@ void sighup_handler(int signal_number) {
 
 }  // namespace
 
-Agent::Agent(const vector<string>& args) {
+void Agent::Initialize(const vector<string>& args) {
   for (int i = 1; i < args.size(); i++) {
     const string& arg = args[i];
     if (arg.rfind("--socket=", 0) == 0) {
@@ -126,9 +126,9 @@ Agent::Agent(const vector<string>& args) {
   api_level_ = android_get_device_api_level();
 }
 
-Agent::~Agent() = default;
+void Agent::Run(const vector<string>& args) {
+  Initialize(args);
 
-void Agent::Run() {
   struct sigaction action = { .sa_handler = sighup_handler };
   int res = sigaction(SIGHUP, &action, nullptr);
   if (res < 0) {

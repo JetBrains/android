@@ -207,10 +207,6 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   return video_size;
 }
 
-void ConfigureVirtualDisplay(Jni jni, jobject virtual_display, ANativeWindow* surface, Size size) {
-
-}
-
 }  // namespace
 
 DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max_video_resolution, int32_t initial_video_orientation,

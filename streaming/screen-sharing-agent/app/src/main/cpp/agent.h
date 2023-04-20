@@ -19,7 +19,6 @@
 #include <string>
 #include <vector>
 
-#include "common.h"
 #include "controller.h"
 #include "display_streamer.h"
 #include "session_environment.h"
@@ -29,10 +28,8 @@ namespace screensharing {
 // The main class of the screen sharing agent.
 class Agent {
 public:
-  Agent(const std::vector<std::string>& args);
-  ~Agent();
-
-  static void Run();
+  Agent() = delete;
+  static void Run(const std::vector<std::string>& args);
 
   static void StartVideoStream() {
     display_streamer_->Start();
@@ -67,6 +64,8 @@ public:
   inline static int32_t api_level() { return api_level_; }
 
 private:
+  static void Initialize(const std::vector<std::string>& args);
+
   static int32_t api_level_;
   static std::string socket_name_;
   static int32_t display_id_;
@@ -81,8 +80,6 @@ private:
   static SessionEnvironment* session_environment_;  // GUARDED_BY(environment_mutex_)
   static std::atomic_int64_t last_touch_time_millis_;
   static std::atomic_bool shutting_down_;
-
-  DISALLOW_COPY_AND_ASSIGN(Agent);
 };
 
 }  // namespace screensharing
