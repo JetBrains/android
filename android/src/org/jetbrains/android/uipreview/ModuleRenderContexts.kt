@@ -24,6 +24,6 @@ import org.jetbrains.kotlin.idea.base.util.module
 /** Studio-specific [ModuleRenderContext] constructor. */
 fun forFile(file: PsiFile): ModuleRenderContext {
   val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
-  val module = file.module!!
+  val module = runReadAction { file.module!! }
   return ModuleRenderContext.forFile({ module }) { runReadAction { filePointer.element } }
 }

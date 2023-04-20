@@ -94,7 +94,6 @@ private fun defaultDaemonFactory(
   return OutOfProcessCompilerDaemonClientImpl(version, scope, log)
 }
 
-@org.junit.Ignore("b/278929691")
 @RunWith(Parameterized::class)
 class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   companion object {
@@ -149,7 +148,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @Test
   fun testSingleFileCompileSuccessfully() {
-    val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
       val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
@@ -165,7 +164,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     projectRule.requestSyncAndWait()
     projectRule.buildAndAssertIsSuccessful()
 
-    val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(stringResource(R.string.greeting))\n")
     runBlocking {
       val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, module)
@@ -208,7 +207,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @Test
   fun testDaemonIsRestartedAutomatically() {
-    val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
       val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
@@ -230,7 +229,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val initialState =
       renderPreviewElement(projectRule.androidFacet(":app"), previewElement).get()!!
 
-    val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     typeAndSaveDocument("Text(\"Hello 3\")\n")
     runBlocking {
       val (result, outputPath) = fastPreviewManager.compileRequest(psiMainFile, module)
@@ -246,7 +245,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @Test
   fun testMultipleFilesCompileSuccessfully() {
-    val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+    val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
     val psiSecondFile = runReadAction {
       val vFile =
         projectRule.project
@@ -278,7 +277,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val previewThread = thread {
       startCountDownLatch.await()
       while (compile) {
-        val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+        val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
         typeAndSaveDocument("Text(\"Hello 3\")\n")
         runBlocking { fastPreviewManager.compileRequest(psiMainFile, module) }
         previewCompilations.incrementAndGet()
@@ -324,7 +323,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val originalUseInlineAnalysis = LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis
     LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = true
     try {
-      val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
+      val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
       typeAndSaveDocument("inlineCall()\n")
       runWriteActionAndWait { projectRule.fixture.moveCaret("|@Preview") }
       runInEdtAndWait {
