@@ -137,7 +137,7 @@ public class AndroidLaunchTasksProvider {
     List<LaunchTask> tasks = new ArrayList<>();
     DeployType deployType = getDeployType();
 
-    List<String> disabledFeatures = myLaunchOptions.getDisabledDynamicFeatures();
+    List<String> disabledFeatures = myRunConfig.getDisabledDynamicFeatures();
     // Add packages to the deployment, filtering out any dynamic features that are disabled.
     List<ApkInfo> packages = myApkProvider.getApks(device).stream()
       .map(apkInfo -> filterDisabledFeatures(apkInfo, disabledFeatures))
@@ -153,7 +153,7 @@ public class AndroidLaunchTasksProvider {
           myProject,
           packages,
           isApplyChangesFallbackToRun(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myRunConfig.ALWAYS_INSTALL_WITH_PM));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppRefresh(device)));
 
@@ -163,7 +163,7 @@ public class AndroidLaunchTasksProvider {
           myProject,
           packages,
           isApplyCodeChangesFallbackToRun(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myRunConfig.ALWAYS_INSTALL_WITH_PM));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppRefresh(device)));
         break;
@@ -171,9 +171,9 @@ public class AndroidLaunchTasksProvider {
         tasks.add(new DeployTask(
           myProject,
           packages,
-          myLaunchOptions.getPmInstallOptions(device),
-          myLaunchOptions.getInstallOnAllUsers(),
-          myLaunchOptions.getAlwaysInstallWithPm()));
+          myRunConfig.PM_INSTALL_OPTIONS,
+          myRunConfig.ALL_USERS,
+          myRunConfig.ALWAYS_INSTALL_WITH_PM));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         if (LiveEditService.usesCompose(myProject)) {
           LiveEditApp app = new LiveEditApp(getApkPaths(device, myApkProvider), device.getVersion().getApiLevel());
@@ -207,7 +207,7 @@ public class AndroidLaunchTasksProvider {
   public void fillStats(RunStats stats) {
     stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun());
     stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun());
-    stats.setRunAlwaysInstallWithPm(myLaunchOptions.getAlwaysInstallWithPm());
+    stats.setRunAlwaysInstallWithPm(myRunConfig.ALWAYS_INSTALL_WITH_PM);
     stats.setIsComposeProject(LiveEditService.usesCompose(myProject));
   }
 

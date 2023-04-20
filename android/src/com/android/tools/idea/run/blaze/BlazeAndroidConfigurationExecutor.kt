@@ -23,7 +23,6 @@ import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
@@ -37,6 +36,7 @@ import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
+import com.android.tools.idea.run.tasks.clearAppStorage
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
@@ -86,7 +86,7 @@ class BlazeAndroidConfigurationExecutor(
     val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
 
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator, console)
+    doRun(devices, processHandler, false, indicator, console)
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
@@ -105,6 +105,7 @@ class BlazeAndroidConfigurationExecutor(
 
   private suspend fun doRun(devices: List<IDevice>,
                             processHandler: ProcessHandler,
+                            isDebug: Boolean,
                             indicator: ProgressIndicator,
                             console: ConsoleView) = coroutineScope {
     val applicationId = applicationIdProvider.packageName
@@ -126,7 +127,7 @@ class BlazeAndroidConfigurationExecutor(
           LaunchUtils.initiateDismissKeyguard(device)
           LOG.info("Launching on device ${device.name}")
           val launchContext = BlazeLaunchContext(env, device, console, processHandler, indicator)
-          myLaunchTasksProvider.getTasks(device).forEach {
+          myLaunchTasksProvider.getTasks(device, isDebug).forEach {
             it.run(launchContext)
           }
           // Notify listeners of the deployment.
@@ -164,7 +165,7 @@ class BlazeAndroidConfigurationExecutor(
 
     val processHandler = NopProcessHandler()
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator, console)
+    doRun(devices, processHandler, true, indicator, console)
 
     val device = devices.single()
     val debuggerTask = myLaunchTasksProvider.connectDebuggerTask
@@ -192,7 +193,7 @@ class BlazeAndroidConfigurationExecutor(
 
 interface BlazeLaunchTasksProvider {
   @Throws(ExecutionException::class)
-  fun getTasks(device: IDevice): List<BlazeLaunchTask>
+  fun getTasks(device: IDevice, isDebug: Boolean): List<BlazeLaunchTask>
 
   @get:Throws(ExecutionException::class)
   val connectDebuggerTask: ConnectDebuggerTask?

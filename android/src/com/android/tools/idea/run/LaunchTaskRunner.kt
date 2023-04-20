@@ -119,7 +119,7 @@ class LaunchTaskRunner(
                             isDebug: Boolean) = coroutineScope {
     val packageName = applicationIdProvider.packageName
     val launchTasksProvider = AndroidLaunchTasksProvider(configuration, env, facet, packageName, apkProvider,
-                                                         configuration.launchOptions.build(), isDebug)
+                                                         configuration.getLaunchOptions(), isDebug)
     val stat = RunStats.from(env).apply { setPackage(packageName) }
 
     printLaunchTaskStartedMessage(console)

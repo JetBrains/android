@@ -86,7 +86,6 @@ class DynamicFeatureInstantAppTest  {
       env = ExecutionEnvironment(ex, runner, configSettings, project)
 
       launchOptionsBuilder = LaunchOptions.builder()
-        .setClearLogcatBeforeStart(false)
 
       instantAppSdks = IdeComponents(null, projectRule.testRootDisposable)
         .mockApplicationService(InstantAppSdks::class.java)

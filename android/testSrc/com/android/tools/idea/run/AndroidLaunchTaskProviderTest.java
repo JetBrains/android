@@ -68,53 +68,50 @@ public class AndroidLaunchTaskProviderTest {
     RunnerAndConfigurationSettings configSettings =
       RunManager.getInstance(getProject())
         .getAllSettings()
-          .stream()
-          .filter(it -> it.getConfiguration() instanceof AndroidRunConfiguration)
-          .collect(MoreCollectors.onlyOne())
-          .get();
-      AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
+        .stream()
+        .filter(it -> it.getConfiguration() instanceof AndroidRunConfiguration)
+        .collect(MoreCollectors.onlyOne())
+        .get();
+    AndroidRunConfiguration config = (AndroidRunConfiguration)configSettings.getConfiguration();
 
-      config.setModule(androidFacet.getModule());
-      try {
-        configSettings.checkSettings();
-      }
-      catch (RuntimeConfigurationException e) {
-        fail(e.getMessage());
-      }
-      if (debug) {
-        config.getAndroidDebuggerContext().setDebuggerType(getDebuggerType());
-      }
-      IDevice device = mockDeviceFor(26, ImmutableList.of(Abi.X86, Abi.X86_64));
-      MakeBeforeRunTaskProviderTestUtilKt.executeMakeBeforeRunStepInTest(config, device);
+    config.setModule(androidFacet.getModule());
+    try {
+      configSettings.checkSettings();
+    }
+    catch (RuntimeConfigurationException e) {
+      fail(e.getMessage());
+    }
+    if (debug) {
+      config.getAndroidDebuggerContext().setDebuggerType(getDebuggerType());
+    }
+    IDevice device = mockDeviceFor(26, ImmutableList.of(Abi.X86, Abi.X86_64));
+    MakeBeforeRunTaskProviderTestUtilKt.executeMakeBeforeRunStepInTest(config, device);
 
-      ProgramRunner<RunnerSettings> runner = new DefaultStudioProgramRunner();
+    ProgramRunner<RunnerSettings> runner = new DefaultStudioProgramRunner();
 
     Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
     ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
     AndroidProjectSystem projectSystem = getProjectSystem(getProject());
     ApplicationIdProvider appIdProvider = projectSystem.getApplicationIdProvider(config);
-      ApkProvider apkProvider = projectSystem.getApkProvider(config);
+    ApkProvider apkProvider = projectSystem.getApkProvider(config);
 
-      LaunchOptions launchOptions = LaunchOptions.builder()
-        .setClearLogcatBeforeStart(false)
-        .setDebug(debug)
-        .build();
+    LaunchOptions launchOptions = LaunchOptions.builder().build();
 
-      AndroidLaunchTasksProvider provider = new AndroidLaunchTasksProvider(
-        (AndroidRunConfiguration)configSettings.getConfiguration(),
-        env,
-        androidFacet,
-        appIdProvider.getPackageName(),
-        apkProvider,
-        launchOptions,
-        debug
-      );
+    AndroidLaunchTasksProvider provider = new AndroidLaunchTasksProvider(
+      (AndroidRunConfiguration)configSettings.getConfiguration(),
+      env,
+      androidFacet,
+      appIdProvider.getPackageName(),
+      apkProvider,
+      launchOptions,
+      debug
+    );
 
-      // Act
-      List<LaunchTask> launchTasks = provider.getTasks(device);
+    // Act
+    List<LaunchTask> launchTasks = provider.getTasks(device);
 
-      // Assert
-      launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
+    // Assert
+    launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
   }
 }

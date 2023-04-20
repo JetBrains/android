@@ -25,7 +25,6 @@ import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
@@ -217,14 +216,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   protected abstract List<ValidationError> checkConfiguration(@NotNull AndroidFacet facet);
 
-  /**
-   * Subclasses should override to adjust the launch options.
-   */
-  @NotNull
-  protected LaunchOptions.Builder getLaunchOptions() {
-    return LaunchOptions.builder()
-      .setClearLogcatBeforeStart(CLEAR_LOGCAT);
-  }
 
   @Override
   public Collection<Module> getValidModules() {

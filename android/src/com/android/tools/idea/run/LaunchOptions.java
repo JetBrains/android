@@ -15,15 +15,9 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.ddmlib.IDevice;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,15 +28,9 @@ public final class LaunchOptions {
 
   public static final class Builder {
     private boolean myDeploy = true;
-    private Function<Optional<IDevice>, String> myPmInstallOptions = null;
-    private boolean myAllUsers = false;
-    private List<String> myDisabledDynamicFeatures = new ArrayList<>();
-    private boolean myDebug = false;
     private boolean myOpenLogcatAutomatically = false;
-    private boolean myClearLogcatBeforeStart = false;
     private final Map<String, Object> myExtraOptions = new HashMap<>();
     private boolean myDeployAsInstant = false;
-    private boolean myAlwaysInstallWithPm = false;
     private boolean myClearAppStorage = false;
 
     private Builder() {
@@ -51,15 +39,9 @@ public final class LaunchOptions {
     @NotNull
     public LaunchOptions build() {
       return new LaunchOptions(myDeploy,
-                               myPmInstallOptions,
-                               myAllUsers,
-                               myDisabledDynamicFeatures,
-                               myDebug,
                                myOpenLogcatAutomatically,
-                               myClearLogcatBeforeStart,
                                myExtraOptions,
                                myDeployAsInstant,
-                               myAlwaysInstallWithPm,
                                myClearAppStorage);
     }
 
@@ -70,34 +52,11 @@ public final class LaunchOptions {
     }
 
     @NotNull
-    public Builder setPmInstallOptions(@Nullable Function<Optional<IDevice>, String> options) {
-      myPmInstallOptions = options;
-      return this;
-    }
-
-    @NotNull
-    public Builder setAllUsers(boolean allUsers) {
-      myAllUsers = allUsers;
-      return this;
-    }
-
-    @NotNull
-    public Builder setDebug(boolean debug) {
-      myDebug = debug;
-      return this;
-    }
-
-    @NotNull
     public Builder setOpenLogcatAutomatically(boolean openLogcatAutomatically) {
       myOpenLogcatAutomatically = openLogcatAutomatically;
       return this;
     }
 
-    @NotNull
-    public Builder setClearLogcatBeforeStart(boolean clearLogcatBeforeStart) {
-      myClearLogcatBeforeStart = clearLogcatBeforeStart;
-      return this;
-    }
 
     @NotNull
     public Builder addExtraOptions(@NotNull Map<String, Object> extraOptions) {
@@ -105,20 +64,10 @@ public final class LaunchOptions {
       return this;
     }
 
-    public Builder setDisabledDynamicFeatures(List<String> disabledDynamicFeatures) {
-      myDisabledDynamicFeatures = ImmutableList.copyOf(disabledDynamicFeatures);
-      return this;
-    }
 
     @NotNull
     public Builder setDeployAsInstant(boolean deployAsInstant) {
       myDeployAsInstant = deployAsInstant;
-      return this;
-    }
-
-    @NotNull
-    public Builder setAlwaysInstallWithPm(boolean alwaysInstallWithPm) {
-      myAlwaysInstallWithPm = alwaysInstallWithPm;
       return this;
     }
 
@@ -135,38 +84,20 @@ public final class LaunchOptions {
   }
 
   private final boolean myDeploy;
-  private final Function<Optional<IDevice>, String> myPmInstallOptions;
-  private final boolean myAllUsers;
-  private List<String> myDisabledDynamicFeatures;
-  private final boolean myDebug;
   private final boolean myOpenLogcatAutomatically;
-  private final boolean myClearLogcatBeforeStart;
   private final Map<String, Object> myExtraOptions;
   private final boolean myDeployAsInstant;
-  private final boolean myAlwaysInstallWithPm;
   private final boolean myClearAppStorage;
 
   private LaunchOptions(boolean deploy,
-                        @Nullable Function<Optional<IDevice>, String> pmInstallOptions,
-                        boolean allUsers,
-                        @NotNull List<String> disabledDynamicFeatures,
-                        boolean debug,
                         boolean openLogcatAutomatically,
-                        boolean clearLogcatBeforeStart,
                         @NotNull Map<String, Object> extraOptions,
                         boolean deployAsInstant,
-                        boolean alwaysInstallWithPm,
                         boolean clearAppStorage) {
     myDeploy = deploy;
-    myPmInstallOptions = pmInstallOptions;
-    myAllUsers = allUsers;
-    myDisabledDynamicFeatures = disabledDynamicFeatures;
-    myDebug = debug;
     myOpenLogcatAutomatically = openLogcatAutomatically;
-    myClearLogcatBeforeStart = clearLogcatBeforeStart;
     myExtraOptions = ImmutableMap.copyOf(extraOptions);
     myDeployAsInstant = deployAsInstant;
-    myAlwaysInstallWithPm = alwaysInstallWithPm;
     myClearAppStorage = clearAppStorage;
   }
 
@@ -174,37 +105,11 @@ public final class LaunchOptions {
     return myDeploy;
   }
 
-  @Nullable
-  public String getPmInstallOptions(@Nullable IDevice device) {
-    if (myPmInstallOptions == null) {
-      return null;
-    }
-    return myPmInstallOptions.apply(Optional.ofNullable(device));
-  }
-
-  public boolean getInstallOnAllUsers() {
-    return myAllUsers;
-  }
-
-  public boolean getAlwaysInstallWithPm() { return myAlwaysInstallWithPm; }
-
   public boolean isClearAppStorage() { return myClearAppStorage; }
 
-  @NotNull
-  public List<String> getDisabledDynamicFeatures() {
-    return myDisabledDynamicFeatures;
-  }
-
-  public boolean isDebug() {
-    return myDebug;
-  }
 
   public boolean isOpenLogcatAutomatically() {
     return myOpenLogcatAutomatically;
-  }
-
-  public boolean isClearLogcatBeforeStart() {
-    return myClearLogcatBeforeStart;
   }
 
   @Nullable

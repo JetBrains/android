@@ -143,16 +143,13 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     return activityLaunchOptionState.checkConfiguration(facet)
   }
 
-  public override fun getLaunchOptions(): LaunchOptions.Builder {
-    return super.getLaunchOptions()
+  fun getLaunchOptions(): LaunchOptions {
+    return LaunchOptions.builder()
       .setDeploy(DEPLOY)
-      .setPmInstallOptions { PM_INSTALL_OPTIONS }
-      .setAllUsers(ALL_USERS)
-      .setDisabledDynamicFeatures(disabledDynamicFeatures)
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
       .setDeployAsInstant(DEPLOY_AS_INSTANT)
-      .setAlwaysInstallWithPm(ALWAYS_INSTALL_WITH_PM)
       .setClearAppStorage(CLEAR_APP_STORAGE)
+      .build()
   }
 
   var disabledDynamicFeatures: List<String>
