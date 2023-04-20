@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,18 +37,16 @@ record PhysicalDevice(@NotNull Key key,
                       @NotNull LaunchCompatibility launchCompatibility,
                       @Nullable Instant connectionTime,
                       @NotNull String name,
-                      @NotNull AndroidDevice androidDevice) implements Device {
-  private static final Icon ourPhoneIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
-  private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
-  private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
-
+                      @NotNull AndroidDevice androidDevice,
+                      @NotNull UnaryOperator<Icon> getLiveIndicator) implements Device {
   private PhysicalDevice(@NotNull Builder builder) {
     this(Objects.requireNonNull(builder.myKey),
          builder.myType,
          builder.myLaunchCompatibility,
          builder.myConnectionTime,
          Objects.requireNonNull(builder.myName),
-         Objects.requireNonNull(builder.myAndroidDevice));
+         Objects.requireNonNull(builder.myAndroidDevice),
+         builder.myGetLiveIndicator);
   }
 
   static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
@@ -65,6 +64,8 @@ record PhysicalDevice(@NotNull Key key,
 
   @VisibleForTesting
   static final class Builder extends Device.Builder {
+    private UnaryOperator<Icon> myGetLiveIndicator = ExecutionUtil::getLiveIndicator;
+
     @NotNull
     @VisibleForTesting
     Builder setKey(@NotNull Key key) {
@@ -108,6 +109,13 @@ record PhysicalDevice(@NotNull Key key,
     }
 
     @NotNull
+    @VisibleForTesting
+    Builder setGetLiveIndicator(@NotNull UnaryOperator<Icon> getLiveIndicator) {
+      myGetLiveIndicator = getLiveIndicator;
+      return this;
+    }
+
+    @NotNull
     @Override
     PhysicalDevice build() {
       return new PhysicalDevice(this);
@@ -118,9 +126,9 @@ record PhysicalDevice(@NotNull Key key,
   @Override
   public Icon icon() {
     var icon = switch (type) {
-      case TV -> ourTvIcon;
-      case WEAR -> ourWearIcon;
-      case PHONE -> ourPhoneIcon;
+      case PHONE -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+      case WEAR -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
+      case TV -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
     };
 
     return switch (launchCompatibility.getState()) {

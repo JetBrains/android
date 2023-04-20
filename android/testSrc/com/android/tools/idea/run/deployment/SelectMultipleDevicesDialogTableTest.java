@@ -23,7 +23,9 @@ import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import javax.swing.Icon;
 import javax.swing.table.TableModel;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,11 +93,13 @@ public final class SelectMultipleDevicesDialogTableTest {
   @Test
   public void setModel() {
     // Arrange
+    var runningIcon = Mockito.mock(Icon.class);
+
     Device device = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa601"))
+      .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
+      .setGetLiveIndicator(icon -> runningIcon)
       .build();
 
     TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false);
@@ -105,9 +109,9 @@ public final class SelectMultipleDevicesDialogTableTest {
 
     // Assert
     // @formatter:off
-    Object data = Arrays.asList(
-      Arrays.asList("",    "Type",           "Device"),
-      Arrays.asList(false, device.getIcon(), "LGE Nexus 5X"));
+    var data = List.of(
+      List.of("",    "Type",        "Device"),
+      List.of(false, device.icon(), "LGE Nexus 5X"));
     // @formatter:on
 
     assertEquals(data, myTable.getData());
@@ -131,9 +135,9 @@ public final class SelectMultipleDevicesDialogTableTest {
 
     // Assert
     // @formatter:off
-    Object data = Arrays.asList(
-      Arrays.asList("",    "Type",           "Device"),
-      Arrays.asList(false, device.getIcon(), "<html>Pixel 4 API 29<br><font size=-2 color=#999999>Missing system image</font></html>"));
+    var data = List.of(
+      List.of("",    "Type",        "Device"),
+      List.of(false, device.icon(), "<html>Pixel 4 API 29<br><font size=-2 color=#999999>Missing system image</font></html>"));
     // @formatter:on
 
     assertEquals(data, myTable.getData());
@@ -142,18 +146,20 @@ public final class SelectMultipleDevicesDialogTableTest {
   @Test
   public void setModelSerialNumber() {
     // Arrange
+    var runningIcon = Mockito.mock(Icon.class);
+
     Device device1 = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa601"))
+      .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
+      .setGetLiveIndicator(icon -> runningIcon)
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa602"))
+      .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
+      .setGetLiveIndicator(icon -> runningIcon)
       .build();
 
     TableModel model = new SelectMultipleDevicesDialogTableModel(Arrays.asList(device1, device2), () -> false);
@@ -163,10 +169,10 @@ public final class SelectMultipleDevicesDialogTableTest {
 
     // Assert
     // @formatter:off
-    Object data = Arrays.asList(
-      Arrays.asList("",    "Type",            "Device",          "Serial Number"),
-      Arrays.asList(false, device1.getIcon(), "LGE Nexus 5X", "00fff9d2279fa601"),
-      Arrays.asList(false, device2.getIcon(), "LGE Nexus 5X", "00fff9d2279fa602"));
+    var data = List.of(
+      List.of("",    "Type",         "Device",       "Serial Number"),
+      List.of(false, device1.icon(), "LGE Nexus 5X", "00fff9d2279fa601"),
+      List.of(false, device2.icon(), "LGE Nexus 5X", "00fff9d2279fa602"));
     // @formatter:on
 
     assertEquals(data, myTable.getData());
@@ -190,7 +196,7 @@ public final class SelectMultipleDevicesDialogTableTest {
     myTable.setModel(model);
 
     // Assert
-    Object icon = device.getIcon();
+    var icon = device.icon();
 
     // @formatter:off
     Object data = Arrays.asList(
