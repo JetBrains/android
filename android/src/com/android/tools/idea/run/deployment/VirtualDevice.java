@@ -217,8 +217,14 @@ final class VirtualDevice implements Device {
   }
 
   @NotNull
-  Optional<Object> getNameKey() {
+  Optional<VirtualDeviceName> nameKey() {
     return Optional.ofNullable(myNameKey);
+  }
+
+  @Deprecated
+  @NotNull
+  Optional<VirtualDeviceName> getNameKey() {
+    return nameKey();
   }
 
   @NotNull
