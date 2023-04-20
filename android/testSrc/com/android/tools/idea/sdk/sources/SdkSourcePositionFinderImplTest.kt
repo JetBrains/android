@@ -35,7 +35,6 @@ class SdkSourcePositionFinderImplTest {
   /**
    * Indirectly tests that the internal SdkSourceFinderForApiLevel is cached rather than created for each call.
    */
-  @org.junit.Ignore("b/278938075")
   @Test
   fun getSourcePosition_missingSourcesFileIsCreatedOnlyOnce() {
     val file = runInEdtAndGet { PsiFileFactory.getInstance(project).createFileFromText("View.java", JavaLanguage.INSTANCE, "") }
