@@ -177,6 +177,9 @@ iml_module(
         "AndroidKotlinCompletionContributorTest": {
             "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
         },
+        "editors.fast": {
+            "test_filter": "com.android.tools.idea.editors.fast",
+        },
         "editors.manifest": {
             "test_filter": "com.android.tools.idea.editors.manifest",
         },
@@ -184,6 +187,9 @@ iml_module(
             # b/253897699
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.editors.literals",
+        },
+        "editors.strings": {
+            "test_filter": "com.android.tools.idea.editors.strings",
         },
         "instantapp": {
             "test_filter": "com.android.tools.idea.instantapp",
@@ -202,9 +208,24 @@ iml_module(
             "test_filter": "org.jetbrains.android.AndroidGutterIconAnnotatorTest",
             "shard_count": 1,
         },
+        "res": {
+            "test_filter": "com.android.tools.idea.res",
+        },
         "resourcemanager": {
             "test_filter": "com.android.tools.idea.ui.resourcemanager",
             "shard_count": 2,
+        },
+        "designer.overlay": {
+            "test_filter": "com.android.tools.idea.designer.overlay",
+        },
+        "sdk": {
+            "test_filter": "com.android.tools.idea.sdk",
+        },
+        "avdmanager": {
+            "test_filter": "com.android.tools.idea.avdmanager",
+        },
+        "diagnostics": {
+            "test_filter": "com.android.tools.idea.diagnostics",
         },
         "other": {
             "shard_count": 5,
