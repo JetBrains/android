@@ -81,7 +81,6 @@ class EditorStatsUtilTest {
     assertThat(getEditorFileTypeForAnalytics(fakeOtherXmlFile, null)).isEqualTo(EditorFileType.XML)
   }
 
-  @org.junit.Ignore("b/278937651")
   @Test
   fun kotlinFileTypes() = runBlocking {
     val fakeKotlinScriptFile = projectRule.fixture.addFileToProject("Fake.kts", "").virtualFile
