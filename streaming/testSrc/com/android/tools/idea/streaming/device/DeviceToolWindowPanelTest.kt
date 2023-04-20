@@ -378,9 +378,9 @@ class DeviceToolWindowPanelTest {
 
   @Suppress("SameParameterValue")
   private fun assertAppearance(goldenImageName: String,
-                               maxPercentDifferentLinux: Double = 0.0,
-                               maxPercentDifferentMac: Double = 0.0,
-                               maxPercentDifferentWindows: Double = 0.0) {
+                               maxPercentDifferentLinux: Double = 0.0003,
+                               maxPercentDifferentMac: Double = 0.0003,
+                               maxPercentDifferentWindows: Double = 0.0003) {
     fakeUi.layoutAndDispatchEvents()
     fakeUi.updateToolbars()
     val image = fakeUi.render()
@@ -389,9 +389,7 @@ class DeviceToolWindowPanelTest {
       SystemInfo.isWindows -> maxPercentDifferentWindows
       else -> maxPercentDifferentLinux
     }
-/* b/278944242
     ImageDiffUtil.assertImageSimilar(getGoldenFile(goldenImageName), image, maxPercentDifferent)
-b/278944242 */
   }
 
   private fun getGoldenFile(name: String): Path {
