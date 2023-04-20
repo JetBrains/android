@@ -96,7 +96,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
         toolWindow.contentManager.addContent(tabContent)
       }
 
-    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
+    toolWindow.setContentUiType(ToolWindowContentUiType.TABBED, null)
     toolWindow.show()
     toolWindow.stripeTitle = "App Quality Insights"
   }
