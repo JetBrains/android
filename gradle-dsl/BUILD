@@ -21,6 +21,7 @@ iml_module(
     test_class = "com.android.tools.idea.gradle.dsl.GradleDslTestSuite",
     test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
+    test_tags = ["manual"],  # b/278991173
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
