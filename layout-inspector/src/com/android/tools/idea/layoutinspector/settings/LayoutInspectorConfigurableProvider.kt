@@ -31,7 +31,7 @@ import javax.swing.JCheckBox
 import javax.swing.JPanel
 
 
-private const val STUDIO_RELEASE_NOTES_URL = "https://developer.android.com/studio/preview/features"
+private const val STUDIO_RELEASE_NOTES_URL = "https://d.android.com/r/studio-ui/preview-release-notes"
 
 /**
  * Class used to provide a [Configurable] to show in Android Studio settings panel.
