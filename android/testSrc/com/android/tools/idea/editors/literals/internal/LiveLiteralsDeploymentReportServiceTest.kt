@@ -26,12 +26,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CyclicBarrier
 import kotlin.concurrent.thread
 import kotlin.random.Random
 
+@Ignore // Bug 278911839
 internal class LiveLiteralsDeploymentReportServiceTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()

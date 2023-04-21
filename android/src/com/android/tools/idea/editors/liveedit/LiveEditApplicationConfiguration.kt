@@ -47,11 +47,11 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   }
 
   var mode
-    get() = if (state.mode == LIVE_EDIT && !StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) LIVE_LITERALS else state.mode
+    get() = if (state.mode == LIVE_LITERALS) DISABLED else state.mode
     set(value) {
       var patchedValue = value
-      if (patchedValue == LIVE_EDIT && !StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
-        patchedValue = LIVE_LITERALS
+      if (patchedValue == LIVE_LITERALS) {
+        patchedValue = DISABLED
       }
       if (state.mode != patchedValue) {
         ProjectManager.getInstance().openProjects

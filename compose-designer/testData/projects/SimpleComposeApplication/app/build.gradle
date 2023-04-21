@@ -46,6 +46,7 @@ android {
         // currently set at 1.7.20.
         // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin for compatibility table.
         kotlinCompilerExtensionVersion = "1.3.2"
+        useLiveLiterals = true
     }
 
     kotlinOptions {

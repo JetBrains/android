@@ -1187,10 +1187,10 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT = Flag.create(
-    COMPOSE, "deploy.live.edit.deploy",
-    "Enable live edit deploy",
-    "If enabled, Live Edit will be visible and available",
+  public static final Flag<Boolean> COMPOSE_FUNCTION_EXTRACTION = Flag.create(
+    COMPOSE, "editor.function.extraction",
+    "Enables extracting @Composable function from other composables",
+    "If enabled, function extracted from @Composable function will annotated @Composable",
     true
   );
 

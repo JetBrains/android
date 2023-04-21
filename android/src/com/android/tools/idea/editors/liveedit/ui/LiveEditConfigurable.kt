@@ -52,32 +52,30 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
             message("live.literals.configurable.select.live.literals"),
             LIVE_LITERALS
           ).comment(message("live.literals.configurable.select.live.literals.comment"))
-        }
+        }.visible(false)
 
-        if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
-          lateinit var rb : Cell<JBRadioButton>
-          row {
-            rb = radioButton(
-              message("live.edit.configurable.display.name"),
-              LIVE_EDIT
-            ).comment(message("live.edit.configurable.display.name.comment"))
-          }
-          row { // Add a row to indent
-            this@buttonsGroup.buttonsGroup(indent = true) {
-              row {
-                radioButton(
-                  message("live.edit.mode.manual", LiveEditAnActionListener.getLiveEditTriggerShortCutString()),
-                  LE_TRIGGER_MANUAL
-                ).enabledIf(rb.selected)
-              }
-              row {
-                radioButton(
-                  message("live.edit.mode.automatic"),
-                  LE_TRIGGER_AUTOMATIC
-                ).enabledIf(rb.selected)
-              }
-            }.bind(config::leTriggerMode)
-          }
+        lateinit var rb : Cell<JBRadioButton>
+        row {
+          rb = radioButton(
+            message("live.edit.configurable.display.name"),
+            LIVE_EDIT
+          ).comment(message("live.edit.configurable.display.name.comment"))
+        }
+        row { // Add a row to indent
+          this@buttonsGroup.buttonsGroup(indent = true) {
+            row {
+              radioButton(
+                message("live.edit.mode.manual", LiveEditAnActionListener.getLiveEditTriggerShortCutString()),
+                LE_TRIGGER_MANUAL
+              ).enabledIf(rb.selected)
+            }
+            row {
+              radioButton(
+                message("live.edit.mode.automatic"),
+                LE_TRIGGER_AUTOMATIC
+              ).enabledIf(rb.selected)
+            }
+          }.bind(config::leTriggerMode)
         }
 
         row {
