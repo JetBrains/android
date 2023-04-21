@@ -211,11 +211,12 @@ internal data class FoldingState(val id: Int, val name: String, val appAccessibl
   val icon: Icon? = FOLDING_STATE_ICONS[name]
 }
 
-// TODO: Add more icons when they are ready.
 private val FOLDING_STATE_ICONS = mapOf(
   "Closed" to StudioIcons.Emulator.Menu.POSTURE_CLOSED,
+  "Flipped" to StudioIcons.Emulator.Menu.POSTURE_HALF_FOLDED,
   "Half-Folded" to StudioIcons.Emulator.Menu.POSTURE_HALF_FOLDED,
   "Open" to StudioIcons.Emulator.Menu.POSTURE_OPEN,
+  "Tent" to StudioIcons.Emulator.Menu.POSTURE_TENT,
 )
 
 private const val CONTROL_MSG_BUFFER_SIZE = 4096
