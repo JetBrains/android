@@ -20,7 +20,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.util.containers.ContainerUtil.newConcurrentSet;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -29,6 +28,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableList;
+import com.intellij.concurrency.ConcurrentCollectionFactory;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
@@ -214,7 +214,8 @@ public class GradleProjectInfo {
    */
   public static AccessToken beginInitializingGradleProjectAt(@NotNull File projectFolderPath) {
     UserDataHolderEx userData = (UserDataHolderEx)ApplicationManager.getApplication();
-    Set<File> projectsBeingInitialized = userData.putUserDataIfAbsent(PROJECTS_BEING_INITIALIZED, newConcurrentSet());
+    Set<File> projectsBeingInitialized = userData.putUserDataIfAbsent(PROJECTS_BEING_INITIALIZED,
+                                                                      ConcurrentCollectionFactory.createConcurrentSet());
     if (!projectsBeingInitialized.add(projectFolderPath)) {
       throw new IllegalStateException(
         "Cannot initialize two projects at the same location at the same time. Project location: " + projectFolderPath);
