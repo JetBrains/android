@@ -34,7 +34,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-@org.junit.Ignore("b/278929658")
 class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test

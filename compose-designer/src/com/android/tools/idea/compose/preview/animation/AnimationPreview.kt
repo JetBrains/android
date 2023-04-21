@@ -845,7 +845,9 @@ class AnimationPreview(
     val (time, timeUnit) =
       if (useLongTimeout) {
         // Make sure we don't block the UI thread when setting a large timeout
-        ApplicationManager.getApplication().assertIsNonDispatchThread()
+        // See b/278929658 for more details about extra isUnitTestMode check.
+        if (!ApplicationManager.getApplication().isUnitTestMode)
+          ApplicationManager.getApplication().assertIsNonDispatchThread()
         5L to TimeUnit.SECONDS
       } else {
         30L to TimeUnit.MILLISECONDS

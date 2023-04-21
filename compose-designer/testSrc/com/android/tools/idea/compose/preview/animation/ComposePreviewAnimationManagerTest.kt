@@ -60,7 +60,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito
 
-@org.junit.Ignore("b/278929658")
 @RunWith(Parameterized::class)
 class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : InspectorTests() {
 
