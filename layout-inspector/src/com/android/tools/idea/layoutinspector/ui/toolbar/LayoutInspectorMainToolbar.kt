@@ -40,9 +40,10 @@ const val LAYOUT_INSPECTOR_MAIN_TOOLBAR = "LayoutInspector.MainToolbar"
 fun createLayoutInspectorMainToolbar(
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
-  selectProcessAction: AnAction?
+  selectProcessAction: AnAction?,
+  extraActions: List<AnAction> = emptyList()
 ): ActionToolbar {
-  val actionGroup = LayoutInspectorActionGroup(layoutInspector, selectProcessAction)
+  val actionGroup = LayoutInspectorActionGroup(layoutInspector, selectProcessAction, extraActions)
   val actionToolbar = ActionManager.getInstance().createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
   ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
   actionToolbar.component.name = LAYOUT_INSPECTOR_MAIN_TOOLBAR
@@ -55,7 +56,11 @@ fun createLayoutInspectorMainToolbar(
 /**
  * Action Group containing all the actions used in Layout Inspector's main toolbar.
  */
-private class LayoutInspectorActionGroup(layoutInspector: LayoutInspector, selectProcessAction: AnAction?) : DefaultActionGroup() {
+private class LayoutInspectorActionGroup(
+  layoutInspector: LayoutInspector,
+  selectProcessAction: AnAction?,
+  extraActions: List<AnAction>
+) : DefaultActionGroup() {
   init {
     if (selectProcessAction != null) {
       add(selectProcessAction)
@@ -77,5 +82,6 @@ private class LayoutInspectorActionGroup(layoutInspector: LayoutInspector, selec
     }
     add(Separator.getInstance())
     add(LayerSpacingSliderAction { layoutInspector.renderModel })
+    extraActions.forEach { add(it) }
   }
 }

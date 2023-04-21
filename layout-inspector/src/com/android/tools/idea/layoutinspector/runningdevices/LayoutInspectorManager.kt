@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
@@ -273,8 +274,13 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         val mainPanel = BorderLayoutPanel()
         val subPanel = BorderLayoutPanel()
 
+        val toggleDeepInspectAction = ToggleDeepInspectAction(
+          { false },
+          { }
+        )
+
         val processPicker = TargetSelectionActionFactory.getSingleDeviceProcessPicker(layoutInspector, tabId.deviceSerialNumber)
-        val toolbar = createLayoutInspectorMainToolbar(mainPanel, layoutInspector, processPicker)
+        val toolbar = createLayoutInspectorMainToolbar(mainPanel, layoutInspector, processPicker, listOf(toggleDeepInspectAction))
         mainPanel.add(toolbar.component, BorderLayout.NORTH)
         mainPanel.add(subPanel, BorderLayout.CENTER)
 
