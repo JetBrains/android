@@ -20,6 +20,7 @@ import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
@@ -30,7 +31,6 @@ import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
-import com.android.tools.idea.run.tasks.clearAppStorage
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.run.util.SwapInfo

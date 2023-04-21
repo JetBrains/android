@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -116,14 +117,10 @@ class BlazeAndroidConfigurationExecutor(
     try {
       printLaunchTaskStartedMessage(console)
 
-      indicator.text = "Getting task for devices"
-
-      // A list of devices that we have launched application successfully.
-      indicator.text = "Launching on devices"
       devices.map { device ->
         async {
           if (launchOptions.isClearAppStorage) {
-            project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
+            clearAppStorage(project, device, applicationId)
           }
 
           LaunchUtils.initiateDismissKeyguard(device)

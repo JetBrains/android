@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.execution.common
 
+import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.processhandler.DeviceAwareProcessHandler
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -32,4 +33,28 @@ fun RunnerAndConfigurationSettings.getProcessHandlersForDevices(project: Project
       val deviceAwareProcessHandler = it.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY) ?: return@filter false
       devices.any { d -> deviceAwareProcessHandler.isAssociated(d) }
     }
+}
+
+
+/**
+ * Clears app storage data.
+ *
+ * If the app is installed on the device, executes `pm clear <package>`.
+ */
+fun clearAppStorage(project: Project, device: IDevice, packageName: String) {
+  val packageList = device.shellToString("pm list packages $packageName")
+  if (packageList.contains("^package:${packageName.replace(".", "\\.")}$".toRegex())) {
+    val result = device.shellToString("pm clear $packageName").trim()
+    if (result != "Success") {
+      val message = "Failed to clear app storage for $packageName on device ${device.name}"
+      RunConfigurationNotifier.notifyWarning(project, "", message)
+    }
+  }
+}
+
+
+private fun IDevice.shellToString(command: String): String {
+  val receiver = CollectingOutputReceiver()
+  executeShellCommand(command, receiver)
+  return receiver.output
 }
