@@ -266,8 +266,8 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(virtualFile);
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
     assertEquals(2, fixes.size());
-    assertInstanceOf(((QuickFixWrapper)fixes.get(0)).getFix(), RenameTo.class);
-    assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), SaveTo.class);
+    assertInstanceOf(QuickFixWrapper.unwrap(fixes.get(0)), RenameTo.class);
+    assertInstanceOf(QuickFixWrapper.unwrap(fixes.get(1)), SaveTo.class);
   }
 
   /**
