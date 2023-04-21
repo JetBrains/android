@@ -32,9 +32,9 @@ import org.junit.Test
 
 
 /**
- * Test for [ComposeImplementationsCompletionContributor].
+ * Test for [ComposePositioningCompletionContributor].
  */
-class ComposeImplementationsCompletionContributorTest {
+class ComposePositioningCompletionContributorTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory().onEdt()

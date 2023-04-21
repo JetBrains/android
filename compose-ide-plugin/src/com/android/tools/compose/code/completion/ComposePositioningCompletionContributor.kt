@@ -59,9 +59,10 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
- * Suggests specific implementations of frequently used Compose interfaces in a parameter or a property position.
+ * Suggests and orders completion for the Alignment and Arrangement interfaces. Both interfaces have Horizontal, Vertical, and other
+ * variants which the default auto-completion intermixes, even though only one subset is generally applicable in any given completion.
  */
-class ComposeImplementationsCompletionContributor : CompletionContributor() {
+class ComposePositioningCompletionContributor : CompletionContributor() {
 
   override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
     val elementToComplete = parameters.position
