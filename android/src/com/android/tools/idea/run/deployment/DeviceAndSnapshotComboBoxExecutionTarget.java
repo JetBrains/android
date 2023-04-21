@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The combo box generates these {@link ExecutionTarget ExecutionTargets.} ExecutionTargets determine the state of the run, debug, and stop
@@ -71,8 +72,8 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @Override
   public Collection<IDevice> getRunningDevices() {
     return deviceStream()
-      .filter(Device::isConnected)
-      .map(Device::getDdmlibDeviceAsync)
+      .filter(Device::connected)
+      .map(Device::ddmlibDeviceAsync)
       .map(Futures::getUnchecked)
       .collect(Collectors.toList());
   }
@@ -82,7 +83,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   private @NotNull Stream<Device> filteredStream(@NotNull Collection<Device> devices) {
-    return devices.stream().filter(device -> myKeys.contains(device.getKey()));
+    return devices.stream().filter(device -> myKeys.contains(device.key()));
   }
 
   @NotNull
@@ -101,7 +102,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
     return switch (devices.size()) {
       case 0 -> "No Devices";
-      case 1 -> devices.get(0).getName();
+      case 1 -> devices.get(0).name();
       default -> "Multiple Devices";
     };
   }
@@ -112,7 +113,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     var devices = deviceStream().toList();
 
     if (devices.size() == 1) {
-      return devices.get(0).getIcon();
+      return devices.get(0).icon();
     }
 
     return StudioIcons.DeviceExplorer.MULTIPLE_DEVICES;
@@ -128,5 +129,19 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     return configuration instanceof AndroidRunConfigurationBase ||
            configuration instanceof AndroidWearConfiguration ||
            (deploysToLocalDevice != null && deploysToLocalDevice);
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof DeviceAndSnapshotComboBoxExecutionTarget target)) {
+      return false;
+    }
+
+    return myKeys.equals(target.myKeys) && myDevicesGetter.equals(target.myDevicesGetter);
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * myKeys.hashCode() + myDevicesGetter.hashCode();
   }
 }
