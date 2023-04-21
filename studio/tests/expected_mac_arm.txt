@@ -488,7 +488,6 @@ Android Studio Preview.app/Contents/license/commons-io-2.4.jar-NOTICE
 Android Studio Preview.app/Contents/license/dev01_license.txt
 Android Studio Preview.app/Contents/license/dexlib2-2.0.8-NOTICE
 Android Studio Preview.app/Contents/license/fest-NOTICE
-Android Studio Preview.app/Contents/license/fetchasgoogle.jar-NOTICE
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.md
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.openh264
 Android Studio Preview.app/Contents/license/ffmpeg-SOURCE_CODE.TXT
@@ -2734,8 +2733,6 @@ Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/gmd-code-com
 Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-testing-v1-rev82-1.22.0.jar
 Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/mockito-core-4.8.0.jar
 Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/mockito-inline-4.8.0.jar
-Android Studio Preview.app/Contents/plugins/google-appindexing/lib/fetchasgoogle.jar
-Android Studio Preview.app/Contents/plugins/google-appindexing/lib/google-appindexing.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar

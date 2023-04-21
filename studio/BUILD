@@ -495,22 +495,6 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.google.appindexing",
-    directory = "google-appindexing",
-    libs = ["//tools/studio/google/appindexing/lib:fetchasgoogle"],
-    licenses = [
-        "//tools/studio/google/appindexing/lib:licenses",
-    ],
-    modules = {"google-appindexing.jar": ["//tools/studio/google/appindexing:google-appindexing"]},
-    visibility = ["//visibility:public"],
-    deps = [
-        ":com.google.urlassistant",
-        ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-    ],
-)
-
-studio_plugin(
     name = "com.google.gct",
     directory = "google-cloud-tools-as",
     libs = [
@@ -653,7 +637,6 @@ android_studio(
         ":com.google.services.firebase",
         ":com.google.gct.directaccess",
         ":com.google.gct.testing",
-        ":com.google.appindexing",
         ":com.google.gct",
         ":com.google.gct.core",
         ":com.android.tools.idea.smali",
@@ -846,7 +829,6 @@ iml_module(
         "//tools/vendor/google/firebase[module]",
         "//tools/studio/google/cloud/testing/directaccess[module]",
         "//tools/studio/google/cloud/testing/firebase-testing[module]",
-        "//tools/studio/google/appindexing:google-appindexing[module]",
         "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as[module]",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
         "//tools/adt/idea/smali:intellij.android.smali[module]",
