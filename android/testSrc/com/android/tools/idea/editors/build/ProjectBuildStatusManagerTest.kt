@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.build
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
@@ -34,30 +35,36 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+
+private fun ProjectBuildStatusManager.awaitReady(timeout: Duration = 5.seconds) = runBlocking {
+  statusFlow.awaitStatus("ProjectStatus is not Ready after $timeout", timeout) { it == ProjectStatus.Ready }
+}
+private fun ProjectBuildStatusManager.awaitNeedsBuild(message: String? = null, timeout: Duration = 5.seconds) = runBlocking {
+  statusFlow.awaitStatus("ProjectStatus is not NeedsBuild after $timeout", timeout) { it == ProjectStatus.NeedsBuild }
+}
+private fun ProjectBuildStatusManager.awaitOutOfDate(message: String? = null, timeout: Duration = 5.seconds) = runBlocking {
+  statusFlow.awaitStatus("ProjectStatus is not OutOfDate after $timeout", timeout) { it is ProjectStatus.OutOfDate }
+}
 
 class ProjectBuildStatusManagerTest {
   val projectRule = AndroidProjectRule.inMemory()
   val project: Project
     get() = projectRule.project
 
-  @get:Rule
-  val chainRule: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(FastPreviewRule())
+  @get:Rule val chainRule: RuleChain = RuleChain.outerRule(projectRule).around(FastPreviewRule())
 
   @Before
   fun setUp() {
@@ -69,15 +76,18 @@ class ProjectBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val blockingDaemon = BlockingDaemonClient()
-    val fastPreviewManager = FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
-      Disposer.register(projectRule.fixture.testRootDisposable, it)
-    }
+    val fastPreviewManager =
+      FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
+        Disposer.register(projectRule.fixture.testRootDisposable, it)
+      }
     projectRule.replaceProjectService(FastPreviewManager::class.java, fastPreviewManager)
 
-    val statusManager = ProjectBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      psiFile,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+    val statusManager =
+      ProjectBuildStatusManager.create(
+        projectRule.fixture.testRootDisposable,
+        psiFile,
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+      )
 
     runBlocking {
       val module = projectRule.fixture.module
@@ -107,25 +117,27 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsUpToDateForSuccessfulGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val statusManager = ProjectBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      psiFile,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+    val statusManager =
+      ProjectBuildStatusManager.create(
+        projectRule.fixture.testRootDisposable,
+        psiFile,
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+      )
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
       (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
-        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS
+      )
 
-      assertEquals(ProjectStatus.Ready, statusManager.status)
+      statusManager.awaitReady()
 
       // Disabling Live Edit will bring the out of date state
       FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
-      assertEquals(ProjectStatus.Ready, statusManager.status)
-    }
-    finally {
+      statusManager.awaitReady()
+    } finally {
       FastPreviewConfiguration.getInstance().resetDefault()
     }
   }
@@ -134,25 +146,27 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val statusManager = ProjectBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      psiFile,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+    val statusManager =
+      ProjectBuildStatusManager.create(
+        projectRule.fixture.testRootDisposable,
+        psiFile,
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+      )
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
       (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
-        buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED)
+        buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED
+      )
 
-      assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
+      statusManager.awaitNeedsBuild()
 
       // Disabling Live Edit will bring the out of date state
       FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
-      assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
-    }
-    finally {
+      statusManager.awaitNeedsBuild()
+    } finally {
       FastPreviewConfiguration.getInstance().resetDefault()
     }
   }
@@ -161,19 +175,22 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedFastPreviewCompilation() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val statusManager = ProjectBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      psiFile,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+    val statusManager =
+      ProjectBuildStatusManager.create(
+        projectRule.fixture.testRootDisposable,
+        psiFile,
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+      )
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
       (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
-        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
+        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS
+      )
 
-      assertEquals(ProjectStatus.Ready, statusManager.status)
+      statusManager.awaitReady()
 
       // Add an error that will fail a compilation
       invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
@@ -188,9 +205,8 @@ class ProjectBuildStatusManagerTest {
 
       // Disabling Live Edit will bring the out of date state
       FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
-      assertThat(statusManager.status, CoreMatchers.instanceOf(ProjectStatus.OutOfDate::class.java))
-    }
-    finally {
+      statusManager.awaitOutOfDate()
+    } finally {
       FastPreviewConfiguration.getInstance().resetDefault()
     }
   }
