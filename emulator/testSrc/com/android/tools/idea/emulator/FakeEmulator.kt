@@ -67,9 +67,9 @@ import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.google.common.util.concurrent.SettableFuture
+import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
@@ -162,7 +162,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
   private var frameNumber = 0
   /** Ids of snapshots that were created by calling the [createIncompatibleSnapshot] method. */
-  private val incompatibleSnapshots = ContainerUtil.newConcurrentSet<String>()
+  private val incompatibleSnapshots = ConcurrentCollectionFactory.createConcurrentSet<String>()
 
   /** The ID of the last loaded snapshot. */
   private var lastLoadedSnapshot: String? = null
