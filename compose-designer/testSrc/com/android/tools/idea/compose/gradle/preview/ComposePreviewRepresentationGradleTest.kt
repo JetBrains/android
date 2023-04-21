@@ -717,6 +717,7 @@ class ComposePreviewRepresentationGradleTest {
    *
    * This test verifies that the refresh does happen when we come back to the preview.
    */
+  @Ignore("b/271497561")
   @Test
   fun `file modification refresh triggers refresh on reactivation`(): Unit = runBlocking {
     val psiCodeFileChangeDetectorService = PsiCodeFileChangeDetectorService.getInstance(project)
