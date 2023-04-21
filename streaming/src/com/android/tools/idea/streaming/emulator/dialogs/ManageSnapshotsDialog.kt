@@ -38,7 +38,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -82,6 +81,7 @@ import org.jetbrains.kotlin.utils.SmartSet
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.EventQueue
 import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
@@ -316,12 +316,12 @@ internal class ManageSnapshotsDialog(
       }
 
       override fun onCompleted() {
-        invokeLaterWhileDialogIsShowing {
+        invokeLaterIfDialogIsShowing {
           finished()
         }
         backgroundExecutor.submit {
           val snapshot = snapshotIoLock.read { snapshotManager.readSnapshotInfo(snapshotId) }
-          invokeLaterWhileDialogIsShowing {
+          invokeLaterIfDialogIsShowing {
             if (snapshot == null) {
               showError()
             } else {
@@ -334,7 +334,7 @@ internal class ManageSnapshotsDialog(
       }
 
       override fun onError(t: Throwable) {
-        invokeLaterWhileDialogIsShowing {
+        invokeLaterIfDialogIsShowing {
           showError()
           finished()
         }
@@ -369,14 +369,14 @@ internal class ManageSnapshotsDialog(
 
       override fun onNext(response: SnapshotPackage) {
         if (response.success) {
-          invokeLaterWhileDialogIsShowing {
+          invokeLaterIfDialogIsShowing {
             snapshotTableModel.setLoadedLastSnapshot(snapshotTable.convertRowIndexToModel(selectedRow))
           }
         }
         else {
           val error = response.err.toString(UTF_8)
           val detail = if (error.isEmpty()) "" else " - $error"
-          invokeLaterWhileDialogIsShowing {
+          invokeLaterIfDialogIsShowing {
             showError("""Error loading snapshot "${snapshotToLoad.displayName}"$detail""")
           }
         }
@@ -388,13 +388,13 @@ internal class ManageSnapshotsDialog(
 
       override fun onError(t: Throwable) {
         finished()
-        invokeLaterWhileDialogIsShowing {
+        invokeLaterIfDialogIsShowing {
           showError("""Error loading snapshot. See the error log""")
         }
       }
 
       private fun finished() {
-        invokeLaterWhileDialogIsShowing {
+        invokeLaterIfDialogIsShowing {
           endLongOperation()
           emulatorView.hideLongRunningOperationIndicator()
         }
@@ -478,7 +478,7 @@ internal class ManageSnapshotsDialog(
 
       if (errors) {
         val snapshots = snapshotIoLock.read { snapshotManager.fetchSnapshotList() }
-        invokeLaterWhileDialogIsShowing {
+        invokeLaterIfDialogIsShowing {
           snapshotTableModel.update(snapshots)
           selectionState?.restoreSelection()
           showError("Some snapshots could not be deleted")
@@ -487,7 +487,7 @@ internal class ManageSnapshotsDialog(
       else if (notifyWhenDone) {
         val n = foldersToDelete.size
         val message = if (n == 1) "$n snapshot deleted" else "$n snapshots deleted"
-        invokeLaterWhileDialogIsShowing {
+        invokeLaterIfDialogIsShowing {
           selectionStateLabel.text = message
         }
       }
@@ -620,7 +620,7 @@ internal class ManageSnapshotsDialog(
       }
     }
 
-    invokeLaterWhileDialogIsShowing {
+    invokeLaterIfDialogIsShowing {
       snapshotTableModel.update(snapshots, bootSnapshot)
       if (incompatibleSnapshotsCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING &&
           confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount, incompatibleSnapshotsSize)) {
@@ -656,8 +656,12 @@ internal class ManageSnapshotsDialog(
     return false
   }
 
-  private fun invokeLaterWhileDialogIsShowing(runnable: () -> Unit) {
-    ApplicationManager.getApplication().invokeLater(runnable, ModalityState.any()) { dialogManager == null }
+  private fun invokeLaterIfDialogIsShowing(runnable: Runnable) {
+    EventQueue.invokeLater {
+      if (dialogManager != null) {
+        runnable.run()
+      }
+    }
   }
 
   private inner class SnapshotTableModel : ListTableModel<SnapshotInfo>() {
@@ -843,11 +847,11 @@ internal class ManageSnapshotsDialog(
         val baseIcon = createBaseSnapshotIcon(snapshot)
         val icon = createDecoratedIcon(snapshot, baseIcon)
 
-        // Schedule a table cell update on the UI thread.
-        invokeLaterWhileDialogIsShowing {
+        // Schedule table repainting on the UI thread to reflect the updated icon.
+        invokeLaterIfDialogIsShowing {
           val index = indexOf(snapshot)
           if (index >= 0) {
-            fireTableCellUpdated(index, nameColumnIndex)
+            snapshotTable.repaint()
           }
         }
         return@Callable icon
