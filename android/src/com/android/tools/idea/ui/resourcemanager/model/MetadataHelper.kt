@@ -24,6 +24,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAssetMetadata.FILE_
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetMetadata.FILE_SIZE
 import com.android.tools.idea.ui.resourcemanager.model.DesignAssetMetadata.FILE_TYPE
 import com.android.tools.idea.util.toPathString
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.Locale
@@ -76,7 +77,7 @@ fun VirtualFile.getMetadata(vararg dataKeys: DesignAssetMetadata = DesignAssetMe
 
   if (keys.remove(FILE_TYPE)) {
     val extension = extension
-    map[FILE_TYPE] = if (extension.equals("xml", true)) "Vector drawable" else extension?.toUpperCase(Locale.US) ?: "Unknown"
+    map[FILE_TYPE] = if (extension.equals("xml", true)) "Vector drawable" else extension?.uppercase(Locale.US) ?: "Unknown"
   }
 
   val parentFileName = toPathString().parentFileName
@@ -101,18 +102,23 @@ fun VirtualFile.getMetadata(vararg dataKeys: DesignAssetMetadata = DesignAssetMe
     .asSequence()
     .firstOrNull()
   if (reader != null) {
-    reader.input = ImageIO.createImageInputStream(this.inputStream)
-    val width = reader.getWidth(0)
-    val height = reader.getHeight(0)
-    if (keys.remove(DIMENSIONS_PX)) {
-      map[DIMENSIONS_PX] = "${width}x$height"
-    }
+    try {
+      reader.input = ImageIO.createImageInputStream(this.inputStream)
+      val width = reader.getWidth(0)
+      val height = reader.getHeight(0)
+      if (keys.remove(DIMENSIONS_PX)) {
+        map[DIMENSIONS_PX] = "${width}x$height"
+      }
 
-    if (keys.remove(DIMENSIONS_DP) && density != null && density.isValidValueForDevice) {
-      val dpiValue = density.dpiValue.toDouble()
-      val dpWidth = Math.round(width / (dpiValue / Density.DEFAULT_DENSITY))
-      val dpHeight = Math.round(height / (dpiValue / Density.DEFAULT_DENSITY))
-      map[DIMENSIONS_DP] = "${dpWidth}x${dpHeight}"
+      if (keys.remove(DIMENSIONS_DP) && density != null && density.isValidValueForDevice) {
+        val dpiValue = density.dpiValue.toDouble()
+        val dpWidth = Math.round(width / (dpiValue / Density.DEFAULT_DENSITY))
+        val dpHeight = Math.round(height / (dpiValue / Density.DEFAULT_DENSITY))
+        map[DIMENSIONS_DP] = "${dpWidth}x${dpHeight}"
+      }
+    } catch (t: Throwable) {
+      // Handle the case where ImageIO can not process the file. Maybe corrupted?
+      thisLogger().warn(t)
     }
 
   }

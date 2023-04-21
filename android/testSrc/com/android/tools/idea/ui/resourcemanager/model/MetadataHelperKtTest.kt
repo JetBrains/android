@@ -63,4 +63,14 @@ class MetadataHelperKtTest {
                                                            DENSITY, "Any Density",
                                                            FILE_SIZE, "399 B")
   }
+
+  @Test
+  fun getMetadataFromCorruptFileShouldNotCrash() {
+    rule.fixture.testDataPath = getTestDataDirectory()
+    val png = rule.fixture.copyFileToProject("res/drawable/png.png", "src/res/drawable-hdpi/png.webp")
+    Truth.assertThat(png.getMetadata()).containsExactly(FILE_NAME, "png.webp",
+                                                        FILE_TYPE, "WEBP",
+                                                        DENSITY, "High Density",
+                                                        FILE_SIZE, "114 B")
+  }
 }
