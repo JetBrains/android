@@ -81,7 +81,6 @@ public class StartUpTest {
         "GitHub",
         "Google Cloud Tools Core",
         "Google Cloud Tools For Android Studio",
-        "Google Developers Samples",
         "Gradle",
         "Gradle managed device code completion",
         "Gradle-Java",

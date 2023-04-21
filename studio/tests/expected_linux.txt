@@ -2734,7 +2734,6 @@ android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-source
 android-studio/plugins/google-cloud-tools-core-as/lib/google-cloud-tools-core-as.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/gradle-appengine-builder-model-0.1.0.jar
 android-studio/plugins/google-login-as/lib/google-login-as.jar
-android-studio/plugins/google-samples/lib/google-samples.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
 android-studio/plugins/gradle/lib/gradle-api-7.5.1.jar

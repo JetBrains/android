@@ -556,16 +556,6 @@ studio_plugin(
 )
 
 studio_plugin(
-    name = "com.google.cluestick.studioclient",
-    directory = "google-samples",
-    modules = {"google-samples.jar": ["//tools/studio/google/samples:google-samples"]},
-    visibility = ["//visibility:public"],
-    deps = [
-        ":org.jetbrains.android",
-    ],
-)
-
-studio_plugin(
     name = "com.android.tools.idea.smali",
     directory = "smali",
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
@@ -666,7 +656,6 @@ android_studio(
         ":com.google.appindexing",
         ":com.google.gct",
         ":com.google.gct.core",
-        ":com.google.cluestick.studioclient",
         ":com.android.tools.idea.smali",
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",
@@ -860,7 +849,6 @@ iml_module(
         "//tools/studio/google/appindexing:google-appindexing[module]",
         "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as[module]",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
-        "//tools/studio/google/samples:google-samples[module]",
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/studio/google/cloud/testing/test-recorder[module]",
         "//tools/vendor/google/url-assistant[module]",

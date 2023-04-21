@@ -21,7 +21,6 @@
     <orderEntry type="module" module-name="google-appindexing" />
     <orderEntry type="module" module-name="google-cloud-tools-core-as" />
     <orderEntry type="module" module-name="google-login-as" />
-    <orderEntry type="module" module-name="google-samples" />
     <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="module" module-name="test-recorder" />
     <orderEntry type="module" module-name="url-assistant" />
