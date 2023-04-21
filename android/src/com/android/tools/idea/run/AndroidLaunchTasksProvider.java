@@ -204,13 +204,6 @@ public class AndroidLaunchTasksProvider {
     return DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN;
   }
 
-  public void fillStats(RunStats stats) {
-    stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun());
-    stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun());
-    stats.setRunAlwaysInstallWithPm(myRunConfig.ALWAYS_INSTALL_WITH_PM);
-    stats.setIsComposeProject(LiveEditService.usesCompose(myProject));
-  }
-
   @NotNull
   private static ApkInfo filterDisabledFeatures(ApkInfo apkInfo, List<String> disabledFeatures) {
     if (apkInfo.getFiles().size() > 1) {

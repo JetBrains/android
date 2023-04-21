@@ -18,6 +18,8 @@ package com.android.tools.idea.run
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.deploy.DeploymentConfiguration
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.usesCompose
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.clearAppStorage
@@ -83,7 +85,7 @@ class LaunchTaskRunner(
     val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
     val console = createConsole()
 
-    RunStats.from(env).apply { setPackage(packageName) }
+    fillStats(RunStats.from(env), packageName)
 
     devices.forEach {
       if (configuration.CLEAR_LOGCAT) {
@@ -120,10 +122,8 @@ class LaunchTaskRunner(
     val packageName = applicationIdProvider.packageName
     val launchTasksProvider = AndroidLaunchTasksProvider(configuration, env, facet, packageName, apkProvider,
                                                          configuration.getLaunchOptions(), isDebug)
-    val stat = RunStats.from(env).apply { setPackage(packageName) }
 
     printLaunchTaskStartedMessage(console)
-    launchTasksProvider.fillStats(stat)
 
     // Create launch tasks for each device.
     indicator.text = "Getting task for devices"
@@ -160,7 +160,7 @@ class LaunchTaskRunner(
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
-    RunStats.from(env).apply { setPackage(packageName) }
+    fillStats(RunStats.from(env), packageName)
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
@@ -217,6 +217,7 @@ class LaunchTaskRunner(
     val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(project, packageName).apply {
       devices.forEach { addTargetDevice(it) }
     }
+    fillStats(RunStats.from(env), packageName)
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
 
@@ -272,6 +273,22 @@ class LaunchTaskRunner(
         }
       }
     }
+  }
+
+  private fun fillStats(stats: RunStats, packageName: String) {
+    stats.setPackage(packageName)
+    stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun())
+    stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun())
+    stats.setRunAlwaysInstallWithPm(configuration.ALWAYS_INSTALL_WITH_PM)
+    stats.setIsComposeProject(usesCompose(project))
+  }
+
+  private fun isApplyCodeChangesFallbackToRun(): Boolean {
+    return DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN
+  }
+
+  private fun isApplyChangesFallbackToRun(): Boolean {
+    return DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN
   }
 
   private fun printLaunchTaskStartedMessage(consoleView: ConsoleView) {
