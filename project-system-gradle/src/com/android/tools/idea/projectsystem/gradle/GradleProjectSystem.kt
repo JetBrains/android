@@ -135,7 +135,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       ?.let { VfsUtil.findFileByIoFile(it, true) }
   }
 
-  override fun getModuleSystem(module: Module): AndroidModuleSystem {
+  override fun getModuleSystem(module: Module): GradleModuleSystem {
     return GradleModuleSystem(module, myProjectBuildModelHandler, moduleHierarchyProvider.createForModule(module))
   }
 
