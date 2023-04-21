@@ -842,10 +842,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
     TrackGroupModel battery = TrackGroupModel.newBuilder()
       .setTitle("Battery")
-      .setTitleHelpText("This section shows the device's battery consumption in three contexts (in order): " +
-                        "<ol><li>Remaining battery percentage (%)</li>" +
-                        "<li>Remaining battery charge in microampere-hours (µAh)</li>" +
-                        "<li>Instantaneous current in microampere (µA)</li></ol>" +
+      .setTitleHelpText("This section shows the device's battery consumption in three contexts: " +
+                        "<ul><li>Capacity: remaining battery percentage (%)</li>" +
+                        "<li>Charge: remaining battery charge in microampere-hours (µAh)</li>" +
+                        "<li>Current: instantaneous current in microampere (µA)</li></ul>" +
                         "<b>" + compatibilityMessage + "</b>"
                         )
       .setCollapsedInitially(false)
