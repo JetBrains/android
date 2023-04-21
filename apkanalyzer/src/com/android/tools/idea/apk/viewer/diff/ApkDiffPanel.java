@@ -147,7 +147,7 @@ public class ApkDiffPanel {
       }
     };
 
-    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myTree, true, convertor.asFunction());
+    TreeSpeedSearch.installOn(myTree, true, convertor);
 
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
