@@ -45,6 +45,8 @@ class AppInsightsIssuesTableCellRendererTest {
         "Sample Event",
         "1.2.3",
         "1.2.3",
+        12L,
+        14L,
         5L,
         10L,
         emptySet(),

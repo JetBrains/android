@@ -35,6 +35,8 @@ internal fun ErrorIssue.toIssueDetails(): IssueDetails {
     sampleEvent = "", // Not in-use in vitals.
     firstSeenVersion = firstAppVersion.versionCode.toString(),
     lastSeenVersion = lastAppVersion.versionCode.toString(),
+    lowestAffectedApiLevel = firstOsVersion.apiLevel,
+    highestAffectedApiLevel = lastOsVersion.apiLevel,
     impactedDevicesCount = distinctUsers,
     eventsCount = errorReportCount,
     signals = emptySet(),

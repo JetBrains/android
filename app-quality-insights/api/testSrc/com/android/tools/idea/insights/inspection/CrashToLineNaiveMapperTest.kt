@@ -76,6 +76,8 @@ class CrashToLineNaiveMapperTest {
           "sampleEvent",
           "firstSeenVersion",
           "lastSeenVersion",
+          12L,
+          14L,
           1000L,
           9999L,
           emptySet(),

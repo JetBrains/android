@@ -85,6 +85,10 @@ data class IssueDetails(
   val firstSeenVersion: String,
   // Version that this version was most recently seen
   val lastSeenVersion: String,
+  // The lowest API level in which this issue was seen
+  val lowestAffectedApiLevel: Long,
+  // The highest API level in which this issue was seen
+  val highestAffectedApiLevel: Long,
   // Number of unique devices.
   val impactedDevicesCount: Long,
   // number of unique events that occur for this issue
