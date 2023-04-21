@@ -54,7 +54,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 private val offlineAction =
-  object : AnAction("Play Vitals is offline.", null, offlineModeIcon) {
+  object : AnAction("Android Vitals is offline.", null, offlineModeIcon) {
     override fun actionPerformed(e: AnActionEvent) {}
     override fun getActionUpdateThread() = ActionUpdateThread.EDT
     override fun update(e: AnActionEvent) {
@@ -231,7 +231,7 @@ class VitalsTab(
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.component.addContainerListener(
       ActionToolbarListenerForOfflineBalloon(
-        "Play Vitals",
+        "Android Vitals",
         project,
         offlineAction,
         scope,

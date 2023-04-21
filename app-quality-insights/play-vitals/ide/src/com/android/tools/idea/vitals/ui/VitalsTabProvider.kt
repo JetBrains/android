@@ -37,7 +37,7 @@ import javax.swing.JPanel
 import kotlinx.coroutines.launch
 
 class VitalsTabProvider : AppInsightsTabProvider {
-  override val tabDisplayName = "Play Vitals"
+  override val tabDisplayName = "Android Vitals"
 
   // TODO(b/271918057): use real icon.
   override val tabIcon = StudioIcons.Avd.DEVICE_PLAY_STORE
@@ -79,7 +79,11 @@ class VitalsTabProvider : AppInsightsTabProvider {
             override fun isStatusVisible() = true
           }
           .also {
-            it.appendLine("Initializing Play Vitals", SimpleTextAttributes.GRAYED_ATTRIBUTES, null)
+            it.appendLine(
+              "Initializing Android Vitals",
+              SimpleTextAttributes.GRAYED_ATTRIBUTES,
+              null
+            )
             it.attachTo(this)
           }
 
