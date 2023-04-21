@@ -16,73 +16,25 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
-import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.waitForCondition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.ProjectRule
-import java.util.EnumSet
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-class StackTracePanelTest {
+class IssueDetailsPanelTest {
   private val projectRule = ProjectRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(controllerRule)
-
-  @Test
-  fun `can switch issues quickly`() {
-    var error: String? = null
-    val errorProcessor =
-      object : LoggedErrorProcessor() {
-        override fun processError(
-          category: String,
-          message: String,
-          details: Array<out String>,
-          t: Throwable?,
-        ): Set<Action> {
-          error = message
-          return EnumSet.allOf(Action::class.java)
-        }
-      }
-    LoggedErrorProcessor.executeWith<Throwable>(errorProcessor) {
-      val issues = listOf(ISSUE1, ISSUE2)
-      val flow = MutableSharedFlow<LoadingState<Selection<AppInsightsIssue>>>()
-      val panel = invokeAndWaitIfNeeded {
-        StackTracePanel(
-          controllerRule.controller,
-          flow,
-          projectRule.project,
-          {},
-          controllerRule.disposable,
-          controllerRule.tracker
-        ) { _, _, _, _ ->
-          "testuri"
-        }
-      }
-
-      runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-        flow.emit(LoadingState.Ready(Selection(issues[1], issues)))
-        flow.emit(LoadingState.Ready(Selection(issues[0], issues)))
-
-        waitForCondition(5000) { panel.consoleView.editor.foldingModel.allFoldRegions.isNotEmpty() }
-      }
-    }
-    assertThat(error).isNull()
-  }
 
   @Test
   fun `open close issue button reacts to offline mode changes`() =
@@ -98,11 +50,8 @@ class StackTracePanelTest {
           )
         )
       val panel = invokeAndWaitIfNeeded {
-        StackTracePanel(
+        IssueDetailsPanel(
           controllerRule.controller,
-          controllerRule.controller.state
-            .map { it.issues.map { timed -> timed.value } }
-            .distinctUntilChanged(),
           projectRule.project,
           {},
           controllerRule.disposable,

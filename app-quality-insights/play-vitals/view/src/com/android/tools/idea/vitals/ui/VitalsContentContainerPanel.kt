@@ -22,7 +22,7 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsContentPanel
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableCellRenderer
-import com.android.tools.idea.insights.ui.DetailsToolWindow
+import com.android.tools.idea.insights.ui.DistributionToolWindow
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -97,7 +97,7 @@ class VitalsContentContainerPanel(
         this,
         tracker,
         AppInsightsIssuesTableCellRenderer,
-        listOfNotNull(DetailsToolWindow.create(scope, projectController.state))
+        listOfNotNull(DistributionToolWindow.create(scope, projectController.state))
       ) { _, _, _, _ ->
         // TODO: construct actual link to play vitals console
         "play.google.com"

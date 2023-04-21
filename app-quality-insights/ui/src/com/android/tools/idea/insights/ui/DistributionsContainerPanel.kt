@@ -37,7 +37,6 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -45,7 +44,7 @@ private const val NOTHING_SELECTED_LABEL = "Select an issue."
 private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
 
-class DetailsPanel(scope: CoroutineScope, insightsState: Flow<AppInsightsState>) :
+class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<AppInsightsState>) :
   JPanel(CardLayout()) {
   private val deviceDistributionPanel =
     DistributionPanel().apply {

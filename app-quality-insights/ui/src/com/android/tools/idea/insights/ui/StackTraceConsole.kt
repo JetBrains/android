@@ -1,0 +1,188 @@
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.insights.ui
+
+import com.android.tools.adtui.common.primaryContentBackground
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.Blames
+import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.execution.filters.FileHyperlinkInfo
+import com.intellij.execution.filters.TextConsoleBuilderFactory
+import com.intellij.execution.impl.ConsoleViewImpl
+import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.editor.event.CaretEvent
+import com.intellij.openapi.editor.event.CaretListener
+import com.intellij.openapi.editor.event.EditorMouseEvent
+import com.intellij.openapi.editor.event.EditorMouseListener
+import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.util.Disposer
+import com.intellij.unscramble.AnalyzeStacktraceUtil
+import java.awt.Dimension
+import java.awt.Rectangle
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
+
+private val CONSOLE_LOCK = Any()
+
+class StackTraceConsole(
+  private val controller: AppInsightsProjectLevelController,
+  private val project: Project,
+  private val tracker: AppInsightsTracker
+) : Disposable {
+
+  @VisibleForTesting val consoleView: ConsoleViewImpl = createStackPanel()
+  private val scope = AndroidCoroutineScope(this)
+  var onStackPrintedListener: (() -> Unit)? = null
+
+  private var currentIssue: AppInsightsIssue? = null
+  private var connectionModeState =
+    controller.state.map { it.mode }.stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
+
+  init {
+    Disposer.register(this, consoleView)
+    controller.coroutineScope.launch(AndroidDispatchers.uiThread) {
+      controller.state
+        .mapNotNull { it.selectedIssue }
+        .collect { selected -> printStack(selected, consoleView) }
+    }
+  }
+
+  private fun printStack(issue: AppInsightsIssue, consoleView: ConsoleViewImpl) {
+    if (issue.sampleEvent == currentIssue?.sampleEvent) {
+      return
+    }
+    synchronized(CONSOLE_LOCK) {
+      currentIssue = null
+      consoleView.clear()
+
+      fun Blames.getConsoleViewContentType() =
+        if (this == Blames.BLAMED) ConsoleViewContentType.ERROR_OUTPUT
+        else ConsoleViewContentType.NORMAL_OUTPUT
+
+      for (stack in issue.sampleEvent.stacktraceGroup.exceptions) {
+        consoleView.print(
+          "${stack.rawExceptionMessage}\n",
+          stack.stacktrace.blames.getConsoleViewContentType()
+        )
+        val startOffset = consoleView.contentSize
+        for (frame in stack.stacktrace.frames) {
+          val frameLine = "    ${frame.rawSymbol}\n"
+          consoleView.print(frameLine, frame.blame.getConsoleViewContentType())
+        }
+        val endOffset = consoleView.contentSize - 1 // TODO: -2 on windows?
+        currentIssue = issue
+
+        consoleView.performWhenNoDeferredOutput {
+          consoleView.editor.foldingModel.runBatchFoldingOperation {
+            synchronized(CONSOLE_LOCK) {
+              if (issue != currentIssue) {
+                return@runBatchFoldingOperation
+              }
+              val region =
+                consoleView.editor.foldingModel.addFoldRegion(
+                  startOffset,
+                  endOffset,
+                  "    <${stack.stacktrace.frames.size} frames>"
+                )
+              if (stack.stacktrace.blames == Blames.NOT_BLAMED) {
+                region?.isExpanded = false
+              }
+            }
+          }
+        }
+      }
+    }
+    // TODO: ensure the editor component always resizes correctly after update.
+    consoleView.performWhenNoDeferredOutput {
+      synchronized(CONSOLE_LOCK) {
+        if (issue != currentIssue) {
+          return@synchronized
+        }
+        consoleView.revalidate()
+        consoleView.scrollTo(0)
+        onStackPrintedListener?.invoke()
+      }
+    }
+    consoleView.editor.addEditorMouseListener(
+      object : EditorMouseListener {
+        override fun mouseClicked(event: EditorMouseEvent) {
+          val linkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event) ?: return
+          val metricsEvent =
+            AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
+              .apply {
+                crashType = issue.issueDetails.fatality.toCrashType()
+                localFile =
+                  (linkInfo as? FileHyperlinkInfo)?.descriptor?.file?.let {
+                    ProjectFileIndex.getInstance(project).isInSourceContent(it)
+                  }
+                    ?: false
+              }
+              .build()
+          tracker.logStacktraceClicked(connectionModeState.value, metricsEvent)
+        }
+      }
+    )
+  }
+
+  private fun createStackPanel(): ConsoleViewImpl {
+    val builder = TextConsoleBuilderFactory.getInstance().createBuilder(project)
+    builder.filters(AnalyzeStacktraceUtil.EP_NAME.getExtensions(project))
+    val consoleView = builder.console as ConsoleViewImpl
+    @Suppress("UNUSED_VARIABLE") val unused = consoleView.component // causes editor to be created
+    (consoleView.editor as EditorEx).apply {
+      backgroundColor = primaryContentBackground
+      contentComponent.isFocusCycleRoot = false
+      contentComponent.isFocusable = true
+      setVerticalScrollbarVisible(false)
+
+      caretModel.addCaretListener(
+        object : CaretListener {
+          override fun caretPositionChanged(event: CaretEvent) = scrollToCaret(event)
+          override fun caretAdded(event: CaretEvent) = scrollToCaret(event)
+          override fun caretRemoved(event: CaretEvent) = scrollToCaret(event)
+
+          fun scrollToCaret(event: CaretEvent) {
+            val caret =
+              event.caret
+                ?: DataManager.getInstance()
+                  .getDataContext(contentComponent)
+                  .getData(CommonDataKeys.CARET)
+                  ?: return
+            val point = consoleView.editor.logicalPositionToXY(caret.logicalPosition)
+            scrollPane.scrollRectToVisible(Rectangle(point, Dimension(20, 20)))
+          }
+        }
+      )
+    }
+    return consoleView
+  }
+
+  override fun dispose() = Unit
+}

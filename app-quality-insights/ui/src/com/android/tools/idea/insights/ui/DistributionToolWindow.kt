@@ -27,7 +27,7 @@ import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
-object DetailsToolWindow {
+object DistributionToolWindow {
   fun create(
     scope: CoroutineScope,
     state: Flow<AppInsightsState>
@@ -53,7 +53,7 @@ private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppIns
   private val component = JPanel(BorderLayout())
 
   init {
-    component.add(DetailsPanel(scope, state), BorderLayout.CENTER)
+    component.add(DistributionsContainerPanel(scope, state), BorderLayout.CENTER)
   }
 
   override fun dispose() = Unit

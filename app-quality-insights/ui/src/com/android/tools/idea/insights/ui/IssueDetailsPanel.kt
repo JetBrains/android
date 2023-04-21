@@ -20,42 +20,28 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Permission
-import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.VariantConnection
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.filterReady
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.intellij.execution.filters.FileHyperlinkInfo
-import com.intellij.execution.filters.TextConsoleBuilderFactory
-import com.intellij.execution.impl.ConsoleViewImpl
-import com.intellij.execution.ui.ConsoleViewContentType
-import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction
-import com.intellij.openapi.editor.event.CaretEvent
-import com.intellij.openapi.editor.event.CaretListener
-import com.intellij.openapi.editor.event.EditorMouseEvent
-import com.intellij.openapi.editor.event.EditorMouseListener
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.IdeBorderFactory
@@ -65,7 +51,6 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.scale.JBUIScale
-import com.intellij.unscramble.AnalyzeStacktraceUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
@@ -74,7 +59,6 @@ import java.awt.CardLayout
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Graphics
-import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
@@ -91,7 +75,6 @@ import javax.swing.JScrollPane
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -103,7 +86,6 @@ import org.jetbrains.annotations.VisibleForTesting
 private const val NOTHING_SELECTED_LABEL = "Select an issue."
 private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
-private val CONSOLE_LOCK = Any()
 
 /**
  * Returns a [Pair] of [Long] values representing the (start, end) times as millis since epoch.
@@ -117,10 +99,9 @@ private fun TimeIntervalFilter.asMillisFromNow(): Pair<Long, Long> {
   return startOfRange.toEpochMilli() to endOfRange.toEpochMilli()
 }
 
-class StackTracePanel(
+class IssueDetailsPanel(
   private val controller: AppInsightsProjectLevelController,
-  selectedState: Flow<LoadingState<Selection<AppInsightsIssue>>>,
-  private val project: Project,
+  project: Project,
   val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
   private val tracker: AppInsightsTracker,
@@ -162,6 +143,9 @@ class StackTracePanel(
       border = JBUI.Borders.empty(2, 8, 0, 0)
       isOpaque = false
     }
+
+  private val selectedState =
+    controller.state.map { it.issues.map { timed -> timed.value } }.distinctUntilChanged()
 
   private val toggleButtonStateFlow =
     selectedState
@@ -241,15 +225,12 @@ class StackTracePanel(
       }
 
   private val scrollPane: JScrollPane
-
-  @VisibleForTesting val consoleView: ConsoleViewImpl = createStackPanel()
-
-  private var currentIssue: AppInsightsIssue? = null
+  @VisibleForTesting val stackTraceConsole = StackTraceConsole(controller, project, tracker)
 
   init {
     minimumSize = Dimension(90, 0)
     background = primaryContentBackground
-    Disposer.register(parentDisposable, consoleView)
+    Disposer.register(parentDisposable, stackTraceConsole)
     controller.coroutineScope.launch {
       controller.state.collect { state ->
         selectedFirebaseConnection = state.connections.selected
@@ -306,7 +287,6 @@ class StackTracePanel(
               firebaseConsoleHyperlink.setHyperlinkTarget("https://console.firebase.com")
             }
             updateBodySection(issue)
-            printStack(issue, consoleView)
           }
         }
     }
@@ -321,6 +301,7 @@ class StackTracePanel(
           viewport.isOpaque = false
         }
     scrollPane.border = IdeBorderFactory.createBorder(SideBorder.NONE)
+    stackTraceConsole.onStackPrintedListener = { scrollPane.verticalScrollBar.value = 0 }
     val header = createHeaderSection()
     header.addComponentListener(
       object : ComponentAdapter() {
@@ -336,129 +317,19 @@ class StackTracePanel(
     add(mainPanel, BorderLayout.CENTER)
   }
 
-  private fun printStack(issue: AppInsightsIssue, consoleView: ConsoleViewImpl) {
-    if (issue.sampleEvent == currentIssue?.sampleEvent) {
-      return
-    }
-    synchronized(CONSOLE_LOCK) {
-      currentIssue = null
-      consoleView.clear()
-
-      fun Blames.getConsoleViewContentType() =
-        if (this == Blames.BLAMED) ConsoleViewContentType.ERROR_OUTPUT
-        else ConsoleViewContentType.NORMAL_OUTPUT
-
-      for (stack in issue.sampleEvent.stacktraceGroup.exceptions) {
-        consoleView.print(
-          "${stack.rawExceptionMessage}\n",
-          stack.stacktrace.blames.getConsoleViewContentType()
-        )
-        val startOffset = consoleView.contentSize
-        for (frame in stack.stacktrace.frames) {
-          val frameLine = "    ${frame.rawSymbol}\n"
-          consoleView.print(frameLine, frame.blame.getConsoleViewContentType())
-        }
-        val endOffset = consoleView.contentSize - 1 // TODO: -2 on windows?
-        currentIssue = issue
-
-        consoleView.performWhenNoDeferredOutput {
-          consoleView.editor.foldingModel.runBatchFoldingOperation {
-            synchronized(CONSOLE_LOCK) {
-              if (issue != currentIssue) {
-                return@runBatchFoldingOperation
-              }
-              val region =
-                consoleView.editor.foldingModel.addFoldRegion(
-                  startOffset,
-                  endOffset,
-                  "    <${stack.stacktrace.frames.size} frames>"
-                )
-              if (stack.stacktrace.blames == Blames.NOT_BLAMED) {
-                region?.isExpanded = false
-              }
-            }
-          }
-        }
-      }
-    }
-    // TODO: ensure the editor component always resizes correctly after update.
-    consoleView.performWhenNoDeferredOutput {
-      synchronized(CONSOLE_LOCK) {
-        if (issue != currentIssue) {
-          return@synchronized
-        }
-        consoleView.revalidate()
-        consoleView.scrollTo(0)
-        scrollPane.verticalScrollBar.value = 0
-      }
-    }
-    consoleView.editor.addEditorMouseListener(
-      object : EditorMouseListener {
-        override fun mouseClicked(event: EditorMouseEvent) {
-          val linkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event) ?: return
-          val metricsEvent =
-            AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
-              .apply {
-                crashType = issue.issueDetails.fatality.toCrashType()
-                localFile =
-                  (linkInfo as? FileHyperlinkInfo)?.descriptor?.file?.let {
-                    ProjectFileIndex.getInstance(project).isInSourceContent(it)
-                  }
-                    ?: false
-              }
-              .build()
-          tracker.logStacktraceClicked(connectionMode, metricsEvent)
-        }
-      }
-    )
-  }
-
   private fun createContentPanel(): JComponent {
     val panel =
       transparentPanel().apply {
-        border = JBUI.Borders.empty(0, 8, 0, 8)
+        border = JBUI.Borders.empty(0, 8)
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
         add(Box.createVerticalStrut(5))
         add(createBodySection())
         add(Box.createVerticalStrut(5))
         add(TitledSeparator("Stack Trace"))
-        add(consoleView.component)
+        add(stackTraceConsole.consoleView.component)
         components.forEach { (it as JComponent).alignmentX = LEFT_ALIGNMENT }
       }
     return transparentPanel(BorderLayout()).apply { add(panel, BorderLayout.NORTH) }
-  }
-
-  private fun createStackPanel(): ConsoleViewImpl {
-    val builder = TextConsoleBuilderFactory.getInstance().createBuilder(project)
-    builder.filters(AnalyzeStacktraceUtil.EP_NAME.getExtensions(project))
-    val consoleView = builder.console as ConsoleViewImpl
-    @Suppress("UNUSED_VARIABLE") val unused = consoleView.component // causes editor to be created
-    (consoleView.editor as EditorEx).apply {
-      backgroundColor = primaryContentBackground
-      contentComponent.isFocusCycleRoot = false
-      contentComponent.isFocusable = true
-      setVerticalScrollbarVisible(false)
-
-      caretModel.addCaretListener(
-        object : CaretListener {
-          override fun caretPositionChanged(event: CaretEvent) = scrollToCaret(event)
-          override fun caretAdded(event: CaretEvent) = scrollToCaret(event)
-          override fun caretRemoved(event: CaretEvent) = scrollToCaret(event)
-
-          fun scrollToCaret(event: CaretEvent) {
-            val caret =
-              event.caret
-                ?: DataManager.getInstance()
-                  .getDataContext(contentComponent)
-                  .getData(CommonDataKeys.CARET)
-                  ?: return
-            val point = consoleView.editor.logicalPositionToXY(caret.logicalPosition)
-            scrollPane.scrollRectToVisible(Rectangle(point, Dimension(20, 20)))
-          }
-        }
-      )
-    }
-    return consoleView
   }
 
   private fun createBodySection() =
@@ -506,7 +377,7 @@ class StackTracePanel(
           init {
             ActionUtil.copyFrom(this, IdeActions.ACTION_EDITOR_USE_SOFT_WRAPS)
           }
-          override fun getEditor(e: AnActionEvent) = consoleView.editor
+          override fun getEditor(e: AnActionEvent) = stackTraceConsole.consoleView.editor
         }
       val toolbar =
         ActionManager.getInstance()

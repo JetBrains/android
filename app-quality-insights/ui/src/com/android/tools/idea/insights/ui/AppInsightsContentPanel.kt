@@ -18,7 +18,6 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
@@ -26,7 +25,6 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
-import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.intellij.openapi.Disposable
@@ -37,9 +35,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import java.awt.BorderLayout
 import java.lang.Integer.min
 import javax.swing.JPanel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 
 class AppInsightsContentPanel(
   private val projectController: AppInsightsProjectLevelController,
@@ -50,8 +45,6 @@ class AppInsightsContentPanel(
   secondaryToolWindows: List<ToolWindowDefinition<AppInsightsToolWindowContext>>,
   getConsoleUrl: (Connection, Pair<Long, Long>?, Set<Version>, IssueDetails) -> String
 ) : JPanel(BorderLayout()), Disposable {
-  private val issuesState: Flow<LoadingState<Selection<AppInsightsIssue>>> =
-    projectController.state.map { it.issues.map { timed -> timed.value } }.distinctUntilChanged()
   private val issuesTableView: AppInsightsIssuesTableView
 
   init {
@@ -67,9 +60,8 @@ class AppInsightsContentPanel(
     Disposer.register(this, issuesTableView)
     val mainContentPanel = JPanel(BorderLayout())
     mainContentPanel.add(
-      StackTracePanel(
+      IssueDetailsPanel(
         projectController,
-        issuesState,
         project,
         issuesTableView::setHeaderHeight,
         this,
