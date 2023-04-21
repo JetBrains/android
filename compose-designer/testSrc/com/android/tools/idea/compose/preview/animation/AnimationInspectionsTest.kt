@@ -1059,7 +1059,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     val quickFix =
-      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
+      QuickFixWrapper.unwrap(fixture.getAllQuickFixes().single()) as LocalQuickFixOnPsiElement
     assertEquals("Add label parameter", quickFix.text)
     assertEquals("Compose preview", quickFix.familyName)
 
@@ -1106,7 +1106,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     val quickFix =
-      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
+      QuickFixWrapper.unwrap(fixture.getAllQuickFixes().single()) as LocalQuickFixOnPsiElement
     assertEquals("Add label parameter", quickFix.text)
     assertEquals("Compose preview", quickFix.familyName)
 
@@ -1157,7 +1157,7 @@ class AnimationInspectionsTest {
         .trimIndent()
 
     val quickFix =
-      (fixture.getAllQuickFixes().single() as QuickFixWrapper).fix as LocalQuickFixOnPsiElement
+      QuickFixWrapper.unwrap(fixture.getAllQuickFixes().single()) as LocalQuickFixOnPsiElement
     assertEquals("Add label parameter", quickFix.text)
     assertEquals("Compose preview", quickFix.familyName)
 
