@@ -93,10 +93,20 @@ public class ViewHandlerManager implements Disposable {
    * Gets the {@link ViewHandler} associated with the given component, if any
    *
    * @param component the component to find a handler for
-   * @return the corresponding view handler, if any
+   * @return the corresponding view handler, or null if not found
    */
   @Nullable
   public ViewHandler getHandler(@NotNull NlComponent component) {
+    ViewHandler handler = getHandlerOrDefault(component);
+    return handler != NONE ? handler : null;
+  }
+
+  /**
+   * Gets the {@link ViewHandler} associated with a given component.
+   * If there is no custom handler found returns an instance of {@link ViewHandler}.
+   */
+  @NotNull
+  public ViewHandler getHandlerOrDefault(@NotNull NlComponent component) {
     String tag = component.getTagName();
 
     switch (tag) {
@@ -112,65 +122,52 @@ public class ViewHandlerManager implements Disposable {
       case VIEW_MERGE:
         String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
         if (parentTag != null) {
-          ViewHandler groupHandler = getHandler(parentTag);
+          ViewHandler groupHandler = getHandlerOrDefault(parentTag);
           if (groupHandler instanceof ViewGroupHandler) {
             return new MergeDelegateHandler((ViewGroupHandler)groupHandler);
           }
         }
-        return getHandler(VIEW_MERGE);
+        return getHandlerOrDefault(VIEW_MERGE);
 
       default:
-        return getHandler(tag);
+        return getHandlerOrDefault(tag);
     }
-  }
-
-  /**
-   * Gets the {@link ViewHandler} associated with a given component.
-   * If there is no custom handler found returns an instance of {@link TextViewHandler}.
-   */
-  @NotNull
-  public ViewHandler getHandlerOrDefault(@NotNull NlComponent component) {
-    ViewHandler handler = getHandler(component);
-    return handler != null ? handler : NONE;
-  }
-
-  /**
-   * Gets the {@link ViewHandler} associated with the given XML tag.
-   * If there is no custom handler found returns an instance of {@link TextViewHandler}.
-   */
-  @NotNull
-  public ViewHandler getHandlerOrDefault(@NotNull String viewTag) {
-    ViewHandler handler = getHandler(viewTag);
-    return handler != null ? handler : NONE;
   }
 
   /**
    * Gets the {@link ViewHandler} associated with the given XML tag, if any
    *
    * @param viewTag the tag to look up
-   * @return the corresponding view handler, if any
+   * @return the corresponding view handler, or null if not found
    */
   @Nullable
   public ViewHandler getHandler(@NotNull String viewTag) {
+    ViewHandler handler = getHandlerOrDefault(viewTag);
+    return handler != NONE ? handler : null;
+  }
+
+  /**
+   * Gets the {@link ViewHandler} associated with the given XML tag.
+   * If there is no custom handler found returns an instance of {@link ViewHandler}.
+   */
+  @NotNull
+  public ViewHandler getHandlerOrDefault(@NotNull String viewTag) {
     ViewHandler handler = myHandlers.get(viewTag);
     if (handler == null) {
       if (viewTag.indexOf('.') != -1) {
         String tag = NlComponentHelper.INSTANCE.viewClassToTag(viewTag);
         if (!tag.equals(viewTag)) {
-          handler = getHandler(tag);
-          if (handler != null) {
-            // Alias fully qualified widget name to tag
-            myHandlers.put(viewTag, handler);
-            return handler;
-          }
+          handler = getHandlerOrDefault(tag);
+          // Alias fully qualified widget name to tag
+          myHandlers.put(viewTag, handler);
+          return handler;
         }
       }
 
       handler = createHandler(viewTag);
       myHandlers.put(viewTag, handler);
     }
-
-    return handler != NONE ? handler : null;
+    return handler;
   }
 
   /**
@@ -207,6 +204,7 @@ public class ViewHandlerManager implements Disposable {
     return null;
   }
 
+  @NotNull
   private ViewHandler createHandler(@NotNull String viewTag) {
     // Check if there are any built-in handlers. Do not bother with reflection in these cases.
     ViewHandler builtInHandler = BuiltinViewHandlerProvider.INSTANCE.findHandler(viewTag);
@@ -295,7 +293,7 @@ public class ViewHandlerManager implements Disposable {
   /**
    * Get the toolbar view actions for the given handler.
    * <p>
-   * This method will call {@link ViewHandler#addToolbarActionsToMenu(String, List)}
+   * This method will call {@link ViewHandler#addToolbarActions(List)}
    * but will cache results across invocations.
    *
    * @param handler the handler to look up actions for
