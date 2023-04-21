@@ -598,8 +598,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(dependencies.count(), artifactIds.count())
 
     for (i in 0 until dependencies.count()) {
-      assertEquals(groupId, dependencies[i].groupId)
-      assertEquals(artifactIds[i], dependencies[i].artifactId)
+      assertEquals(groupId, dependencies[i].mavenGroupId)
+      assertEquals(artifactIds[i], dependencies[i].mavenArtifactId)
     }
   }
 

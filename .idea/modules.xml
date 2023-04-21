@@ -287,6 +287,7 @@
       <module fileurl="file://$PROJECT_DIR$/mlkit/intellij.android.mlkit.iml" filepath="$PROJECT_DIR$/mlkit/intellij.android.mlkit.iml" />
       <module fileurl="file://$PROJECT_DIR$/mlkit/intellij.android.mlkit.tests.iml" filepath="$PROJECT_DIR$/mlkit/intellij.android.mlkit.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.iml" filepath="$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nav/editor/gradle/intellij.android.nav.editor.gradle.iml" filepath="$PROJECT_DIR$/nav/editor/gradle/intellij.android.nav.editor.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.tests.iml" filepath="$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.iml" filepath="$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.tests.iml" filepath="$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.tests.iml" />

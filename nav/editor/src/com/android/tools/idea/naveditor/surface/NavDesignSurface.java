@@ -60,10 +60,10 @@ import com.android.tools.idea.naveditor.model.NavCoordinate;
 import com.android.tools.idea.naveditor.scene.NavActionHelperKt;
 import com.android.tools.idea.naveditor.scene.NavSceneManager;
 import com.android.tools.idea.naveditor.scene.NavSceneManagerKt;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -76,7 +76,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -98,12 +97,14 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.geom.Point2D;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
@@ -128,21 +129,17 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
   AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
   private DesignerEditorPanel myEditorPanel;
 
-  private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES = ImmutableList.of(
-    GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+"),
-    GoogleMavenArtifactId.NAVIGATION_UI.getCoordinate("+"));
+  private static final List<GoogleMavenArtifactId> NAVIGATION_DEPENDENCIES =
+    ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT, GoogleMavenArtifactId.NAVIGATION_UI);
 
-  private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES_KTX = ImmutableList.of(
-    GoogleMavenArtifactId.NAVIGATION_FRAGMENT_KTX.getCoordinate("+"),
-    GoogleMavenArtifactId.NAVIGATION_UI_KTX.getCoordinate("+"));
+  private static final List<GoogleMavenArtifactId> NAVIGATION_DEPENDENCIES_KTX =
+    ImmutableList.of(GoogleMavenArtifactId.NAVIGATION_FRAGMENT_KTX, GoogleMavenArtifactId.NAVIGATION_UI_KTX);
 
-  private static final List<GradleCoordinate> ANDROIDX_NAVIGATION_DEPENDENCIES = ImmutableList.of(
-    GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT.getCoordinate("+"),
-    GoogleMavenArtifactId.ANDROIDX_NAVIGATION_UI.getCoordinate("+"));
+  private static final List<GoogleMavenArtifactId> ANDROIDX_NAVIGATION_DEPENDENCIES =
+    ImmutableList.of(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT, GoogleMavenArtifactId.ANDROIDX_NAVIGATION_UI);
 
-  private static final List<GradleCoordinate> ANDROIDX_NAVIGATION_DEPENDENCIES_KTX = ImmutableList.of(
-    GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT_KTX.getCoordinate("+"),
-    GoogleMavenArtifactId.ANDROIDX_NAVIGATION_UI_KTX.getCoordinate("+"));
+  private static final List<GoogleMavenArtifactId> ANDROIDX_NAVIGATION_DEPENDENCIES_KTX =
+    ImmutableList.of(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_FRAGMENT_KTX, GoogleMavenArtifactId.ANDROIDX_NAVIGATION_UI_KTX);
 
   @TestOnly
   public NavDesignSurface(@NotNull Project project, @NotNull Disposable parentDisposable) {
@@ -255,7 +252,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
         result.complete(null);
       }
       // If it didn't work, it's probably because the nav library isn't included. Prompt for it to be added.
-      else if (requestAddDependency(facet)) {
+      else if (requestAddDependency(model)) {
         ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(getProject())
           .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
         // When sync is done, try to create the schema again.
@@ -324,25 +321,19 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     }
   }
 
-  private boolean requestAddDependency(@NotNull AndroidFacet facet) {
-    List<GradleCoordinate> dependencies = getDependencies(facet.getModule());
-
-    AtomicBoolean didAdd = new AtomicBoolean(false);
-    ApplicationManager.getApplication().invokeAndWait(
-      () -> {
-        try {
-          didAdd.set(DependencyManagementUtil.addDependenciesWithUiConfirmation(
-            facet.getModule(), dependencies, true, false).isEmpty());
-        } catch(Throwable t) {
-          Logger.getInstance(NavDesignSurface.class).warn("Failed to add dependencies", t);
-          didAdd.set(false);
-        }
-      });
-    return didAdd.get();
+  private boolean requestAddDependency(@NotNull NlModel model) {
+    Project project = model.getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    Optional<NavDesignSurfaceToken<AndroidProjectSystem>> maybeToken =
+      Arrays.stream(NavDesignSurfaceToken.EP_NAME.getExtensions(project)).filter(t -> t.isApplicable(projectSystem))
+        .findFirst();
+    if (maybeToken.isEmpty()) return false;
+    NavDesignSurfaceToken<AndroidProjectSystem> token = maybeToken.get();
+    return token.modifyProject(projectSystem, model);
   }
 
   @NotNull
-  public static List<GradleCoordinate> getDependencies(@NotNull Module module) {
+  public static List<GoogleMavenArtifactId> getDependencies(@NotNull Module module) {
     boolean isKotlin = AndroidStudioKotlinPluginUtils.hasKotlinFacet(module);
 
     if (MigrateToAndroidxUtil.isAndroidx(module.getProject())) {

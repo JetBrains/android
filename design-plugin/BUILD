@@ -5,7 +5,11 @@ iml_module(
     name = "intellij.android.design-plugin",
     iml_files = ["intellij.android.design-plugin.iml"],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/nav/editor:intellij.android.nav.editor.gradle",
+        "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/designer:intellij.android.designer[module]",

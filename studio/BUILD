@@ -439,6 +439,7 @@ studio_plugin(
             "//tools/adt/idea/glance-designer:intellij.android.glance-designer",
             "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
             "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
+            "//tools/adt/idea/nav/editor:intellij.android.nav.editor.gradle",
             "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
             "//tools/adt/idea/wear-designer:intellij.android.wear-designer",
         ],
