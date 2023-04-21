@@ -148,6 +148,7 @@
     <codeInsight.lineMarkerProvider language="kotlin"
                                     implementationClass="com.android.tools.compose.code.ComposeLineMarkerProviderDescriptor" />
 
+    <usageGroupingRuleProvider implementation="com.android.tools.compose.ComposeUsageGroupingRuleProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
