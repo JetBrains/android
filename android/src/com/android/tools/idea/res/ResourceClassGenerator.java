@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleableResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.resources.RClassNaming;
 import com.android.resources.ResourceType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -179,7 +180,7 @@ public class ResourceClassGenerator {
     Collection<String> resourceNames = myResources.getResourceNames(myNamespace, resType);
     for (String name : resourceNames) {
       int initialValue = myIdProvider.getOrGenerateId(new ResourceReference(myNamespace, resType, name));
-      name = IdeResourcesUtil.getFieldNameByResourceName(name);
+      name = RClassNaming.getFieldNameByResourceName(name);
       generateField(cw, name, initialValue);
       cache.put(name, initialValue);
     }
@@ -216,7 +217,7 @@ public class ResourceClassGenerator {
         }
         continue;
       }
-      String fieldName = IdeResourcesUtil.getFieldNameByResourceName(styleableName);
+      String fieldName = RClassNaming.getFieldNameByResourceName(styleableName);
       cw.visitField(ACC_PUBLIC + ACC_FINAL + ACC_STATIC, fieldName, "[I", null, null);
       if (debug) {
         LOG.debug("  Defined styleable " + fieldName);
@@ -246,7 +247,7 @@ public class ResourceClassGenerator {
     MethodVisitor mv = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null);
     mv.visitCode();
     for (MergedStyleable mergedStyleable : mergedStyleables) {
-      String fieldName = IdeResourcesUtil.getFieldNameByResourceName(mergedStyleable.name);
+      String fieldName = RClassNaming.getFieldNameByResourceName(mergedStyleable.name);
       TIntArrayList values = new TIntArrayList();
       for (ResourceReference attr : mergedStyleable.attrs) {
         values.add(myIdProvider.getOrGenerateId(attr));
@@ -349,7 +350,7 @@ public class ResourceClassGenerator {
   }
 
   private static void appendEscaped(@NotNull StringBuilder sb, @NotNull String v) {
-    // See AndroidResourcesIdeUtil.getFieldNameByResourceName
+    // See RClassNaming.getFieldNameByResourceName
     for (int i = 0, n = v.length(); i < n; i++) {
       char c = v.charAt(i);
       if (c == '.' || c == ':' || c == '-') {

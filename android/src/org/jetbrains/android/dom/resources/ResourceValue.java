@@ -19,9 +19,9 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.SdkConstants.PREFIX_THEME_REF;
 
 import com.android.resources.FolderTypeRelationship;
+import com.android.resources.RClassNaming;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.DataBindingUtils;
 import com.android.utils.HashCodes;
 import com.intellij.lang.java.lexer.JavaLexer;
@@ -209,7 +209,7 @@ public class ResourceValue {
     return AndroidUtils.isIdentifier(myResourceName)
            // Value resources are allowed to contain . and : in the names
            || FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)
-              && AndroidUtils.isIdentifier(IdeResourcesUtil.getFieldNameByResourceName(myResourceName));
+              && AndroidUtils.isIdentifier(RClassNaming.getFieldNameByResourceName(myResourceName));
   }
 
   @Nullable
@@ -247,7 +247,7 @@ public class ResourceValue {
 
     String name = myResourceName;
     if (FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)) {
-      name = IdeResourcesUtil.getFieldNameByResourceName(name);
+      name = RClassNaming.getFieldNameByResourceName(name);
     }
 
     if (!AndroidUtils.isIdentifier(name)) {

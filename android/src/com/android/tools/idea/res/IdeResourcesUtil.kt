@@ -2226,19 +2226,6 @@ private fun getTemplateName(resourceType: String, valuesResourceFile: Boolean, r
   else AndroidFileTemplateProvider.RESOURCE_FILE_TEMPLATE
 }
 
-fun getFieldNameByResourceName(styleName: String): String {
-  var i = 0
-  val n = styleName.length
-  while (i < n) {
-    val c = styleName[i]
-    if (c == '.' || c == '-' || c == ':') {
-      return styleName.replace('.', '_').replace('-', '_').replace(':', '_')
-    }
-    i++
-  }
-  return styleName
-}
-
 /**
  * Finds and returns the resource files named stateListName in the directories listed in dirNames.
  * If some directories do not contain a file with that name, creates such a resource file.
