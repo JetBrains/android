@@ -74,8 +74,6 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
   }
 
   private fun onInspectorModelChanged(oldWindow: AndroidWindow?, newWindow: AndroidWindow?, isStructuralChange: Boolean) {
-    if (oldWindow == null && newWindow != null) {
-      isLoading = false
-    }
+    isLoading = false
   }
 }
