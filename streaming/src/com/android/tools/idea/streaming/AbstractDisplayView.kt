@@ -279,8 +279,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
 
   fun interface DecorationPainter {
     /**
-     * Paints on top of the device display image. Invoked after the display image is rendered,
-     * but before drawing multi-touch feedback and device frame.
+     * Paints on top of the device display image. Invoked after the display image is rendered.
      */
     fun paintDecorations(graphics: Graphics, displayRectangle: Rectangle, deviceDisplaySize: Dimension, displayOrientationQuadrants: Int)
   }

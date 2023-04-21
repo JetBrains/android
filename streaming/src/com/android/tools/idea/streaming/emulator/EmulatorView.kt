@@ -464,8 +464,6 @@ class EmulatorView(
     frameNumber = screenshotShape.frameNumber
     notifyFrameListeners(displayRect, screenshot.image)
 
-    paintDecorations(g, displayRect)
-
     if (multiTouchMode) {
       // Draw multi-touch visual feedback.
       drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
@@ -475,6 +473,8 @@ class EmulatorView(
       // Draw device frame and mask.
       skin.drawFrameAndMask(g, displayRect)
     }
+
+    paintDecorations(g, displayRect)
 
     if (!screenshot.painted) {
       screenshot.painted = true
