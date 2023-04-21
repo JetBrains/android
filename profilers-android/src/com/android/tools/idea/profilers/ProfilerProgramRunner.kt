@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
@@ -62,6 +63,19 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     }
     if (profile !is RunConfiguration) {
       return false
+    }
+    if (StudioFlags.PROFILEABLE_BUILDS.get()) {
+      // There are multiple profiler executors. The project's build system determines their applicability.
+      if (profile.project.getProjectSystem().supportsProfilingMode()) {
+        if (AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) == null) {
+          // Anything other than "Profile with low overhead" and "Profile with complete data" cannot run.
+          return false
+        }
+      }
+      else if (ProfileRunExecutor.EXECUTOR_ID != executorId) {
+        // Anything other than "Profile" cannot run.
+        return false
+      }
     }
     val syncState = GradleSyncState.getInstance(profile.project)
     return !syncState.isSyncInProgress && syncState.isSyncNeeded() == ThreeState.NO
