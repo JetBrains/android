@@ -17,13 +17,21 @@ package com.android.tools.idea.layoutinspector.settings
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
+import java.awt.Component
+import java.awt.Dimension
+import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JCheckBox
 import javax.swing.JPanel
+
+
+private const val STUDIO_RELEASE_NOTES_URL = "https://developer.android.com/studio/preview/features"
 
 /**
  * Class used to provide a [Configurable] to show in Android Studio settings panel.
@@ -43,7 +51,8 @@ class LayoutInspectorConfigurableProvider : ConfigurableProvider() {
 class LayoutInspectorConfigurable : SearchableConfigurable {
   private val component: JPanel = JPanel()
   private val enableAutoConnect = JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
-  private val enableEmbeddedLayoutInspector = JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector"))
+  private val embeddedLayoutInspectorSettingPanel = JPanel()
+  private val enableEmbeddedLayoutInspectorCheckBox = JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector"))
 
   private val settings = LayoutInspectorSettings.getInstance()
   private val autoConnectSettingControl = ToggleSettingController(
@@ -51,15 +60,25 @@ class LayoutInspectorConfigurable : SearchableConfigurable {
     Setting(getValue = { settings.autoConnectEnabled }, setValue = { settings.autoConnectEnabled = it })
   )
   private val embeddedLayoutInspectorSettingControl = ToggleSettingController(
-    enableEmbeddedLayoutInspector,
+    enableEmbeddedLayoutInspectorCheckBox,
     Setting(getValue = { settings.embeddedLayoutInspectorEnabled }, setValue = { settings.embeddedLayoutInspectorEnabled = it })
   )
 
   init {
     component.layout = BoxLayout(component, BoxLayout.PAGE_AXIS)
     component.add(enableAutoConnect)
+    enableAutoConnect.alignmentX = Component.LEFT_ALIGNMENT
+
+    embeddedLayoutInspectorSettingPanel.layout = BoxLayout(embeddedLayoutInspectorSettingPanel, BoxLayout.LINE_AXIS)
+    embeddedLayoutInspectorSettingPanel.add(enableEmbeddedLayoutInspectorCheckBox)
+    embeddedLayoutInspectorSettingPanel.add(Box.createRigidArea(Dimension(20, 0)))
+    embeddedLayoutInspectorSettingPanel.add(ActionLink(LayoutInspectorBundle.message("learn.more")) {
+      BrowserUtil.browse(STUDIO_RELEASE_NOTES_URL)
+    })
+
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()) {
-      component.add(enableEmbeddedLayoutInspector)
+      component.add(embeddedLayoutInspectorSettingPanel)
+      embeddedLayoutInspectorSettingPanel.alignmentX = Component.LEFT_ALIGNMENT
     }
   }
 

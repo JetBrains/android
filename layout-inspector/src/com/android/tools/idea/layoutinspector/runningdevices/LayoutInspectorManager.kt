@@ -34,7 +34,6 @@ import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
-import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -311,19 +310,19 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         text = notificationText,
         sticky = true,
         actions = listOf(
-          object : AnAction(LayoutInspectorBundle.message("learn.more")) {
+          object : AnAction(LayoutInspectorBundle.message("do.not.show.again")) {
             override fun actionPerformed(e: AnActionEvent) {
-              BrowserUtil.browse("https://developer.android.com/studio/preview/features")
+              setValue(false)
+              InspectorBannerService.getInstance(project)?.removeNotification(notificationText)
             }
           },
           object : AnAction(LayoutInspectorBundle.message("opt.out")) {
             override fun actionPerformed(event: AnActionEvent) {
               ShowSettingsUtil.getInstance().showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
             }
-          }
+          },
         )
       )
-      setValue(false)
     }
     else {
       InspectorBannerService.getInstance(project)?.removeNotification(notificationText)

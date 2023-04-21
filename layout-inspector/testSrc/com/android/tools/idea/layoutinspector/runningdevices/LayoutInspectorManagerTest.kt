@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
@@ -302,7 +303,7 @@ class LayoutInspectorManagerTest {
     assertThat(notifications1.first().message).isEqualTo(
       "(Experimental) Layout Inspector is now embedded within Running Devices window"
     )
-    assertThat(notifications1.first().actions[0].templatePresentation.text).isEqualTo("Learn More")
+    assertThat(notifications1.first().actions[0].templatePresentation.text).isEqualTo("Don't Show Again")
     assertThat(notifications1.first().actions[1].templatePresentation.text).isEqualTo("Opt-out")
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
@@ -311,7 +312,19 @@ class LayoutInspectorManagerTest {
 
     assertHasWorkbench(tab1)
     val notifications2 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
-    assertThat(notifications2).hasSize(0)
+    assertThat(notifications2).hasSize(1)
+
+    notifications1.first().actions[0].actionPerformed(createTestActionEvent(notifications1.first().actions[0]))
+
+    val notifications3 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
+    assertThat(notifications3).hasSize(0)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    val notifications4 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
+    assertThat(notifications4).hasSize(0)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
 
