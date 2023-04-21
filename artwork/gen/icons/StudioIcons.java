@@ -233,8 +233,10 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon MODE_PHONE = load("studio/icons/emulator/menu/mode-phone.svg", 1290962538, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_TABLET = load("studio/icons/emulator/menu/mode-tablet.svg", 134067503, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_CLOSED = load("studio/icons/emulator/menu/posture-closed.svg", 570015144, 2);
+      /** 16x16 */ public static final @NotNull Icon POSTURE_FLIPPED = load("studio/icons/emulator/menu/posture-flipped.svg", 1026968812, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_HALF_FOLDED = load("studio/icons/emulator/menu/posture-half-folded.svg", 1108886978, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_OPEN = load("studio/icons/emulator/menu/posture-open.svg", -1533173349, 2);
+      /** 16x16 */ public static final @NotNull Icon POSTURE_TENT = load("studio/icons/emulator/menu/posture-tent.svg", -44634926, 2);
     }
 
     public static final class Snapshots {
