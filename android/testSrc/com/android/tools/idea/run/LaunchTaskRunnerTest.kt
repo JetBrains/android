@@ -54,7 +54,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.content.Content
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -87,7 +86,6 @@ class LaunchTaskRunnerTest {
     AndroidRunConfigurations.instance.createRunConfiguration(androidFacet!!)
   }
 
-  @Ignore("b/279225424")
   @Test
   fun runSucceeded() {
     val deviceState = fakeAdb.connectAndWaitForDevice()
@@ -144,7 +142,6 @@ class LaunchTaskRunnerTest {
     processHandler.destroyProcess()
   }
 
-  @Ignore("http://b/278029846")
   @Test
   fun debugSucceeded() {
     //TODO: write handler in fakeAdb for "am capabilities --protobuf"

@@ -175,6 +175,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
+    // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor");
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
 
     myApplicationComponentStack = new ComponentStack(ApplicationManager.getApplication());
