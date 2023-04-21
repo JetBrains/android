@@ -19,6 +19,24 @@ common_data = select({
     "//tools/base/build-system:gradle-distrib-7.3.3",
 ]
 
+old_project_app_data = select({
+    "@platforms//os:linux": [
+        "//tools/adt/idea/studio:android-studio.linux.zip",
+    ],
+    "@platforms//os:macos": [
+        "//tools/adt/idea/studio:android-studio.mac.zip",
+    ],
+    "@platforms//os:windows": [
+        "//tools/adt/idea/studio:android-studio.win.zip",
+    ],
+}) + [
+    ":oldprojectapp",
+    ":oldprojectapp_deps",
+    "//prebuilts/studio/jdk/jdk11",
+    "//prebuilts/studio/sdk:build-tools/latest",
+    "//tools/base/build-system:gradle-distrib-6.7.1",
+]
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.projectSystem.integration.tests",
@@ -35,6 +53,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )
 
@@ -74,6 +93,18 @@ iml_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.SdkIndexPsdTest",
 )
 
+iml_test(
+    name = "OldProjectAppTest",
+    timeout = "long",
+    data = old_project_app_data,
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    # Commented out due to b/242358149
+    # tags_mac = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.projectsystem.gradle.OldProjectAppTest",
+)
+
 maven_repository(
     name = "sdkindexproject_deps",
     # keep sorted: for buildifier
@@ -88,6 +119,20 @@ maven_repository(
     ],
 )
 
+maven_repository(
+    name = "oldprojectapp_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:com.android.tools.build.gradle_4.2.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
+    ],
+)
+
 filegroup(
     name = "sdkindexapp",
     srcs = glob(["testData/sdkindexapp/**"]),
@@ -96,4 +141,9 @@ filegroup(
 filegroup(
     name = "sdkindexsnapshot",
     srcs = glob(["testData/snapshot/**"]),
+)
+
+filegroup(
+    name = "oldprojectapp",
+    srcs = glob(["testData/oldprojectapp/**"]),
 )
