@@ -97,10 +97,10 @@ studio_plugin(
             "//tools/adt/idea/jps-model:intellij.android.jps.model",
         ],
         "android-extensions-ide.jar": [
-            "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common",
         ],
         "android-kotlin.jar": [
+            "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser",
         ],
