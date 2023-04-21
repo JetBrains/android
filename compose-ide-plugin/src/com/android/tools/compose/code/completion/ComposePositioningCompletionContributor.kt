@@ -19,8 +19,10 @@ import com.android.tools.compose.isComposeEnabled
 import com.android.tools.compose.matchingParamTypeFqName
 import com.android.tools.compose.returnTypeFqName
 import com.intellij.codeInsight.completion.CompletionContributor
+import com.intellij.codeInsight.completion.CompletionLocation
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.CompletionWeigher
 import com.intellij.codeInsight.lookup.DefaultLookupItemRenderer
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -51,6 +53,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 /**
  * Represents a class in the Compose library containing Alignment or Arrangement properties which might be suggested as completions.
@@ -177,9 +180,24 @@ private data class PositioningInterface(
   private val suggestedCompletionPropertyClasses: List<ClassWithDeclarationsToSuggest>,
   /** An additional type that is allowed for suggestions in addition to [interfaceName]. The type must reside on the same [packageName]. */
   private val additionalTypeToSuggest: String? = null,
+  /**
+   * Collection of weights to be used when ranking suggestions. The key is a short type name residing on [packageName], corresponding to one
+   * of the positioning interfaces being handled. The value is a simple priority: larger values result in a higher position in the
+   * completion list. This value is added to any weight in [weightsByParentClass].
+   */
+  private val weightsByType: Map<String, Int>,
+  /**
+   * Collection of weights to be used when ranking suggestions. The key is a short type name residing on [packageName], corresponding to the
+   * class on which a suggested property is defined. The value is a simple priority: larger values result in a higher position in the
+   * completion list. This value is added to any weight in [weightsByType].
+   */
+  private val weightsByParentClass: Map<String, Int>,
 ) {
 
   val interfaceFqName = "$packageName.$interfaceName"
+
+  private val weightsByFullyQualifiedType = weightsByType.mapKeys { (key, _) -> "$packageName.$key" }
+  private val weightsByFullyQualifiedParentClass = weightsByParentClass.mapKeys { (key, _) -> "$packageName.$key" }
 
   /**
    * A list of types that are allowed for suggestions.
@@ -199,6 +217,18 @@ private data class PositioningInterface(
         clazz.getLookupElements(elementToComplete, typeToSuggest.first, typeToSuggest.second)
       }
     }
+  }
+
+  /** Returns the weight to use for the given [LookupElement]. */
+  fun getWeight(lookupElement: LookupElement): Int {
+    val psiElement = lookupElement.psiElement ?: return 0
+
+    val lookupElementTypeName = (psiElement as? KtDeclaration)?.returnTypeFqName()?.asString()
+    val typeWeight = lookupElementTypeName?.let { weightsByFullyQualifiedType[it] } ?: 0
+
+    val lookupElementParentClassName = (psiElement as? KtDeclaration)?.containingClassOrObject?.fqName?.asString()
+    val containingClassWeight = lookupElementParentClassName?.let { weightsByFullyQualifiedParentClass[it] } ?: 0
+    return typeWeight + containingClassWeight
   }
 
   companion object {
@@ -261,16 +291,46 @@ private data class PositioningInterface(
         packageName = ALIGNMENT_PACKAGE,
         interfaceName = "Alignment",
         ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
+        weightsByType = mapOf(
+          "Alignment" to 10,
+          "Alignment.Horizontal" to -10,
+          "Alignment.Vertical" to -10,
+        ),
+        weightsByParentClass = mapOf(
+          "Alignment.Companion" to 2,
+          "Alignment" to 2,
+          "AbsoluteAlignment" to 1,
+        ),
       ),
       PositioningInterface(
         packageName = ALIGNMENT_PACKAGE,
         interfaceName = "Alignment.Horizontal",
         ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
+        weightsByType = mapOf(
+          "Alignment.Horizontal" to 10,
+          "Alignment" to -10,
+          "Alignment.Vertical" to -10,
+        ),
+        weightsByParentClass = mapOf(
+          "Alignment.Companion" to 2,
+          "Alignment" to 2,
+          "AbsoluteAlignment" to 1,
+        ),
       ),
       PositioningInterface(
         packageName = ALIGNMENT_PACKAGE,
         interfaceName = "Alignment.Vertical",
         ALIGNMENT_CLASSES_FOR_SUGGESTIONS,
+        weightsByType = mapOf(
+          "Alignment.Vertical" to 10,
+          "Alignment" to -10,
+          "Alignment.Horizontal" to -10,
+        ),
+        weightsByParentClass = mapOf(
+          "Alignment.Companion" to 2,
+          "Alignment" to 2,
+          "AbsoluteAlignment" to 1,
+        ),
       ),
 
       PositioningInterface(
@@ -278,25 +338,52 @@ private data class PositioningInterface(
         interfaceName = "Arrangement.Horizontal",
         ARRANGEMENT_CLASSES_FOR_SUGGESTIONS,
         additionalTypeToSuggest = "Arrangement.HorizontalOrVertical",
+        weightsByType = mapOf(
+          "Arrangement.Horizontal" to 10,
+          "Arrangement.HorizontalOrVertical" to 10,
+          "Arrangement.Vertical" to -10,
+        ),
+        weightsByParentClass = mapOf(
+          "Arrangement" to 2,
+          "Arrangement.Absolute" to 1,
+        ),
       ),
       PositioningInterface(
         packageName = ARRANGEMENT_PACKAGE,
         interfaceName = "Arrangement.Vertical",
         ARRANGEMENT_CLASSES_FOR_SUGGESTIONS,
         additionalTypeToSuggest = "Arrangement.HorizontalOrVertical",
+        weightsByType = mapOf(
+          "Arrangement.Vertical" to 10,
+          "Arrangement.HorizontalOrVertical" to 10,
+          "Arrangement.Horizontal" to -10,
+        ),
+        weightsByParentClass = mapOf(
+          "Arrangement" to 2,
+          "Arrangement.Absolute" to 1,
+        ),
       ),
       PositioningInterface(
         packageName = ARRANGEMENT_PACKAGE,
         interfaceName = "Arrangement.HorizontalOrVertical",
         ARRANGEMENT_CLASSES_FOR_SUGGESTIONS,
+        weightsByType = mapOf(
+          "Arrangement.HorizontalOrVertical" to 10,
+          "Arrangement.Vertical" to -10,
+          "Arrangement.Horizontal" to -10,
+        ),
+        weightsByParentClass = mapOf(
+          "Arrangement" to 2,
+          "Arrangement.Absolute" to 1,
+        ),
       ),
     ).associateBy { it.interfaceFqName }
   }
 }
 
 /**
- * Suggests and orders completion for the Alignment and Arrangement interfaces. Both interfaces have Horizontal and Vertical variants which
- * the default auto-completion intermixes, even though only one subset is generally applicable in any given completion.
+ * Suggests completion for the Alignment and Arrangement interfaces. Both interfaces have Horizontal and Vertical variants which the default
+ * auto-completion intermixes, even though only one subset is generally applicable in any given completion.
  */
 class ComposePositioningCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
@@ -316,5 +403,21 @@ class ComposePositioningCompletionContributor : CompletionContributor() {
         result.passResult(completionResult)
       }
     }
+  }
+}
+
+/** Suggests completion for the Alignment and Arrangement interfaces. */
+class ComposePositioningCompletionWeigher : CompletionWeigher() {
+  override fun weigh(lookupElement: LookupElement, location: CompletionLocation): Int? {
+    val parameters = location.completionParameters
+    val elementToComplete = parameters.position
+    if (!isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
+      // Return null when this isn't a completion we care about to avoid any further comparisons or object allocations.
+      return null
+    }
+
+    // Since this is a completion involving one of the types handled here, we want to rank everything. If it's not an element being
+    // adjusted, then the weight of '0' will effectively let the item pass through unmodified.
+    return PositioningInterface.forCompletionElement(elementToComplete)?.getWeight(lookupElement) ?: 0
   }
 }

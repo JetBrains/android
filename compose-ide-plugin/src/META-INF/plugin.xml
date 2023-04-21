@@ -94,6 +94,11 @@
              id="android.compose"
              order="first"/>
 
+    <weigher key="completion"
+             implementationClass="com.android.tools.compose.code.completion.ComposePositioningCompletionWeigher"
+             id="ComposePositioningCompletionWeigher"
+             order="first"/>
+
     <weigher key="proximity"
              implementationClass="com.android.tools.compose.code.actions.ComposeProximityWeigher"
              id="composeProximityWeigher"
