@@ -50,6 +50,7 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
@@ -354,8 +355,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       @Override
       public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
         if (module.equals(modelModule)) {
-          Disposer.dispose(mySurface);
-          myWorkBench.loadingStopped("This file does not belong to the project.");
+          FileEditorManager.getInstance(project).closeFile(myFile);
         }
       }
     });
