@@ -47,7 +47,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
 
 private val CONSOLE_LOCK = Any()
 
@@ -57,7 +56,7 @@ class StackTraceConsole(
   private val tracker: AppInsightsTracker
 ) : Disposable {
 
-  @VisibleForTesting val consoleView: ConsoleViewImpl = createStackPanel()
+  val consoleView: ConsoleViewImpl = createStackPanel()
   private val scope = AndroidCoroutineScope(this)
   var onStackPrintedListener: (() -> Unit)? = null
 

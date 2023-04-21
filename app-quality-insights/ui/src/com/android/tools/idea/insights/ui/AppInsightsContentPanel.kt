@@ -21,18 +21,15 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
-import com.android.tools.idea.insights.Connection
-import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.RevertibleException
-import com.android.tools.idea.insights.Version
-import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import java.awt.BorderLayout
+import java.awt.Component
 import java.lang.Integer.min
 import javax.swing.JPanel
 
@@ -40,10 +37,9 @@ class AppInsightsContentPanel(
   private val projectController: AppInsightsProjectLevelController,
   project: Project,
   parentDisposable: Disposable,
-  tracker: AppInsightsTracker,
   cellRenderer: AppInsightsTableCellRenderer,
   secondaryToolWindows: List<ToolWindowDefinition<AppInsightsToolWindowContext>>,
-  getConsoleUrl: (Connection, Pair<Long, Long>?, Set<Version>, IssueDetails) -> String
+  createCenterPanel: ((Int) -> Unit) -> Component
 ) : JPanel(BorderLayout()), Disposable {
   private val issuesTableView: AppInsightsIssuesTableView
 
@@ -59,16 +55,7 @@ class AppInsightsContentPanel(
       )
     Disposer.register(this, issuesTableView)
     val mainContentPanel = JPanel(BorderLayout())
-    mainContentPanel.add(
-      IssueDetailsPanel(
-        projectController,
-        project,
-        issuesTableView::setHeaderHeight,
-        this,
-        tracker,
-        getConsoleUrl
-      )
-    )
+    mainContentPanel.add(createCenterPanel(issuesTableView::setHeaderHeight))
 
     val splitter =
       ThreeComponentsSplitter(false, true, this).apply {
