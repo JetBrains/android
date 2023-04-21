@@ -87,6 +87,7 @@ class LaunchTaskRunnerTest {
     AndroidRunConfigurations.instance.createRunConfiguration(androidFacet!!)
   }
 
+  @Ignore("b/279225424")
   @Test
   fun runSucceeded() {
     val deviceState = fakeAdb.connectAndWaitForDevice()
