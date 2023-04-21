@@ -1809,6 +1809,8 @@ android-studio/plugins/c-plugin/lib/LICENSE.txt/CIDR_LICENSE.txt
 android-studio/plugins/c-plugin/lib/c-plugin.jar
 android-studio/plugins/cidr-base-plugin/lib/LICENSE.txt/CIDR_LICENSE.txt
 android-studio/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
+android-studio/plugins/cidr-clangConfig/lib/cidr-clangConfig.jar
+android-studio/plugins/cidr-clangFormat/lib/cidr-clangFormat.jar
 android-studio/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
 android-studio/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar

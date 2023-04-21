@@ -2488,6 +2488,8 @@ Android Studio Preview.app/Contents/plugins/c-plugin/lib/LICENSE.txt/CIDR_LICENS
 Android Studio Preview.app/Contents/plugins/c-plugin/lib/c-plugin.jar
 Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/LICENSE.txt/CIDR_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
+Android Studio Preview.app/Contents/plugins/cidr-clangConfig/lib/cidr-clangConfig.jar
+Android Studio Preview.app/Contents/plugins/cidr-clangFormat/lib/cidr-clangFormat.jar
 Android Studio Preview.app/Contents/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 Android Studio Preview.app/Contents/plugins/completionMlRanking/lib/completionMlRanking.jar
 Android Studio Preview.app/Contents/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
