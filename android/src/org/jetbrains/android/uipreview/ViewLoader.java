@@ -19,12 +19,12 @@ import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
 import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
-import static com.android.tools.idea.log.LogAnonymizerUtil.anonymize;
-import static com.android.tools.idea.log.LogAnonymizerUtil.anonymizeClassName;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.log.LogAnonymizerUtil;
+import com.android.tools.log.LogAnonymizer;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.rendering.security.RenderSecurityManager;
@@ -137,7 +137,7 @@ public class ViewLoader {
     Class<?> aClass = myLoadedClasses.get(className);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("loadClassA(%s)", anonymizeClassName(className)));
+      LOG.debug(String.format("loadClassA(%s)", LogAnonymizer.anonymizeClassName(className)));
     }
 
     try {
@@ -296,7 +296,7 @@ public class ViewLoader {
   @Nullable
   public Class<?> loadClass(@NotNull String className, boolean logError) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("loadClassB(%s)", anonymizeClassName(className)));
+      LOG.debug(String.format("loadClassB(%s)", LogAnonymizer.anonymizeClassName(className)));
     }
 
     try {
@@ -315,7 +315,7 @@ public class ViewLoader {
                                           @Nullable final Class<?>[] constructorSignature,
                                           @Nullable final Object[] constructorArgs) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("createViewFromSuperClass(%s)", anonymizeClassName(className)));
+      LOG.debug(String.format("createViewFromSuperClass(%s)", LogAnonymizer.anonymizeClassName(className)));
     }
 
     // Creating views from the superclass calls into PSI which may need
@@ -339,7 +339,7 @@ public class ViewLoader {
         while (psiClass != null) {
           final String qName = psiClass.getQualifiedName();
           if (LOG.isDebugEnabled()) {
-            LOG.debug("  parent " + anonymizeClassName(qName));
+            LOG.debug("  parent " + LogAnonymizer.anonymizeClassName(qName));
           }
 
           if (qName == null ||
@@ -414,7 +414,7 @@ public class ViewLoader {
   @VisibleForTesting
   void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager.RClassParser rClassParser) throws ClassNotFoundException {
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("loadAndParseRClass(%s)", anonymizeClassName(className)));
+      LOG.debug(String.format("loadAndParseRClass(%s)", LogAnonymizer.anonymizeClassName(className)));
     }
 
     Class<?> aClass = myLoadedClasses.get(className);
@@ -429,12 +429,12 @@ public class ViewLoader {
 
       if (!isClassLoaded) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
+          LOG.debug(String.format("  Class found in module %s, first time load.", LogAnonymizerUtil.anonymize(myModule)));
         }
       }
       else {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
+          LOG.debug(String.format("  Class already loaded in module %s.", LogAnonymizerUtil.anonymize(myModule)));
         }
       }
 
@@ -449,7 +449,7 @@ public class ViewLoader {
     rClassParser.parse(aClass);
 
     if (LOG.isDebugEnabled()) {
-      LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));
+      LOG.debug(String.format("END loadAndParseRClass(%s)", LogAnonymizer.anonymizeClassName(className)));
     }
   }
 

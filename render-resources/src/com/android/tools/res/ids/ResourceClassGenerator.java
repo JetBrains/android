@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.res.ids;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -38,8 +38,8 @@ import org.jetbrains.org.objectweb.asm.Type;
 
 import java.util.*;
 
-import static com.android.tools.idea.log.LogAnonymizerUtil.anonymizeClassName;
-import static com.android.tools.idea.log.LogAnonymizerUtil.isPublicClass;
+import static com.android.tools.log.LogAnonymizer.anonymizeClassName;
+import static com.android.tools.log.LogAnonymizer.isPublicClass;
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 /**
