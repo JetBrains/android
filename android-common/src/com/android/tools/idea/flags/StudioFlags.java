@@ -1453,17 +1453,6 @@ public final class StudioFlags {
   );
   // endregion DDMLIB
 
-  // region Deployment
-  private static final FlagGroup DEPLOYMENT = new FlagGroup(FLAGS, "deployment", "Deployment");
-
-  public static final @NotNull Flag<Boolean> LOGGERS_ERRORS_ENABLED =
-    Flag.create(DEPLOYMENT,
-                "loggers.errors.enabled",
-                "Enable the logging of errors from Loggers::errorOrWarn",
-                "Enable the logging of errors from Loggers::errorOrWarn",
-                false);
-  // endregion
-
   //region SERVER_FLAGS
   private static final FlagGroup SERVER_FLAGS = new FlagGroup(FLAGS, "serverflags", "Server Flags");
   public static final Flag<Boolean> TEST_SERVER_FLAG = Flag.create(
