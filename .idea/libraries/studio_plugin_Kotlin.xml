@@ -18,7 +18,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.noarg-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.parcelize-compiler-plugin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinc.sam-with-receiver-compiler-plugin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinx-collections-immutable-jvm.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/plugins/Kotlin/lib/kotlinx-collections-immutable.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

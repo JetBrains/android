@@ -53,6 +53,7 @@ Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_natvis_lo
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_string_utils.py
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_utils.py
 Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_utils_const.py
+Android Studio Preview.app/Contents/bin/lldb/helpers/renderers/jb_lldb_utils_context_operator_parser.py
 Android Studio Preview.app/Contents/bin/ltedit.sh
 Android Studio Preview.app/Contents/bin/printenv
 Android Studio Preview.app/Contents/bin/restarter
@@ -696,7 +697,7 @@ Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.lombok-compiler-p
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.noarg-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.parcelize-compiler-plugin.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinc.sam-with-receiver-compiler-plugin.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinx-collections-immutable-jvm.jar
+Android Studio Preview.app/Contents/plugins/Kotlin/lib/kotlinx-collections-immutable.jar
 Android Studio Preview.app/Contents/plugins/android-apk/lib/android-apk.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/compiler-hosted-1.4.0-SNAPSHOT.jar
