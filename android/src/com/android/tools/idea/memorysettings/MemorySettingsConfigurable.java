@@ -106,7 +106,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   private static class MyComponent {
     private static final int MIN_IDE_XMX = 1024;
-    private static final int DEFAULT_IDE_XMX = 1280;
+    private static final int DEFAULT_IDE_XMX = 2048;
     private static final int SIZE_INCREMENT = 1024;
     private static final float MAX_PERCENT_OF_AVAILABLE_RAM = 0.33f;
 
@@ -150,7 +150,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       myIdeBottomLabel.setText(XmlStringUtil.wrapInHtml(AndroidBundle.message("memory.settings.ide.bottom.message")));
       myIdeBottomLabel.setFontColor(UIUtil.FontColor.BRIGHTER);
 
-      if (myRecommendedIdeXmx > 0) {
+      if (myRecommendedIdeXmx > myCurrentIdeXmx) {
         myIdeInfoLabel.setText(XmlStringUtil.wrapInHtml(
           AndroidBundle.message("memory.settings.panel.ide.info", memSizeText(myRecommendedIdeXmx))));
 

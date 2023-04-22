@@ -18,9 +18,12 @@ package com.android.tools.idea.gradle.project.sync.setup.post;
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker.MemorySettingsNotification;
+import com.android.tools.idea.memorysettings.MemorySettingsRecommendation;
+import com.intellij.diagnostic.VMOptions;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationsManager;
 import com.intellij.testFramework.PlatformTestCase;
+import java.io.IOException;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.when;
@@ -44,7 +47,7 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
   }
 
   public void testNoNotificationIfSmallRam() {
-    stubHostData(4096);
+    stubHostData(4);
     MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
     Notification[] notifications = getNotifications();
     assertSize(0, notifications);
@@ -57,9 +60,10 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
     assertSize(0, notifications);
   }
 
-  public void testNotificationIfRecommended() {
+  public void testNotificationIfRecommended() throws IOException {
     when(myReminder.shouldAsk()).thenReturn(true);
-    stubHostData(16 * 1024);
+    // set the heap size to be small so there is a recommendation made
+    stubHostData(16);
     MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
     MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
     Notification[] notifications = getNotifications();
@@ -79,11 +83,11 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
       MemorySettingsNotification.class, myProject);
   }
 
-  private void stubHostData(int machineMemInMB) {
+  private void stubHostData(int machineMemInGB) {
     HostData.setOsBean(new StubOperatingSystemMXBean() {
       @Override
       public long getTotalPhysicalMemorySize() {
-        return machineMemInMB * 1024 * 1024L;
+        return machineMemInGB * 1024 * 1024L * 1024L;
       }
     });
   }

@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.memorysettings;
 
+import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.DEFAULT_HEAP_SIZE_IN_MB;
+import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.LARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
+import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.LARGE_MODULE_COUNT;
+import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.LARGE_RAM_IN_GB;
+import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
+import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.XLARGE_MODULE_COUNT;
+import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.XLARGE_RAM_IN_GB;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -23,39 +30,76 @@ import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-public class MemorySettingsRecommendationTest extends PlatformTestCase {
-  public void testRecommend() {
-    assertEquals(-1, getRecommended(1280, 5120, 20));
-    assertEquals(SystemInfo.isWindows ? -1 : 1536, getRecommended(1280, 5120, 100));
-    assertEquals(SystemInfo.isWindows ? -1 : 1536, getRecommended(1280, 5120, 200));
-    assertEquals(SystemInfo.isWindows ? -1 : 2048, getRecommended(1280, 8192, 20));
-    assertEquals(SystemInfo.isWindows ? 1536 : 2048, getRecommended(1280, 8192, 120));
-    assertEquals(SystemInfo.isWindows ? 1536 : 2048, getRecommended(1280, 8192, 200));
-    assertEquals(SystemInfo.isWindows ? -1 : 2048, getRecommended(1280, 16 * 1024, 20));
-    assertEquals(2048, getRecommended(1280, 16 * 1024, 50));
-    assertEquals(3072, getRecommended(1280, 16 * 1024, 100));
-    assertEquals(4096, getRecommended(1280, 16 * 1024, 200));
+@RunWith(JUnit4.class)
+public class MemorySettingsRecommendationTest extends LightPlatformTestCase {
+
+  private final int smallRAM = LARGE_RAM_IN_GB - 1;
+  private final int normalModuleCount = LARGE_MODULE_COUNT - 1;
+
+  @Test
+  public void nullProjectRecommendsDefault() {
+    assertEquals(DEFAULT_HEAP_SIZE_IN_MB, MemorySettingsRecommendation.getRecommended(null, DEFAULT_HEAP_SIZE_IN_MB));
+  }
+  @Test
+  public void negativeHeapSizeRecommendsDefault() {
+    assertEquals(DEFAULT_HEAP_SIZE_IN_MB, getRecommended(-1, 10, normalModuleCount));
+  }
+  @Test
+  public void smallHeapRecommendsDefault() {
+    assertEquals(DEFAULT_HEAP_SIZE_IN_MB, getRecommended(1000, smallRAM, normalModuleCount));
+  }
+  @Test
+  public void defaultHeapStillRecommendsDefaultHeap() {
+    assertEquals(DEFAULT_HEAP_SIZE_IN_MB, getRecommended(DEFAULT_HEAP_SIZE_IN_MB, smallRAM, normalModuleCount));
+  }
+  @Test
+  public void smallRAMWithBigProjectRecommendsDefault() {
+    assertEquals(DEFAULT_HEAP_SIZE_IN_MB, getRecommended(DEFAULT_HEAP_SIZE_IN_MB, smallRAM, XLARGE_MODULE_COUNT));
+  }
+  @Test
+  public void largeRAMWithBigProjectRecommendsLargeHeap() {
+    assertEquals(LARGE_HEAP_SIZE_RECOMMENDATION_IN_MB, getRecommended(DEFAULT_HEAP_SIZE_IN_MB, LARGE_RAM_IN_GB, LARGE_MODULE_COUNT));
+  }
+  @Test
+  public void xLargeRAMWithXLargeProjectRecommendsXLargeHeap() {
+    assertEquals(XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB, getRecommended(DEFAULT_HEAP_SIZE_IN_MB, XLARGE_RAM_IN_GB, XLARGE_MODULE_COUNT));
+  }
+  @Test
+  public void largeRAMWithXLargeProjectRecommendsLargeHeap() {
+    assertEquals(LARGE_HEAP_SIZE_RECOMMENDATION_IN_MB, getRecommended(DEFAULT_HEAP_SIZE_IN_MB, LARGE_RAM_IN_GB, XLARGE_MODULE_COUNT));
   }
 
-  private int getRecommended(int currentXmxInMB, int machineMemInMB, int moduleCount) {
+  @Test
+  public void xLargeRAMWithLargeProjectRecommendsLargeHeap() {
+    assertEquals(LARGE_HEAP_SIZE_RECOMMENDATION_IN_MB, getRecommended(DEFAULT_HEAP_SIZE_IN_MB, XLARGE_RAM_IN_GB, LARGE_MODULE_COUNT));
+  }
+
+  @Test
+  public void doNotRecommendSmallerHeap() {
+    assertEquals(XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB, getRecommended(XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB, smallRAM, normalModuleCount));
+  }
+
+  private int getRecommended(int currentXmxInMB, int machineMemInGB, int moduleCount) {
     Project project = mock(Project.class);
     ModuleManager moduleManager = mock(ModuleManager.class);
 
     when(project.getService(ModuleManager.class)).thenReturn(moduleManager);
     Module[] modules = new Module[moduleCount];
     when(moduleManager.getModules()).thenReturn(modules);
-    stubHostData(machineMemInMB);
+    stubHostData(machineMemInGB);
     return MemorySettingsRecommendation.getRecommended(project, currentXmxInMB);
   }
 
-  private void stubHostData(int machineMemInMB) {
+  private void stubHostData(int machineMemInGB) {
     HostData.setOsBean(new StubOperatingSystemMXBean() {
       @Override
       public long getTotalPhysicalMemorySize() {
-        return machineMemInMB * 1024 * 1024L;
+        return machineMemInGB * 1024 * 1024L * 1024L;
       }
     });
   }

@@ -59,7 +59,7 @@ public class MemorySettingsUtil {
     // Return -1 if unknown
     int current = stored == -1 ? VMOptions.readOption(VMOptions.MemoryKind.HEAP, true) : stored;
     if (ApplicationManager.getApplication().isUnitTestMode()
-        && current == getIdeXmxCapInGB() << 10) {
+        && current == MemorySettingsRecommendation.DEFAULT_HEAP_SIZE_IN_MB) {
       // In unit tests, reduce current xmx if it reaches cap in order to test recommendation.
       LOG.info("current Xmx reaches IDE_XMX_CAP_IN_GB already, reducing to 1GB");
       current = 1024;

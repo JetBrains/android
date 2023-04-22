@@ -71,7 +71,7 @@ public class MemorySettingsPostSyncChecker {
 
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
     int recommended = MemorySettingsRecommendation.getRecommended(project, currentXmx);
-    if (recommended > 0) {
+    if (currentXmx < recommended) {
       showNotification(project, currentXmx, recommended, reminder);
     }
   }

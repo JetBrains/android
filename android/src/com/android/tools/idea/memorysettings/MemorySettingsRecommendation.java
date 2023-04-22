@@ -18,56 +18,53 @@ package com.android.tools.idea.memorysettings;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.SystemInfo;
 import java.util.Locale;
 import org.jetbrains.annotations.Nullable;
 
 public class MemorySettingsRecommendation {
   private static final Logger LOG = Logger.getInstance(MemorySettingsRecommendation.class);
 
+  public static final int DEFAULT_HEAP_SIZE_IN_MB = 2048;
+  public static final int LARGE_HEAP_SIZE_RECOMMENDATION_IN_MB = 4096;
+  public static final int XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB = 8192;
+  public static final int LARGE_MODULE_COUNT = 100;
+  public static final int XLARGE_MODULE_COUNT = 200;
+  public static final int LARGE_RAM_IN_GB = 16;
+  public static final int XLARGE_RAM_IN_GB = 32;
+
   // Returns a new Xmx if a recommendation exists, or -1 otherwise.
   public static int getRecommended(@Nullable Project project, int currentXmx) {
     if (project == null || currentXmx < 0) {
-      return -1;
+      return DEFAULT_HEAP_SIZE_IN_MB;
     }
-
     // TODO: check performance to count libraries to see if use it.
     int basedOnMachine = getRecommendedBasedOnMachine();
     int basedOnProject = getRecommendedBasedOnModuleCount(project);
+    // only recommend a larger heap size if their machine supports it and the project is large
     int recommended = Math.min(basedOnMachine, basedOnProject);
-    if (basedOnMachine >= 2048 && recommended < 2048 && !SystemInfo.isWindows) {
-      // For non-Windows machines with at least 8GB RAM, recommend at least 2GB
-      recommended = 2048;
-    }
     LOG.info(String.format(Locale.US, "recommendation based on machine: %d, on project: %d",
                            basedOnMachine, basedOnProject));
-    return currentXmx < recommended * 0.9 ? recommended : -1;
+    return Math.max(recommended, currentXmx);
   }
 
   private static int getRecommendedBasedOnMachine() {
     int machineMemInGB = MemorySettingsUtil.getMachineMem() >> 10;
-    boolean isWindows = SystemInfo.isWindows;
-    if (machineMemInGB < 8) {
-      return isWindows? 1280 : 1536;
-    } else if (machineMemInGB < 12) {
-      return isWindows? 1536 : 2048;
-    } else if (machineMemInGB < 16) {
-      return 3072;
-    } else {
-      return 4096;
+    if (machineMemInGB >= XLARGE_RAM_IN_GB) {
+      return XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
+    } else if (machineMemInGB >= LARGE_RAM_IN_GB) {
+      return LARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
     }
+    return DEFAULT_HEAP_SIZE_IN_MB;
   }
 
   private static int getRecommendedBasedOnModuleCount(Project project) {
-    int count = ModuleManager.getInstance(project).getModules().length;
-    if (count < 50) {
-      return 1280;
-    } else if (count < 100) {
-      return 2048;
-    } else if (count < 200) {
-      return 3072;
+    int numberOfModules = ModuleManager.getInstance(project).getModules().length;
+    if (numberOfModules >= XLARGE_MODULE_COUNT) {
+      return XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
+    } else if (numberOfModules >= LARGE_MODULE_COUNT) {
+      return LARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
     } else {
-      return 4096;
+      return DEFAULT_HEAP_SIZE_IN_MB;
     }
   }
 }
