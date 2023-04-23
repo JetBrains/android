@@ -9,7 +9,6 @@ studio_plugin(
         "//prebuilts/tools/common/archive-patcher:explainer",
         "//prebuilts/tools/common/archive-patcher:generator",
         "//prebuilts/tools/common/archive-patcher:shared",
-        "//prebuilts/tools/common/google-api-java-client/1.20.0:google-api-java-client",
         "//prebuilts/tools/common/m2:eclipse-layout-kernel",
         "//prebuilts/tools/common/m2:juniversalchardet",
         "//prebuilts/tools/common/m2:commons-lang",
@@ -26,6 +25,7 @@ studio_plugin(
         "//prebuilts/tools/common/m2:compose-desktop-material",
         "//prebuilts/tools/common/m2:compose-desktop-runtime",
         "//prebuilts/tools/common/m2:compose-desktop-ui",
+        "//prebuilts/tools/common/m2:oauth2",
         "//prebuilts/tools/common/m2:skiko",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:aia-proto",
@@ -34,11 +34,13 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
         "//tools/adt/idea/.idea/libraries:firebase_java_proto",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/adt/idea/.idea/libraries:google-baksmali",
         "//tools/adt/idea/.idea/libraries:google-dexlib2",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
         "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:javax-inject",
+        "//tools/adt/idea/.idea/libraries:jetty",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
@@ -46,7 +48,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:libam-instrumentation-data-proto",
         "//tools/adt/idea/.idea/libraries:libapp-processes-proto",
         "//tools/adt/idea/.idea/libraries:network_inspector_java_proto",
-        "//tools/adt/idea/.idea/libraries:oauth2",
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
         "//tools/adt/idea/.idea/libraries:sqlite-inspector-proto",
         "//tools/adt/idea/.idea/libraries:sqlite",
@@ -447,7 +448,7 @@ studio_plugin(
     directory = "firebase",
     libs = [
         "//tools/vendor/google/firebase:google-api-services-mobilesdk-v1",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0",
+        "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [
         "//tools/vendor/google/firebase:licenses",
@@ -466,8 +467,8 @@ studio_plugin(
     name = "com.google.gct.directaccess",
     directory = "directaccess",
     libs = [
-        "//tools/adt/idea/.idea/libraries:directaccess_client_proto",
         "//tools/adt/idea/.idea/libraries:adb_proxy_proto",
+        "//tools/vendor/google/directaccess-client:directaccess_client_proto",
     ],
     modules = {
         "directaccess.jar": [
@@ -491,10 +492,8 @@ studio_plugin(
     directory = "firebase-testing",
     libs = [
         "//prebuilts/tools/common/m2:JSch",
-        "//prebuilts/tools/common/m2:google-api-services-testing-v1-rev82-1.22.0",
-        "//prebuilts/tools/common/m2:google-api-services-toolresults-v1beta3-rev82-1.22.0",
-        "//prebuilts/tools/common/m2:google-api-services-storage-v1-rev82-1.22.0",
         "//tools/adt/idea/.idea/libraries:tightvnc",
+        "//prebuilts/tools/common/m2:google_api_services_testing",
     ],
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
     visibility = ["//visibility:public"],
@@ -533,10 +532,10 @@ studio_plugin(
     name = "com.google.gct.core",
     directory = "google-cloud-tools-core-as",
     libs = [
-        "//tools/studio/google/cloud/tools/core-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
+        "//tools/studio/google/cloud/tools/core-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
+        "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [
         "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
@@ -563,7 +562,6 @@ studio_plugin(
     libs = [
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/tools/common/m2:google-api-services-testing-v1-rev82-1.22.0",
     ],
     modules = {"gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"]},
     visibility = ["//visibility:public"],

@@ -27,5 +27,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
+        "//tools/adt/idea/.idea/libraries:google-api-client",
     ],
 )
