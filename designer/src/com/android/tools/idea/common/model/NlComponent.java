@@ -335,6 +335,22 @@ public class NlComponent implements NlAttributesHolder {
     return builder.build();
   }
 
+  @Nullable
+  public NlComponent findViewByAccessibilityId(long id) {
+    if (myAccessibilityId == id) {
+      return this;
+    }
+
+    for (NlComponent child : getChildren()) {
+      NlComponent result = child.findViewByAccessibilityId(id);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    return null;
+  }
+
   public boolean isRoot() {
     return !(getTagDeprecated().getParent() instanceof XmlTag);
   }

@@ -45,6 +45,23 @@ private fun parseChildren(
     val childNodeInfo = nodeInfo.getChild(i)
     val bounds = childNodeInfo.boundsInScreen
 
+    if (
+      childNodeInfo.availableExtraData.contains(
+        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY
+      )
+    ) {
+      val extras = childNodeInfo.extras
+      extras.putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0)
+      extras.putInt(
+        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
+        childNodeInfo.text.length
+      )
+      childNodeInfo.refreshWithExtraData(
+        AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
+        extras
+      )
+    }
+
     // Create a ViewInfo for each AccessibilityNodeInfo.
     // Use the root view as the viewObject.
     // Bounds in ViewInfo are with respect to the parent.

@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.SessionParams
+import com.android.ide.common.rendering.api.ViewInfo
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.Configuration
@@ -35,6 +36,7 @@ fun createRenderTaskFuture(
   file: VirtualFile,
   privateClassLoader: Boolean = false,
   classesToPreload: Collection<String> = emptyList(),
+  customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
   configure: (Configuration) -> Unit = {}
 ) : CompletableFuture<RenderTask> {
   val project = facet.module.project
@@ -50,7 +52,7 @@ fun createRenderTaskFuture(
     )
   configure(configuration)
 
-  return StudioRenderService.getInstance(project)
+  val builder = StudioRenderService.getInstance(project)
     .taskBuilder(facet, configuration)
     .withPsiFile(xmlFile)
     .disableDecorations()
@@ -65,5 +67,7 @@ fun createRenderTaskFuture(
     .withRenderingMode(SessionParams.RenderingMode.SHRINK)
     // Compose Preview has its own out-of-date reporting mechanism
     .doNotReportOutOfDateUserClasses()
-    .build()
+
+  customViewInfoParser?.let { builder.setCustomContentHierarchyParser(it) }
+    return builder.build()
 }

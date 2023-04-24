@@ -50,7 +50,7 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
   }
 
   private fun isWideTextField(view: ViewInfo, model: NlModel): Boolean {
-    if (view.viewObject !is EditText) {
+    if (!checkIsClass(view, EditText::class.java)) {
       return false
     }
     val widthInDp = Coordinates.pxToDp(model, view.right - view.left)

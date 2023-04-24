@@ -569,6 +569,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   @Nullable
+  public NlComponent findViewByAccessibilityId(long id) {
+    return myRootComponent != null ? myRootComponent.findViewByAccessibilityId(id) : null;
+  }
+
+  @Nullable
   public NlComponent find(@NotNull String id) {
     return flattenComponents().filter(c -> id.equals(c.getId())).findFirst().orElse(null);
   }

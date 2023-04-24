@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
+import android.view.accessibility.AccessibilityNodeInfo
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceUrl
@@ -93,8 +94,16 @@ abstract class VisualLintAnalyzer {
   }
 
   protected fun componentFromViewInfo(viewInfo: ViewInfo?, model: NlModel): NlComponent? {
-    val tag = (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return null
+    val accessibilityNodeInfo = viewInfo?.accessibilityObject
+    if (accessibilityNodeInfo is AccessibilityNodeInfo) {
+      return model.findViewByAccessibilityId(accessibilityNodeInfo.sourceNodeId)
+    }
+    val tag = (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return model.components.firstOrNull()
     return model.findViewByTag(tag.psiXmlTag)
+  }
+
+  protected fun checkIsClass(viewInfo: ViewInfo, clazz: Class<*>): Boolean {
+    return clazz.isInstance(viewInfo.viewObject) || clazz.canonicalName == viewInfo.className
   }
 
   data class VisualLintIssueContent(val view: ViewInfo?, val message: String, val descriptionProvider: (Int) -> HtmlBuilder)

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
+import android.graphics.RectF
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
@@ -59,6 +62,26 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
         if (numChars > MAX_LENGTH) {
           return true
         }
+      }
+    }
+    val data =
+      (view.accessibilityObject as? AccessibilityNodeInfo)?.extras?.getParcelableArray(EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY, RectF::class.java)
+    if (!data.isNullOrEmpty()) {
+      var lineBottom = data[0].bottom
+      var charCount = 1
+      var index = 1
+      while (index < data.size) {
+        val currentBottom = data[index].bottom
+        if (currentBottom == lineBottom) {
+          charCount++
+          if (charCount > MAX_LENGTH) {
+            return true
+          }
+        } else {
+          lineBottom = currentBottom
+          charCount = 1
+        }
+        index++
       }
     }
     return false

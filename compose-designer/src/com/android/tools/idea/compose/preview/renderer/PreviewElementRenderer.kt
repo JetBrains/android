@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.renderer
 
+import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
@@ -40,6 +41,7 @@ fun createRenderTaskFuture(
   previewElement: ComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
   classesToPreload: Collection<String> = emptyList(),
+  customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
 ) =
   createRenderTaskFuture(
     facet,
@@ -51,6 +53,7 @@ fun createRenderTaskFuture(
     },
     privateClassLoader,
     classesToPreload,
+    customViewInfoParser,
     previewElement::applyTo
   )
 
@@ -64,9 +67,17 @@ fun renderPreviewElementForResult(
   facet: AndroidFacet,
   previewElement: ComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
+  customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
   executor: Executor = AppExecutorUtil.getAppExecutorService()
 ): CompletableFuture<RenderResult?> {
-  val renderTaskFuture = createRenderTaskFuture(facet, previewElement, privateClassLoader)
+  val renderTaskFuture =
+    createRenderTaskFuture(
+      facet,
+      previewElement,
+      privateClassLoader,
+      emptyList(),
+      customViewInfoParser
+    )
 
   val renderResultFuture =
     CompletableFuture.supplyAsync({ renderTaskFuture.get() }, executor)

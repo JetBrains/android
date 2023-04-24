@@ -51,7 +51,7 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
   }
 
   private fun isWideButton(view: ViewInfo, model: NlModel): Boolean {
-    if (view.viewObject !is Button) {
+    if (!checkIsClass(view, Button::class.java)) {
       return false
     }
     val widthInDp = Coordinates.pxToDp(model, view.right - view.left)
