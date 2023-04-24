@@ -378,15 +378,21 @@ class ComposePreviewRepresentation(
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)
 
+  /**
+   * Default preview element provider based on the previews produced by the [previewElementsFlow].
+   */
   private val defaultPreviewElementProvider =
-    PreviewFilters(
-      object : PreviewElementProvider<ComposePreviewElement> {
-        override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-          previewElementsFlow.value.asSequence()
-      }
-    )
+    PreviewFilters(DefaultPreviewElementProvider(previewElementsFlow))
 
-  private var previewElementProvider = defaultPreviewElementProvider
+  /**
+   * Preview element provider corresponding to the current state of the Preview. Different modes
+   * might require a different provider to be set, e.g. UI check mode needs a provider that produces
+   * previews with reference devices. When exiting the mode and returning to static preview, the
+   * element provider should be reset to [defaultPreviewElementProvider].
+   */
+  @VisibleForTesting
+  var previewElementProvider = defaultPreviewElementProvider
+    private set
 
   override var groupFilter: PreviewGroup by
     Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
@@ -473,37 +479,9 @@ class ComposePreviewRepresentation(
 
   override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {
     atfChecksEnabled = StudioFlags.NELE_ATF_FOR_COMPOSE.get()
-    previewElementProvider =
-      PreviewFilters(
-        object : PreviewElementProvider<ComposePreviewElement> {
-          override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-            buildReferenceDevicesPreviewList(instance).asSequence()
-        }
-      )
+    previewElementProvider = PreviewFilters(UiCheckPreviewElementProvider(instance))
     surface.background = INTERACTIVE_BACKGROUND_COLOR
     forceRefresh().invokeOnCompletion { isUiCheckPreview = true }
-  }
-
-  private fun buildReferenceDevicesPreviewList(
-    base: ComposePreviewElementInstance
-  ): List<ComposePreviewElement> {
-    val baseConfig = base.configuration
-    val baseDisplaySettings = base.displaySettings
-    return referenceDeviceIds.keys.map { device ->
-      val config = baseConfig.copy(deviceSpec = device)
-      val displaySettings =
-        baseDisplaySettings.copy(
-          name = "${baseDisplaySettings.name} - ${referenceDeviceIds[device]}",
-          group = message("ui.check.mode.screen.size.group")
-        )
-      SingleComposePreviewElementInstance(
-        base.composableMethodFqn,
-        displaySettings,
-        base.previewElementDefinitionPsi,
-        base.previewBodyPsi,
-        config
-      )
-    }
   }
 
   override fun stopUiCheckPreview() {
@@ -1567,5 +1545,50 @@ class ComposePreviewRepresentation(
   @TestOnly
   suspend fun waitForAnyPreviewToBeAvailable() {
     previewElementsFlow.filter { it.isNotEmpty() }.take(1).collect()
+  }
+
+  /**
+   * [PreviewElementProvider] that provides elements originated from a flow of
+   * [ComposePreviewElement]s.
+   */
+  @VisibleForTesting
+  class DefaultPreviewElementProvider(
+    private val previewElementsFlow: MutableStateFlow<Set<ComposePreviewElement>>
+  ) : PreviewElementProvider<ComposePreviewElement> {
+    override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+      previewElementsFlow.value.asSequence()
+  }
+
+  /**
+   * [PreviewElementProvider] that provides reference devices previews created from a
+   * [ComposePreviewElementInstance].
+   */
+  @VisibleForTesting
+  class UiCheckPreviewElementProvider(private val instance: ComposePreviewElementInstance) :
+    PreviewElementProvider<ComposePreviewElement> {
+    override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+      buildReferenceDevicesPreviewList(instance)
+
+    private fun buildReferenceDevicesPreviewList(
+      base: ComposePreviewElementInstance
+    ): Sequence<ComposePreviewElement> {
+      val baseConfig = base.configuration
+      val baseDisplaySettings = base.displaySettings
+      return referenceDeviceIds.keys.asSequence().map { device ->
+        val config = baseConfig.copy(deviceSpec = device)
+        val displaySettings =
+          baseDisplaySettings.copy(
+            name = "${baseDisplaySettings.name} - ${referenceDeviceIds[device]}",
+            group = message("ui.check.mode.screen.size.group")
+          )
+        SingleComposePreviewElementInstance(
+          base.composableMethodFqn,
+          displaySettings,
+          base.previewElementDefinitionPsi,
+          base.previewBodyPsi,
+          config
+        )
+      }
+    }
   }
 }

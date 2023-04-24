@@ -37,6 +37,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
@@ -259,6 +260,9 @@ class ComposePreviewRepresentationTest {
           .coroutines
           .delay(250)
       }
+      assertInstanceOf<ComposePreviewRepresentation.DefaultPreviewElementProvider>(
+        preview.previewElementProvider.previewProvider
+      )
 
       val previewElements =
         mainSurface.models.mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
@@ -266,6 +270,9 @@ class ComposePreviewRepresentationTest {
 
       preview.startUiCheckPreview(uiCheckElement)
       while (!preview.isUiCheckPreview) kotlinx.coroutines.delay(250)
+      assertInstanceOf<ComposePreviewRepresentation.UiCheckPreviewElementProvider>(
+        preview.previewElementProvider.previewProvider
+      )
 
       assertTrue(preview.atfChecksEnabled)
       assert(preview.availableGroups.size == 1)
@@ -281,6 +288,9 @@ class ComposePreviewRepresentationTest {
 
       preview.stopUiCheckPreview()
       while (preview.isUiCheckPreview) kotlinx.coroutines.delay(250)
+      assertInstanceOf<ComposePreviewRepresentation.DefaultPreviewElementProvider>(
+        preview.previewElementProvider.previewProvider
+      )
 
       mainSurface.models
         .mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }

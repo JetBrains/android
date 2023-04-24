@@ -20,9 +20,11 @@ import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.properties.Delegates
+import org.jetbrains.annotations.VisibleForTesting
 
-class PreviewFilters(previewProvider: PreviewElementProvider<ComposePreviewElement>) :
-  PreviewElementInstanceProvider {
+class PreviewFilters(
+  @VisibleForTesting val previewProvider: PreviewElementProvider<ComposePreviewElement>
+) : PreviewElementInstanceProvider {
   private val LOG = Logger.getInstance(PreviewFilters::class.java)
 
   /**
