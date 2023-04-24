@@ -75,9 +75,7 @@ class ComposeSceneUpdateListener : SceneManager.SceneUpdateListener {
   override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
     val previewManager = component.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val previewElementInstance =
-      (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-        as? ComposePreviewElementInstance)
-        ?: return
+      component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
     val viewObj = component.viewInfo?.viewObject ?: return
     updateAnimationInspectorToolbarIcon(viewObj, previewManager, previewElementInstance) {
       AnimationToolingUsageTracker.getInstance(designSurface)
