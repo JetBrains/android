@@ -479,12 +479,14 @@ class ComposePreviewRepresentation(
 
   override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {
     atfChecksEnabled = StudioFlags.NELE_ATF_FOR_COMPOSE.get()
+    log.debug("Starting UI check. ATF checks enabled: $atfChecksEnabled.")
     previewElementProvider = PreviewFilters(UiCheckPreviewElementProvider(instance))
     surface.background = INTERACTIVE_BACKGROUND_COLOR
     forceRefresh().invokeOnCompletion { isUiCheckPreview = true }
   }
 
   override fun stopUiCheckPreview() {
+    log.debug("Stopping UI check")
     previewElementProvider = defaultPreviewElementProvider
     atfChecksEnabled = false
     onStaticPreviewStart()
