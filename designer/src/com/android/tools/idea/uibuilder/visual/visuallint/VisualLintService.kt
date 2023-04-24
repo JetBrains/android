@@ -123,66 +123,95 @@ class VisualLintService(val project: Project): Disposable {
   }
 
   /**
-   * Runs visual lint analysis in a pooled thread for configurations based on the model provided,
-   * and adds the issues found to the [IssueModel]
+   * Runs visual lint analysis in a pooled thread and adds the issues found to the [IssueModel].
+   * For models in [modelsForBackgroundRun], it creates related configurations to analyze.
+   * For renders in [renderResultsForAnalysis], it simply analyzes the given results.
    */
-  fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, models: List<NlModel>) {
-    runVisualLintAnalysis(parentDisposable, issueProvider, models, visualLintExecutorService)
+  fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, modelsForBackgroundRun: List<NlModel>, renderResultsForAnalysis: Map<RenderResult, NlModel>) {
+    runVisualLintAnalysis(parentDisposable, issueProvider, modelsForBackgroundRun, renderResultsForAnalysis, visualLintExecutorService)
   }
 
   @VisibleForTesting
-  fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, models: List<NlModel>, executorService: ExecutorService) {
-    CompletableFuture.runAsync({
-      removeAllIssueProviders()
-      issueProvider.clear()
-      Disposer.register(parentDisposable) {
-        issueModel.removeIssueProvider(issueProvider)
-      }
-      issueModel.addIssueProvider(issueProvider, true)
-      if (models.isEmpty()) {
-        return@runAsync
-      }
+  fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, modelsForBackgroundRun: List<NlModel>, renderResultsForAnalysis: Map<RenderResult, NlModel>, executorService: ExecutorService) {
+    CompletableFuture.runAsync(
+      {
+        removeAllIssueProviders()
+        issueProvider.clear()
+        Disposer.register(parentDisposable) {
+          issueModel.removeIssueProvider(issueProvider)
+        }
+        issueModel.addIssueProvider(issueProvider, true)
 
-      val displayingModel = models[0]
-      val listener = object : ModelListener {
-        override fun modelChanged(model: NlModel) {
-          val numberOfCancelledActions = RenderService.getRenderAsyncActionExecutor().cancelLowerPriorityActions(
-            RenderAsyncActionExecutor.RenderingPriority.LOW)
-          if (numberOfCancelledActions > 0) {
-            VisualLintUsageTracker.getInstance().trackCancelledBackgroundAnalysis()
-          }
+        val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
+        modelsForBackgroundRun.forEach { runBackgroundVisualLinting(it, issueProvider, visualLintBaseConfigIssues) }
+
+        runOnPreviewVisualLinting(renderResultsForAnalysis, issueProvider, visualLintBaseConfigIssues)
+      }, executorService)
+  }
+
+  /**
+   * Creates configurations based on the [baseModel] and run Visual Lint analysis on those.
+   */
+  private fun runBackgroundVisualLinting(baseModel: NlModel, issueProvider: VisualLintIssueProvider, visualLintBaseConfigIssues: VisualLintBaseConfigIssues) {
+    val listener = object : ModelListener {
+      override fun modelChanged(model: NlModel) {
+        val numberOfCancelledActions = RenderService.getRenderAsyncActionExecutor().cancelLowerPriorityActions(
+          RenderAsyncActionExecutor.RenderingPriority.LOW)
+        if (numberOfCancelledActions > 0) {
+          VisualLintUsageTracker.getInstance().trackCancelledBackgroundAnalysis()
         }
       }
-      displayingModel.addListener(listener)
-      try {
-        val modelsToAnalyze = if (HardwareConfigHelper.isWear(displayingModel.configuration.device)) {
-          WearDeviceModelsProvider.createNlModels(displayingModel, displayingModel.file, displayingModel.facet)
-        } else {
-          WindowSizeModelsProvider.createNlModels(displayingModel, displayingModel.file, displayingModel.facet)
-        }
-        val latch = CountDownLatch(modelsToAnalyze.size)
-        val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
-        for (model in modelsToAnalyze) {
-          val requireRender = StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes
-          createRenderResult(model, requireRender).handleAsync({ result, _ ->
+    }
+    baseModel.addListener(listener)
+    try {
+      val modelsToAnalyze = if (HardwareConfigHelper.isWear(baseModel.configuration.device)) {
+        WearDeviceModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.facet)
+      }
+      else {
+        WindowSizeModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.facet)
+      }
+      val latch = CountDownLatch(modelsToAnalyze.size)
+      for (model in modelsToAnalyze) {
+        val requireRender = StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes
+        createRenderResult(model, requireRender).handleAsync(
+          { result, _ ->
             try {
               if (result != null) {
                 updateHierarchy(result, model)
-                analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues, true)
+                analyzeAfterModelUpdate(issueProvider, result, model,
+                                        visualLintBaseConfigIssues, true)
               }
-            } finally {
+            }
+            finally {
               Disposer.dispose(model)
               latch.countDown()
             }
           }, visualLintAnalyzerExecutorService)
-        }
-        latch.await(visualLintTimeout, TimeUnit.SECONDS)
-        issueModel.updateErrorsList()
-        LOG.debug("Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found")
-      } finally {
-        displayingModel.removeListener(listener)
       }
-    }, executorService)
+      latch.await(visualLintTimeout, TimeUnit.SECONDS)
+      issueModel.updateErrorsList()
+      LOG.debug("Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found")
+    }
+    finally {
+      baseModel.removeListener(listener)
+    }
+  }
+
+  /**
+   * Runs Visual Lint analysis on the given [RenderResult]s
+   */
+  private fun runOnPreviewVisualLinting(renderResultsForAnalysis: Map<RenderResult, NlModel>, issueProvider: VisualLintIssueProvider, visualLintBaseConfigIssues: VisualLintBaseConfigIssues) {
+    val latch = CountDownLatch(renderResultsForAnalysis.size)
+    CompletableFuture.runAsync({
+      renderResultsForAnalysis.forEach { (result, model) ->
+        CompletableFuture.runAsync({
+          analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues)
+          latch.countDown()
+        }, visualLintAnalyzerExecutorService)
+      }
+    }, visualLintExecutorService)
+    latch.await(visualLintTimeout, TimeUnit.SECONDS)
+    issueModel.updateErrorsList()
   }
 
   /**
@@ -263,4 +292,8 @@ fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFutur
         newTask.dispose()
       }
     }
+}
+
+enum class VisualLintMode {
+  DISABLED, RUN_ON_PREVIEW_ONLY, RUN_IN_BACKGROUND
 }

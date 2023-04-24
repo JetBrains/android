@@ -58,6 +58,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.InteractionEventResult;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.RenderProblem;
@@ -417,6 +418,9 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   private final LayoutScannerConfiguration myLayoutScannerConfig;
 
+  @NotNull
+  private VisualLintMode myVisualLintMode = VisualLintMode.DISABLED;
+
   /**
    * Creates a new LayoutlibSceneManager.
    *
@@ -568,6 +572,15 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public LayoutScannerConfiguration getLayoutScannerConfig() {
     return myLayoutScannerConfig;
+  }
+
+  public void setVisualLintMode(@NotNull VisualLintMode visualLintMode) {
+    myVisualLintMode = visualLintMode;
+  }
+
+  @NotNull
+  public VisualLintMode getVisualLintMode() {
+    return myVisualLintMode;
   }
 
   @Override

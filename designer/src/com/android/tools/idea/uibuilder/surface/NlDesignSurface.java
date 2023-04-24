@@ -92,7 +92,9 @@ import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,8 +159,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE;
     @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
-
-    private boolean myShouldRunVisualLintService = false;
 
     private boolean myShouldRenderErrorsPanel = false;
 
@@ -309,16 +309,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
 
     /**
-     * The surface will run visual lint analysis on the background.
-     * Default value is false.
-     */
-    @NotNull
-    public Builder setRunVisualLintAnalysis(boolean value) {
-      myShouldRunVisualLintService = value;
-      return this;
-    }
-
-    /**
      * Set the supported {@link NlSupportedActions} for the built NlDesignSurface.
      * These actions are registered by xml and can be found globally, we need to assign if the built NlDesignSurface supports it or not.
      * By default, the builder assumes there is no supported {@link NlSupportedActions}.
@@ -372,7 +362,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         myDelegateDataProvider,
         mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
         myZoomControlsPolicy,
-        myShouldRunVisualLintService,
         mySupportedActions,
         myShouldRenderErrorsPanel,
         myMaxFitIntoZoomLevel);
@@ -415,8 +404,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull private final Set<NlSupportedActions> mySupportedActions;
 
-  private final boolean myShouldRunVisualLintService;
-
   private boolean myShouldRenderErrorsPanel;
 
   private final VisualLintIssueProvider myVisualLintIssueProvider;
@@ -435,7 +422,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           @Nullable DataProvider delegateDataProvider,
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
-                          boolean shouldRunVisualLintService,
                           @NotNull Set<NlSupportedActions> supportedActions,
                           boolean shouldRenderErrorsPanel,
                           double maxFitIntoZoomLevel) {
@@ -451,7 +437,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
     mySupportedActions = supportedActions;
-    myShouldRunVisualLintService = shouldRunVisualLintService;
     myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
     myVisualLintIssueProvider = new VisualLintIssueProvider(this);
 
@@ -777,11 +762,26 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           renderIssueProviders.forEach(renderIssueProvider -> getIssueModel().addIssueProvider(renderIssueProvider));
         });
 
-        if (myShouldRunVisualLintService && !VisualizationToolWindowFactory.hasVisibleValidationWindow(project)) {
+        if (!VisualizationToolWindowFactory.hasVisibleValidationWindow(project)) {
+          List<NlModel> modelsForBackgroundRun = new ArrayList<>();
+          Map<RenderResult, NlModel> renderResultsForAnalysis = new HashMap<>();
+          results.forEach((manager, result) -> {
+            switch (manager.getVisualLintMode()) {
+              case RUN_IN_BACKGROUND:
+                modelsForBackgroundRun.add(manager.getModel());
+                break;
+              case RUN_ON_PREVIEW_ONLY:
+                renderResultsForAnalysis.put(result, manager.getModel());
+                break;
+              case DISABLED:
+                break;
+            }
+          });
           VisualLintService.getInstance(project).runVisualLintAnalysis(
             NlDesignSurface.this,
             myVisualLintIssueProvider,
-            getModels());
+            modelsForBackgroundRun,
+            renderResultsForAnalysis);
         }
       }
 

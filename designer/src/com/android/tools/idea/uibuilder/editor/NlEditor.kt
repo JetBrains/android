@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertiesPanelDefinition
 import com.android.tools.idea.uibuilder.structure.NlLegacyComponentTreeDefinition
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -55,8 +56,16 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
     DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
                         {
                           NlDesignSurface.builder(myProject, this)
-                            .setRunVisualLintAnalysis(StudioFlags.NELE_VISUAL_LINT_ALWAYS_RUN.get())
                             .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
+                            .setSceneManagerProvider { surface, model ->
+                              NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+                                visualLintMode = if (StudioFlags.NELE_VISUAL_LINT_ALWAYS_RUN.get()) {
+                                  VisualLintMode.RUN_IN_BACKGROUND
+                                } else {
+                                  VisualLintMode.DISABLED
+                                }
+                              }
+                            }
                             .build()
                         },
                         NlComponentRegistrar,
