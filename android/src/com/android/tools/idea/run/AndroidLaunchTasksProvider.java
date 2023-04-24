@@ -22,11 +22,9 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LIN
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
-import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
-import com.android.tools.idea.run.deployment.liveedit.LiveEditApp;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
@@ -35,20 +33,14 @@ import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask;
-import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
 import com.android.tools.idea.run.util.SwapInfo;
-import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -118,13 +110,7 @@ public class AndroidLaunchTasksProvider {
   }
 
   @NotNull
-  public List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ExecutionException {
-    // regular APK deploy flow
-    if (!myLaunchOptions.isDeploy()) {
-      return Collections.emptyList();
-    }
-
-    List<LaunchTask> tasks = new ArrayList<>();
+  public LaunchTask getDeployTask(@NotNull final IDevice device) throws ExecutionException {
     DeployType deployType = getDeployType();
 
     List<String> disabledFeatures = myRunConfig.getDisabledDynamicFeatures();
@@ -143,43 +129,29 @@ public class AndroidLaunchTasksProvider {
       case RUN_INSTANT_APP:
         DeepLinkLaunch.State state = (DeepLinkLaunch.State)myRunConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
         assert state != null;
-        tasks.add(new RunInstantAppTask(apks, state.DEEP_LINK, disabledFeatures));
-        break;
+        return new RunInstantAppTask(apks, state.DEEP_LINK, disabledFeatures);
       case APPLY_CHANGES:
-        tasks.add(new ApplyChangesTask(
+        return new ApplyChangesTask(
           myProject,
           packages,
           isApplyChangesFallbackToRun(),
-          myRunConfig.ALWAYS_INSTALL_WITH_PM));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppRefresh(device)));
-
-        break;
+          myRunConfig.ALWAYS_INSTALL_WITH_PM);
       case APPLY_CODE_CHANGES:
-        tasks.add(new ApplyCodeChangesTask(
+        return new ApplyCodeChangesTask(
           myProject,
           packages,
           isApplyCodeChangesFallbackToRun(),
-          myRunConfig.ALWAYS_INSTALL_WITH_PM));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppRefresh(device)));
-        break;
+          myRunConfig.ALWAYS_INSTALL_WITH_PM);
       case DEPLOY:
-        tasks.add(new DeployTask(
+        return new DeployTask(
           myProject,
           packages,
           myRunConfig.PM_INSTALL_OPTIONS,
           myRunConfig.ALL_USERS,
-          myRunConfig.ALWAYS_INSTALL_WITH_PM));
-        tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        LiveEditApp app = new LiveEditApp(getApkPaths(apks), device.getVersion().getApiLevel());
-        tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(
-          myRunConfig, myEnv.getExecutor(), packageName, device, app)));
-        break;
+          myRunConfig.ALWAYS_INSTALL_WITH_PM);
       default:
         throw new IllegalStateException("Unhandled Deploy Type");
     }
-    return ImmutableList.copyOf(tasks);
   }
 
   private boolean isApplyCodeChangesFallbackToRun() {
@@ -250,16 +222,6 @@ public class AndroidLaunchTasksProvider {
     else {
       return DeployType.DEPLOY;
     }
-  }
-
-  private static Set<Path> getApkPaths(Iterable<? extends ApkInfo> apks) {
-    Set<Path> apksPaths = new HashSet<>();
-    for (ApkInfo apkInfo : apks) {
-      for (ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
-        apksPaths.add(apkFileUnit.getApkPath());
-      }
-    }
-    return apksPaths;
   }
 
   @NotNull

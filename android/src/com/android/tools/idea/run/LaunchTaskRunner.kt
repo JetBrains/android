@@ -19,9 +19,10 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deploy.DeploymentConfiguration
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.usesCompose
+import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
@@ -31,6 +32,7 @@ import com.android.tools.idea.run.configuration.execution.AndroidConfigurationEx
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
+import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
@@ -55,15 +57,18 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 class LaunchTaskRunner(
   private val applicationIdProvider: ApplicationIdProvider,
   private val env: ExecutionEnvironment,
   override val deviceFutures: DeviceFutures,
-  private val apkProvider: ApkProvider
+  private val apkProvider: ApkProvider,
+  private val liveEditService: LiveEditService = LiveEditService.getInstance(env.project)
 ) : AndroidConfigurationExecutor {
   val project = env.project
   override val configuration = env.runProfile as AndroidRunConfiguration
@@ -113,6 +118,16 @@ class LaunchTaskRunner(
     createRunContentDescriptor(processHandler, console, env)
   }
 
+  private fun getApkPaths(apks: Iterable<ApkInfo>): Set<Path> {
+    val apksPaths: MutableSet<Path> = HashSet()
+    for (apkInfo in apks) {
+      for (apkFileUnit in apkInfo.files) {
+        apksPaths.add(apkFileUnit.apkPath)
+      }
+    }
+    return apksPaths
+  }
+
   private suspend fun doRun(
     devices: List<IDevice>, processHandler: ProcessHandler, indicator: ProgressIndicator, console: ConsoleView, isDebug: Boolean
   ) = coroutineScope {
@@ -131,14 +146,30 @@ class LaunchTaskRunner(
         LOG.info("Launching on device ${device.name}")
         val launchContext = LaunchContext(env, device, console, processHandler, indicator)
 
-        val deployTasks = launchTasksProvider.getDeployTasks(device, packageName)
-        runLaunchTasks(deployTasks, launchContext)
+        //Deploy
+        if (configuration.DEPLOY) {
+          val deployTask = launchTasksProvider.getDeployTask(device)
+          runLaunchTasks(listOf(deployTask), launchContext)
+          notifyLiveEditService(device, packageName)
+        }
 
         val launchTasks = launchTasksProvider.getLaunchTasks(device)
         runLaunchTasks(launchTasks, launchContext)
         project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
       }
     }.awaitAll()
+  }
+
+  private fun notifyLiveEditService(device: IDevice, packageName: String) {
+    try {
+      AndroidLiveLiteralDeployMonitor.getCallback(project, packageName, device)?.call()
+      val apks = apkProvider.getApks(device)
+      val app = LiveEditApp(getApkPaths(apks), device.version.apiLevel)
+      liveEditService.notifyAppDeploy(configuration, env.executor, packageName, device, app)
+    } catch (e: Exception) {
+      // Monitoring should always start successfully start.
+      RunConfigurationNotifier.notifyWarning(project, configuration.name, "Error starting live edit.\n$e")
+    }
   }
 
   private suspend fun waitPreviousProcessTermination(
@@ -279,7 +310,7 @@ class LaunchTaskRunner(
     stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun())
     stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun())
     stats.setRunAlwaysInstallWithPm(configuration.ALWAYS_INSTALL_WITH_PM)
-    stats.setIsComposeProject(usesCompose(project))
+    stats.setIsComposeProject(LiveEditService.usesCompose(project))
   }
 
   private fun isApplyCodeChangesFallbackToRun(): Boolean {
