@@ -17,18 +17,18 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueState
-import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.VariantConnection
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
-import com.android.tools.idea.insights.filterReady
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
@@ -68,8 +68,6 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JComponent
@@ -78,10 +76,11 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingConstants
-import javax.swing.SwingUtilities
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -89,51 +88,39 @@ private const val NOTHING_SELECTED_LABEL = "Select an issue."
 private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
 
-/**
- * Returns a [Pair] of [Long] values representing the (start, end) times as millis since epoch.
- *
- * A [TimeIntervalFilter] represents a timeframe, from "now" to "X" time in the past. This extension
- * function calculates this interval as Milliseconds from the time it was called.
- */
-private fun TimeIntervalFilter.asMillisFromNow(): Pair<Long, Long> {
-  val endOfRange = Instant.now()
-  val startOfRange = endOfRange.minus(numDays, ChronoUnit.DAYS)
-  return startOfRange.toEpochMilli() to endOfRange.toEpochMilli()
-}
+private data class VitalsDetailsState(
+  val selectedConnection: VariantConnection?,
+  val selectedTimeIntervalAsSeconds: TimeIntervalFilter?,
+  val selectedVersion: Set<Version>,
+  val selectedIssue: AppInsightsIssue?,
+  val connectionMode: ConnectionMode
+)
+
+private val DefaultVitalsDetailsState =
+  VitalsDetailsState(null, null, emptySet(), null, ConnectionMode.ONLINE)
 
 class VitalsIssueDetailsPanel(
-  private val controller: AppInsightsProjectLevelController,
+  controller: AppInsightsProjectLevelController,
   project: Project,
   val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
   private val tracker: AppInsightsTracker,
   private val getConsoleUrl: (Connection, Pair<Long, Long>?, Set<Version>, IssueDetails) -> String
 ) : JPanel(BorderLayout()) {
-  private val selectedState =
-    controller.state.map { it.issues.map { timed -> timed.value } }.distinctUntilChanged()
-
-  // The setting of this field has the side effect of updating the UI, so it should be done on the
-  // EDT thread.
-  private var selectedIssue: AppInsightsIssue? = null
-    set(value) {
-      assert(SwingUtilities.isEventDispatchThread())
-      if (field != value) {
-        (mainPanel.layout as CardLayout).show(
-          mainPanel,
-          if (value != null) MAIN_CARD else EMPTY_CARD
+  private val scope = AndroidCoroutineScope(parentDisposable)
+  private val detailsState =
+    controller.state
+      .map {
+        VitalsDetailsState(
+          it.connections.selected,
+          it.filters.timeInterval.selected,
+          if (it.filters.versions.allSelected()) emptySet()
+          else it.filters.versions.items.map { it.value }.toSet(),
+          it.selectedIssue,
+          it.mode
         )
-        updateHeaderSection(value)
-        field = value
       }
-    }
-
-  private var selectedFirebaseConnection: VariantConnection? = null
-
-  private var selectedTimeIntervalAsSeconds: Pair<Long, Long>? = null
-
-  private var selectedVersion: Set<Version> = emptySet()
-
-  private var connectionMode = ConnectionMode.ONLINE
+      .stateIn(scope, SharingStarted.Eagerly, DefaultVitalsDetailsState)
 
   // Title
   private val titleLabel = SimpleColoredComponent()
@@ -173,7 +160,7 @@ class VitalsIssueDetailsPanel(
 
   @VisibleForTesting
   val emptyText =
-    AppInsightsStatusText(mainPanel) { selectedIssue == null }
+    AppInsightsStatusText(mainPanel) { detailsState.value.selectedIssue == null }
       .apply {
         appendText(NOTHING_SELECTED_LABEL, EMPTY_STATE_TITLE_FORMAT)
         appendSecondaryText(
@@ -190,61 +177,58 @@ class VitalsIssueDetailsPanel(
     minimumSize = Dimension(90, 0)
     background = primaryContentBackground
     Disposer.register(parentDisposable, stackTraceConsole)
-    controller.coroutineScope.launch {
-      controller.state.collect { state ->
-        selectedFirebaseConnection = state.connections.selected
-        connectionMode = state.mode
-        // We do the conversion to millis here to ensure the range matches the time of the response,
-        // rather than the time when the
-        // link was clicked.
-        selectedTimeIntervalAsSeconds = state.filters.timeInterval.selected?.asMillisFromNow()
-        selectedVersion =
-          with(state.filters.versions) {
-            if (allSelected()) emptySet() else items.asSequence().map { it.value }.toSet()
-          }
-      }
-    }
-    controller.coroutineScope.launch {
-      selectedState
-        .onEach { selectedIssue = (it as? LoadingState.Ready)?.value?.selected }
-        .filterReady()
-        .collect { selection ->
-          selection.selected?.let { issue ->
-            val firebaseConnection = selectedFirebaseConnection?.connection
-            if (firebaseConnection != null) {
-              vitalsConsoleLink.setHyperlinkTarget(
-                getConsoleUrl(
-                  firebaseConnection,
-                  selectedTimeIntervalAsSeconds,
-                  selectedVersion,
-                  issue.issueDetails
-                )
-              )
-              vitalsConsoleLink.addMouseListener(
-                object : MouseAdapter() {
-                  override fun mousePressed(e: MouseEvent?) {
-                    tracker.logConsoleLinkClicked(
-                      connectionMode,
-                      AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails.newBuilder()
-                        .apply {
-                          source =
-                            AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails
-                              .ConsoleOpenSource
-                              .DETAILS
-                          crashType = issue.issueDetails.fatality.toCrashType()
-                        }
-                        .build()
-                    )
-                  }
-                }
-              )
-            } else {
-              vitalsConsoleLink.setHyperlinkTarget("https://play.google.com/console")
-            }
-            updateBodySection(issue)
-          }
+    scope.launch(AndroidDispatchers.uiThread) {
+      detailsState
+        .map { it.selectedIssue }
+        .distinctUntilChanged()
+        .collect { issue ->
+          (mainPanel.layout as CardLayout).show(
+            mainPanel,
+            if (issue != null) MAIN_CARD else EMPTY_CARD
+          )
+          updateHeaderSection(issue)
         }
     }
+
+    scope.launch(AndroidDispatchers.uiThread) {
+      detailsState
+        .filter { it.selectedIssue != null }
+        .collect { state ->
+          val issue = state.selectedIssue!!
+          if (state.selectedConnection?.connection != null) {
+            vitalsConsoleLink.setHyperlinkTarget(
+              getConsoleUrl(
+                state.selectedConnection.connection!!,
+                state.selectedTimeIntervalAsSeconds?.asMillisFromNow(),
+                state.selectedVersion,
+                issue.issueDetails
+              )
+            )
+            vitalsConsoleLink.addMouseListener(
+              object : MouseAdapter() {
+                override fun mousePressed(e: MouseEvent?) {
+                  tracker.logConsoleLinkClicked(
+                    state.connectionMode,
+                    AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails.newBuilder()
+                      .apply {
+                        source =
+                          AppQualityInsightsUsageEvent.AppQualityInsightsConsoleLinkDetails
+                            .ConsoleOpenSource
+                            .DETAILS
+                        crashType = issue.issueDetails.fatality.toCrashType()
+                      }
+                      .build()
+                  )
+                }
+              }
+            )
+          } else {
+            vitalsConsoleLink.setHyperlinkTarget("https://play.google.com/console")
+          }
+          updateBodySection(issue)
+        }
+    }
+
     scrollPane =
       ScrollPaneFactory.createScrollPane(
           createContentPanel(),
