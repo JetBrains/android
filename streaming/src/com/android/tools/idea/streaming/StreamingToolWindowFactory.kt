@@ -39,23 +39,24 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun init(toolWindow: ToolWindow) {
     StreamingToolWindowManager(toolWindow)
 
-    toolWindow.stripeTitle = RUNNING_DEVICES_TOOL_WINDOW_TITLE
-    toolWindow.setTitleActions(listOf(object : ToolWindowWindowAction() {
-      override fun update(e: AnActionEvent) {
-        if (toolWindow.type.let { it == ToolWindowType.FLOATING || it == ToolWindowType.WINDOWED }) {
-          e.presentation.isEnabledAndVisible = false
-          return
-        }
-        super.update(e)
-        e.presentation.icon = AllIcons.Actions.MoveToWindow
-      }
-    }))
+    toolWindow.setTitleActions(listOf(MoveToWindowAction(toolWindow)))
   }
 
-  override fun isApplicable(project: Project): Boolean {
-    return isAndroidEnvironment(project) && (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled)
-  }
+  override fun isApplicable(project: Project): Boolean =
+    isAndroidEnvironment(project) && (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled)
 
   private fun canLaunchEmulator(): Boolean =
     !isChromeOSAndIsNotHWAccelerated()
+
+  private class MoveToWindowAction(private val toolWindow: ToolWindow) : ToolWindowWindowAction() {
+    override fun update(event: AnActionEvent) {
+      when (toolWindow.type) {
+        ToolWindowType.FLOATING, ToolWindowType.WINDOWED -> event.presentation.isEnabledAndVisible = false
+        else -> {
+          super.update(event)
+          event.presentation.icon = AllIcons.Actions.MoveToWindow
+        }
+      }
+    }
+  }
 }
