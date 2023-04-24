@@ -24,7 +24,9 @@ private val STUB_MODULE = object : ResourceIdManagerModelModule {
   override val namespacing: ResourceNamespacing = ResourceNamespacing.DISABLED
 }
 
-class TestResourceIdManager private constructor(module: Module) : ResourceIdManagerBase(STUB_MODULE) {
+open class StubbedResourceIdManager : ResourceIdManagerBase(STUB_MODULE)
+
+class TestResourceIdManager private constructor(module: Module) : StubbedResourceIdManager() {
   private var _finalIdsUsed = true
   override val finalIdsUsed: Boolean
     get() = _finalIdsUsed

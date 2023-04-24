@@ -18,31 +18,38 @@ package com.android.tools.idea.res
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.tools.res.ids.ResourceIdManager
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
-import org.jetbrains.android.AndroidFacetProjectDescriptor
-import org.jetbrains.android.facet.AndroidFacet
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader
+import com.intellij.mock.MockApplication
+import com.intellij.openapi.extensions.ExtensionPoint
+import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.util.Disposer
+import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Before
+import org.junit.Test
 import java.util.concurrent.CountDownLatch
 
-class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
-  override fun getProjectDescriptor() = AndroidFacetProjectDescriptor
 
-  private lateinit var facet: AndroidFacet
-  private lateinit var idManager: ResourceIdManager
+class ResourceIdManagerBaseTest {
+  val disposable = Disposer.newDisposable()
 
-  override fun setUp() {
-    super.setUp()
-    facet = AndroidFacet.getInstance(module)!!
-    idManager = ResourceIdManager.get(module)
+  @Before
+  fun setUp() {
+    MockApplication(disposable)
+    Extensions.getRootArea().registerExtensionPoint(LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.name, LayoutLibraryLoader.LayoutLibraryProvider::class.java.name, ExtensionPoint.Kind.INTERFACE)
   }
 
-  override fun tearDown() {
-    idManager.resetCompiledIds { }
-    super.tearDown()
+  @After
+  fun tearDown() {
+    Disposer.dispose(disposable)
   }
 
+  @Test
   fun testDynamicIds() {
+    val idManager = StubbedResourceIdManager()
     val initialGeneration = idManager.generation
     val stringId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string"))
     assertNotNull(stringId)
@@ -59,7 +66,9 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     assertEquals("Generation must be constant if no calls to resetDynamicIds happened", initialGeneration, idManager.generation)
   }
 
+  @Test
   fun testResetDynamicIds() {
+    val idManager = StubbedResourceIdManager()
     var lastGeneration = idManager.generation
     idManager.resetDynamicIds()
     assertNotEquals(lastGeneration, idManager.generation)
@@ -86,7 +95,9 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     assertNotEquals(id2, idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string2")))
   }
 
+  @Test
   fun testLoadCompiledResources() {
+    val idManager = StubbedResourceIdManager()
     val stringId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string"))
     val styleId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STYLE, "style"))
     val layoutId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout"))
@@ -113,7 +124,9 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     assertNull(idManager.findById(layoutId))
   }
 
+  @Test
   fun testResetIdsDoesNotPreventAccess() {
+    val idManager = StubbedResourceIdManager()
     assertNull(idManager.findById(0x7f000001))
 
     idManager.resetCompiledIds { it.parse(R::class.java) }
