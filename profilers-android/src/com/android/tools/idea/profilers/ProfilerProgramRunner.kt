@@ -24,6 +24,8 @@ import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
+import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
+import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
@@ -69,7 +71,9 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
 
   override val supportedConfigurationTypeIds = listOf(
     AndroidRunConfigurationType().id,
-    AndroidTestRunConfigurationType().id
+    AndroidTestRunConfigurationType().id,
+    AndroidWatchFaceConfigurationType().id,
+    AndroidTileConfigurationType().id
   )
 
   override fun canRunWithMultipleDevices(executorId: String) = false

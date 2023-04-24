@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
@@ -87,6 +88,10 @@ abstract class AndroidConfigurationExecutorBase(
     }
 
     devices.map { async { onDevice(it) } }.joinAll()
+
+    environment.putCopyableUserData(AppRunConfiguration.KEY, object : AppRunConfiguration {
+      override val appId: String = this@AndroidConfigurationExecutorBase.appId
+    })
 
     createRunContentDescriptor(processHandler, console, environment)
   }
