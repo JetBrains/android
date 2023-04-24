@@ -36,7 +36,6 @@ import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
-import com.android.tools.idea.run.tasks.clearAppStorage
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
