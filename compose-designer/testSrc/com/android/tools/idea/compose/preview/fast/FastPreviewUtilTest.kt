@@ -20,7 +20,6 @@ import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewRule
-import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
