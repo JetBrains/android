@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.execution.RunManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -111,7 +112,7 @@ public final class SelectMultipleDevicesDialogTest {
 
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
 
-    DevicesSelectedService service = new DevicesSelectedService(new PersistentStateComponent(), clock);
+    DevicesSelectedService service = new DevicesSelectedService(new PersistentStateComponent(), clock, RunManager.getInstance(myRule.getProject()));
     service.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
 
     initDialog(Collections.singletonList(device), () -> false, project -> service);
