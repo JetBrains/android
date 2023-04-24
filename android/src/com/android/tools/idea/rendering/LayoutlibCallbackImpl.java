@@ -61,7 +61,7 @@ import com.android.support.AndroidxName;
 import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.module.AndroidModuleInfo;
 import com.android.tools.rendering.LayoutMetadata;
 import com.android.tools.rendering.parsers.AaptAttrParser;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;

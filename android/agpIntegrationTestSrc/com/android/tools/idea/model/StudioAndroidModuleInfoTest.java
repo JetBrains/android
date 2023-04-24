@@ -22,6 +22,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_GRADLE
 import static com.android.tools.idea.testing.TestProjectPaths.MODULE_INFO_MANIFEST_ONLY;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.module.AndroidModuleInfo;
 
 public class StudioAndroidModuleInfoTest extends AndroidGradleTestCase {
   public void testManifestOnly() throws Exception {

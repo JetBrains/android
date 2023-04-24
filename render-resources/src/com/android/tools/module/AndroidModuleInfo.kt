@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.model
+package com.android.tools.module
 
 import com.android.sdklib.AndroidVersion
 import com.google.common.util.concurrent.ListenableFuture

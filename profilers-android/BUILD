@@ -50,6 +50,7 @@ iml_module(
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/codenavigation[module]",
         "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",

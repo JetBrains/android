@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.AssetRepository
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.Disposable

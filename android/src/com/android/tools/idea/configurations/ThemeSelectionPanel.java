@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.Disposable;

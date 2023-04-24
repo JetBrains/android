@@ -49,6 +49,7 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="codenavigation" />
     <orderEntry type="module-library">
       <library name="trace-perfetto-library">

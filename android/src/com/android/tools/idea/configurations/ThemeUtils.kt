@@ -30,13 +30,13 @@ import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
 import com.android.tools.dom.ActivityAttributesSnapshot
 import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
 import com.android.tools.idea.run.activity.DefaultActivityLocator
+import com.android.tools.module.AndroidModuleInfo
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService

@@ -25,10 +25,10 @@ import static com.android.utils.SdkUtils.endsWithIgnoreCase;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.ImageUtils;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.module.AndroidModuleInfo;
 import com.android.utils.SdkUtils;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;

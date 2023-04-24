@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.configurations
 
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.rendering.ModuleDependencies
 import com.android.tools.layoutlib.LayoutlibContext
+import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.Disposable
