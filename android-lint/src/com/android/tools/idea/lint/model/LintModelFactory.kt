@@ -57,6 +57,8 @@ import com.android.tools.lint.model.DefaultLintModelResourceField
 import com.android.tools.lint.model.DefaultLintModelSourceProvider
 import com.android.tools.lint.model.DefaultLintModelVariant
 import com.android.tools.lint.model.LintModelAndroidArtifact
+import com.android.tools.lint.model.LintModelArtifact
+import com.android.tools.lint.model.LintModelArtifactType
 import com.android.tools.lint.model.LintModelBuildFeatures
 import com.android.tools.lint.model.LintModelDependencies
 import com.android.tools.lint.model.LintModelDependency
@@ -277,7 +279,10 @@ class LintModelFactory : LintModelModuleLoader {
     )
   }
 
-  private fun getArtifact(artifact: IdeAndroidArtifact): LintModelAndroidArtifact {
+  private fun getArtifact(
+    artifact: IdeAndroidArtifact,
+    type: LintModelArtifactType
+  ): LintModelAndroidArtifact {
     return DefaultLintModelAndroidArtifact(
       applicationId = artifact.applicationId
           ?: "", // TODO(b/234146319): This should probably be optional
@@ -285,13 +290,18 @@ class LintModelFactory : LintModelModuleLoader {
       generatedSourceFolders = artifact.generatedSourceFolders,
       generatedResourceFolders = artifact.generatedResourceFolders,
       classOutputs = artifact.classesFolder.toList(),
-      desugaredMethodsFiles = artifact.desugaredMethodsFiles
+      desugaredMethodsFiles = artifact.desugaredMethodsFiles,
+      type = type
     )
   }
-  private fun getArtifact(artifact: IdeJavaArtifact): LintModelJavaArtifact {
+  private fun getArtifact(
+    artifact: IdeJavaArtifact,
+    type: LintModelArtifactType
+  ): LintModelJavaArtifact {
     return DefaultLintModelJavaArtifact(
       dependencies = getDependencies(artifact),
-      classFolders = artifact.classesFolder.toList()
+      classFolders = artifact.classesFolder.toList(),
+      type = type
     )
   }
 
@@ -314,7 +324,7 @@ class LintModelFactory : LintModelModuleLoader {
       module = module,
       name = variant.name,
       useSupportLibraryVectorDrawables = useSupportLibraryVectorDrawables(variant),
-      mainArtifact = getArtifact(variant.mainArtifact),
+      mainArtifactOrNull = getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN),
       testArtifact = getTestArtifact(variant),
       androidTestArtifact = getAndroidTestArtifact(variant),
       testFixturesArtifact = getTestFixturesArtifact(variant),
@@ -343,17 +353,17 @@ class LintModelFactory : LintModelModuleLoader {
 
   private fun getTestFixturesArtifact(variant: IdeVariant): LintModelAndroidArtifact? {
     val artifact = variant.testFixturesArtifact ?: return null
-    return getArtifact(artifact)
+    return getArtifact(artifact, LintModelArtifactType.TEST_FIXTURES)
   }
 
   private fun getAndroidTestArtifact(variant: IdeVariant): LintModelAndroidArtifact? {
     val artifact = variant.androidTestArtifact ?: return null
-    return getArtifact(artifact)
+    return getArtifact(artifact, LintModelArtifactType.INSTRUMENTATION_TEST)
   }
 
   private fun getTestArtifact(variant: IdeVariant): LintModelJavaArtifact? {
     val artifact = variant.unitTestArtifact ?: return null
-    return getArtifact(artifact)
+    return getArtifact(artifact, LintModelArtifactType.UNIT_TEST)
   }
 
   private fun computeSourceProviders(
@@ -769,8 +779,20 @@ class LintModelFactory : LintModelModuleLoader {
         _manifestPlaceholders ?: variant.manifestPlaceholders.also { _manifestPlaceholders = it }
 
     private var _mainArtifact: LintModelAndroidArtifact? = null
+    @Deprecated("This property is deprecated.", replaceWith = ReplaceWith("artifact"))
     override val mainArtifact: LintModelAndroidArtifact
-      get() = _mainArtifact ?: getArtifact(variant.mainArtifact).also { _mainArtifact = it }
+      get() =
+        _mainArtifact
+          ?: getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN).also {
+            _mainArtifact = it
+          }
+
+    override val artifact: LintModelArtifact
+      get() =
+        _mainArtifact
+          ?: getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN).also {
+            _mainArtifact = it
+          }
 
     private var _testArtifact: LintModelJavaArtifact? = null
     override val testArtifact: LintModelJavaArtifact?

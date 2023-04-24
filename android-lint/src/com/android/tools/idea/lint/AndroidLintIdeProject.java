@@ -309,7 +309,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     if (facet != null) {
       LintModelVariant variant = project.getBuildVariant();
       if (variant != null) {
-        List<LintModelDependency> roots = variant.getMainArtifact().getDependencies().getCompileDependencies().getRoots();
+        List<LintModelDependency> roots = variant.getArtifact().getDependencies().getCompileDependencies().getRoots();
         addGradleLibraryProjects(client, files, libraryMap, projects, facet, project, projectMap, dependencies, roots);
       }
     }
