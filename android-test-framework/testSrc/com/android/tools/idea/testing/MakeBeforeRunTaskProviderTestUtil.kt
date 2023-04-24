@@ -164,6 +164,7 @@ fun mockDeviceFor(androidVersion: Int, abis: List<Abi>, density: Int? = null): I
   whenever(device.abis).thenReturn(abis.map { it.toString() })
   whenever(device.version).thenReturn(AndroidVersion(androidVersion))
   whenever(device.serialNumber).thenReturn("1234")
+  whenever(device.isOnline).thenReturn(true)
   density?.let { whenever(device.density).thenReturn(density) }
   return device
 }

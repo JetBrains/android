@@ -147,7 +147,6 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     return LaunchOptions.builder()
       .setDeploy(DEPLOY)
       .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
-      .setDeployAsInstant(DEPLOY_AS_INSTANT)
       .setClearAppStorage(CLEAR_APP_STORAGE)
       .build()
   }

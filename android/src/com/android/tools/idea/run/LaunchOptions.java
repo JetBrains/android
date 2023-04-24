@@ -26,11 +26,44 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class LaunchOptions {
 
+  private final boolean myDeploy;
+  private final boolean myOpenLogcatAutomatically;
+  private final Map<String, Object> myExtraOptions;
+  private final boolean myClearAppStorage;
+  private LaunchOptions(boolean deploy,
+                        boolean openLogcatAutomatically,
+                        @NotNull Map<String, Object> extraOptions,
+                        boolean clearAppStorage) {
+    myDeploy = deploy;
+    myOpenLogcatAutomatically = openLogcatAutomatically;
+    myExtraOptions = ImmutableMap.copyOf(extraOptions);
+    myClearAppStorage = clearAppStorage;
+  }
+
+  public boolean isDeploy() {
+    return myDeploy;
+  }
+
+  public boolean isClearAppStorage() { return myClearAppStorage; }
+
+  public boolean isOpenLogcatAutomatically() {
+    return myOpenLogcatAutomatically;
+  }
+
+  @Nullable
+  public Object getExtraOption(@NotNull String key) {
+    return myExtraOptions.get(key);
+  }
+
+  @NotNull
+  public static Builder builder() {
+    return new Builder();
+  }
+
   public static final class Builder {
+    private final Map<String, Object> myExtraOptions = new HashMap<>();
     private boolean myDeploy = true;
     private boolean myOpenLogcatAutomatically = false;
-    private final Map<String, Object> myExtraOptions = new HashMap<>();
-    private boolean myDeployAsInstant = false;
     private boolean myClearAppStorage = false;
 
     private Builder() {
@@ -41,7 +74,6 @@ public final class LaunchOptions {
       return new LaunchOptions(myDeploy,
                                myOpenLogcatAutomatically,
                                myExtraOptions,
-                               myDeployAsInstant,
                                myClearAppStorage);
     }
 
@@ -66,56 +98,9 @@ public final class LaunchOptions {
 
 
     @NotNull
-    public Builder setDeployAsInstant(boolean deployAsInstant) {
-      myDeployAsInstant = deployAsInstant;
-      return this;
-    }
-
-    @NotNull
     public Builder setClearAppStorage(boolean clearAppStorage) {
       myClearAppStorage = clearAppStorage;
       return this;
     }
   }
-
-  @NotNull
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  private final boolean myDeploy;
-  private final boolean myOpenLogcatAutomatically;
-  private final Map<String, Object> myExtraOptions;
-  private final boolean myDeployAsInstant;
-  private final boolean myClearAppStorage;
-
-  private LaunchOptions(boolean deploy,
-                        boolean openLogcatAutomatically,
-                        @NotNull Map<String, Object> extraOptions,
-                        boolean deployAsInstant,
-                        boolean clearAppStorage) {
-    myDeploy = deploy;
-    myOpenLogcatAutomatically = openLogcatAutomatically;
-    myExtraOptions = ImmutableMap.copyOf(extraOptions);
-    myDeployAsInstant = deployAsInstant;
-    myClearAppStorage = clearAppStorage;
-  }
-
-  public boolean isDeploy() {
-    return myDeploy;
-  }
-
-  public boolean isClearAppStorage() { return myClearAppStorage; }
-
-
-  public boolean isOpenLogcatAutomatically() {
-    return myOpenLogcatAutomatically;
-  }
-
-  @Nullable
-  public Object getExtraOption(@NotNull String key) {
-    return myExtraOptions.get(key);
-  }
-
-  public boolean isDeployAsInstant() { return myDeployAsInstant; }
 }

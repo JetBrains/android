@@ -42,6 +42,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.net.URL;
+import java.util.Collections;
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,7 +50,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class RunInstantAppTaskTest {
+public class RunInstantAppTest {
   private final String DEVICE_ID = "dev1234";
   private final File zipFile = new File("/tmp/fake.zip");
   private final ImmutableList<ApkInfo> apkInfoListForZip = ImmutableList.of(new ApkInfo(zipFile, "com.foo"));
@@ -82,9 +83,9 @@ public class RunInstantAppTaskTest {
 
   @Test
   public void testPerformWithNoZipFile() {
-    RunInstantAppTask task = new RunInstantAppTask(ImmutableList.of(), "");
+    RunInstantApp task = new RunInstantApp(ImmutableList.of(), "", Collections.singletonList(""));
     try {
-      task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
+      task.run(consolePrinter, device);
       TestCase.fail("Run should fail");
     }
     catch (ExecutionException e) {
@@ -95,7 +96,7 @@ public class RunInstantAppTaskTest {
 
   @Test
   public void testPerformWithEmptyStringUrl() throws ExecutionException {
-    RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "");
+    RunInstantApp task = new RunInstantApp(apkInfoListForZip, "", Collections.singletonList(""));
     // Note here that an empty string URL should be transformed to null in the call to runInstantApp
     when(runHandler.runZip(
       /* zipFile= */ eq(zipFile),
@@ -106,12 +107,12 @@ public class RunInstantAppTaskTest {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
+    task.run(consolePrinter, device);
   }
 
   @Test
   public void testPerformWithSpecifiedUrl() throws Exception {
-    RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "http://foo.app");
+    RunInstantApp task = new RunInstantApp(apkInfoListForZip, "http://foo.app", Collections.singletonList(""));
     when(runHandler.runZip(
       /* zipFile= */ eq(zipFile),
       /* url= */ eq(new URL("http://foo.app")),
@@ -121,7 +122,7 @@ public class RunInstantAppTaskTest {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
+    task.run(consolePrinter, device);
   }
 
   @Test
@@ -136,7 +137,7 @@ public class RunInstantAppTaskTest {
         new ApkFileUnit("excluded", excludedApk)
       ), "com.dontcare"));
 
-    RunInstantAppTask task = new RunInstantAppTask(apkInfos, "http://foo.app", ImmutableList.of("excluded"));
+    RunInstantApp task = new RunInstantApp(apkInfos, "http://foo.app", ImmutableList.of("excluded"));
 
     when(runHandler.runApks(
       /* apkFiles= */ eq(ImmutableList.of(apk1, apk2)),
@@ -148,7 +149,7 @@ public class RunInstantAppTaskTest {
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
 
-    task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
+    task.run(consolePrinter, device);
 
     verify(runHandler).runApks(
       /* apkFiles= */ eq(ImmutableList.of(apk1, apk2)),

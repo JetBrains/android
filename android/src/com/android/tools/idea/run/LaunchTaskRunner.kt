@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -28,6 +29,7 @@ import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
+import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
@@ -35,6 +37,7 @@ import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
+import com.android.tools.idea.run.tasks.RunInstantApp
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.run.util.SwapInfo
@@ -101,7 +104,11 @@ class LaunchTaskRunner(
       LaunchUtils.initiateDismissKeyguard(it)
     }
 
-    doRun(devices, processHandler, indicator, console, false)
+    if (shouldDeployAsInstant()) {
+      deployAsInstantApp(devices, console)
+    } else {
+      doRun(devices, processHandler, indicator, console, false)
+    }
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
@@ -118,6 +125,13 @@ class LaunchTaskRunner(
     createRunContentDescriptor(processHandler, console, env)
   }
 
+  private fun deployAsInstantApp(devices: List<IDevice>, console: ConsoleView) {
+    val state: DeepLinkLaunch.State = configuration.getLaunchOptionState(AndroidRunConfiguration.LAUNCH_DEEP_LINK) as DeepLinkLaunch.State
+    devices.forEach { device ->
+      RunInstantApp(apkProvider.getApks(device), state.DEEP_LINK, configuration.disabledDynamicFeatures).run(console, device)
+    }
+  }
+
   private fun getApkPaths(apks: Iterable<ApkInfo>): Set<Path> {
     val apksPaths: MutableSet<Path> = HashSet()
     for (apkInfo in apks) {
@@ -126,6 +140,10 @@ class LaunchTaskRunner(
       }
     }
     return apksPaths
+  }
+
+  private fun shouldDeployAsInstant(): Boolean {
+    return facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP || configuration.DEPLOY_AS_INSTANT
   }
 
   private suspend fun doRun(
@@ -167,6 +185,7 @@ class LaunchTaskRunner(
       val app = LiveEditApp(getApkPaths(apks), device.version.apiLevel)
       liveEditService.notifyAppDeploy(configuration, env.executor, packageName, device, app)
     } catch (e: Exception) {
+
       // Monitoring should always start successfully start.
       RunConfigurationNotifier.notifyWarning(project, configuration.name, "Error starting live edit.\n$e")
     }
@@ -210,7 +229,11 @@ class LaunchTaskRunner(
     }
     LaunchUtils.initiateDismissKeyguard(device)
 
-    doRun(devices, processHandler, indicator, console, true)
+    if (shouldDeployAsInstant()) {
+      deployAsInstantApp(devices, console)
+    } else {
+      doRun(devices, processHandler, indicator, console, true)
+    }
 
     indicator.text = "Connecting debugger"
     val session = RunStats.from(env).runCustomTask("startDebuggerSession") {

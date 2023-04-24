@@ -15,23 +15,19 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.sdklib.AndroidVersion.VersionCodes.TIRAMISU;
 import static com.android.tools.idea.flags.StudioFlags.LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG;
-import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
 import com.android.tools.idea.run.tasks.DeployTask;
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.ExecutionException;
@@ -78,32 +74,27 @@ public class AndroidLaunchTasksProvider {
   public List<LaunchTask> getLaunchTasks(@NotNull IDevice device) throws ExecutionException {
     final List<LaunchTask> launchTasks = new ArrayList<>();
 
-    if (!shouldDeployAsInstant()) {
-      // A separate deep link launch task is not necessary if launch will be handled by
-      // RunInstantAppTask
+    StringBuilder amStartOptions = new StringBuilder();
+    // launch the contributors before launching the application in case
+    // the contributors need to start listening on logcat for the application launch itself
+    for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
+      String amOptions = taskContributor.getAmStartOptions(myPackageName, myRunConfig, device, myEnv.getExecutor());
+      amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
+    }
 
-      StringBuilder amStartOptions = new StringBuilder();
-      // launch the contributors before launching the application in case
-      // the contributors need to start listening on logcat for the application launch itself
-      for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-        String amOptions = taskContributor.getAmStartOptions(myPackageName, myRunConfig, device, myEnv.getExecutor());
-        amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
+    AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myPackageName, myFacet,
+                                                                       amStartOptions.toString(),
+                                                                       myDebug,
+                                                                       myApkProvider,
+                                                                       device);
+
+    if (appLaunchTask != null) {
+      // Apply (Code) Changes needs additional control over killing/restarting the app.
+      launchTasks.add(new KillAndRestartAppLaunchTask(myPackageName));
+      if (shouldDebugSandboxSdk(device)) {
+        launchTasks.add(new SandboxSdkLaunchTask(myPackageName));
       }
-
-      AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myPackageName, myFacet,
-                                                                         amStartOptions.toString(),
-                                                                         myDebug,
-                                                                         myApkProvider,
-                                                                         device);
-
-      if (appLaunchTask != null) {
-        // Apply (Code) Changes needs additional control over killing/restarting the app.
-        launchTasks.add(new KillAndRestartAppLaunchTask(myPackageName));
-        if (shouldDebugSandboxSdk(device)) {
-          launchTasks.add(new SandboxSdkLaunchTask(myPackageName));
-        }
-        launchTasks.add(appLaunchTask);
-      }
+      launchTasks.add(appLaunchTask);
     }
 
     return launchTasks;
@@ -126,10 +117,6 @@ public class AndroidLaunchTasksProvider {
       .map(apkInfo -> filterDisabledFeatures(apkInfo, disabledFeatures))
       .collect(Collectors.toList());
     switch (deployType) {
-      case RUN_INSTANT_APP:
-        DeepLinkLaunch.State state = (DeepLinkLaunch.State)myRunConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
-        assert state != null;
-        return new RunInstantAppTask(apks, state.DEEP_LINK, disabledFeatures);
       case APPLY_CHANGES:
         return new ApplyChangesTask(
           myProject,
@@ -160,11 +147,6 @@ public class AndroidLaunchTasksProvider {
 
   private boolean isApplyChangesFallbackToRun() {
     return DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN;
-  }
-
-  private boolean shouldDeployAsInstant() {
-    return (myFacet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP ||
-            myLaunchOptions.isDeployAsInstant());
   }
 
   private boolean shouldApplyChanges() {
@@ -210,10 +192,7 @@ public class AndroidLaunchTasksProvider {
   }
 
   private DeployType getDeployType() {
-    if (shouldDeployAsInstant()) {
-      return DeployType.RUN_INSTANT_APP;
-    }
-    else if (shouldApplyChanges()) {
+    if (shouldApplyChanges()) {
       return DeployType.APPLY_CHANGES;
     }
     else if (shouldApplyCodeChanges()) {
@@ -238,12 +217,6 @@ public class AndroidLaunchTasksProvider {
   }
 
   private enum DeployType {
-    RUN_INSTANT_APP {
-      @Override
-      public String asDisplayName() {
-        return "Instant App Launch";
-      }
-    },
     APPLY_CHANGES {
       @Override
       public String asDisplayName() {

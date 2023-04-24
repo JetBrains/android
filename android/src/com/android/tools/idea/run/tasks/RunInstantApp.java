@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.tasks;
 
-import static com.android.tools.idea.run.tasks.LaunchTaskDurations.DEPLOY_INSTANT_APP;
-
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
@@ -44,44 +42,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class RunInstantAppTask implements LaunchTask {
-  private static final String ID = "RUN_INSTANT_APP";
+public class RunInstantApp {
 
   @NotNull private final Collection<ApkInfo> myPackages;
   @Nullable private final String myDeepLink;
   @NotNull private final InstantAppSdks mySdk;
   @NotNull private final List<String> myDisabledFeatures;
 
-  public RunInstantAppTask(@NotNull Collection<ApkInfo> packages, @Nullable String link, @NotNull List<String> disabledFeatures) {
+  public RunInstantApp(@NotNull Collection<ApkInfo> packages, @Nullable String link, @NotNull List<String> disabledFeatures) {
     myPackages = packages;
     myDeepLink = link;
     mySdk = InstantAppSdks.getInstance();
     myDisabledFeatures = disabledFeatures;
   }
 
-  public RunInstantAppTask(@NotNull Collection<ApkInfo> packages, @Nullable String link) {
-    this(packages, link, ImmutableList.of());
-  }
-
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "Uploading and launching Instant App";
-  }
-
-  @Override
-  public int getDuration() {
-    return DEPLOY_INSTANT_APP;
-  }
-
-  @Override
-  public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
-    ConsoleView console = launchContext.getConsoleView();
-
+  public void run(ConsoleView console, IDevice device) throws ExecutionException {
     // We expect exactly one zip file per Instant App that will contain the apk-splits for the
     // Instant App
     if (myPackages.size() != 1) {
-      throw new ExecutionException(getDescription() + ": Package not found or not unique");
+      throw new ExecutionException("Uploading and launching Instant App: Package not found or not unique");
     }
 
     URL url = null;
@@ -90,7 +69,7 @@ public class RunInstantAppTask implements LaunchTask {
         url = new URL(myDeepLink);
       }
       catch (MalformedURLException e) {
-        throw new ExecutionException(getDescription() + ": Invalid launch URL: " + myDeepLink);
+        throw new ExecutionException("Uploading and launching Instant App: Invalid launch URL: " + myDeepLink);
       }
     }
 
@@ -109,8 +88,6 @@ public class RunInstantAppTask implements LaunchTask {
       }
     };
 
-
-    IDevice device = launchContext.getDevice();
     ExtendedSdk aiaSdk = mySdk.loadLibrary();
 
     ApkInfo apkInfo = myPackages.iterator().next();
@@ -149,12 +126,6 @@ public class RunInstantAppTask implements LaunchTask {
     }
   }
 
-  @NotNull
-  @Override
-  public String getId() {
-    return ID;
-  }
-
   @TestOnly
   @NotNull
   public Collection<ApkInfo> getPackages() {
@@ -163,7 +134,7 @@ public class RunInstantAppTask implements LaunchTask {
 
   @NotNull
   private static Logger getLogger() {
-    return Logger.getInstance(RunInstantAppTask.class);
+    return Logger.getInstance(RunInstantApp.class);
   }
 
   private static boolean isSingleZipFile(List<ApkFileUnit> artifactFiles) {
