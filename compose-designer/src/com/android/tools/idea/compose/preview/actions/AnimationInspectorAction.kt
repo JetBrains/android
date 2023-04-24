@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -38,9 +37,7 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
     ANIMATION_INSPECTOR
   ) {
 
-  private fun getPreviewElement() =
-    dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-      as? ComposePreviewElementInstance
+  private fun getPreviewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
