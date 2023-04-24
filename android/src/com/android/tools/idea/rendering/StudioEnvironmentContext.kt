@@ -29,6 +29,7 @@ import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -70,7 +71,8 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
     val sdkPath = platform?.sdkData?.location?.toString()
 
     val securityManager = StudioRenderSecurityManager(sdkPath, projectPath, false)
-    securityManager.setLogger(LogWrapper(RenderLogger.LOG).alwaysLogAsDebug(true).allowVerbose(false))
+    securityManager.setLogger(LogWrapper(
+      Logger.getInstance(StudioRenderSecurityManager::class.java)).alwaysLogAsDebug(true).allowVerbose(false))
     securityManager.setAppTempDir(PathManager.getTempPath())
 
     return securityManager

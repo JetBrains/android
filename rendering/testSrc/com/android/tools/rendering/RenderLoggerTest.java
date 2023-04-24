@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
-import static com.android.tools.idea.rendering.RenderLogger.RENDER_PROBLEMS_LIMIT;
-import static com.android.tools.idea.rendering.RenderLogger.STACK_OVERFLOW_TRACE_LIMIT;
+import static com.android.tools.rendering.RenderLogger.RENDER_PROBLEMS_LIMIT;
+import static com.android.tools.rendering.RenderLogger.STACK_OVERFLOW_TRACE_LIMIT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.rendering.RenderProblem;
 import com.google.common.collect.Iterables;
-import com.intellij.lang.annotation.HighlightSeverity;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -166,7 +164,7 @@ public class RenderLoggerTest {
     List<RenderProblem> problems = logger.getMessages();
     assertEquals(RENDER_PROBLEMS_LIMIT + 1, problems.size());
     RenderProblem tooManyProblemsElement = problems.get(problems.size() - 1);
-    assertEquals(HighlightSeverity.WARNING, ProblemSeverities.toHighlightSeverity(tooManyProblemsElement.getSeverity()));
+    assertEquals(ProblemSeverity.WARNING, tooManyProblemsElement.getSeverity());
     assertEquals("Too many errors (150 more errors not displayed)", tooManyProblemsElement.getHtml());
   }
 

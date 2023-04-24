@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ILayoutLog
 import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
 import com.android.tools.idea.rendering.StudioHtmlLinkManager
 import com.android.tools.idea.rendering.RenderErrorContributorTest.stripImages
-import com.android.tools.idea.rendering.RenderLogger
+import com.android.tools.rendering.RenderLogger
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor.isHandledByComposeContributor
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor.reportComposeErrors
 import com.android.tools.idea.testing.AndroidProjectRule

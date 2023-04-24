@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.layoutlib.getLayoutLibrary
+import com.android.tools.rendering.RenderLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer

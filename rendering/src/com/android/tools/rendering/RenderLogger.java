@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import static com.android.SdkConstants.CONSTRUCTOR_NAME;
 import static com.android.SdkConstants.DOT_PNG;
@@ -24,9 +24,6 @@ import static com.android.tools.rendering.ProblemSeverity.WARNING;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ILayoutLog;
-import com.android.tools.rendering.HtmlLinkManager;
-import com.android.tools.rendering.IRenderLogger;
-import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
@@ -117,7 +114,7 @@ public class RenderLogger implements IRenderLogger {
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
-  static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
+  private static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
 
   /**
    * Maximum number of RenderProblems that the logger will save. After hitting this limit, no more errors will be added and an additional
@@ -231,7 +228,7 @@ public class RenderLogger implements IRenderLogger {
     return message;
   }
 
-  static boolean isIssue164378(@Nullable Throwable throwable) {
+  public static boolean isIssue164378(@Nullable Throwable throwable) {
     if (throwable instanceof NoSuchFieldError) {
       StackTraceElement[] stackTrace = throwable.getStackTrace();
       if (stackTrace.length >= 1 && stackTrace[0].getClassName().startsWith("android.support")) {

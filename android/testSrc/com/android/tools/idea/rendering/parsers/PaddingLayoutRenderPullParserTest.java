@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering.parsers;
 
 import com.android.resources.Density;
-import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.vfs.VirtualFile;

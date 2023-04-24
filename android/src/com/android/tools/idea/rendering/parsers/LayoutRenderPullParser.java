@@ -78,7 +78,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.LayoutMetadata;
 import com.android.tools.idea.rendering.NavGraphResolver;
-import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.parsers.AaptAttrAttributeSnapshot;
 import com.android.tools.rendering.parsers.AaptAttrParser;
 import com.android.tools.rendering.parsers.AttributeSnapshot;

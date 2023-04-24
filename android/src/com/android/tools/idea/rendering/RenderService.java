@@ -30,6 +30,7 @@ import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.layoutlib.LayoutlibFactory;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderExecutor;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;

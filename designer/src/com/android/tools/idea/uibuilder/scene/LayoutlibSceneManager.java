@@ -59,7 +59,7 @@ import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.InteractionEventResult;
 import com.android.tools.idea.rendering.RenderConfiguration;
-import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;

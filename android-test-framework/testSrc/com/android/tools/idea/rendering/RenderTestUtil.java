@@ -29,6 +29,7 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingPriority;
+import com.android.tools.rendering.RenderLogger;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;

@@ -44,7 +44,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.NavGraphResolver;
-import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.idea.rendering.StudioEnvironmentContext;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.rendering.parsers.AaptAttrAttributeSnapshot;

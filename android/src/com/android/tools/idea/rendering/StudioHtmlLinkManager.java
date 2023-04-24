@@ -58,6 +58,7 @@ import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.rendering.HtmlLinkManager;
+import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;

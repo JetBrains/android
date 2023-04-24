@@ -17,6 +17,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
+import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.imagepool.ImagePool
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
