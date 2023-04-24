@@ -126,6 +126,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   /** Serial numbers of mirrored devices. */
   private var mirroredDevices = mutableSetOf<String>()
+  /** Serial numbers of devices excluded from mirroring by the user. */
+  private var devicesExcludedFromMirroring = mutableSetOf<String>()
   private val properties = PropertiesComponent.getInstance(project)
 
   // Serial numbers of devices that recently requested attention.

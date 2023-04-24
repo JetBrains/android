@@ -28,6 +28,7 @@ import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.Strings.nullize
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
@@ -431,7 +432,7 @@ class FakeScreenSharingAgent(
 
   private inner class DisplayStreamer(private val channel: SuspendingSocketChannel) : Disposable {
 
-    private val codecName = StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()
+    private val codecName = nullize(StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()) ?: "vp8"
     private val encoder: AVCodec by lazy {
       // Use avcodec_find_encoder instead of avcodec_find_encoder_by_name because the names of encoders and decoders don't match.
       val codecId = when (codecName) {

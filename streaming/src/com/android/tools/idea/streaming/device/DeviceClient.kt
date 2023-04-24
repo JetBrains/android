@@ -72,7 +72,6 @@ internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/streaming/screen-sharing-agent"
 internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
 private const val MAX_BIT_RATE_EMULATOR = 2000000
-private const val DEFAULT_AGENT_LOG_LEVEL = "info"
 private const val VIDEO_CHANNEL_MARKER = 'V'.code.toByte()
 private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 // Flag definitions. Keep in sync with flags.h
@@ -336,17 +335,13 @@ internal class DeviceClient(
       StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get() > 0 -> " --max_bit_rate=${StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()}"
       else -> ""
     }
-    val logLevelArg = if (StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get() == DEFAULT_AGENT_LOG_LEVEL) ""
-                      else " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}"
+    val logLevel = StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()
+    val logLevelArg = if (logLevel.isNotBlank()) " --log=$logLevel" else ""
+    val codecName = StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()
+    val codecArg = if (codecName.isNotBlank()) " --codec=$codecName" else ""
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
-                  " com.android.tools.screensharing.Main" +
-                  " --socket=$socketName" +
-                  maxSizeArg +
-                  orientationArg +
-                  flagsArg +
-                  maxBitRateArg +
-                  logLevelArg +
-                  " --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
+                  " com.android.tools.screensharing.Main --socket=$socketName" +
+                  "$maxSizeArg$orientationArg$flagsArg$maxBitRateArg$logLevelArg$codecArg"
     // Use a coroutine scope that not linked to the lifecycle of the client to make sure that
     // the agent has a chance to terminate gracefully when the client is disposed rather than
     // be killed by adb.
