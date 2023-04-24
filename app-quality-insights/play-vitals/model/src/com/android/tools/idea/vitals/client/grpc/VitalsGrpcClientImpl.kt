@@ -154,12 +154,16 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
       }
       .freshnessInfo
       .freshnessesList
-      .map {
+      .mapNotNull {
         val timeGranularity =
           when (it.aggregationPeriod) {
             AggregationPeriod.HOURLY -> TimeGranularity.HOURLY
             AggregationPeriod.DAILY -> TimeGranularity.DAILY
-            else -> throw IllegalStateException("${it.aggregationPeriod} is not recognized.")
+            AggregationPeriod.FULL_RANGE -> TimeGranularity.FULL_RANGE
+            else -> {
+              LOG.warn("${it.aggregationPeriod} is not recognized.")
+              return@mapNotNull null
+            }
           }
 
         Freshness(timeGranularity = timeGranularity, latestEndTime = it.latestEndTime)

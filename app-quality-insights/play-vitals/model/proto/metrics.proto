@@ -20,6 +20,10 @@ enum AggregationPeriod {
 
   // Data is aggregated in daily intervals.
   DAILY = 2;
+
+  // Data is aggregated over the full timeline range. Effectively this produces
+  // a single value rather than a timeline.
+  FULL_RANGE = 3;
 }
 
 // Indicates the view selected by the user. The output data will correspond to

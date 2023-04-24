@@ -22,13 +22,15 @@ enum class TimeGranularity {
   PER_MINUTE,
   PER_SECOND,
   HOURLY,
-  DAILY
+  DAILY,
+  FULL_RANGE
 }
 
 internal fun TimeGranularity.toProto(): AggregationPeriod {
   return when (this) {
     TimeGranularity.HOURLY -> AggregationPeriod.HOURLY
     TimeGranularity.DAILY -> AggregationPeriod.DAILY
+    TimeGranularity.FULL_RANGE -> AggregationPeriod.FULL_RANGE
     else ->
       throw IllegalStateException(
         "$this is not mapped to any item in ${AggregationPeriod.values()}."

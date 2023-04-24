@@ -11,5 +11,6 @@
   Then we can find the generated files at `//blaze-genfiles/google/play/developer/reporting/v1beta1/*.proto`.
 
 ## Change log
+* 04/24/2023: Ported from last update: cl/526112545 merged on 04/21/2023
 * 04/18/2023: Ported from last update: cl/520011331 ~ cl/524242483 merged on 04/14/2023
 * 03/23/2023: Ported from last update: cl/518806368 merged on 03/23/2023

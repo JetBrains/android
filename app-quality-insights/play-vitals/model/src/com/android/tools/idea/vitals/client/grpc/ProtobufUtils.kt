@@ -87,6 +87,14 @@ internal fun DateTime.truncate(timeGranularity: TimeGranularity): DateTime {
         nanos = 0
       }
     }
+    TimeGranularity.FULL_RANGE -> {
+      dateTimeBuilder.apply {
+        hours = 0
+        minutes = 0
+        seconds = 0
+        nanos = 0
+      }
+    }
   }
 
   return dateTimeBuilder.build()

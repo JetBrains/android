@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
 import "common.proto";
+import "decimal.proto";
 import "device.proto";
 import "metrics.proto";
 import "google/protobuf/timestamp.proto";
@@ -154,8 +155,8 @@ message ErrorIssue {
   // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   int64 error_report_count = 5;
 
-  // An estimate of the number of unique users who have experienced an error
-  // in this error group (only considering occurrences matching the filters and
+  // An estimate of the number of unique users who have experienced
+  // this issue (only considering occurrences matching the filters and
   // within the requested time period).
   // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   int64 distinct_users = 6;
@@ -196,6 +197,12 @@ message ErrorIssue {
   // information that may help in diagnosing and fixing the issue.
   // (-- TODO(b/269246512): Remove visibility restrictions for launch. --)
   repeated IssueAnnotation annotations = 13;
+
+  // An estimated percentage of users affected by any issue that are
+  // affected by this issue (only considering occurrences matching the filters
+  // and within the requested time period).
+  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
+  google.type.Decimal distinct_users_percent = 14;
 }
 
 // Request to search error reports.

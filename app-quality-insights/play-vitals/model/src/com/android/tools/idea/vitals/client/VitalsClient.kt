@@ -273,7 +273,7 @@ class VitalsClient(
     metrics: List<MetricType>
   ): List<DimensionsAndMetrics> {
     val freshness =
-      grpcClient.getErrorCountMetricsFreshnessInfo(connection).minByOrNull { it.timeGranularity }
+      grpcClient.getErrorCountMetricsFreshnessInfo(connection).maxByOrNull { it.timeGranularity }
         ?: throw IllegalStateException("No freshness info found for app: ${connection.appId}.")
 
     return grpcClient.queryErrorCountMetrics(
