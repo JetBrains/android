@@ -18,6 +18,7 @@ package com.android.tools.idea.res;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.res.ids.ResourceClassGenerator;
+import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;

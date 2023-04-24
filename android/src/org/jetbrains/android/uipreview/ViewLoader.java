@@ -28,7 +28,7 @@ import com.android.tools.log.LogAnonymizer;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.rendering.security.RenderSecurityManager;
-import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;

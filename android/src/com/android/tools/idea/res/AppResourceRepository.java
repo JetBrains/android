@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.resources.aar.AarResourceRepository;
+import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;

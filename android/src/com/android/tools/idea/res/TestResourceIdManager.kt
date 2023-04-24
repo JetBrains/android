@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.tools.res.ResourceNamespacing
+import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.module.Module
 
 private val STUB_MODULE = object : ResourceIdManagerModelModule {

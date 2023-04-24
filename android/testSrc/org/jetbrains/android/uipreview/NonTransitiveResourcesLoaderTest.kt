@@ -27,8 +27,8 @@ import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.StaticLoader
-import com.android.tools.idea.res.ResourceIdManager.Companion.get
 import com.android.tools.idea.testing.ProjectFiles
+import com.android.tools.res.ids.ResourceIdManager.Companion.get
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture

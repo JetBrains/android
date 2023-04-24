@@ -539,7 +539,7 @@
                    serviceInterface="com.android.tools.idea.psi.TagToClassMapper" />
     <moduleService serviceImplementation="org.jetbrains.android.resourceManagers.ModuleResourceManagers" />
     <moduleService serviceImplementation="org.jetbrains.android.facet.ResourceFolderManager" />
-    <moduleService serviceInterface="com.android.tools.idea.res.ResourceIdManager"
+    <moduleService serviceInterface="com.android.tools.res.ids.ResourceIdManager"
                    serviceImplementation="com.android.tools.idea.res.ResourceIdManagerImpl"
                    testServiceImplementation="com.android.tools.idea.res.TestResourceIdManager" />
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestManager" />

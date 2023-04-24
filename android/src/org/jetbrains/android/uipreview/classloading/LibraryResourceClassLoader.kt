@@ -24,11 +24,11 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ResourceClassRegistry
-import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.util.VirtualFileSystemOpener.recognizes
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.res.ResourceNamespacing
+import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module

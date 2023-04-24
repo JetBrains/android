@@ -29,6 +29,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.aar.AarSourceResourceRepository;
 import com.android.testutils.TestUtils;
 import com.android.tools.res.ids.ResourceClassGenerator;
+import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;

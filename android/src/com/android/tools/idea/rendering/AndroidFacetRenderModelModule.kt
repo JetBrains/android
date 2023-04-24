@@ -22,8 +22,8 @@ import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AssetRepositoryImpl
-import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module

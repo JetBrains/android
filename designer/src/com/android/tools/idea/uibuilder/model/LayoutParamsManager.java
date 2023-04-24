@@ -30,7 +30,7 @@ import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.FloatResources;
-import com.android.tools.idea.res.ResourceIdManager;
+import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.cache.Cache;

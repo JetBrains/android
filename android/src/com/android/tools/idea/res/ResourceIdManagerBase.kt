@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.res.ResourceNamespacing
+import com.android.tools.res.ids.ResourceIdManager
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import java.lang.reflect.Field

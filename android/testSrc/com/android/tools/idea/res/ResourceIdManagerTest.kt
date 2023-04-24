@@ -18,6 +18,7 @@ package com.android.tools.idea.res
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.jetbrains.android.AndroidFacetProjectDescriptor
 import org.jetbrains.android.facet.AndroidFacet

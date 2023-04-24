@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.tools.res.ids.ResourceIdManager;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.jetbrains.android.AndroidFacetProjectDescriptor;
