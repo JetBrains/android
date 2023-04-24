@@ -248,9 +248,6 @@ b/278944241 */
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_bar_home_description")
   }
 
-  /*
-  b/279233700
-
   fun testResolveScope() {
     val unitTest = createFile(
       project.guessProjectDir()!!,
@@ -297,8 +294,6 @@ b/278944241 */
     myFixture.checkHighlighting()
   }
 
-  b/279233700 */
-
   fun testClassesDefinedByModule() {
     val appModule = getModule("app")
     val libModule = getModule("lib")
@@ -316,6 +311,9 @@ b/278944241 */
       "com.example.projectwithappandlib.lib.test.R"
     )
   }
+
+  /*
+  Test disabled: b/279233700
 
   fun testUseScope() {
     val appTest = myFixture.loadNewFile(
@@ -377,6 +375,7 @@ b/278944241 */
     assertTrue(
       libTestScope.contains(myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").containingFile.virtualFile))
   }
+  */
 }
 
 class NonTransitiveTestRClassesTest : TestRClassesTest() {
