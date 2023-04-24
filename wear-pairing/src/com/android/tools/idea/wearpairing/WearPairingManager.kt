@@ -553,15 +553,21 @@ private fun IDevice.getDeviceName(unknown: String): String {
 
 private val WIFI_DEVICE_SERIAL_PATTERN = Pattern.compile("adb-(.*)-.*\\._adb-tls-connect\\._tcp\\.?")
 
+private fun normalizeAvdId(avdId: String) = try {
+  Path(avdId.trim()).normalize().toString()
+} catch (_: Throwable) {
+  avdId
+}
+
 private fun IDevice.getDeviceID(): String {
   return when {
-    // Path.normalize is applied to the returned path from the AVD data to remove any .. in the path.
+    // normalizeAvdId is applied to the returned path from the AVD data to remove any .. in the path.
     // They were added in https://r.android.com/2441481 and, since we use the path as an ID, the .. does
     // not match the path information we have in Studio.
     // We intentionally use normalize since it does not access disk and will just normalize the path removing
     // the ..
-    isEmulator && avdData?.isDone == true -> avdData.get()?.path?.let { Path(it).normalize().toString() } ?: name
-    isEmulator -> EmulatorConsole.getConsole(this)?.avdPath?.let { Path(it).normalize().toString() } ?: name
+    isEmulator && avdData?.isDone == true -> avdData.get()?.path?.let { normalizeAvdId(it) } ?: name
+    isEmulator -> EmulatorConsole.getConsole(this)?.avdPath?.let { normalizeAvdId(it) } ?: name
     else -> {
       val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(this.serialNumber)
       if (matcher.matches()) matcher.group(1) else this.serialNumber
