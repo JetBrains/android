@@ -27,9 +27,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.util.messages.MessageBusConnection;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,21 +57,21 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
     private Path myThreadDumpPath;
   }
 
-  public DiagnosticReportIdePerformanceListener(Consumer<DiagnosticReport> reportCallback) {
+  DiagnosticReportIdePerformanceListener(Consumer<DiagnosticReport> reportCallback) {
     myReportCallback = reportCallback;
     myLastActionTracker = new LastActionTracker();
   }
 
   @Override
-  public void dumpedThreads(@NotNull File toFile, @NotNull ThreadDump dump) {
+  public void dumpedThreads(@NotNull Path toFile, @NotNull ThreadDump dump) {
     ReportContext currentContext = myContext;
     if (currentContext != null && currentContext.myThreadDumpPath == null) {
-      currentContext.myThreadDumpPath = toFile.toPath().getParent();
+      currentContext.myThreadDumpPath = toFile.getParent();
     }
   }
 
   @Override
-  public void uiFreezeStarted(@NotNull File reportDir) {
+  public void uiFreezeStarted(@NotNull Path reportDir) {
     LOG.info("uiFreezeStarted");
     if (myBuilder != null) {
       return;
@@ -98,7 +98,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   }
 
   @Override
-  public void uiFreezeFinished(long durationMs, @Nullable File reportDir) {
+  public void uiFreezeFinished(long durationMs, @Nullable Path reportDir) {
     int lengthInSeconds = (int)(durationMs / 1000);
     LOG.info(String.format(Locale.US, "uiFreezeFinished: duration = %d seconds", lengthInSeconds));
     DiagnosticReportBuilder localBuilder = myBuilder;
@@ -212,7 +212,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
     if (Files.exists(reportPath)) {
       return reportPath;
     }
-    try (PrintWriter out = new PrintWriter(reportPath.toFile(), "UTF-8")) {
+    try (PrintWriter out = new PrintWriter(reportPath.toFile(), StandardCharsets.UTF_8)) {
       out.write(reportContents);
       LOG.info(String.format("Freeze report saved: %s", reportPath));
     }

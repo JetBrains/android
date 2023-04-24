@@ -28,14 +28,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.util.messages.MessageBusConnection;
-import jdk.jfr.Event;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.util.IdentityHashMap;
 import java.util.concurrent.TimeUnit;
+import jdk.jfr.Event;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class RecordingManager {
 
@@ -106,7 +105,7 @@ public final class RecordingManager {
     Application application = ApplicationManager.getApplication();
     application.getMessageBus().connect(application).subscribe(IdePerformanceListener.TOPIC, new IdePerformanceListener() {
       @Override
-      public void uiFreezeStarted(@NotNull File reportDir) {
+      public void uiFreezeStarted(@NotNull Path reportDir) {
         synchronized (jfrLock) {
           recordings.startFreeze();
           freezeStart = System.currentTimeMillis();
@@ -115,7 +114,7 @@ public final class RecordingManager {
       }
 
       @Override
-      public void uiFreezeFinished(long durationMs, @Nullable File reportDir) {
+      public void uiFreezeFinished(long durationMs, @Nullable Path reportDir) {
         synchronized (jfrLock) {
           freezeState = FreezeState.NOT_FROZEN;
         }
@@ -135,7 +134,7 @@ public final class RecordingManager {
     }
   }
 
-  public static class DumpJfrAction extends AnAction {
+  static final class DumpJfrAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
       dumpJfrTo(new File(PathManager.getLogPath()).toPath());
