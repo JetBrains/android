@@ -84,10 +84,6 @@ internal class SourceLocationWithVirtualFile(
   }
 }
 
-/** Returns true if any of the classes contained in the [file] match the given [rootClassName]. */
-private fun matchesFile(file: PsiClassOwner, rootClassName: String): Boolean =
-  rootClassName.isNotEmpty() && file.classes?.any { it.qualifiedName == rootClassName } ?: false
-
 /**
  * Calculates the hash of the given [packageName]. This calculation must match the one done in the
  * Compose runtime so we can match the package names.
