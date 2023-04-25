@@ -697,7 +697,7 @@ class ComposePreviewRepresentationGradleTest {
         fixture.openFileInEditor(otherPreviewsFile.virtualFile)
       }
       assertFailsWith<TimeoutCancellationException> {
-        runAndWaitForRefresh {
+        runAndWaitForRefresh(Duration.ofSeconds(15)) {
           runWriteActionAndWait {
             // Add a MultiPreview annotation that won't be used
             fixture.moveCaret("|@Preview")
@@ -738,7 +738,7 @@ class ComposePreviewRepresentationGradleTest {
 
     assertFalse(composePreviewRepresentation.isInvalid())
     assertFailsWith<TimeoutCancellationException> {
-      runAndWaitForRefresh {
+      runAndWaitForRefresh(Duration.ofSeconds(15)) {
         runWriteActionAndWait {
           fixture.editor.executeAndSave {
             moveCaretToEnd()
