@@ -37,6 +37,7 @@ import com.intellij.psi.presentation.java.SymbolPresentationUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.lexer.KtTokens
 import javax.swing.Icon
 
@@ -81,6 +82,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   @WorkerThread
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
+    if (suppressAndroidPlugin()) return
+
     if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() || !element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
 
     val startTimeMs = System.currentTimeMillis()

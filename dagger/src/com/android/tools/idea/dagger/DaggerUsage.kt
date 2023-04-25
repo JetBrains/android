@@ -33,6 +33,7 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import com.intellij.util.Processor
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 
 private val PROVIDERS_USAGE_TYPE = UsageType { message("providers") }
 private val CONSUMERS_USAGE_TYPE = UsageType { message("consumers") }
@@ -51,6 +52,8 @@ private val ASSISTED_FACTORY_METHOD_USAGE_TYPE = UsageType { message("assisted.f
  */
 class DaggerUsageTypeProvider : UsageTypeProviderEx {
   override fun getUsageType(element: PsiElement?, targets: Array<UsageTarget>): UsageType? {
+    if (suppressAndroidPlugin()) return null
+
     val target = (targets.firstOrNull() as? PsiElementUsageTarget)?.element ?: return null
     return when {
       !DAGGER_SUPPORT_ENABLED.get() -> null
@@ -104,6 +107,8 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
 
   @WorkerThread
   override fun processElementUsages(element: PsiElement, processor: Processor<in Usage>, options: FindUsagesOptions) {
+    if (suppressAndroidPlugin()) return
+
     runReadAction {
       val startTimeMs = System.currentTimeMillis()
       val usages: Collection<PsiElement> = when {
