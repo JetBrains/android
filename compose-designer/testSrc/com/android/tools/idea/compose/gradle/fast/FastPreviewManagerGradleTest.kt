@@ -44,7 +44,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
@@ -87,7 +86,6 @@ import org.junit.runners.Parameterized
  */
 private fun defaultDaemonFactory(
   version: String,
-  project: Project,
   log: Logger,
   scope: CoroutineScope
 ): CompilerDaemonClient {
@@ -107,8 +105,8 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
   @get:Rule val fastPreviewFlagRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
 
-  lateinit var psiMainFile: PsiFile
-  lateinit var fastPreviewManager: FastPreviewManager
+  private lateinit var psiMainFile: PsiFile
+  private lateinit var fastPreviewManager: FastPreviewManager
 
   @Before
   fun setUp() {
@@ -121,9 +119,11 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     fastPreviewManager =
       if (useEmbeddedCompiler) FastPreviewManager.getInstance(projectRule.project)
       else
-        FastPreviewManager.getTestInstance(projectRule.project, ::defaultDaemonFactory).also {
-          Disposer.register(projectRule.fixture.testRootDisposable, it)
-        }
+        FastPreviewManager.getTestInstance(
+            projectRule.project,
+            { version, _, log, scope -> defaultDaemonFactory(version, log, scope) }
+          )
+          .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
     invokeAndWaitIfNeeded { projectRule.buildAndAssertIsSuccessful() }
     runWriteActionAndWait {
       projectRule.fixture.openFileInEditor(mainFile)
