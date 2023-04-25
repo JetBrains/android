@@ -15,26 +15,18 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.sdklib.AndroidVersion.VersionCodes.TIRAMISU;
-import static com.android.tools.idea.flags.StudioFlags.LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG;
-
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
-import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
+import com.android.tools.idea.run.tasks.AbstractDeployTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
 import com.android.tools.idea.run.tasks.DeployTask;
-import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,68 +35,24 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidLaunchTasksProvider {
   private final Logger myLogger = Logger.getInstance(AndroidLaunchTasksProvider.class);
-  private final AndroidRunConfiguration myRunConfig;
   private final ExecutionEnvironment myEnv;
-  private final AndroidFacet myFacet;
-  private final String myPackageName;
   private final ApkProvider myApkProvider;
-  private final LaunchOptions myLaunchOptions;
-  private final Boolean myDebug;
   private final Project myProject;
 
-  public AndroidLaunchTasksProvider(@NotNull AndroidRunConfiguration runConfig,
-                                    @NotNull ExecutionEnvironment env,
+  public AndroidLaunchTasksProvider(@NotNull ExecutionEnvironment env,
                                     @NotNull AndroidFacet facet,
-                                    @NotNull String packageName,
-                                    @NotNull ApkProvider apkProvider,
-                                    @NotNull LaunchOptions launchOptions,
-                                    Boolean isDebug
+                                    @NotNull ApkProvider apkProvider
   ) {
-    myRunConfig = runConfig;
     myEnv = env;
     myProject = facet.getModule().getProject();
-    myFacet = facet;
-    myPackageName = packageName;
     myApkProvider = apkProvider;
-    myLaunchOptions = launchOptions;
-    myDebug = isDebug;
   }
 
   @NotNull
-  public List<LaunchTask> getLaunchTasks(@NotNull IDevice device) throws ExecutionException {
-    final List<LaunchTask> launchTasks = new ArrayList<>();
-
-    StringBuilder amStartOptions = new StringBuilder();
-    // launch the contributors before launching the application in case
-    // the contributors need to start listening on logcat for the application launch itself
-    for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-      String amOptions = taskContributor.getAmStartOptions(myPackageName, myRunConfig, device, myEnv.getExecutor());
-      amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
-    }
-
-    AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myPackageName, myFacet,
-                                                                       amStartOptions.toString(),
-                                                                       myDebug,
-                                                                       myApkProvider,
-                                                                       device);
-
-    if (appLaunchTask != null) {
-      // Apply (Code) Changes needs additional control over killing/restarting the app.
-      launchTasks.add(new KillAndRestartAppLaunchTask(myPackageName));
-      if (shouldDebugSandboxSdk(device)) {
-        launchTasks.add(new SandboxSdkLaunchTask(myPackageName));
-      }
-      launchTasks.add(appLaunchTask);
-    }
-
-    return launchTasks;
-  }
-
-  @NotNull
-  public LaunchTask getDeployTask(@NotNull final IDevice device) throws ExecutionException {
+  public AbstractDeployTask getDeployTask(@NotNull final IDevice device) throws ExecutionException {
     DeployType deployType = getDeployType();
-
-    List<String> disabledFeatures = myRunConfig.getDisabledDynamicFeatures();
+    AndroidRunConfiguration config = (AndroidRunConfiguration)myEnv.getRunProfile();
+    List<String> disabledFeatures = config.getDisabledDynamicFeatures();
     // Add packages to the deployment, filtering out any dynamic features that are disabled.
     Collection<ApkInfo> apks = null;
     try {
@@ -122,20 +70,20 @@ public class AndroidLaunchTasksProvider {
           myProject,
           packages,
           isApplyChangesFallbackToRun(),
-          myRunConfig.ALWAYS_INSTALL_WITH_PM);
+          config.ALWAYS_INSTALL_WITH_PM);
       case APPLY_CODE_CHANGES:
         return new ApplyCodeChangesTask(
           myProject,
           packages,
           isApplyCodeChangesFallbackToRun(),
-          myRunConfig.ALWAYS_INSTALL_WITH_PM);
+          config.ALWAYS_INSTALL_WITH_PM);
       case DEPLOY:
         return new DeployTask(
           myProject,
           packages,
-          myRunConfig.PM_INSTALL_OPTIONS,
-          myRunConfig.ALL_USERS,
-          myRunConfig.ALWAYS_INSTALL_WITH_PM);
+          config.PM_INSTALL_OPTIONS,
+          config.ALL_USERS,
+          config.ALWAYS_INSTALL_WITH_PM);
       default:
         throw new IllegalStateException("Unhandled Deploy Type");
     }
@@ -157,38 +105,6 @@ public class AndroidLaunchTasksProvider {
   private boolean shouldApplyCodeChanges() {
     SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
     return swapInfo != null && swapInfo.getType() == SwapInfo.SwapType.APPLY_CODE_CHANGES;
-  }
-
-  private boolean shouldDebugSandboxSdk(IDevice device) {
-    return hasDebugSandboxSdkEnabled() &&
-           device.getVersion().isGreaterOrEqualThan(TIRAMISU) &&
-           myDebug &&
-           hasPrivacySandboxSdk(device);
-  }
-
-  private boolean hasDebugSandboxSdkEnabled() {
-    AndroidDebuggerState state = myRunConfig.getAndroidDebuggerContext().getAndroidDebuggerState();
-    if (state != null) {
-      return LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG.get() && state.DEBUG_SANDBOX_SDK;
-    }
-
-    return false;
-  }
-
-  private boolean hasPrivacySandboxSdk(IDevice device) {
-    try {
-      Collection<ApkInfo> apkList = myApkProvider.getApks(device);
-      for (ApkInfo apk : apkList) {
-        if (apk.isSandboxApk()) {
-          return true;
-        }
-      }
-
-      return false;
-    }
-    catch (ApkProvisionException e) {
-      return false;
-    }
   }
 
   private DeployType getDeployType() {
