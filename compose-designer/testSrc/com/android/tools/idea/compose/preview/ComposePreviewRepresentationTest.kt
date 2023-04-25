@@ -168,10 +168,7 @@ class ComposePreviewRepresentationTest {
         preview.onActivate()
 
         modelRenderedLatch.await()
-
-        while (preview.status().isRefreshing || DumbService.getInstance(project).isDumb) kotlinx
-          .coroutines
-          .delay(250)
+        delayWhileRefreshingOrDumb(preview)
       }
 
       mainSurface.models.forEach { assertTrue(navigationHandler.defaultNavigationMap.contains(it)) }
@@ -254,9 +251,7 @@ class ComposePreviewRepresentationTest {
 
         modelRenderedLatch.await()
 
-        while (preview.status().isRefreshing || DumbService.getInstance(project).isDumb) kotlinx
-          .coroutines
-          .delay(250)
+        delayWhileRefreshingOrDumb(preview)
       }
       assertInstanceOf<ComposePreviewRepresentation.DefaultPreviewElementProvider>(
         preview.previewElementProvider.previewProvider
@@ -267,7 +262,8 @@ class ComposePreviewRepresentationTest {
       val uiCheckElement = previewElements.first()
 
       preview.startUiCheckPreview(uiCheckElement)
-      while (!preview.isUiCheckPreview) kotlinx.coroutines.delay(250)
+      delayUntilCondition(250) { preview.isUiCheckPreview }
+
       assertInstanceOf<ComposePreviewRepresentation.UiCheckPreviewElementProvider>(
         preview.previewElementProvider.previewProvider
       )
@@ -285,7 +281,7 @@ class ComposePreviewRepresentationTest {
       assertThat(devices.sorted(), `is`(referenceDeviceIds.keys.sorted()))
 
       preview.stopUiCheckPreview()
-      while (preview.isUiCheckPreview) kotlinx.coroutines.delay(250)
+      delayUntilCondition(250) { !preview.isUiCheckPreview }
       assertInstanceOf<ComposePreviewRepresentation.DefaultPreviewElementProvider>(
         preview.previewElementProvider.previewProvider
       )
@@ -297,6 +293,12 @@ class ComposePreviewRepresentationTest {
         }
 
       preview.onDeactivate()
+    }
+  }
+
+  private suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {
+    delayUntilCondition(250) {
+      !(preview.status().isRefreshing || DumbService.getInstance(project).isDumb)
     }
   }
 }

@@ -23,14 +23,20 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
@@ -104,6 +110,30 @@ internal fun getRepresentationForFile(
 
   runBlocking { multiRepresentationPreview.onInit() }
   return multiRepresentationPreview.currentRepresentation!!
+}
+
+/**
+ * Helper function that will loop until a [condition] is met or a [timeout] is exceeded. In each
+ * iteration, the function will delay for a given time and then a given callback will be executed.
+ */
+internal suspend fun delayUntilCondition(
+  delayPerIterationMs: Long,
+  timeout: Duration = 30.seconds,
+  condition: () -> Boolean
+) {
+  withTimeout(timeout) {
+    while (!condition()) {
+      delay(delayPerIterationMs)
+    }
+  }
+}
+
+/** Suspendable version of [DumbService.waitForSmartMode]. */
+internal suspend fun waitForSmartMode(project: Project, logger: Logger? = null) {
+  val dumbService = DumbService.getInstance(project)
+  logger?.let { if (dumbService.isDumb) it.info("waitForSmartMode: Waiting") }
+  delayUntilCondition(500) { !dumbService.isDumb }
+  logger?.info("waitForSmartMode: ${dumbService.isDumb}")
 }
 
 internal data class DebugStatus(

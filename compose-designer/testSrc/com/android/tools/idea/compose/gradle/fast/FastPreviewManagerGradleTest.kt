@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.delayUntilCondition
 import com.android.tools.idea.compose.preview.fast.OutOfProcessCompilerDaemonClientImpl
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
@@ -60,7 +61,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
@@ -308,9 +308,9 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
     // Wait for both threads to run the iterations.
     runBlocking {
-      while (deviceCompilations.get() < iterations || previewCompilations.get() < iterations) delay(
-        200
-      )
+      delayUntilCondition(200) {
+        deviceCompilations.get() >= iterations && previewCompilations.get() >= iterations
+      }
       compile = false
     }
 

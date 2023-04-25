@@ -21,12 +21,12 @@ import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
@@ -36,7 +36,6 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
@@ -98,12 +97,6 @@ class AccessibilityModelUpdaterTest {
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     previewRepresentation.atfChecksEnabled = true
     return previewRepresentation
-  }
-
-  /** Suspendable version of [DumbService.waitForSmartMode]. */
-  private suspend fun waitForSmartMode(project: Project) {
-    val dumbService = DumbService.getInstance(project)
-    while (dumbService.isDumb) delay(500)
   }
 
   @Test

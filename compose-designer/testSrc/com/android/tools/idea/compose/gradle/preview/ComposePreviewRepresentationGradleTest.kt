@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
@@ -49,7 +50,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
@@ -134,7 +134,7 @@ class ComposePreviewRepresentationGradleTest {
       fakeUi.root.validate()
     }
 
-    waitForSmartMode(project)
+    waitForSmartMode(project, logger)
 
     composePreviewRepresentation.activateAndWaitForRender(fakeUi)
     composePreviewRepresentation.waitForAnyPreviewToBeAvailable()
@@ -155,14 +155,6 @@ class ComposePreviewRepresentationGradleTest {
 
     withContext(uiThread) { validate() }
     logger.info("setUp completed")
-  }
-
-  /** Suspendable version of [DumbService.waitForSmartMode]. */
-  private suspend fun waitForSmartMode(project: Project) {
-    val dumbService = DumbService.getInstance(project)
-    if (dumbService.isDumb) logger.info("waitForSmartMode: Waiting")
-    while (dumbService.isDumb) delay(500)
-    logger.info("waitForSmartMode: ${dumbService.isDumb}")
   }
 
   /** Wait for any running refreshes to complete. */
@@ -209,7 +201,7 @@ class ComposePreviewRepresentationGradleTest {
     logger.info("runAndWaitForRefresh: Runnable executed")
     // Wait for the refresh to complete outside of the timeout to reduce the changes of indexing
     // interfering with the runnable execution.
-    waitForSmartMode(project)
+    waitForSmartMode(project, logger)
     withTimeout(timeout.toMillis()) {
       onRefreshCompletable.await()
       logger.info("runAndWaitForRefresh: Refresh completed")
@@ -244,13 +236,13 @@ class ComposePreviewRepresentationGradleTest {
     // Wait for the refresh to complete outside of the timeout to reduce the changes of indexing
     // interfering with the compilation or
     // runnable execution.
-    waitForSmartMode(project)
+    waitForSmartMode(project, logger)
     withTimeout(timeout.toMillis()) {
       logger.info("runAndWaitForFastRefresh: Waiting for any previous compilations to complete")
       while (FastPreviewManager.getInstance(project).isCompiling) delay(50)
     }
     val remainingMillis = timeout.toMillis() - (System.currentTimeMillis() - startMillis)
-    waitForSmartMode(project)
+    waitForSmartMode(project, logger)
     logger.info("runAndWaitForFastRefresh: Executing runnable")
     runnable()
     logger.info("runAndWaitForFastRefresh: Runnable executed")
