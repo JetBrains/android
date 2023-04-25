@@ -87,8 +87,9 @@ public class Emulator implements AutoCloseable {
       "-grpc", Integer.toString(grpcPort),
       "-no-snapshot",
       // Turn off the modem simulator to avoid b/258836512
+      // Turn off Vulkan since API 30 has a broken implementation (and we don't need it anyway) b/274524732
       "-feature",
-      "-ModemSimulator",
+      "-ModemSimulator,-Vulkan",
       "-delay-adb",
       "-no-boot-anim",
       "-verbose");
