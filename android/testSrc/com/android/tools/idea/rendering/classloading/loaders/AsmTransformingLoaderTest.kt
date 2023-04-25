@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.rendering.classloading.textifyClass
-import org.jetbrains.org.objectweb.asm.ClassVisitor
-import org.jetbrains.org.objectweb.asm.commons.ClassRemapper
-import org.jetbrains.org.objectweb.asm.commons.SimpleRemapper
+import com.android.tools.rendering.classloading.ClassTransform
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.commons.ClassRemapper
+import org.objectweb.asm.commons.SimpleRemapper
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.util.function.Function

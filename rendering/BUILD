@@ -14,6 +14,7 @@ iml_module(
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/.idea/libraries:asm-tools",
     ],
 )
 
@@ -55,6 +56,7 @@ kotlin_library(
         "//tools/base/sdk-common:tools.sdk-common",
         "//tools/base/sdklib:tools.sdklib",
         "@maven//:net.sf.kxml.kxml2",
+        "@maven//:org.ow2.asm.asm",
     ],
 )
 

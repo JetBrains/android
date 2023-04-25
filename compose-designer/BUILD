@@ -114,6 +114,7 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
+        "//tools/adt/idea/.idea/libraries:asm-tools[test]",
     ],
 )
 

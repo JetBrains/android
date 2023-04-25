@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import org.jetbrains.org.objectweb.asm.ClassReader
-import org.jetbrains.org.objectweb.asm.ClassWriter
-import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.util.TraceClassVisitor
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.PrintWriter

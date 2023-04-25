@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
+import com.android.tools.rendering.classloading.ClassTransform;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.lang.JavaVersion;
-import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.ClassReader;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
-import org.jetbrains.org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
 
 /**
  * Rewrites classes applying the following transformations:

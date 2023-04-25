@@ -15,8 +15,8 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.rendering.classloading.ClassTransform
 
 /**
  * Responsible for providing access to [ModuleClassLoader]s.

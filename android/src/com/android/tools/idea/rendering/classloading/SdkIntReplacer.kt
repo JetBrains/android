@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import org.jetbrains.org.objectweb.asm.ClassVisitor
-import org.jetbrains.org.objectweb.asm.MethodVisitor
-import org.jetbrains.org.objectweb.asm.Opcodes
+import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 class SdkIntReplacer(delegate: ClassVisitor) : StaticFieldReplacer(delegate, "android/os/Build\$VERSION", "SDK_INT",
                                                                    "com/android/layoutlib/bridge/impl/RenderAction",

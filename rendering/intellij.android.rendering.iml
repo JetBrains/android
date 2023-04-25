@@ -12,5 +12,6 @@
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="library" name="asm-tools" level="project" />
   </component>
 </module>

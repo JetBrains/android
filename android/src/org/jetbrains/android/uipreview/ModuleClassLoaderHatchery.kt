@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.ClassTransform
+import com.android.tools.rendering.classloading.ClassTransform
 import com.intellij.openapi.util.Disposer
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentLinkedQueue

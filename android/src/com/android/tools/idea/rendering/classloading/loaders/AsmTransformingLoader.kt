@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.rendering.classloading.ClassConverter
-import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
+import com.android.tools.rendering.classloading.ClassTransform
 import org.jetbrains.org.objectweb.asm.ClassWriter
 
 /**

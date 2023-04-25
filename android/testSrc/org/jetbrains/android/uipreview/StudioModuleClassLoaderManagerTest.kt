@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.rendering.classloading.toClassTransform
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

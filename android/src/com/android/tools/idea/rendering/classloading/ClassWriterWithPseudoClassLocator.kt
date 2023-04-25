@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.rendering.classloading
 
+import com.android.tools.rendering.classloading.fromBinaryNameToPackageName
 import com.google.common.base.MoreObjects
 import org.jetbrains.android.uipreview.PseudoClassLocatorForLoader
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.org.objectweb.asm.ClassReader
-import org.jetbrains.org.objectweb.asm.ClassWriter
-import org.jetbrains.org.objectweb.asm.Opcodes
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
 
 private const val JAVA_OBJECT_FQN = "java.lang.Object"
 

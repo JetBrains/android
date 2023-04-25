@@ -1,8 +1,9 @@
 package com.android.tools.idea.rendering.classloading
 
-import org.jetbrains.org.objectweb.asm.*
-import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
-import org.jetbrains.org.objectweb.asm.commons.Method
+import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
+import org.objectweb.asm.*
+import org.objectweb.asm.commons.GeneratorAdapter
+import org.objectweb.asm.commons.Method
 import kotlin.reflect.jvm.javaMethod
 
 object CooperativeInterruptTransformLoopBreaker {

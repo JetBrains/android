@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import org.jetbrains.org.objectweb.asm.ClassVisitor
-import org.jetbrains.org.objectweb.asm.MethodVisitor
-import org.jetbrains.org.objectweb.asm.Opcodes
+import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 private const val COMPOSE_PREVIEW_ANIMATION_MANAGER = "com/android/tools/idea/compose/preview/animation/ComposePreviewAnimationManagerKt"
 

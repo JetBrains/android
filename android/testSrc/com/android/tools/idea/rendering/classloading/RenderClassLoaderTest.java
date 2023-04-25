@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering.classloading;
 
 import static com.android.tools.idea.flags.StudioFlags.NELE_WARN_NEW_THREADS;
-import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
+import static com.android.tools.rendering.classloading.UtilKt.toClassTransform;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoad
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader;
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader;
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader;
+import com.android.tools.rendering.classloading.ClassTransform;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.Logger;

@@ -31,7 +31,7 @@ import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethod
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
-import com.android.tools.idea.rendering.classloading.toClassTransform
+import com.android.tools.rendering.classloading.toClassTransform
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl

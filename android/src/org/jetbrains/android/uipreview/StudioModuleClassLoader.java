@@ -2,14 +2,12 @@ package org.jetbrains.android.uipreview;
 
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.findMethodLike;
-import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform;
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
@@ -26,6 +24,8 @@ import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
 import com.android.tools.rendering.ModuleRenderContext;
+import com.android.tools.rendering.classloading.ClassTransform;
+import com.android.tools.rendering.classloading.UtilKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
@@ -120,7 +120,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
    * the onDraw, onMeasure and onLayout methods are replaced with methods that capture any exceptions thrown.
    * This way we avoid custom views breaking the rendering.
    */
-  static final ClassTransform PROJECT_DEFAULT_TRANSFORMS = toClassTransform(
+  static final ClassTransform PROJECT_DEFAULT_TRANSFORMS = UtilKt.toClassTransform(
     ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
     ThreadLocalTrackingTransform::new,
@@ -135,7 +135,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
 
-  static final ClassTransform NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = toClassTransform(
+  static final ClassTransform NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS = UtilKt.toClassTransform(
     ViewMethodWrapperTransform::new,
     visitor -> new VersionClassTransform(visitor, getCurrentClassVersion(), 0),
     ThreadLocalTrackingTransform::new,

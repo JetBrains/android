@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import org.jetbrains.org.objectweb.asm.ClassVisitor
-import org.jetbrains.org.objectweb.asm.Opcodes
+import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.Opcodes
 
 /**
  * [ClassVisitor] that ensures that every class version number is between [minVersion] and [maxVersion].

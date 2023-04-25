@@ -23,26 +23,28 @@ import static com.android.tools.idea.rendering.classloading.ClassConverter.getMi
 import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.jdkToClassVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.rewriteClass;
-import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PROTECTED;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ALOAD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ASM9;
-import static org.jetbrains.org.objectweb.asm.Opcodes.GETFIELD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_0;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_1;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_2;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ILOAD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.jetbrains.org.objectweb.asm.Opcodes.IRETURN;
-import static org.jetbrains.org.objectweb.asm.Opcodes.PUTFIELD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.RETURN;
-import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
-import static org.jetbrains.org.objectweb.asm.Opcodes.V1_7;
+import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ASM9;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.ICONST_0;
+import static org.objectweb.asm.Opcodes.ICONST_1;
+import static org.objectweb.asm.Opcodes.ICONST_2;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.V1_6;
+import static org.objectweb.asm.Opcodes.V1_7;
 
+import com.android.tools.rendering.classloading.ClassTransform;
+import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider;
+import com.android.tools.rendering.classloading.UtilKt;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.HashSet;
@@ -52,12 +54,12 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.org.objectweb.asm.ClassReader;
-import org.jetbrains.org.objectweb.asm.ClassVisitor;
-import org.jetbrains.org.objectweb.asm.ClassWriter;
-import org.jetbrains.org.objectweb.asm.FieldVisitor;
-import org.jetbrains.org.objectweb.asm.MethodVisitor;
-import org.jetbrains.org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.tree.ClassNode;
 
 public class ClassConverterTest extends TestCase {
   public void testClassVersionToJdk() {
@@ -137,7 +139,7 @@ public class ClassConverterTest extends TestCase {
     assertEquals(42, result);
     Class<?> oldClz = clz;
 
-    data = rewriteClass(data, toClassTransform(visitor -> new VersionClassTransform(visitor, 48, Integer.MIN_VALUE)),
+    data = rewriteClass(data, UtilKt.toClassTransform(visitor -> new VersionClassTransform(visitor, 48, Integer.MIN_VALUE)),
                         new TestClassLocator(classMap));
     assertEquals(48, getMajorVersion(data));
     classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
@@ -147,7 +149,7 @@ public class ClassConverterTest extends TestCase {
     result = clz.getMethod("test").invoke(null);
     assertEquals(42, result);
 
-    data = rewriteClass(data, toClassTransform(visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)),
+    data = rewriteClass(data, UtilKt.toClassTransform(visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)),
                         new TestClassLocator(classMap)); // latest known
     assertEquals(52, getMajorVersion(data));
     classLoader = new TestClassLoader(ImmutableMap.of("Test", data));
@@ -245,7 +247,7 @@ public class ClassConverterTest extends TestCase {
     byte[] data = ClassConverterTest.dumpTestViewClass();
 
     assertTrue(isValidClassFile(data));
-    byte[] modified = rewriteClass(data, toClassTransform(ViewMethodWrapperTransform::new), NopClassLocator.INSTANCE);
+    byte[] modified = rewriteClass(data, UtilKt.toClassTransform(ViewMethodWrapperTransform::new), NopClassLocator.INSTANCE);
     assertTrue(isValidClassFile(data));
 
     // Parse both classes and compare
@@ -300,8 +302,8 @@ public class ClassConverterTest extends TestCase {
 
 
     // Modify the classes and repeat.
-    final byte[] modifiedFirstData = rewriteClass(firstData, toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), locator);
-    final byte[] modifiedSecondData = rewriteClass(secondData, toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), locator);
+    final byte[] modifiedFirstData = rewriteClass(firstData, UtilKt.toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), locator);
+    final byte[] modifiedSecondData = rewriteClass(secondData, UtilKt.toClassTransform(visitor -> new VersionClassTransform(visitor, 50, 0)), locator);
     loader = new ClassLoader() {
       @Override
       protected Class<?> findClass(String name) throws ClassNotFoundException {
@@ -332,7 +334,7 @@ public class ClassConverterTest extends TestCase {
 
     {
       Set<String> called = new HashSet<>();
-      rewriteClass(data, toClassTransform(
+      rewriteClass(data, UtilKt.toClassTransform(
         visitor -> new TestVisitor(visitor, name -> called.add("Visitor1")),
         visitor -> new TestVisitor(visitor, name -> called.add("Visitor2"))
       ), NopClassLocator.INSTANCE);
@@ -342,14 +344,14 @@ public class ClassConverterTest extends TestCase {
     {
       Set<String> called = new HashSet<>();
       rewriteClass(data,
-                   toClassTransform(visitor -> new TestVisitor(visitor, name -> called.add("Visitor1"))),
+                   UtilKt.toClassTransform(visitor -> new TestVisitor(visitor, name -> called.add("Visitor1"))),
                    NopClassLocator.INSTANCE);
       assertThat(called).containsExactly("Visitor1");
     }
 
     {
       // Check that this does not cause any problems
-      rewriteClass(data, toClassTransform(), NopClassLocator.INSTANCE);
+      rewriteClass(data, UtilKt.toClassTransform(), NopClassLocator.INSTANCE);
     }
   }
 
@@ -358,7 +360,7 @@ public class ClassConverterTest extends TestCase {
    */
   public void testClassVisitorsGroup() {
     {
-      ClassTransform visitorGroup = toClassTransform(
+      ClassTransform visitorGroup = UtilKt.toClassTransform(
         visitor -> new TestVisitor(visitor, name -> {}),
         visitor -> new TestVisitorWithId(visitor, "AnId")
       );
@@ -370,7 +372,7 @@ public class ClassConverterTest extends TestCase {
     }
 
     {
-      ClassTransform visitorGroup = toClassTransform(
+      ClassTransform visitorGroup = UtilKt.toClassTransform(
         visitor -> new TestVisitorWithId(visitor, "Id1"),
         // Identity should not be printed to the output
         Function.identity(),
@@ -384,7 +386,7 @@ public class ClassConverterTest extends TestCase {
     // Check the same as above without using identity. In this case, because the instance is not the same,
     // it should be returned as part of the id.
     {
-      ClassTransform visitorGroup = toClassTransform(
+      ClassTransform visitorGroup = UtilKt.toClassTransform(
         visitor -> new TestVisitorWithId(visitor, "Id1"),
         visitor -> new TestVisitorWithId(visitor, "Id1")
       );
