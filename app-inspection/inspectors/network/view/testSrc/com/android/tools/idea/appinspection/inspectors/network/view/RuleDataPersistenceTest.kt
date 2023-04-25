@@ -22,9 +22,11 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.RulesTableView
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.components.service
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -38,6 +40,8 @@ class RuleDataPersistenceTest {
 
   @get:Rule val projectRule = ProjectRule()
   private lateinit var scope: CoroutineScope
+  private val persistedRulesSize: Int
+    get() = projectRule.project.service<RulesPersistentStateComponent>().state.rulesList.size
 
   @After
   fun tearDown() {
@@ -58,8 +62,7 @@ class RuleDataPersistenceTest {
 
     // Assert
     assertThat(items.size).isEqualTo(2)
-/* b/278944256
-    assertThat(rulesTableView.persistentStateComponent.myRuleDataState.rulesList.size).isEqualTo(2)
+    assertThat(persistedRulesSize).isEqualTo(2)
     assertThat(items.first().id).isEqualTo(100)
     assertThat(items.last().id).isEqualTo(200)
 
@@ -69,7 +72,7 @@ class RuleDataPersistenceTest {
 
     // Assert
     assertThat(items.size).isEqualTo(2)
-    assertThat(rulesTableView.persistentStateComponent.myRuleDataState.rulesList.size).isEqualTo(2)
+    assertThat(persistedRulesSize).isEqualTo(2)
 
     assertRuleValues(items[0], firstRule)
     assertRuleValues(items[1], secondRule)
@@ -79,7 +82,7 @@ class RuleDataPersistenceTest {
 
     // Assert
     assertThat(rulesTableView.tableModel.items.size).isEqualTo(3)
-    assertThat(rulesTableView.persistentStateComponent.myRuleDataState.rulesList.size).isEqualTo(3)
+    assertThat(persistedRulesSize).isEqualTo(3)
 
     // A new RulesTableView is created when the app restarts. Simulate the same here.
     rulesTableView = createNewRulesTableView()
@@ -87,7 +90,7 @@ class RuleDataPersistenceTest {
 
     // Assert
     assertThat(rulesTableView.tableModel.items.size).isEqualTo(3)
-    assertThat(rulesTableView.persistentStateComponent.myRuleDataState.rulesList.size).isEqualTo(3)
+    assertThat(persistedRulesSize).isEqualTo(3)
 
     assertRuleValues(items[0], firstRule)
     assertRuleValues(items[1], secondRule)
@@ -98,7 +101,7 @@ class RuleDataPersistenceTest {
 
     // Assert
     assertThat(rulesTableView.tableModel.items.size).isEqualTo(2)
-    assertThat(rulesTableView.persistentStateComponent.myRuleDataState.rulesList.size).isEqualTo(2)
+    assertThat(persistedRulesSize).isEqualTo(2)
     assertRuleValues(items[0], secondRule)
 
     // A new RulesTableView is created when the app restarts. Simulate the same here.
@@ -107,7 +110,7 @@ class RuleDataPersistenceTest {
 
     // Assert
     assertThat(rulesTableView.tableModel.items.size).isEqualTo(2)
-    assertThat(rulesTableView.persistentStateComponent.myRuleDataState.rulesList.size).isEqualTo(2)
+    assertThat(persistedRulesSize).isEqualTo(2)
     assertRuleValues(items[0], secondRule)
     assertRuleValues(items[1], thirdRule)
 
@@ -120,7 +123,6 @@ class RuleDataPersistenceTest {
 
     // Assert name has changed
     assertThat(items[0].name).isEqualTo("Changed Name")
-b/278944256 */
   }
 
   @Test
@@ -165,13 +167,11 @@ b/278944256 */
     items = rulesTableView.tableModel.items
 
     // Assert that offline changes were persisted
-/* b/278944256
     assertThat(items.size).isEqualTo(1)
     assertThat(items[0].id).isEqualTo(1)
     assertThat(items[0].name).isEqualTo("Changed Name")
     assertThat(items[0].criteria.port).isEqualTo("123")
     assertThat(items[0].isActive).isEqualTo(false)
-b/278944256 */
   }
 
   private fun createNewRulesTableView(): RulesTableView {
