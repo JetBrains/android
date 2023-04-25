@@ -61,6 +61,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioDebugMode =  studioProjectSyncDebugModeEnabled(),
     studioFlagSkipRuntimeClasspathForLibraries = StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get(),
     studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
+    studioFlagUseNewDependencyGraphModel = StudioFlags.USE_NEW_DEPENDENCY_GRAPH_MODEL.get(),
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(

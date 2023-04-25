@@ -57,8 +57,9 @@ sealed class AndroidProjectResult {
     override val defaultVariantName: String?,
     val androidVariantResolver: AndroidVariantResolver,
     val skipRuntimeClasspathForLibraries: Boolean,
+    val useNewDependencyGraphModel: Boolean,
   ) : AndroidProjectResult() {
-    override fun createVariantFetcher(): IdeVariantFetcher = v2VariantFetcher(modelCache, v2Variants, skipRuntimeClasspathForLibraries)
+    override fun createVariantFetcher(): IdeVariantFetcher = v2VariantFetcher(modelCache, v2Variants, skipRuntimeClasspathForLibraries, useNewDependencyGraphModel)
   }
 
   companion object {
@@ -106,6 +107,7 @@ sealed class AndroidProjectResult {
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
       skipRuntimeClasspathForLibraries: Boolean,
+      useNewDependencyGraphModel: Boolean,
     ): ModelResult<V2Project> {
       val buildName: String = basicAndroidProject.buildName
       val agpVersion: String = modelVersions.agp
@@ -157,6 +159,7 @@ sealed class AndroidProjectResult {
           defaultVariantName = defaultVariantName,
           androidVariantResolver = androidVariantResolver,
           skipRuntimeClasspathForLibraries = skipRuntimeClasspathForLibraries,
+          useNewDependencyGraphModel = useNewDependencyGraphModel
         )
       }
     }
@@ -203,7 +206,8 @@ private fun v1VariantFetcher(modelCache: ModelCache.V1, legacyAndroidGradlePlugi
 private fun v2VariantFetcher(
   modelCache: ModelCache.V2,
   v2Variants: List<IdeVariantCoreImpl>,
-  skipRuntimeClasspathForLibraries: Boolean
+  skipRuntimeClasspathForLibraries: Boolean,
+  useNewDependencyGraphModel: Boolean
 ): IdeVariantFetcher {
   return fun(
     controller: BuildController,
@@ -220,7 +224,8 @@ private fun v2VariantFetcher(
       module.gradleProject,
       configuration.variant,
       module.projectType,
-      skipRuntimeClasspathForLibraries
+      skipRuntimeClasspathForLibraries,
+      useNewDependencyGraphModel
     ) ?: return ModelResult.create { null }
     return modelCache.variantFrom(
       BuildId(module.gradleProject.projectIdentifier.buildIdentifier.rootDir),

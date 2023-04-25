@@ -28,6 +28,7 @@ import com.android.builder.model.v2.ide.ApiVersion
 import com.android.builder.model.v2.ide.ArtifactDependencies
 import com.android.builder.model.v2.ide.BasicArtifact
 import com.android.builder.model.v2.ide.BasicVariant
+import com.android.builder.model.v2.ide.Edge
 import com.android.builder.model.v2.ide.GraphItem
 import com.android.builder.model.v2.ide.JavaArtifact
 import com.android.builder.model.v2.ide.JavaCompileOptions
@@ -47,7 +48,6 @@ import com.android.builder.model.v2.ide.ViewBindingOptions
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
-import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
@@ -519,7 +519,7 @@ internal fun modelCacheV2Impl(
 
   fun createFromDependencies(
     classpathId: ClasspathIdentifier,
-    dependencies: List<GraphItem>?,
+    dependencies: DependencyGraphCompat?,
     libraries: Map<String, Library>,
     bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
@@ -729,6 +729,22 @@ internal fun modelCacheV2Impl(
       return result
     }
 
+    fun List<Edge>.toFlatLibraryList(): List<LibraryWithDependencies> {
+      val result = LinkedHashMap<String, MutableList<String>>()
+      forEach {
+        result.computeIfAbsent(it.from) { mutableListOf() }.apply {
+          // Self-dependencies are used to denote just the existence of a node.
+          if (it.from != it.to) {
+            add(it.to)
+          }
+        }
+      }
+
+      return result.map {
+        LibraryWithDependencies(libraries[it.key]!!, it.value)
+      }
+    }
+
     fun populateAndroidLibraries(
       androidLibraries: Collection<LibraryWithDependencies>,
       seenDependencies: MutableMap<String, List<String>>
@@ -798,7 +814,11 @@ internal fun modelCacheV2Impl(
 
     fun createIdeDependenciesInstance(): IdeDependenciesCoreImpl {
       val seenDependencies = mutableMapOf<String, List<String>>()
-      val dependencyList = dependencies?.toFlatLibraryList()
+      val dependencyList = when (dependencies) {
+        is DependencyGraphCompat.AdjacencyList -> dependencies.edges.toFlatLibraryList()
+        is DependencyGraphCompat.GraphItemList -> dependencies.graphItems.toFlatLibraryList()
+        null -> null
+      }
       val typedLibraries = getTypedLibraries(dependencyList)
 
       populateAndroidLibraries(typedLibraries.androidLibraries, seenDependencies)
@@ -829,7 +849,7 @@ internal fun modelCacheV2Impl(
    */
   fun dependenciesFrom(
     classpathId: ClasspathIdentifier,
-    dependencies: List<GraphItem>?,
+    dependencies: DependencyGraphCompat?,
     libraries: Map<String, Library>,
     bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
@@ -958,7 +978,7 @@ internal fun modelCacheV2Impl(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
     artifact: IdeAndroidArtifactCoreImpl,
-    artifactDependencies: ArtifactDependencies,
+    artifactDependencies: ArtifactDependenciesCompat,
     libraries: Map<String, Library>,
     bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
@@ -1030,7 +1050,7 @@ internal fun modelCacheV2Impl(
     buildId: BuildId,
     projectPath: String,
     artifact: IdeJavaArtifactCoreImpl,
-    variantDependencies: ArtifactDependencies,
+    variantDependencies: ArtifactDependenciesCompat,
     libraries: Map<String, Library>,
     bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
@@ -1170,7 +1190,7 @@ internal fun modelCacheV2Impl(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
     variant: IdeVariantCoreImpl,
-    variantDependencies: VariantDependencies,
+    variantDependencies: VariantDependenciesCompat,
     bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>
@@ -1515,7 +1535,7 @@ internal fun modelCacheV2Impl(
       ownerBuildId: BuildId,
       ownerProjectPath: String,
       variant: IdeVariantCoreImpl,
-      variantDependencies: VariantDependencies,
+      variantDependencies: VariantDependenciesCompat,
       bootClasspath: Collection<String>,
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildNameMap: Map<String, BuildId>

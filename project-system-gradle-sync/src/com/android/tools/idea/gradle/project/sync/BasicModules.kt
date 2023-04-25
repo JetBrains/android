@@ -216,6 +216,8 @@ internal class BasicV2AndroidModuleGradleProject(
             legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
             gradlePropertiesModel = gradlePropertiesModel,
             skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries,
+            useNewDependencyGraphModel = syncActionOptions.flags.studioFlagUseNewDependencyGraphModel
+                                         && agpVersion.isAtLeast(8,2,0, "alpha", 4, false)
           )
 
         return androidProjectResult.mapCatching { androidProjectResult ->

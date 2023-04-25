@@ -811,6 +811,15 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> USE_NEW_DEPENDENCY_GRAPH_MODEL = Flag.create(
+    GRADLE_IDE,
+    "use.new.dependency.graph.model",
+    "Switches to a new dependency graph model that reduces memory use",
+    "Switches to a new dependency graph model that reduces memory use. This Flag is introduced as a killswitch in case there" +
+    "unexpected issues with the new model.",
+    true
+  );
+
   //endregion
 
   //region Database Inspector
