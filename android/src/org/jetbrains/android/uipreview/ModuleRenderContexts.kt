@@ -16,6 +16,7 @@
 @file:JvmName("ModuleRenderContexts")
 package org.jetbrains.android.uipreview
 
+import com.android.tools.rendering.ModuleRenderContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager

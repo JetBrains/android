@@ -16,9 +16,9 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.preview.StaticPreviewProvider
+import com.android.tools.rendering.ModuleRenderContext
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.`is`
-import org.jetbrains.android.uipreview.ModuleRenderContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
 import org.junit.Test

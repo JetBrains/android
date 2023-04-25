@@ -23,6 +23,7 @@ import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.combine
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.rendering.ModuleRenderContext
 import com.android.utils.reflection.qualifiedName
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing

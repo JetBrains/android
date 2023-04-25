@@ -25,6 +25,7 @@ import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
+import com.android.tools.rendering.ModuleRenderContext;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;

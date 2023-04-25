@@ -39,6 +39,7 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.android.tools.idea.testing.ModuleModelBuilder;
+import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;

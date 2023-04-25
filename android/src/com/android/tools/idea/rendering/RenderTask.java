@@ -52,6 +52,7 @@ import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.CachingImageFactory;
+import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderContext;
@@ -101,7 +102,6 @@ import java.util.function.Function;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
-import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

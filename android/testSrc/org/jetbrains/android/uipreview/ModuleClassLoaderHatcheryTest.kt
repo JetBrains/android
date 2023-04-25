@@ -18,6 +18,7 @@ package org.jetbrains.android.uipreview
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.rendering.ModuleRenderContext
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -35,7 +36,7 @@ class ModuleClassLoaderHatcheryTest {
     val hatchery = ModuleClassLoaderHatchery(1, 2)
 
     val donor = StudioModuleClassLoaderManager.get().getPrivate(
-        null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest)
+      null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest)
 
     var requests = 0
 

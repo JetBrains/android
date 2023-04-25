@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview
+package com.android.tools.rendering
 
 import com.android.tools.rendering.api.IdeaModuleProvider
 import com.intellij.openapi.module.Module
