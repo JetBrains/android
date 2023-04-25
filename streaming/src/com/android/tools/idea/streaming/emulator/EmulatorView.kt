@@ -474,8 +474,6 @@ class EmulatorView(
       skin.drawFrameAndMask(g, displayRect)
     }
 
-    paintDecorations(g, displayRect)
-
     if (!screenshot.painted) {
       screenshot.painted = true
       val paintTime = System.currentTimeMillis()

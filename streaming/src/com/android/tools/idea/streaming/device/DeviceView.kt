@@ -372,8 +372,6 @@ internal class DeviceView(
         // Render multi-touch visual feedback.
         drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
       }
-
-      paintDecorations(g, displayRect)
     }
   }
 
