@@ -26,6 +26,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
@@ -70,9 +71,30 @@ public class StageNavigationToolbarTest {
 
   private StageNavigationToolbar myStageNavigationToolbar;
 
+
   @Before
   public void setUp() {
     myProfilerServices.enableEnergyProfiler(true);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
+    myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
+    myStageNavigationToolbar = new StageNavigationToolbar(myProfilers);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    if (myIsTestingProfileable) {
+      // We set up and profile a process, we assume that process has an agent attached by default.
+      updateAgentStatus(FAKE_PROCESS.getPid());
+    }
+  }
+
+  /**
+   * This method is the same as the setUp method ran before every test, except that it disables/hides
+   * the Power Profiler. The FakeIdeProfilerService's default value for the Power Profiler flag enables it,
+   * and thus we can trivially test the exclusion of the Energy Profiler option (when Power Profiler is
+   * enabled, Energy Profiler is disabled, and vice-versa). But to test if disabling the Power Profiler brings
+   * the Energy Profiler option back, we must repeat these set up steps with the Power Profiler disabled.
+   */
+  private void setUpWithPowerProfilerDisabled() {
+    myProfilerServices.enableEnergyProfiler(true);
+    myProfilerServices.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.HIDE);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myStageNavigationToolbar = new StageNavigationToolbar(myProfilers);
@@ -132,6 +154,10 @@ public class StageNavigationToolbarTest {
   @Test
   public void menuShowsSupportedStagesForDebuggable() {
     assumeFalse(myIsTestingProfileable);
+    // The Power Profiler is enabled by the FakeIdeProfilerServices by default, and thus the Energy Profiler should not be present.
+    menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class);
+    // When the Power Profiler is disabled, the Energy Profiler should be present.
+    setUpWithPowerProfilerDisabled();
     menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class, EnergyProfilerStage.class);
   }
 

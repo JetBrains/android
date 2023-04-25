@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.manager.StreamQueryUtils;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
@@ -920,7 +921,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     boolean hasSession = mySelectedSession.getSessionId() != 0;
     boolean isEnergyStageEnabled = hasSession ? mySessionsManager.getSelectedSessionMetaData().getJvmtiEnabled()
                                               : myDevice != null && myDevice.getFeatureLevel() >= AndroidVersion.VersionCodes.O;
-    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled) {
+    boolean isPowerProfilerDisabled =
+      getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() == PowerProfilerDisplayMode.HIDE;
+
+    if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled && isPowerProfilerDisabled) {
       listBuilder.add(EnergyProfilerStage.class);
     }
 
