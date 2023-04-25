@@ -29,6 +29,7 @@ import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryApplicationDebuggableFromManifestIndex
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
+import com.android.tools.idea.projectsystem.AndroidModulePathsImpl
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -42,12 +43,14 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviderManager
+import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
@@ -207,9 +210,22 @@ class DefaultModuleSystem(override val module: Module) :
     return ImmutableList.copyOf(libraries)
   }
 
-  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-    return emptyList()
-  }
+  override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
+    listOf(
+      NamedModuleTemplate(
+        "main",
+        AndroidModulePathsImpl(
+          ModuleRootManager.getInstance(module).sourceRoots.first().parent.toIoFile(),
+          null,
+          ModuleRootManager.getInstance(module).sourceRoots.first().toIoFile(),
+          null,
+          null,
+          null,
+          emptyList(),
+          emptyList()
+        )
+      )
+    )
 
   override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
     return CapabilityNotSupported()

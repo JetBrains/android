@@ -28,6 +28,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.toIoFile
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -36,6 +37,7 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -178,9 +180,38 @@ class TestProjectSystem @JvmOverloads constructor(
       override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? =
         dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
 
-      override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {
-        return emptyList()
-      }
+      override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
+        listOfNotNull(
+          NamedModuleTemplate(
+            "main",
+            AndroidModulePathsImpl(
+              ModuleRootManager.getInstance(module).sourceRoots.first().parent.toIoFile(),
+              null,
+              ModuleRootManager.getInstance(module).sourceRoots.first().toIoFile(),
+              null,
+              null,
+              null,
+              emptyList(),
+              emptyList()
+            )
+          ),
+          // Fake an androidTest sourceSet
+          module.getAndroidTestModule()?.let { testModule ->
+            NamedModuleTemplate(
+              "androidTest",
+              AndroidModulePathsImpl(
+                ModuleRootManager.getInstance(module).sourceRoots.first().parent.toIoFile(),
+                null,
+                null,
+                null,
+                ModuleRootManager.getInstance(testModule).sourceRoots.first().parent.toIoFile(),
+                null,
+                emptyList(),
+                emptyList()
+              )
+            )
+          }
+        )
 
       override fun canGeneratePngFromVectorGraphics(): CapabilityStatus {
         return CapabilityNotSupported()
