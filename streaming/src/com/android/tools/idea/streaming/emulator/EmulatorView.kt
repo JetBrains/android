@@ -437,8 +437,8 @@ class EmulatorView(
     emulatorOutOfDateNotificationShown = true
   }
 
-  override fun paintComponent(g: Graphics) {
-    super.paintComponent(g)
+  override fun paintComponent(originalGraphics: Graphics) {
+    super.paintComponent(originalGraphics)
 
     val screenshot = lastScreenshot ?: return
     val skin = screenshot.skinLayout
@@ -447,7 +447,7 @@ class EmulatorView(
     val displayRect = computeDisplayRectangle(skin)
     displayRectangle = displayRect
 
-    g as Graphics2D
+    val g = originalGraphics.create() as Graphics2D
     val physicalToVirtualScale = 1.0 / screenScale
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
