@@ -22,14 +22,15 @@ import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.CRASHLYTICS_KEY
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
+import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analysis.Cause
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.ListWithFilter
-import com.jetbrains.rd.util.first
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
@@ -43,7 +44,7 @@ private val FRAME1 = ISSUE1.sampleEvent.stacktraceGroup.exceptions.first().stack
 private val FRAME2 = ISSUE2.sampleEvent.stacktraceGroup.exceptions.first().stacktrace.frames.first()
 
 @RunWith(value = Parameterized::class)
-class AppInsightsGutterIconActionTest(private val insights: Map<String, List<AppInsight>>) {
+class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
   private val projectRule = ProjectRule()
   private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
   private val popupRule = JBPopupRule()
@@ -54,8 +55,10 @@ class AppInsightsGutterIconActionTest(private val insights: Map<String, List<App
   @Test
   fun `gutter popup shows correct information`() =
     runBlocking(AndroidDispatchers.uiThread) {
+      val sortedGroupedInsights = insights.groupBy { it.provider }.toSortedMap()
+
       val displayPanel = JPanel()
-      val gutterIconAction = AppInsightsGutterIconAction(insights) { _, _ -> }
+      val gutterIconAction = AppInsightsGutterIconAction(insights) {}
       val mouseEvent = MouseEvent(displayPanel, MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
       val actionEvent = createTestActionEvent(gutterIconAction, mouseEvent)
       gutterIconAction.actionPerformed(actionEvent)
@@ -66,19 +69,19 @@ class AppInsightsGutterIconActionTest(private val insights: Map<String, List<App
       with(list.model) {
         Truth.assertThat(size)
           .isEqualTo(
-            insights.flatMap { it.value }.size + insights.size + maxOf(insights.size - 1, 0)
+            insights.size + sortedGroupedInsights.size + maxOf(sortedGroupedInsights.size - 1, 0)
           )
         var checkedIndex = 0
-        insights.forEach { (group, insights) ->
+        sortedGroupedInsights.forEach { (provider, insights) ->
           if (checkedIndex != 0) {
             Truth.assertThat(getElementAt(checkedIndex)).isEqualTo(SeparatorInstruction)
             checkedIndex++
           }
-          Truth.assertThat(getElementAt(checkedIndex)).isEqualTo(HeaderInstruction(group))
+          Truth.assertThat(getElementAt(checkedIndex))
+            .isEqualTo(HeaderInstruction(provider.displayName))
           checkedIndex++
           insights.forEach { insight ->
-            Truth.assertThat(getElementAt(checkedIndex))
-              .isEqualTo(InsightInstruction(insight, group))
+            Truth.assertThat(getElementAt(checkedIndex)).isEqualTo(InsightInstruction(insight))
             checkedIndex++
           }
         }
@@ -91,15 +94,13 @@ class AppInsightsGutterIconActionTest(private val insights: Map<String, List<App
       val selectAnIssuePanel = coloredComponents[0]
       Truth.assertThat(selectAnIssuePanel.toString()).isEqualTo("Select an issue to see details")
 
-      if (insights.size == 1) {
+      if (sortedGroupedInsights.size == 1) {
         val eventsPanel = coloredComponents[1]
         Truth.assertThat(eventsPanel.toString())
-          .isEqualTo("${insights.first().value.sumOf { it.issue.issueDetails.eventsCount }}")
+          .isEqualTo("${insights.sumOf { it.issue.issueDetails.eventsCount }}")
         val usersPanel = coloredComponents[2]
         Truth.assertThat(usersPanel.toString())
-          .isEqualTo(
-            "${insights.first().value.sumOf { it.issue.issueDetails.impactedDevicesCount }}"
-          )
+          .isEqualTo("${insights.sumOf { it.issue.issueDetails.impactedDevicesCount }}")
       }
     }
 
@@ -108,26 +109,21 @@ class AppInsightsGutterIconActionTest(private val insights: Map<String, List<App
     @Parameterized.Parameters(name = "{index}: shows correct info for {0}")
     fun data() =
       listOf(
-        mapOf("Firebase" to listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1)) {})),
-        mapOf("Firebase" to listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1)) {})),
-        mapOf(
-          "Firebase" to
-            listOf(
-              AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1)) {},
-              AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2)) {}
-            )
+        listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), CRASHLYTICS_KEY) {}),
+        listOf(AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {}),
+        listOf(
+          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), CRASHLYTICS_KEY) {},
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), CRASHLYTICS_KEY) {}
         ),
-        mapOf(
-          "Firebase" to
-            listOf(
-              AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1)) {},
-              AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2)) {}
-            ),
-          "Vitals" to
-            listOf(
-              AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1)) {},
-              AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2)) {}
-            )
+        listOf(
+          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {},
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), VITALS_KEY) {}
+        ),
+        listOf(
+          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), CRASHLYTICS_KEY) {},
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), CRASHLYTICS_KEY) {},
+          AppInsight(1, ISSUE1, FRAME1, Cause.Frame(FRAME1), VITALS_KEY) {},
+          AppInsight(1, ISSUE2, FRAME2, Cause.Frame(FRAME2), VITALS_KEY) {},
         )
       )
   }

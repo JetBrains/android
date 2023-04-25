@@ -27,8 +27,8 @@ import javax.swing.Icon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-sealed class TestTabProvider(override val tabDisplayName: String) : AppInsightsTabProvider {
-  override val tabIcon: Icon = PlatformIcons.ADD_ICON
+sealed class TestTabProvider(override val displayName: String) : AppInsightsTabProvider {
+  override val icon: Icon = PlatformIcons.ADD_ICON
 
   private val fakeInsights = mutableListOf<AppInsight>()
 

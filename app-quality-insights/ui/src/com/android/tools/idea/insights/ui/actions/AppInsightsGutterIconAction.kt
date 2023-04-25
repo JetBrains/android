@@ -47,16 +47,16 @@ import javax.swing.ListSelectionModel
 import org.jetbrains.annotations.VisibleForTesting
 
 class AppInsightsGutterIconAction(
-  private val insightsByGroup: Map<String, List<AppInsight>>,
-  private val itemChosenCallback: (AppInsight, String) -> Unit
+  private val insights: List<AppInsight>,
+  private val itemChosenCallback: (AppInsight) -> Unit
 ) : AnAction() {
   private val logger: Logger
     get() = Logger.getInstance(javaClass)
 
   override fun actionPerformed(e: AnActionEvent) {
-    if (insightsByGroup.isEmpty()) return
+    if (insights.isEmpty()) return
 
-    val renderItems = generateRenderInstructions(insightsByGroup)
+    val renderItems = generateRenderInstructions(insights)
     val list = createGroupedJList(renderItems)
 
     lateinit var popup: JBPopup
@@ -71,7 +71,7 @@ class AppInsightsGutterIconAction(
             if (chosenInsight is InsightInstruction) {
               logger.debug("Gutter icon click for issue $chosenInsight")
               popup.closeOk(null)
-              itemChosenCallback(chosenInsight.insight, chosenInsight.tabName)
+              itemChosenCallback(chosenInsight.insight)
             }
           }
           setCloseOnEnter(false)
@@ -86,10 +86,9 @@ class AppInsightsGutterIconAction(
             }
           panel.add(hintText, BorderLayout.WEST)
 
-          if (insightsByGroup.size == 1) {
-            val flattenedInsights = insightsByGroup.flatMap { it.value }
-            val eventsTotal = flattenedInsights.sumOf { it.issue.issueDetails.eventsCount }
-            val usersTotal = flattenedInsights.sumOf { it.issue.issueDetails.impactedDevicesCount }
+          if (insights.groupBy { it.provider }.size == 1) {
+            val eventsTotal = insights.sumOf { it.issue.issueDetails.eventsCount }
+            val usersTotal = insights.sumOf { it.issue.issueDetails.impactedDevicesCount }
             val eventsComponent =
               ResizedSimpleColoredComponent().apply {
                 icon =
@@ -156,21 +155,22 @@ class AppInsightsGutterIconAction(
     return variableHeightJList
   }
 
-  private fun generateRenderInstructions(insightsByGroup: Map<String, List<AppInsight>>) =
-    insightsByGroup
-      .mapValues { entry ->
+  private fun generateRenderInstructions(insights: List<AppInsight>) =
+    insights
+      .groupBy { it.provider }
+      .toSortedMap()
+      .mapValues { (provider, insights) ->
         // Map each insight to a RenderItem and insert a HeaderItem at the head of the list.
-        listOf(HeaderInstruction(entry.key)) +
-          entry.value.map { insight -> InsightInstruction(insight, entry.key) }
+        listOf(HeaderInstruction(provider.displayName)) +
+          insights.map { insight -> InsightInstruction(insight) }
       }
       .toList()
-      .sortedBy { it.first }
-      .fold(emptyList<RenderInstruction>()) { acc, groupedItems ->
+      .fold(emptyList<RenderInstruction>()) { acc, (provider, insightsByProvider) ->
         // Insert a divider item when there are two or more categories.
         if (acc.isEmpty()) {
-          groupedItems.second
+          insightsByProvider
         } else {
-          acc + listOf(SeparatorInstruction) + groupedItems.second
+          acc + listOf(SeparatorInstruction) + insightsByProvider
         }
       }
 }
@@ -188,7 +188,7 @@ data class HeaderInstruction(val name: String) : RenderInstruction()
 
 @VisibleForTesting
 /** A row for an app insight. */
-data class InsightInstruction(val insight: AppInsight, val tabName: String) : RenderInstruction()
+data class InsightInstruction(val insight: AppInsight) : RenderInstruction()
 
 private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruction> {
   override fun getListCellRendererComponent(

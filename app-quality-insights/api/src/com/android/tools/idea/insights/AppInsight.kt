@@ -37,6 +37,9 @@ data class AppInsight(
   /** What triggered this error. */
   val cause: Cause,
 
+  /** From which source this insight is collected, e.g. Crashlytics, Play Vitals, etc. */
+  val provider: InsightsProviderKey,
+
   /**
    * Lambda used to make this insight the active/selected one.
    *

@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
 class FakeAppInsightsProjectLevelController(
+  override val key: InsightsProviderKey = InsightsProviderKey("Fake provider"),
   override val state: Flow<AppInsightsState> = emptyFlow(),
   override val coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   private val retrieveInsights: (PsiFile) -> List<AppInsight> = { _ -> emptyList() }

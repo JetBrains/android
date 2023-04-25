@@ -45,13 +45,11 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   private val lineMarkerProvider = LineMarkerProvider()
   private val analyzer = StackTraceAnalyzer()
 
-  private data class AnnotationData(val name: String, val lineNumber: Int, val insight: AppInsight)
+  private data class AnnotationData(val lineNumber: Int, val insight: AppInsight)
 
-  @VisibleForTesting
-  data class InitialInfo(val insights: Map<String, List<AppInsight>>, val fileLineCount: Int)
+  @VisibleForTesting data class InitialInfo(val insights: List<AppInsight>, val fileLineCount: Int)
 
-  @VisibleForTesting
-  data class AnnotationResult(val result: Map<Int, Map<String, List<AppInsight>>>)
+  @VisibleForTesting data class AnnotationResult(val result: Map<Int, List<AppInsight>>)
 
   override fun collectInformation(file: PsiFile) = doCollectInformation(file)
 
@@ -67,66 +65,25 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
       return null
     }
 
-    val groupedInsights =
-      AppInsightsTabProvider.EP_NAME.extensionList
-        .filter { it.isApplicable() }
-        .associate { tabProvider ->
-          val configurationManager = tabProvider.getConfigurationManager(file.project)
-          val insights =
-            when (val model = configurationManager.configuration.value) {
-              is AppInsightsModel.Authenticated -> {
-                val controller = model.controller
+    val insights = collectInsights(file, analyzer)
 
-                // Here we do the work just for collecting "matching accuracy" metrics.
-                controller.insightsInFile(file, analyzer)
-
-                controller.retrieveLineMatches(file).also {
-                  logger.debug(
-                    "Found ${it.size} ${tabProvider.tabDisplayName} insights for ${file.name}"
-                  )
-                }
-              }
-              is AppInsightsModel.Unauthenticated -> {
-                logger.debug(
-                  "Skip annotation collection for ${tabProvider.tabDisplayName} because it is unauthenticated."
-                )
-                emptyList()
-              }
-              is AppInsightsModel.Uninitialized -> {
-                // This should only happen at project startup, when things are initializing.
-                // Skip collection until the insights model is authenticated, after which the
-                // framework will call to collect again and get the correct annotations.
-                logger.debug(
-                  "Skip annotation collection for ${tabProvider.tabDisplayName} because it hasn't initialized."
-                )
-                emptyList()
-              }
-            }
-          tabProvider.tabDisplayName to insights
-        }
-        .filterValues { it.isNotEmpty() }
-    return if (groupedInsights.isEmpty()) null
-    else InitialInfo(groupedInsights, file.getLineCount())
+    return if (insights.isEmpty()) null else InitialInfo(insights, file.getLineCount())
   }
 
   override fun doAnnotate(collectedInfo: InitialInfo?): AnnotationResult {
-    val flattenedAnnotationData =
-      collectedInfo?.insights?.flatMap { entry ->
-        entry.value
-          .filter { it.line in 0..collectedInfo.fileLineCount }
-          .map { AnnotationData(entry.key, it.line, it) }
-      }
+    val annotationData =
+      collectedInfo
+        ?.insights
+        ?.filter { it.line in 0 until collectedInfo.fileLineCount }
+        ?.map { AnnotationData(lineNumber = it.line, insight = it) }
         ?: emptyList()
 
     return AnnotationResult(
-      flattenedAnnotationData
+      annotationData
         .groupBy { it.lineNumber }
-        .mapValues { (_, perLineAnnotations) ->
-          perLineAnnotations
-            .groupBy { data -> data.name }
-            .mapValues { (_, perNameAnnotations) ->
-              dedupCrashByLine(perNameAnnotations.map { data -> data.insight })
-            }
+        .mapValues { (lineNumber, crashes) ->
+          // Ensures there's only one entry per issue in the crashes list.
+          crashes.map { it.insight }.distinctBy { it.issue }
         }
     )
   }
@@ -134,24 +91,65 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   override fun apply(file: PsiFile, annotationResult: AnnotationResult?, holder: AnnotationHolder) {
     val doc = PsiDocumentManager.getInstance(file.project).getDocument(file) ?: return
 
-    annotationResult?.result?.forEach { (line, crashesByTabName) ->
+    annotationResult?.result?.forEach { (line, crashes) ->
       val startLineOffset = doc.getLineStartOffset(line)
       holder
         .newSilentAnnotation(HighlightSeverity.INFORMATION)
         // We do not care for the line itself, so we use startLineOffset for both params.
         .range(TextRange(startLineOffset, startLineOffset))
         .gutterIconRenderer(
-          AppInsightsGutterRenderer(crashesByTabName) { insight, tabName ->
-            AppInsightsToolWindowFactory.show(file.project, tabName) { insight.markAsSelected() }
+          AppInsightsGutterRenderer(crashes) { insight ->
+            AppInsightsToolWindowFactory.show(file.project, insight.provider.displayName) {
+              insight.markAsSelected()
+            }
           }
         )
         .create()
     }
   }
 
-  /** Ensures there's only one entry per issue in the crashes list. */
-  private fun dedupCrashByLine(crashes: List<AppInsight>): List<AppInsight> =
-    crashes.distinctBy { it.issue }
+  /**
+   * Returns insights for the given [file] from all kinds of sources (e.g. Crashlytics, Play Vitals,
+   * etc).
+   *
+   * Here each [AppInsightsTabProvider] points to a single kind of source.
+   */
+  private fun collectInsights(file: PsiFile, analyzer: StackTraceAnalyzer): List<AppInsight> {
+    return AppInsightsTabProvider.EP_NAME.extensionList
+      .filter { it.isApplicable() }
+      .map { tabProvider ->
+        val configurationManager = tabProvider.getConfigurationManager(file.project)
+
+        when (val model = configurationManager.configuration.value) {
+          is AppInsightsModel.Authenticated -> {
+            val controller = model.controller
+
+            // Here we do the work just for collecting "matching accuracy" metrics.
+            controller.insightsInFile(file, analyzer)
+
+            controller.retrieveLineMatches(file).also {
+              logger.debug("Found ${it.size} ${controller.key} insights for ${file.name}")
+            }
+          }
+          is AppInsightsModel.Unauthenticated -> {
+            logger.debug(
+              "Skip annotation collection for ${tabProvider.displayName} because it is unauthenticated."
+            )
+            emptyList()
+          }
+          is AppInsightsModel.Uninitialized -> {
+            // This should only happen at project startup, when things are initializing.
+            // Skip collection until the insights model is authenticated, after which the
+            // framework will call to collect again and get the correct annotations.
+            logger.debug(
+              "Skip annotation collection for ${tabProvider.displayName} because it hasn't initialized."
+            )
+            emptyList()
+          }
+        }
+      }
+      .flatten()
+  }
 
   class LineMarkerProvider : LineMarkerProviderDescriptor() {
     override fun getName() = "App quality insights"

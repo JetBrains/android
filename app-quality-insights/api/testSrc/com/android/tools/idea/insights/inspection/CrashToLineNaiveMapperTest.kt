@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Frame
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueInFrame
@@ -59,7 +60,8 @@ class CrashToLineNaiveMapperTest {
       )
     val crashToLineMapper = CrashToLineNaiveMapper({ issuesInFrame }, { true })
 
-    val issues = crashToLineMapper.retrieve(file)
+    val provider = InsightsProviderKey("Fake provider")
+    val issues = crashToLineMapper.retrieve(file, provider)
     Truth.assertThat(issues).hasSize(2)
     Truth.assertThat(issues[0].line).isEqualTo(9) // lines are offset by -1
   }

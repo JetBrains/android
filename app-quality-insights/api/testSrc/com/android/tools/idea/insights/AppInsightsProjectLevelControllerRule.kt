@@ -92,6 +92,7 @@ class AppInsightsProjectLevelControllerRule(
       )
     controller =
       AppInsightsProjectLevelControllerImpl(
+        InsightsProviderKey("Fake provider"),
         scope,
         AndroidDispatchers.workerThread,
         client,

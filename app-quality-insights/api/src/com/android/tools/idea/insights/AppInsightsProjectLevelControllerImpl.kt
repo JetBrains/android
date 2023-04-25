@@ -77,6 +77,7 @@ private data class ProjectState(
 )
 
 class AppInsightsProjectLevelControllerImpl(
+  override val key: InsightsProviderKey,
   override val coroutineScope: CoroutineScope,
   dispatcher: CoroutineDispatcher,
   appInsightsClient: AppInsightsClient,
@@ -264,7 +265,7 @@ class AppInsightsProjectLevelControllerImpl(
     CrashToLineNaiveMapper(this::issuesForFile) { issue ->
         selectIssue(issue, IssueSelectionSource.INSPECTION)
       }
-      .retrieve(file)
+      .retrieve(file, key)
 
   override fun insightsInFile(
     file: PsiFile,

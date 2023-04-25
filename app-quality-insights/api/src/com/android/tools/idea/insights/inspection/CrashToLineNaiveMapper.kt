@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.inspection
 
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.IssueInFrame
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
@@ -34,7 +35,7 @@ class CrashToLineNaiveMapper(
 ) {
   private val logger = Logger.getInstance(CrashToLineNaiveMapper::class.java)
 
-  fun retrieve(file: PsiFile): List<AppInsight> {
+  fun retrieve(file: PsiFile, insightsProvider: InsightsProviderKey): List<AppInsight> {
     return issueSupplier(file)
       .also { logIssues(it, file) }
       .mapNotNull { issueInFrame ->
@@ -46,6 +47,7 @@ class CrashToLineNaiveMapper(
             issueInFrame.issue,
             issueInFrame.crashFrame.frame,
             issueInFrame.crashFrame.cause,
+            insightsProvider,
             onIssueClick
           )
         else null

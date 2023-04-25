@@ -88,9 +88,9 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
         val tabPanel = AppInsightsTabPanel()
         tabProvider.populateTab(project, tabPanel)
         val tabContent =
-          contentFactory.createContent(tabPanel, tabProvider.tabDisplayName, false).apply {
+          contentFactory.createContent(tabPanel, tabProvider.displayName, false).apply {
             putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-            icon = tabProvider.tabIcon
+            icon = tabProvider.icon
           }
         tabContent.setDisposer(tabPanel)
         toolWindow.contentManager.addContent(tabContent)

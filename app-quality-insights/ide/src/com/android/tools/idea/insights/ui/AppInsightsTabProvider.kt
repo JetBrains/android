@@ -21,8 +21,8 @@ import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
 interface AppInsightsTabProvider {
-  val tabDisplayName: String
-  val tabIcon: Icon
+  val displayName: String
+  val icon: Icon
 
   /** Populates the provided [tabPanel] with content. */
   fun populateTab(project: Project, tabPanel: AppInsightsTabPanel)

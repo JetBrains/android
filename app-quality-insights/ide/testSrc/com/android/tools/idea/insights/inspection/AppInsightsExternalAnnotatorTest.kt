@@ -42,7 +42,6 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import com.jetbrains.rd.util.first
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.util.getLineCount
@@ -104,7 +103,7 @@ class AppInsightsExternalAnnotatorTest {
 
     val annotator = AppInsightsExternalAnnotator()
     assertThat(annotator.collectInformation(file)?.insights)
-      .isEqualTo(AppInsightsExternalAnnotator.InitialInfo(mapOf("Test 1" to expected), 10).insights)
+      .isEqualTo(AppInsightsExternalAnnotator.InitialInfo(expected, 10).insights)
     settingEnabled = false
     assertThat(annotator.collectInformation(file)).isNull()
   }
@@ -127,16 +126,12 @@ class AppInsightsExternalAnnotatorTest {
     assertThat(collectedInformation).isEqualTo(collectedInformationWhenErrors)
 
     assertThat(collectedInformation).isNotNull()
-    assertThat(collectedInformation!!.insights).hasSize(1)
+    assertThat(collectedInformation!!.insights).hasSize(3)
 
     val annotationResult = annotator.doAnnotate(collectedInformation)
     assertThat(annotationResult.result)
-      .isEqualTo(
-        mapOf(
-          9 to mapOf(testTabProvider1Name to listOf(expected[0])),
-          11 to mapOf(testTabProvider1Name to listOf(expected[1])),
-          29 to mapOf(testTabProvider1Name to listOf(expected[2]))
-        )
+      .containsExactlyEntriesIn(
+        mapOf(9 to listOf(expected[0]), 11 to listOf(expected[1]), 29 to listOf(expected[2]))
       )
   }
 
@@ -159,7 +154,7 @@ class AppInsightsExternalAnnotatorTest {
 
     verify(mockAnnotationBuilder, times(3)).gutterIconRenderer(gutterRendererCaptor.capture())
     val capturedValues = gutterRendererCaptor.allValues
-    assertThat(capturedValues.flatMap { it.insights.values.flatten() }).containsAllIn(expected)
+    assertThat(capturedValues.flatMap { it.insights }).containsAllIn(expected)
   }
 
   @Test
@@ -185,8 +180,7 @@ class AppInsightsExternalAnnotatorTest {
     val annotator = AppInsightsExternalAnnotator()
     val collectedInformation = annotator.collectInformation(mainActivityFile)
     assertThat(collectedInformation).isNotNull()
-    assertThat(collectedInformation!!.insights).hasSize(1)
-    assertThat(collectedInformation.insights.first().value).hasSize(3)
+    assertThat(collectedInformation!!.insights).hasSize(3)
 
     val annotationResult = annotator.doAnnotate(collectedInformation)
     assertThat(annotationResult.result).isEmpty()
@@ -207,8 +201,7 @@ class AppInsightsExternalAnnotatorTest {
     val collectedInformation = annotator.collectInformation(mainActivityFile)
     assertThat(collectedInformation).isNotNull()
     // Deduping happens after this point
-    assertThat(collectedInformation!!.insights).hasSize(1)
-    assertThat(collectedInformation.insights.first().value).hasSize(3)
+    assertThat(collectedInformation!!.insights).hasSize(3)
 
     val annotationResult = annotator.doAnnotate(collectedInformation)
     assertThat(annotationResult.result).isNotEmpty()
@@ -229,8 +222,7 @@ class AppInsightsExternalAnnotatorTest {
     val annotator = AppInsightsExternalAnnotator()
     val collectedInformation = annotator.collectInformation(mainActivityFile)
     assertThat(collectedInformation).isNotNull()
-    assertThat(collectedInformation!!.insights).hasSize(1)
-    assertThat(collectedInformation.insights.first().value).hasSize(3)
+    assertThat(collectedInformation!!.insights).hasSize(3)
 
     val annotationResult = annotator.doAnnotate(collectedInformation)
     assertThat(annotationResult.result).isNotEmpty()
@@ -257,21 +249,16 @@ class AppInsightsExternalAnnotatorTest {
     val annotator = AppInsightsExternalAnnotator()
     val collectedInformation = annotator.collectInformation(mainActivityFile)
     assertThat(collectedInformation).isNotNull()
-    assertThat(collectedInformation!!.insights).hasSize(2)
-    assertThat(collectedInformation.insights.flatMap { it.value }).hasSize(6)
+    assertThat(collectedInformation!!.insights).hasSize(6)
 
     val annotationResult = annotator.doAnnotate(collectedInformation)
     assertThat(annotationResult.result)
-      .isEqualTo(
+      .containsExactlyEntriesIn(
         mapOf(
-          9 to mapOf(testTabProvider1Name to listOf(expected1[0])),
-          11 to
-            mapOf(
-              testTabProvider1Name to listOf(expected1[1]),
-              testTabProvider2Name to listOf(expected2[0])
-            ),
-          29 to mapOf(testTabProvider1Name to listOf(expected1[2])),
-          26 to mapOf(testTabProvider2Name to listOf(expected2[1]))
+          9 to listOf(expected1[0]),
+          11 to listOf(expected1[1], expected2[0]),
+          29 to listOf(expected1[2]),
+          26 to listOf(expected2[1])
         )
       )
 
@@ -279,7 +266,7 @@ class AppInsightsExternalAnnotatorTest {
     annotator.apply(mainActivityFile, annotationResult, mockAnnotationHolder)
 
     verify(mockAnnotationBuilder, times(4)).gutterIconRenderer(gutterRendererCaptor.capture())
-    assertThat(gutterRendererCaptor.allValues.flatMap { it.insights.values.flatten() })
+    assertThat(gutterRendererCaptor.allValues.flatMap { it.insights })
       .containsAllIn((expected1 + expected2).filter { it.line < mainActivityFile.getLineCount() })
   }
 
@@ -320,7 +307,7 @@ class AppInsightsExternalAnnotatorTest {
   private val testTabProvider2: AppInsightsTabProvider
     get() = AppInsightsTabProvider.EP_NAME.extensionList[1]
   private val testTabProvider1Name: String
-    get() = testTabProvider1.tabDisplayName
+    get() = testTabProvider1.displayName
   private val testTabProvider2Name: String
-    get() = testTabProvider2.tabDisplayName
+    get() = testTabProvider2.displayName
 }

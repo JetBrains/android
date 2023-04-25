@@ -27,14 +27,14 @@ import javax.swing.Icon
  * Supports multiple sources of gutter insights grouped by the key in [insights].
  */
 data class AppInsightsGutterRenderer(
-  val insights: Map<String, List<AppInsight>>,
-  val itemChosenCallback: (AppInsight, String) -> Unit
+  val insights: List<AppInsight>,
+  val itemChosenCallback: (AppInsight) -> Unit
 ) : GutterIconRenderer() {
 
   override fun getIcon(): Icon = StudioIcons.AppQualityInsights.ISSUE
 
   override fun getTooltipText(): String {
-    val eventsCount = insights.flatMap { it.value }.sumOf { it.issue.issueDetails.eventsCount }
+    val eventsCount = insights.sumOf { it.issue.issueDetails.eventsCount }
     val issuesCount = insights.size
 
     val eventsString =

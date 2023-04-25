@@ -21,8 +21,10 @@ import com.intellij.psi.PsiFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
-/** Provides lifecycle and App Insights state data. */
+/** The source-based controller which provides lifecycle and App Insights state data. */
 interface AppInsightsProjectLevelController {
+  /** The source of insights data this controller is for. */
+  val key: InsightsProviderKey
 
   /**
    * This flow represents the App Insights state of a host Android app module.
