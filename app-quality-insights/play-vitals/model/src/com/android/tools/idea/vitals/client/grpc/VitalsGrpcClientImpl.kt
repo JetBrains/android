@@ -86,6 +86,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
   override suspend fun queryErrorCountMetrics(
     connection: Connection,
     filters: QueryFilters,
+    issueId: IssueId?,
     dimensions: List<DimensionType>,
     metrics: List<MetricType>,
     freshness: Freshness,
@@ -118,6 +119,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
                 addReportTypes(filters.eventTypes)
                 addDevices(filters.devices)
                 addOperatingSystems(filters.operatingSystems)
+                issueId?.let { addIssue(issueId) }
               }
               .build()
 
@@ -217,7 +219,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
         .apply {
           parent = connection.appId
           interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
-          filter = FilterBuilder().apply { addIssue(issueId) }.build()
+          filter = FilterBuilder().apply { addErrorIssue(issueId) }.build()
           pageSize = maxNumResults
         }
         .build()

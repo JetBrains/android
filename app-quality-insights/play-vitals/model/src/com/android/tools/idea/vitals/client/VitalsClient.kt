@@ -23,6 +23,8 @@ import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.MINIMUM_PERCENTAGE_TO_SHOW
+import com.android.tools.idea.insights.MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.OperatingSystemInfo
@@ -34,6 +36,8 @@ import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.runGrpcCatching
+import com.android.tools.idea.insights.summarizeDevicesFromRawDataPoints
+import com.android.tools.idea.insights.summarizeOsesFromRawDataPoints
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClient
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
 import com.android.tools.idea.vitals.datamodel.DimensionType
@@ -81,9 +85,9 @@ class VitalsClient(
           )
         )
     ) {
-      val versions = async { listVersions(request.connection, request.filters) }
-      val devices = async { listDevices(request.connection, request.filters) }
-      val oses = async { listOperatingSystems(request.connection, request.filters) }
+      val versions = async { listVersions(request.connection, request.filters, null) }
+      val devices = async { listDevices(request.connection, request.filters, null) }
+      val oses = async { listOperatingSystems(request.connection, request.filters, null) }
       val issues = async { fetchIssues(request) } // TODO: add "fetchEventsForAllIssues: Boolean"
 
       LoadingState.Ready(
@@ -101,9 +105,30 @@ class VitalsClient(
   override suspend fun getIssueDetails(
     issueId: IssueId,
     request: IssueRequest
-  ): LoadingState.Done<DetailedIssueStats?> {
-    LOG.warn(NOT_SUPPORTED_ERROR_MSG)
-    return LoadingState.Ready(null)
+  ): LoadingState.Done<DetailedIssueStats?> = supervisorScope {
+    val failure = LoadingState.UnknownFailure("Unable to fetch issue details.")
+    runGrpcCatching(failure) {
+      val devices = async {
+        listDevices(request.connection, request.filters, issueId)
+          .summarizeDevicesFromRawDataPoints(
+            MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW,
+            MINIMUM_PERCENTAGE_TO_SHOW
+          )
+      }
+
+      val oses = async {
+        listOperatingSystems(request.connection, request.filters, issueId)
+          .summarizeOsesFromRawDataPoints(
+            MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW,
+            MINIMUM_PERCENTAGE_TO_SHOW
+          )
+      }
+
+      val (devicesResult, osesResult) = devices.await() to oses.await()
+      if (devicesResult == null || osesResult == null) {
+        failure
+      } else LoadingState.Ready(DetailedIssueStats(devicesResult, osesResult))
+    }
   }
 
   override suspend fun updateIssueState(
@@ -161,7 +186,8 @@ class VitalsClient(
 
   private suspend fun listVersions(
     connection: Connection,
-    filters: QueryFilters
+    filters: QueryFilters,
+    issueId: IssueId?
   ): List<WithCount<Version>> {
     // First we get versions that are part of the releases/tracks.
     val releases = grpcClient.getReleases(connection)
@@ -171,6 +197,7 @@ class VitalsClient(
     return getMetrics(
         connection = connection,
         filters = filters.copy(versions = setOf(Version.ALL)),
+        issueId = issueId,
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.VERSION_CODE),
         metrics = listOf(MetricType.ERROR_REPORT_COUNT)
       )
@@ -195,11 +222,13 @@ class VitalsClient(
 
   private suspend fun listDevices(
     connection: Connection,
-    filters: QueryFilters
+    filters: QueryFilters,
+    issueId: IssueId?
   ): List<WithCount<Device>> {
     return getMetrics(
         connection = connection,
         filters = filters.copy(devices = setOf(Device.ALL)),
+        issueId = issueId,
         dimensions =
           listOf(DimensionType.REPORT_TYPE, DimensionType.DEVICE_TYPE, DimensionType.DEVICE_MODEL),
         metrics = listOf(MetricType.ERROR_REPORT_COUNT)
@@ -216,11 +245,13 @@ class VitalsClient(
 
   private suspend fun listOperatingSystems(
     connection: Connection,
-    filters: QueryFilters
+    filters: QueryFilters,
+    issueId: IssueId?,
   ): List<WithCount<OperatingSystemInfo>> {
     return getMetrics(
         connection = connection,
         filters = filters.copy(operatingSystems = setOf(OperatingSystemInfo.ALL)),
+        issueId = issueId,
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.API_LEVEL),
         metrics = listOf(MetricType.ERROR_REPORT_COUNT)
       )
@@ -237,6 +268,7 @@ class VitalsClient(
   private suspend fun getMetrics(
     connection: Connection,
     filters: QueryFilters,
+    issueId: IssueId?,
     dimensions: List<DimensionType>,
     metrics: List<MetricType>
   ): List<DimensionsAndMetrics> {
@@ -244,7 +276,14 @@ class VitalsClient(
       grpcClient.getErrorCountMetricsFreshnessInfo(connection).minByOrNull { it.timeGranularity }
         ?: throw IllegalStateException("No freshness info found for app: ${connection.appId}.")
 
-    return grpcClient.queryErrorCountMetrics(connection, filters, dimensions, metrics, freshness)
+    return grpcClient.queryErrorCountMetrics(
+      connection,
+      filters,
+      issueId,
+      dimensions,
+      metrics,
+      freshness
+    )
   }
 }
 

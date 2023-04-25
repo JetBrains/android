@@ -80,6 +80,12 @@ private data class Filter(val qualifier: String, val value: String) {
 class FilterBuilder {
   private val rawFilters = mutableSetOf<Filter>()
 
+  /**
+   * Can filter by failure types.
+   *
+   * The reason we have multiple failure types filters (see [addFailureTypes]) is we have different
+   * filter qualifiers on the server side for different API calls.
+   */
   fun addReportTypes(failureTypes: Collection<FailureType>) {
     failureTypes.mapNotNull {
       when (it) {
@@ -94,6 +100,12 @@ class FilterBuilder {
     }
   }
 
+  /**
+   * Can filter by failure types.
+   *
+   * The reason we have multiple failure types filters (see [addReportTypes]) is we have different
+   * filter qualifiers on the server side for different API calls.
+   */
   fun addFailureTypes(failureTypes: Collection<FailureType>) {
     failureTypes.mapNotNull {
       when (it) {
@@ -127,8 +139,24 @@ class FilterBuilder {
       .onEach { rawFilters.add(Filter(VERSION_CODE, it.buildVersion)) }
   }
 
-  fun addIssue(issueId: IssueId) {
+  /**
+   * Can filter by issue id.
+   *
+   * The reason we have multiple issue id filters (see [addIssue]) is we have different filter
+   * qualifiers on the server side for different API calls.
+   */
+  fun addErrorIssue(issueId: IssueId) {
     rawFilters.add(Filter(ERROR_ISSUE_ID, issueId.value))
+  }
+
+  /**
+   * Can filter by issue id.
+   *
+   * The reason we have multiple issue id filters (see [addErrorIssue]) is we have different filter
+   * qualifiers on the server side for different API calls.
+   */
+  fun addIssue(issueId: IssueId) {
+    rawFilters.add(Filter(DimensionType.ISSUE_ID.value, issueId.value))
   }
 
   fun build(): String {

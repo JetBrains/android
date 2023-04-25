@@ -83,6 +83,13 @@ class FilterBuilderTest {
   fun `check filtering by issue id case`() {
     val generated = FilterBuilder().apply { addIssue(IssueId("123")) }.build()
 
+    assertThat(generated).isEqualTo("(issueId = 123)")
+  }
+
+  @Test
+  fun `check filtering by error issue id case`() {
+    val generated = FilterBuilder().apply { addErrorIssue(IssueId("123")) }.build()
+
     assertThat(generated).isEqualTo("(errorIssueId = 123)")
   }
 

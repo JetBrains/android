@@ -54,6 +54,7 @@ interface VitalsGrpcClient {
   suspend fun queryErrorCountMetrics(
     connection: Connection,
     filters: QueryFilters,
+    issueId: IssueId?,
     dimensions: List<DimensionType>,
     metrics: List<MetricType>,
     freshness: Freshness,
