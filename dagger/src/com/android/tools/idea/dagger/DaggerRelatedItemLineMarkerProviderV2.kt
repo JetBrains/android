@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.DaggerWrappedRelatedItemLineMarkerProvider
 import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
 import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
@@ -48,7 +49,10 @@ import org.jetbrains.kotlin.lexer.KtTokens
  *
  * Adds gutter icon that allows to navigate between Dagger elements.
  */
-class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
+class DaggerRelatedItemLineMarkerProviderV2 :
+  RelatedItemLineMarkerProvider(), DaggerWrappedRelatedItemLineMarkerProvider {
+
+  override fun isEnabledByDefault(): Boolean = true
 
   @WorkerThread
   override fun collectNavigationMarkers(

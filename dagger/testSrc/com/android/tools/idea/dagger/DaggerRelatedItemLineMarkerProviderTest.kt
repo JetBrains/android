@@ -50,7 +50,8 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
 abstract class DaggerRelatedItemLineMarkerProviderTestBase(
-  private val daggerUsingIndexEnabled: Boolean
+  private val daggerUsingIndexEnabled: Boolean,
+  private val expectProviderToBeDisabledByProperty: Boolean,
 ) : DaggerTestCase() {
   private lateinit var trackerService: TestDaggerAnalyticsTracker
 
@@ -85,6 +86,35 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
     } catch (e: java.awt.HeadlessException) {
       // This error appears when AS tries to open a popup after the click in Headless environment.
     }
+  }
+
+  fun testGetName() {
+    val provider = DaggerRelatedItemLineMarkerProvider()
+    assertThat(provider.name).isEqualTo("Dagger related items")
+  }
+
+  fun testGetId() {
+    // The value of the id doesn't really matter, but it needs to be present in order for the icons
+    // available for disabling in settings.
+    val provider = DaggerRelatedItemLineMarkerProvider()
+    assertThat(provider.id).isNotEmpty()
+  }
+
+  fun testIsEnabledByDefault() {
+    val provider = DaggerRelatedItemLineMarkerProvider()
+
+    System.setProperty("disable.dagger.relateditems.gutter.icons", "false")
+    assertThat(provider.isEnabledByDefault).isTrue()
+
+    System.setProperty("disable.dagger.relateditems.gutter.icons", "true")
+    if (expectProviderToBeDisabledByProperty) {
+      assertThat(provider.isEnabledByDefault).isFalse()
+    } else {
+      assertThat(provider.isEnabledByDefault).isTrue()
+    }
+
+    // Make sure to clear the property so that it doesn't pollute other tests.
+    System.clearProperty("disable.dagger.relateditems.gutter.icons")
   }
 
   fun testGutterIcons() {
@@ -1363,7 +1393,13 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
 }
 
 class DaggerRelatedItemLineMarkerProviderTestV1 :
-  DaggerRelatedItemLineMarkerProviderTestBase(daggerUsingIndexEnabled = false)
+  DaggerRelatedItemLineMarkerProviderTestBase(
+    daggerUsingIndexEnabled = false,
+    expectProviderToBeDisabledByProperty = true
+  )
 
 class DaggerRelatedItemLineMarkerProviderTestV2 :
-  DaggerRelatedItemLineMarkerProviderTestBase(daggerUsingIndexEnabled = true)
+  DaggerRelatedItemLineMarkerProviderTestBase(
+    daggerUsingIndexEnabled = true,
+    expectProviderToBeDisabledByProperty = false
+  )

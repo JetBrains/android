@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.DaggerWrappedRelatedItemLineMarkerProvider
 import com.android.tools.idea.dagger.localization.DaggerBundle.message
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
@@ -45,21 +46,12 @@ import org.jetbrains.kotlin.lexer.KtTokens
  *
  * Adds gutter icon that allows to navigate between Dagger elements.
  */
-class DaggerRelatedItemLineMarkerProviderV1 : RelatedItemLineMarkerProvider() {
+class DaggerRelatedItemLineMarkerProviderV1 :
+  RelatedItemLineMarkerProvider(), DaggerWrappedRelatedItemLineMarkerProvider {
 
-  override fun getName(): String? {
-    return message("dagger.related.items")
-  }
-
-  override fun getId(): String {
-    // A custom ID is required for isEnabledByDefault to be called
-    return "disable.dagger"
-  }
-
-  override fun isEnabledByDefault(): Boolean {
+  override fun isEnabledByDefault(): Boolean =
     // b/232089770: Dagger line markers are costly, so we provide a way to disable it by default.
-    return !System.getProperty("disable.dagger.relateditems.gutter.icons", "false").toBoolean()
-  }
+    !System.getProperty("disable.dagger.relateditems.gutter.icons", "false").toBoolean()
 
   private class GotoItemWithAnalyticsTracking(
     fromElement: PsiElement,
