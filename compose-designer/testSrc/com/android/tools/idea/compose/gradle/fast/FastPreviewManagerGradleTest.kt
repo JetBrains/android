@@ -60,6 +60,7 @@ import java.nio.file.Paths
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -286,7 +287,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
     val deviceCompilations = AtomicLong(0)
     val deviceThread = thread {
-      val output = mutableListOf<LiveEditCompilerOutput>()
+      mutableListOf<LiveEditCompilerOutput>()
       val function = runReadAction {
         psiMainFile.collectDescendantsOfType<KtNamedFunction>().first {
           it.name?.contains("TwoElementsPreview") ?: false
@@ -308,7 +309,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
     // Wait for both threads to run the iterations.
     runBlocking {
-      delayUntilCondition(200) {
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 60.seconds) {
         deviceCompilations.get() >= iterations && previewCompilations.get() >= iterations
       }
       compile = false
