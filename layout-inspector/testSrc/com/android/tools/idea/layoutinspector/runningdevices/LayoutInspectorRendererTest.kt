@@ -29,19 +29,19 @@ import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
+import com.intellij.util.ui.components.BorderLayoutPanel
 import com.jetbrains.rd.swing.fillRect
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 import java.awt.Color
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import javax.imageio.ImageIO
-import javax.swing.JPanel
 import kotlin.io.path.pathString
 
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
@@ -51,6 +51,9 @@ class LayoutInspectorRendererTest {
 
   @get:Rule
   val testName = TestName()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private val inspectorModel = model {
     view(ROOT, 0, 0, 100, 150) {
@@ -71,21 +74,15 @@ class LayoutInspectorRendererTest {
   private val deviceFrameDimension = Dimension(100, 150)
   private val deviceFrame = Rectangle(10, 10, deviceFrameDimension.width, deviceFrameDimension.height)
 
-  private lateinit var component: Component
-
   @Before
   fun setUp() {
     renderModel = RenderModel(inspectorModel, treeSettings) { MockitoKt.mock() }
     renderLogic = RenderLogic(renderModel, renderSettings)
-
-    component = JPanel().apply {
-      size = screenDimension
-    }
   }
 
   @Test
   fun testViewBordersAreRendered() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component, { deviceFrame }, { 1.0 })
+    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
 
     @Suppress("UndesirableClassUsage")
     val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
@@ -95,7 +92,7 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testOverlayIsRendered() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component, { deviceFrame }, { 1.0 })
+    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
 
     renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
 
@@ -107,8 +104,12 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testMouseHover() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component, { deviceFrame }, { 1.0 })
-    val fakeUi = FakeUi(component)
+    val parent = BorderLayoutPanel()
+    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
+    parent.add(layoutInspectorRenderer)
+    parent.size = screenDimension
+    layoutInspectorRenderer.size = screenDimension
+    val fakeUi = FakeUi(layoutInspectorRenderer)
 
     assertThat(renderModel.model.hoveredNode).isNull()
 
@@ -133,7 +134,7 @@ class LayoutInspectorRendererTest {
     graphics.fillRect(Rectangle(0, 0, screenDimension.width, screenDimension.height), Color(250, 250, 250))
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
-    layoutInspectorRenderer.paint(graphics, deviceFrame)
+    layoutInspectorRenderer.paint(graphics)
   }
 
   /**

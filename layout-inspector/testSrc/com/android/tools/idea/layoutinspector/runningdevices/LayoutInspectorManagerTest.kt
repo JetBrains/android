@@ -51,8 +51,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Container
 import javax.swing.JPanel
@@ -277,16 +275,20 @@ class LayoutInspectorManagerTest {
   @RunsInEdt
   fun testViewIsRefreshedOnSelectionChange() {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+    var refreshCount = 0
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
 
+    val layoutInspectorRenderer = tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+    layoutInspectorRenderer.addListener { refreshCount += 1 }
+
     layoutInspector.inspectorModel.setSelection(ViewNode("node1"), SelectionOrigin.COMPONENT_TREE)
-    verify(tab1.displayView, times(1)).repaint()
+    assertThat(refreshCount).isEqualTo(1)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
 
     layoutInspector.inspectorModel.setSelection(ViewNode("node2"), SelectionOrigin.COMPONENT_TREE)
-    verify(tab1.displayView, times(1)).repaint()
+    assertThat(refreshCount).isEqualTo(1)
   }
 
   @Test
@@ -351,6 +353,8 @@ class LayoutInspectorManagerTest {
       .filterIsInstance<InspectorBanner>()
 
     assertThat(inspectorBanner).hasSize(1)
+
+    assertThat(tabInfo.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(1)
   }
 
   private fun assertDoesNotHaveWorkbench(tabInfo: TabInfo) {
@@ -370,6 +374,8 @@ class LayoutInspectorManagerTest {
       .filterIsInstance<InspectorBanner>()
 
     assertThat(inspectorBanner).hasSize(0)
+
+    assertThat(tabInfo.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0)
   }
 
   private fun Component.parents(): List<Container> {
