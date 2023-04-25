@@ -38,10 +38,10 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
 
     val axisFormatter = when (unit) {
       "%" -> PercentAxisFormatter(1, 2)
-      "µah" -> SingleUnitAxisFormatter(1, 5, 1, unit)
+      "µah" -> SingleUnitAxisFormatter(1, 5, 1, unit, true)
       // If a negative value is present, we limit the number of major axis ticks to keep the label only the 0 axis label.
-      "µa" -> if (negValuePresent) SingleUnitAxisFormatter(1, 2, 1, unit) else SingleUnitAxisFormatter(1, 5, 1, unit)
-      else -> SingleUnitAxisFormatter(1, 2, 5, unit)
+      "µa" -> if (negValuePresent) SingleUnitAxisFormatter(1, 2, 1, unit) else SingleUnitAxisFormatter(1, 5, 1, unit, true)
+      else -> SingleUnitAxisFormatter(1, 2, 5, unit, true)
     }
 
     val absLargestValue = abs(minValue.toDouble()).coerceAtLeast(abs(maxValue.toDouble()))

@@ -38,7 +38,7 @@ class BatteryDrainTrackRendererTest {
   }
 
   @Test
-  fun axisLabelIsCorrect() {
+  fun axisLabelIsCorrectWithoutCommas() {
     var percentBatteryDrainTrackModel = TrackModel.newBuilder(
       BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "%"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
     ).build()
@@ -62,6 +62,27 @@ class BatteryDrainTrackRendererTest {
     ).build()
     formatter = noUnitBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100")
+  }
+
+  @Test
+  fun axisLabelIsCorrectWithCommas() {
+    val microAmpHoursBatteryDrainTrackModel = TrackModel.newBuilder(
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µah"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+    ).build()
+    var formatter = microAmpHoursBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
+    assertThat(formatter.getFormattedString(1000.0, 1000.0, true)).isEqualTo("1,000 µah")
+
+    val microAmpsBatteryDrainTrackModel = TrackModel.newBuilder(
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µa"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+    ).build()
+    formatter = microAmpsBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
+    assertThat(formatter.getFormattedString(1000000.0, 1000000.0, true)).isEqualTo("1,000,000 µa")
+
+    var noUnitBatteryDrainTrackModel = TrackModel.newBuilder(
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+    ).build()
+    formatter = noUnitBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
+    assertThat(formatter.getFormattedString(1000000000.0, 1000000000.0, true)).isEqualTo("1,000,000,000")
   }
 
   @Test
