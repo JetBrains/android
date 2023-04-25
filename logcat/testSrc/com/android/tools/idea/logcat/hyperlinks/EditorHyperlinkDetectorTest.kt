@@ -58,7 +58,7 @@ class EditorHyperlinkDetectorTest {
     val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
 
     val filter = hyperlinkDetector.filter.delegate as CompositeFilter
-    assertThat(filter.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class })
+    assertThat(filter.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class } + SimpleFileLinkFilter::class)
   }
 
   /**

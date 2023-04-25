@@ -33,12 +33,9 @@ import com.intellij.util.Processor
  * Minimal functionality only is provided. We currently only need to class to answer to getFilesByName().
  */
 internal class FakePsiShortNamesCache(project: Project, filenames: List<String>) : PsiShortNamesCache() {
-  private val files: Map<String, PsiFile> = filenames.associateWith { FakePsiFile(project, it) }
+  private val files: Map<String, List<FakePsiFile>> = filenames.groupBy({ it.substringAfterLast('/') }) { FakePsiFile(project, it) }
 
-  override fun getFilesByName(name: String): Array<PsiFile> {
-    val file = files[name]
-    return if (file != null) arrayOf(file) else emptyArray()
-  }
+  override fun getFilesByName(name: String): Array<PsiFile> = (files[name] ?: emptyList()).toTypedArray()
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     TODO("Not yet implemented")

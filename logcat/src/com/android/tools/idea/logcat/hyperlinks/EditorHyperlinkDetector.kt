@@ -37,8 +37,18 @@ internal class EditorHyperlinkDetector(private val project: Project, editor: Edi
     editorHyperlinkSupport.highlightHyperlinks(filter, startLine, endLine)
   }
 
-  private fun createFilters() =
-    CompositeFilter(project, ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)))
+  /**
+   * Create a composite filter containing all the standard [com.intellij.execution.filters.ConsoleFilterProvider] filters.
+   *
+   * In addition to the standard filters, also add our specialized [SimpleFileLinkFilter] which is more reliable for project file links.
+   *
+   * Note that SimpleFileLinkFilter could potentially be injected via the
+   * [com.intellij.execution.filters.ConsoleFilterProvider.FILTER_PROVIDERS] extension, we choose not to do that because that would
+   * potentially affect all Console views. We limit this filter to Logcat for now.
+   */
+  private fun createFilters(): CompositeFilter {
+    val filters = ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)) + SimpleFileLinkFilter(project)
+    return CompositeFilter(project, filters)
       .apply { setForceUseAllFilters(true) }
-
+  }
 }
