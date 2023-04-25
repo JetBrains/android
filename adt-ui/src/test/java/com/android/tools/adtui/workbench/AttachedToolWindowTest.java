@@ -98,7 +98,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myActionPopupMenu);
     when(myActionManager.getRegistrationOrderComparator()).thenReturn(String.CASE_INSENSITIVE_ORDER);
     when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean())).thenCallRealMethod();
-    when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), anyBoolean())).thenCallRealMethod();
+    when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), anyBoolean(), anyBoolean())).thenCallRealMethod();
     when(myActionPopupMenu.getComponent()).thenReturn(myPopupMenu);
     when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();

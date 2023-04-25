@@ -79,7 +79,8 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface<La
         ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview()
       ),
       true,
-      false
+      false,
+      true
     ).apply {
       // Do not allocate space for the "see more" chevron if not needed
       setReservePlaceAutoPopupIcon(false)
@@ -95,7 +96,8 @@ internal class PreviewSurfaceActionManager(private val surface: DesignSurface<La
       "sceneView",
       DefaultActionGroup(ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview()),
       true,
-      false
+      false,
+      true
     ).apply {
       targetComponent = sceneView.surface
       (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
