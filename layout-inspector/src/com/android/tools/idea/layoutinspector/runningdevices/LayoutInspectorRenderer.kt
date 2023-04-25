@@ -47,8 +47,7 @@ class LayoutInspectorRenderer(
   private val screenScaleProvider: () -> Double
 ): JPanel(), Disposable {
 
-  // TODO(b/265150325) This variable will be used in later changes to toggle click capturing.
-  private var interceptClicks = false
+  var interceptClicks = false
 
   private val repaintDisplayView = { refresh() }
 

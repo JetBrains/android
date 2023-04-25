@@ -334,6 +334,32 @@ class LayoutInspectorManagerTest {
     assertDoesNotHaveWorkbench(tab1)
   }
 
+  @Test
+  @RunsInEdt
+  fun testDeepInspectEnablesClickIntercept() {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    val layoutInspectorRenderer = tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+
+    val toolbars = tab1.container
+      .allChildren()
+      .filterIsInstance<ActionToolbar>()
+      .first { it.component.name == "LayoutInspector.MainToolbar" }
+
+    val toggleDeepInspectAction = toolbars.actions.filterIsInstance<ToggleDeepInspectAction>().first()
+    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction))).isFalse()
+    assertThat(layoutInspectorRenderer.interceptClicks).isFalse()
+
+    toggleDeepInspectAction.actionPerformed(createTestActionEvent(toggleDeepInspectAction))
+
+    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction))).isTrue()
+    assertThat(layoutInspectorRenderer.interceptClicks).isTrue()
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+  }
+
   private fun assertHasWorkbench(tabInfo: TabInfo) {
     assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
     assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)

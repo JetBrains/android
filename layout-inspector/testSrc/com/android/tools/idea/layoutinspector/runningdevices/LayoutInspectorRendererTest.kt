@@ -30,6 +30,8 @@ import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.jetbrains.rd.swing.fillRect
 import org.junit.Before
@@ -39,6 +41,8 @@ import org.junit.rules.TestName
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Rectangle
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import javax.imageio.ImageIO
@@ -54,6 +58,9 @@ class LayoutInspectorRendererTest {
 
   @get:Rule
   val disposableRule = DisposableRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   private val inspectorModel = model {
     view(ROOT, 0, 0, 100, 150) {
@@ -128,6 +135,83 @@ class LayoutInspectorRendererTest {
     assertSimilar(renderImage, testName.methodName)
   }
 
+  @Test
+  @RunsInEdt
+  fun testEventsDispatchedToParent() {
+    val fakeMouseListener = FakeMouseListener()
+    val parent = BorderLayoutPanel()
+    parent.addMouseListener(fakeMouseListener)
+    parent.addMouseMotionListener(fakeMouseListener)
+    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
+    parent.addToCenter(layoutInspectorRenderer)
+    parent.size = screenDimension
+    layoutInspectorRenderer.size = screenDimension
+
+    val fakeUi = FakeUi(parent)
+    fakeUi.render()
+
+    // move mouse above VIEW1.
+    fakeUi.mouse.moveTo(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.click(deviceFrame.x + 10, deviceFrame.y + 15)
+
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(fakeMouseListener.mouseClickedCount).isEqualTo(1)
+    assertThat(fakeMouseListener.mouseEnteredCount).isEqualTo(1)
+    assertThat(fakeMouseListener.mouseReleasedCount).isEqualTo(1)
+    assertThat(fakeMouseListener.mouseMovedCount).isEqualTo(2)
+    assertThat(fakeMouseListener.mousePressedCount).isEqualTo(1)
+
+    fakeUi.mouse.press(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.dragTo(1, 1)
+    fakeUi.mouse.release()
+    fakeUi.mouse.moveTo(-1, -1)
+
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(fakeMouseListener.mouseExitedCount).isEqualTo(1)
+    assertThat(fakeMouseListener.mouseDraggedCount).isEqualTo(1)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testEventsNotDispatchedToParent() {
+    val fakeMouseListener = FakeMouseListener()
+    val parent = BorderLayoutPanel()
+    parent.addMouseListener(fakeMouseListener)
+    parent.addMouseMotionListener(fakeMouseListener)
+    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
+    parent.addToCenter(layoutInspectorRenderer)
+    parent.size = screenDimension
+    layoutInspectorRenderer.size = screenDimension
+
+    layoutInspectorRenderer.interceptClicks = true
+
+    val fakeUi = FakeUi(parent)
+    fakeUi.render()
+
+    fakeUi.mouse.moveTo(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.click(deviceFrame.x + 10, deviceFrame.y + 15)
+
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(fakeMouseListener.mouseClickedCount).isEqualTo(0)
+    assertThat(fakeMouseListener.mouseEnteredCount).isEqualTo(0)
+    assertThat(fakeMouseListener.mouseReleasedCount).isEqualTo(0)
+    assertThat(fakeMouseListener.mouseMovedCount).isEqualTo(0)
+    assertThat(fakeMouseListener.mousePressedCount).isEqualTo(0)
+
+    fakeUi.mouse.press(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.dragTo(1, 1)
+    fakeUi.mouse.release()
+    fakeUi.mouse.moveTo(-1, -1)
+
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(fakeMouseListener.mouseExitedCount).isEqualTo(0)
+    assertThat(fakeMouseListener.mouseDraggedCount).isEqualTo(0)
+  }
+
   private fun paint(image: BufferedImage, layoutInspectorRenderer: LayoutInspectorRenderer) {
     val graphics = image.createGraphics()
     // add a gray background
@@ -146,5 +230,43 @@ class LayoutInspectorRendererTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString), renderImage, DIFF_THRESHOLD
     )
+  }
+}
+
+private class FakeMouseListener : MouseAdapter() {
+  var mouseClickedCount = 0
+  var mouseDraggedCount = 0
+  var mouseEnteredCount = 0
+  var mouseExitedCount = 0
+  var mouseReleasedCount = 0
+  var mouseMovedCount = 0
+  var mousePressedCount = 0
+
+  override fun mouseClicked(e: MouseEvent) {
+    mouseClickedCount += 1
+  }
+
+  override fun mouseDragged(e: MouseEvent) {
+    mouseDraggedCount += 1
+  }
+
+  override fun mouseEntered(e: MouseEvent) {
+    mouseEnteredCount += 1
+  }
+
+  override fun mouseExited(e: MouseEvent) {
+    mouseExitedCount += 1
+  }
+
+  override fun mouseReleased(e: MouseEvent) {
+    mouseReleasedCount += 1
+  }
+
+  override fun mouseMoved(e: MouseEvent) {
+    mouseMovedCount += 1
+  }
+
+  override fun mousePressed(e: MouseEvent) {
+    mousePressedCount += 1
   }
 }

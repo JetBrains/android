@@ -277,8 +277,8 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         val subPanel = BorderLayoutPanel()
 
         val toggleDeepInspectAction = ToggleDeepInspectAction(
-          { false },
-          { }
+          { layoutInspectorRenderer.interceptClicks },
+          { layoutInspectorRenderer.interceptClicks = it }
         )
 
         val processPicker = TargetSelectionActionFactory.getSingleDeviceProcessPicker(layoutInspector, tabId.deviceSerialNumber)
