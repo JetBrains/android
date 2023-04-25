@@ -19,9 +19,9 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
@@ -62,7 +62,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -96,7 +95,7 @@ class DeviceFileExplorerControllerImpl(
   private val fileOpener: FileOpener
 ) : Disposable, DeviceFileExplorerController {
 
-  private val scope = project.coroutineScope + uiThread
+  private val scope = AndroidCoroutineScope(this, uiThread)
   var showLoadingNodeDelayMillis = 200
     @TestOnly set
   var transferringNodeRepaintMillis = 100
