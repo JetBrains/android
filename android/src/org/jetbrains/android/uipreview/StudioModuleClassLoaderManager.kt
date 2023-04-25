@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
+import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics
 import com.android.tools.idea.log.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -24,6 +25,10 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.combine
+import com.android.tools.rendering.classloading.ModuleClassLoadedDiagnosticsImpl
+import com.android.tools.rendering.classloading.ModuleClassLoader
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager
+import com.android.tools.rendering.classloading.preload
 import com.android.utils.reflection.qualifiedName
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing

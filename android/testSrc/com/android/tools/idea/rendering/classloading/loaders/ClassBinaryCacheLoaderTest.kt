@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import com.android.tools.rendering.classloading.loaders.StaticLoader
 import org.jetbrains.android.uipreview.ClassBinaryCache
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

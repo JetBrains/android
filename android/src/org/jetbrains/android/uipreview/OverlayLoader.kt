@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.util.lang.UrlClassLoader
 import java.nio.file.Path
 

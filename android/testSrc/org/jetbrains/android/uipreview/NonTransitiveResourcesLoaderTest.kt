@@ -24,10 +24,10 @@ import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.rendering.IRenderLogger
 import com.android.tools.idea.rendering.classloading.loadClassBytes
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
-import com.android.tools.idea.rendering.classloading.loaders.StaticLoader
 import com.android.tools.idea.testing.ProjectFiles
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.StaticLoader
 import com.android.tools.res.ids.ResourceIdManager.Companion.get
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -36,6 +36,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.uipreview.nontransitive.app.R
 
 class NonTransitiveResourcesLoaderTest : AndroidTestCase() {
   override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
@@ -96,8 +97,8 @@ class NonTransitiveResourcesLoaderTest : AndroidTestCase() {
    */
   fun testNonTransitiveRClassesAreInitializedCorrectly() {
     val staticLoader = StaticLoader(
-      org.jetbrains.android.uipreview.nontransitive.app.R::class.java.name to loadClassBytes(
-        org.jetbrains.android.uipreview.nontransitive.app.R::class.java),
+      R::class.java.name to loadClassBytes(
+        R::class.java),
       org.jetbrains.android.uipreview.nontransitive.lib.R::class.java.name to loadClassBytes(
         org.jetbrains.android.uipreview.nontransitive.lib.R::class.java)
     )
@@ -107,7 +108,7 @@ class NonTransitiveResourcesLoaderTest : AndroidTestCase() {
         staticLoader
       ) {
         it.replace("com.example.lib.R", org.jetbrains.android.uipreview.nontransitive.lib.R::class.java.name)
-          .replace("com.example.app.R", org.jetbrains.android.uipreview.nontransitive.app.R::class.java.name)
+          .replace("com.example.app.R", R::class.java.name)
       }
     )
 

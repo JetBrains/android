@@ -30,7 +30,7 @@ import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.toClassTransform
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction

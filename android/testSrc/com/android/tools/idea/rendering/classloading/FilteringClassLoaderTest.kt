@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
-import com.android.tools.idea.rendering.classloading.loaders.StaticLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.StaticLoader
 import org.junit.Assert.fail
 import org.junit.Test
 

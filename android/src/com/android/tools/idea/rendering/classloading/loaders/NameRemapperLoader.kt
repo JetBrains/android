@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+
 /**
  * A [DelegatingClassLoader.Loader] that allows re-mapping the FQCN before passing it to the [delegate].
  */

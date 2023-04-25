@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.rendering.classloading.FakeSavedStateRegistryClassDump
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.StaticLoader
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 

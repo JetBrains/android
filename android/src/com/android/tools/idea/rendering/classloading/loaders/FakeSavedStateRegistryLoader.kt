@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.rendering.classloading.FakeSavedStateRegistryClassDump
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 
 private const val FAKE_SAVEDSTATE_REGISTRY_PACKAGE_NAME = "_layoutlib_._internal_.androidx.lifecycle.FakeSavedStateRegistry"
 

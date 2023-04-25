@@ -13,23 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.classloading.loaders
+package com.android.tools.rendering.classloading.loaders
 
-import com.android.tools.idea.rendering.classloading.loadClassBytes
+import org.objectweb.asm.Type
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.fail
 import org.junit.Test
 
-private class Test
+private class TestClass
+
+private fun loadClassBytes(c: Class<*>): ByteArray {
+  val className = "${Type.getInternalName(c)}.class"
+  c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
+}
 
 internal class DelegatingClassLoaderTest {
   @Test
   fun `check loader successfully finds class`() {
     val classLoader = DelegatingClassLoader(null, StaticLoader(
-      Test::class.java.canonicalName to loadClassBytes(Test::class.java)
+      TestClass::class.java.canonicalName to loadClassBytes(TestClass::class.java)
     ))
 
-    assertNotNull(classLoader.loadClass(Test::class.java.canonicalName))
+    assertNotNull(classLoader.loadClass(TestClass::class.java.canonicalName))
 
     // Check that a nonexistent class throws ClassNotFound
     try {
@@ -46,7 +51,7 @@ internal class DelegatingClassLoaderTest {
   @Test
   fun `check class renaming`() {
     val classLoader = DelegatingClassLoader(null, StaticLoader(
-      "private.Test" to loadClassBytes(Test::class.java)
+      "private.Test" to loadClassBytes(TestClass::class.java)
     ))
 
     assertNotNull(classLoader.loadClass("private.Test"))

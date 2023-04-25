@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
-import org.jetbrains.android.uipreview.ModuleClassLoaderDiagnosticsRead
+import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead
 
 /**
  * Class to record stats from a render result.

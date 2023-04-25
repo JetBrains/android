@@ -24,6 +24,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.tools.rendering.classloading.ModuleClassLoader;
+import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;

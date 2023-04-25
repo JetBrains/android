@@ -22,6 +22,8 @@ import com.android.tools.rendering.classloading.ClassTransform
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.commons.ClassRemapper
 import org.objectweb.asm.commons.SimpleRemapper
+import com.android.tools.rendering.classloading.loaders.NopLoader
+import com.android.tools.rendering.classloading.loaders.StaticLoader
 import org.junit.Assert.assertNull
 import org.junit.Test
 import java.util.function.Function

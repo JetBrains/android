@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview
+package com.android.tools.rendering.classloading
 
-import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 internal class ModuleClassLoadedDiagnosticsImplTest {

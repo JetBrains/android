@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering.classloading;
 
 
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader;
-import com.android.tools.idea.rendering.classloading.loaders.StaticLoader;
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader;
+import com.android.tools.rendering.classloading.loaders.StaticLoader;
 import com.intellij.openapi.module.Module;
 import java.util.Map;
 import org.jetbrains.android.uipreview.ModuleProvider;

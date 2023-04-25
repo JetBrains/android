@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.module.Module

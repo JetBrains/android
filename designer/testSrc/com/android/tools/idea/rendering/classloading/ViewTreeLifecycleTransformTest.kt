@@ -18,8 +18,8 @@ package com.android.tools.idea.rendering.classloading
 import com.android.testutils.TestUtils
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.toClassTransform
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull

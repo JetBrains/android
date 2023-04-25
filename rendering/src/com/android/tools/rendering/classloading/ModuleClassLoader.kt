@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview
+package com.android.tools.rendering.classloading
 
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.Disposable
 
 /**
