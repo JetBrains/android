@@ -54,7 +54,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -194,7 +193,6 @@ class ComposePreviewRepresentationTest {
       preview.onDeactivate()
     }
 
-  @Ignore("b/252543742")
   @Test
   fun testUiCheckMode() {
     StudioFlags.NELE_ATF_FOR_COMPOSE.override(true)
