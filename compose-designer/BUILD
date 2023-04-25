@@ -45,12 +45,54 @@ iml_module(
     iml_files = ["intellij.android.compose-designer.tests.iml"],
     resources = ["testSrc/META-INF"],
     split_test_targets = {
-        "gradle": {
+        "gradle.fast": {
+            "tags": ["cpu:3"],
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.compose.gradle.fast",
+        },
+        "gradle.navigation": {
+            "test_filter": "com.android.tools.idea.compose.gradle.navigation",
+        },
+        "gradle.preview": {
+            "tags": ["cpu:3"],
+            "shard_count": 3,
+            "test_filter": "com.android.tools.idea.compose.gradle.preview",
+        },
+        "gradle.runconfiguration": {
+            "test_filter": "com.android.tools.idea.compose.gradle.preview.runconfiguration",
+        },
+        # Can probably be grouped into gradle-other once flakiness is fixed: b/279558854
+        "AccessibilityModelUpdaterTest": {
+            "test_filter": "com.android.tools.idea.compose.gradle.preview.AccessibilityModelUpdaterTest",
+        },
+        # Source of many flakes. Splitting it into an individual target for better investigation.
+        "ComposePreviewRepresentationGradleTest": {
+            "test_filter": "com.android.tools.idea.compose.gradle.preview.ComposePreviewRepresentationGradleTest",
+        },
+        # Can probably be grouped into gradle-other once flakiness is fixed: b/261126651, b/272048512
+        "RenderErrorTest": {
+            "test_filter": "com.android.tools.idea.compose.gradle.preview.RenderErrorTest",
+        },
+        "gradle-other": {
             "tags": ["cpu:3"],
             "shard_count": 7,
             "test_filter": "com.android.tools.idea.compose.gradle",
         },
-        "non-gradle": {},
+        "animation": {
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.compose.preview.animation",
+        },
+        "runconfiguration": {
+            "test_filter": "com.android.tools.idea.compose.preview.runconfiguration",
+        },
+        "fast": {
+            "test_filter": "com.android.tools.idea.compose.preview.fast",
+        },
+        # Source of many flakes. Splitting it into an individual target for better investigation.
+        "ComposePreviewRepresentationTest": {
+            "test_filter": "com.android.tools.idea.compose.preview.ComposePreviewRepresentationTest",
+        },
+        "other": {},
     },
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.compose.preview.ComposePreviewTestSuite",
