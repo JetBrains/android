@@ -92,6 +92,7 @@ class RenderLaggingMode : ToggleAction("Enable Layout Preview Lagging Mode") {
     }
     else {
       val builder = DialogBuilder()
+      // IDEA-318934 Port RenderLaggingMode to Kotlin UI DSL 2
       builder.setCenterPanel(panel {
         row {
           label("Min wait time")

@@ -47,6 +47,7 @@ class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccesso
     font = StartupUiUtil.labelFont
   }
 
+  // IDEA-317810 Port LabelWithEditButton to Kotlin UI DSL 2
   val panel = panel {
     row {
       textField(growX).enableIf(button.selected).focusInWindowIf(button.selected)

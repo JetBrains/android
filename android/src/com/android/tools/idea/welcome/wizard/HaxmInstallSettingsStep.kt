@@ -71,6 +71,7 @@ class HaxmInstallSettingsStep(
     majorTickSpacing = maxMemory / MAJOR_TICKS
   }
 
+  // IDEA-317801 Port HaxmInstallSettingsStep to Kotlin UI DSL 2
   private val panel = panel {
     row {
       label("We have detected that your system can run the Android emulator in an accelerated performance mode.")

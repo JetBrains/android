@@ -46,6 +46,7 @@ class ComposeFormattingCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
       private lateinit var checkBox: JCheckBox
 
       override fun createComponent(): DialogPanel {
+        // IDEA-318933 Port ComposeFormattingCodeStyleSettingsProvider to Kotlin UI DSL 2
         return panel {
           row {
             titledRow("Compose formatting") {

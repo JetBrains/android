@@ -34,6 +34,7 @@ class ComposeCodeCompletionConfigurable : BoundConfigurable("Compose") {
     settings.state::isComposeInsertHandlerEnabled)
 
   override fun createPanel(): DialogPanel {
+    // IDEA-318932 Port ComposeCodeCompletionConfigurable to Kotlin UI DSL 2
     return panel {
       row {
         titledRow("Compose") {
