@@ -312,15 +312,15 @@ internal class DeviceView(
   private fun computeActualSize(rotationQuadrants: Int): Dimension =
     deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
 
-  override fun paintComponent(originalGraphics: Graphics) {
-    super.paintComponent(originalGraphics)
+  override fun paintComponent(graphics: Graphics) {
+    super.paintComponent(graphics)
 
     if (width == 0 || height == 0) {
       return
     }
 
     val decoder = deviceClient.videoDecoder ?: return
-    val g = originalGraphics.create() as Graphics2D
+    val g = graphics.create() as Graphics2D
     val physicalToVirtualScale = 1.0 / screenScale
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
