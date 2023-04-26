@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
-import org.jetbrains.android.uipreview.RecyclerViewHelper
+import com.android.tools.rendering.RecyclerViewHelper
 
 /**
  * Simple [DelegatingClassLoader.Loader] that delegates to [RecyclerViewHelper.getAdapterHelperClass]. This loader

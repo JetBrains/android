@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview;
+package com.android.tools.rendering;
 
 import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_V7;

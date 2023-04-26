@@ -15,17 +15,19 @@
  */
 package org.jetbrains.android.uipreview;
 
+import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
-import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.log.LogAnonymizerUtil;
 import com.android.tools.log.LogAnonymizer;
 import com.android.tools.rendering.IRenderLogger;
+import com.android.tools.rendering.RecyclerViewHelper;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.ids.ResourceIdManager;
@@ -37,13 +39,13 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiModifier;
 import com.intellij.util.ArrayUtil;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -310,6 +312,10 @@ public class ViewLoader {
     }
   }
 
+  private static boolean isAbstract(@NotNull PsiClass c) {
+    return (c.isInterface() || c.hasModifierProperty(PsiModifier.ABSTRACT));
+  }
+
   @Nullable
   private Object createViewFromSuperclass(@NotNull final String className,
                                           @Nullable final Class<?>[] constructorSignature,
@@ -344,11 +350,11 @@ public class ViewLoader {
 
           if (qName == null ||
               !visited.add(qName) ||
-              AndroidUtils.VIEW_CLASS_NAME.equals(psiClass.getQualifiedName())) {
+              SdkConstants.CLASS_VIEW.equals(psiClass.getQualifiedName())) {
             break;
           }
 
-          if (!AndroidUtils.isAbstract(psiClass)) {
+          if (!isAbstract(psiClass)) {
             try {
               Class<?> aClass = myLoadedClasses.get(qName);
               if (aClass == null) {
