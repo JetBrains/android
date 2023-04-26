@@ -50,6 +50,8 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.dom.ActivityAttributesSnapshot;
+import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTrackerImpl;
+import com.android.tools.idea.rendering.tracking.StackTraceCapture;
 import com.android.tools.rendering.CachingImageFactory;
 import com.android.tools.rendering.ExecuteCallbacksResult;
 import com.android.tools.rendering.InteractionEventResult;
@@ -381,7 +383,7 @@ public class RenderTask {
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
-    RenderTaskAllocationTrackerKt.captureDisposeStackTrace().bind(this);
+    RenderTaskAllocationTrackerImpl.INSTANCE.captureDisposeStackTrace().bind(this);
 
     return ourDisposeService.submit(() -> {
       try {

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.idea.rendering.tracking
 
+import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.ui.GuiTestingService
 import com.intellij.openapi.application.ApplicationManager
 import java.util.WeakHashMap
@@ -24,14 +25,6 @@ private val shouldTrackAllocations = GuiTestingService.getInstance()?.isGuiTesti
                                      ApplicationManager.getApplication()?.isUnitTestMode == true
 private val allocations = WeakHashMap<RenderTask, StackTraceCapture>()
 private val scheduledDispose = WeakHashMap<RenderTask, StackTraceCapture>()
-
-/**
- * Data class that represents a [RenderTask] allocation point.
- */
-abstract class StackTraceCapture {
-  abstract val stackTrace: List<StackTraceElement>
-  abstract fun bind(renderTask: RenderTask)
-}
 
 data class AllocationStackTrace(override val stackTrace: List<StackTraceElement>): StackTraceCapture() {
   override fun bind(renderTask: RenderTask) {
@@ -80,26 +73,22 @@ fun notDisposedRenderTasks(): Sequence<Pair<RenderTask, StackTraceCapture>> {
     }
 }
 
-/**
- * Captures a [RenderTask] allocation point to be used later in the constructor.
- */
-fun captureDisposeStackTrace(): StackTraceCapture =
-  if (shouldTrackAllocations) {
-    // Capture the current stack trace dropping the dispose point stack frame, one for captureDisposeStackTrace and one for getTrace
-    DisposeStackTrace(Thread.currentThread().stackTrace.asList().drop(2))
-  }
-  else {
-    NULL_STACK_TRACE
-  }
+object RenderTaskAllocationTrackerImpl : RenderTaskAllocationTracker {
+  override fun captureDisposeStackTrace(): StackTraceCapture =
+    if (shouldTrackAllocations) {
+      // Capture the current stack trace dropping the dispose point stack frame, one for captureDisposeStackTrace and one for getTrace
+      DisposeStackTrace(Thread.currentThread().stackTrace.asList().drop(2))
+    }
+    else {
+      NULL_STACK_TRACE
+    }
 
-/**
- * Captures a [RenderTask] allocation point to be used later in the constructor.
- */
-fun captureAllocationStackTrace(): StackTraceCapture =
-  if (shouldTrackAllocations) {
-    // Capture the current stack trace dropping the allocation point stack frame, one for captureAllocationStackTrace and one for getTrace
-    AllocationStackTrace(Thread.currentThread().stackTrace.asList().drop(2))
-  }
-  else {
-    NULL_STACK_TRACE
-  }
+  override fun captureAllocationStackTrace(): StackTraceCapture =
+    if (shouldTrackAllocations) {
+      // Capture the current stack trace dropping the allocation point stack frame, one for captureAllocationStackTrace and one for getTrace
+      AllocationStackTrace(Thread.currentThread().stackTrace.asList().drop(2))
+    }
+    else {
+      NULL_STACK_TRACE
+    }
+}

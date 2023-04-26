@@ -26,6 +26,8 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTrackerImpl;
+import com.android.tools.idea.rendering.tracking.StackTraceCapture;
 import com.android.tools.layoutlib.LayoutlibFactory;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderContext;
@@ -490,7 +492,7 @@ final public class RenderService implements Disposable {
      */
     @NotNull
     public CompletableFuture<RenderTask> build() {
-      StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
+      StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerImpl.INSTANCE.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
         RenderModelModule module = myContext.getModule();
