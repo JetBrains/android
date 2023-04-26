@@ -37,8 +37,5 @@ class ToggleDeepInspectAction(
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.description = LayoutInspectorBundle.message("deep.inspect.description")
-
-    // TODO(b/265150325) make visible once functionality is implemented
-    event.presentation.isVisible = false
   }
 }

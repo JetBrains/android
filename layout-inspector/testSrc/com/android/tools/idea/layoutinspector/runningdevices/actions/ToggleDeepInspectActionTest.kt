@@ -38,15 +38,6 @@ class ToggleDeepInspectActionTest {
   }
 
   @Test
-  fun testActionIsNotVisible() {
-    val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, { })
-
-    val event = createTestActionEvent(toggleDeepInspectAction)
-    toggleDeepInspectAction.update(event)
-    assertThat(event.presentation.isVisible).isFalse()
-  }
-
-  @Test
   fun testTitleAndDescription() {
     val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, { })
 
