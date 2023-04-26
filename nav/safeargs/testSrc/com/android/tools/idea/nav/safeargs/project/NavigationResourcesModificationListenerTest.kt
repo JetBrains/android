@@ -19,9 +19,11 @@ import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,6 +39,12 @@ class NavigationResourcesModificationListenerTest {
   @Before
   fun setUp() {
     project = safeArgsRule.project
+
+    // Ensure that the resource repository is initialized before we start testing, since NavigationResourcesModificationListener will only
+    // used an already-cached version of the repository and won't trigger creation if it doesn't already exist.
+    safeArgsRule.fixture.addFileToProject("res/values/strings.xml", "")
+    safeArgsRule.waitForResourceRepositoryUpdates()
+
     NavigationResourcesModificationListener.ensureSubscribed(project)
     myModuleNavResourcesTracker = ModuleNavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
     myProjectNavResourcesTracker = ProjectNavigationResourceModificationTracker.getInstance(project)
