@@ -184,7 +184,7 @@ class EmptyStatePanelTest {
   }
 
   private fun createEmptyStatePanel(): EmptyStatePanel {
-    val panel = EmptyStatePanel(projectRule.project).apply { setSize(500, 1000) }
+    val panel = EmptyStatePanel(projectRule.project, testRootDisposable).apply { setSize(500, 1000) }
 
     // Allow the panel to update itself.
     ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 2, TimeUnit.SECONDS)

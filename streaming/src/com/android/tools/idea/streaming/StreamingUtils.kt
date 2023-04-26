@@ -16,9 +16,6 @@
 package com.android.tools.idea.streaming
 
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.util.concurrency.SameThreadExecutor
 import kotlinx.coroutines.cancelFutureOnCancellation
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -168,10 +165,6 @@ internal fun Dimension.coerceAtMost(maximumValue: Dimension): Dimension {
 internal val Container.sizeWithoutInsets: Dimension
   get() = Dimension(width - insets.left - insets.right.coerceAtLeast(0),
                     height - insets.top - insets.bottom.coerceAtLeast(0))
-
-@Suppress("UnstableApiUsage")
-val Project.earlyDisposable: Disposable
-  get() = (this as? ProjectEx)?.earlyDisposable ?: this
 
 internal fun Point.constrainInside(d: Dimension) =
   if (this in d) this else Point(x.coerceIn(0, d.width - 1), y.coerceIn(0, d.height - 1))

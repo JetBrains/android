@@ -58,7 +58,7 @@ private const val SIDE_MARGIN = 0.15
  * The panel that is shown in the Running Devices tool window when there are no running
  * embedded emulators and no mirrored devices.
  */
-internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridBagLayout()), Disposable {
+internal class EmptyStatePanel(project: Project, disposableParent: Disposable): JBPanel<EmptyStatePanel>(GridBagLayout()), Disposable {
 
   private var emulatorLaunchesInToolWindow: Boolean
   private var deviceMirroringEnabled: Boolean
@@ -67,7 +67,7 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
   private var disposed = false
 
   init {
-    Disposer.register(project.earlyDisposable, this)
+    Disposer.register(disposableParent, this)
 
     isOpaque = true
     background = StandardColors.BACKGROUND_COLOR

@@ -481,7 +481,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun createEmptyStatePanel() {
-    val panel = EmptyStatePanel(project)
+    val panel = EmptyStatePanel(project, this)
     val contentFactory = ContentFactory.getInstance()
     val content = contentFactory.createContent(panel, null, false).apply {
       isCloseable = false
