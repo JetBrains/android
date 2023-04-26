@@ -25,6 +25,7 @@ import com.android.testutils.MockitoKt.mockStatic
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.google.gct.testing.launcher.CloudAuthenticator
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -58,6 +59,9 @@ class FtlDeviceCatalogServiceTest : LightPlatformTestCase() {
   @Mock
   private lateinit var mockProgressIndicator: ProgressIndicator
 
+  @Mock
+  private lateinit var mockGradlePropertyModel: GradlePropertyModel
+
   override fun setUp() {
     super.setUp()
     openMocks(this)
@@ -68,11 +72,18 @@ class FtlDeviceCatalogServiceTest : LightPlatformTestCase() {
     TestApplicationManager.getInstance()
   }
 
-  private fun ftlDeviceCatalogServiceTestHelper(callback: () -> Unit) {
+  private fun ftlDeviceCatalogServiceTestHelper(modules: Array<Module> = emptyArray(), callback: () -> Unit) {
     mockStatic<ProjectBuildModel>().use {
       whenever(ProjectBuildModel.get(any())).thenReturn(mockProjectBuildModel)
       mockStatic<CloudAuthenticator>().use {
         whenever(CloudAuthenticator.getInstance()).thenReturn(mockCloudAuthenticator)
+        val mockModuleManager = mock<ModuleManager>()
+        whenever(mockProject.getService(ModuleManager::class.java)).thenReturn(mockModuleManager)
+        whenever(mockModuleManager.modules).thenReturn(modules)
+        whenever(mockProjectBuildModel.getModuleBuildModel(any(Module::class.java))!!.plugins()).thenReturn(listOf(mockPluginModel))
+        whenever(mockGradlePropertyModel.name).thenReturn("android.experimental.testOptions.managedDevices.customDevice")
+        whenever(mockGradlePropertyModel.valueAsString()).thenReturn("true")
+        whenever(mockProjectBuildModel.projectBuildModel!!.propertiesModel!!.declaredProperties).thenReturn(listOf(mockGradlePropertyModel))
         callback()
       }
     }
@@ -99,17 +110,19 @@ class FtlDeviceCatalogServiceTest : LightPlatformTestCase() {
     }
   }
 
-  private fun ftlEnabledTestHelper(modules: Array<Module> = emptyArray(), callback: () -> Unit) {
-    val mockModuleManager = mock<ModuleManager>()
-    whenever(mockProject.getService(ModuleManager::class.java)).thenReturn(mockModuleManager)
-    whenever(mockModuleManager.modules).thenReturn(modules)
+
+  fun testFtlNotEnabled_gradlePropertyNotSet() {
     ftlDeviceCatalogServiceTestHelper {
-      callback()
+      whenever(mockGradlePropertyModel.name).thenReturn("android.experimental.testOptions.managedDevices.NOTCustomDevice")
+      val ftlDeviceCatalogService = FtlDeviceCatalogService()
+      ftlDeviceCatalogService.updateDeviceCatalog(mockProject)
+      verifyNoInteractions(mockCloudAuthenticator)
+      assertFalse(ftlDeviceCatalogService.state.isCacheFresh())
     }
   }
 
-  fun testFtlNotEnabled() {
-    ftlEnabledTestHelper {
+  fun testFtlNotEnabled_noMatchingPluginInModule() {
+    ftlDeviceCatalogServiceTestHelper {
       whenever(mockPluginModel.psiElement!!.text).thenReturn("com.google.testPlugin")
       val ftlDeviceCatalogService = FtlDeviceCatalogService()
       ftlDeviceCatalogService.updateDeviceCatalog(mockProject)
@@ -121,7 +134,7 @@ class FtlDeviceCatalogServiceTest : LightPlatformTestCase() {
   fun testFtlEnabled_moduleLevelSetting() {
     whenever(mockProjectBuildModel.projectBuildModel!!.plugins()).thenReturn(emptyList())
     whenever(mockProjectBuildModel.getModuleBuildModel(mockModule)!!.plugins()).thenReturn(listOf(mockPluginModel))
-    ftlEnabledTestHelper(arrayOf(mockModule)) {
+    ftlDeviceCatalogServiceTestHelper(arrayOf(mockModule)) {
       assertTrue(isFtlPluginEnabled(mockProject, mockProject.modules))
     }
   }

@@ -146,9 +146,14 @@ enum class GmdConfigurationInterfaceInfo(val interfaceName: String,
 fun isFtlPluginEnabled(project: Project, selectedModules: Array<Module>): Boolean {
   fun GradleBuildModel.getPluginNames(): List<String> = this.plugins().orEmpty().mapNotNull { it.psiElement?.text }
   val projectBuildModel = ProjectBuildModel.get(project) ?: return false
-  val selectedPlugins: HashSet<String> = projectBuildModel.projectBuildModel?.getPluginNames().orEmpty().toHashSet()
+  val selectedPlugins: HashSet<String> = hashSetOf()
   selectedModules.forEach { selectedPlugins.addAll(projectBuildModel.getModuleBuildModel(it)?.getPluginNames().orEmpty()) }
-  return selectedPlugins.any { pluginName ->
-    pluginName.contains("com.google.firebase.testlab")
-  }
+  return selectedPlugins.any { it.contains("com.google.firebase.testlab") } &&
+         getGradlePropertyValue(projectBuildModel, "android.experimental.testOptions.managedDevices.customDevice")
+}
+
+fun getGradlePropertyValue(projectBuildModel: ProjectBuildModel, propertyName: String): Boolean {
+  return projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties?.filter { it.name == propertyName }?.let {
+    if (it.isNotEmpty()) it[0].valueAsString().toBoolean() else false
+  } ?: false
 }

@@ -31,6 +31,7 @@ import com.android.gmdcodecompletion.completions.lookupelementprovider.FtlTestOp
 import com.android.gmdcodecompletion.completions.lookupelementprovider.ManagedVirtualLookupElementProvider
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalog
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogService
+import com.android.gmdcodecompletion.getGradlePropertyValue
 import com.android.gmdcodecompletion.getQualifiedNameList
 import com.android.gmdcodecompletion.isFtlPluginEnabled
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
@@ -206,11 +207,9 @@ class GmdCodeCompletionContributor : CompletionContributor() {
     val deviceProperties = getSiblingPropertyMap(position, PsiElementLevel.COMPLETION_PROPERTY_VALUE)
     val minAndTargetApiLevel = getMinAndTargetSdk(position.androidFacet)
     // check if project has the support old API flag for local GMD. This affects minimum supported API level
-    val supportOldApiFlag = ProjectBuildModel.get(
-      position.project).projectBuildModel?.propertiesModel?.declaredProperties?.filter {
-      it.name == "android.experimental.testOptions.managedDevices.allowOldApiLevelDevices"
-    }?.let { if (it.isNotEmpty()) it[0] else null }
-    if (deviceCatalog is ManagedVirtualDeviceCatalog && (supportOldApiFlag == null || !supportOldApiFlag.valueAsString().toBoolean())) {
+    if (deviceCatalog is ManagedVirtualDeviceCatalog &&
+        !getGradlePropertyValue(ProjectBuildModel.get(position.project),
+                                "android.experimental.testOptions.managedDevices.allowOldApiLevelDevices")) {
       minAndTargetApiLevel.minSdk = maxOf(MIN_SUPPORTED_GMD_API_LEVEL, minAndTargetApiLevel.minSdk)
     }
     if (deviceProperties[configurationParameterName] != null) return
