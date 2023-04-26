@@ -16,7 +16,7 @@
 package com.android.tools.rendering
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingPriority
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.intellij.openapi.diagnostic.Logger
 import java.util.PriorityQueue
 import java.util.Queue
@@ -36,6 +36,7 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import org.jetbrains.annotations.TestOnly
+import java.util.EnumMap
 
 /** Max number of tasks that can be waiting to execute */
 private val DEFAULT_MAX_QUEUED_TASKS = Integer.getInteger("layoutlib.thread.max.queued", 50)
@@ -56,9 +57,15 @@ private constructor(
   private val scheduledExecutorService: ScheduledExecutorService
 ) : RenderAsyncActionExecutor {
   private val pendingActionsQueueLock: Lock = ReentrantLock()
+  private val runningRenderLock: Lock = ReentrantLock()
 
   @GuardedBy("pendingActionsQueueLock")
-  private val pendingActionsQueue: Queue<PriorityCompletableFuture<*>> = PriorityQueue()
+  private val allPendingActionsQueue: Queue<PriorityCompletableFuture<*>> = PriorityQueue()
+  @GuardedBy("pendingActionsQueueLock")
+  private val pendingActionsQueueByTopic: MutableMap<RenderingTopic, Queue<PriorityCompletableFuture<*>>> =
+    EnumMap(RenderingTopic::class.java)
+  @GuardedBy("runningRenderLock")
+  private var runningRender: PriorityCompletableFuture<*>? = null
   private val accumulatedTimeoutExceptions = AtomicInteger(0)
   private val executedRenderActions = LongAdder()
 
@@ -88,7 +95,7 @@ private constructor(
     }
 
     // All async actions run with a timeout so we do not need to specify another one here
-    return runAsyncAction(RenderingPriority.HIGH, callable).get()
+    return runAsyncAction(RenderingTopic.NOT_SPECIFIED, callable).get()
   }
 
   private class EvictedException(message: String?) : CancellationException(message)
@@ -106,11 +113,11 @@ private constructor(
     queueingTimeoutUnit: TimeUnit,
     actionTimeout: Long,
     actionTimeoutUnit: TimeUnit,
-    priority: RenderingPriority,
+    renderingTopic: RenderingTopic,
     callable: Callable<T>
   ): CompletableFuture<T> {
     val future =
-      object : PriorityCompletableFuture<T>(priority) {
+      object : PriorityCompletableFuture<T>(renderingTopic) {
         override fun cancel(mayInterruptIfRunning: Boolean): Boolean =
           super.cancel(mayInterruptIfRunning).also {
             if (mayInterruptIfRunning && it) {
@@ -138,12 +145,15 @@ private constructor(
       }
     pendingActionsQueueLock
       .withLock {
-        pendingActionsQueue.add(future)
+        allPendingActionsQueue.add(future)
+        pendingActionsQueueByTopic.getOrPut(renderingTopic) { PriorityQueue() }.add(future)
         // We have reached the maximum, evict overflow
         return@withLock if (maxQueueingTasks > 0) {
           val evictedTasks = mutableListOf<CompletableFuture<*>>()
-          while (pendingActionsQueue.size > maxQueueingTasks) {
-            evictedTasks.add(pendingActionsQueue.remove())
+          while (allPendingActionsQueue.size > maxQueueingTasks) {
+            val evicted = allPendingActionsQueue.remove()
+            pendingActionsQueueByTopic[evicted.renderingTopic]?.remove(evicted)
+            evictedTasks.add(evicted)
           }
           evictedTasks
         } else emptyList()
@@ -155,34 +165,47 @@ private constructor(
         )
       }
     renderingExecutorService.execute(
-      PriorityRunnable(priority) {
-        executedRenderActions.increment()
-        // Clear the interrupted state
-        Thread.interrupted()
-        queueTimeoutFuture?.cancel(false)
-        val isPending = pendingActionsQueueLock.withLock { pendingActionsQueue.remove(future) }
-
-        if (!isPending || future.isDone) return@PriorityRunnable
-
-        val actionTimeoutFuture =
-          scheduleTimeoutAction(actionTimeout, actionTimeoutUnit) {
-            if (!future.isDone) {
-              interrupt()
-            }
-            future.completeExceptionally(
-              createRenderTimeoutException(
-                "The render action was too slow to execute (${actionTimeoutUnit.toMillis(actionTimeout)}ms)"
-              )
-            )
-          }
-        future.whenComplete { _, _ -> actionTimeoutFuture.cancel(false) }
-
-        // The request got called, so reset the timeout counter.
-        accumulatedTimeoutExceptions.set(0)
+      PriorityRunnable(renderingTopic) {
+        runningRenderLock.withLock {
+          runningRender = future
+        }
         try {
-          future.complete(callable.call())
-        } catch (t: Throwable) {
-          future.completeExceptionally(t)
+          executedRenderActions.increment()
+          // Clear the interrupted state
+          Thread.interrupted()
+          queueTimeoutFuture?.cancel(false)
+          val isPending = pendingActionsQueueLock.withLock {
+            pendingActionsQueueByTopic[renderingTopic]?.remove(future)
+            allPendingActionsQueue.remove(future)
+          }
+
+          if (!isPending || future.isDone) return@PriorityRunnable
+
+          val actionTimeoutFuture =
+            scheduleTimeoutAction(actionTimeout, actionTimeoutUnit) {
+              if (!future.isDone) {
+                interrupt()
+              }
+              future.completeExceptionally(
+                createRenderTimeoutException(
+                  "The render action was too slow to execute (${actionTimeoutUnit.toMillis(actionTimeout)}ms)"
+                )
+              )
+            }
+          future.whenComplete { _, _ -> actionTimeoutFuture.cancel(false) }
+
+          // The request got called, so reset the timeout counter.
+          accumulatedTimeoutExceptions.set(0)
+          try {
+            future.complete(callable.call())
+          } catch (t: Throwable) {
+            future.completeExceptionally(t)
+          }
+        }
+        finally {
+          runningRenderLock.withLock {
+            runningRender = null
+          }
         }
       }
     )
@@ -196,21 +219,31 @@ private constructor(
     }
   }
 
-  override fun cancelLowerPriorityActions(minPriority: RenderingPriority): Int {
-    var numberOfCancelledActions: Int
+  override fun cancelActionsByTopic(topicsToCancel: List<RenderingTopic>,
+                                    mayInterruptIfRunning: Boolean): Int {
+    var numberOfCancelledActions = 0
     pendingActionsQueueLock
       .withLock {
-        val tasksToCancel = mutableListOf<CompletableFuture<*>>()
-        while (
-          pendingActionsQueue.isNotEmpty() &&
-            pendingActionsQueue.peek().renderingPriority <= minPriority
-        ) {
-          tasksToCancel.add(pendingActionsQueue.remove())
+        for (topic in topicsToCancel) {
+          pendingActionsQueueByTopic[topic]?.let { queue ->
+            while (queue.isNotEmpty()) {
+              val removed = queue.remove()
+              allPendingActionsQueue.remove(removed)
+              removed.cancel(false)
+              numberOfCancelledActions++
+            }
+          }
         }
-        numberOfCancelledActions = tasksToCancel.size
-        tasksToCancel
       }
-      .forEach { it.cancel(false) }
+    runningRenderLock
+      .withLock {
+        runningRender?.let {
+          if (it.renderingTopic in topicsToCancel) {
+            it.cancel(mayInterruptIfRunning)
+            numberOfCancelledActions++
+          }
+        }
+      }
     return numberOfCancelledActions
   }
 
@@ -234,7 +267,7 @@ private constructor(
 
   @get:TestOnly
   val numPendingActions: Int
-    get() = pendingActionsQueue.size
+    get() = allPendingActionsQueue.size
 
   /** Returns true if the render thread is busy running some code, false otherwise. */
   fun isBusy() = renderingExecutorService.isBusy
@@ -272,7 +305,7 @@ private constructor(
    * This is to be used in the priority queue of the [RenderExecutor], so that the executor will
    * execute first the runnable with the highest priority.
    */
-  private class PriorityRunnable(val renderingPriority: RenderingPriority, val runnable: Runnable) :
+  private class PriorityRunnable(val renderingTopic: RenderingTopic, val runnable: Runnable) :
     Runnable, Comparable<PriorityRunnable> {
 
     private val creationTime = System.currentTimeMillis()
@@ -284,7 +317,7 @@ private constructor(
     override fun compareTo(other: PriorityRunnable): Int {
       // Minus sign as we want the highest priority first
       val priorityComparison =
-        -renderingPriority.priority.compareTo(other.renderingPriority.priority)
+        -renderingTopic.priority.compareTo(other.renderingTopic.priority)
       if (priorityComparison != 0) {
         return priorityComparison
       }
@@ -299,8 +332,11 @@ private constructor(
    *
    * This is to be used in the pending action priority queue of the [RenderExecutor], so that, if
    * the queue reaches capacity, the lowest priority actions are removed first.
+   *
+   * The [renderingTopic] associates a completable with the tool or context in which the render
+   * is happening, and it is used for grouping and cancelling purposes.
    */
-  private open class PriorityCompletableFuture<T : Any?>(val renderingPriority: RenderingPriority) :
+  private open class PriorityCompletableFuture<T : Any?>(val renderingTopic: RenderingTopic) :
     Comparable<PriorityCompletableFuture<Any?>>, CompletableFuture<T>() {
 
     private val creationTime = System.currentTimeMillis()
@@ -309,7 +345,7 @@ private constructor(
       // Plus sign as we want the lowest priority first to be removed from the wait list when
       // reaching max
       val priorityComparison =
-        renderingPriority.priority.compareTo(other.renderingPriority.priority)
+        renderingTopic.priority.compareTo(other.renderingTopic.priority)
       if (priorityComparison != 0) {
         return priorityComparison
       }

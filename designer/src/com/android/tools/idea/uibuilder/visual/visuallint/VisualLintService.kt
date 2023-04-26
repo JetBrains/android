@@ -20,8 +20,6 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.rendering.RenderAsyncActionExecutor
-import com.android.tools.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createLogger
@@ -41,6 +39,8 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnal
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzer
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
+import com.android.tools.rendering.RenderResult
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInspection.InspectionProfile
@@ -159,8 +159,8 @@ class VisualLintService(val project: Project): Disposable {
   private fun runBackgroundVisualLinting(baseModel: NlModel, issueProvider: VisualLintIssueProvider, visualLintBaseConfigIssues: VisualLintBaseConfigIssues) {
     val listener = object : ModelListener {
       override fun modelChanged(model: NlModel) {
-        val numberOfCancelledActions = RenderService.getRenderAsyncActionExecutor().cancelLowerPriorityActions(
-          RenderAsyncActionExecutor.RenderingPriority.LOW)
+        val numberOfCancelledActions = RenderService.getRenderAsyncActionExecutor().cancelActionsByTopic(
+          listOf(RenderingTopic.VISUAL_LINT), false)
         if (numberOfCancelledActions > 0) {
           VisualLintUsageTracker.getInstance().trackCancelledBackgroundAnalysis()
         }
@@ -274,7 +274,7 @@ fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFutur
   return renderService.taskBuilder(model.facet, model.configuration, logger)
     .withPsiFile(model.file)
     .withLayoutScanner(requireRender)
-    .withPriority(RenderAsyncActionExecutor.RenderingPriority.LOW)
+    .withTopic(RenderingTopic.VISUAL_LINT)
     .withMinDownscalingFactor(0.25f)
     .withQuality(0f)
     .build().thenCompose { newTask ->

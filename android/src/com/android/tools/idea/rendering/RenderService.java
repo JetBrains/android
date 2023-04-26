@@ -235,8 +235,6 @@ final public class RenderService implements Disposable {
    */
   private static final int MAX_MAGNITUDE = 1 << (MEASURE_SPEC_MODE_SHIFT - 5);
 
-  private static final RenderingPriority DEFAULT_RENDERING_PRIORITY = RenderingPriority.HIGH;
-
   private static Logger getLogger() {
     return Logger.getInstance(RenderService.class);
   }
@@ -292,7 +290,10 @@ final public class RenderService implements Disposable {
      * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
      */
     private boolean reportOutOfDateUserClasses = true;
-    @NotNull private RenderingPriority myPriority = DEFAULT_RENDERING_PRIORITY;
+    /**
+     * Enum value to specify the context or tool in which a render is happening and its priority
+     */
+    @NotNull private RenderingTopic myTopic = RenderingTopic.NOT_SPECIFIED;
     private float myMinDownscalingFactor = 0.5f;
 
     private RenderTaskBuilder(@NotNull RenderModelModule module,
@@ -458,12 +459,12 @@ final public class RenderService implements Disposable {
     }
 
     /**
-     * Sets a {@link RenderingPriority} for the RenderTask.
-     * By default, the priority used is {@link RenderingPriority#HIGH}
+     * Sets a {@link RenderingTopic} for the RenderTask.
+     * By default, the topic used is {@link RenderingTopic#NOT_SPECIFIED}
      */
     @NotNull
-    public RenderTaskBuilder withPriority(@NotNull RenderingPriority priority) {
-      myPriority = priority;
+    public RenderTaskBuilder withTopic(@NotNull RenderingTopic topic) {
+      myTopic = topic;
       return this;
     }
 
@@ -542,7 +543,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
+                           classesToPreload, reportOutOfDateUserClasses, myMinDownscalingFactor, myTopic);
 
           if (myXmlFile != null) {
             task.setXmlFile(new PsiXmlFile(myXmlFile));

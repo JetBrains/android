@@ -16,6 +16,8 @@
 package com.android.tools.rendering;
 
 import com.intellij.openapi.application.ApplicationManager;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -52,14 +54,14 @@ public interface RenderAsyncActionExecutor {
    * @param queueingTimeoutUnit {@link TimeUnit} for queueingTimeout.
    * @param actionTimeout maximum timeout for this action to executed once it has started running.
    * @param actionTimeoutUnit {@link TimeUnit} for actionTimeout.
-   * @param priority enum representing the priority level for running the callable
+   * @param renderingTopic enum representing context in which the render is happening and its priority.
    * @param callable {@link Callable} to be executed with the render action.
    * @param <T> return type of the given callable.
    */
   @NotNull <T> CompletableFuture<T> runAsyncActionWithTimeout(
     long queueingTimeout, @NotNull TimeUnit queueingTimeoutUnit,
     long actionTimeout, @NotNull TimeUnit actionTimeoutUnit,
-    @NotNull RenderingPriority priority, @NotNull Callable<T> callable);
+    @NotNull RenderingTopic renderingTopic, @NotNull Callable<T> callable);
 
   /**
    * Runs an action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
@@ -69,16 +71,16 @@ public interface RenderAsyncActionExecutor {
    *
    * @param actionTimeout maximum timeout for this action to executed once it has started running.
    * @param actionTimeoutUnit {@link TimeUnit} for actionTimeout.
+   * @param renderingTopic enum representing context in which the render is happening and its priority.
    * @param callable {@link Callable} to be executed with the render action.
-   * @param priority enum representing the priority level for running the callable
    * @param <T> return type of the given callable.
    */
   default @NotNull <T> CompletableFuture<T> runAsyncActionWithTimeout(
     long actionTimeout, @NotNull TimeUnit actionTimeoutUnit,
-    @NotNull RenderingPriority priority, @NotNull Callable<T> callable) {
+    @NotNull RenderingTopic renderingTopic, @NotNull Callable<T> callable) {
     return runAsyncActionWithTimeout(
       DEFAULT_RENDER_THREAD_QUEUE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
-      actionTimeout, actionTimeoutUnit, priority, callable);
+      actionTimeout, actionTimeoutUnit, renderingTopic, callable);
   }
 
   /**
@@ -97,7 +99,7 @@ public interface RenderAsyncActionExecutor {
     @NotNull Callable<T> callable) {
     return runAsyncActionWithTimeout(
       DEFAULT_RENDER_THREAD_QUEUE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
-      actionTimeout, actionTimeoutUnit, RenderingPriority.HIGH, callable);
+      actionTimeout, actionTimeoutUnit, RenderingTopic.NOT_SPECIFIED, callable);
   }
 
   /**
@@ -110,7 +112,7 @@ public interface RenderAsyncActionExecutor {
     return runAsyncActionWithTimeout(
       DEFAULT_RENDER_THREAD_QUEUE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
       DEFAULT_RENDER_THREAD_TIMEOUT_MS, TimeUnit.MILLISECONDS,
-      RenderingPriority.HIGH, callable);
+      RenderingTopic.NOT_SPECIFIED, callable);
   }
 
   /**
@@ -119,11 +121,12 @@ public interface RenderAsyncActionExecutor {
    * <p/>
    * This method will run the passed action asynchronously and return a {@link CompletableFuture}
    */
-  default @NotNull <T> CompletableFuture<T> runAsyncAction(@NotNull RenderingPriority priority, @NotNull Callable<T> callable) {
+  default @NotNull <T> CompletableFuture<T> runAsyncAction(@NotNull RenderingTopic renderingTopic,
+                                                           @NotNull Callable<T> callable) {
     return runAsyncActionWithTimeout(
       DEFAULT_RENDER_THREAD_QUEUE_TIMEOUT_MS, TimeUnit.MILLISECONDS,
       DEFAULT_RENDER_THREAD_TIMEOUT_MS, TimeUnit.MILLISECONDS,
-      priority, callable);
+      renderingTopic, callable);
   }
 
   /**
@@ -134,7 +137,7 @@ public interface RenderAsyncActionExecutor {
    */
   @NotNull
   default CompletableFuture<Void> runAsyncAction(@NotNull Runnable runnable) {
-    return runAsyncAction(RenderingPriority.HIGH, () -> {
+    return runAsyncAction(RenderingTopic.NOT_SPECIFIED, () -> {
       runnable.run();
       return null;
     });
@@ -147,31 +150,57 @@ public interface RenderAsyncActionExecutor {
    * This method will run the passed action asynchronously
    */
   @NotNull
-  default CompletableFuture<Void> runAsyncAction(@NotNull RenderingPriority priority, @NotNull Runnable runnable) {
-    return runAsyncAction(priority, () -> {
+  default CompletableFuture<Void> runAsyncAction(@NotNull RenderingTopic renderingTopic, @NotNull Runnable runnable) {
+    return runAsyncAction(renderingTopic, () -> {
       runnable.run();
       return null;
     });
   }
 
   /**
-   * Cancels all pending actions with rendering priority lower or equal to minPriority, and returns the number of cancelled actions
+   * Cancels all pending actions of the given topics.
+   * <p>
+   * Returns the number of cancelled actions.
    */
-  int cancelLowerPriorityActions(@NotNull RenderingPriority minPriority);
+  int cancelActionsByTopic(List<RenderingTopic> topicsToCancel, boolean mayInterruptIfRunning);
 
   /**
-   * Enum representing the priority that the RenderExecutor should apply to running the action.
+   * Cancels all pending actions with rendering priority lower than or equal to minPriority,
+   * regardless of their topic.
+   * <p>
+   * Returns the number of cancelled actions.
    */
-  enum RenderingPriority {
-    // Lower integers correspond to lower priorities
-    // Higher integers correspond to higher priorities
-    LOW(1),
-    HIGH(100);
+  default int cancelLowerPriorityActions(int minPriority, boolean mayInterruptIfRunning) {
+    return cancelActionsByTopic(
+      Arrays.stream(RenderingTopic.values()).filter(
+        (topic) -> topic.getPriority() <= minPriority
+      ).toList(),
+      mayInterruptIfRunning
+    );
+  }
 
+  /**
+   * Enum representing the context or tool in which a render is happening and
+   * the priority that the RenderExecutor should apply to run the action.
+   */
+  enum RenderingTopic {
+    // Topic used for actions related with disposing or freeing resources.
+    CLEAN("Clean", 200),
+    // Topic used by default when the tool/context doesn't specify one.
+    NOT_SPECIFIED("Not specified", 100),
+    COMPOSE_PREVIEW("Compose preview", 100),
+    VISUAL_LINT("Visual lint", 1);
+
+    private final String myName;
     private final int myPriority;
 
-    RenderingPriority(int priority) {
+    RenderingTopic(String name, int priority) {
+      myName = name;
       myPriority = priority;
+    }
+
+    public String getName() {
+      return myName;
     }
 
     public int getPriority() {

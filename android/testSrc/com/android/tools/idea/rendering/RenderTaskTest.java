@@ -19,6 +19,8 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static com.android.tools.idea.rendering.RenderTestUtil.createRenderTask;
+import static com.android.tools.idea.rendering.RenderTestUtil.getHighPriorityRenderingTopicForTest;
+import static com.android.tools.idea.rendering.RenderTestUtil.getLowPriorityRenderingTopicForTest;
 import static com.intellij.util.TimeoutUtil.sleep;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.isNotNull;
@@ -37,7 +39,6 @@ import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.Wallpaper;
-import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingPriority;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
@@ -905,9 +906,9 @@ public class RenderTaskTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
     RenderLogger logger = mock(RenderLogger.class);
 
-    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.LOW);
-    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.HIGH);
-    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.LOW);
+    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest());
+    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, getHighPriorityRenderingTopicForTest());
+    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, getLowPriorityRenderingTopicForTest());
 
     CountDownLatch latch = new CountDownLatch(1);
 

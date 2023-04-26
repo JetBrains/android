@@ -60,6 +60,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
 import com.android.tools.rendering.ExecuteCallbacksResult;
 import com.android.tools.rendering.InteractionEventResult;
+import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.api.RenderModelModule;
@@ -273,6 +274,8 @@ public class LayoutlibSceneManager extends SceneManager {
   private final boolean myAreListenersRegistered;
   private final DesignSurfaceProgressIndicator myProgressIndicator;
   private final RenderingQueue myRenderingQueue;
+  @NotNull
+  private RenderAsyncActionExecutor.RenderingTopic myRenderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED;
   @GuardedBy("myRenderingTaskLock")
   private RenderTask myRenderTask;
   @GuardedBy("myRenderingTaskLock")
@@ -1002,6 +1005,10 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  public void setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic topic) {
+    myRenderingTopic = topic;
+  }
+
   public void setUpdateAndRenderWhenActivated(boolean enable) {
     myUpdateAndRenderWhenActivated = enable;
   }
@@ -1175,7 +1182,8 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderConfiguration renderConfiguration = new StudioRenderConfiguration(configuration);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, renderConfiguration, logger)
       .withPsiFile(getModel().getFile())
-      .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled());
+      .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
+      .withTopic(myRenderingTopic);
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
         if (newTask != null) {

@@ -188,14 +188,18 @@ public class RenderTask {
    * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
    */
   private final boolean reportOutOfDateUserClasses;
-  @NotNull private final RenderAsyncActionExecutor.RenderingPriority myPriority;
+
+  /**
+   * Enum value to specify the context or tool in which the render is happening and its priority
+   */
+  @NotNull private final RenderAsyncActionExecutor.RenderingTopic myTopic;
 
   /**
    * Don't create this task directly; obtain via {@link RenderService}
-   *  @param quality            Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
+   * @param quality            Factor from 0 to 1 used to downscale the rendered image. A lower value means smaller images used
    *                           during rendering at the expense of quality. 1 means that downscaling is disabled.
    * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
-   * @param onNewModuleClassLoader
+   * @param topic              enum value to specify the context or tool in which the render is happening
    */
   RenderTask(@NotNull RenderContext renderContext,
              @NotNull ModuleClassLoaderManager classLoaderManager,
@@ -215,8 +219,8 @@ public class RenderTask {
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
              boolean reportOutOfDateUserClasses,
-             @NotNull RenderAsyncActionExecutor.RenderingPriority priority,
-             float minDownscalingFactor) throws NoDeviceException {
+             float minDownscalingFactor,
+             @NotNull RenderAsyncActionExecutor.RenderingTopic topic) throws NoDeviceException {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
@@ -228,7 +232,7 @@ public class RenderTask {
       LOG.debug("Security manager was disabled");
     }
 
-    myPriority = priority;
+    myTopic = topic;
     myLogger = logger;
     myCredential = credential;
     myCrashReporter = crashReporter;
@@ -822,8 +826,8 @@ public class RenderTask {
 
     synchronized (myRunningFutures) {
       CompletableFuture<V> newFuture = timeout < 1 ?
-                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, callable) :
-                                       RenderService.getRenderAsyncActionExecutor().runAsyncActionWithTimeout(timeout, unit, myPriority,
+                                       RenderService.getRenderAsyncActionExecutor().runAsyncAction(myTopic, callable) :
+                                       RenderService.getRenderAsyncActionExecutor().runAsyncActionWithTimeout(timeout, unit, myTopic,
                                                                                                               callable);
       myRunningFutures.add(newFuture);
       newFuture
@@ -1238,7 +1242,7 @@ public class RenderTask {
                                                                   myLogger,
                                                                   myContext.getModule().getResourceRepositoryManager());
     Map<RenderXmlTag, ViewInfo> map = new HashMap<>();
-    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myTopic, () -> measure(modelParser))
       .thenComposeAsync(session -> {
         if (session != null) {
           try {
