@@ -29,7 +29,10 @@ class EditDeviceAction : AnAction("Edit", "Edit this device", AllIcons.Actions.E
 
   override fun update(e: AnActionEvent) {
     val handle = DEVICE_HANDLE_KEY.getData(e.dataContext)
-    e.presentation.isEnabled = handle?.editAction?.presentation?.value?.enabled ?: false
+    when (val editAction = handle?.editAction) {
+      null -> e.presentation.isEnabledAndVisible = false
+      else -> e.presentation.isEnabled = editAction.presentation.value.enabled
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
