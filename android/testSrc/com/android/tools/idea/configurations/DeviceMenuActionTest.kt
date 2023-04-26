@@ -102,7 +102,9 @@ class DeviceMenuActionTest {
         Nexus 6P (411 × 731 dp, 560dpi)
         Nexus 5X (411 × 731 dp, 420dpi)
     Tablets
+        Pixel Fold (841 × 701 dp, 420dpi)
         Pixel C (1280 × 900 dp, xhdpi)
+        Pixel Tablet (1280 × 800 dp, xhdpi)
         Nexus 10 (1280 × 800 dp, xhdpi)
         Nexus 9 (1024 × 768 dp, xhdpi)
         Nexus 7 (600 × 960 dp, xhdpi)
@@ -182,7 +184,9 @@ class DeviceMenuActionTest {
         Nexus 5X (411 × 731 dp, 420dpi)
     Tablets
         Medium Tablet (1280 × 800 dp, xhdpi)
+        Pixel Fold (841 × 701 dp, 420dpi)
         Pixel C (1280 × 900 dp, xhdpi)
+        Pixel Tablet (1280 × 800 dp, xhdpi)
         Nexus 10 (1280 × 800 dp, xhdpi)
         Nexus 9 (1024 × 768 dp, xhdpi)
         Nexus 7 (600 × 960 dp, xhdpi)
