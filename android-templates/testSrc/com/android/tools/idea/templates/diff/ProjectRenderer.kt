@@ -55,7 +55,8 @@ import java.io.IOException
 import java.nio.file.Path
 
 // We ignore these directories because they just contain metadata uninteresting to templates, and it saves space for golden files
-val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
+val FILES_TO_IGNORE = emptyArray<String>()
+//val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
 
 abstract class ProjectRenderer(private val template: Template) {
   private lateinit var moduleState: ModuleTemplateDataBuilder
@@ -148,11 +149,20 @@ abstract class ProjectRenderer(private val template: Template) {
     }
 
     // TODO: generify this to use probably the unmodified module name as the golden directory name
-    val goldenDir = getTestDataRoot().resolve("golden").resolve("testNewEmptyViewActivity")
-    handleDirectories(goldenDir, projectRoot.toPath())
+    // TODO: make sure it's unique even with different params
+    val templateModuleName = "testNewEmptyViewActivity"
+    val goldenDir = getTestDataRoot().resolve("golden").resolve(templateModuleName)
+    handleDirectories(templateModuleName, goldenDir, projectRoot.toPath())
   }
 
-  abstract fun handleDirectories(goldenDir: Path, projectDir: Path)
+  /**
+   * To be overridden to handle the golden and template output directories after the template project is generated
+   *
+   * @param moduleName a unique name for this template, used to determine the directory name to output golden files to
+   * @param goldenDir the location of this template's golden reference files
+   * @param projectDir the location of this template-generated project
+   */
+  abstract fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path)
 }
 
 @Suppress("unused")

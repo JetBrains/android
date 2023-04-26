@@ -32,9 +32,6 @@ import org.junit.Rule
 import org.junit.Test
 import kotlin.system.measureTimeMillis
 
-// TODO: turn this into a Bazel parameter
-const val OVERWRITE_GOLDEN_FILES = false
-
 /**
  * Template test that generates the template files and diffs them against golden files located in android-templates/testData/golden
  * The template is not built, Linted, or otherwise analyzed; this is checked by BaselineGenerator.
@@ -99,6 +96,17 @@ class TemplateDiffTest {
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivity() {
-    checkCreateTemplate("Empty Views Activity", OVERWRITE_GOLDEN_FILES)
+    checkCreateTemplate("Empty Views Activity", getGenerateGolden())
+  }
+
+  /**
+   * Gets the system property for whether to generate and overwrite the golden files. This can be run from Bazel with the option:
+   *   --test_env=GENERATE_GOLDEN=true
+   *
+   * Or from IDEA by setting the environment variable:
+   *   GENERATE_GOLDEN=true
+   */
+  private fun getGenerateGolden(): Boolean {
+    return System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
   }
 }

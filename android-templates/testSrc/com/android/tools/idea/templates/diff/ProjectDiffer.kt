@@ -26,7 +26,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 class ProjectDiffer(template: Template) : ProjectRenderer(template) {
-  override fun handleDirectories(goldenDir: Path, projectDir: Path) {
+  override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     diffDirectories(goldenDir, projectDir, "")
   }
 }
