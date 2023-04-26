@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.PopupHandler
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -76,6 +78,7 @@ class LayoutInspectorRenderer(
       addMouseListener(it)
       addMouseMotionListener(it)
     }
+    addMouseListener(LayoutInspectorPopupHandler())
 
     // re-render each time Layout Inspector model changes
     renderModel.modificationListeners.add(repaintDisplayView)
@@ -146,6 +149,15 @@ class LayoutInspectorRenderer(
     transform.inverseTransform(scaledCoordinates, transformedPoint2D)
 
     return transformedPoint2D
+  }
+
+  private inner class LayoutInspectorPopupHandler : PopupHandler() {
+    override fun invokePopup(comp: Component, x: Int, y: Int) {
+      if (!interceptClicks) return
+      val modelCoordinates = toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
+      val views = renderModel.findViewsAt(modelCoordinates.x, modelCoordinates.y)
+      showViewContextMenu(views.toList(), renderModel.model, this@LayoutInspectorRenderer, x, y)
+    }
   }
 
   private inner class LayoutInspectorMouseListener(
