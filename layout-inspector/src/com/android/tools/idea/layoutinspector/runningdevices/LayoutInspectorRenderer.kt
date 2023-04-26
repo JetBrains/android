@@ -151,6 +151,15 @@ class LayoutInspectorRenderer(
   private inner class LayoutInspectorMouseListener(
     private val renderModel: RenderModel
   ) : MouseAdapter() {
+    override fun mouseClicked(e: MouseEvent) {
+      if (e.isConsumed || !interceptClicks) return
+
+      val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
+      renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
+
+      refresh()
+    }
+
     override fun mouseMoved(e: MouseEvent) {
       val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
 

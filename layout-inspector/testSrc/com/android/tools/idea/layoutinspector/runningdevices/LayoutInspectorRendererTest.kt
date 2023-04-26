@@ -89,7 +89,7 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testViewBordersAreRendered() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
+    val layoutInspectorRenderer = createRenderer()
 
     @Suppress("UndesirableClassUsage")
     val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
@@ -99,7 +99,7 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testOverlayIsRendered() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
+    val layoutInspectorRenderer = createRenderer()
 
     renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
 
@@ -112,7 +112,7 @@ class LayoutInspectorRendererTest {
   @Test
   fun testMouseHover() {
     val parent = BorderLayoutPanel()
-    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
+    val layoutInspectorRenderer = createRenderer()
     parent.add(layoutInspectorRenderer)
     parent.size = screenDimension
     layoutInspectorRenderer.size = screenDimension
@@ -137,12 +137,43 @@ class LayoutInspectorRendererTest {
 
   @Test
   @RunsInEdt
+  fun testMouseClick() {
+    renderSettings.drawLabel = false
+    val layoutInspectorRenderer = createRenderer()
+    val parent = BorderLayoutPanel()
+    parent.add(layoutInspectorRenderer)
+    parent.size = screenDimension
+    layoutInspectorRenderer.size = screenDimension
+    layoutInspectorRenderer.interceptClicks = true
+
+    val fakeUi = FakeUi(layoutInspectorRenderer)
+
+    fakeUi.render()
+
+    // click mouse above VIEW1.
+    fakeUi.mouse.click(deviceFrame.x + 10, deviceFrame.y + 15)
+
+    fakeUi.render()
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(renderModel.model.selection).isEqualTo(renderModel.model[VIEW1])
+
+    renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
+
+    @Suppress("UndesirableClassUsage")
+    val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
+    paint(renderImage, layoutInspectorRenderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  @RunsInEdt
   fun testEventsDispatchedToParent() {
     val fakeMouseListener = FakeMouseListener()
     val parent = BorderLayoutPanel()
     parent.addMouseListener(fakeMouseListener)
     parent.addMouseMotionListener(fakeMouseListener)
-    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
+    val layoutInspectorRenderer = createRenderer()
     parent.addToCenter(layoutInspectorRenderer)
     parent.size = screenDimension
     layoutInspectorRenderer.size = screenDimension
@@ -180,7 +211,7 @@ class LayoutInspectorRendererTest {
     val parent = BorderLayoutPanel()
     parent.addMouseListener(fakeMouseListener)
     parent.addMouseMotionListener(fakeMouseListener)
-    val layoutInspectorRenderer = LayoutInspectorRenderer(disposableRule.disposable, renderLogic, renderModel, { deviceFrame }, { 1.0 })
+    val layoutInspectorRenderer = createRenderer()
     parent.addToCenter(layoutInspectorRenderer)
     parent.size = screenDimension
     layoutInspectorRenderer.size = screenDimension
@@ -219,6 +250,16 @@ class LayoutInspectorRendererTest {
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
     layoutInspectorRenderer.paint(graphics)
+  }
+
+  private fun createRenderer(): LayoutInspectorRenderer {
+    return LayoutInspectorRenderer(
+      disposableRule.disposable,
+      renderLogic,
+      renderModel,
+      displayRectangleProvider = { deviceFrame },
+      screenScaleProvider = { 1.0 }
+    )
   }
 
   /**
