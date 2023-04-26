@@ -46,7 +46,9 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
       jmethodID register_callback_method =
           device_state_manager_class.GetMethod("registerCallback", "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V");
       request_state_method_ = device_state_manager_class.GetMethod("requestState", "(Landroid/os/IBinder;II)V");
-      cancel_state_request_method_ = device_state_manager_class.GetMethod("cancelStateRequest", "()V");
+      if (Agent::api_level() >= 32) {
+        cancel_state_request_method_ = device_state_manager_class.GetMethod("cancelStateRequest", "()V");
+      }
       get_device_state_info_method_ =
           device_state_manager_class.GetMethod("getDeviceStateInfo", "()Landroid/hardware/devicestate/DeviceStateInfo;");
 
@@ -166,7 +168,7 @@ void DeviceStateManager::OnDeviceStateChanged(Jni jni, jobject device_state_info
     NotifyListeners(current_state);
   }
 
-  if (cancel_state_override) {
+  if (cancel_state_override && cancel_state_request_method_ != nullptr) {
     // Call IDeviceStateManager.cancelStateRequest.
     device_state_manager_.CallVoidMethod(jni, cancel_state_request_method_);
   }
