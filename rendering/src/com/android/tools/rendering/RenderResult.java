@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
-import com.android.ide.common.rendering.api.*;
-import com.android.tools.rendering.RenderLogger;
-import com.android.tools.rendering.RenderContext;
+import com.android.ide.common.rendering.api.RenderSession;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.rendering.api.IdeaModuleProvider;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.imagepool.ImagePool;
@@ -59,7 +61,7 @@ public class RenderResult {
   private boolean isDisposed;
   private final RenderResultStats myStats;
 
-  protected RenderResult(@NotNull PsiFile sourceFile,
+  public RenderResult(@NotNull PsiFile sourceFile,
                          @NotNull Project project,
                          @NotNull IdeaModuleProvider module,
                          @NotNull RenderLogger logger,
@@ -181,7 +183,7 @@ public class RenderResult {
    * Creates a new {@link RenderResult} from this with recorded render duration.
    */
   @NotNull
-  RenderResult createWithStats(@NotNull RenderResultStats stats) {
+  public RenderResult createWithStats(@NotNull RenderResultStats stats) {
     return new RenderResult(
       mySourceFile,
       myProject,

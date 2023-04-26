@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
@@ -25,6 +24,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
+import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 import com.google.android.apps.common.testing.accessibility.framework.checks.DuplicateClickableBoundsCheck
 

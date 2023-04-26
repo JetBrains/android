@@ -20,9 +20,8 @@ import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.applyTo
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.createRenderTaskFuture
+import com.android.tools.rendering.RenderResult
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.awt.image.BufferedImage

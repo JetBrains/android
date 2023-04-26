@@ -53,6 +53,7 @@ import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderContext;
 import com.android.tools.rendering.RenderProblem;
+import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;

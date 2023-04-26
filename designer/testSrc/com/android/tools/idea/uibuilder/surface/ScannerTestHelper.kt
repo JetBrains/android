@@ -22,12 +22,12 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderResultStats
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderResultStats
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import org.mockito.Mockito

@@ -17,10 +17,10 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.taskBuilder
+import com.android.tools.rendering.RenderResult
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key

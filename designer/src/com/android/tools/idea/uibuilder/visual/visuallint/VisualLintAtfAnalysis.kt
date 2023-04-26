@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.surface.NlScannerLayoutParser
 import com.android.tools.idea.uibuilder.surface.RenderResultMetricData
@@ -27,6 +26,7 @@ import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
+import com.android.tools.rendering.RenderResult
 import com.google.android.apps.common.testing.accessibility.framework.checks.DuplicateClickableBoundsCheck
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer

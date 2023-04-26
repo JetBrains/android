@@ -21,11 +21,11 @@ import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
+import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 import javax.swing.event.HyperlinkEvent

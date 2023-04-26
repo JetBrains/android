@@ -18,9 +18,9 @@ package com.android.tools.idea.common.analytics
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.stats.AnonymizerUtil
+import com.android.tools.rendering.RenderResult
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent.LayoutEditorEventType

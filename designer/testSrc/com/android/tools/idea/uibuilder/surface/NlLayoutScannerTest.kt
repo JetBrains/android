@@ -23,13 +23,13 @@ import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
+import com.android.tools.rendering.RenderResult
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

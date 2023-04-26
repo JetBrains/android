@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolImageDisposer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;

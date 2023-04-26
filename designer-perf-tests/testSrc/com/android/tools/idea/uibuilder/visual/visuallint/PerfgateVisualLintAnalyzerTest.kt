@@ -21,7 +21,6 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.MemoryUseMeasurement
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.measureOperation
@@ -44,6 +43,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSiz
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection
 import com.android.tools.perflogger.Metric
+import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet

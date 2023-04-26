@@ -16,8 +16,8 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.rendering.RenderResult
 
 /**
  * Controller for layout scanner that checks the layout and produces lint checks.

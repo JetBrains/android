@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.rendering.RenderLogger
+import com.android.tools.rendering.RenderResult
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction

@@ -40,6 +40,7 @@ import com.android.tools.idea.configurations.Wallpaper;
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingPriority;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.RenderResult;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;

@@ -58,7 +58,7 @@ class LayoutEditorPreviewTest {
 
     // Enable additional logging
     system.installation.addVmOption(
-      "-Didea.log.debug.categories=#com.android.tools.idea.rendering.RenderResult"
+      "-Didea.log.debug.categories=#com.android.tools.rendering.RenderResult"
     )
 
     // Create a maven repo and set it up in the installation and environment

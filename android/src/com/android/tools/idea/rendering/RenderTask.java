@@ -59,6 +59,8 @@ import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderContext;
+import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.RenderResultStats;
 import com.android.tools.rendering.api.IncludeReference;
 import com.android.tools.rendering.api.RenderConfiguration;
 import com.android.tools.rendering.api.RenderModelManifest;

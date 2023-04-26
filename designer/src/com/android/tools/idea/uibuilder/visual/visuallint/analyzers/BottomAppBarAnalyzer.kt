@@ -18,10 +18,10 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
+import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
 private const val BOTTOM_APP_BAR_CLASS_NAME = "com.google.android.material.bottomappbar.BottomAppBar"

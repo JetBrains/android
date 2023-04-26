@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.analytics;
 
-import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.rendering.RenderResult;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;

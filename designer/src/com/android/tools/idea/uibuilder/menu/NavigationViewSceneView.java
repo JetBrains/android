@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.menu;
 
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.rendering.RenderResult;
 import java.awt.Dimension;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;

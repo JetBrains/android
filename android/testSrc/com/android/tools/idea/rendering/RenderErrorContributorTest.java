@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderProblem;
+import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.security.RenderSecurityException;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.annotation.HighlightSeverity;
