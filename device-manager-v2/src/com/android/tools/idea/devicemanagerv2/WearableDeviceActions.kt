@@ -33,6 +33,10 @@ import org.jetbrains.android.AndroidPluginDisposable
 class PairWearableDeviceAction : AnAction("Pair Wearable") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = wearPairingId(e) != null
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val deviceRowData = DEVICE_ROW_DATA_KEY.getData(e.dataContext) ?: return
 
@@ -51,7 +55,7 @@ class ViewPairedDevicesAction : AnAction("View Paired Device(s)") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled = e.hasPairedDevice()
+    e.updatePairedDeviceActionPresentation()
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -67,7 +71,7 @@ class UnpairWearableDeviceAction() : AnAction("Unpair Device") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled = e.hasPairedDevice()
+    e.updatePairedDeviceActionPresentation()
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -87,10 +91,19 @@ class UnpairWearableDeviceAction() : AnAction("Unpair Device") {
   }
 }
 
-private fun AnActionEvent.hasPairedDevice(): Boolean {
-  val wearPairingId = wearPairingId(this) ?: return false
-  val phoneWearPairs = WearPairingManager.getInstance().getPairsForDevice(wearPairingId)
-  return phoneWearPairs.isNotEmpty()
+/**
+ * Updates the presentation for actions that involve a paired device: invisible if the device
+ * doesn't support pairing at all, and enabled if the device is paired.
+ */
+private fun AnActionEvent.updatePairedDeviceActionPresentation() {
+  when (val wearPairingId = wearPairingId(this)) {
+    null -> presentation.isEnabledAndVisible = false
+    else -> {
+      presentation.isVisible = true
+      presentation.isEnabled =
+        WearPairingManager.getInstance().getPairsForDevice(wearPairingId).isNotEmpty()
+    }
+  }
 }
 
 private fun wearPairingId(e: AnActionEvent): String? =
