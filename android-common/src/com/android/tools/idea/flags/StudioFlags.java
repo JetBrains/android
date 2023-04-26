@@ -1537,6 +1537,14 @@ public final class StudioFlags {
       "Use gutter icons rather than code highlight to display insights in the editor",
       true);
 
+  public static final Flag<Boolean> APP_INSIGHTS_VCS_SUPPORT =
+    Flag.create(
+      APP_INSIGHTS,
+      "insights.vcs",
+      "VCS Support",
+      "Enhance code navigation to aid crash investigation with the recorded VCS info",
+      false);
+
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     Flag.create(
       APP_INSIGHTS,
