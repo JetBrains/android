@@ -202,14 +202,12 @@ class VisualLintService(val project: Project): Disposable {
    */
   private fun runOnPreviewVisualLinting(renderResultsForAnalysis: Map<RenderResult, NlModel>, issueProvider: VisualLintIssueProvider, visualLintBaseConfigIssues: VisualLintBaseConfigIssues) {
     val latch = CountDownLatch(renderResultsForAnalysis.size)
-    CompletableFuture.runAsync({
-      renderResultsForAnalysis.forEach { (result, model) ->
-        CompletableFuture.runAsync({
-          analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues)
-          latch.countDown()
-        }, visualLintAnalyzerExecutorService)
-      }
-    }, visualLintExecutorService)
+    renderResultsForAnalysis.forEach { (result, model) ->
+      CompletableFuture.runAsync({
+        analyzeAfterModelUpdate(issueProvider, result, model, visualLintBaseConfigIssues)
+        latch.countDown()
+      }, visualLintAnalyzerExecutorService)
+    }
     latch.await(visualLintTimeout, TimeUnit.SECONDS)
     issueModel.updateErrorsList()
   }
