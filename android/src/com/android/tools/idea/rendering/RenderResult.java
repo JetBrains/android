@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.*;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderContext;
 import com.android.tools.rendering.api.IdeaModuleProvider;
@@ -26,11 +25,9 @@ import com.android.tools.rendering.imagepool.ImagePoolImageDisposer;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.intellij.notebook.editor.BackedVirtualFile;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -45,7 +42,7 @@ import org.jetbrains.annotations.TestOnly;
 public class RenderResult {
   private static Logger LOG = Logger.getInstance(RenderResult.class);
 
-  @NotNull private final PsiFile myRenderedFile;
+  @NotNull private final PsiFile mySourceFile;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final ImmutableList<ViewInfo> myRootViews;
   @NotNull private final ImmutableList<ViewInfo> mySystemRootViews;
@@ -62,7 +59,7 @@ public class RenderResult {
   private boolean isDisposed;
   private final RenderResultStats myStats;
 
-  protected RenderResult(@NotNull PsiFile renderedFile,
+  protected RenderResult(@NotNull PsiFile sourceFile,
                          @NotNull Project project,
                          @NotNull IdeaModuleProvider module,
                          @NotNull RenderLogger logger,
@@ -79,7 +76,7 @@ public class RenderResult {
     myModule = module;
     myProject = project;
     myRenderContext = renderContext;
-    myRenderedFile = renderedFile;
+    mySourceFile = sourceFile;
     myLogger = logger;
     myRenderResult = renderResult;
     myRootViews = rootViews;
@@ -95,7 +92,7 @@ public class RenderResult {
   @TestOnly
   protected RenderResult(RenderResult result) {
     this(
-      result.myRenderedFile,
+      result.mySourceFile,
       result.myProject,
       result.myModule,
       result.myLogger,
@@ -158,7 +155,7 @@ public class RenderResult {
     Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
     Map<Object, ResourceReference> defaultStyles = session.getDefaultNamespacedStyles();
     RenderResult result = new RenderResult(
-      file,
+      renderContext.getModule().getEnvironment().getOriginalFile(file),
       renderContext.getModule().getProject(),
       renderContext.getModule(),
       logger,
@@ -186,7 +183,7 @@ public class RenderResult {
   @NotNull
   RenderResult createWithStats(@NotNull RenderResultStats stats) {
     return new RenderResult(
-      myRenderedFile,
+      mySourceFile,
       myProject,
       myModule,
       myLogger,
@@ -206,7 +203,7 @@ public class RenderResult {
   public static RenderResult createRenderTaskErrorResult(
     @NotNull RenderModelModule renderModule, @NotNull PsiFile file, @Nullable Throwable throwable) {
     RenderResult result = new RenderResult(
-      file,
+      renderModule.getEnvironment().getOriginalFile(file),
       renderModule.getProject(),
       renderModule,
       new RenderLogger(renderModule.getProject()),
@@ -251,17 +248,9 @@ public class RenderResult {
   /**
    * Returns the source {@link PsiFile} if available. If you want to access the user source file name, use this method.
    */
-  @SuppressWarnings("UnstableApiUsage")
   @NotNull
   public PsiFile getSourceFile() {
-    VirtualFile renderedVirtualFile = myRenderedFile.getVirtualFile();
-    if (!renderedVirtualFile.isInLocalFileSystem() && renderedVirtualFile instanceof BackedVirtualFile) {
-      VirtualFile sourceVirtualFile = ((BackedVirtualFile)renderedVirtualFile).getOriginFile();
-      PsiFile sourcePsiFile = AndroidPsiUtils.getPsiFileSafely(myRenderedFile.getProject(), sourceVirtualFile);
-      if (sourcePsiFile != null) return sourcePsiFile;
-    }
-
-    return myRenderedFile;
+    return mySourceFile;
   }
 
   @Nullable
@@ -328,7 +317,7 @@ public class RenderResult {
   public String toString() {
     return MoreObjects.toStringHelper(this)
       .add("renderResult", myRenderResult)
-      .add("psiFile", myRenderedFile)
+      .add("sourceFile", mySourceFile)
       .add("rootViews", myRootViews)
       .add("systemViews", mySystemRootViews)
       .add("stats", myStats)

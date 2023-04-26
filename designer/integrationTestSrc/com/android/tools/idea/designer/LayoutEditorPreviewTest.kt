@@ -38,7 +38,7 @@ class LayoutEditorPreviewTest {
   private fun AndroidStudio.waitForSuccessfulRender(xmlName: String) {
     system.installation.ideaLog
       .waitForMatchingLine(
-        ".*RenderResult\\{renderResult=Result\\{status=SUCCESS, errorMessage=null, throwable=null, data=null\\}, psiFile=XmlFile:$xmlName.*",
+        ".*RenderResult\\{renderResult=Result\\{status=SUCCESS, errorMessage=null, throwable=null, data=null\\}, sourceFile=XmlFile:$xmlName.*",
         10, TimeUnit.SECONDS)
   }
 

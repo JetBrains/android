@@ -33,7 +33,7 @@ private fun createErrorResult(file: PsiFile, errorResult: Result, logger: Render
   val module = ReadAction.compute<Module, Throwable> { ModuleUtilCore.findModuleForPsiElement(file) }
   assert(module != null)
   val result = RenderResult(
-    file,
+    StudioEnvironmentContext(module).getOriginalFile(file),
     module.project,
     { module },
     logger ?: RenderLogger(module.project),

@@ -18,12 +18,14 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
+import com.android.tools.analytics.crash.CrashReporter
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.requiresAndroidModel
-import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
+import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.ProblemSeverity
@@ -31,9 +33,11 @@ import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.IncludeReference
 import com.android.tools.rendering.api.NavGraphResolver
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.parsers.RenderXmlFile
 import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.sdk.AndroidPlatform
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
@@ -41,9 +45,13 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 import org.jetbrains.android.sdk.AndroidSdkUtils
+import org.jetbrains.android.uipreview.StudioModuleClassLoader
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 
 /** Studio-specific implementation of [EnvironmentContext]. */
 class StudioEnvironmentContext(private val module: Module) : EnvironmentContext {
@@ -101,4 +109,18 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
 
     return securityManager
   }
+
+  override fun getOriginalFile(psiFile: PsiFile): PsiFile {
+    val renderedVirtualFile: VirtualFile? = psiFile.virtualFile
+    if (renderedVirtualFile?.isInLocalFileSystem == false && renderedVirtualFile is BackedVirtualFile) {
+      val sourcePsiFile = AndroidPsiUtils.getPsiFileSafely(psiFile.project, renderedVirtualFile.originFile)
+      if (sourcePsiFile != null) return sourcePsiFile
+    }
+
+    return psiFile
+  }
+
+  override fun getModuleClassLoaderManager(): ModuleClassLoaderManager = StudioModuleClassLoaderManager.get()
+
+  override fun getCrashReporter(): CrashReporter = StudioCrashReporter.getInstance()
 }

@@ -15,6 +15,7 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/.idea/libraries:asm-tools",
+        "//tools/analytics-library/crash:analytics-crash[module]",
     ],
 )
 
@@ -52,6 +53,7 @@ kotlin_library(
     deps = [
         "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/adt/idea/render-resources:tools.render-resources",
+        "//tools/analytics-library/crash:tools.analytics-crash",
         "//tools/base/common:tools.common",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/sdk-common:tools.sdk-common",

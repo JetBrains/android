@@ -18,14 +18,15 @@ package com.android.tools.rendering.api
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
+import com.android.tools.analytics.crash.CrashReporter
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.IRenderLogger
 import com.android.tools.rendering.RenderProblem
-import com.android.tools.rendering.api.IncludeReference
-import com.android.tools.rendering.api.NavGraphResolver
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.parsers.RenderXmlFile
 import com.android.tools.rendering.security.RenderSecurityManager
 import com.android.tools.sdk.AndroidPlatform
+import com.intellij.psi.PsiFile
 
 /**
  * An interface proving access to the general environment specific functionality, primarily related to Intellij IDEA. The interface itself
@@ -50,4 +51,10 @@ interface EnvironmentContext {
 
   /** Returns a [RenderSecurityManager] for the SDK path and project path. */
   fun createRenderSecurityManager(projectPath: String?, platform: AndroidPlatform?): RenderSecurityManager
+
+  fun getOriginalFile(psiFile: PsiFile): PsiFile
+
+  fun getModuleClassLoaderManager(): ModuleClassLoaderManager
+
+  fun getCrashReporter(): CrashReporter
 }
