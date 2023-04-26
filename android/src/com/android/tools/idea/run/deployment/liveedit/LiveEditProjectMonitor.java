@@ -324,7 +324,7 @@ public class LiveEditProjectMonitor implements Disposable {
   // Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
   public boolean notifyAppDeploy(String applicationId, IDevice device, @NotNull LiveEditApp app) throws ExecutionException, InterruptedException {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
-      if (supportLiveEdits(device)) {
+      if (supportLiveEdits(device) && LiveEditService.usesCompose(project)) {
         LiveEditService.getInstance(project).notifyLiveEditAvailability(device);
       }
 
