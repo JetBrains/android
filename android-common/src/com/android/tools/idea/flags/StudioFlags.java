@@ -318,6 +318,11 @@ public final class StudioFlags {
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
     false);
 
+  public static final Flag<Boolean> NELE_COMPOSE_VISUAL_LINT_RUN = Flag.create(
+    NELE, "compose.visual.lint.run", "Enable visual lint for Compose Preview",
+    "Enable so that visual lint runs on previews in the Compose Preview.",
+    false);
+
   public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
     NELE, "preview.warn.new.threads", "Enable new threads warning",
     "Display a warning if user code creates new threads in the preview",

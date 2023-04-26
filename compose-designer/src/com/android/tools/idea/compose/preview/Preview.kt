@@ -77,6 +77,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
@@ -212,6 +213,12 @@ fun LayoutlibSceneManager.changeRequiresReinflate(
  * @param showDecorations when true, the rendered content will be shown with the full device size
  *   specified in the device configuration and with the frame decorations.
  * @param isInteractive whether the scene displays an interactive preview.
+ * @param runAtfChecks whether to run Accessibility checks on the preview after it has been
+ *   rendered. This will run the ATF scanner to detect issues affecting accessibility (e.g. low
+ *   contrast, missing content description...)
+ * @param runVisualLinting whether to run the Visual Lint analysis on the preview after it has been
+ *   rendered. This will run all the Visual Lint analyzers that are enabled and will detect design
+ *   issues (e.g. components too wide, text too long...)
  */
 @VisibleForTesting
 fun configureLayoutlibSceneManager(
@@ -219,7 +226,8 @@ fun configureLayoutlibSceneManager(
   showDecorations: Boolean,
   isInteractive: Boolean,
   requestPrivateClassLoader: Boolean,
-  runAtfChecks: Boolean
+  runAtfChecks: Boolean,
+  runVisualLinting: Boolean
 ): LayoutlibSceneManager =
   sceneManager.apply {
     val reinflate =
@@ -234,13 +242,18 @@ fun configureLayoutlibSceneManager(
     // Manager to not
     // report it via the regular log.
     doNotReportOutOfDateUserClasses()
-    if (runAtfChecks) {
+    if (runAtfChecks || runVisualLinting) {
       setCustomContentHierarchyParser(accessibilityBasedHierarchyParser)
-      layoutScannerConfig.isLayoutScannerEnabled = true
     } else {
       setCustomContentHierarchyParser(null)
-      layoutScannerConfig.isLayoutScannerEnabled = false
     }
+    layoutScannerConfig.isLayoutScannerEnabled = runAtfChecks
+    visualLintMode =
+      if (runVisualLinting) {
+        VisualLintMode.RUN_ON_PREVIEW_ONLY
+      } else {
+        VisualLintMode.DISABLED
+      }
     if (reinflate) {
       forceReinflate()
     }
@@ -479,7 +492,10 @@ class ComposePreviewRepresentation(
 
   override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {
     atfChecksEnabled = StudioFlags.NELE_ATF_FOR_COMPOSE.get()
-    log.debug("Starting UI check. ATF checks enabled: $atfChecksEnabled.")
+    visualLintingEnabled = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get()
+    log.debug(
+      "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
+    )
     previewElementProvider = PreviewFilters(UiCheckPreviewElementProvider(instance))
     surface.background = INTERACTIVE_BACKGROUND_COLOR
     forceRefresh().invokeOnCompletion { isUiCheckPreview = true }
@@ -489,6 +505,7 @@ class ComposePreviewRepresentation(
     log.debug("Stopping UI check")
     previewElementProvider = defaultPreviewElementProvider
     atfChecksEnabled = false
+    visualLintingEnabled = false
     onStaticPreviewStart()
     forceRefresh().invokeOnCompletion { isUiCheckPreview = false }
   }
@@ -597,6 +614,8 @@ class ComposePreviewRepresentation(
   override var isFilterEnabled: Boolean = false
 
   override var atfChecksEnabled: Boolean = false
+
+  override var visualLintingEnabled: Boolean = false
 
   override var isUiCheckPreview: Boolean = false
 
@@ -1172,7 +1191,8 @@ class ComposePreviewRepresentation(
       showDecorations = displaySettings.showDecoration,
       isInteractive = interactiveMode.isStartingOrReady(),
       requestPrivateClassLoader = usePrivateClassLoader(),
-      runAtfChecks = runAtfChecks()
+      runAtfChecks = runAtfChecks(),
+      runVisualLinting = runVisualLinting()
     )
 
   private fun onAfterRender() {
@@ -1230,7 +1250,8 @@ class ComposePreviewRepresentation(
         progressIndicator,
         this::onAfterRender,
         previewElementModelAdapter,
-        if (runAtfChecks()) accessibilityModelUpdater else defaultModelUpdater,
+        if (runAtfChecks() || runVisualLinting()) accessibilityModelUpdater
+        else defaultModelUpdater,
         this::configureLayoutlibSceneManagerForPreviewElement
       )
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
@@ -1440,8 +1461,18 @@ class ComposePreviewRepresentation(
   private fun usePrivateClassLoader() =
     interactiveMode.isStartingOrReady() || animationInspection.get() || shouldQuickRefresh()
 
-  /** Whether to run ATF checks on the preview. Never do it for interactive preview. */
-  private fun runAtfChecks() = atfChecksEnabled && !interactiveMode.isStartingOrReady()
+  /**
+   * Whether to run ATF checks on the preview. Never do it for interactive or animation previews.
+   */
+  private fun runAtfChecks() =
+    atfChecksEnabled && !interactiveMode.isStartingOrReady() && !animationInspection.get()
+
+  /**
+   * Whether to run Visual Linting on the preview. Never do it for interactive or animation
+   * previews.
+   */
+  private fun runVisualLinting() =
+    visualLintingEnabled && !interactiveMode.isStartingOrReady() && !animationInspection.get()
 
   override fun invalidate() {
     invalidated.set(true)

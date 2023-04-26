@@ -16,8 +16,9 @@
 package com.android.tools.idea.uibuilder.lint
 
 import com.android.tools.idea.common.model.NlComponent
+import com.intellij.designer.model.EmptyXmlTag
 import com.intellij.ide.BrowserUtil
-import com.intellij.lang.ASTNode
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.TextRange
@@ -58,10 +59,10 @@ fun createDefaultHyperLinkListener(): HyperlinkListener {
 }
 
 /** Gets the text range within the file based on [component] */
-fun getTextRange(component: NlComponent): TextRange? {
-  component.tag?.let { tag ->
-    val nameElement: ASTNode? = XmlChildRole.START_TAG_NAME_FINDER.findChild(tag.node)
-    return nameElement?.textRange
+fun NlComponent.getTextRange(): TextRange? {
+  if (tag == null || tag == EmptyXmlTag.INSTANCE) {
+    return (navigatable as? OpenFileDescriptor)?.rangeMarker?.textRange
   }
-  return null
+  val nameElement = tag?.let { XmlChildRole.START_TAG_NAME_FINDER.findChild(it.node) }
+  return nameElement?.textRange
 }

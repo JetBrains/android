@@ -135,6 +135,9 @@ interface ComposePreviewManager : Disposable {
   /** Flag to indicate whether ATF checks should be run on the preview. */
   var atfChecksEnabled: Boolean
 
+  /** Flag to indicate whether Visual Lint checks should be run on the preview. */
+  var visualLintingEnabled: Boolean
+
   val isInStaticAndNonAnimationMode: Boolean
     get() =
       animationInspectionPreviewElementInstance == null &&
@@ -186,6 +189,7 @@ class NopComposePreviewManager : ComposePreviewManager {
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
   override var atfChecksEnabled: Boolean = false
+  override var visualLintingEnabled: Boolean = false
   override var isUiCheckPreview: Boolean = false
   override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {}
   override fun stopInteractivePreview() {}

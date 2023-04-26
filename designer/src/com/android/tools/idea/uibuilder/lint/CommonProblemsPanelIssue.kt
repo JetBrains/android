@@ -44,9 +44,9 @@ class CommonProblemsPanelIssue(issue: Issue) : Issue() {
       when (source) {
         is VisualLintIssueProvider.VisualLintIssueSource -> {
           source.components.forEach { component ->
-            getTextRange(component)?.let { return it }
+            component.getTextRange()?.let { return it }
         }}
-        is NlComponentIssueSource -> return source.component?.let { getTextRange(it) }
+        is NlComponentIssueSource -> return source.component?.getTextRange()
 
       }
 

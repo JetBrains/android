@@ -18,6 +18,7 @@ package com.android.tools.idea.common.error
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
@@ -160,7 +161,10 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
 
       val projectBasePath = project.basePath
       if (projectBasePath != null) {
-        val relatedFiles = issue.models.filter { model -> issue.shouldHighlight(model) }.map { it.virtualFile }.distinct()
+        val relatedFiles = issue.models.filter { model -> issue.shouldHighlight(model) }.map {
+          @Suppress("UnstableApiUsage")
+          BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
+        }.distinct()
         if (relatedFiles.isNotEmpty()) {
           affectedFilePanel.add(JBLabel("Affected Files:").apply {
             font = font.deriveFont(Font.BOLD)

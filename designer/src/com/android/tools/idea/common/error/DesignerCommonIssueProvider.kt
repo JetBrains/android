@@ -46,13 +46,13 @@ object NotSuppressedFilter : DesignerCommonIssueProvider.Filter {
 
 class SelectedEditorFilter(project: Project) : DesignerCommonIssueProvider.Filter {
   private val editorManager: FileEditorManager = FileEditorManager.getInstance(project)
+  @Suppress("UnstableApiUsage")
   override fun invoke(issue: Issue): Boolean {
     return if (issue is VisualLintRenderIssue) {
-      val files = issue.source.models.map { it.virtualFile.name }.distinct()
+      val files = issue.source.models.map { BackedVirtualFile.getOriginFileIfBacked(it.virtualFile).name }.distinct()
       editorManager.selectedEditor?.file?.let { files.contains(it.name) } ?: false
     }
     else {
-      @Suppress("UnstableApiUsage")
       val issuedFile = issue.source.file?.let { BackedVirtualFile.getOriginFileIfBacked(it) }
       editorManager.selectedEditor?.file?.let { it == issuedFile } ?: false
     }

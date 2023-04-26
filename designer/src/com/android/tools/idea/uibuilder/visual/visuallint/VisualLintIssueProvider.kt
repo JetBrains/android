@@ -118,7 +118,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder): I
   private fun updateRange() {
     source.components.forEach { component ->
       component.let {
-        range = getTextRange(it)
+        range = it.getTextRange()
         return@forEach
       }
     }
