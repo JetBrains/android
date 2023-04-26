@@ -2121,7 +2121,6 @@ MODULE                        : project.ads-sdk-implementation
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -2152,7 +2151,6 @@ MODULE                        : project.ads-sdk-implementation
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugUnitTest
@@ -2183,7 +2181,6 @@ MODULE                        : project.ads-sdk-implementation
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
@@ -3418,7 +3415,6 @@ MODULE                        : project.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -3487,7 +3483,6 @@ MODULE                        : project.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugUnitTest
@@ -3547,7 +3542,6 @@ MODULE                        : project.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
@@ -4792,7 +4786,6 @@ MODULE                        : project.app-with-dynamic-feature
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -4862,7 +4855,6 @@ MODULE                        : project.app-with-dynamic-feature
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugUnitTest
@@ -4922,7 +4914,6 @@ MODULE                        : project.app-with-dynamic-feature
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
@@ -5347,7 +5338,6 @@ MODULE                        : project.feature
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -5376,7 +5366,6 @@ MODULE                        : project.feature
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugUnitTest
@@ -5405,7 +5394,6 @@ MODULE                        : project.feature
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>

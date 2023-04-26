@@ -1607,7 +1607,6 @@ MODULE                        : My_First_App.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -1677,7 +1676,6 @@ MODULE                        : My_First_App.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -1749,7 +1747,6 @@ MODULE                        : My_First_App.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2393,7 +2390,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2461,7 +2457,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2531,7 +2526,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar

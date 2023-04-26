@@ -2714,7 +2714,6 @@ MODULE                        : kotlinMultiPlatform.app
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2867,7 +2866,6 @@ MODULE                        : kotlinMultiPlatform.app
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2998,7 +2996,6 @@ MODULE                        : kotlinMultiPlatform.app
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3097,7 +3094,6 @@ MODULE                        : kotlinMultiPlatform.app
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3184,7 +3180,6 @@ MODULE                        : kotlinMultiPlatform.app
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -4008,7 +4003,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -4134,7 +4128,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -4249,7 +4242,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -4351,7 +4343,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -4439,7 +4430,6 @@ MODULE                        : kotlinMultiPlatform.module2
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar

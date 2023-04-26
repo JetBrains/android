@@ -2135,7 +2135,6 @@ MODULE                        : TestCompositeLib1.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2206,7 +2205,6 @@ MODULE                        : TestCompositeLib1.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2277,7 +2275,6 @@ MODULE                        : TestCompositeLib1.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3467,7 +3464,6 @@ MODULE                        : TestCompositeLib1.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3537,7 +3533,6 @@ MODULE                        : TestCompositeLib1.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3607,7 +3602,6 @@ MODULE                        : TestCompositeLib1.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5080,7 +5074,6 @@ MODULE                        : TestCompositeLib3.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5151,7 +5144,6 @@ MODULE                        : TestCompositeLib3.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5222,7 +5214,6 @@ MODULE                        : TestCompositeLib3.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -6312,6 +6303,7 @@ MODULE                        : com.test.compositeNest3.compositeNest
                 - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -6332,6 +6324,7 @@ MODULE                        : com.test.compositeNest3.compositeNest
                     - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/test [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
         externalSystemId              : GRADLE
         - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
         artifactsByConfiguration
@@ -6397,6 +6390,7 @@ MODULE                        : composite2
                 - artifacts                   : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -6417,6 +6411,7 @@ MODULE                        : composite2
                     - files                       : <ROOT>/TestCompositeLib2/build/resources/test [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
         externalSystemId              : GRADLE
         - artifacts                   : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
         artifactsByConfiguration
@@ -6482,6 +6477,7 @@ MODULE                        : composite4
                 - artifacts                   : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -6502,6 +6498,7 @@ MODULE                        : composite4
                     - files                       : <ROOT>/TestCompositeLib4/build/resources/test [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
         externalSystemId              : GRADLE
         - artifacts                   : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
         artifactsByConfiguration
@@ -6567,6 +6564,7 @@ MODULE                        : compositeNest
                 - artifacts                   : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
             test                          : test (DefaultExternalSourceSet)
                 sources
                     TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -6587,6 +6585,7 @@ MODULE                        : compositeNest
                     - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/test [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
         externalSystemId              : GRADLE
         - artifacts                   : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
         artifactsByConfiguration
@@ -8203,7 +8202,6 @@ MODULE                        : project.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -8274,7 +8272,6 @@ MODULE                        : project.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -8345,7 +8342,6 @@ MODULE                        : project.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -9502,7 +9498,6 @@ MODULE                        : project.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -9571,7 +9566,6 @@ MODULE                        : project.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -9640,7 +9634,6 @@ MODULE                        : project.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar

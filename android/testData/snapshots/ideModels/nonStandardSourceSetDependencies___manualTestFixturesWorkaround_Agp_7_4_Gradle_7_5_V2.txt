@@ -3295,7 +3295,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -3326,7 +3325,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugUnitTest
@@ -3357,7 +3355,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
@@ -3508,7 +3505,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3621,7 +3617,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3707,7 +3702,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3740,7 +3734,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -4871,7 +4864,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -4925,7 +4917,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugUnitTest
@@ -4979,7 +4970,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>
@@ -5698,7 +5688,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5838,7 +5827,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5947,7 +5935,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -6044,7 +6031,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -6078,7 +6064,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -6108,7 +6093,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -6287,7 +6271,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -6403,7 +6386,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
                         enableSignatureClashChecks    : true
-                        errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -7302,7 +7284,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugAndroidTest
@@ -7347,7 +7328,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
             debugUnitTest
@@ -7378,7 +7358,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     useFirLT                      : true
         gradleUserHome                : <GRADLE>

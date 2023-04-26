@@ -764,6 +764,7 @@ MODULE                        : project
                         - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -797,6 +798,7 @@ MODULE                        : project
                             - files                       : <ROOT>/javalib1/build/resources/test [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                 artifactsByConfiguration
@@ -853,6 +855,7 @@ MODULE                        : project
                         - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -873,6 +876,7 @@ MODULE                        : project
                             - files                       : <ROOT>/javalib2/build/resources/test [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                 artifactsByConfiguration
