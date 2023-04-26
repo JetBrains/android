@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview;
+package com.android.tools.rendering;
 
 import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
@@ -24,11 +24,9 @@ import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.log.LogAnonymizerUtil;
 import com.android.tools.log.LogAnonymizer;
-import com.android.tools.rendering.IRenderLogger;
-import com.android.tools.rendering.RecyclerViewHelper;
 import com.android.tools.rendering.api.RenderModelModule;
+import com.android.tools.rendering.log.LogAnonymizerUtil;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -194,7 +192,7 @@ public class ViewLoader {
 
   @VisibleForTesting
   @NotNull
-  static String getShortClassName(@NotNull String fqcn) {
+  public static String getShortClassName(@NotNull String fqcn) {
     int first = fqcn.indexOf('.');
     int last = fqcn.lastIndexOf('.');
     if (fqcn.startsWith(ANDROID_PKG_PREFIX)) {
@@ -425,7 +423,7 @@ public class ViewLoader {
   }
 
   @VisibleForTesting
-  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager.RClassParser rClassParser) throws ClassNotFoundException {
+  public void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager.RClassParser rClassParser) throws ClassNotFoundException {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("loadAndParseRClass(%s)", LogAnonymizer.anonymizeClassName(className)));
     }

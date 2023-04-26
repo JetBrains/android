@@ -29,8 +29,9 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -161,7 +162,7 @@ public class ViewEditorImpl extends ViewEditor {
     Module module = model.getModule();
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
     final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, model.getFacet(), getConfiguration())
-      .withPsiFile(xmlFile)
+      .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
 
     // Measure unweighted bounds

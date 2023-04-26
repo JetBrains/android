@@ -29,8 +29,11 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
@@ -171,7 +174,7 @@ public class RenderTestUtil {
     assertNotNull(xmlFile);
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
     final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, configuration, logger)
-      .withPsiFile(xmlFile)
+      .withPsiFile(new PsiXmlFile(xmlFile))
       .disableSecurityManager()
       .withTopic(topic)
       .build();

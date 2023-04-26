@@ -22,6 +22,7 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
 import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderTask
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.math.Quantiles
 import com.google.common.util.concurrent.Futures

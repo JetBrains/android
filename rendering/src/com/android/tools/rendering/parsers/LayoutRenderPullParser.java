@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static com.android.SdkConstants.ANDROID_URI;
@@ -63,7 +63,7 @@ import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.ide.common.resources.sampledata.SampleDataManager.SUBARRAY_SEPARATOR;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
-import static com.android.tools.idea.rendering.RenderTask.AttributeFilter;
+import static com.android.tools.rendering.RenderTask.AttributeFilter;
 
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
@@ -79,14 +79,6 @@ import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.LayoutMetadata;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.NavGraphResolver;
-import com.android.tools.rendering.parsers.AaptAttrAttributeSnapshot;
-import com.android.tools.rendering.parsers.AaptAttrParser;
-import com.android.tools.rendering.parsers.AttributeSnapshot;
-import com.android.tools.rendering.parsers.LayoutPullParser;
-import com.android.tools.rendering.parsers.RenderXmlAttribute;
-import com.android.tools.rendering.parsers.RenderXmlFile;
-import com.android.tools.rendering.parsers.RenderXmlTag;
-import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -172,7 +164,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
   private final List<TagSnapshot> myNodeStack = new ArrayList<>();
 
   @Nullable
-  protected final TagSnapshot myRoot;
+  public final TagSnapshot myRoot;
 
   /** Mapping from URI to namespace prefix for android, app and tools URIs */
   @NotNull
@@ -373,11 +365,11 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
    * Use one of the {@link #create} factory methods instead
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
-  protected LayoutRenderPullParser(@Nullable final RenderXmlTag root,
-                                   @NotNull ILayoutLog logger,
-                                   boolean honorMergeParentTag,
-                                   @Nullable NavGraphResolver navGraphResolver,
-                                   @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+  public LayoutRenderPullParser(@Nullable final RenderXmlTag root,
+                                @NotNull ILayoutLog logger,
+                                boolean honorMergeParentTag,
+                                @Nullable NavGraphResolver navGraphResolver,
+                                @Nullable ResourceRepositoryManager resourceRepositoryManager) {
     this(root, logger, honorMergeParentTag, navGraphResolver, resourceRepositoryManager, 0, true);
   }
 

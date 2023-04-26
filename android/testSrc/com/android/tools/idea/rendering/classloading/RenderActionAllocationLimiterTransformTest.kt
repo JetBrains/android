@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading
 
-import com.android.tools.idea.rendering.RenderService
+import com.android.tools.rendering.RenderService
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail

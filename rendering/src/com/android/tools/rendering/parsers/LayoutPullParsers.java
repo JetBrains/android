@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
@@ -58,12 +58,9 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.fonts.ProjectFonts;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.rendering.IRenderLogger;
+import com.android.tools.rendering.RenderTask;
 import com.android.tools.rendering.api.NavGraphResolver;
-import com.android.tools.rendering.parsers.DomPullParser;
-import com.android.tools.rendering.parsers.RenderXmlFile;
-import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -302,7 +299,7 @@ public class LayoutPullParsers {
 
   @VisibleForTesting
   @Nullable
-  static ILayoutPullParser createFontFamilyParser(
+  public static ILayoutPullParser createFontFamilyParser(
     @NotNull RenderXmlFile file,
     @NotNull Function<String, FontFamily> getDownloadableFont,
     @NotNull String fontColor

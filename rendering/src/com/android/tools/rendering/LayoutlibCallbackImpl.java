@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
@@ -68,12 +68,10 @@ import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.parsers.AaptAttrParser;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
-import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
+import com.android.tools.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.FileResourceReader;
-import com.android.tools.rendering.IRenderLogger;
-import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.res.ResourceNamespacing;
 import com.android.utils.HtmlBuilder;
@@ -105,7 +103,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;

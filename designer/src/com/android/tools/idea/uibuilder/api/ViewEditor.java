@@ -25,7 +25,7 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.res.FloatResources;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;

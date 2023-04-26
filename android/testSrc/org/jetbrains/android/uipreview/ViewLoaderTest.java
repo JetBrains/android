@@ -29,6 +29,7 @@ import com.android.tools.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.rendering.ViewLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.intellij.openapi.module.Module;

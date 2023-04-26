@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.log;
+package com.android.tools.rendering.log;
 
 import com.android.tools.rendering.api.RenderModelModule;
 import com.google.common.hash.Hashing;

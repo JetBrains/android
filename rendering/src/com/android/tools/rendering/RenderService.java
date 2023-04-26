@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import static com.android.tools.rendering.RenderAsyncActionExecutor.*;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
@@ -25,32 +25,24 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
-import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTracker;
-import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTrackerImpl;
-import com.android.tools.idea.rendering.tracking.StackTraceCapture;
 import com.android.tools.layoutlib.LayoutlibFactory;
-import com.android.tools.rendering.RenderAsyncActionExecutor;
-import com.android.tools.rendering.RenderContext;
-import com.android.tools.rendering.RenderExecutor;
-import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.RenderConfiguration;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ClassTransform;
-import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
-import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.TagSnapshot;
-import com.android.tools.rendering.HtmlLinkManager;
-import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.parsers.RenderXmlTag;
+import com.android.tools.rendering.tracking.RenderTaskAllocationTracker;
+import com.android.tools.rendering.tracking.RenderTaskAllocationTrackerImpl;
+import com.android.tools.rendering.tracking.StackTraceCapture;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
@@ -60,7 +52,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -82,7 +73,7 @@ final public class RenderService implements Disposable {
     ourExecutor = RenderExecutor.create();
   }
 
-  static void shutdownRenderExecutor() {
+  public static void shutdownRenderExecutor() {
     ourExecutor.shutdown();
   }
 
@@ -110,7 +101,7 @@ final public class RenderService implements Disposable {
     return ourExecutor;
   }
 
-  RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
+  public RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
     myConfigureBuilder = configureBuilder;
   }
 
@@ -243,7 +234,7 @@ final public class RenderService implements Disposable {
     private final RenderContext myContext;
     private final Object myCredential;
     @NotNull private ImagePool myImagePool;
-    @Nullable private XmlFile myXmlFile;
+    @Nullable private RenderXmlFile myXmlFile;
     @NotNull private final RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
     private boolean isSecurityManagerEnabled = true;
@@ -327,7 +318,7 @@ final public class RenderService implements Disposable {
     }
 
     @NotNull
-    public RenderTaskBuilder withPsiFile(@NotNull XmlFile xmlFile) {
+    public RenderTaskBuilder withPsiFile(@NotNull RenderXmlFile xmlFile) {
       this.myXmlFile = xmlFile;
       return this;
     }
@@ -493,7 +484,6 @@ final public class RenderService implements Disposable {
      */
     @NotNull
     public CompletableFuture<RenderTask> build() {
-      // We only track allocations in testing mode
       RenderTaskAllocationTracker tracker = new RenderTaskAllocationTrackerImpl(myContext.getModule().getEnvironment().isInTest());
       StackTraceCapture stackTraceCaptureElement = tracker.captureAllocationStackTrace();
 
@@ -530,7 +520,7 @@ final public class RenderService implements Disposable {
         }
         catch (RenderingException e) {
           String message = e.getPresentableMessage();
-          message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
+          message = message != null ? message : RenderingBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(
             RenderProblem.createPlain(
               ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableFixFactory()));
@@ -546,7 +536,7 @@ final public class RenderService implements Disposable {
                            classesToPreload, reportOutOfDateUserClasses, myMinDownscalingFactor, myTopic);
 
           if (myXmlFile != null) {
-            task.setXmlFile(new PsiXmlFile(myXmlFile));
+            task.setXmlFile(myXmlFile);
           }
 
           task

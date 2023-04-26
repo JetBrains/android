@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_DESKTOP_ID;
 import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_TABLET_ID;
@@ -49,17 +49,6 @@ import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.dom.ActivityAttributesSnapshot;
-import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTracker;
-import com.android.tools.idea.rendering.tracking.StackTraceCapture;
-import com.android.tools.rendering.CachingImageFactory;
-import com.android.tools.rendering.ExecuteCallbacksResult;
-import com.android.tools.rendering.InteractionEventResult;
-import com.android.tools.rendering.ModuleRenderContext;
-import com.android.tools.rendering.RenderAsyncActionExecutor;
-import com.android.tools.rendering.RenderLogger;
-import com.android.tools.rendering.RenderContext;
-import com.android.tools.rendering.RenderResult;
-import com.android.tools.rendering.RenderResultStats;
 import com.android.tools.rendering.api.IncludeReference;
 import com.android.tools.rendering.api.RenderConfiguration;
 import com.android.tools.rendering.api.RenderModelManifest;
@@ -71,13 +60,13 @@ import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
-import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
-import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
-import com.android.tools.rendering.IRenderLogger;
-import com.android.tools.rendering.RenderProblem;
+import com.android.tools.rendering.parsers.LayoutRenderPullParser;
+import com.android.tools.rendering.parsers.LayoutPullParsers;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.rendering.security.RenderSecurityManager;
+import com.android.tools.rendering.tracking.RenderTaskAllocationTracker;
+import com.android.tools.rendering.tracking.StackTraceCapture;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -1083,7 +1072,7 @@ public class RenderTask {
           return result;
         }).handle((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache.
-          RenderSessionCleanerKt.clearGapWorkerCache(myLayoutlibCallback);
+          RenderSessionCleaner.clearGapWorkerCache(myLayoutlibCallback);
           return result.createWithStats(new RenderResultStats(
             inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
             System.currentTimeMillis() - startRenderTimeMs,
@@ -1113,7 +1102,7 @@ public class RenderTask {
    * If {@link #inflate()} hasn't been called before, this method will implicitly call it.
    */
   @NotNull
-  CompletableFuture<RenderResult> render(@NotNull IImageFactory factory) {
+  public CompletableFuture<RenderResult> render(@NotNull IImageFactory factory) {
     myImageFactoryDelegate = factory;
 
     return renderInner();
@@ -1365,7 +1354,7 @@ public class RenderTask {
   }
 
   @VisibleForTesting
-  void setCrashReporter(@NotNull CrashReporter crashReporter) {
+  public void setCrashReporter(@NotNull CrashReporter crashReporter) {
     myCrashReporter = crashReporter;
   }
 
@@ -1407,6 +1396,6 @@ public class RenderTask {
    */
   @NotNull
   private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
-    return RenderSessionCleanerKt.dispose(renderSession, myLayoutlibCallback);
+    return RenderSessionCleaner.dispose(renderSession, myLayoutlibCallback);
   }
 }

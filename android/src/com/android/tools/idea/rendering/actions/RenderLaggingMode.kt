@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.actions
 
-import com.android.tools.idea.rendering.RenderService
+import com.android.tools.rendering.RenderService
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger

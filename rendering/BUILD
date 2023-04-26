@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.rendering",
     srcs = ["src"],
     iml_files = ["intellij.android.rendering.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -16,6 +17,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/analytics-library/crash:analytics-crash[module]",
+        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
     ],
 )
 
@@ -49,9 +51,11 @@ kotlin_library(
         "src/**/*.java",
         "src/**/*.kt",
     ]),
+    resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/tools/common/lint-psi/intellij-core",
+        "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
         "//tools/adt/idea/render-resources:tools.render-resources",
         "//tools/analytics-library/crash:tools.analytics-crash",
         "//tools/base/common:tools.common",

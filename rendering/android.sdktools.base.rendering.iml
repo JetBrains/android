@@ -17,5 +17,7 @@
     <orderEntry type="library" name="kxml2" level="project" />
     <orderEntry type="library" name="asm-tools" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics.crash-base" />
+    <orderEntry type="module" module-name="android.sdktools.base.sdklib-base" />
+    <orderEntry type="module" module-name="android.sdktools.base.layoutlib-loader" />
   </component>
 </module>

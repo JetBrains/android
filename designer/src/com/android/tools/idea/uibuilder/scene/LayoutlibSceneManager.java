@@ -56,17 +56,18 @@ import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
-import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
 import com.android.tools.rendering.ExecuteCallbacksResult;
 import com.android.tools.rendering.InteractionEventResult;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResults;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderConfiguration;
 import com.android.tools.idea.rendering.StudioRenderService;
@@ -1182,7 +1183,7 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderModelModule renderModule = createRenderModule(facet);
     RenderConfiguration renderConfiguration = new StudioRenderConfiguration(configuration);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, renderConfiguration, logger)
-      .withPsiFile(getModel().getFile())
+      .withPsiFile(new PsiXmlFile(getModel().getFile()))
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
       .withTopic(myRenderingTopic);
     return setupRenderTaskBuilder(renderTaskBuilder).build()

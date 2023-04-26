@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering
 
 /**
  * Exception that is thrown when the [Configuration] without [Device] is passed to the rendering pipeline.

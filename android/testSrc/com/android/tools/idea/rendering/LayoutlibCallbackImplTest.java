@@ -39,6 +39,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.rendering.IRenderLogger;
+import com.android.tools.rendering.LayoutlibCallbackImpl;
 import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.RenderModelModule;

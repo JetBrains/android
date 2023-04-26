@@ -49,6 +49,7 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.rendering.api.NavGraphResolver;
 import com.android.tools.rendering.parsers.AaptAttrAttributeSnapshot;
 import com.android.tools.rendering.parsers.LayoutPullParser;
+import com.android.tools.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.rendering.parsers.RenderXmlAttribute;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;

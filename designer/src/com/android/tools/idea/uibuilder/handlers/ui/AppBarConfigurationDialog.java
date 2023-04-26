@@ -39,8 +39,9 @@ import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -598,7 +599,7 @@ public class AppBarConfigurationDialog extends JDialog {
     AndroidFacet facet = myModel.getFacet();
     RenderService renderService = StudioRenderService.getInstance(getProject());
     final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, myModel.getConfiguration())
-      .withPsiFile(xmlFile)
+      .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
     return taskFuture.thenCompose(task -> {
       if (task != null) {

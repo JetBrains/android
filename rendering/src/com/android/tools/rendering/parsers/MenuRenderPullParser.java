@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
 import com.android.ide.common.rendering.api.ILayoutLog;
-import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.rendering.parsers.RenderXmlAttribute;
-import com.android.tools.rendering.parsers.RenderXmlFile;
-import com.android.tools.rendering.parsers.RenderXmlTag;
-import com.android.tools.rendering.parsers.TagSnapshot;
+import com.android.tools.rendering.RenderTask;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;

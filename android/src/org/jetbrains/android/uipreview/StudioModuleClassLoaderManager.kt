@@ -16,7 +16,7 @@
 package org.jetbrains.android.uipreview
 
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics
-import com.android.tools.idea.log.LogAnonymizerUtil.anonymize
+import com.android.tools.rendering.log.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getHolderModule

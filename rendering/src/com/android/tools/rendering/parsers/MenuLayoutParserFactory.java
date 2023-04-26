@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.tools.idea.rendering.ActionBarHandler;
-import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
 import com.android.tools.module.ModuleDependencies;
-import com.android.tools.rendering.parsers.DomPullParser;
-import com.android.tools.rendering.parsers.RenderXmlFile;
+import com.android.tools.rendering.LayoutlibCallbackImpl;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import org.intellij.lang.annotations.Language;
@@ -28,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 
 import static com.android.AndroidXConstants.NAVIGATION_VIEW;
-import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createEmptyParser;
+import static com.android.tools.rendering.parsers.LayoutPullParsers.createEmptyParser;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy.

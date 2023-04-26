@@ -150,7 +150,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="213"/>
+            line="218"/>
     </issue>
 
     <issue
@@ -158,7 +158,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="216"/>
+            line="221"/>
     </issue>
 
     <issue
@@ -598,7 +598,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/org/jetbrains/android/uipreview/ModuleClassLoaderUtil.kt"
-            line="377"/>
+            line="378"/>
     </issue>
 
     <issue
@@ -606,7 +606,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
-            line="89"/>
+            line="81"/>
     </issue>
 
     <issue
@@ -662,7 +662,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/org/jetbrains/android/uipreview/StudioModuleClassLoaderManager.kt"
-            line="293"/>
+            line="298"/>
     </issue>
 
     <issue
@@ -719,14 +719,6 @@
         <location
             file="src/com/android/tools/idea/ui/resourcemanager/plugin/RasterAssetRenderer.kt"
             line="36"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
-        message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/rendering/RenderTask.java"
-            line="820"/>
     </issue>
 
     <issue

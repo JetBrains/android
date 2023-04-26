@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.tracking
+package com.android.tools.rendering.tracking
 
-import com.android.tools.idea.rendering.RenderTask
+interface RenderTaskAllocationTracker {
+  /** Captures a [RenderTask] disposal point. */
+  fun captureDisposeStackTrace(): StackTraceCapture
 
-/**
- * Class that represents a [RenderTask] allocation point.
- */
-abstract class StackTraceCapture {
-  abstract val stackTrace: List<StackTraceElement>
-  abstract fun bind(renderTask: RenderTask)
+  /** Captures a [RenderTask] allocation point. */
+  fun captureAllocationStackTrace(): StackTraceCapture
 }

@@ -20,10 +20,10 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
+import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
 import com.android.tools.idea.uibuilder.visual.WearDeviceModelsProvider
@@ -41,6 +41,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSiz
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzer
 import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingTopic
 import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInspection.InspectionProfile
@@ -277,7 +278,7 @@ fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFutur
   val logger = renderService.createLogger(model.project)
 
   return renderService.taskBuilder(model.facet, model.configuration, logger)
-    .withPsiFile(model.file)
+    .withPsiFile(PsiXmlFile(model.file))
     .withLayoutScanner(requireRender)
     .withTopic(RenderingTopic.VISUAL_LINT)
     .withMinDownscalingFactor(0.25f)

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.dom.ActivityAttributesSnapshot;
-import com.android.tools.rendering.AndroidXmlFiles;
 import com.android.tools.rendering.api.RenderModelManifest;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.security.RenderSecurityManager;

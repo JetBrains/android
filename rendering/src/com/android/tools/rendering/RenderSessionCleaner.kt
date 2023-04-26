@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+@file:JvmName("RenderSessionCleaner")
+package com.android.tools.rendering
 
 import com.android.AndroidXConstants
+import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
-import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.ref.WeakReference
 import java.lang.reflect.Field
@@ -63,16 +63,16 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
   var disposeMethod = Optional.empty<Method>()
   val applyObserversRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
   val toRunTrampolinedRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
-  if (classLoader.hasLoadedClass(COMPOSE_VIEW_ADAPTER_FQN)) {
+  if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
     try {
-      val composeViewAdapter: Class<*> = classLoader.findClass(COMPOSE_VIEW_ADAPTER_FQN)
+      val composeViewAdapter: Class<*> = classLoader.findClass(CLASS_COMPOSE_VIEW_ADAPTER)
       // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
       disposeMethod = Arrays.stream(composeViewAdapter.methods).filter { m: Method ->
         m.name.contains("dispose")
       }.findFirst()
     }
     catch (ex: ClassNotFoundException) {
-      LOG.debug("$COMPOSE_VIEW_ADAPTER_FQN class not found", ex)
+      LOG.debug("$CLASS_COMPOSE_VIEW_ADAPTER class not found", ex)
     }
     if (disposeMethod.isEmpty) {
       LOG.warn("Unable to find dispose method in ComposeViewAdapter")
@@ -146,7 +146,7 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
  */
 private fun disposeIfCompose(viewInfo: ViewInfo, disposeMethod: Method) {
   val viewObject: Any? = viewInfo.viewObject
-  if (viewObject?.javaClass?.name != COMPOSE_VIEW_ADAPTER_FQN) {
+  if (viewObject?.javaClass?.name != CLASS_COMPOSE_VIEW_ADAPTER) {
     return
   }
   try {

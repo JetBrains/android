@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.tracking
+package com.android.tools.rendering.tracking
 
-import com.android.tools.idea.rendering.RenderTask
-import com.android.tools.idea.ui.GuiTestingService
-import com.intellij.openapi.application.ApplicationManager
+import com.android.tools.rendering.RenderTask
 import java.util.WeakHashMap
 
 private val allocations = WeakHashMap<RenderTask, StackTraceCapture>()

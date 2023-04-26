@@ -1,6 +1,6 @@
 package com.android.tools.idea.rendering.classloading
 
-import com.android.tools.idea.rendering.RenderService
+import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label

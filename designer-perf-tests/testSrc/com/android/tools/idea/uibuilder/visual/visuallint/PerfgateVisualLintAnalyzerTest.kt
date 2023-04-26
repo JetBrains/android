@@ -21,7 +21,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.MemoryUseMeasurement
-import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.AndroidGradleProjectRule

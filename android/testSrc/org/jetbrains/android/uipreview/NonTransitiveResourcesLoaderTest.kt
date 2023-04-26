@@ -32,6 +32,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.IRenderLogger
+import com.android.tools.rendering.ViewLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.rendering.classloading.loaders.StaticLoader
 import com.android.tools.res.ids.ResourceIdManager.Companion.get

@@ -21,23 +21,22 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModelImpl
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFileSystem
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -136,7 +135,7 @@ class LayoutRendererTest {
 
 private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration: Configuration) =
   StudioRenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
-    .withPsiFile(xmlFile)
+    .withPsiFile(PsiXmlFile(xmlFile))
     .withQuality(QUALITY)
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()

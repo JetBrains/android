@@ -69,7 +69,6 @@ import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.setupBuildListener
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -80,6 +79,7 @@ import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
+import com.android.tools.rendering.RenderService
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification

@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.taskBuilder
 import com.google.common.annotations.VisibleForTesting

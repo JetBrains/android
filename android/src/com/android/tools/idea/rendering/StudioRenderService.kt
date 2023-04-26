@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.layoutlib.getLayoutLibrary
 import com.android.tools.rendering.RenderLogger
+import com.android.tools.rendering.RenderService
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
