@@ -16,36 +16,42 @@
 package com.android.ide.gradle.model.builder
 
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginPropertiesModelParameters
 import com.android.ide.gradle.model.impl.LegacyAndroidGradlePluginPropertiesImpl
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
-import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import java.lang.reflect.Method
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * An injected Gradle tooling model builder to fetch information from legacy versions of the Android Gradle plu
+ * An injected Gradle tooling model builder to fetch information from legacy versions of the Android Gradle plugin
  *
  * In particular, the Application ID from AGP versions that don't report it directly in the model.
  *
  * This model should not be requested when AGP >= 7.4 is used, as the information is held directly in the model.
  */
-class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: PluginType) : ToolingModelBuilder {
+class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: PluginType) : ParameterizedToolingModelBuilder<LegacyAndroidGradlePluginPropertiesModelParameters> {
+
+  override fun getParameterType(): Class<LegacyAndroidGradlePluginPropertiesModelParameters> = LegacyAndroidGradlePluginPropertiesModelParameters::class.java
 
   override fun canBuild(modelName: String): Boolean {
     return modelName == LegacyAndroidGradlePluginProperties::class.java.name
   }
 
+  override fun buildAll(modelName: String, project: Project): Nothing = error("parameter required")
 
-  override fun buildAll(modelName: String, project: Project): LegacyAndroidGradlePluginProperties {
+  override fun buildAll(modelName: String, parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project): LegacyAndroidGradlePluginProperties {
     check (modelName == LegacyAndroidGradlePluginProperties::class.java.name) { "Only valid model is ${LegacyAndroidGradlePluginProperties::class.java.name}" }
-
-    val extension = project.extensions.findByName("android") ?: return LegacyAndroidGradlePluginPropertiesImpl(mapOf(), listOf())
-
-    val applicationIdMap = mutableMapOf<String, String>()
     val problems = mutableListOf<Exception>()
-
+    val applicationIdMap = fetchApplicationIds(parameters, project, problems)
+    return LegacyAndroidGradlePluginPropertiesImpl(applicationIdMap, problems)
+  }
+  private fun fetchApplicationIds(parameters: LegacyAndroidGradlePluginPropertiesModelParameters, project: Project, problems: MutableList<Exception>): Map<String, String> {
+    if (!parameters.componentToApplicationIdMap) return mapOf()
+    val extension = project.extensions.findByName("android") ?: return mapOf()
+    val applicationIdMap = mutableMapOf<String, String>()
     for (method: String in pluginType.variantCollectionGetters(extension)) {
       val container = extension.invokeMethod<DomainObjectSet<*>>(method)
       for (variant in container) {
@@ -63,7 +69,7 @@ class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: Pl
         applicationIdMap[componentName] = applicationId
       }
     }
-    return LegacyAndroidGradlePluginPropertiesImpl(applicationIdMap, problems)
+    return applicationIdMap
   }
 
   enum class PluginType(val variantCollectionGetters: (Any) -> Set<String>) {

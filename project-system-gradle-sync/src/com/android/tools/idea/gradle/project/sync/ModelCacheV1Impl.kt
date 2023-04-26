@@ -1525,7 +1525,7 @@ internal fun LegacyAndroidGradlePluginProperties?.getProblemsAsSyncIssues(): Lis
       data = null,
       multiLineMessage = problem.stackTraceAsMultiLineMessage(),
       severity = IdeSyncIssue.SEVERITY_WARNING,
-      type = IdeSyncIssue.TYPE_APPLICATION_ID_MUST_NOT_BE_DYNAMIC
+      type = IdeSyncIssue.TYPE_GENERIC
     )
   }
 }

@@ -24,6 +24,7 @@ import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginPropertiesModelParameters
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
@@ -96,7 +97,9 @@ internal class BasicV1AndroidModuleGradleProject(
           shouldBuildVariant = false
         ) ?: error("Cannot fetch AndroidProject models for V1 projects.")
 
-        val legacyAndroidGradlePluginProperties = controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java)
+        val legacyAndroidGradlePluginProperties = controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java, LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
+          it.componentToApplicationIdMap = true
+        }
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V1) for project '$gradleProject'")
 
@@ -185,7 +188,9 @@ internal class BasicV2AndroidModuleGradleProject(
         val agpVersion = agpVersion
         val modelIncludesApplicationId = agpVersion.agpModelIncludesApplicationId
         val legacyAndroidGradlePluginProperties = if (!modelIncludesApplicationId) {
-          controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java)
+          controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java, LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
+            it.componentToApplicationIdMap = !modelIncludesApplicationId
+          }
         } else {
           null
         }

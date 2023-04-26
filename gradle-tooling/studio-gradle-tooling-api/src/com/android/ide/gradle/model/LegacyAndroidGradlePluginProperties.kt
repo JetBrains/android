@@ -35,7 +35,7 @@ interface LegacyAndroidGradlePluginProperties {
    */
   val componentToApplicationIdMap: Map<String, String>
   /**
-   * Exceptions caught from trying to resolve the application IDs from the model, collected in order to report them as sync issues.
+   * Exceptions caught from trying to read the additional information from the model, which should be reported as sync warnings.
    */
   val problems: List<Exception>
 }
