@@ -19,9 +19,11 @@ import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
+import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.awt.event.MouseMotionListener
@@ -64,9 +66,16 @@ class LayoutInspectorRenderer(
     // TODO(b/265150325) when running devices the zoom does not affect the scale. Move this somewhere else.
     renderLogic.renderSettings.scalePercent = 30
 
-    val layoutInspectorMouseListener = LayoutInspectorMouseListener(renderModel)
-    addMouseListener(layoutInspectorMouseListener)
-    addMouseMotionListener(layoutInspectorMouseListener)
+    // Events are not dispatched to the parent if the child has a mouse listener. So we need to manually forward them.
+    ForwardingMouseListener({ parent }, { !interceptClicks }).also {
+      addMouseListener(it)
+      addMouseMotionListener(it)
+      addMouseWheelListener(it)
+    }
+    LayoutInspectorMouseListener(renderModel).also {
+      addMouseListener(it)
+      addMouseMotionListener(it)
+    }
 
     // re-render each time Layout Inspector model changes
     renderModel.modificationListeners.add(repaintDisplayView)
@@ -141,61 +150,37 @@ class LayoutInspectorRenderer(
 
   private inner class LayoutInspectorMouseListener(
     private val renderModel: RenderModel
-  ) : MouseListener, MouseWheelListener, MouseMotionListener {
-    override fun mouseDragged(e: MouseEvent) {
-      if (!interceptClicks) {
-        parent.dispatchEvent(e)
-      }
-    }
-
-    override fun mouseEntered(e: MouseEvent) {
-      if (!interceptClicks) {
-        parent.dispatchEvent(e)
-      }
-    }
-
-    override fun mouseExited(e: MouseEvent) {
-      if (!interceptClicks) {
-        parent.dispatchEvent(e)
-      }
-    }
-
-    override fun mouseReleased(e: MouseEvent) {
-      if (!interceptClicks) {
-        parent.dispatchEvent(e)
-      }
-    }
-
-    override fun mouseWheelMoved(e: MouseWheelEvent) {
-      if (!interceptClicks) {
-        parent.dispatchEvent(e)
-      }
-    }
-    override fun mouseClicked(e: MouseEvent) {
-      if (!interceptClicks) {
-        parent.dispatchEvent(e)
-      }
-    }
-
-    override fun mousePressed(e: MouseEvent) {
-      if (!interceptClicks) {
-        parent.dispatchEvent(e)
-      }
-    }
-
+  ) : MouseAdapter() {
     override fun mouseMoved(e: MouseEvent) {
-      if (!interceptClicks) {
-        parent.dispatchEvent(e)
-      }
-
-      if (e.isConsumed) return
-
       val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
 
       val hoveredNodeDrawInfo = renderModel.findDrawInfoAt(modelCoordinates.x, modelCoordinates.y).firstOrNull()
       renderModel.model.hoveredNode = hoveredNodeDrawInfo?.node?.findFilteredOwner(renderModel.treeSettings)
 
       refresh()
+    }
+  }
+}
+
+/**
+ * A mouse listener that forwards its events to the component provided by [componentProvider] if [shouldForward] returns true.
+ */
+private class ForwardingMouseListener(
+  private val componentProvider: () -> Component,
+  private val shouldForward: () -> Boolean
+) : MouseListener, MouseWheelListener, MouseMotionListener {
+  override fun mouseClicked(e: MouseEvent) = forwardEvent(e)
+  override fun mousePressed(e: MouseEvent) = forwardEvent(e)
+  override fun mouseReleased(e: MouseEvent) = forwardEvent(e)
+  override fun mouseEntered(e: MouseEvent) = forwardEvent(e)
+  override fun mouseExited(e: MouseEvent) = forwardEvent(e)
+  override fun mouseWheelMoved(e: MouseWheelEvent) = forwardEvent(e)
+  override fun mouseDragged(e: MouseEvent) = forwardEvent(e)
+  override fun mouseMoved(e: MouseEvent) = forwardEvent(e)
+
+  private fun forwardEvent(e: MouseEvent) {
+    if (shouldForward()) {
+      componentProvider().dispatchEvent(e)
     }
   }
 }
