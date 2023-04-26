@@ -119,7 +119,7 @@ class EmulatorScreenshotActionTest {
 
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    var image = ui.getComponent<ImageComponent>().document.value
+    val image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "Unfolded_WithoutFrame")
   }
 
@@ -144,7 +144,7 @@ class EmulatorScreenshotActionTest {
 
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    var image = ui.getComponent<ImageComponent>().document.value
+    val image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "Folded_WithoutFrame")
   }
 
