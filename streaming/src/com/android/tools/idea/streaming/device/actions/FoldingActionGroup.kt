@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.device.actions
 
 import com.android.tools.idea.streaming.device.DEVICE_MAIN_TOOLBAR_ID
-import com.intellij.openapi.actionSystem.ActionButtonComponent
+import com.android.tools.idea.streaming.findComponentForAction
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -42,19 +42,7 @@ internal class FoldingActionGroup : DefaultActionGroup(), DumbAware {
         null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true, null, -1,
         { action -> action is FoldingAction && action.foldingState.id == currentFoldingState?.id },
         ActionPlaces.getPopupPlace(DEVICE_MAIN_TOOLBAR_ID))
-    val inputEvent = event.inputEvent
-    if (inputEvent == null) {
-      popup.showInFocusCenter()
-    }
-    else {
-      val component = inputEvent.component
-      if (component is ActionButtonComponent) {
-        popup.showUnderneathOf(component)
-      }
-      else {
-        popup.showInCenterOf(component)
-      }
-    }
+    event.findComponentForAction(this)?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
   }
 
   override fun update(event: AnActionEvent) {

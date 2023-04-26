@@ -16,9 +16,15 @@
 package com.android.tools.idea.streaming
 
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.actionSystem.ActionButtonComponent
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionHolder
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.concurrency.SameThreadExecutor
 import kotlinx.coroutines.cancelFutureOnCancellation
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Point
@@ -55,6 +61,56 @@ suspend fun <T> ListenableFuture<T>.suspendingGet(): T {
     addListener(listener, SameThreadExecutor.INSTANCE)
   }
 }
+
+/**
+ * If this [AnActionEvent] is associated with an [ActionButtonComponent], returns that component.
+ * Otherwise, returns the first found component associated with the given action belonging to
+ * the Running Devices tool window.
+ */
+internal fun AnActionEvent.findComponentForAction(action: AnAction): Component? =
+    findComponentForAction(action, RUNNING_DEVICES_TOOL_WINDOW_ID)
+
+/**
+ * If this [AnActionEvent] is associated with an [ActionButtonComponent], returns that component.
+ * Otherwise, returns the first found component associated with the given action belonging to
+ * the given tool window.
+ */
+private fun AnActionEvent.findComponentForAction(action: AnAction, toolWindowId: String): Component? {
+  val project = project ?: return null
+  val component = inputEvent?.component
+  if (component is ActionButtonComponent) {
+    return component
+  }
+  val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId) ?: return null
+  return toolWindow.component.parent.findComponentForAction(action)
+}
+
+/**
+ * Searches the AWT component tree starting from this [Component] for a component that is
+ * an [AnActionHolder] and holds the given action.
+ */
+private fun Component.findComponentForAction(action: AnAction): Component? {
+  if (this.isComponentForAction(action)) {
+    return this
+  }
+  if (this is Container) {
+    val queue = ArrayDeque<Container>().also { it.add(this) }
+    while (queue.isNotEmpty()) {
+      for (child in queue.removeFirst().components) {
+        if (child.isComponentForAction(action)) {
+          return child
+        }
+        if (child is Container) {
+          queue.add(child)
+        }
+      }
+    }
+  }
+  return null
+}
+
+private fun Component.isComponentForAction(action: AnAction): Boolean =
+    this is AnActionHolder && this.action === action
 
 /**
  * Returns this integer scaled and rounded to the closest integer.
