@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.rendering.ExecuteCallbacksResult
+import com.android.tools.rendering.InteractionEventResult
+
 /**
  * Render result for perfgate tests to carry additional metrics.
  */

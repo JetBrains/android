@@ -51,6 +51,8 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.rendering.CachingImageFactory;
+import com.android.tools.rendering.ExecuteCallbacksResult;
+import com.android.tools.rendering.InteractionEventResult;
 import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderLogger;

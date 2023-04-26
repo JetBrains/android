@@ -13,27 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
-import com.android.ide.common.rendering.api.RenderSession;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Resulting information of executing touch events or key events in {@link RenderSession}.
+ * Resulting information of executing {@link RenderTask#executeCallbacks(long)}.
  */
-public class InteractionEventResult {
+public class ExecuteCallbacksResult {
+  private final boolean myHasMoreCallbacks;
   private final long myDurationMs;
 
-  protected InteractionEventResult(long durationMs) {
+  public static ExecuteCallbacksResult EMPTY = create(false, 0);
+
+  protected ExecuteCallbacksResult(boolean hasMoreCallbacks, long durationMs) {
+    myHasMoreCallbacks = hasMoreCallbacks;
     myDurationMs = durationMs;
   }
 
   @NotNull
-  public static InteractionEventResult create(long durationMs) {
-    return new InteractionEventResult(durationMs);
+  public static ExecuteCallbacksResult create(boolean hasMoreCallbacks, long durationMs) {
+    return new ExecuteCallbacksResult(hasMoreCallbacks, durationMs);
   }
 
   public long getDurationMs() {
     return myDurationMs;
+  }
+
+  public boolean hasMoreCallbacks() {
+    return myHasMoreCallbacks;
   }
 }

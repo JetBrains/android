@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.rendering.ExecuteCallbacksResult
+import com.android.tools.rendering.ExecuteCallbacksResult
 import kotlinx.coroutines.future.await
 
 /**
