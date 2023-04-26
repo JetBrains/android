@@ -606,6 +606,33 @@ studio_plugin(
     ],
 )
 
+studio_plugin(
+    name = "com.android.tools.studiobot",
+    directory = "studio-bot",
+    libs = [
+        "//tools/vendor/google/ml/sml-core:aida_grpc",
+        "//tools/vendor/google/ml/sml-core:aida_proto",
+        "//tools/vendor/google/ml/sml-core:aida_protobuf",
+        "//tools/vendor/google/ml/sml-core:studio_bot_proto",
+        "//prebuilts/tools/common/m2:commonmark-0.20.0",
+    ],
+    modules = {
+        "sml.jar": [
+            "//tools/vendor/google/ml/sml-core:ml.sml-core",
+            "//tools/vendor/google/ml/sml-android:ml.sml-android",
+        ],
+    },
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
+    ],
+)
+
 exports_files([
     "codesign/entitlements.xml",
 ])
@@ -630,6 +657,7 @@ android_studio(
     plugins = [
         ":org.jetbrains.android",
         ":com.android.gmdcodecompletion",
+        ":com.android.tools.studiobot",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
         ":com.android.tools.design",
@@ -880,6 +908,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-svn",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
+        "//tools/vendor/google/ml/sml-android:ml.sml-android[module]",
     ],
 )
 

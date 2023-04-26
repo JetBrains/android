@@ -112,6 +112,7 @@ public class StartUpTest {
         "Settings Sync",
         "Shell Script",
         "Smali Support",
+        "Studio Bot",
         "Subversion",
         "Task Management",
         "Terminal",
