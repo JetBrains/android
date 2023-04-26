@@ -43,6 +43,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.UsefulTestCase
+import com.intellij.testFramework.common.ThreadLeakTracker
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
@@ -504,6 +505,11 @@ class ProjectEnvironmentRuleImpl(
     val settings = CodeStyle.getSettings(project()).clone()
     applyAndroidCodeStyleSettings(settings)
     CodeStyleSettingsManager.getInstance(project()).setTemporarySettings(settings)
+
+    // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib")
+    // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor")
   }
 
   override fun after(description: Description) {
