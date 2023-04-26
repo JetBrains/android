@@ -21,11 +21,16 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.dsl.builder.RightGap
+import com.intellij.ui.dsl.builder.bindIntValue
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.annotations.Nls
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.random.Random
+import kotlin.reflect.KMutableProperty0
 
 /**
  * An internal action to put the rendering pipeline into a "lagging mode". This will create slow rendering requests
@@ -92,28 +97,11 @@ class RenderLaggingMode : ToggleAction("Enable Layout Preview Lagging Mode") {
     }
     else {
       val builder = DialogBuilder()
-      // IDEA-318934 Port RenderLaggingMode to Kotlin UI DSL 2
       builder.setCenterPanel(panel {
-        row {
-          label("Min wait time")
-          spinner(this@RenderLaggingMode::minWaitTimeMs, 0, 90000)
-          label("ms")
-        }
-        row {
-          label("Max wait time")
-          spinner(this@RenderLaggingMode::maxWaitTimeMs, 0, 90000)
-          label("ms")
-        }
-        row {
-          label("Min action space time")
-          spinner(this@RenderLaggingMode::minSpaceTimeMs, 0, 90000)
-          label("ms")
-        }
-        row {
-          label("Max action space time")
-          spinner(this@RenderLaggingMode::maxSpaceTimeMs, 0, 90000)
-          label("ms")
-        }
+        spinnerParamMs("Min wait time", ::minWaitTimeMs)
+        spinnerParamMs("Max wait time", ::maxWaitTimeMs)
+        spinnerParamMs("Min action space time", ::minSpaceTimeMs)
+        spinnerParamMs("Max action space time", ::maxSpaceTimeMs)
       })
       builder.setOkOperation {
         enabled = true
@@ -124,5 +112,13 @@ class RenderLaggingMode : ToggleAction("Enable Layout Preview Lagging Mode") {
       builder.show()
     }
   }
+}
 
+private fun Panel.spinnerParamMs(@Nls label: String, prop: KMutableProperty0<Int>) {
+  row(label) {
+    spinner(0..90000)
+      .bindIntValue(prop)
+      .gap(RightGap.SMALL)
+    label("ms")
+  }
 }

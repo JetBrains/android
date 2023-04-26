@@ -15,11 +15,10 @@
  */
 package com.android.tools.compose
 
-import com.intellij.application.options.editor.CheckboxDescriptor
-import com.intellij.application.options.editor.checkBox
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.panel
 
 /**
  * Provides additional options in Settings | Editor | Code Completion section.
@@ -29,16 +28,12 @@ import com.intellij.ui.layout.panel
 class ComposeCodeCompletionConfigurable : BoundConfigurable("Compose") {
   private val settings = ComposeSettings.getInstance()
 
-  private val checkboxDescriptor = CheckboxDescriptor(
-    ComposeBundle.message("compose.enable.insertion.handler"),
-    settings.state::isComposeInsertHandlerEnabled)
-
   override fun createPanel(): DialogPanel {
-    // IDEA-318932 Port ComposeCodeCompletionConfigurable to Kotlin UI DSL 2
     return panel {
-      row {
-        titledRow("Compose") {
-          row { checkBox(checkboxDescriptor) }
+      group("Compose") {
+        row {
+          checkBox(ComposeBundle.message("compose.enable.insertion.handler"))
+            .bindSelected(settings.state::isComposeInsertHandlerEnabled)
         }
       }
     }
