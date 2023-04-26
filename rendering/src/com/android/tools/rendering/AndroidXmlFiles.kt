@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidXmlFiles")
-package com.android.tools.idea.rendering
+package com.android.tools.rendering
 
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.TOOLS_URI
