@@ -382,11 +382,6 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     assertThat(resolver.prefixToUri("framework")).isNull();
   }
 
-  public void testBuildResourceId() {
-    assertEquals(0x7f_02_ffff, IdeResourcesUtil.buildResourceId((byte) 0x7f, (byte) 0x02, (short) 0xffff));
-    assertEquals(0x02_02_0001, IdeResourcesUtil.buildResourceId((byte) 0x02, (byte) 0x02, (short) 0x0001));
-  }
-
   public void testPsiElementGetNamespace() {
     // Project XML:
     XmlFile layoutFile = (XmlFile)myFixture.addFileToProject("layout/simple.xml", LAYOUT_FILE);

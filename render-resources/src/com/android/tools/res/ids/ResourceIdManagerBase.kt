@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res
+package com.android.tools.res.ids
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -21,9 +21,9 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.res.ResourceNamespacing
-import com.android.tools.res.ids.ResourceIdManager
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
+import org.jetbrains.annotations.VisibleForTesting
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.Arrays
@@ -31,6 +31,10 @@ import java.util.EnumMap
 import java.util.function.Consumer
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
+
+@VisibleForTesting
+fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short): Int =
+  (packageId.toInt() shl 24) or (typeId.toInt() shl 16) or (entryId.toInt() and 0xffff)
 
 /** Studio agnostic implementation of [ResourceIdManager]. */
 open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModule) : ResourceIdManager {
@@ -304,4 +308,3 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
     fun findById(id: Int): ResourceReference? = fromIdMap[id]?.let { (type, name) -> ResourceReference(namespace, type, name) }
   }
 }
-

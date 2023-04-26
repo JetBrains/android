@@ -16,6 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.tools.res.ResourceNamespacing
+import com.android.tools.res.ids.ResourceIdManagerModelModule
 import org.jetbrains.android.facet.AndroidFacet
 
 /** Studio-specific [ResourceIdManagerModelModule] implementation based on [AndroidFacet]. */

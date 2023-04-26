@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.res.ids.TestResourceIdManager
 
 class NamespacedRenderTestWithAppCompat : AndroidGradleTestCase() {
 

@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res
+package com.android.tools.res.ids
 
 import com.android.tools.res.ResourceNamespacing
-import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.module.Module
 
 private val STUB_MODULE = object : ResourceIdManagerModelModule {

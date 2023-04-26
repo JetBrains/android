@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res
+package com.android.tools.res.ids
 
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
@@ -151,6 +151,12 @@ class ResourceIdManagerBaseTest {
 
     canParse.countDown()
     thread.join()
+  }
+
+  @Test
+  fun testBuildResourceId() {
+    assertEquals(0x7f02ffff, buildResourceId(0x7f.toByte(), 0x02.toByte(), 0xffff.toShort()))
+    assertEquals(0x02020001, buildResourceId(0x02.toByte(), 0x02.toByte(), 0x0001.toShort()))
   }
 
   class R {
