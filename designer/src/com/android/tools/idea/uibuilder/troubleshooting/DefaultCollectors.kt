@@ -45,26 +45,30 @@ internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {
 
     output.appendLine("Project:")
     project.modules.forEach { module ->
-      val moduleSystem = module.getModuleSystem()
-      output.appendLine(
-        """
-          Module(${module.name}): isLoaded=${module.isLoaded} isDisposed=${module.isDisposed} isGradleModule=${module.isGradleModule}
-            isAndroidTest=${module.isAndroidTestModule()} isUnitTest=${module.isUnitTestModule()}
-            useAndroidX=${moduleSystem.useAndroidX} rClassTransitive=${moduleSystem.isRClassTransitive}
-        """
-          .trimIndent()
-      )
       val scopeType =
         when {
           module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
           module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
           else -> DependencyScopeType.MAIN
         }
-      moduleSystem
-        .getAndroidLibraryDependencies(scopeType)
-        .filter { library -> libraryAllowedPrefixes.any { library.address.startsWith(it) } }
+      val moduleSystem = module.getModuleSystem()
+      val libraryDependencies = moduleSystem.getAndroidLibraryDependencies(scopeType)
+      output.appendLine(
+        """
+          Module(${module.name}): isLoaded=${module.isLoaded} type=${moduleSystem.type} isDisposed=${module.isDisposed}
+            isGradleModule=${module.isGradleModule} isAndroidTest=${module.isAndroidTestModule()} isUnitTest=${module.isUnitTestModule()}
+            scopeType=$scopeType useAndroidX=${moduleSystem.useAndroidX} rClassTransitive=${moduleSystem.isRClassTransitive}
+            libDepCount=${libraryDependencies.size}
+        """
+          .trimIndent()
+      )
+      libraryDependencies
         .forEach { library ->
-          output.appendLine("  Library: ${library.address} hasResources=${library.hasResources}")
+          val libraryName = if (libraryAllowedPrefixes.any { library.address.startsWith(it) })
+            library.address
+          else
+            "<user-lib>"
+          output.appendLine("  Library: $libraryName hasResources=${library.hasResources}")
         }
     }
     return output.toString()

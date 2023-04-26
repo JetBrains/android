@@ -331,6 +331,7 @@ public class RenderResult {
       .add("psiFile", myRenderedFile)
       .add("rootViews", myRootViews)
       .add("systemViews", mySystemRootViews)
+      .add("stats", myStats)
       .toString();
   }
 
