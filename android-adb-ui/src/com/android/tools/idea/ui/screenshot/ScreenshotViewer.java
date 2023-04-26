@@ -116,7 +116,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private final @NotNull Project myProject;
   private final @Nullable ScreenshotSupplier myScreenshotSupplier;
-  private final @Nullable ScreenshotPostprocessor myScreenshotPostprocessor;
+  private final @NotNull ScreenshotPostprocessor myScreenshotPostprocessor;
 
   private final @NotNull VirtualFile myBackingFile;
   private final @NotNull ImageFileEditor myImageFileEditor;
@@ -218,12 +218,11 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                           @NotNull ScreenshotImage screenshotImage,
                           @NotNull Path backingFile,
                           @Nullable ScreenshotSupplier screenshotSupplier,
-                          @Nullable ScreenshotPostprocessor screenshotPostprocessor,
+                          @NotNull ScreenshotPostprocessor screenshotPostprocessor,
                           @NotNull List<? extends FramingOption> framingOptions,
                           int defaultFramingOption,
                           @NotNull Set<Option> screenshotViewerOptions) {
     super(project, true);
-    Preconditions.checkArgument(framingOptions.isEmpty() || screenshotPostprocessor != null);
     Preconditions.checkArgument(framingOptions.isEmpty() || defaultFramingOption >= 0 && defaultFramingOption < framingOptions.size());
 
     setModal(false);
@@ -254,46 +253,41 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     myPersistentStorage = PersistentState.getInstance(myProject);
 
-    if (screenshotPostprocessor == null) {
-      hideComponent(myDecorationComboBox);
+    DefaultComboBoxModel<DecorationOption> decorationOptions = new DefaultComboBoxModel<>();
+    decorationOptions.addElement(DecorationOption.RECTANGULAR);
+    // Clipping is available when the postprocessor supports it and for round devices.
+    boolean canClipDeviceMask = screenshotPostprocessor.getCanClipToDisplayShape() || screenshotImage.isRoundDisplay();
+    if (canClipDeviceMask) {
+      decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
+    }
+    boolean isPlayCompatibleWearScreenshot = StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get() && screenshotImage.isWear();
+    if (isPlayCompatibleWearScreenshot) {
+      decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
+    }
+    int frameOptionStartIndex = decorationOptions.getSize();
+    for (FramingOption framingOption : framingOptions) {
+      decorationOptions.addElement(new DecorationOption(framingOption));
+    }
+    myDecorationComboBox.setModel(decorationOptions);
+
+    if (myPersistentStorage.frameScreenshot) {
+      myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
     }
     else {
-      DefaultComboBoxModel<DecorationOption> decorationOptions = new DefaultComboBoxModel<>();
-      decorationOptions.addElement(DecorationOption.RECTANGULAR);
-      // Clipping is available when the postprocessor supports it and for round devices.
-      boolean canClipDeviceMask = screenshotPostprocessor.getCanClipToDisplayShape() || screenshotImage.isRoundDisplay();
       if (canClipDeviceMask) {
-        decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
+        myDecorationComboBox.setSelectedItem(DecorationOption.DISPLAY_SHAPE_CLIP);
+      } else if (isPlayCompatibleWearScreenshot) {
+        myDecorationComboBox.setSelectedItem(DecorationOption.PLAY_COMPATIBLE);
+      } else {
+        myDecorationComboBox.setSelectedItem(DecorationOption.RECTANGULAR);
       }
-      boolean isPlayCompatibleWearScreenshot = StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get() && screenshotImage.isWear();
-      if (isPlayCompatibleWearScreenshot) {
-        decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
-      }
-      int frameOptionStartIndex = decorationOptions.getSize();
-      for (FramingOption framingOption : framingOptions) {
-        decorationOptions.addElement(new DecorationOption(framingOption));
-      }
-      myDecorationComboBox.setModel(decorationOptions);
-
-      if (myPersistentStorage.frameScreenshot) {
-        myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
-      }
-      else {
-        if (canClipDeviceMask) {
-          myDecorationComboBox.setSelectedItem(DecorationOption.DISPLAY_SHAPE_CLIP);
-        } else if (isPlayCompatibleWearScreenshot) {
-          myDecorationComboBox.setSelectedItem(DecorationOption.PLAY_COMPATIBLE);
-        } else {
-          myDecorationComboBox.setSelectedItem(DecorationOption.RECTANGULAR);
-        }
-      }
-
-      ActionListener decorationListener = event -> {
-        myPersistentStorage.frameScreenshot = ((DecorationOption)decorationOptions.getSelectedItem()).getFramingOption() != null;
-        updateImageFrame();
-      };
-      myDecorationComboBox.addActionListener(decorationListener);
     }
+
+    ActionListener decorationListener = event -> {
+      myPersistentStorage.frameScreenshot = ((DecorationOption)decorationOptions.getSelectedItem()).getFramingOption() != null;
+      updateImageFrame();
+    };
+    myDecorationComboBox.addActionListener(decorationListener);
 
     myRefreshButton.addActionListener(event -> doRefreshScreenshot());
 
@@ -401,10 +395,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private BufferedImage processImage(ScreenshotImage sourceImage) {
-    if (myScreenshotPostprocessor == null) {
-      return sourceImage.getImage();
-    }
-
     DecorationOption selectedDecoration = (DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
     FramingOption framingOption = selectedDecoration.getFramingOption();
     Color backgroundColor = null;

@@ -48,7 +48,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.EDT
-import com.intellij.util.ui.UIUtil
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
@@ -129,7 +128,7 @@ class ScreenshotViewerTest {
   @Test
   fun testResizing() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
-    val viewer = createScreenshotViewer(screenshotImage, null)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
     val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
@@ -143,7 +142,7 @@ class ScreenshotViewerTest {
   @Test
   fun testUpdateEditorImage() {
     val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
-    val viewer = createScreenshotViewer(screenshotImage, null)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
     val zoomModel = ui.getComponent<ImageComponentDecorator>().zoomModel
@@ -444,11 +443,10 @@ class ScreenshotViewerTest {
   }
 
   private fun createScreenshotViewer(screenshotImage: ScreenshotImage,
-                                     screenshotPostprocessor: ScreenshotPostprocessor?): ScreenshotViewer {
+                                     screenshotPostprocessor: ScreenshotPostprocessor): ScreenshotViewer {
     val screenshotFile = FileUtil.createTempFile("screenshot", SdkConstants.DOT_PNG).toPath()
-    val frames = screenshotPostprocessor?.let { listOf(testFrame) } ?: listOf()
     val viewer = ScreenshotViewer(projectRule.project, screenshotImage, screenshotFile, null, screenshotPostprocessor,
-                                  frames, 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
+                                  listOf(testFrame), 0, EnumSet.of(ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION))
     viewer.show()
     return viewer
   }

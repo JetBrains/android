@@ -1380,11 +1380,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake "Android Wear Round" AVD. The skin path in config.ini is absolute.
      */
     @JvmStatic
-    fun createWatchAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk"), api: Int = 30): Path {
+    fun createWatchAvd(parentFolder: Path,
+                       sdkFolder: Path = parentFolder.resolve("Sdk"),
+                       api: Int = 30,
+                       skinFolder: Path? = getSkinFolder("wearos_small_round")): Path {
       val avdId = "Android_Wear_Round_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
-      val skinFolder = getSkinFolder("wearos_small_round")
       val systemImage = "system-images/android-$api/android-wear/x86/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
@@ -1426,8 +1428,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           sdcard.size=512M
           showDeviceFrame=yes
           skin.dynamic=yes
-          skin.name=${skinFolder.fileName}
-          skin.path=${skinFolder}
+          skin.name=${skinFolder?.fileName ?: "no skin"}
+          skin.path=${skinFolder ?: "_no_skin"}
           tag.display=Wear OS
           tag.id=android-wear
           """.trimIndent()
