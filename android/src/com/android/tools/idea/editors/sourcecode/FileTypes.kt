@@ -20,12 +20,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.kotlin.idea.KotlinFileType
 
 /**
- * Returns true if the [VirtualFile] is a Kotlin or Java file.
+ * Returns true if the [VirtualFile] is a Kotlin or Java source file.
  */
-fun VirtualFile.isSourceFileType() = when (fileType) {
-  KotlinFileType.INSTANCE, JavaFileType.INSTANCE -> true
-  else -> false
-}
+fun VirtualFile.isSourceFileType() = isKotlinFileType() || fileType == JavaFileType.INSTANCE
 
 /**
  * Extension method that returns if the file is a Kotlin file. This method first checks for the extension to fail fast without having to
