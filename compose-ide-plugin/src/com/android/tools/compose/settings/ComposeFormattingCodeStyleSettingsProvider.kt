@@ -21,7 +21,8 @@ import com.intellij.psi.codeStyle.CodeStyleConfigurable
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.codeStyle.CodeStyleSettingsProvider
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import javax.swing.JCheckBox
 
@@ -47,13 +48,11 @@ class ComposeFormattingCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
 
       override fun createComponent(): DialogPanel {
         return panel {
-          row {
-            titledRow("Compose formatting") {
-              row {
-                checkBox = checkBox(
-                  ComposeBundle.message("compose.enable.formatting.for.modifiers"),
-                  ComposeCustomCodeStyleSettings.getInstance(originalSettings).USE_CUSTOM_FORMATTING_FOR_MODIFIERS).component
-              }
+          group("Compose formatting") {
+            row {
+              checkBox = checkBox(ComposeBundle.message("compose.enable.formatting.for.modifiers"))
+                .selected(ComposeCustomCodeStyleSettings.getInstance(originalSettings).USE_CUSTOM_FORMATTING_FOR_MODIFIERS)
+                .component
             }
           }
         }
