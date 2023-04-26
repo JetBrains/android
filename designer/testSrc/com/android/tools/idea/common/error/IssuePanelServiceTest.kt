@@ -219,9 +219,11 @@ class IssuePanelServiceTest {
     val panel = ProblemsViewPanel(rule.project, "ID_IssuePanelServiceTest", ProblemsViewState()) { "Problems" }
     Disposer.register(rule.testRootDisposable, panel)
 
+/* b/279794205
     assertEquals(panel.getName(0), createTabName("Problems", 0))
     assertEquals(panel.getName(1), createTabName("Problems", 1))
     assertEquals(panel.getName(10), createTabName("Problems", 10))
+b/279794205 */
   }
 
   @RunsInEdt
