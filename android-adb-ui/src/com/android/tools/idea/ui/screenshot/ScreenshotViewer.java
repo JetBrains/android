@@ -270,7 +270,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     }
     myDecorationComboBox.setModel(decorationOptions);
 
-    if (myPersistentStorage.frameScreenshot) {
+    if (myPersistentStorage.frameScreenshot && myDecorationComboBox.getItemCount() > defaultFramingOption + frameOptionStartIndex) {
       myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
     }
     else {
