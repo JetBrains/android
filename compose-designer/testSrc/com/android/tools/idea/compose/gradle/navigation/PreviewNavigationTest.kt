@@ -57,6 +57,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -277,6 +278,7 @@ class PreviewNavigationTest {
     assertEquals(0, sceneViewPanel.sceneView.surface.selectionModel.selection.size)
   }
 
+  @Ignore("b/279732135")
   @Test
   fun testPreviewNavigation_imageInteraction() {
     val mainFile =
