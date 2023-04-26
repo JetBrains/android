@@ -59,7 +59,7 @@ class LayoutInspectorConfigurableProviderTest {
     val configurable1 = LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
     val component1 = configurable1.createComponent()!!
 
-    assertThat(component1.components).hasLength(1)
+    assertThat(component1.components).hasLength(2)
     assertThat((component1.components[0] as JCheckBox).text).isEqualTo("Enable auto connect (requires a restart of Android Studio)")
 
     val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()

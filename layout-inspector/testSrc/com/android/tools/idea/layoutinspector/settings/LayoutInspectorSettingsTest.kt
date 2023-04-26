@@ -53,7 +53,7 @@ class LayoutInspectorSettingsTest {
   @Test
   fun testEmbeddedLayoutInspectorEnabledFlag() {
     val layoutInspectorSettings = LayoutInspectorSettings.getInstance()
-    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isTrue()
 
     layoutInspectorSettings.embeddedLayoutInspectorEnabled = false
     assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()

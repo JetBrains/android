@@ -1321,8 +1321,20 @@
     <option name="requires" hit="Enable auto connect (requires a restart of Android Studio)" />
     <option name="restart" hit="Enable auto connect (requires a restart of Android Studio)" />
     <option name="studio" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="a" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="android" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="embedded" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="enable" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="inspector" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="layout" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="of" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="requires" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="restart" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="studio" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
     <option name="inspector" hit="Layout Inspector" />
     <option name="layout" hit="Layout Inspector" />
+    <option name="learn" hit="Learn More" />
+    <option name="more" hit="Learn More" />
   </configurable>
   <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
     <option name="" hit=" KB" />

@@ -131,8 +131,8 @@ class LayoutInspectorMainToolbarTest {
     assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
-    assertThat(commands).hasSize(1)
-    assertThat(commands[0].hasStartFetchCommand()).isTrue()
+    assertThat(commands).hasSize(2)
+    assertThat(commands[1].hasStartFetchCommand()).isTrue()
   }
 
   @Test
@@ -153,7 +153,7 @@ class LayoutInspectorMainToolbarTest {
     assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
-    assertThat(commands).hasSize(1)
+    assertThat(commands).hasSize(2)
     assertThat(commands[0].startFetchCommand.continuous).isFalse()
   }
 
@@ -234,8 +234,8 @@ class LayoutInspectorMainToolbarTest {
       "impact runtime performance.")
 
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).hasSize(3)
-    assertThat(commands[0].hasStartFetchCommand()).isTrue()
+    assertThat(commands).hasSize(4)
+    assertThat(commands[1].hasStartFetchCommand()).isTrue()
     // stop and update screenshot type can come in either order
     assertThat(commands.find { it.hasStopFetchCommand() }).isNotNull()
     assertThat(commands.find { it.hasUpdateScreenshotTypeCommand() }).isNotNull()
@@ -270,9 +270,9 @@ class LayoutInspectorMainToolbarTest {
       " impact runtime performance.")
 
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).hasSize(2)
-    assertThat(commands[0].startFetchCommand.continuous).isFalse()
-    assertThat(commands[1].startFetchCommand.continuous).isTrue()
+    assertThat(commands).hasSize(3)
+    assertThat(commands[1].startFetchCommand.continuous).isFalse()
+    assertThat(commands[2].startFetchCommand.continuous).isTrue()
 
     assertThat(stats.currentModeIsLive).isTrue()
   }
