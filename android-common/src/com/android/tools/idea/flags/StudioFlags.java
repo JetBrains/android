@@ -1329,7 +1329,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = Flag.create(
     COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
     "If enabled, limits the number of allocations that user code can do in a single render action",
-    java.lang.Boolean.getBoolean("idea.is.internal"));
+    true);
   public static final Flag<Boolean> COMPOSE_PREVIEW_SELECTION = Flag.create(
     COMPOSE, "compose.preview.selection", "Enable the select/deselect interaction with Previews",
     "If enabled, Previews will be selectable, and some interactions will only be enabled for selected Previews",
