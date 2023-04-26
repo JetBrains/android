@@ -23,7 +23,7 @@ import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
-import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
@@ -96,7 +96,7 @@ internal class BasicV1AndroidModuleGradleProject(
           shouldBuildVariant = false
         ) ?: error("Cannot fetch AndroidProject models for V1 projects.")
 
-        val legacyApplicationIdModel = controller.findModel(gradleProject, LegacyApplicationIdModel::class.java)
+        val legacyAndroidGradlePluginProperties = controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java)
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V1) for project '$gradleProject'")
 
@@ -111,7 +111,7 @@ internal class BasicV1AndroidModuleGradleProject(
           buildName = buildName,
           projectPath = gradleProject.path,
           androidProject = androidProject,
-          legacyApplicationIdModel = legacyApplicationIdModel,
+          legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
           gradlePropertiesModel = gradlePropertiesModel
         )
 
@@ -184,8 +184,8 @@ internal class BasicV2AndroidModuleGradleProject(
           ?: error("Cannot get AndroidDsl model for $gradleProject")
         val agpVersion = agpVersion
         val modelIncludesApplicationId = agpVersion.agpModelIncludesApplicationId
-        val legacyApplicationIdModel = if (!modelIncludesApplicationId) {
-          controller.findModel(gradleProject, LegacyApplicationIdModel::class.java)
+        val legacyAndroidGradlePluginProperties = if (!modelIncludesApplicationId) {
+          controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java)
         } else {
           null
         }
@@ -206,7 +206,7 @@ internal class BasicV2AndroidModuleGradleProject(
             androidProject = androidProject,
             modelVersions = versions,
             androidDsl = androidDsl,
-            legacyApplicationIdModel = legacyApplicationIdModel,
+            legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
             gradlePropertiesModel = gradlePropertiesModel,
             skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries,
           )
@@ -293,13 +293,13 @@ private fun createAndroidModuleV1(
     variantFetcher = androidProjectResult.createVariantFetcher(),
     nativeAndroidProject = ideNativeAndroidProject,
     nativeModule = ideNativeModule,
-    legacyApplicationIdModel = androidProjectResult.legacyApplicationIdModel,
+    legacyAndroidGradlePluginProperties = androidProjectResult.legacyAndroidGradlePluginProperties,
   )
 
   val syncIssues = androidProjectResult.syncIssues
   // It will be overridden if we receive something here but also a proper sync issues model later.
   if (syncIssues != null) {
-    androidModule.setSyncIssues(syncIssues.toSyncIssueData() + androidModule.legacyApplicationIdModel.getProblemsAsSyncIssues())
+    androidModule.setSyncIssues(syncIssues.toSyncIssueData() + androidModule.legacyAndroidGradlePluginProperties.getProblemsAsSyncIssues())
   }
 
   return androidModule
@@ -333,6 +333,6 @@ private fun createAndroidModuleV2(
     androidVariantResolver = androidProjectResult.androidVariantResolver,
     variantFetcher = androidProjectResult.createVariantFetcher(),
     nativeModule = ideNativeModule,
-    legacyApplicationIdModel = androidProjectResult.legacyApplicationIdModel,
+    legacyAndroidGradlePluginProperties = androidProjectResult.legacyAndroidGradlePluginProperties,
   )
 }

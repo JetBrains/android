@@ -32,7 +32,7 @@ import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
-import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
@@ -64,7 +64,7 @@ interface ModelCache {
     fun variantFrom(
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
-      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       modelVersion: AgpVersion?,
       androidModuleId: ModuleId
     ): ModelResult<IdeVariantWithPostProcessor>
@@ -75,7 +75,7 @@ interface ModelCache {
       buildName: String,
       projectPath: String,
       project: AndroidProject,
-      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<IdeAndroidProjectImpl>
 
@@ -94,7 +94,7 @@ interface ModelCache {
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
     ): ModelResult<IdeVariantCoreImpl>
 
     /**
@@ -117,7 +117,7 @@ interface ModelCache {
       project: com.android.builder.model.v2.models.AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl,
-      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<IdeAndroidProjectImpl>
   }

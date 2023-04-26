@@ -15,9 +15,9 @@
  */
 package com.android.ide.gradle.model.impl
 
-import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 
-data class LegacyApplicationIdModelImpl(
+data class LegacyAndroidGradlePluginPropertiesImpl(
   override val componentToApplicationIdMap: Map<String, String>,
   override val problems: List<Exception>,
-) : LegacyApplicationIdModel
+) : LegacyAndroidGradlePluginProperties

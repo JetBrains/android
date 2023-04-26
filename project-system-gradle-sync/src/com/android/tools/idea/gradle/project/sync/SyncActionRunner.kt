@@ -26,7 +26,7 @@ import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.GradlePropertiesModel
-import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.projectsystem.gradle.sync.Counter
@@ -96,7 +96,7 @@ data class ActionToRun<T>(
       KotlinGradleModel::class.java -> fetchesKotlinModels
       KaptGradleModel::class.java -> fetchesKotlinModels
       KotlinMPPGradleModel::class.java -> fetchesKotlinModels
-      LegacyApplicationIdModel::class.java -> fetchesV1Models || fetchesV2Models
+      LegacyAndroidGradlePluginProperties::class.java -> fetchesV1Models || fetchesV2Models
       NativeModule::class.java -> fetchesV1Models || fetchesV2Models  // We trust actions request it with Gradle models.
       NativeAndroidProject::class.java -> fetchesV1Models
       NativeVariantAbi::class.java -> fetchesV1Models
@@ -313,7 +313,7 @@ private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
     KotlinGradleModel::class.java -> kotlinModel
     KaptGradleModel::class.java -> kaptModel
     KotlinMPPGradleModel::class.java -> mppModel
-    LegacyApplicationIdModel::class.java -> otherModel
+    LegacyAndroidGradlePluginProperties::class.java -> otherModel
     NativeModule::class.java -> nativeModel
     NativeAndroidProject::class.java -> nativeModel
     NativeVariantAbi::class.java -> nativeModel

@@ -15,8 +15,12 @@
  */
 package com.android.ide.gradle.model
 
-/** List of collected application IDs for an android gradle project */
-interface LegacyApplicationIdModel {
+/**
+ * Model that fetches information from older versions of AGP of various properties which
+ * were added to the returned models of newer AGPs, in order to simplify consuming code in
+ * Android Studio.
+ */
+interface LegacyAndroidGradlePluginProperties {
   /**
    * Map from Android Gradle Plugin Component name to the associated application ID.
    *

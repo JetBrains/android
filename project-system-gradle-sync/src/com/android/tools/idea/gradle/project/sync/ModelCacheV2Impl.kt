@@ -55,7 +55,7 @@ import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
-import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.ClasspathType
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -915,13 +915,13 @@ internal fun modelCacheV2Impl(
     name: IdeArtifactName,
     basicArtifact: BasicArtifact,
     mainVariantName: String,
-    legacyApplicationIdModel: LegacyApplicationIdModel?,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     fallbackDesugaredMethodsFiles: Collection<File>,
     artifact: AndroidArtifact
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
 
-    val applicationId: String? = getApplicationIdFromArtifact(agpVersion, artifact, name, legacyApplicationIdModel, mainVariantName)
+    val applicationId: String? = getApplicationIdFromArtifact(agpVersion, artifact, name, legacyAndroidGradlePluginProperties, mainVariantName)
 
     return IdeAndroidArtifactCoreImpl(
       name = name,
@@ -1090,7 +1090,7 @@ internal fun modelCacheV2Impl(
     androidProject: IdeAndroidProjectImpl,
     basicVariant: BasicVariant,
     variant: Variant,
-    legacyApplicationIdModel: LegacyApplicationIdModel?
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
   ): ModelResult<IdeVariantCoreImpl> {
     // Currently, all plugins going through the model cache v2 building will be of multi-variant type
     val multiVariantData = androidProject.multiVariantData!!
@@ -1121,7 +1121,7 @@ internal fun modelCacheV2Impl(
         name = variantName,
         displayName = variant.displayName.deduplicate(),
         mainArtifact = androidArtifactFrom(
-          IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyApplicationIdModel,
+          IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyAndroidGradlePluginProperties,
           fallbackDesugaredMethodsFiles, variant.mainArtifact
         ),
         // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
@@ -1130,13 +1130,13 @@ internal fun modelCacheV2Impl(
         },
         androidTestArtifact = variant.androidTestArtifact?.let { it: AndroidArtifact ->
           androidArtifactFrom(
-            IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, variantName, legacyApplicationIdModel,
+            IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, variantName, legacyAndroidGradlePluginProperties,
             fallbackDesugaredMethodsFiles, it
           )
         },
         testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
           androidArtifactFrom(
-            IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyApplicationIdModel,
+            IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyAndroidGradlePluginProperties,
             fallbackDesugaredMethodsFiles, it
           )
         },
@@ -1406,7 +1406,7 @@ internal fun modelCacheV2Impl(
     project: AndroidProject,
     modelsVersions: Versions,
     androidDsl: AndroidDsl,
-    legacyApplicationIdModel: LegacyApplicationIdModel?,
+    legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     gradlePropertiesModel: GradlePropertiesModel,
   ): ModelResult<IdeAndroidProjectImpl> {
     val defaultConfigCopy: IdeProductFlavorImpl = productFlavorFrom(androidDsl.defaultConfig)
@@ -1428,9 +1428,9 @@ internal fun modelCacheV2Impl(
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> = project.variants.map {
       IdeBasicVariantImpl(
         name = it.name,
-        applicationId = getApplicationIdFromArtifact(agpVersion, it.mainArtifact, IdeArtifactName.MAIN, legacyApplicationIdModel, it.name),
+        applicationId = getApplicationIdFromArtifact(agpVersion, it.mainArtifact, IdeArtifactName.MAIN, legacyAndroidGradlePluginProperties, it.name),
         testApplicationId = it.androidTestArtifact?.let { androidTestArtifact ->
-          getApplicationIdFromArtifact(agpVersion, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyApplicationIdModel, it.name)
+          getApplicationIdFromArtifact(agpVersion, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyAndroidGradlePluginProperties, it.name)
         }
       )
     }
@@ -1507,9 +1507,9 @@ internal fun modelCacheV2Impl(
       androidProject: IdeAndroidProjectImpl,
       basicVariant: BasicVariant,
       variant: Variant,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
     ): ModelResult<IdeVariantCoreImpl> =
-      lock.withLock { variantFrom(androidProject, basicVariant, variant, legacyApplicationIdModel) }
+      lock.withLock { variantFrom(androidProject, basicVariant, variant, legacyAndroidGradlePluginProperties) }
 
     override fun variantFrom(
       ownerBuildId: BuildId,
@@ -1539,10 +1539,10 @@ internal fun modelCacheV2Impl(
       project: AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl,
-      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<IdeAndroidProjectImpl> = lock.withLock {
-      androidProjectFrom(rootBuildId, buildId, basicProject, project, androidVersion, androidDsl, legacyApplicationIdModel, gradlePropertiesModel)
+      androidProjectFrom(rootBuildId, buildId, basicProject, project, androidVersion, androidDsl, legacyAndroidGradlePluginProperties, gradlePropertiesModel)
     }
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }
@@ -1553,14 +1553,14 @@ private fun getApplicationIdFromArtifact(
   agpVersion: AgpVersion,
   artifact: AndroidArtifact,
   name: IdeArtifactName,
-  legacyApplicationIdModel: LegacyApplicationIdModel?,
+  legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   mainVariantName: String
 ) = if (agpVersion.agpModelIncludesApplicationId) {
   artifact.applicationId
 } else {
   when (name) {
-    IdeArtifactName.MAIN -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(mainVariantName)
-    IdeArtifactName.ANDROID_TEST -> legacyApplicationIdModel?.componentToApplicationIdMap?.get(mainVariantName + "AndroidTest")
+    IdeArtifactName.MAIN -> legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(mainVariantName)
+    IdeArtifactName.ANDROID_TEST -> legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(mainVariantName + "AndroidTest")
     IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES -> null
   }
 }

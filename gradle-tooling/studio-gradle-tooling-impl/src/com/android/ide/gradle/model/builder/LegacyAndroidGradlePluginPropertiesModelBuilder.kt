@@ -15,8 +15,8 @@
  */
 package com.android.ide.gradle.model.builder
 
-import com.android.ide.gradle.model.LegacyApplicationIdModel
-import com.android.ide.gradle.model.impl.LegacyApplicationIdModelImpl
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
+import com.android.ide.gradle.model.impl.LegacyAndroidGradlePluginPropertiesImpl
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -25,21 +25,23 @@ import java.lang.reflect.Method
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * An injected Gradle tooling model builder to fetch the Application ID from AGP versions that don't report it directly in the model
+ * An injected Gradle tooling model builder to fetch information from legacy versions of the Android Gradle plu
+ *
+ * In particular, the Application ID from AGP versions that don't report it directly in the model.
  *
  * This model should not be requested when AGP >= 7.4 is used, as the information is held directly in the model.
  */
-class LegacyApplicationIdModelBuilder(private val pluginType: PluginType) : ToolingModelBuilder {
+class LegacyAndroidGradlePluginPropertiesModelBuilder(private val pluginType: PluginType) : ToolingModelBuilder {
 
   override fun canBuild(modelName: String): Boolean {
-    return modelName == LegacyApplicationIdModel::class.java.name
+    return modelName == LegacyAndroidGradlePluginProperties::class.java.name
   }
 
 
-  override fun buildAll(modelName: String, project: Project): LegacyApplicationIdModel {
-    check (modelName == LegacyApplicationIdModel::class.java.name) { "Only valid model is ${LegacyApplicationIdModel::class.java.name}" }
+  override fun buildAll(modelName: String, project: Project): LegacyAndroidGradlePluginProperties {
+    check (modelName == LegacyAndroidGradlePluginProperties::class.java.name) { "Only valid model is ${LegacyAndroidGradlePluginProperties::class.java.name}" }
 
-    val extension = project.extensions.findByName("android") ?: return LegacyApplicationIdModelImpl(mapOf(), listOf())
+    val extension = project.extensions.findByName("android") ?: return LegacyAndroidGradlePluginPropertiesImpl(mapOf(), listOf())
 
     val applicationIdMap = mutableMapOf<String, String>()
     val problems = mutableListOf<Exception>()
@@ -61,7 +63,7 @@ class LegacyApplicationIdModelBuilder(private val pluginType: PluginType) : Tool
         applicationIdMap[componentName] = applicationId
       }
     }
-    return LegacyApplicationIdModelImpl(applicationIdMap, problems)
+    return LegacyAndroidGradlePluginPropertiesImpl(applicationIdMap, problems)
   }
 
   enum class PluginType(val variantCollectionGetters: (Any) -> Set<String>) {
@@ -105,7 +107,7 @@ class LegacyApplicationIdModelBuilder(private val pluginType: PluginType) : Tool
     }
 
     private fun register(registry: ToolingModelBuilderRegistry, pluginType: PluginType) {
-        registry.register(LegacyApplicationIdModelBuilder(pluginType))
+        registry.register(LegacyAndroidGradlePluginPropertiesModelBuilder(pluginType))
     }
   }
 }
