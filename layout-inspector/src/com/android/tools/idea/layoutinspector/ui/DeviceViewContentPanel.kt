@@ -218,9 +218,7 @@ class DeviceViewContentPanel(
       override fun mouseClicked(e: MouseEvent) {
         if (e.isConsumed) return
         val modelCoordinates = toModelCoordinates(e.x, e.y)
-        val view = renderModel.findTopViewAt(modelCoordinates.x, modelCoordinates.y)
-        inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)
-        currentClient()?.stats?.selectionMadeFromImage(view)
+        renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
       }
 
       override fun mouseMoved(e: MouseEvent) {

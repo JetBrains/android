@@ -103,7 +103,7 @@ class Toggle3dActionTest {
       mock(),
       MoreExecutors.directExecutor()
     )
-    renderModel = RenderModel(inspectorModel, inspector.treeSettings)
+    renderModel = RenderModel(inspectorModel, inspector.treeSettings) { null }
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)
     whenever(client.process).thenReturn(process)

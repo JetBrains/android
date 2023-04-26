@@ -17,13 +17,13 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_PERCENT
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.DataKey
 import org.jetbrains.annotations.TestOnly
 import java.awt.Image
 import java.awt.Rectangle
@@ -53,7 +53,7 @@ private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolea
 class RenderModel(
   val model: InspectorModel,
   val treeSettings: TreeSettings,
-  private val client: (() -> InspectorClient?)? = null
+  private val client: () -> InspectorClient?
 ) {
   /**
    * The last rendered level hovered over. This is different from [InspectorModel.hoveredNode], since this differentiates between different
@@ -120,7 +120,7 @@ class RenderModel(
       if (new == null) {
         overlay = null
       }
-      if (client?.invoke()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
+      if (client()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
         resetRotation()
       }
     }
@@ -129,6 +129,13 @@ class RenderModel(
 
   val isActive
     get() = !model.isEmpty
+
+  fun selectView(x: Double, y: Double): ViewNode? {
+    val view = findTopViewAt(x, y)
+    model.setSelection(view, SelectionOrigin.INTERNAL)
+    client()?.stats?.selectionMadeFromImage(view)
+    return view
+  }
 
   /**
    * Find all the views drawn under the given point, in order from closest to farthest from the front, except
@@ -156,7 +163,7 @@ class RenderModel(
   }
 
   fun refresh() {
-    client?.invoke()?.stats?.currentMode3D = isRotated
+    client()?.stats?.currentMode3D = isRotated
     if (model.isEmpty) {
       visibleBounds = Rectangle()
       maxDepth = 0

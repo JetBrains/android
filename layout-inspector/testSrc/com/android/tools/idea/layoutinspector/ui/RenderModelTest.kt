@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.FakeAndroidWindow
@@ -36,6 +37,7 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
+import org.mockito.Mockito.verify
 import java.awt.Polygon
 import java.awt.Rectangle
 import java.awt.Shape
@@ -173,7 +175,7 @@ class RenderModelTest {
     }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panelModel = RenderModel(model, treeSettings)
+    val panelModel = RenderModel(model, treeSettings) { null }
     panelModel.rotate(0.1, 0.2)
     assertEqualAffineTransform(AffineTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468), panelModel.hitRects[0].transform)
 
@@ -200,7 +202,7 @@ class RenderModelTest {
 
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panelModel = RenderModel(model, treeSettings)
+    val panelModel = RenderModel(model, treeSettings) { null }
     panelModel.rotate(0.1, 0.2)
     // Only the bounds of the roots themselves should be taken into account.
     assertThat(model.root.layoutBounds).isEqualTo(Rectangle(-10, 0, 110, 200))
@@ -256,7 +258,7 @@ class RenderModelTest {
       }
     }
     val treeSettings = FakeTreeSettings()
-    var panelModel = RenderModel(model, treeSettings)
+    var panelModel = RenderModel(model, treeSettings) { null }
     // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
     assertThat(panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList()).containsExactly(VIEW2, VIEW1, ROOT)
     assertThat(panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList()).containsExactly(ROOT)
@@ -270,7 +272,7 @@ class RenderModelTest {
         view(VIEW3, 0, 0, 100, 100)
       }
     }
-    panelModel = RenderModel(model, treeSettings)
+    panelModel = RenderModel(model, treeSettings) { null }
     assertThat(panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList()).containsExactly(VIEW3, VIEW2, VIEW1, ROOT)
   }
 
@@ -285,7 +287,7 @@ class RenderModelTest {
       }
     }
     val treeSettings = FakeTreeSettings()
-    val panelModel = RenderModel(model, treeSettings)
+    val panelModel = RenderModel(model, treeSettings) { null }
     panelModel.layerSpacing = 0
     model.showOnlySubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW1]!!)
@@ -306,7 +308,7 @@ class RenderModelTest {
     val p1 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(5, -5, 80, 120), 4)
     val p2 = Polygon(intArrayOf(80, 120, 5, -5), intArrayOf(-5, 5, 20, 10), 4)
     val p3 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(200, 180, 380, 420), 4)
-    val model = RenderModel(model {}, FakeTreeSettings())
+    val model = RenderModel(model {}, FakeTreeSettings()) { null }
     assertThat(model.testOverlap(r1, r2)).isTrue()
     assertThat(model.testOverlap(r1, r3)).isFalse()
     assertThat(model.testOverlap(p1, r1)).isTrue()
@@ -315,6 +317,27 @@ class RenderModelTest {
     assertThat(model.testOverlap(r3, p1)).isFalse()
     assertThat(model.testOverlap(p1, p2)).isTrue()
     assertThat(model.testOverlap(p1, p3)).isFalse()
+  }
+
+  @Test
+  fun testSetSelection() {
+    val treeSettings = FakeTreeSettings()
+    val model = model {
+      view(ROOT, 0, 0, 100, 100) {
+        view(VIEW1, 0, 0, 100, 100) {
+          view(VIEW2, 0, 0, 100, 100)
+        }
+        view(VIEW3, 0, 0, 100, 100)
+      }
+    }
+    val mockStats = mock<SessionStatistics>()
+    val mockClient = mock<InspectorClient>()
+    whenever(mockClient.stats).thenAnswer { mockStats }
+    val renderModel = RenderModel(model, treeSettings) { mockClient }
+    val selectedView = renderModel.selectView(0.0, 0.0)
+    assertThat(selectedView!!.drawId).isEqualTo(VIEW3)
+    assertThat(model.selection).isEqualTo(model[VIEW3])
+    verify(mockStats).selectionMadeFromImage(selectedView)
   }
 
   private fun checkRects(expectedTransforms: Map<Long, AffineTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
@@ -349,7 +372,7 @@ class RenderModelTest {
   ) {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = hideSystemNodes
-    val panelModel = RenderModel(model, treeSettings)
+    val panelModel = RenderModel(model, treeSettings) { null }
     panelModel.rotate(xOff, yOff)
 
     val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }
