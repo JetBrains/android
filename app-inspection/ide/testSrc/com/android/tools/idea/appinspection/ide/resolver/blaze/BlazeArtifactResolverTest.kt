@@ -23,10 +23,6 @@ import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.io.createFile
-import java.net.URI
-import java.nio.file.FileSystems
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -55,13 +51,7 @@ class BlazeArtifactResolverTest {
         ArtifactCoordinate.Type.AAR
       )
     val artifactDir = temporaryDirectoryRule.newPath("test")
-    val inspectorPath = artifactDir.resolve("inspector.jar").createFile()
-
-    val uri = URI.create("jar:${artifactDir.resolve("library.aar").toUri()}")
-    FileSystems.newFileSystem(uri, mapOf("create" to "true")).use { zipFs ->
-      val pathInZipFile = zipFs.getPath("/inspector.jar")
-      Files.copy(inspectorPath, pathInZipFile, StandardCopyOption.REPLACE_EXISTING)
-    }
+    artifactDir.resolve("inspector.jar").createFile()
     val moduleSystemArtifactFinder = ModuleSystemArtifactFinder(projectRule.project) { artifactDir }
     val resolver = BlazeArtifactResolver(testFileService, moduleSystemArtifactFinder)
     val inspectorJar = resolver.resolveArtifact(artifactCoordinate)

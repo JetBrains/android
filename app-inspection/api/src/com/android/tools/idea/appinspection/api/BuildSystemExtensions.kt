@@ -23,10 +23,6 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
  * in the class itself, because they are build system specific.
  */
 
-/** The file name of the library when resolving against the blaze build system. */
-val ArtifactCoordinate.blazeFileName: String
-  get() = "library.${type}"
-
 /** Converts an [ArtifactCoordinate] to a [GradleCoordinate]. */
 fun ArtifactCoordinate.toGradleCoordinate(): GradleCoordinate =
   GradleCoordinate(groupId, artifactId, version)
