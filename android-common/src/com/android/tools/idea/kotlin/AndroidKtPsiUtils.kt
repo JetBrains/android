@@ -78,7 +78,7 @@ fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?
 
 // TODO(b/269691940): Require callers to provide their own [KtAnalysisSession], and remove this function.
 @OptIn(KtAllowAnalysisOnEdt::class)
-private inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAnalysisSession.() -> T): T =
+inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAnalysisSession.() -> T): T =
   if (this != null) {
     block()
   } else {
@@ -216,17 +216,17 @@ fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): K
 fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValueArgument? =
   valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName } as? KtValueArgument
 
-private fun KtExpression.tryEvaluateConstantAsAny(analysisSession: KtAnalysisSession?): Any? =
+inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysisSession? = null): T? =
   if (isK2Plugin()) {
     analysisSession.applyOrAnalyze(this) {
       evaluate(KtConstantEvaluationMode.CONSTANT_LIKE_EXPRESSION_EVALUATION)
         ?.takeUnless { it is KtErrorConstantValue }
-        ?.value
+        ?.value as? T
     }
   } else {
     ConstantExpressionEvaluator.getConstant(this, analyzeFe10())
       ?.takeUnless { it.isError }
-      ?.getValue(TypeUtils.NO_EXPECTED_TYPE)
+      ?.getValue(TypeUtils.NO_EXPECTED_TYPE) as? T
   }
 
 /**
@@ -235,18 +235,18 @@ private fun KtExpression.tryEvaluateConstantAsAny(analysisSession: KtAnalysisSes
  * Based on InterpolatedStringInjectorProcessor in the Kotlin plugin.
  */
 fun KtExpression.tryEvaluateConstant(analysisSession: KtAnalysisSession? = null): String? =
-  tryEvaluateConstantAsAny(analysisSession) as? String
+  evaluateConstant<String>(analysisSession)
 
 /**
- * Tries to evaluate this [KtExpression] and return it's value coerced as a string.
+ * Tries to evaluate this [KtExpression] and return its value coerced as a string.
  *
  * Similar to [tryEvaluateConstant] with the different that for non-string constants, they will be converted to string.
  */
 fun KtExpression.tryEvaluateConstantAsText(analysisSession: KtAnalysisSession? = null): String? =
-  tryEvaluateConstantAsAny(analysisSession)?.toString()
+  evaluateConstant<Any>(analysisSession)?.toString()
 
 /**
- * When given an element in a qualified chain expression (eg. `activity` in `R.layout.activity`), this finds the previous element in the
+ * When given an element in a qualified chain expression (e.g. `activity` in `R.layout.activity`), this finds the previous element in the
  * chain (in this case `layout`).
  */
 fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {

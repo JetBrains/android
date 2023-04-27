@@ -20,6 +20,7 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.kotlin.evaluateConstant
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
@@ -29,7 +30,6 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -39,8 +39,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
-import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
-import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
 
@@ -394,10 +392,7 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
 
     previewAnnotation.findValueArgument(PARAMETER_FONT_SCALE)?.let {
       val argumentExpression = it.getArgumentExpression() ?: return
-      val fontScale =
-        (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-          ?.getValue(TypeUtils.DONT_CARE) as? Float)
-          ?: return
+      val fontScale = argumentExpression.evaluateConstant<Float>() ?: return
 
       if (fontScale <= 0) {
         holder.registerProblem(
@@ -451,10 +446,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
 
     previewAnnotation.findValueArgument(PARAMETER_API_LEVEL)?.let {
       val argumentExpression = it.getArgumentExpression() ?: return
-      val apiLevel =
-        (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-          ?.getValue(TypeUtils.DONT_CARE) as? Int)
-          ?: return
+      val apiLevel = argumentExpression.evaluateConstant<Int>() ?: return
 
       if (apiLevel < min || apiLevel > max) {
         holder.registerProblem(
@@ -501,9 +493,6 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
 
 private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {
   val argumentExpression = getArgumentExpression() ?: return false
-  val dimension =
-    (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-      ?.getValue(TypeUtils.DONT_CARE) as? Int)
-      ?: return false
+  val dimension = argumentExpression.evaluateConstant<Int>() ?: return false
   return dimension > limit
 }
