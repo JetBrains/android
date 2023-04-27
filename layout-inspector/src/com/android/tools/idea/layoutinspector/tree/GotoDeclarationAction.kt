@@ -16,19 +16,21 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runReadAction
 import com.intellij.pom.Navigatable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 private const val VIEW_NOT_FOUND = "view.not.found"
 
@@ -37,32 +39,32 @@ private const val VIEW_NOT_FOUND = "view.not.found"
  */
 object GotoDeclarationAction : AnAction("Go To Declaration") {
   @get:VisibleForTesting
-  var lastAction: ListenableFuture<Unit>? = null
+  var lastAction: Job? = null
 
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
-    lastAction = executeOnPooledThread {
-      runReadAction {
-        inspector.currentClient.stats.gotoSourceFromTreeActionMenu(event)
-        val navigatable = findNavigatable(event) ?: return@runReadAction
-        invokeLater { navigatable.navigate(true) }
-        lastAction = null
+    inspector.currentClient.stats.gotoSourceFromTreeActionMenu(event)
+    navigateToSelectedView(inspector.coroutineScope, inspector.inspectorModel)
+  }
+
+  fun navigateToSelectedView(coroutineScope: CoroutineScope, inspectorModel: InspectorModel) {
+    lastAction = coroutineScope.launch {
+      val navigatable = findNavigatable(inspectorModel) ?: return@launch
+      withContext(AndroidDispatchers.uiThread) {
+        navigatable.navigate(true)
       }
     }
   }
 
-  private fun findNavigatable(event: AnActionEvent): Navigatable? =
-    LayoutInspector.get(event)?.inspectorModel?.let { findNavigatable(it) }
-
   @Slow
-  fun findNavigatable(model: InspectorModel): Navigatable? {
+  private suspend fun findNavigatable(model: InspectorModel): Navigatable? = withContext(AndroidDispatchers.workerThread) {
     val resourceLookup = model.resourceLookup
-    val node = model.selection ?: return null
-    return if (node is ComposeViewNode) {
-      resourceLookup.findComposableNavigatable(node)
+    val node = model.selection ?: return@withContext null
+    if (node is ComposeViewNode) {
+      runReadAction { resourceLookup.findComposableNavigatable(node) }
     }
     else {
-      val navigatable = resourceLookup.findFileLocation(node)?.navigatable
+      val navigatable = withContext(AndroidDispatchers.uiThread) { resourceLookup.findFileLocation (node)?.navigatable }
       val layout = node.layout?.name
       if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
         val banner = InspectorBannerService.getInstance(model.project)

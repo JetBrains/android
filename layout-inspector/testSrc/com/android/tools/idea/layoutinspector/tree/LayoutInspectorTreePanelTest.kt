@@ -75,6 +75,7 @@ import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -303,6 +304,10 @@ class LayoutInspectorTreePanelTest {
     val bounds = tree.getRowBounds(1)
     val ui = FakeUi(focusComponent)
     ui.mouse.doubleClick(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
+
+    runDispatching {
+      GotoDeclarationAction.lastAction?.join()
+    }
 
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
 

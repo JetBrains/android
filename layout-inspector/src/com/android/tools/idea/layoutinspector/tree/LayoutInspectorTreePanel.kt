@@ -257,9 +257,10 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   @Suppress("UNUSED_PARAMETER")
   private fun doubleClick(item: Any) {
-    val model = inspectorModel ?: return
-    layoutInspector?.currentClient?.stats?.gotoSourceFromDoubleClick()
-    GotoDeclarationAction.findNavigatable(model)?.navigate(true)
+    layoutInspector?.let {
+      it.currentClient.stats.gotoSourceFromDoubleClick()
+      GotoDeclarationAction.navigateToSelectedView(it.coroutineScope, it.inspectorModel)
+    }
   }
 
   fun updateRecompositionColumnVisibility() {

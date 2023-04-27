@@ -41,6 +41,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.runInEdtAndGet
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -63,28 +64,24 @@ class GotoDeclarationActionTest {
 
   @Test
   fun testViewNode() {
-    val stats = runInEdtAndGet {
-      val model = createModel()
-      model.setSelection(model["title"], SelectionOrigin.INTERNAL)
-      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
-      val event = createEvent(model, stats)
-      GotoDeclarationAction.actionPerformed(event)
-      stats
-    }
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model["title"], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val event = createEvent(model, stats)
+    GotoDeclarationAction.actionPerformed(event)
+    runBlocking { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
     checkStats(stats, clickCount = 1)
   }
 
   @Test
   fun testComposeViewNode() {
-    val stats = runInEdtAndGet {
-      val model = createModel()
-      model.setSelection(model[-2], SelectionOrigin.INTERNAL)
-      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
-      val event = createEvent(model, stats, fromShortcut = true)
-      GotoDeclarationAction.actionPerformed(event)
-      stats
-    }
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[-2], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val event = createEvent(model, stats, fromShortcut = true)
+    GotoDeclarationAction.actionPerformed(event)
+    runBlocking { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
                                     "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
     checkStats(stats, keyStrokeCount = 1)
@@ -92,14 +89,12 @@ class GotoDeclarationActionTest {
 
   @Test
   fun testComposeViewNodeInOtherFileWithSameName() {
-    val stats = runInEdtAndGet {
-      val model = createModel()
-      model.setSelection(model[-5], SelectionOrigin.INTERNAL)
-      val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
-      val event = createEvent(model, stats)
-      GotoDeclarationAction.actionPerformed(event)
-      stats
-    }
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[-5], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val event = createEvent(model, stats)
+    GotoDeclarationAction.actionPerformed(event)
+    runBlocking { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 8, "Text(text = \"Hello \$name!\")")
     checkStats(stats, clickCount = 1)
   }

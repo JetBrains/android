@@ -83,6 +83,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.runDispatching
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -407,7 +408,7 @@ class DeviceViewPanelWithFullInspectorTest {
     // Press ctrl-B / command-B when the selectedView is selected:
     model.setSelection(model[selectedView], SelectionOrigin.INTERNAL)
     dispatcher.dispatchKeyEvent(KeyEvent(panel, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
-    GotoDeclarationAction.lastAction?.get()
+    runDispatching { GotoDeclarationAction.lastAction?.join() }
     UIUtil.dispatchAllInvocationEvents()
   }
 
