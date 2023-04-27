@@ -1694,7 +1694,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED = Flag.create(
     PLAY_COMPATIBLE_WEAR_SCREENSHOTS, "enable", "Enable Play Compatible Wear Screenshots",
     "Enable a play compatible screenshot option for wear devices.",
-    false
+    true
   );
   // endregion
 
@@ -1704,7 +1704,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> AVD_COMMAND_LINE_OPTIONS_ENABLED = Flag.create(
     AVD_COMMAND_LINE_OPTIONS, "enable", "Enable the AVD Command-Line Options setting",
     "Enable the AVD Command-Line Options setting in the AVD advanced settings panel.",
-    true
+    false
   );
   // endregion
 
