@@ -33,12 +33,11 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 
 
-class ApplicationDeployerImpl(private val project: Project,
-                              val console: ConsoleView) : ApplicationDeployer {
+class ApplicationDeployerImpl(private val project: Project) : ApplicationDeployer {
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
-
+    LOG.info("Full deploy on $device")
     // Add packages to the deployment,
     val deployTask = DeployTask(
       project,
@@ -55,6 +54,7 @@ class ApplicationDeployerImpl(private val project: Project,
                                   app: ApkInfo,
                                   deployOptions: DeployOptions,
                                   indicator: ProgressIndicator): Deployer.Result {
+    LOG.info("Apply Changes on $device")
     val deployTask = ApplyChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
@@ -69,6 +69,7 @@ class ApplicationDeployerImpl(private val project: Project,
                                       app: ApkInfo,
                                       deployOptions: DeployOptions,
                                       indicator: ProgressIndicator): Deployer.Result {
+    LOG.info("Apply Code Changes on $device")
     val deployTask = ApplyCodeChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
