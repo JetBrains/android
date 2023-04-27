@@ -29,7 +29,7 @@ private val scheduledDispose = WeakHashMap<RenderTask, StackTraceCapture>()
 data class AllocationStackTrace(override val stackTrace: List<StackTraceElement>): StackTraceCapture() {
   override fun bind(renderTask: RenderTask) {
     if (!shouldTrackAllocations) return
-    allocations[renderTask] = this
+    synchronized(allocations) { allocations[renderTask] = this }
   }
 }
 
@@ -37,8 +37,8 @@ data class DisposeStackTrace(override val stackTrace: List<StackTraceElement>): 
   override fun bind(renderTask: RenderTask) {
     if (!shouldTrackAllocations) return
     // Remove the task from allocations and move to scheduledDispose
-    scheduledDispose[renderTask] = this
-    allocations[renderTask] = null
+    synchronized(scheduledDispose) { scheduledDispose[renderTask] = this }
+    synchronized(allocations) { allocations[renderTask] = null }
   }
 }
 
@@ -57,8 +57,8 @@ private val NULL_STACK_TRACE = object: StackTraceCapture() {
  */
 fun clearTrackedAllocations() {
   if (shouldTrackAllocations) {
-    allocations.clear()
-    scheduledDispose.clear()
+    synchronized(allocations) { allocations.clear() }
+    synchronized(scheduledDispose) { scheduledDispose.clear() }
   }
 }
 
