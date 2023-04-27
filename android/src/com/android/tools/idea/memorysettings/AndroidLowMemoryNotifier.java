@@ -48,7 +48,7 @@ public final class AndroidLowMemoryNotifier implements Disposable {
 
   private void onLowMemorySignalReceived() {
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
-    int xmxCap = MemorySettingsUtil.getIdeXmxCapInGB() * 1024;
+    int xmxCap = MemorySettingsRecommendation.XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
     if (myNotificationShown.compareAndSet(false, true) && currentXmx < xmxCap) {
       String content = AndroidBundle.message("low.memory.notification.content");
       new Notification("Low Memory", AndroidBundle.message("low.memory.notification.title"), content, NotificationType.WARNING)

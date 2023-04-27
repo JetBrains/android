@@ -41,13 +41,7 @@ public class MemorySettingsUtil {
 
   // Show memory settings configuration only for machines with at least this much RAM.
   private static final int MIN_RAM_IN_GB_FOR_CONFIG = 5;
-  private static final int HIGH_IDE_XMX_CAP_IN_GB = 8;
-
   static final int NO_XMX_IN_VM_ARGS = -1;
-
-  static final int getIdeXmxCapInGB() {
-    return HIGH_IDE_XMX_CAP_IN_GB;
-  }
 
   public static boolean memorySettingsEnabled() {
     return !CpuArch.is32Bit() && getMachineMem() >= MIN_RAM_IN_GB_FOR_CONFIG << 10;

@@ -173,7 +173,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       }
 
       int machineMem = MemorySettingsUtil.getMachineMem();
-      int maxXmx = getMaxXmx(machineMem);
+      int maxXmx = getMaxXmxInMB(machineMem);
       setXmxBox(myIdeXmxBox, myCurrentIdeXmx, myRecommendedIdeXmx, DEFAULT_IDE_XMX, maxXmx, SIZE_INCREMENT,
                 new ItemListener() {
                   @Override
@@ -397,10 +397,13 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       }
     }
 
-    // Cap for Xmx: MAX_PERCENT_OF_AVAILABLE_RAM of machineMem, and a hard cap (4GB or 8GB)
-    private static int getMaxXmx(int machineMem) {
-      int ideXmxCap = MemorySettingsUtil.getIdeXmxCapInGB();
-      return Math.min((Math.round(machineMem * MAX_PERCENT_OF_AVAILABLE_RAM) >> 8) << 8, ideXmxCap << 10);
+    /**
+     * Returns the minimum of MemorySettingsRecommendation#XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB and
+     * the user's machine memory * MAX_PERCENT_OF_AVAILABLE_RAM rounded to the nearest 256 MB
+     */
+    private static int getMaxXmxInMB(int machineMemInMB) {
+      int ideXmxCap = MemorySettingsRecommendation.XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
+      return Math.min((Math.round(machineMemInMB * MAX_PERCENT_OF_AVAILABLE_RAM) >> 8) << 8, ideXmxCap);
     }
 
     private static String memSizeText(int size) {
