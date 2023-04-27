@@ -26,6 +26,7 @@ import com.android.tools.idea.compose.pickers.common.inspector.PsiEditorProvider
 import com.android.tools.idea.compose.pickers.common.inspector.PsiPropertyItemControlTypeProvider
 import com.android.tools.idea.compose.pickers.common.property.FloatPsiCallParameter
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
+import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.preview.PARAMETER_RATIO
 import com.android.tools.idea.compose.preview.PARAMETER_STIFFNESS
 import com.android.tools.idea.compose.preview.PARAMETER_THRESHOLD
@@ -34,6 +35,9 @@ import com.android.tools.property.panel.api.EditorProvider
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.js.descriptorUtils.nameIfStandardType
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
@@ -45,8 +49,8 @@ internal class SpringPickerPropertiesModel(
   PsiCallPropertiesModel(
     project = project,
     module = module,
-    resolvedCall = resolvedCall,
-    psiPropertiesProvider = SpringPropertiesProvider,
+    ktFile = resolvedCall.call.callElement.containingKtFile,
+    psiPropertiesProvider = SpringPropertiesProvider(resolvedCall),
     tracker = NoOpTracker
   ) {
 
@@ -66,11 +70,15 @@ internal class SpringPickerPropertiesModel(
  * [PsiPropertiesProvider] for the Preview annotation. Provides specific implementations for known
  * parameters of the annotation.
  */
-private object SpringPropertiesProvider : PsiPropertiesProvider {
+private class SpringPropertiesProvider(val resolvedCall: ResolvedCall<*>) : PsiPropertiesProvider {
+  private fun addNewValueArgument(
+    newValueArgument: KtValueArgument,
+    psiFactory: KtPsiFactory
+  ): KtValueArgument = resolvedCall.addNewValueArgument(newValueArgument, psiFactory)
+
   override fun invoke(
     project: Project,
-    model: PsiCallPropertiesModel,
-    resolvedCall: ResolvedCall<*>
+    model: PsiCallPropertiesModel
   ): Collection<PsiPropertyItem> = runReadAction {
     resolvedCall.valueArguments
       .toList()
@@ -78,6 +86,8 @@ private object SpringPropertiesProvider : PsiPropertiesProvider {
       .map { (descriptor, resolved) ->
         val argumentExpression =
           (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
+        val parameterName = descriptor.name
+        val parameterTypeNameIfStandard = descriptor.type.nameIfStandardType
         when (descriptor.name.asString()) {
           PARAMETER_THRESHOLD,
           PARAMETER_RATIO,
@@ -85,19 +95,21 @@ private object SpringPropertiesProvider : PsiPropertiesProvider {
             FloatPsiCallParameter(
               project,
               model,
-              resolvedCall,
-              descriptor,
+              ::addNewValueArgument,
+              parameterName,
+              parameterTypeNameIfStandard,
               argumentExpression,
-              null
+              null,
             )
           else ->
             PsiCallParameterPropertyItem(
               project,
               model,
-              resolvedCall,
-              descriptor,
+              ::addNewValueArgument,
+              parameterName,
+              parameterTypeNameIfStandard,
               argumentExpression,
-              null
+              null,
             )
         }
       }

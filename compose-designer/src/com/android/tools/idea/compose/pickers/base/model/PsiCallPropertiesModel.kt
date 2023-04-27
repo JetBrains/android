@@ -22,12 +22,12 @@ import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 /** Returns the [PsiPropertyItem]s that will be available for the given [PsiCallPropertiesModel]. */
 internal typealias PsiPropertiesProvider =
-  (Project, PsiCallPropertiesModel, ResolvedCall<*>) -> Collection<PsiPropertyItem>
+  (Project, PsiCallPropertiesModel) -> Collection<PsiPropertyItem>
 
 /**
  * [PsiPropertiesModel] for pickers handling calls. This is common in Compose where most pickers
@@ -54,7 +54,7 @@ internal abstract class PsiCallPropertiesModel
 internal constructor(
   val project: Project,
   val module: Module,
-  resolvedCall: ResolvedCall<*>,
+  val ktFile: KtFile,
   psiPropertiesProvider: PsiPropertiesProvider,
   override val tracker:
     ComposePickerTracker // TODO(b/205195408): Refactor tracker to a more general use
@@ -62,12 +62,10 @@ internal constructor(
 
   val psiFactory: KtPsiFactory by lazy(LazyThreadSafetyMode.NONE) { KtPsiFactory(project, true) }
 
-  val ktFile = resolvedCall.call.callElement.containingKtFile
-
   override val properties: PropertiesTable<PsiPropertyItem> =
     PropertiesTable.create(
       HashBasedTable.create<String, String, PsiPropertyItem>().also { table ->
-        psiPropertiesProvider(project, this@PsiCallPropertiesModel, resolvedCall).forEach {
+        psiPropertiesProvider(project, this@PsiCallPropertiesModel).forEach {
           table.put(it.namespace, it.name, it)
         }
       }
