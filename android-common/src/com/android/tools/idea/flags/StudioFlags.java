@@ -1131,14 +1131,6 @@ public final class StudioFlags {
   );
   //endregion
 
-  //region Memory
-  private static final FlagGroup MEMORY_SETTINGS = new FlagGroup(FLAGS, "memory.settings", "Memory Settings");
-  public static final Flag<Boolean> LOW_IDE_XMX_CAP = Flag.create(
-    MEMORY_SETTINGS, "low.ide.xmx.cap", "Set low IDE Xmx cap in memory settings",
-    "If set, IDE Xmx is capped at 4GB in the configuration dialog. Otherwise, the cap is 8GB",
-    true);
-  //endregion
-
   //region System Health
   private static final FlagGroup SYSTEM_HEALTH = new FlagGroup(FLAGS, "system.health", "System Health");
   public static final Flag<Boolean> WINDOWS_UCRT_CHECK_ENABLED = Flag.create(
