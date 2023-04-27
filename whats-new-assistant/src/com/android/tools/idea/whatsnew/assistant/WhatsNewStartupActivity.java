@@ -42,7 +42,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   @Override
   public void runActivity(@NotNull Project project) {
     WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
-    if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
+    if (bundleCreator == null || bundleCreator.shouldNotShowWhatsNew()) {
       return;
     }
 
@@ -83,7 +83,6 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
   /**
    * Hide the Tip of the Day if showing What's New Assistant on startup because
    * we don't want to show two auto-opening panels/popups
-   * @param project
    */
   @VisibleForTesting
   static void hideTipsAndOpenWhatsNewAssistant(@NotNull Project project,
@@ -161,7 +160,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
    * there has been an update to the config. If yes, WNA is automatically opened.
    */
   private static class VersionCheckCallback implements FutureCallback<Boolean> {
-    private Project myProject;
+    private final Project myProject;
 
     private VersionCheckCallback(Project project) {
       super();

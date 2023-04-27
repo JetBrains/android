@@ -26,20 +26,19 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectCloseListener;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
   @NotNull
-  private static WhatsNewAction action = new WhatsNewAction();
+  private static final WhatsNewAction action = new WhatsNewAction();
 
   @Override
   public void update(@NotNull AnActionEvent e) {
@@ -64,7 +63,8 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
 
   public void openWhatsNewSidePanel(@NotNull Project project, boolean isAutoOpened) {
     WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
-    if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
+    if (bundleCreator == null || bundleCreator.shouldNotShowWhatsNew()) {
+      Logger.getInstance(WhatsNewSidePanelAction.class).info("bundleCreator is null or should not show panel, browsing to URL instead");
       BrowserUtil.browse(ApplicationInfoEx.getInstanceEx().getWhatsNewUrl());
       return;
     }
@@ -79,10 +79,11 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
 
     public WhatsNewToolWindowListener(@NotNull Project project) {
       myProject = project;
-      isOpen = true; // Start off as opened so we don't fire an extra opened event
+      isOpen = true; // Start off as opened, so we don't fire an extra opened event
 
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
-      project.getMessageBus().connect(project).subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
+      // noinspection UnstableApiUsage
+      ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
         @Override
         public void projectClosed(@NotNull Project project) {
           if (!project.equals(myProject)) {
