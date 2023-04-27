@@ -30,6 +30,7 @@ import com.android.tools.idea.insights.ui.actions.AppInsightsToggleAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.offlineModeIcon
 import com.android.tools.idea.insights.ui.toTimestamp
+import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -48,6 +49,7 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -106,21 +108,16 @@ class VitalsTab(
   }
 
   private fun createToolbar(): ActionToolbar {
+    @Suppress("UNCHECKED_CAST")
     val actionGroups =
       DefaultActionGroup().apply {
-        //add(
-        //  AppInsightsModuleSelector(
-        //    "Module Selector",
-        //    null,
-        //    null,
-        //    connections,
-        //    { it.appId },
-        //    { it.any { connection -> connection.variantData != null } },
-        //    "Suggested",
-        //    "All apps",
-        //    projectController::selectConnection
-        //  )
-        //)
+        add(
+          VitalsConnectionSelectorAction(
+            connections as StateFlow<Selection<VitalsConnection>>,
+            scope,
+            projectController::selectConnection
+          )
+        )
         addSeparator()
         add(
           AppInsightsToggleAction(

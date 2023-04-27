@@ -18,6 +18,8 @@ package com.android.tools.idea.insights.ui.actions
 import com.android.tools.adtui.common.ColoredIconGenerator.generateColoredIcon
 import com.android.tools.adtui.ui.DynamicRendererList
 import com.android.tools.idea.insights.AppInsight
+import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
+import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
 import com.android.tools.idea.insights.ui.getDisplayTitle
 import com.android.tools.idea.insights.ui.ifZero
 import com.intellij.openapi.actionSystem.AnAction
@@ -26,7 +28,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.ui.CollectionListModel
-import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBUI
@@ -35,10 +36,8 @@ import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Cursor
-import java.awt.Dimension
 import java.awt.event.MouseEvent
 import javax.swing.DefaultListSelectionModel
-import javax.swing.Icon
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JSeparator
@@ -262,36 +261,6 @@ private class AppInsightsGutterListCellRenderer : ListCellRenderer<RenderInstruc
         renderer.background = if (hasFocus) list.selectionBackground else list.background
         renderer
       }
-    }
-  }
-}
-
-@VisibleForTesting
-open class ResizedSimpleColoredComponent : SimpleColoredComponent() {
-  init {
-    isOpaque = false
-    isTransparentIconBackground = true
-    font = UIUtil.getListFont()
-  }
-
-  override fun getPreferredSize(): Dimension {
-    return UIUtil.updateListRowHeight(super.getPreferredSize())
-  }
-}
-
-@VisibleForTesting
-class JListSimpleColoredComponent<T>(icon: Icon?, list: JList<T>, hasFocus: Boolean) :
-  ResizedSimpleColoredComponent() {
-  init {
-    font = list.font
-    foreground =
-      if (hasFocus) {
-        list.selectionForeground
-      } else {
-        list.foreground
-      }
-    if (icon != null) {
-      this.icon = if (hasFocus) generateColoredIcon(icon, foreground) else icon
     }
   }
 }

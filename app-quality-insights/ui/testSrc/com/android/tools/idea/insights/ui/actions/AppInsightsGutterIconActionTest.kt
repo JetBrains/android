@@ -27,6 +27,8 @@ import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analysis.Cause
+import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
+import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.components.JBList

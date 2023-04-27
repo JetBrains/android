@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.adtui.swing.popup
+package com.android.tools.idea.vitals.ui
 
-import javax.swing.JComponent
+import com.android.testutils.JarTestSuiteRunner
+import com.android.tools.tests.IdeaTestSuiteBase
+import org.junit.runner.RunWith
 
-/** Fake custom component popup for tests to verify content. */
-class FakeComponentPopup(
-  val contentPanel: JComponent,
-  val preferableFocusComponent: JComponent?,
-  focusable: Boolean,
-  requestFocus: Boolean
-) : FakeJBPopup<Unit>(emptyList(), isRequestFocus = requestFocus) {
-  override fun getContent() = contentPanel
-}
+@RunWith(JarTestSuiteRunner::class)
+@JarTestSuiteRunner.ExcludeClasses(VitalsUiTestSuite::class)
+class VitalsUiTestSuite : IdeaTestSuiteBase()
