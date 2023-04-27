@@ -911,7 +911,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_FOLDING_SUPPORT = Flag.create(
     DEVICE_MIRRORING, "folding.support", "Simulate Folding/Unfolding",
     "Support pose control for foldable devices",
-    false);
+    true);
   public static final Flag<String> DEVICE_MIRRORING_AGENT_LOG_LEVEL = Flag.create(
     DEVICE_MIRRORING, "agent.log.level", "On Device Logging Level for Mirroring",
     "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\";" +
