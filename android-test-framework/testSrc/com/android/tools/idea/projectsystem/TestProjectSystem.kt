@@ -324,6 +324,10 @@ class TestProjectSystem @JvmOverloads constructor(
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
     return emptyList()
   }
+
+  override fun isNamespaceOrParentPackage(packageName: String): Boolean {
+    return false
+  }
 }
 
 class TestProjectSystemBuildManager(

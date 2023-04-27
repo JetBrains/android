@@ -26,6 +26,7 @@ import com.android.tools.idea.projectsystem.DependencyScopeType.ANDROID_TEST
 import com.android.tools.idea.projectsystem.DependencyScopeType.MAIN
 import com.android.tools.idea.projectsystem.DependencyScopeType.UNIT_TEST
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
@@ -128,6 +129,39 @@ data class GradleProjectSystemIntegrationTest(
         ) { project, expect ->
           val packageName = project.gradleModule(":app")!!.getModuleSystem().getPackageName()
           expect.that(packageName).isEqualTo("com.example.multiflavor")
+        },
+        GradleProjectSystemIntegrationTest(
+          name = "isValidAndroidManifestPackage",
+          testProject = TestProject.TRANSITIVE_DEPENDENCIES
+        ) { project, expect ->
+          val projectSystem = project.getProjectSystem()
+          // All namespaces and superpackages of namespaces should resolve
+          listOf(
+            "com",
+            "com.example",
+            "com.example.alruiz",
+            "com.example.alruiz.transitive_dependencies",
+            "com.example.library1",
+            "com.example.library2",
+          ).forEach { packageName ->
+            expect.that(projectSystem.isNamespaceOrParentPackage(packageName))
+              .named("projectSystem.isValidAndroidManifestPackage(\"$packageName\")")
+              .isTrue()
+          }
+          listOf(
+            // R classes have to have a package
+            "",
+            // Substrings of valid packages should not resolve
+            "co",
+            "com.exampl",
+            // Nor should subpackages
+            "com.example.library1.other",
+            "com.example.library3",
+          ).forEach { packageName ->
+            expect.that(projectSystem.isNamespaceOrParentPackage(packageName))
+              .named("projectSystem.isValidAndroidManifestPackage(\"$packageName\")")
+              .isFalse()
+          }
         },
         GradleProjectSystemIntegrationTest(
           name = "allApplicationIds",
