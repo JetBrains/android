@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.AbstractDisplayPanel
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.DeviceId
@@ -63,7 +64,7 @@ internal class DeviceToolWindowPanel(
   override val icon
     get() = ICON
 
-  override val isClosable = false
+  override val isClosable = StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()
 
   val component: JComponent
     get() = this

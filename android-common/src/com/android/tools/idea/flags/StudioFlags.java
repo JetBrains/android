@@ -908,6 +908,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "allow.standalone.emulators", "Allow Mirroring of Standalone Emulators",
     "Treats standalone emulators the same as physical devices for the purpose of display mirroring",
     false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_ADVANCED_TAB_CONTROL = Flag.create(
+    DEVICE_MIRRORING, "advanced.tab.control", "Enable closing/opening of Running Devices tabs",
+    "Support closing/opening of Running Devices tabs",
+    false);
   public static final Flag<Boolean> DEVICE_MIRRORING_FOLDING_SUPPORT = Flag.create(
     DEVICE_MIRRORING, "folding.support", "Simulate Folding/Unfolding",
     "Support pose control for foldable devices",
