@@ -50,12 +50,10 @@ class ImportTestHistoryTest {
     createTestHistoryXmlFileInProject(ideFrameFixture.project)
     val bleakOptions = UiTestBleakOptions.defaultsWithAdditionalIgnoreList(
       IgnoreList(listOf(
-        IgnoreListEntry { it.leaktrace.signatureAt(2) == "java.awt.KeyboardFocusManager#focusedWindow" },
-        IgnoreListEntry { it.leaktrace.signatureAt(-1) == "com.intellij.util.SmartList" },
-        // AndroidStudioUsageTracker sends report in bulk. BuilderInfo can be accumulated until the tracker flushes them.
-        IgnoreListEntry { it.leaktrace.signatureAt(-1) == "[Lcom.android.tools.idea.diagnostics.report.BuilderInfo;" },
+        IgnoreListEntry { it.leaktrace.referenceMatches(2, "java.awt.KeyboardFocusManager", "focusedWindow") },
+        IgnoreListEntry { it.leaktrace.element(-1)?.className ==  "com.intellij.util.SmartList" },
         // Number of monitor thread can be increased after new AVD is discovered.
-        IgnoreListEntry { it.leaktrace.signatureAt(3) == "com.android.ddmlib.internal.MonitorThread#group" },
+        IgnoreListEntry { it.leaktrace.referenceMatches(3, "com.android.ddmlib.internal.MonitorThread", "group") },
       ))
     )
     runWithBleak(bleakOptions) {
