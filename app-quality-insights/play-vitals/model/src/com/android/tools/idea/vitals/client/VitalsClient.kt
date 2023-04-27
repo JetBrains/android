@@ -85,9 +85,20 @@ class VitalsClient(
           )
         )
     ) {
-      val versions = async { listVersions(request.connection, request.filters, null) }
-      val devices = async { listDevices(request.connection, request.filters, null) }
-      val oses = async { listOperatingSystems(request.connection, request.filters, null) }
+      val versions = async {
+        listVersions(request.connection, request.filters, null, MetricType.ERROR_REPORT_COUNT)
+      }
+      val devices = async {
+        listDevices(request.connection, request.filters, null, MetricType.ERROR_REPORT_COUNT)
+      }
+      val oses = async {
+        listOperatingSystems(
+          request.connection,
+          request.filters,
+          null,
+          MetricType.ERROR_REPORT_COUNT
+        )
+      }
       val issues = async { fetchIssues(request) } // TODO: add "fetchEventsForAllIssues: Boolean"
 
       LoadingState.Ready(
@@ -109,7 +120,7 @@ class VitalsClient(
     val failure = LoadingState.UnknownFailure("Unable to fetch issue details.")
     runGrpcCatching(failure) {
       val devices = async {
-        listDevices(request.connection, request.filters, issueId)
+        listDevices(request.connection, request.filters, issueId, MetricType.DISTINCT_USER_COUNT)
           .summarizeDevicesFromRawDataPoints(
             MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW,
             MINIMUM_PERCENTAGE_TO_SHOW
@@ -117,7 +128,12 @@ class VitalsClient(
       }
 
       val oses = async {
-        listOperatingSystems(request.connection, request.filters, issueId)
+        listOperatingSystems(
+            request.connection,
+            request.filters,
+            issueId,
+            MetricType.DISTINCT_USER_COUNT
+          )
           .summarizeOsesFromRawDataPoints(
             MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW,
             MINIMUM_PERCENTAGE_TO_SHOW
@@ -187,7 +203,8 @@ class VitalsClient(
   private suspend fun listVersions(
     connection: Connection,
     filters: QueryFilters,
-    issueId: IssueId?
+    issueId: IssueId?,
+    metricType: MetricType
   ): List<WithCount<Version>> {
     // First we get versions that are part of the releases/tracks.
     val releases = grpcClient.getReleases(connection)
@@ -199,7 +216,7 @@ class VitalsClient(
         filters = filters.copy(versions = setOf(Version.ALL)),
         issueId = issueId,
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.VERSION_CODE),
-        metrics = listOf(MetricType.ERROR_REPORT_COUNT)
+        metrics = listOf(metricType)
       )
       .map { dataPoint ->
         val version =
@@ -212,7 +229,7 @@ class VitalsClient(
             rawVersion.copy(tracks = tracks)
           }
 
-        val count = dataPoint.metrics.extractValue(MetricType.ERROR_REPORT_COUNT)
+        val count = dataPoint.metrics.extractValue(metricType)
 
         version to count
       }
@@ -223,7 +240,8 @@ class VitalsClient(
   private suspend fun listDevices(
     connection: Connection,
     filters: QueryFilters,
-    issueId: IssueId?
+    issueId: IssueId?,
+    metricType: MetricType
   ): List<WithCount<Device>> {
     return getMetrics(
         connection = connection,
@@ -231,11 +249,11 @@ class VitalsClient(
         issueId = issueId,
         dimensions =
           listOf(DimensionType.REPORT_TYPE, DimensionType.DEVICE_TYPE, DimensionType.DEVICE_MODEL),
-        metrics = listOf(MetricType.ERROR_REPORT_COUNT)
+        metrics = listOf(metricType)
       )
       .map { dataPoint ->
         val device = Device.fromDimensions(dataPoint.dimensions)
-        val count = dataPoint.metrics.extractValue(MetricType.ERROR_REPORT_COUNT)
+        val count = dataPoint.metrics.extractValue(metricType)
 
         device to count
       }
@@ -247,17 +265,18 @@ class VitalsClient(
     connection: Connection,
     filters: QueryFilters,
     issueId: IssueId?,
+    metricType: MetricType
   ): List<WithCount<OperatingSystemInfo>> {
     return getMetrics(
         connection = connection,
         filters = filters.copy(operatingSystems = setOf(OperatingSystemInfo.ALL)),
         issueId = issueId,
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.API_LEVEL),
-        metrics = listOf(MetricType.ERROR_REPORT_COUNT)
+        metrics = listOf(metricType)
       )
       .map { dataPoint ->
         val os = OperatingSystemInfo.fromDimensions(dataPoint.dimensions)
-        val count = dataPoint.metrics.extractValue(MetricType.ERROR_REPORT_COUNT)
+        val count = dataPoint.metrics.extractValue(metricType)
 
         os to count
       }
