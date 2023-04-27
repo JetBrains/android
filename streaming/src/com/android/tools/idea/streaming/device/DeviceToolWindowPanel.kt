@@ -57,6 +57,21 @@ internal class DeviceToolWindowPanel(
     get() = deviceClient.deviceSerialNumber
   private val deviceConfig
     get() = deviceClient.deviceConfig
+  private val deviceStateListener = object : DeviceController.DeviceStateListener {
+    override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
+      updateMainToolbarLater()
+    }
+
+    override fun onDeviceStateChanged(deviceState: Int) {
+      updateMainToolbarLater()
+    }
+
+    private fun updateMainToolbarLater() {
+      EventQueue.invokeLater {
+        mainToolbar.updateActionsImmediately()
+      }
+    }
+  }
 
   override val title: String
     get() = deviceClient.deviceName
@@ -115,6 +130,11 @@ internal class DeviceToolWindowPanel(
         EventQueue.invokeLater {
           mainToolbar.updateActionsImmediately()
           secondaryToolbar.updateActionsImmediately()
+        }
+        when (connectionState) {
+          ConnectionState.CONNECTED -> deviceClient.deviceController?.addDeviceStateListener(deviceStateListener)
+          ConnectionState.DISCONNECTED -> deviceClient.deviceController?.removeDeviceStateListener(deviceStateListener)
+          else -> {}
         }
       }
     })
