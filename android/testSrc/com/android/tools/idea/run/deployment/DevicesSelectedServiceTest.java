@@ -19,11 +19,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.deployment.DevicesSelectedService.MapState;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.util.xmlb.XmlSerializer;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -36,12 +40,15 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DevicesSelectedServiceTest {
-  private final @NotNull DevicesSelectedService myService;
+  private final PersistentStateComponent myPersistentStateComponent = new PersistentStateComponent();
 
-  public DevicesSelectedServiceTest() {
-    Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
-    myService = new DevicesSelectedService(new PersistentStateComponent(), clock);
-  }
+  @NotNull
+  private final RunManager myRunManager = Mockito.mock(RunManager.class);
+
+  private final DevicesSelectedService myService =
+    new DevicesSelectedService(myPersistentStateComponent,
+                               myRunManager,
+                               Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles")));
 
   @Test
   public void getTargetSelectedWithComboBoxDevicesIsEmpty() {
@@ -133,7 +140,7 @@ public final class DevicesSelectedServiceTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    List<Device> devices = Arrays.asList(disconnectedDevice, connectedDevice);
+    var devices = List.of(disconnectedDevice, connectedDevice);
 
     // Act
     Object target = myService.getTargetSelectedWithComboBox(devices);
@@ -161,7 +168,7 @@ public final class DevicesSelectedServiceTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    List<Device> devices = Arrays.asList(disconnectedDevice, connectedDevice);
+    var devices = List.of(disconnectedDevice, connectedDevice);
 
     // Act
     Object optionalTarget = myService.getTargetSelectedWithComboBox(devices);
@@ -215,7 +222,7 @@ public final class DevicesSelectedServiceTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    List<Device> devices = Arrays.asList(device1, device2);
+    var devices = List.of(device1, device2);
 
     // Act
     myService.setTargetSelectedWithComboBox(target2);
@@ -297,5 +304,188 @@ public final class DevicesSelectedServiceTest {
 
     // Assert
     assertEquals(Collections.emptySet(), myService.getTargetsSelectedWithDialog(Collections.emptyList()));
+  }
+
+  @Test
+  public void selectedTargetWithComboBoxIsSavedByRunningConfiguration() {
+    // Arrange
+    RunnerAndConfigurationSettings phoneConfig = mockConfigurationAndSettings("phone config");
+    RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
+
+    Target phoneTarget = new RunningDeviceTarget(new SerialNumber("PHONE"));
+    Target wearTarget = new RunningDeviceTarget(new SerialNumber("WEAR"));
+
+    Device phoneDevice = new VirtualDevice.Builder()
+      .setName("Phone")
+      .setKey(phoneTarget.getDeviceKey())
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Device wearDevice = new VirtualDevice.Builder()
+      .setName("Wear")
+      .setKey(wearTarget.getDeviceKey())
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = List.of(phoneDevice, wearDevice);
+
+    // Act
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(phoneConfig);
+    myService.setTargetSelectedWithComboBox(phoneTarget);
+
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(wearConfig);
+    myService.setTargetSelectedWithComboBox(wearTarget);
+
+    // Assert
+    assertEquals(Optional.of(wearTarget), myService.getTargetSelectedWithComboBox(devices));
+
+    // Act
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(phoneConfig);
+
+    // Assert
+    assertEquals(Optional.of(phoneTarget), myService.getTargetSelectedWithComboBox(devices));
+  }
+
+
+  @Test
+  public void selectedTargetWithComboBoxHandlesNullConfiguration() {
+    // Arrange
+    RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
+
+    Target phoneTarget = new RunningDeviceTarget(new SerialNumber("PHONE"));
+    Target wearTarget = new RunningDeviceTarget(new SerialNumber("WEAR"));
+
+    Device phoneDevice = new VirtualDevice.Builder()
+      .setName("Phone")
+      .setKey(phoneTarget.getDeviceKey())
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Device wearDevice = new VirtualDevice.Builder()
+      .setName("Wear")
+      .setKey(wearTarget.getDeviceKey())
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = List.of(phoneDevice, wearDevice);
+
+    // Act
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
+    myService.setTargetSelectedWithComboBox(phoneTarget);
+
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(wearConfig);
+    myService.setTargetSelectedWithComboBox(wearTarget);
+
+    // Assert
+    assertEquals(Optional.of(wearTarget), myService.getTargetSelectedWithComboBox(devices));
+
+    // Act
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
+
+    // Assert
+    assertEquals(Optional.of(phoneTarget), myService.getTargetSelectedWithComboBox(devices));
+    assertPersistentStateComponentCanBeSerializedAndDeserialized();
+  }
+
+  @Test
+  public void selectedTargetWithDialogIsSavedByRunningConfiguration() {
+    // Arrange
+    RunnerAndConfigurationSettings phoneConfig = mockConfigurationAndSettings("phone config");
+    RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
+
+    Device phoneDevice = new VirtualDevice.Builder()
+      .setName("Phone")
+      .setKey(new SerialNumber("PHONE"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Device wearDevice = new VirtualDevice.Builder()
+      .setName("Wear")
+      .setKey(new SerialNumber("WEAR"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = List.of(phoneDevice, wearDevice);
+
+    Set<Target> phoneTargets = Set.of(new RunningDeviceTarget(phoneDevice.key()));
+    Set<Target> wearTargets = Set.of(new RunningDeviceTarget(wearDevice.key()));
+
+    // Act
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(phoneConfig);
+    myService.setTargetsSelectedWithDialog(phoneTargets);
+
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(wearConfig);
+    myService.setTargetsSelectedWithDialog(wearTargets);
+
+    // Assert
+    assertEquals(wearTargets, myService.getTargetsSelectedWithDialog(devices));
+
+    // Act
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(phoneConfig);
+
+    // Assert
+    assertEquals(phoneTargets, myService.getTargetsSelectedWithDialog(devices));
+    assertPersistentStateComponentCanBeSerializedAndDeserialized();
+  }
+
+  @Test
+  public void selectedTargetWithDialogHandlesNullConfiguration() {
+    // Arrange
+    RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
+
+    Device phoneDevice = new VirtualDevice.Builder()
+      .setName("Phone")
+      .setKey(new SerialNumber("PHONE"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Device wearDevice = new VirtualDevice.Builder()
+      .setName("Wear")
+      .setKey(new SerialNumber("WEAR"))
+      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    List<Device> devices = List.of(phoneDevice, wearDevice);
+
+    Set<Target> phoneTargets = Set.of(new RunningDeviceTarget(phoneDevice.key()));
+    Set<Target> wearTargets = Set.of(new RunningDeviceTarget(wearDevice.key()));
+
+    // Act
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
+    myService.setTargetsSelectedWithDialog(phoneTargets);
+
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(wearConfig);
+    myService.setTargetsSelectedWithDialog(wearTargets);
+
+    // Assert
+    assertEquals(wearTargets, myService.getTargetsSelectedWithDialog(devices));
+
+    // Act
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
+
+    // Assert
+    assertEquals(phoneTargets, myService.getTargetsSelectedWithDialog(devices));
+    assertPersistentStateComponentCanBeSerializedAndDeserialized();
+  }
+
+  private void assertPersistentStateComponentCanBeSerializedAndDeserialized() {
+    XmlSerializer.deserialize(XmlSerializer.serialize(myPersistentStateComponent.getState()), MapState.class);
+  }
+
+  @NotNull
+  private static RunnerAndConfigurationSettings mockConfigurationAndSettings(@NotNull String name) {
+    RunConfiguration runConfiguration = Mockito.mock(RunConfiguration.class);
+    Mockito.when(runConfiguration.getName()).thenReturn(name);
+    RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
+    Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(runConfiguration);
+    return configurationAndSettings;
   }
 }
