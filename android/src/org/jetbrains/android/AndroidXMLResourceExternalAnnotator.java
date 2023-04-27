@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.intellij.ide.EssentialHighlightingMode;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementWalkingVisitor;
@@ -41,6 +42,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
   @Override
   @Nullable
   protected FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor) {
+    if (EssentialHighlightingMode.Companion.isEnabled()) return null;
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
       return null;
