@@ -91,6 +91,18 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   }
 
   @Override
+  public void getSystemProperty(ASDriver.GetSystemPropertyRequest request, StreamObserver<ASDriver.GetSystemPropertyResponse> responseObserver) {
+    String value = System.getProperty(request.getSystemProperty());
+    ASDriver.GetSystemPropertyResponse.Builder builder = ASDriver.GetSystemPropertyResponse.newBuilder();
+    if (value != null) {
+      builder.setValue(value);
+    }
+
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
   public void quit(ASDriver.QuitRequest request, StreamObserver<ASDriver.QuitResponse> responseObserver) {
     if (request.getForce()) {
       System.exit(0);

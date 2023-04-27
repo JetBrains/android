@@ -160,6 +160,12 @@ public class AndroidStudio implements AutoCloseable {
     return response.getVersion();
   }
 
+  public String getSystemProperty(String systemProperty) {
+    ASDriver.GetSystemPropertyRequest rq = ASDriver.GetSystemPropertyRequest.newBuilder().setSystemProperty(systemProperty).build();
+    ASDriver.GetSystemPropertyResponse response = androidStudio.getSystemProperty(rq);
+    return response.getValue();
+  }
+
   /**
    * @param force true to kill Studio right away, false to gracefully exit. Note that killing Studio will not allow it to run
    *              cleanup processes, such as stopping Gradle, which would let Gradle to continue writing to the filesystem.

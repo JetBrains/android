@@ -22,6 +22,8 @@ service AndroidStudio {
   rpc EditFile(EditFileRequest) returns (EditFileResponse) {}
 
   rpc WaitForComponent(WaitForComponentRequest) returns (WaitForComponentResponse) {}
+
+  rpc GetSystemProperty(GetSystemPropertyRequest) returns (GetSystemPropertyResponse) {}
 }
 
 message GetVersionRequest {}
@@ -140,4 +142,12 @@ message WaitForComponentResponse {
     ERROR = 1;
   }
   WaitForComponentResponse.Result result = 1;
+}
+
+message GetSystemPropertyRequest {
+  string system_property = 1;
+}
+
+message GetSystemPropertyResponse {
+  optional string value = 1; // Optional because the property may not be defined
 }
