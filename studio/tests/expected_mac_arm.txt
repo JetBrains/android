@@ -2065,6 +2065,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/layoutlib-loader.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libam-instrumentation-data-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libandroid-core-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libapp-processes-proto.jar
+Android Studio Preview.app/Contents/plugins/android/lib/libbuild-flags.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_sites.jar
 Android Studio Preview.app/Contents/plugins/android/lib/libjava_version.jar
 Android Studio Preview.app/Contents/plugins/android/lib/liblint-checks-proto.lib.jar
