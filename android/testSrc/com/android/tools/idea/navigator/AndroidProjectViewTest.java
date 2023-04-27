@@ -57,8 +57,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private AndroidProjectViewPane myPane;
 
   public void testGeneratedSourceFiles_lightClasses() throws Exception {
-    // TODO b/279102108 caused by IDEA-318834
-    if (SystemInfo.isWindows) return;
     loadSimpleApplication();
 
     // Create BuildConfig.java in one of the generated source folders.

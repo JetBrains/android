@@ -39,8 +39,6 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
   }
 
   public void testIsInputValid() throws Exception {
-    // TODO b/279102526 caused by IDEA-318834
-    if (SystemInfo.isWindows) return;
     verifyErrorMessage();
   }
 
