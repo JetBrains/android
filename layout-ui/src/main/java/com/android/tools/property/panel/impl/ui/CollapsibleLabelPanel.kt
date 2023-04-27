@@ -73,7 +73,7 @@ class CollapsibleLabelPanel(
 
   private val expandButton = IconWithFocusBorder { if (model.expandable) expandAction else null }
   private val actionButtons = mutableListOf<FocusableActionButton>()
-  private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { label.x }, { width }, ::onResizeModeChange)
+  private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { label.x }, { width }, { 0 }, ::onResizeModeChange)
   private var initialized = false
 
   val text: String?

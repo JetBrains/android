@@ -102,7 +102,8 @@ open class PTableImpl(
   private val nameRowFilter = NameRowFilter(model)
   private val tableCellRenderer = PTableCellRendererWrapper()
   private val tableCellEditor = PTableCellEditorWrapper()
-  private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { 0 }, { width }, ::onResizeModeChange)
+  private val resizeHandler = ColumnFractionChangeHandler(
+    nameColumnFraction, { 0 }, { width }, { columnModel.getColumn(0).minWidth }, ::onResizeModeChange)
   private var lastLeftFractionValue = nameColumnFraction.value
   private var initialized = false
   override val backgroundColor: Color
