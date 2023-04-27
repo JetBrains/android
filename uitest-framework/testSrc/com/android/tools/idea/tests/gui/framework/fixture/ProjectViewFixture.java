@@ -98,7 +98,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
     Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
     myRobot.click(projectDropDown.getParent());
 
-    String paneFullName = "Content name=" + paneName;
+    String paneFullName = "Content name=" + paneName + "; tab name='"+ paneName +"'; toolwindow='"+ paneName +"'";
     GuiTests.clickPopupMenuItemMatching(s -> s.equals(paneFullName), projectDropDown, myRobot);
   }
 
