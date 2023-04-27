@@ -690,6 +690,8 @@ class FakeScreenSharingAgent(
                 DeviceState{identifier=1, name='TENT', app_accessible=true},
                 DeviceState{identifier=2, name='HALF_FOLDED', app_accessible=true},
                 DeviceState{identifier=3, name='OPEN', app_accessible=true},
+                DeviceState{identifier=4, name='REAR_DISPLAY_STATE', app_accessible=true},
+                DeviceState{identifier=5, name='ANOTHER_STATE', app_accessible=true},
               ]
               """.trimIndent()
           sendNotification(SupportedDeviceStatesNotification(supportedStates))
