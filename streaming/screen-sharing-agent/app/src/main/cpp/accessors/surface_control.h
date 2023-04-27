@@ -44,8 +44,7 @@ private:
   static void CloseTransaction(Jni jni);
   static void SetDisplaySurface(Jni jni, jobject display_token, ANativeWindow* surface);
   static void SetDisplayLayerStack(Jni jni, jobject display_token, int32_t layer_stack);
-  static void SetDisplayProjection(
-      Jni jni, jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect);
+  static void SetDisplayProjection(Jni jni, jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect);
 
   static JObject ToJava(Jni jni, const ARect& rect);
 
@@ -55,9 +54,9 @@ public:
 
   static JObject CreateDisplay(Jni jni, const char* name, bool secure);
   static void DestroyDisplay(Jni jni, jobject display_token);
-  // The display area defined by display_info.logical_size is mapped to projection rectangle.
+  // The display area defined by display_info.logical_size is mapped to projected size.
   static void ConfigureProjection(
-      Jni jni, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info, ARect projection_rect);
+      Jni jni, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info, Size projected_size);
 
 private:
   // SurfaceControl class.
