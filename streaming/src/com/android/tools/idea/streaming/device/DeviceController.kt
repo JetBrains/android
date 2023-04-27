@@ -176,14 +176,14 @@ class DeviceController(
   }
 
   private fun deviceStateNameToFoldingStateName(name: String): String {
-    var correctedName = when (name) {
+    var correctedName = name.removeSuffix("_STATE")
+    correctedName = when (correctedName) {
       "CLOSE" -> "CLOSED"
       "OPENED" -> "OPEN"
       "HALF_CLOSED" -> "HALF_OPEN"
       "HALF_FOLDED" -> "HALF_OPEN"
       "HALF_OPENED" -> "HALF_OPEN"
-      "REAR_DISPLAY_STATE" -> "FLIPPED"
-      else -> name
+      else -> correctedName
     }
     if (correctedName.startsWith("HALF_")) {
       correctedName = "HALF-" + correctedName.substring("HALF_".length)
