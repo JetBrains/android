@@ -44,5 +44,3 @@ internal data class FoldingAction(val foldingState: FoldingState) : AbstractDevi
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }
-
-internal fun AnActionEvent.getCurrentFoldingState() = getDeviceController(this)?.currentFoldingState
