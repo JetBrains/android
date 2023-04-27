@@ -77,6 +77,7 @@ class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<
 
     private val childFinders = listOf<Pair<String, (Any) -> List<Any>>>(
       "java.util.HashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "value") },
+      "java.util.LinkedHashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "value") },
       "java.util.concurrent.ConcurrentHashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "val") },
       "java.util.TreeMap" to { tm -> listOf(tm).fields("root").recFields("left", "right").fields("key", "value") },
       "java.util.LinkedList" to { ll -> listOf(ll).fields("first").recFields("next").fields("item") }
