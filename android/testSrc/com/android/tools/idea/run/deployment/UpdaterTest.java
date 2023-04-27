@@ -25,7 +25,6 @@ import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
@@ -423,9 +422,9 @@ public final class UpdaterTest {
     assertEquals("Pixel 4 API 30 - Quick Boot", myPresentation.getText());
   }
 
-  private @NotNull DevicesSelectedService newDevicesSelectedService() {
+  private static @NotNull DevicesSelectedService newDevicesSelectedService() {
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
-    return new DevicesSelectedService(new PersistentStateComponent(), clock, RunManager.getInstance(myRule.getProject()));
+    return new DevicesSelectedService(new PersistentStateComponent(), clock);
   }
 
   @Test

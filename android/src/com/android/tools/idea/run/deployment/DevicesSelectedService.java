@@ -17,9 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.run.util.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -30,7 +27,6 @@ import com.intellij.util.xmlb.annotations.OptionTag;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import com.intellij.util.xmlb.annotations.XCollection.Style;
-import com.intellij.util.xmlb.annotations.XMap;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -39,9 +35,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -88,22 +82,20 @@ import org.jetbrains.annotations.Nullable;
  */
 final class DevicesSelectedService {
   private final @NotNull PersistentStateComponent myPersistentStateComponent;
-  private final @NotNull RunManager myRunManager;
 
   @NotNull
   private final Clock myClock;
 
   @SuppressWarnings("unused")
   private DevicesSelectedService(@NotNull Project project) {
-    this(project.getService(PersistentStateComponent.class), Clock.systemDefaultZone(), RunManager.getInstance(project));
+    this(project.getService(PersistentStateComponent.class), Clock.systemDefaultZone());
   }
 
   @VisibleForTesting
   @NonInjectable
-  DevicesSelectedService(@NotNull PersistentStateComponent persistentStateComponent, @NotNull Clock clock, @NotNull RunManager runManager) {
+  DevicesSelectedService(@NotNull PersistentStateComponent persistentStateComponent, @NotNull Clock clock) {
     myPersistentStateComponent = persistentStateComponent;
     myClock = clock;
-    myRunManager = runManager;
   }
 
   @NotNull
@@ -116,7 +108,7 @@ final class DevicesSelectedService {
       return Optional.empty();
     }
 
-    State state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
+    State state = myPersistentStateComponent.getState();
 
     TargetsForReadingSupplier supplier = new TargetsForReadingSupplier(devices,
                                                                        state.getRunningDeviceTargetSelectedWithDropDown(),
@@ -175,7 +167,7 @@ final class DevicesSelectedService {
   }
 
   void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
-    State state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
+    State state = myPersistentStateComponent.getState();
     state.multipleDevicesSelectedInDropDown = false;
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetSelectedWithDropDown(), targetSelectedWithComboBox);
@@ -187,15 +179,15 @@ final class DevicesSelectedService {
   }
 
   boolean isMultipleDevicesSelectedInComboBox() {
-    return myPersistentStateComponent.getState(getSelectedRunConfiguration()).multipleDevicesSelectedInDropDown;
+    return myPersistentStateComponent.getState().multipleDevicesSelectedInDropDown;
   }
 
   void setMultipleDevicesSelectedInComboBox(boolean multipleDevicesSelectedInComboBox) {
-    myPersistentStateComponent.getState(getSelectedRunConfiguration()).multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
+    myPersistentStateComponent.getState().multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
   }
 
   @NotNull Set<Target> getTargetsSelectedWithDialog(@NotNull List<Device> devices) {
-    State state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
+    State state = myPersistentStateComponent.getState();
 
     Collection<RunningDeviceTarget> runningDeviceTargets = state.getRunningDeviceTargetsSelectedWithDialog();
     TargetsForReadingSupplier supplier = new TargetsForReadingSupplier(devices, runningDeviceTargets, state.getTargetsSelectedWithDialog());
@@ -207,50 +199,28 @@ final class DevicesSelectedService {
   }
 
   void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
-    State state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
+    State state = myPersistentStateComponent.getState();
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetsSelectedWithDialog(), targetsSelectedWithDialog);
 
     state.setRunningDeviceTargetsSelectedWithDialog(supplier.getDialogRunningDeviceTargets());
     state.setTargetsSelectedWithDialog(supplier.getDialogTargets());
   }
 
-  private @Nullable RunConfiguration getSelectedRunConfiguration() {
-    RunnerAndConfigurationSettings settings = myRunManager.getSelectedConfiguration();
-    if (settings == null) {
-      return null;
-    }
-    return settings.getConfiguration();
-  }
-
   @com.intellij.openapi.components.State(name = "deploymentTargetDropDown", storages = @Storage("deploymentTargetDropDown.xml"))
   @Service
   @VisibleForTesting
-  static final class PersistentStateComponent implements com.intellij.openapi.components.PersistentStateComponent<StateByRunConfiguration> {
+  static final class PersistentStateComponent implements com.intellij.openapi.components.PersistentStateComponent<State> {
+    private @NotNull State myState = new State();
 
-    private @NotNull StateByRunConfiguration myStateByRunConfiguration = new StateByRunConfiguration();
-
-    public @NotNull State getState(@Nullable RunConfiguration runConfiguration) {
-      @Nullable String key = null;
-      if (runConfiguration != null) {
-        key = runConfiguration.getName();
-      }
-      myStateByRunConfiguration.stateByRunConfiguration.putIfAbsent(key, new State());
-      return myStateByRunConfiguration.stateByRunConfiguration.get(key);
+    @Override
+    public @NotNull State getState() {
+      return myState;
     }
 
     @Override
-    public @NotNull StateByRunConfiguration getState() {
-      return myStateByRunConfiguration;
+    public void loadState(@NotNull State state) {
+      myState = state;
     }
-
-    @Override
-    public void loadState(@NotNull StateByRunConfiguration stateByRunConfiguration) {
-      myStateByRunConfiguration = stateByRunConfiguration;
-    }
-  }
-  private static final class StateByRunConfiguration {
-    @XMap
-    public Map<String, State> stateByRunConfiguration = new HashMap<>();
   }
 
   private static final class State {

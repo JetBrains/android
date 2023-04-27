@@ -88,7 +88,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Before
   public void newDevicesSelectedService() {
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27.000Z"), ZoneId.of("America/Los_Angeles"));
-    myDevicesSelectedService = new DevicesSelectedService(new PersistentStateComponent(), clock, myRunManager);
+    myDevicesSelectedService = new DevicesSelectedService(new PersistentStateComponent(), clock);
   }
 
   @Before

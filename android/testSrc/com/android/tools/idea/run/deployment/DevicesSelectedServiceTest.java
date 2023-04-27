@@ -19,11 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
-import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -33,8 +29,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -42,18 +36,11 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DevicesSelectedServiceTest {
-  @Rule
-  public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
+  private final @NotNull DevicesSelectedService myService;
 
-  private @NotNull DevicesSelectedService myService;
-
-  private @NotNull RunManager myRunManager;
-
-  @Before
-  public void setUp() {
+  public DevicesSelectedServiceTest() {
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
-    myRunManager = RunManager.getInstance(myRule.getProject());
-    myService = new DevicesSelectedService(new PersistentStateComponent(), clock, myRunManager);
+    myService = new DevicesSelectedService(new PersistentStateComponent(), clock);
   }
 
   @Test
@@ -310,180 +297,5 @@ public final class DevicesSelectedServiceTest {
 
     // Assert
     assertEquals(Collections.emptySet(), myService.getTargetsSelectedWithDialog(Collections.emptyList()));
-  }
-
-  @Test
-  public void selectedTargetWithComboBoxIsSavedByRunningConfiguration() {
-    // Arrange
-    RunnerAndConfigurationSettings phoneConfig = myRunManager.createConfiguration("phone config", AndroidRunConfigurationType.class);
-    RunnerAndConfigurationSettings wearConfig = myRunManager.createConfiguration("wear config", AndroidRunConfigurationType.class);
-
-    myRunManager.addConfiguration(phoneConfig);
-    myRunManager.addConfiguration(wearConfig);
-
-    Target phoneTarget = new RunningDeviceTarget(new SerialNumber("PHONE"));
-    Target wearTarget = new RunningDeviceTarget(new SerialNumber("WEAR"));
-
-    Device phoneDevice = new VirtualDevice.Builder()
-      .setName("Phone")
-      .setKey(phoneTarget.getDeviceKey())
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Device wearDevice = new VirtualDevice.Builder()
-      .setName("Wear")
-      .setKey(wearTarget.getDeviceKey())
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Arrays.asList(phoneDevice, wearDevice);
-
-    // Act
-    myRunManager.setSelectedConfiguration(phoneConfig);
-    myService.setTargetSelectedWithComboBox(phoneTarget);
-
-    myRunManager.setSelectedConfiguration(wearConfig);
-    myService.setTargetSelectedWithComboBox(wearTarget);
-
-    // Assert
-    assertEquals(Optional.of(wearTarget), myService.getTargetSelectedWithComboBox(devices));
-
-    // Act
-    myRunManager.setSelectedConfiguration(phoneConfig);
-
-    // Assert
-    assertEquals(Optional.of(phoneTarget), myService.getTargetSelectedWithComboBox(devices));
-  }
-
-
-  @Test
-  public void selectedTargetWithComboBoxHandlesNullConfiguration() {
-    // Arrange
-    RunnerAndConfigurationSettings wearConfig = myRunManager.createConfiguration("wear config", AndroidRunConfigurationType.class);
-    myRunManager.addConfiguration(wearConfig);
-
-    Target phoneTarget = new RunningDeviceTarget(new SerialNumber("PHONE"));
-    Target wearTarget = new RunningDeviceTarget(new SerialNumber("WEAR"));
-
-    Device phoneDevice = new VirtualDevice.Builder()
-      .setName("Phone")
-      .setKey(phoneTarget.getDeviceKey())
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Device wearDevice = new VirtualDevice.Builder()
-      .setName("Wear")
-      .setKey(wearTarget.getDeviceKey())
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Arrays.asList(phoneDevice, wearDevice);
-
-    // Act
-    myRunManager.setSelectedConfiguration(null);
-    myService.setTargetSelectedWithComboBox(phoneTarget);
-
-    myRunManager.setSelectedConfiguration(wearConfig);
-    myService.setTargetSelectedWithComboBox(wearTarget);
-
-    // Assert
-    assertEquals(Optional.of(wearTarget), myService.getTargetSelectedWithComboBox(devices));
-
-    // Act
-    myRunManager.setSelectedConfiguration(null);
-
-    // Assert
-    assertEquals(Optional.of(phoneTarget), myService.getTargetSelectedWithComboBox(devices));
-  }
-
-  @Test
-  public void selectedTargetWithDialogIsSavedByRunningConfiguration() {
-    // Arrange
-    RunnerAndConfigurationSettings phoneConfig = myRunManager.createConfiguration("phone config", AndroidRunConfigurationType.class);
-    RunnerAndConfigurationSettings wearConfig = myRunManager.createConfiguration("wear config", AndroidRunConfigurationType.class);
-
-    myRunManager.addConfiguration(phoneConfig);
-    myRunManager.addConfiguration(wearConfig);
-
-    Device phoneDevice = new VirtualDevice.Builder()
-      .setName("Phone")
-      .setKey(new SerialNumber("PHONE"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Device wearDevice = new VirtualDevice.Builder()
-      .setName("Wear")
-      .setKey(new SerialNumber("WEAR"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Arrays.asList(phoneDevice, wearDevice);
-
-    Set<Target> phoneTargets = Set.of(new RunningDeviceTarget(phoneDevice.key()));
-    Set<Target> wearTargets = Set.of(new RunningDeviceTarget(wearDevice.key()));
-
-    // Act
-    myRunManager.setSelectedConfiguration(phoneConfig);
-    myService.setTargetsSelectedWithDialog(phoneTargets);
-
-    myRunManager.setSelectedConfiguration(wearConfig);
-    myService.setTargetsSelectedWithDialog(wearTargets);
-
-    // Assert
-    assertEquals(wearTargets, myService.getTargetsSelectedWithDialog(devices));
-
-    // Act
-    myRunManager.setSelectedConfiguration(phoneConfig);
-
-    // Assert
-    assertEquals(phoneTargets, myService.getTargetsSelectedWithDialog(devices));
-  }
-
-  @Test
-  public void selectedTargetWithDialogHandlesNullConfiguration() {
-    // Arrange
-    RunnerAndConfigurationSettings wearConfig = myRunManager.createConfiguration("wear config", AndroidRunConfigurationType.class);
-    myRunManager.addConfiguration(wearConfig);
-
-    Device phoneDevice = new VirtualDevice.Builder()
-      .setName("Phone")
-      .setKey(new SerialNumber("PHONE"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Device wearDevice = new VirtualDevice.Builder()
-      .setName("Wear")
-      .setKey(new SerialNumber("WEAR"))
-      .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Arrays.asList(phoneDevice, wearDevice);
-
-    Set<Target> phoneTargets = Set.of(new RunningDeviceTarget(phoneDevice.key()));
-    Set<Target> wearTargets = Set.of(new RunningDeviceTarget(wearDevice.key()));
-
-    // Act
-    myRunManager.setSelectedConfiguration(null);
-    myService.setTargetsSelectedWithDialog(phoneTargets);
-
-    myRunManager.setSelectedConfiguration(wearConfig);
-    myService.setTargetsSelectedWithDialog(wearTargets);
-
-    // Assert
-    assertEquals(wearTargets, myService.getTargetsSelectedWithDialog(devices));
-
-    // Act
-    myRunManager.setSelectedConfiguration(null);
-
-    // Assert
-    assertEquals(phoneTargets, myService.getTargetsSelectedWithDialog(devices));
   }
 }
