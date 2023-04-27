@@ -16,10 +16,13 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
 import com.android.tools.idea.layoutinspector.tree.TreeViewNode
@@ -50,6 +53,8 @@ class LinePainterTest {
     val coroutineScope = AndroidCoroutineScope((projectRule.testRootDisposable))
     val model = InspectorModel(projectRule.project)
     val treeSettings = FakeTreeSettings()
+    val mockLauncher = mock<InspectorClientLauncher>()
+    whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
     val clientSettings = InspectorClientSettings(projectRule.project)
     val inspector = LayoutInspector(
       coroutineScope,
@@ -57,7 +62,7 @@ class LinePainterTest {
       mock(),
       null,
       clientSettings,
-      mock(),
+      mockLauncher,
       model,
       treeSettings,
       MoreExecutors.directExecutor()

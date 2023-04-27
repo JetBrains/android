@@ -42,6 +42,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -690,7 +691,7 @@ class RenderLogicTest {
    * Re-used to generate all configs starting from an [InspectorModel] and [Dimension].
    */
   private fun createPaintConfig(inspectorModel: InspectorModel, renderDimension: Dimension): TestConfig {
-    val renderModel = RenderModel(inspectorModel, treeSettings) { mock() }
+    val renderModel = RenderModel(inspectorModel, treeSettings) { DisconnectedClient }
     val renderLogic = RenderLogic(renderModel, renderSettings)
 
     // center the render in the buffered image

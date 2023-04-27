@@ -23,8 +23,10 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -64,7 +66,9 @@ class InspectorTreeSettingsTest {
     application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
     settings = InspectorTreeSettings { client }
     val model = InspectorModel( projectRule.project)
-    inspector = LayoutInspector(mock(), mock(), mock(), mock(), mock(), mock (), model, settings, MoreExecutors.directExecutor())
+    val mockLauncher = mock<InspectorClientLauncher>()
+    whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
+    inspector = LayoutInspector(mock(), mock(), mock(), mock(), mock(), mockLauncher, model, settings, MoreExecutors.directExecutor())
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
   }

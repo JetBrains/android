@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
@@ -104,7 +105,7 @@ class LayoutInspectorRendererTest {
 
   @Before
   fun setUp() {
-    renderModel = RenderModel(inspectorModel, treeSettings) { MockitoKt.mock() }
+    renderModel = RenderModel(inspectorModel, treeSettings) { DisconnectedClient }
     renderLogic = RenderLogic(renderModel, renderSettings)
   }
 

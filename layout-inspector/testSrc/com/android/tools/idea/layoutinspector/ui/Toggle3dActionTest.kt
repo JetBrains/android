@@ -25,8 +25,10 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.Toggle3dAction
@@ -88,6 +90,7 @@ class Toggle3dActionTest {
     whenever(client.capabilities).thenReturn(capabilities)
     whenever(client.isConnected).thenReturn(true)
     whenever(client.isCapturing).thenReturn(true)
+    whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
     whenever(device.apiLevel).thenReturn(29)
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
@@ -103,7 +106,7 @@ class Toggle3dActionTest {
       mock(),
       MoreExecutors.directExecutor()
     )
-    renderModel = RenderModel(inspectorModel, inspector.treeSettings) { null }
+    renderModel = RenderModel(inspectorModel, inspector.treeSettings) { DisconnectedClient }
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)
     whenever(client.process).thenReturn(process)

@@ -53,7 +53,7 @@ private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolea
 class RenderModel(
   val model: InspectorModel,
   val treeSettings: TreeSettings,
-  private val client: () -> InspectorClient?
+  private val currentClientProvider: () -> InspectorClient
 ) {
   /**
    * The last rendered level hovered over. This is different from [InspectorModel.hoveredNode], since this differentiates between different
@@ -120,7 +120,7 @@ class RenderModel(
       if (new == null) {
         overlay = null
       }
-      if (client()?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) != true) {
+      if (!currentClientProvider().capabilities.contains(InspectorClient.Capability.SUPPORTS_SKP)) {
         resetRotation()
       }
     }
@@ -133,7 +133,7 @@ class RenderModel(
   fun selectView(x: Double, y: Double): ViewNode? {
     val view = findTopViewAt(x, y)
     model.setSelection(view, SelectionOrigin.INTERNAL)
-    client()?.stats?.selectionMadeFromImage(view)
+    currentClientProvider().stats.selectionMadeFromImage(view)
     return view
   }
 
@@ -163,7 +163,7 @@ class RenderModel(
   }
 
   fun refresh() {
-    client()?.stats?.currentMode3D = isRotated
+    currentClientProvider().stats.currentMode3D = isRotated
     if (model.isEmpty) {
       visibleBounds = Rectangle()
       maxDepth = 0

@@ -40,6 +40,7 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.SelectViewAction
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -52,6 +53,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
@@ -305,6 +307,7 @@ class DeviceViewContentPanelTest {
     treeSettings.hideSystemNodes = false
     val client = mock<InspectorClient>()
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
+    whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
 
     val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings, { client })
 
@@ -484,6 +487,7 @@ class DeviceViewContentPanelTest {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val client: InspectorClient = mock()
+    whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
 
     val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings, { client })
 
@@ -636,6 +640,7 @@ class DeviceViewContentPanelTest {
     val model = model {}
     val launcher: InspectorClientLauncher = mock()
     val client = mock<InspectorClient>()
+    whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
     whenever(launcher.activeClient).thenReturn(client)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
@@ -1252,7 +1257,7 @@ private fun createDeviceViewContentPanel(
   model: InspectorModel,
   treeSettings: TreeSettings,
   renderSettings: RenderSettings,
-  clientProvider: () -> InspectorClient = { mock() },
+  clientProvider: () -> InspectorClient = { DisconnectedClient },
   selectTargetAction: DropDownActionWithButton? = mock(),
   renderModel: RenderModel = RenderModel(model, treeSettings, clientProvider),
   renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings)
