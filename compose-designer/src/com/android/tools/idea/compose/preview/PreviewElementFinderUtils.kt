@@ -20,6 +20,7 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
+import com.android.tools.idea.annotations.getUAnnotations
 import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
@@ -34,7 +35,6 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiLiteralExpression
-import com.intellij.psi.PsiModifierListOwner
 import com.intellij.util.containers.sequenceOfNotNull
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -46,7 +46,6 @@ import org.jetbrains.uast.UClassLiteralExpression
 import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.UParameter
-import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
 
 /**
@@ -200,11 +199,7 @@ private fun UAnnotation.getPreviewNodes(
   visitedAnnotationClasses[annotationClassFqcn] =
     null // The MultiPreviewNodeInfo will be set later if needed
   val curAnnotationName = (this.tryResolve() as PsiClass).name
-  val annotations =
-    (this.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
-      it.toUElementOfType() as? UAnnotation
-    }
-      ?: return@runReadAction emptySequence()
+  val annotations = this.getUAnnotations()
 
   val nDirectPreviews = annotations.count { it.isPreviewAnnotation() }
   var nxtDirectPreviewId = 1
