@@ -28,9 +28,10 @@ import com.android.tools.idea.welcome.install.getMaxHaxmMemory
 import com.android.tools.idea.welcome.install.getRecommendedHaxmMemory
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.ui.JBIntSpinner
-import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.RightGap
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.StartupUiUtil
 import java.awt.Dimension
 import java.awt.Font
@@ -49,8 +50,6 @@ class HaxmInstallSettingsStep(
 ) : ModelWizardStep.WithoutModel("Emulator Settings") {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
-
-  private val intelHaxmDocumentationButton = BrowserLink("Intel® HAXM Documentation", HAXM_DOCUMENTATION_URL)
 
   private val fullMemorySize = AvdManagerConnection.getMemorySize()
   private val maxMemory = getMaxHaxmMemory(fullMemorySize)
@@ -71,7 +70,6 @@ class HaxmInstallSettingsStep(
     majorTickSpacing = maxMemory / MAJOR_TICKS
   }
 
-  // IDEA-317801 Port HaxmInstallSettingsStep to Kotlin UI DSL 2
   private val panel = panel {
     row {
       label("We have detected that your system can run the Android emulator in an accelerated performance mode.")
@@ -84,25 +82,25 @@ class HaxmInstallSettingsStep(
       )
     }
     row {
-      cell {
-        label("Refer to the")
-        intelHaxmDocumentationButton()
-        label("for more information")
-      }
+      label("Refer to the")
+        .gap(RightGap.SMALL)
+      browserLink("Intel® HAXM Documentation", HAXM_DOCUMENTATION_URL)
+        .gap(RightGap.SMALL)
+      label("for more information")
     }
     row {
-      cell {
-        memorySlider()
-      }
+      cell(memorySlider)
     }
     row {
-      right {
-        label("Ram allocation:")
-        memorySizeSpinner()
-        label(UI_UNITS.toString())
-        button("Use recommended size") {
-          emulatorMemory.set(recommendedMemorySize)
-        }
+      label("Ram allocation:")
+        .align(AlignX.RIGHT)
+        .gap(RightGap.SMALL)
+        .resizableColumn()
+      cell(memorySizeSpinner)
+        .gap(RightGap.SMALL)
+      label(UI_UNITS.toString())
+      button("Use recommended size") {
+        emulatorMemory.set(recommendedMemorySize)
       }
     }
   }
