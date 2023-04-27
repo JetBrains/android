@@ -103,8 +103,9 @@ void SurfaceControl::SetDisplayLayerStack(Jni jni, jobject display_token, int32_
 
 void SurfaceControl::SetDisplayProjection(
     Jni jni, jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect) {
-  Log::D("SurfaceControl::SetDisplayProjection: layer_stack_rect=%dx%d, display_rect=%dx%d",
-         layer_stack_rect.right, layer_stack_rect.bottom, display_rect.right, display_rect.bottom);
+  Log::D("SurfaceControl::SetDisplayProjection: layer_stack_rect=%dx%d, display_rect=[%d,%d %dx%d]",
+         layer_stack_rect.right, layer_stack_rect.bottom, display_rect.left, display_rect.top,
+         display_rect.right - display_rect.left, display_rect.bottom - display_rect.top);
   JObject java_layer_stack_rect = ToJava(jni, layer_stack_rect);
   JObject java_display_rect = ToJava(jni, display_rect);
   surface_control_class_.CallStaticObjectMethod(
