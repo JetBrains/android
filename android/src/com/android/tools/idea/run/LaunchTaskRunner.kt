@@ -17,12 +17,15 @@ package com.android.tools.idea.run
 
 import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.execution.common.AndroidExecutionException
+import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
@@ -32,6 +35,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
@@ -39,7 +43,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.RunInstantApp
 import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
@@ -76,7 +79,8 @@ class LaunchTaskRunner(
   private val env: ExecutionEnvironment,
   override val deviceFutures: DeviceFutures,
   private val apkProvider: ApkProvider,
-  private val liveEditService: LiveEditService = LiveEditService.getInstance(env.project)
+  private val liveEditService: LiveEditService = LiveEditService.getInstance(env.project),
+  private val applicationDeployer: ApplicationDeployer = ApplicationDeployerImpl(env.project)
 ) : AndroidConfigurationExecutor {
   val project = env.project
   override val configuration = env.runProfile as AndroidRunConfiguration
@@ -87,11 +91,10 @@ class LaunchTaskRunner(
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+    val (packageName, devices) = getApplicationIdAndDevices(indicator)
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
-    val packageName = applicationIdProvider.packageName
     waitPreviousProcessTermination(devices, packageName, indicator)
 
     val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
@@ -114,8 +117,6 @@ class LaunchTaskRunner(
     if (shouldDeployAsInstant()) {
       deployAsInstantApp(devices, console)
     } else {
-      val launchTasksProvider = AndroidLaunchTasksProvider(env, facet, apkProvider)
-
       indicator.text = "Launching on devices"
       devices.map { device ->
         async {
@@ -124,8 +125,10 @@ class LaunchTaskRunner(
 
           //Deploy
           if (configuration.DEPLOY) {
-            val deployTask = launchTasksProvider.getDeployTask(device)
-            runLaunchTasks(listOf(deployTask), launchContext)
+            val apks = apkInfosSafe(device)
+            apks.map {
+              deploy { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) }
+            }
             notifyLiveEditService(device, packageName)
           }
 
@@ -149,10 +152,16 @@ class LaunchTaskRunner(
     createRunContentDescriptor(processHandler, console, env)
   }
 
+  private fun deploy(fullDeploy: () -> Deployer.Result) = try {
+    fullDeploy()
+  } catch (e: DeployerException) {
+    throw AndroidExecutionException(e.id, e.message)
+  }
+
   private fun deployAsInstantApp(devices: List<IDevice>, console: ConsoleView) {
     val state: DeepLinkLaunch.State = configuration.getLaunchOptionState(AndroidRunConfiguration.LAUNCH_DEEP_LINK) as DeepLinkLaunch.State
     devices.forEach { device ->
-      RunInstantApp(apkProvider.getApks(device), state.DEEP_LINK, configuration.disabledDynamicFeatures).run(console, device)
+      RunInstantApp(apkInfosSafe(device), state.DEEP_LINK, configuration.disabledDynamicFeatures).run(console, device)
     }
   }
 
@@ -193,9 +202,7 @@ class LaunchTaskRunner(
     }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
-    val packageName = applicationIdProvider.packageName
-
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+    val (packageName, devices) = getApplicationIdAndDevices(indicator)
 
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
@@ -225,16 +232,17 @@ class LaunchTaskRunner(
     if (shouldDeployAsInstant()) {
       deployAsInstantApp(devices, console)
     } else {
-      val launchTasksProvider = AndroidLaunchTasksProvider(env, facet, apkProvider)
-
       indicator.text = "Launching on devices"
       LOG.info("Launching on device ${device.name}")
       val launchContext = LaunchContext(env, device, console, processHandler, indicator)
 
       //Deploy
       if (configuration.DEPLOY) {
-        val deployTask = launchTasksProvider.getDeployTask(device)
-        runLaunchTasks(listOf(deployTask), launchContext)
+        val apks = apkInfosSafe(device)
+        apks.map {
+          deploy { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) }
+        }
+
         notifyLiveEditService(device, packageName)
       }
 
@@ -257,7 +265,7 @@ class LaunchTaskRunner(
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+    val (packageName, devices) = getApplicationIdAndDevices(indicator)
 
     /**
      * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
@@ -276,7 +284,6 @@ class LaunchTaskRunner(
       }
     }.firstOrNull()
 
-    val packageName = applicationIdProvider.packageName
     val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(project, packageName).apply {
       devices.forEach { addTargetDevice(it) }
     }
@@ -284,8 +291,6 @@ class LaunchTaskRunner(
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
     printLaunchTaskStartedMessage(console)
-
-    val launchTasksProvider = AndroidLaunchTasksProvider(env, facet, apkProvider)
 
     // A list of devices that we have launched application successfully.
     indicator.text = "Launching on devices"
@@ -295,13 +300,14 @@ class LaunchTaskRunner(
         val launchContext = LaunchContext(env, device, console, processHandler, indicator)
 
         //Deploy
-        if (configuration.DEPLOY) {
-          val deployTask = launchTasksProvider.getDeployTask(device)
-          runLaunchTasks(listOf(deployTask), launchContext)
-          notifyLiveEditService(device, packageName)
-        }
+        val apks = apkInfosSafe(device)
 
-        if (launchContext.killBeforeLaunch) {
+        val deployResults = apks.map {
+          deploy { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, indicator) }
+        }
+        notifyLiveEditService(device, packageName)
+
+        if (deployResults.any { it.needsRestart }) {
           KillAndRestartAppLaunchTask(packageName).run(launchContext)
           getLaunchTask(packageName, device, isDebug = false)?.run(launchContext)
         }
@@ -338,7 +344,7 @@ class LaunchTaskRunner(
   }
 
   override fun applyCodeChanges(indicator: ProgressIndicator) = runBlockingCancellable {
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+    val (packageName, devices) = getApplicationIdAndDevices(indicator)
 
     /**
      * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
@@ -357,7 +363,6 @@ class LaunchTaskRunner(
       }
     }.firstOrNull()
 
-    val packageName = applicationIdProvider.packageName
     val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(project, packageName).apply {
       devices.forEach { addTargetDevice(it) }
     }
@@ -366,22 +371,17 @@ class LaunchTaskRunner(
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
     printLaunchTaskStartedMessage(console)
 
-    val launchTasksProvider = AndroidLaunchTasksProvider(env, facet, apkProvider)
-
-    indicator.text = "Launching on devices"
     devices.map { device ->
       async {
         LOG.info("Launching on device ${device.name}")
         val launchContext = LaunchContext(env, device, console, processHandler, indicator)
-
-        //Deploy
-        if (configuration.DEPLOY) {
-          val deployTask = launchTasksProvider.getDeployTask(device)
-          runLaunchTasks(listOf(deployTask), launchContext)
-          notifyLiveEditService(device, packageName)
+        val apks = apkInfosSafe(device)
+        val deployResults = apks.map {
+          deploy { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, indicator) }
         }
+        notifyLiveEditService(device, packageName)
 
-        if (launchContext.killBeforeLaunch) {
+        if (deployResults.any { it.needsRestart }) {
           KillAndRestartAppLaunchTask(packageName).run(launchContext)
           getLaunchTask(packageName, device, isDebug = false)?.run(launchContext)
         }
@@ -411,23 +411,22 @@ class LaunchTaskRunner(
     }
   }
 
-  private fun runLaunchTasks(launchTasks: List<LaunchTask>, launchContext: LaunchContext) {
-    val stat = RunStats.from(env)
-    for (task in launchTasks) {
-      if (task.shouldRun(launchContext)) {
-        val details = stat.beginLaunchTask(task)
-        try {
-          task.run(launchContext)
-          stat.endLaunchTask(task, details, true)
-        } catch (e: Exception) {
-          stat.endLaunchTask(task, details, false)
-          if (e.cause is DeployerException) {
-            throw AndroidExecutionException((e.cause as DeployerException).id, e.message)
-          }
-          throw e
-        }
-      }
+  @Throws(ExecutionException::class)
+  private fun apkInfosSafe(device: IDevice): MutableCollection<ApkInfo> = try {
+    apkProvider.getApks(device)
+  } catch (e: ApkProvisionException) {
+    throw ExecutionException(e)
+  }
+
+  @Throws(ExecutionException::class)
+  private suspend fun getApplicationIdAndDevices(indicator: ProgressIndicator): Pair<String, List<IDevice>> {
+    val packageName = try {
+      applicationIdProvider.packageName
+    } catch (e: ApkProvisionException) {
+      throw ExecutionException(e)
     }
+    val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+    return Pair(packageName, devices)
   }
 
   private fun fillStats(stats: RunStats, packageName: String) {
@@ -480,3 +479,6 @@ class LaunchTaskRunner(
     return configuration.getApplicationLaunchTask(packageName, facet, amStartOptions.toString(), isDebug, apkProvider, device)
   }
 }
+
+private val AndroidRunConfiguration.deployOptions
+  get() = DeployOptions(disabledDynamicFeatures, PM_INSTALL_OPTIONS, ALL_USERS, ALWAYS_INSTALL_WITH_PM)

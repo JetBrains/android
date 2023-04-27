@@ -33,7 +33,12 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
 
-internal fun createApp(device: IDevice, appId: String, servicesName: List<String>, activitiesName: List<String>): App {
+internal fun createApp(
+  device: IDevice,
+  appId: String,
+  servicesName: List<String> = emptyList(),
+  activitiesName: List<String> = emptyList()
+): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
   val apk = Apk.Builder().setServices(services).setActivities(activities).build()

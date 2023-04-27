@@ -17,11 +17,17 @@ package com.android.tools.idea.instantapp
 
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoCleanerRule
+import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.deployer.Deployer
+import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.LaunchTaskRunner
+import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
@@ -42,7 +48,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
@@ -53,6 +58,7 @@ import java.io.File
 
 class RunInstantAppTest {
   private val device = mockDeviceFor(26, listOf(Abi.X86_64, Abi.X86))
+  private val applicationDeployer = mock(ApplicationDeployer::class.java)
 
   private lateinit var runHandler: RunHandler
   private lateinit var configSettings: RunnerAndConfigurationSettings
@@ -89,6 +95,7 @@ class RunInstantAppTest {
       env,
       DeviceFutures.forDevices(listOf(device)),
       projectRule.project.getProjectSystem().getApkProvider(configSettings.configuration)!!,
+      applicationDeployer = applicationDeployer
     )
   }
 
@@ -168,9 +175,11 @@ class RunInstantAppTest {
 
   @Test
   fun testDeployInstantAppWithoutInstantCheckbox() {
-    configuration.executeMakeBeforeRunStepInTest(device) // TODO: remove when we have ability to mock regular deploy process
-    configuration.DEPLOY = false
+    configuration.executeMakeBeforeRunStepInTest(device)
     configuration.MODE = AndroidRunConfiguration.DO_NOTHING
+
+    whenever(applicationDeployer.fullDeploy(eq(device), MockitoKt.any(), MockitoKt.any(), MockitoKt.any()))
+      .thenReturn(Deployer.Result(false, false, false, createApp(device, configuration.appId!!, emptyList(), emptyList())))
 
     // RUN
     getExecutor().run(EmptyProgressIndicator())
