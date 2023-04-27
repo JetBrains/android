@@ -61,16 +61,8 @@ internal enum class SimpleComposeAppPaths(val path: String) {
   APP_BUILD_GRADLE("app/build.gradle")
 }
 
-/**
- * List of variations of namespaces to be tested by the Compose tests. This is done to support the
- * name migration. We test the old/new preview annotation names with the old/new composable
- * annotation names.
- */
-internal val namespaceVariations =
-  listOf(
-    arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose"),
-    arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose.runtime")
-  )
+internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
+internal const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
 
 internal fun UFile.declaredMethods(): Sequence<UMethod> =
   classes.asSequence().flatMap { it.methods.asSequence() }

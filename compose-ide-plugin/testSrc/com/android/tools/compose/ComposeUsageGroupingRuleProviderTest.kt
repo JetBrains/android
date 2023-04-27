@@ -190,7 +190,7 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
     vararg targetWindows: String,
   ): Pair<Usage, Array<out UsageTarget>> {
     (module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    stubComposableAnnotation()
     stubPreviewAnnotation()
     // language=kotlin
     val contents =

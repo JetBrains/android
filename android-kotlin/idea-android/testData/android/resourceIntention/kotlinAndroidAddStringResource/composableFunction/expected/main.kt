@@ -1,6 +1,6 @@
 package com.myapp
 
-import androidx.compose.Composable
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 
 @Composable

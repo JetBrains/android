@@ -39,7 +39,7 @@ class ComposeFoldingBuilderTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    myFixture.stubComposableAnnotation()
     myFixture.addFileToProject(
       "src/${COMPOSE_UI_PACKAGE.replace(".", "/")}/Modifier.kt",
       // language=kotlin

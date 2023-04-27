@@ -33,11 +33,8 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /** [TestRule] that implements the [before] and [after] setup specific for Compose unit tests. */
-private class ComposeProjectRuleImpl(
-  private val projectRule: AndroidProjectRule,
-  private val previewAnnotationPackage: String,
-  private val composableAnnotationPackage: String
-) : NamedExternalResource() {
+private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule) :
+  NamedExternalResource() {
   override fun before(description: Description) {
     // Kotlin UnusedSymbolInspection caches the extensions during the initialization so,
     // unfortunately we have to do this to ensure
@@ -50,8 +47,8 @@ private class ComposeProjectRuleImpl(
       )
 
     (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let { it.usesCompose = true }
-    projectRule.fixture.stubComposableAnnotation(composableAnnotationPackage)
-    projectRule.fixture.stubPreviewAnnotation(previewAnnotationPackage)
+    projectRule.fixture.stubComposableAnnotation()
+    projectRule.fixture.stubPreviewAnnotation()
   }
 
   override fun after(description: Description) {}
@@ -62,9 +59,7 @@ private class ComposeProjectRuleImpl(
  * testing Compose preview elements.
  */
 class ComposeProjectRule(
-  private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory(),
-  previewAnnotationPackage: String,
-  composableAnnotationPackage: String
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
 ) : TestRule {
   val project: Project
     get() = projectRule.project
@@ -73,10 +68,7 @@ class ComposeProjectRule(
     get() = projectRule.fixture
 
   private val delegate =
-    RuleChain.outerRule(projectRule)
-      .around(
-        ComposeProjectRuleImpl(projectRule, previewAnnotationPackage, composableAnnotationPackage)
-      )
+    RuleChain.outerRule(projectRule).around(ComposeProjectRuleImpl(projectRule))
 
   override fun apply(base: Statement, description: Description): Statement =
     delegate.apply(base, description)

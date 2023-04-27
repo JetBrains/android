@@ -17,7 +17,6 @@ package com.android.tools.compose.code.completion
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES_ROOT
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.code.completion.ComposeMaterialIconLookupElement.Companion.resourcePathFromFqName
 import com.android.tools.idea.project.DefaultModuleSystem
@@ -49,7 +48,7 @@ class ComposeCompletionContributorTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    myFixture.stubComposableAnnotation()
   }
 
   @Test

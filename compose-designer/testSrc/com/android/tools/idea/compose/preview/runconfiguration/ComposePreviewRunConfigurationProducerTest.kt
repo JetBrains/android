@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.RunManager
@@ -46,8 +47,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         "src/Test.kt",
         // language=kotlin
         """
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Composable
         @Preview
@@ -101,9 +102,9 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         """
         package my.composable.app
 
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.ui.tooling.preview.PreviewParameter
-        import androidx.compose.Composable
 
         class Names: CollectionPreviewParameterProvider<String>(listOf("Android", "Studio"))
 
@@ -140,8 +141,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         """
         package com.example.mylibrary
 
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Composable
         @Preview
@@ -169,8 +170,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         """
         package my.composable.app
 
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Preview
         annotation class MyAnnotation

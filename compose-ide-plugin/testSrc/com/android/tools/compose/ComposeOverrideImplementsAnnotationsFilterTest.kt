@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -37,7 +36,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
   @Before
   fun setup() {
     (projectRule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    projectRule.fixture.stubComposableAnnotation(ComposeFqNames.Package.asString())
+    projectRule.fixture.stubComposableAnnotation()
   }
 
   @Test

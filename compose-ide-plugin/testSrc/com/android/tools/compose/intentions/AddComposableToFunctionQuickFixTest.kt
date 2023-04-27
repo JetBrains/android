@@ -21,7 +21,6 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import junit.framework.TestCase.fail
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -41,7 +40,7 @@ class AddComposableToFunctionQuickFixTest {
 
   @Before
   fun setUp() {
-    myFixture.stubComposableAnnotation("androidx.compose.runtime")
+    myFixture.stubComposableAnnotation()
   }
 
   @Test

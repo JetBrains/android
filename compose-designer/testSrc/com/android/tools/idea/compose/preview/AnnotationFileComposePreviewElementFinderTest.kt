@@ -45,8 +45,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
 /** Asserts that the given [methodName] body has the actual given [actualBodyRange] */
 private fun assertMethodTextRange(file: PsiFile, methodName: String, actualBodyRange: TextRange) {
@@ -61,27 +59,9 @@ private fun assertMethodTextRange(file: PsiFile, methodName: String, actualBodyR
 private fun <T> computeOnBackground(computable: () -> T): T =
   AppExecutorUtil.getAppExecutorService().submit(computable).get()
 
-@RunWith(Parameterized::class)
-class AnnotationFileComposePreviewElementFinderTest(
-  previewAnnotationPackage: String,
-  composableAnnotationPackage: String
-) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
-    val namespaces = namespaceVariations
-  }
+class AnnotationFileComposePreviewElementFinderTest {
 
-  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
-  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
-
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = previewAnnotationPackage,
-      composableAnnotationPackage = composableAnnotationPackage
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
   private val project
     get() = projectRule.project
   private val fixture

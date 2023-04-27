@@ -15,6 +15,8 @@
  */
 package com.android.tools.compose.intentions
 
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
@@ -39,7 +41,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
 
       <caret>@Composable
       fun NewsStory() {
@@ -64,8 +66,8 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+      import $COMPOSE_UI_TOOLING_PREVIEW_PACKAGE.Preview
 
       @Preview
       @Composable
@@ -85,7 +87,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
       <caret><selection>
       @Composable
       fun NewsStory() {
@@ -112,8 +114,8 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+      import $COMPOSE_UI_TOOLING_PREVIEW_PACKAGE.Preview
 
       @Preview
       @Composable
@@ -134,7 +136,7 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
       <caret>
 
       <selection>
@@ -163,8 +165,8 @@ class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
-      import androidx.compose.ui.tooling.preview.Preview
+      import $COMPOSABLE_ANNOTATION_FQ_NAME
+      import $COMPOSE_UI_TOOLING_PREVIEW_PACKAGE.Preview
 
 
       @Preview

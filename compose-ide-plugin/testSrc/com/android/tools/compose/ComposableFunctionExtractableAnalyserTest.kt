@@ -47,7 +47,7 @@ class ComposableFunctionExtractableAnalyserTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    myFixture.stubComposableAnnotation()
   }
 
   private val helper = object : ExtractionEngineHelper(EXTRACT_FUNCTION) {

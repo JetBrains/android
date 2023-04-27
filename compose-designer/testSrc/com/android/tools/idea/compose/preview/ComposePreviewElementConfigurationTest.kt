@@ -111,13 +111,7 @@ private val deviceProvider: (Configuration) -> Collection<Device> = {
 
 /** Tests checking [ComposePreviewElement] being applied to a [Configuration]. */
 class ComposePreviewElementConfigurationTest {
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      projectRule = AndroidProjectRule.withSdk(),
-      previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
-      composableAnnotationPackage = "androidx.compose.runtime"
-    )
+  @get:Rule val projectRule = ComposeProjectRule(projectRule = AndroidProjectRule.withSdk())
   private val fixture
     get() = projectRule.fixture
 

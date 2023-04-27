@@ -25,12 +25,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class ComposePreviewRepresentationProviderTest {
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
-      composableAnnotationPackage = "androidx.compose.runtime"
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
   private val project
     get() = projectRule.project
   private val fixture

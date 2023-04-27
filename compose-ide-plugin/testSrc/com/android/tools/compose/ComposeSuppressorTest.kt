@@ -26,7 +26,7 @@ class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
 
   fun testFunctionNameWarning(): Unit = myFixture.run {
     enableInspections(FunctionNameInspection::class.java)
-    stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    stubComposableAnnotation()
 
     val file = addFileToProject(
       "src/com/example/views.kt",

@@ -40,12 +40,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class ComposePreviewElementFlowTest {
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
-      composableAnnotationPackage = "androidx.compose.runtime"
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
 
   @Test
   fun `test flow updates`(): Unit = runBlocking {

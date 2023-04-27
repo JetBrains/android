@@ -82,12 +82,7 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
 class ComposePreviewRepresentationTest {
   private val logger = Logger.getInstance(ComposePreviewRepresentationTest::class.java)
 
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
-      composableAnnotationPackage = "androidx.compose.runtime"
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
   private val project
     get() = projectRule.project
   private val fixture

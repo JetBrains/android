@@ -15,8 +15,6 @@
  */
 package com.android.tools.compose.formatting
 
-
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES_ROOT
 import com.android.tools.compose.COMPOSE_UI_PACKAGE
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -33,7 +31,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-
 /**
  * Test for [ComposePostFormatProcessor].
  */
@@ -48,7 +45,7 @@ class ComposePostFormatProcessorTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    myFixture.stubComposableAnnotation()
     myFixture.addFileToProject(
       "src/${COMPOSE_UI_PACKAGE.replace(".", "/")}/Modifier.kt",
       // language=kotlin

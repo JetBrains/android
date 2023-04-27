@@ -23,27 +23,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
-@RunWith(Parameterized::class)
-class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
-    val namespaces = namespaceVariations
-  }
+class InspectionsTest {
 
-  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
-  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
-
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = previewAnnotationPackage,
-      composableAnnotationPackage = composableAnnotationPackage
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
   private val fixture
     get() = projectRule.fixture
 

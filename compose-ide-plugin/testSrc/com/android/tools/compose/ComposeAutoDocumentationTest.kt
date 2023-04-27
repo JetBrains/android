@@ -27,7 +27,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -50,7 +49,7 @@ class ComposeAutoDocumentationTest {
   @Test
   fun documentationForComposables() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    fixture.stubComposableAnnotation()
     val file = fixture.addFileToProject(
       "/src/the/hold/steady/Albums.kt",
       // language=kotlin

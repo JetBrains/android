@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -66,8 +67,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         "src/Test.kt",
         // language=kotlin
         """
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Composable
         @Preview
@@ -90,8 +91,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         "$modulePath/src/main/java/com/example/mylibrary/TestLibraryFile.kt",
         // language=kotlin
         """
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Composable
         @Preview
@@ -113,7 +114,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         // language=kotlin
         """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         @Preview
         annotation class MyAnnotation() {}
@@ -138,7 +139,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         // language=kotlin
         """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
 
         annotation class MyNotPreviewAnnotation() {}
 
@@ -162,7 +163,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         "src/TestNotPreview.kt",
         // language=kotlin
         """
-        import androidx.compose.Composable
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
 
         @Preview

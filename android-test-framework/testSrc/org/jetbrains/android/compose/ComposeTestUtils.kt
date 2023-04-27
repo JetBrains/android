@@ -23,12 +23,12 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage: String = "androidx.compose", modulePath: String = "") {
+fun CodeInsightTestFixture.stubComposableAnnotation(modulePath: String = "") {
   addFileToProject(
-    "$modulePath/src/${composableAnnotationPackage.replace(".", "/")}/Composable.kt",
+    "$modulePath/src/androidx/compose/runtime/Composable.kt",
     // language=kotlin
     """
-    package $composableAnnotationPackage
+    package androidx.compose.runtime
 
     annotation class Composable
     """.trimIndent()
@@ -167,12 +167,12 @@ fun CodeInsightTestFixture.stubComposeFoundation() {
   )
 }
 
-fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.compose.ui.tooling.preview", modulePath: String = "") {
+fun CodeInsightTestFixture.stubPreviewAnnotation(modulePath: String = "") {
   addFileToProject(
-    "$modulePath/src/${previewAnnotationPackage.replace(".", "/")}/Preview.kt",
+    "$modulePath/src/androidx/compose/ui/tooling/preview/Preview.kt",
     // language=kotlin
     """
-    package $previewAnnotationPackage
+    package androidx.compose.ui.tooling.preview
 
     import kotlin.reflect.KClass
 

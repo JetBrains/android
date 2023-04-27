@@ -20,6 +20,8 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder.getPreviewNodes
+import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -33,17 +35,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-private const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime"
-private const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
-
 class MultiPreviewUsageTrackerTest {
 
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = PREVIEW_TOOLING_PACKAGE,
-      composableAnnotationPackage = COMPOSABLE_ANNOTATION_FQN
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
   private val project
     get() = projectRule.project
   private val fixture
@@ -54,7 +48,7 @@ class MultiPreviewUsageTrackerTest {
       package a
 
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import $COMPOSABLE_ANNOTATION_FQN.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       annotation class EmptyAnnotation
 
@@ -91,7 +85,7 @@ class MultiPreviewUsageTrackerTest {
         // language=kotlin
         """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import $COMPOSABLE_ANNOTATION_FQN.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         ${
         buildMultiPreviewGraph(1, 7,
@@ -160,7 +154,7 @@ class MultiPreviewUsageTrackerTest {
         // language=kotlin
         """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import $COMPOSABLE_ANNOTATION_FQN.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         ${
         buildMultiPreviewGraph(2, 11,
@@ -250,7 +244,7 @@ class MultiPreviewUsageTrackerTest {
         // language=kotlin
         """
         import $PREVIEW_TOOLING_PACKAGE.Preview
-        import $COMPOSABLE_ANNOTATION_FQN.Composable
+        import $COMPOSABLE_ANNOTATION_FQN
 
         ${
         buildMultiPreviewGraph(2, 11,
@@ -419,7 +413,7 @@ class MultiPreviewUsageTrackerTest {
       package b // use a different package that the one baseFile uses
 
       import $PREVIEW_TOOLING_PACKAGE.Preview
-      import $COMPOSABLE_ANNOTATION_FQN.Composable
+      import $COMPOSABLE_ANNOTATION_FQN
 
       @Preview // change annotation order
       @MyAnnotation
