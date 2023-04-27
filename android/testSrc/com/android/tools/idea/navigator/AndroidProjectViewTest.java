@@ -38,6 +38,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.projectView.TestProjectTreeStructure;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
@@ -56,6 +57,8 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
   private AndroidProjectViewPane myPane;
 
   public void testGeneratedSourceFiles_lightClasses() throws Exception {
+    // TODO b/279102108 caused by IDEA-318834
+    if (SystemInfo.isWindows) return;
     loadSimpleApplication();
 
     // Create BuildConfig.java in one of the generated source folders.
@@ -76,9 +79,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
 
     Set<List<String>> allNodes = getAllNodes(structure);
-/* b/279102108
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
-b/279102108 */
   }
 
   public void testGeneratedResources() throws Exception {

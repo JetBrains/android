@@ -20,6 +20,7 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
@@ -28,7 +29,6 @@ import java.io.File;
 /**
  * Tests for {@link GradleAwareSourceRootRenameValidator}.
  */
-@org.junit.Ignore("b/279102526")
 public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestCase {
   private GradleAwareSourceRootRenameValidator myValidator;
 
@@ -39,6 +39,8 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
   }
 
   public void testIsInputValid() throws Exception {
+    // TODO b/279102526 caused by IDEA-318834
+    if (SystemInfo.isWindows) return;
     verifyErrorMessage();
   }
 
