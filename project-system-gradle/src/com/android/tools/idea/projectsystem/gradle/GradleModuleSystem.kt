@@ -59,6 +59,8 @@ import com.android.tools.idea.projectsystem.getTestFixturesModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.getUnitTestModule
 import com.android.tools.idea.projectsystem.isAndroidTestFile
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
@@ -393,8 +395,9 @@ class GradleModuleSystem(
   override fun getApplicationIdProvider(): ApplicationIdProvider {
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
     val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
+    val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule()
     return GradleApplicationIdProvider.create(
-      androidFacet, false, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
+      androidFacet, forTests, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
     )
   }
 
@@ -528,8 +531,8 @@ class GradleModuleSystem(
     get() = GradleAndroidModel.get(module)?.agpVersion?.let {it >= (DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION) } ?: false
   override val desugarLibraryConfigFilesNotKnownUserMessage: String?
     get() = when {
-      GradleAndroidModel.get(module) == null -> "Not supported for non-Android modules"
-      !desugarLibraryConfigFilesKnown -> "Only supported for projects using Android Gradle plugin '$DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION' and above"
+      GradleAndroidModel.get(module) == null -> "Not supported for non-Android modules."
+      !desugarLibraryConfigFilesKnown -> "Only supported for projects using Android Gradle plugin '$DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION' and above."
       else -> null
     }
   override val desugarLibraryConfigFiles: List<Path>

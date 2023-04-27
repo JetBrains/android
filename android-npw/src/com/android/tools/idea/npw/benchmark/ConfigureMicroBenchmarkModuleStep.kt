@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
@@ -52,9 +53,7 @@ class ConfigureMicroBenchmarkModuleStep(
     }
 
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      row("Build configuration language") {
-        cell(buildConfigurationLanguageCombo).align(AlignX.FILL)
-      }
+      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
     }
   }.withBorder(empty(6))
 

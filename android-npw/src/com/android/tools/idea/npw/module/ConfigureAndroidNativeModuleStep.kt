@@ -70,9 +70,7 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
     }
 
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      row("Build configuration language") {
-        cell(buildConfigurationLanguageCombo).align(AlignX.FILL)
-      }
+      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
     }
   }
 }

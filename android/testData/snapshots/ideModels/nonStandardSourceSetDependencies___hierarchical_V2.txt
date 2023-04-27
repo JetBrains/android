@@ -3237,8 +3237,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -3266,8 +3268,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -3295,8 +3299,10 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinTarget                  : kotlin-android
@@ -3427,7 +3433,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     - regularDependencies         : 9
                     - resourceDirs                : <ROOT>/common/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/jvmMain/kotlin
-                    - dependsOnSourceSets         : commonMain
                     platform                      : JVM
                 arguments                     : KotlinCompilationArgumentsImpl
                 cachedArgsInfo
@@ -3448,6 +3453,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3459,6 +3465,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : jvmMain (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 2
                 - dependencies                : 7
@@ -3537,7 +3544,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     - regularDependencies         : 9
                     - resourceDirs                : <ROOT>/common/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/jvmTest/kotlin [-]
-                    - dependsOnSourceSets         : commonTest
                     platform                      : JVM
                 arguments                     : KotlinCompilationArgumentsImpl
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
@@ -3563,6 +3569,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3574,6 +3581,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 14
                 - dependencies                : 15
@@ -3649,6 +3657,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3659,6 +3668,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
             test
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -3681,6 +3691,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3691,6 +3702,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinTarget                  : kotlin-platform-jvm
@@ -4795,8 +4807,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -4848,8 +4862,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -4901,8 +4917,10 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinTarget                  : kotlin-android
@@ -5548,6 +5566,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -5559,6 +5578,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 3
                 - dependencies                : 4
@@ -5644,6 +5664,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -5655,6 +5676,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 3
                 - dependencies                : 4
@@ -5738,6 +5760,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -5749,6 +5772,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : androidTest (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 3
                 - dependencies                : 4
@@ -5830,6 +5854,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5840,6 +5865,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
             test
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -5863,6 +5889,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5873,6 +5900,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
             testEnv
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -5892,6 +5920,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5902,6 +5931,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinTarget                  : kotlin-platform-jvm
@@ -6052,7 +6082,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/kotlin
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
-                    - dependsOnSourceSets         : commonMain
                     platform                      : JVM
                 arguments                     : KotlinCompilationArgumentsImpl
                 cachedArgsInfo
@@ -6073,6 +6102,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -6084,6 +6114,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : jvmMain (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 2
                 - dependencies                : 7
@@ -6164,7 +6195,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmTest/kotlin [-]
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
-                    - dependsOnSourceSets         : commonTest
                     platform                      : JVM
                 arguments                     : KotlinCompilationArgumentsImpl
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
@@ -6191,6 +6221,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -6202,6 +6233,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 14
                 - dependencies                : 15
@@ -7058,8 +7090,10 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -7102,8 +7136,10 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -7132,8 +7168,10 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinTarget                  : kotlin-android

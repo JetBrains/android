@@ -324,6 +324,10 @@ public class LiveEditProjectMonitor implements Disposable {
   // Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
   public boolean notifyAppDeploy(String applicationId, IDevice device, @NotNull LiveEditApp app) throws ExecutionException, InterruptedException {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
+      if (supportLiveEdits(device)) {
+        LiveEditService.getInstance(project).notifyLiveEditAvailability(device);
+      }
+
       LOGGER.info("Live Edit on device disabled via settings.");
       return false;
     }
@@ -439,14 +443,23 @@ public class LiveEditProjectMonitor implements Disposable {
       }
     } catch (LiveEditUpdateException e) {
       boolean recoverable = e.getError().getRecoverable();
+
+      // The FIRST thing we should do is update the status and do the bookkeeping task after.
+      // Otherwise, if any of bookkeeping step causes a crash, status is not updated and we get an infinite spinner.
+      updateEditableStatus(recoverable ?
+                           LiveEditStatus.createPausedStatus(errorMessage(e)) :
+                           LiveEditStatus.createRerunnableErrorStatus(errorMessage(e)));
+
       if (recoverable) {
         for (EditEvent change : changes) {
           filesWithCompilationErrors.add(change.getFile().getName());
         }
+      } else {
+        // We only log unrecoverable events, ignoring easily recoverable syntax / type errors that happens way too common during editting.
+        event.setStatus(e.getError().getMetric());
       }
-      updateEditableStatus(recoverable ?
-                           LiveEditStatus.createPausedStatus(errorMessage(e)) :
-                           LiveEditStatus.createRerunnableErrorStatus(errorMessage(e)));
+
+      logLiveEditEvent(event);
       return true;
     }
 
@@ -454,6 +467,7 @@ public class LiveEditProjectMonitor implements Disposable {
       Optional<String> errorFilename = filesWithCompilationErrors.stream().findFirst();
       String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
       updateEditStatus(LiveEditStatus.createPausedStatus(errorMsg));
+      logLiveEditEvent(event);
       return true;
     }
 

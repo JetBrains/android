@@ -19,8 +19,6 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
-import org.jetbrains.kotlin.analysis.api.components.KtDeclarationRendererOptions
-import org.jetbrains.kotlin.analysis.api.components.KtTypeRendererOptions
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
@@ -53,14 +51,8 @@ fun KtAnalysisSession.getComposableFunctionRenderParts(functionSymbol: KtFunctio
 }
 
 fun KtAnalysisSession.renderValueParameters(valueParamsInParen: List<KtValueParameterSymbol>, closingString: String) = buildString {
-  append("(")
-  valueParamsInParen.joinTo(buffer = this) { it.render(rendererOptionForShortTypeName) }
-  append(closingString)
+  error("K2 not supported in Android Studio Flamingo")
 }
-
-// TODO(274144470): JB made a huge rework for symbol renderer (dropped KtDeclarationRendererOptions). Update this based on the newer one.
-private val rendererOptionForShortTypeName = KtDeclarationRendererOptions.DEFAULT.copy(
-  typeRendererOptions = KtTypeRendererOptions.SHORT_NAMES)
 
 private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Boolean {
   if (valueParamSymbol.hasDefaultValue) return false

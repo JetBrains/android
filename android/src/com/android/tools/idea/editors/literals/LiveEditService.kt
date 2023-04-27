@@ -23,10 +23,11 @@ import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
+import com.android.tools.idea.run.deployment.liveedit.LiveEditNotifications
+import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
@@ -61,6 +62,8 @@ import java.util.concurrent.Executor
 class LiveEditService constructor(val project: Project,
                                   var executor: Executor,
                                   val adbEventsListener: LiveEditAdbEventsListener) : Disposable {
+
+  private val notifications = LiveEditNotifications(project)
 
   private val deployMonitor: LiveEditProjectMonitor
 
@@ -241,5 +244,9 @@ class LiveEditService constructor(val project: Project,
 
   fun triggerLiveEdit() {
     deployMonitor.onManualLETrigger()
+  }
+
+  fun notifyLiveEditAvailability(device: IDevice) {
+    notifications.notifyLiveEditAvailability(device)
   }
 }

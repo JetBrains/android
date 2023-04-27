@@ -86,7 +86,9 @@ class DeviceController(
     receiverScope.launch {
       while (true) {
         try {
-          suspendingInputStream.waitForData(1)
+          if (inputStream.available() == 0) {
+            suspendingInputStream.waitForData(1)
+          }
           when (val message = ControlMessage.deserialize(inputStream)) {
             is ClipboardChangedNotification -> onDeviceClipboardChanged(message)
             else -> thisLogger().error("Unexpected type of a received message: ${message.type}")

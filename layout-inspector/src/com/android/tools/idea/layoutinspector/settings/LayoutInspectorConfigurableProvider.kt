@@ -55,7 +55,7 @@ private class LayoutInspectorConfigurable : SearchableConfigurable {
 
   override fun apply() {
     val isAutoConnectEnabled = enableAutoConnect.isSelected
-    settings.setAutoConnectEnabledInSettings(isAutoConnectEnabled)
+    settings.autoConnectEnabled = isAutoConnectEnabled
   }
 
   override fun reset() {

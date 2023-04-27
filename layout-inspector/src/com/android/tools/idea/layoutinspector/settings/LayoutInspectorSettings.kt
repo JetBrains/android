@@ -32,19 +32,31 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
     }
   }
 
-  // TODO unify these two variables and set method once the StudioFlag is deleted.
-  //  currently they have to be separate because we want clients to always use `autoConnectEnabled`
-  //  but need `LayoutInspectorConfigurableProvider` and tests to set the value of `isAutoConnectEnabledInSettings`
-  private var isAutoConnectEnabledInSettings = true
-
-  val autoConnectEnabled: Boolean get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get() &&
-                                          isAutoConnectEnabledInSettings
-
-  fun setAutoConnectEnabledInSettings(isEnabled: Boolean) {
-    isAutoConnectEnabledInSettings = isEnabled
+  // TODO Replace with a regular variable once the flags are removed.
+  private val autoConnectSetting = FlagControlledSetting(true) {
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
   }
+
+  // Property needs to have public setters and getters in order to be persisted.
+  var autoConnectEnabled: Boolean
+    get() = autoConnectSetting.get()
+    set(value) = autoConnectSetting.set(value)
 
   override fun getState() = this
 
   override fun loadState(state: LayoutInspectorSettings) = XmlSerializerUtil.copyBean(state, this)
+}
+
+/**
+ * A setting that is also controlled by the state of a flag.
+ * The setting is enabled only if it is both enabled in settings and in the flag.
+ */
+class FlagControlledSetting(val defaultValue: Boolean, val getFlagValue: () -> Boolean) {
+  private var isEnabled = defaultValue
+
+  fun set(value: Boolean) {
+    isEnabled = value
+  }
+
+  fun get() = getFlagValue() && isEnabled
 }

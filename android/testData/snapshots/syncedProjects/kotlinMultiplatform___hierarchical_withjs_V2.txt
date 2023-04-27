@@ -725,7 +725,7 @@ PROJECT                       : kotlinMultiPlatform
                 apiVersion                    : 1.8
                 languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xir-only -Xir-per-module-output-name=kotlinMultiPlatform-jsModule -Xir-produce-klib-dir -Xir-module-name=kotlinMultiPlatform:jsModule -Xir-output-dir=<PROJECT>/jsModule/build/classes/kotlin/main
+                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule -Xir-only -Xir-per-module-output-name=kotlinMultiPlatform-jsModule -Xir-produce-klib-dir -ir-output-name jsModule -ir-output-dir <PROJECT>/jsModule/build/classes/kotlin/main
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :jsModule
@@ -785,7 +785,7 @@ PROJECT                       : kotlinMultiPlatform
                 apiVersion                    : 1.8
                 languageVersion               : 1.8
             CompilerSettings
-                additionalArguments           : -Xir-only -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test -Xir-produce-klib-dir -Xir-module-name=kotlinMultiPlatform:jsModule_test -Xir-output-dir=<PROJECT>/jsModule/build/classes/kotlin/test
+                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule_test -Xir-only -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test -Xir-produce-klib-dir -ir-output-name jsModule_test -ir-output-dir <PROJECT>/jsModule/build/classes/kotlin/test
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :jsModule

@@ -23,7 +23,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.components.KtTypeRendererOptions
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtFirDiagnostic
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.analysis.api.types.KtType
@@ -123,19 +122,7 @@ class ComposeCreateComposableFunctionQuickFix(
       unresolvedName: String,
       container: KtElement,
     ): KtNamedFunction =
-      KtPsiFactory(container).createFunction(
-        KtPsiFactory.CallableBuilder(KtPsiFactory.CallableBuilder.Target.FUNCTION).apply {
-          modifier("@$COMPOSABLE_ANNOTATION_NAME")
-          typeParams(unresolvedCall.typeArguments.mapIndexed { index, _ -> "T$index" })
-          name(unresolvedName)
-          unresolvedCall.valueArguments.forEachIndexed { index, arg ->
-            val type = arg.getArgumentExpression()?.getKtType() ?: builtinTypes.ANY
-            val name = arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
-            param(name, type.render(KtTypeRendererOptions.SHORT_NAMES))
-          }
-          noReturnType()
-          blockBody("TODO(\"Not yet implemented\")")
-        }.asString())
+      error("K2 not supported in Android Studio Flamingo")
 
     /**
      * For the purpose of creating Composable functions, optimistically guesses

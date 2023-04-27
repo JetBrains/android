@@ -98,10 +98,10 @@ studio_plugin(
             "//tools/adt/idea/jps-model:intellij.android.jps.model",
         ],
         "android-extensions-ide.jar": [
-            "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common",
         ],
         "android-kotlin.jar": [
+            "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
             "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser",
         ],
@@ -642,18 +642,10 @@ exports_files([
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
-    files_linux = {
-        "safemode/linux/studio_safe.sh": "bin/studio_safe.sh",
-    },
-    files_mac = {
-        "safemode/mac/studio_safe.sh": "bin/studio_safe.sh",
-    },
-    files_mac_arm = {
-        "safemode/mac/studio_safe.sh": "bin/studio_safe.sh",
-    },
-    files_win = {
-        "safemode/win/studio_safe.bat": "bin/studio_safe.bat",
-    },
+    files_linux = {},
+    files_mac = {},
+    files_mac_arm = {},
+    files_win = {},
     jre = "//prebuilts/studio/jdk:jdk-bundle",
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
@@ -678,10 +670,10 @@ android_studio(
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.12",
+    version_micro_patch = "1.13",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 1,
+    version_release_number = 2,
     version_type = "Beta",
     visibility = ["//visibility:public"],
 )

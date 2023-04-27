@@ -15,9 +15,9 @@
   -->
 <palette>
   <group name="Text">
-    <item tag="TextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
+    <item tag="TextView" materialReference="https://d.android.com/r/studio-ui/designer/material/text-fields"/>
     <item tag="EditText" title="Plain Text"
-          materialReference="https://material.io/guidelines/components/text-fields.html"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -32,7 +32,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Password" title="Password"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.PASSWORD_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -46,7 +46,7 @@
       </xml>
     </item>
     <item tag="EditText" id="PasswordNumeric" title="Password (Numeric)"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.PASSWORD_NUMERIC_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -60,7 +60,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Email" title="E-mail"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.EMAIL_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -74,7 +74,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Phone" title="Phone"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.PHONE_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -88,7 +88,7 @@
       </xml>
     </item>
     <item tag="EditText" id="PostalAddress" title="Postal Address"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.POSTAL_ADDRESS_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -102,7 +102,7 @@
       </xml>
     </item>
     <item tag="EditText" id="MultilineText" title="Multiline Text"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.TEXTFIELD_MULTILINE">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -117,7 +117,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Time" title="Time"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.TIME_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -131,7 +131,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Date" title="Date"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.DATE_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -145,7 +145,7 @@
       </xml>
     </item>
     <item tag="EditText" id="Number" title="Number"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.NUMBER_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -159,7 +159,7 @@
       </xml>
     </item>
     <item tag="EditText" id="SignedNumber" title="Number (Signed)"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.NUMBER_SIGNED_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -173,7 +173,7 @@
       </xml>
     </item>
     <item tag="EditText" id="DecimalNumber" title="Number (Decimal)"
-          materialReference="https://material.io/guidelines/components/text-fields.html#text-fields-input-types"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/input-types"
           icon="StudioIcons.LayoutEditor.Palette.NUMBER_DECIMAL_TEXTFIELD">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -186,14 +186,14 @@
           ]]>
       </xml>
     </item>
-    <item tag="AutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
-    <item tag="MultiAutoCompleteTextView" materialReference="https://material.io/guidelines/components/text-fields.html"/>
-    <item tag="CheckedTextView" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
+    <item tag="AutoCompleteTextView" materialReference="https://d.android.com/r/studio-ui/designer/material/text-fields"/>
+    <item tag="MultiAutoCompleteTextView" materialReference="https://d.android.com/r/studio-ui/designer/material/text-fields"/>
+    <item tag="CheckedTextView"/>
     <item tag="android.support.design.widget.TextInputLayout" meta="material"/>
     <item tag="com.google.android.material.textfield.TextInputLayout" meta="material"/>
   </group>
   <group name="Buttons">
-    <item tag="Button" materialReference="https://material.io/guidelines/components/buttons.html"/>
+    <item tag="Button" materialReference="https://d.android.com/r/studio-ui/designer/material/buttons"/>
     <item tag="ImageButton"/>
     <item tag="com.google.android.material.chip.ChipGroup"  meta="material" info="new-m2">
       <xml>
@@ -207,16 +207,16 @@
       </xml>
     </item>
     <item tag="com.google.android.material.chip.Chip" meta="material" info="new-m2"/>
-    <item tag="CheckBox" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
-    <item tag="RadioGroup" materialReference="https://material.io/guidelines/selection-controls.html#selection-controls-radio-button"/>
-    <item tag="RadioButton" materialReference="https://material.io/guidelines/components/selection-controls.html"/>
-    <item tag="ToggleButton" materialReference="https://material.io/guidelines/components/buttons.html#buttons-toggle-buttons"/>
+    <item tag="CheckBox" materialReference="https://d.android.com/r/studio-ui/designer/material/checkbox"/>
+    <item tag="RadioGroup" materialReference="https://d.android.com/r/studio-ui/designer/material/radio-buttons"/>
+    <item tag="RadioButton" materialReference="https://d.android.com/r/studio-ui/designer/material/radio-buttons"/>
+    <item tag="ToggleButton" materialReference="https://d.android.com/r/studio-ui/designer/material/buttons"/>
     <item tag="Switch"
-          materialReference="https://material.io/guidelines/components/selection-controls.html#selection-controls-switch"/>
+          materialReference="https://d.android.com/r/studio-ui/designer/material/switches"/>
     <item tag="android.support.design.widget.FloatingActionButton" meta="material"
-          materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
+          materialReference="https://d.android.com/r/studio-ui/designer/material/floating-action-button"/>
     <item tag="com.google.android.material.floatingactionbutton.FloatingActionButton" meta="material"
-          materialReference="https://material.io/guidelines/components/buttons-floating-action-button.html#buttons-floating-action-button-floating-action-button"/>
+          materialReference="https://d.android.com/r/studio-ui/designer/material/floating-action-button"/>
   </group>
   <group name="Widgets">
     <item tag="View"/>
@@ -229,7 +229,7 @@
           icon="StudioIcons.LayoutEditor.Palette.TEXT_CLOCK"
           title="Text Clock"/>
     <item tag="ProgressBar"
-          materialReference="https://material.io/guidelines/components/progress-activity.html"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/progress-bar"
           title="ProgressBar">
       <xml reuse="drag-preview">
         <![CDATA[
@@ -242,7 +242,7 @@
       </xml>
     </item>
     <item tag="ProgressBar"
-          materialReference="https://material.io/guidelines/components/progress-activity.html"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/progress-bar"
           id="HorizontalProgressBar"
           icon="StudioIcons.LayoutEditor.Palette.PROGRESS_BAR_HORIZONTAL"
           title="ProgressBar (Horizontal)">
@@ -256,9 +256,9 @@
           ]]>
       </xml>
     </item>
-    <item tag="SeekBar" materialReference="https://material.io/guidelines/components/sliders.html"/>
+    <item tag="SeekBar" materialReference="https://d.android.com/r/studio-ui/designer/material/sliders"/>
     <item tag="SeekBar"
-          materialReference="https://material.io/guidelines/components/sliders.html"
+          materialReference="https://d.android.com/r/studio-ui/designer/material/sliders"
           id="DiscreteSeekBar"
           icon="StudioIcons.LayoutEditor.Palette.SEEK_BAR_DISCRETE"
           title="SeekBar (Discrete)">
@@ -274,7 +274,7 @@
           ]]>
       </xml>
     </item>
-    <item tag="RatingBar" materialReference="https://material.io/guidelines/components/sliders.html"/>
+    <item tag="RatingBar" materialReference="https://d.android.com/r/studio-ui/designer/material/sliders"/>
     <item tag="SearchView"/>
     <item tag="TextureView"/>
     <item tag="SurfaceView"/>
@@ -310,10 +310,8 @@
     </item>
   </group>
   <group name="Layouts">
-    <item tag="android.support.constraint.ConstraintLayout"
-          materialReference="https://material.io/guidelines/layout/principles.html"/>
-    <item tag="androidx.constraintlayout.widget.ConstraintLayout"
-          materialReference="https://material.io/guidelines/layout/principles.html"/>
+    <item tag="android.support.constraint.ConstraintLayout"/>
+    <item tag="androidx.constraintlayout.widget.ConstraintLayout"/>
     <item tag="LinearLayout"
           title="LinearLayout (horizontal)"
           id="HorizontalGuideline"
@@ -353,8 +351,8 @@
   </group>
   <group name="Containers">
     <item tag="Spinner"/>
-    <item tag="android.support.v7.widget.RecyclerView" materialReference="https://material.io/guidelines/components/lists.html"/>
-    <item tag="androidx.recyclerview.widget.RecyclerView" materialReference="https://material.io/guidelines/components/lists.html"/>
+    <item tag="android.support.v7.widget.RecyclerView" materialReference="https://d.android.com/r/studio-ui/designer/material/lists"/>
+    <item tag="androidx.recyclerview.widget.RecyclerView" materialReference="https://d.android.com/r/studio-ui/designer/material/lists"/>
     <item tag="ScrollView"/>
     <item tag="HorizontalScrollView"/>
 
@@ -362,8 +360,8 @@
     <item tag="androidx.core.widget.NestedScrollView"/>
     <item tag="androidx.viewpager2.widget.ViewPager2"
           icon="StudioIcons.LayoutEditor.Palette.VIEW_PAGER" />
-    <item tag="android.support.v7.widget.CardView" materialReference="https://material.io/guidelines/components/cards.html"/>
-    <item tag="androidx.cardview.widget.CardView" materialReference="https://material.io/guidelines/components/cards.html"/>
+    <item tag="android.support.v7.widget.CardView" materialReference="https://d.android.com/r/studio-ui/designer/material/cards"/>
+    <item tag="androidx.cardview.widget.CardView" materialReference="https://d.android.com/r/studio-ui/designer/material/cards"/>
     <item tag="android.support.design.widget.AppBarLayout" meta="material"/>
     <item tag="com.google.android.material.appbar.AppBarLayout" meta="material"/>
     <item tag="com.google.android.material.bottomappbar.BottomAppBar" meta="material" info="new-m2"/>
@@ -371,17 +369,17 @@
     <item tag="com.google.android.material.navigation.NavigationView" meta="material"/>
     <item tag="android.support.design.widget.BottomNavigationView" meta="material"/>
     <item tag="com.google.android.material.bottomnavigation.BottomNavigationView" meta="material"/>
-    <item tag="android.support.v7.widget.Toolbar" materialReference="https://material.io/guidelines/components/toolbars.html"/>
-    <item tag="androidx.appcompat.widget.Toolbar" materialReference="https://material.io/guidelines/components/toolbars.html"/>
+    <item tag="android.support.v7.widget.Toolbar" materialReference="https://d.android.com/r/studio-ui/designer/material/top-app-bar"/>
+    <item tag="androidx.appcompat.widget.Toolbar" materialReference="https://d.android.com/r/studio-ui/designer/material/top-app-bar"/>
     <item tag="com.google.android.material.appbar.MaterialToolbar" meta="material" />
     <item tag="android.support.design.widget.TabLayout" meta="material"
-          materialReference="https://material.io/guidelines/components/tabs.html"/>
+          materialReference="https://d.android.com/r/studio-ui/designer/material/tabs"/>
     <item tag="com.google.android.material.tabs.TabLayout" meta="material"
-          materialReference="https://material.io/guidelines/components/tabs.html"/>
+          materialReference="https://d.android.com/r/studio-ui/designer/material/tabs"/>
     <item tag="android.support.design.widget.TabItem" meta="material"
-          materialReference="https://material.io/guidelines/components/tabs.html"/>
+          materialReference="https://d.android.com/r/studio-ui/designer/material/tabs"/>
     <item tag="com.google.android.material.tabs.TabItem" meta="material"
-          materialReference="https://material.io/guidelines/components/tabs.html"/>
+          materialReference="https://d.android.com/r/studio-ui/designer/material/tabs"/>
 
     <item tag="ViewStub"/>
     <item tag="ViewAnimator" icon="StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR" />
@@ -644,8 +642,8 @@
     <item tag="com.google.android.gms.maps.MapView"/>
   </group>
   <group name="Legacy">
-    <item tag="android.support.v7.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
-    <item tag="androidx.gridlayout.widget.GridLayout" materialReference="https://material.io/guidelines/components/grid-lists.html"/>
+    <item tag="android.support.v7.widget.GridLayout"/>
+    <item tag="androidx.gridlayout.widget.GridLayout"/>
     <item tag="ListView"/>
     <item tag="TabHost"/>
     <item tag="RelativeLayout"/>

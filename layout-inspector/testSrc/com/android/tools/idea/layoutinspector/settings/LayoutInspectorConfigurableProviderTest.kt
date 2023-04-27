@@ -58,7 +58,7 @@ class LayoutInspectorConfigurableProviderTest {
     val enableAutoConnectCheckBox = configurable.createComponent()!!.getComponent(0) as JBCheckBox
 
     // make sure to start with property set to true
-    layoutInspectorSettings.setAutoConnectEnabledInSettings(true)
+    layoutInspectorSettings.autoConnectEnabled = true
 
     // load settings from configurable to swing
     configurable.reset()
@@ -83,7 +83,7 @@ class LayoutInspectorConfigurableProviderTest {
     assertThat(enableAutoConnectCheckBox.isSelected).isFalse()
 
     // back to true
-    layoutInspectorSettings.setAutoConnectEnabledInSettings(true)
+    layoutInspectorSettings.autoConnectEnabled = true
     // load settings from configurable to swing
     configurable.reset()
     assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
