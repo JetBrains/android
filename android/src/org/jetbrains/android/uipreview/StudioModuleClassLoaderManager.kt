@@ -85,7 +85,7 @@ private class ModuleClassLoaderProjectHelperService(val project: Project): Proje
   override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {
     if (result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS
         && (result.mode == ProjectSystemBuildManager.BuildMode.COMPILE || result.mode == ProjectSystemBuildManager.BuildMode.ASSEMBLE)) {
-      ModuleManager.getInstance(project).modules.forEach { StudioModuleClassLoaderManager.get().clearCache(it) }
+      ModuleManager.getInstance(project).modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
     }
   }
 
@@ -315,7 +315,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
     }
 
   @Synchronized
-  fun clearCache(module: Module) {
+  override fun clearCache(module: Module) {
     holders.keys.toList().filter { it.module?.getHolderModule() == module.getHolderModule() }.forEach {
       holders.remove(it)
     }
@@ -395,6 +395,6 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
 
     @JvmStatic
     fun get(): StudioModuleClassLoaderManager =
-      ApplicationManager.getApplication().getService(StudioModuleClassLoaderManager::class.java)
+      ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java) as StudioModuleClassLoaderManager
   }
 }

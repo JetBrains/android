@@ -44,6 +44,7 @@ import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
@@ -57,7 +58,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.isAccessible
-import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.jetbrains.android.uipreview.forFile
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.psi.KtClass
@@ -544,7 +544,7 @@ class ParametrizedComposePreviewElementTemplate(
 
     val moduleRenderContext = renderContext ?: forFile(file)
     val classLoader =
-      StudioModuleClassLoaderManager.get()
+      ModuleClassLoaderManager.get()
         .getPrivate(
           ParametrizedComposePreviewElementTemplate::class.java.classLoader,
           moduleRenderContext,
@@ -613,7 +613,7 @@ class ParametrizedComposePreviewElementTemplate(
         }
         .first()
     } finally {
-      StudioModuleClassLoaderManager.get().release(classLoader, this)
+      ModuleClassLoaderManager.get().release(classLoader, this)
     }
   }
 

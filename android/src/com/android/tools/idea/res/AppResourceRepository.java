@@ -16,6 +16,7 @@
 package com.android.tools.idea.res;
 
 import com.android.resources.aar.AarResourceRepository;
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -25,7 +26,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -94,7 +94,7 @@ class AppResourceRepository extends MultiResourceRepository {
     Module module = myFacet.getModule();
     ResourceIdManager.get(module).resetDynamicIds();
     ResourceClassRegistry.get(module.getProject()).clearCache();
-    StudioModuleClassLoaderManager.get().clearCache(module);
+    ModuleClassLoaderManager.get().clearCache(module);
   }
 
   @TestOnly

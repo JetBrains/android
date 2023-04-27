@@ -36,6 +36,7 @@ import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.RenderConfiguration;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ClassTransform;
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
@@ -59,7 +60,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -536,7 +536,7 @@ final public class RenderService implements Disposable {
 
         try {
           RenderTask task =
-            new RenderTask(myContext, StudioModuleClassLoaderManager.get(), myLogger, layoutLib,
+            new RenderTask(myContext, ModuleClassLoaderManager.get(), myLogger, layoutLib,
                            myCredential, StudioCrashReporter.getInstance(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,

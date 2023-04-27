@@ -17,6 +17,9 @@ package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.module.Module
 
 /**
  * Responsible for providing access to [ModuleClassLoader]s.
@@ -25,6 +28,10 @@ import com.android.tools.rendering.classloading.ClassTransform
  * as possible and delete those right after they are no longer needed.
  */
 interface ModuleClassLoaderManager {
+  companion object {    @JvmStatic
+    fun get(): ModuleClassLoaderManager =
+      ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java)
+  }
   fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any,
                 additionalProjectTransformation: ClassTransform = ClassTransform.identity,
                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
@@ -42,4 +49,6 @@ interface ModuleClassLoaderManager {
   fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any): ModuleClassLoader
 
   fun release(moduleClassLoader: ModuleClassLoader, holder: Any)
+
+  fun clearCache(module: Module)
 }
