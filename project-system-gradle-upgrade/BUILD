@@ -25,9 +25,9 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/project-system-gradle-upgrade/testData",
-        "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:gradle-distrib",
     ],
     test_srcs = ["testSrc"],
     test_tags = [],
@@ -162,6 +162,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "manual",  # b/279393325
         "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
@@ -190,6 +191,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "manual",  # b/279393325
         "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
@@ -218,6 +220,7 @@ old_agp_test(
     ],
     tags = [
         "block-network",
+        "manual",  # b/279393325
         "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
