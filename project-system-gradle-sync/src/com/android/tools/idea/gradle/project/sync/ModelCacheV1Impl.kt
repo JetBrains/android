@@ -1295,8 +1295,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     val dependenciesInfoCopy: IdeDependenciesInfoImpl? = copyNewModel(project::getDependenciesInfo, ::dependenciesInfoFrom)
     val buildToolsVersionCopy = copyNewProperty(project::getBuildToolsVersion)
     val groupId = if (parsedModelVersion != null && parsedModelVersion.isAtLeast(3, 6, 0, "alpha", 5, false)) project.groupId else null
-    val namespace = copyNewProperty(project::getNamespace)
-    val testNamespace = copyNewProperty(project::getAndroidTestNamespace)
+    val namespace = copyNewProperty(project::getNamespace) ?: legacyAndroidGradlePluginProperties?.namespace
+    val testNamespace = copyNewProperty(project::getAndroidTestNamespace) ?: legacyAndroidGradlePluginProperties?.androidTestNamespace
     val lintRuleJarsCopy: List<File> = copy(project::getLintRuleJars, ::deduplicateFile)
 
     // AndroidProject#isBaseSplit is always non null.

@@ -891,6 +891,8 @@ MODULE                        : project.app
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.example.android.app
+    TestNamespace                 : com.example.android.app.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -1288,6 +1290,7 @@ MODULE                        : project.test
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.android.app.benchmark
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -1543,6 +1546,7 @@ MODULE                        : project.test2
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.android.test2
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

@@ -367,6 +367,8 @@ MODULE                        : MultiFlavor.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : MultiFlavor
+    Namespace                     : com.example.multiflavor
+    TestNamespace                 : com.example.multiflavor.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

@@ -34,6 +34,10 @@ interface LegacyAndroidGradlePluginProperties {
    * ```
    */
   val componentToApplicationIdMap: Map<String, String>
+  /** `AndroidProject.namespace` for AGP 4.1 and below. */
+  val namespace: String?
+  /** `AndroidProject.androidTestNamespace` for AGP 4.1 and below. */
+  val androidTestNamespace: String?
   /**
    * Exceptions caught from trying to read the additional information from the model, which should be reported as sync warnings.
    */

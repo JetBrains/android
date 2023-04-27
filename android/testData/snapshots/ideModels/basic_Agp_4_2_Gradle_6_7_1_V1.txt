@@ -518,6 +518,8 @@ MODULE                        : project
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       :
+    Namespace                     : com.android.tests.basic
+    TestNamespace                 : com.android.tests.basic.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

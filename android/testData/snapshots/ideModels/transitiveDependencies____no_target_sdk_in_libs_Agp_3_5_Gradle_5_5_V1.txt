@@ -841,6 +841,8 @@ MODULE                        : project.app
     BuildFolder                   : <ROOT>/app/build [-]
     buildToolsVersion             : 28.0.3
     IsBaseSplit                   : true
+    Namespace                     : com.example.alruiz.transitive_dependencies
+    TestNamespace                 : com.example.alruiz.transitive_dependencies.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -1662,6 +1664,8 @@ MODULE                        : project.library1
     BuildFolder                   : <ROOT>/library1/build [-]
     buildToolsVersion             : 28.0.3
     IsBaseSplit                   : false
+    Namespace                     : com.example.library1
+    TestNamespace                 : com.example.library1.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -2350,6 +2354,8 @@ MODULE                        : project.library2
     BuildFolder                   : <ROOT>/library2/build [-]
     buildToolsVersion             : 28.0.3
     IsBaseSplit                   : false
+    Namespace                     : com.example.library2
+    TestNamespace                 : com.example.library2.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

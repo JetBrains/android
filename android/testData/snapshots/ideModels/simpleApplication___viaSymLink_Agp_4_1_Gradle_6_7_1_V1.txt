@@ -176,6 +176,8 @@ MODULE                        : project_sm_src.app
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project_sm_src
+    Namespace                     : google.simpleapplication
+    TestNamespace                 : google.simpleapplication.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

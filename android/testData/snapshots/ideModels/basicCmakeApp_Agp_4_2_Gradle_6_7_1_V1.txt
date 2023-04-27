@@ -181,6 +181,8 @@ MODULE                        : project.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.example.basiccmakeapp
+    TestNamespace                 : com.example.basiccmakeapp.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

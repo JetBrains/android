@@ -19,5 +19,7 @@ import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 
 data class LegacyAndroidGradlePluginPropertiesImpl(
   override val componentToApplicationIdMap: Map<String, String>,
+  override val namespace: String?,
+  override val androidTestNamespace: String?,
   override val problems: List<Exception>,
 ) : LegacyAndroidGradlePluginProperties

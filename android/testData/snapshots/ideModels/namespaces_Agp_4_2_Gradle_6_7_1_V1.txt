@@ -471,6 +471,8 @@ MODULE                        : project.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.example.app
+    TestNamespace                 : com.example.app.test
     AaptOptions
         NameSpacing                   : REQUIRED
     LintOptions
@@ -814,6 +816,8 @@ MODULE                        : project.lib
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.lib
+    TestNamespace                 : com.example.lib.test
     AaptOptions
         NameSpacing                   : REQUIRED
     LintOptions
@@ -1135,6 +1139,8 @@ MODULE                        : project.otherlib
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.otherlib
+    TestNamespace                 : com.example.otherlib.test
     AaptOptions
         NameSpacing                   : REQUIRED
     LintOptions

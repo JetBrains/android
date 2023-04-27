@@ -1260,6 +1260,8 @@ MODULE                        : project.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.example.alruiz.transitive_dependencies
+    TestNamespace                 : com.example.alruiz.transitive_dependencies.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -1878,6 +1880,8 @@ MODULE                        : project.library1
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.library1
+    TestNamespace                 : com.example.library1.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -2405,6 +2409,8 @@ MODULE                        : project.library2
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.library2
+    TestNamespace                 : com.example.library2.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

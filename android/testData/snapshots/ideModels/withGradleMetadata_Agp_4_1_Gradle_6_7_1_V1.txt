@@ -203,6 +203,8 @@ MODULE                        : withGradleMetadata.app
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : withGradleMetadata
+    Namespace                     : come.example.with.gradle.metadata
+    TestNamespace                 : come.example.with.gradle.metadata.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

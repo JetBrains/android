@@ -2715,6 +2715,8 @@ MODULE                        : project.app
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : com.example.projectwithappandlib.app
+    TestNamespace                 : com.example.projectwithappandlib.app.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -3743,6 +3745,8 @@ MODULE                        : project.dyn_feature
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.dyn_feature
+    TestNamespace                 : com.example.dyn_feature.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4061,6 +4065,8 @@ MODULE                        : project.lib
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.projectwithappandlib.lib
+    TestNamespace                 : com.example.projectwithappandlib.lib.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4564,6 +4570,8 @@ MODULE                        : project.nested1
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.nested1
+    TestNamespace                 : com.example.nested1.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -4866,6 +4874,8 @@ MODULE                        : project.nested1.deep
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested1
+    Namespace                     : com.example.nested1.deep
+    TestNamespace                 : com.example.nested1.deep.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -5178,6 +5188,8 @@ MODULE                        : project.nested2
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project
+    Namespace                     : com.example.nested2
+    TestNamespace                 : com.example.nested2.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -5612,6 +5624,8 @@ MODULE                        : project.nested2.deep
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested2
+    Namespace                     : com.example.nested2.deep
+    TestNamespace                 : com.example.nested2.deep.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -5926,6 +5940,8 @@ MODULE                        : project.nested2.trans.deep2
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : false
     GroupId                       : project.nested2.trans
+    Namespace                     : com.example.nested2.trans.deep2
+    TestNamespace                 : com.example.nested2.trans.deep2.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

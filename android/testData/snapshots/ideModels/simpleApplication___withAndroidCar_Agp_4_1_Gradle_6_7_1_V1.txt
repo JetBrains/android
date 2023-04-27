@@ -785,6 +785,8 @@ MODULE                        : project.app
     buildToolsVersion             : 29.0.2
     IsBaseSplit                   : true
     GroupId                       : project
+    Namespace                     : google.simpleapplication
+    TestNamespace                 : google.simpleapplication.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions

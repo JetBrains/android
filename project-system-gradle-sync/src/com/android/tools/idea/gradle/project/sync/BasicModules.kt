@@ -99,6 +99,7 @@ internal class BasicV1AndroidModuleGradleProject(
 
         val legacyAndroidGradlePluginProperties = controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java, LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
           it.componentToApplicationIdMap = true
+          it.namespace = agpVersion.major < 7
         }
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V1) for project '$gradleProject'")
@@ -190,6 +191,7 @@ internal class BasicV2AndroidModuleGradleProject(
         val legacyAndroidGradlePluginProperties = if (!modelIncludesApplicationId) {
           controller.findModel(gradleProject, LegacyAndroidGradlePluginProperties::class.java, LegacyAndroidGradlePluginPropertiesModelParameters::class.java) {
             it.componentToApplicationIdMap = !modelIncludesApplicationId
+            it.namespace = false // Always present in Model V2
           }
         } else {
           null
