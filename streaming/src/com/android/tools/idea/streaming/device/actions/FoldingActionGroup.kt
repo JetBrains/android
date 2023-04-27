@@ -19,6 +19,7 @@ import com.android.tools.idea.streaming.device.DEVICE_MAIN_TOOLBAR_ID
 import com.android.tools.idea.streaming.findComponentForAction
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbAware
@@ -34,15 +35,21 @@ internal class FoldingActionGroup : DefaultActionGroup(), DumbAware {
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    if (childrenCount == 0) {
-      return
-    }
-    val currentFoldingState = event.getCurrentFoldingState()
+    val controller = getDeviceController(event) ?: return
+    val currentFoldingState = controller.currentFoldingState
     val popup = JBPopupFactory.getInstance().createActionGroupPopup(
         null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true, null, -1,
         { action -> action is FoldingAction && action.foldingState.id == currentFoldingState?.id },
         ActionPlaces.getPopupPlace(DEVICE_MAIN_TOOLBAR_ID))
     event.findComponentForAction(this)?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
+  }
+
+  override fun getChildren(event: AnActionEvent?): Array<AnAction> {
+    if (event == null) {
+      return emptyArray()
+    }
+    val controller = getDeviceController(event) ?: return emptyArray()
+    return controller.supportedFoldingStates.map { FoldingAction(it) }.toTypedArray()
   }
 
   override fun update(event: AnActionEvent) {
@@ -53,11 +60,6 @@ internal class FoldingActionGroup : DefaultActionGroup(), DumbAware {
     if (currentFoldingState != null) {
       presentation.icon = currentFoldingState.icon
       presentation.text = "${templatePresentation.text} (currently ${currentFoldingState.name})"
-      if (childrenCount == 0) {
-        for (foldingState in controller.supportedFoldingStates) {
-          add(FoldingAction(foldingState))
-        }
-      }
     }
   }
 
