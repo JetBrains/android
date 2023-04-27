@@ -388,7 +388,7 @@ class GradleModuleSystem(
 
   override fun getPackageName(): String? {
     val facet = AndroidFacet.getInstance(module) ?: return null
-    return GradleAndroidModel.get(facet)?.androidProject?.namespace ?: getPackageName(module)
+    return GradleAndroidModel.get(facet)?.androidProject?.namespace
   }
 
   override fun getTestPackageName(): String? {

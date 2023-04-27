@@ -35,10 +35,8 @@ import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.ClassJarProvider
-import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
@@ -55,7 +53,6 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.androidFacetsForNonHolderModules
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -75,16 +72,12 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.impl.scopes.ModulesScope
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
@@ -247,60 +240,31 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   /**
-   * Stores information about package names.
+   * Stores information about all the gradle projects.
    *
-   * 1. It stores information about scopes that should be searched using manifest index.
-   * 2. It stores mapping information from package name to [AndroidFacet]s that have that package name.
+   * [packageToAndroidFacets] stores mapping information from package name to [AndroidFacet]s that have that package name.
    */
-  internal class PackageNameInfo(val indexQueryScope: GlobalSearchScope, val packageInfo: Map<String, List<AndroidFacet>>)
+  internal class GradleProjectCensus(
+    val packageToAndroidFacets: Map<String, List<AndroidFacet>>,
+  )
 
-  private fun getPackageNameInfo(project: Project): PackageNameInfo {
+  private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
     return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
-      val modulesWithoutNamespaceInModel = mutableSetOf<Module>()
-      val facetsFromModuleSystem = mutableMapOf<String, MutableList<AndroidFacet>>()
+      val packageToAndroidFacets = mutableMapOf<String, MutableList<AndroidFacet>>()
 
       for (androidFacet in project.androidFacetsForNonHolderModules()) {
-        val namespace = GradleAndroidModel.get(androidFacet)?.androidProject?.namespace
-        if (namespace == null) {
-          modulesWithoutNamespaceInModel.add(androidFacet.module)
-        }
-        else {
-          val facets = facetsFromModuleSystem[namespace] ?: mutableListOf()
-          facets.add(androidFacet)
-          facetsFromModuleSystem[namespace] = facets
-        }
+        val namespace = GradleAndroidModel.get(androidFacet)?.androidProject?.namespace ?: continue
+        packageToAndroidFacets.getOrPut(namespace) { mutableListOf() }.add(androidFacet)
       }
-      val indexQueryScope = ModulesScope(modulesWithoutNamespaceInModel, project)
       return@CachedValueProvider CachedValueProvider.Result(
-        PackageNameInfo(indexQueryScope, facetsFromModuleSystem), ProjectSyncModificationTracker.getInstance(project)
+        GradleProjectCensus(packageToAndroidFacets), ProjectSyncModificationTracker.getInstance(project)
       )
     })
   }
 
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
-    val packageNameInfo = getPackageNameInfo(project)
-
-    val facetsFromModuleSystem = packageNameInfo.packageInfo[packageName] ?: emptyList()
-    if (GlobalSearchScope.isEmptyScope(packageNameInfo.indexQueryScope)) {
-      // No need to query the index, all package names (namespace(s)) are specified in Gradle build files.
-      return facetsFromModuleSystem
-    }
-
-    try {
-      val facetsFromManifestIndex = DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>> {
-        AndroidManifestIndex.queryByPackageName(project, packageName, packageNameInfo.indexQueryScope)
-      }
-      return facetsFromManifestIndex + facetsFromModuleSystem
-    }
-    catch (e: IndexNotReadyException) {
-      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-      //  We need to refactor the callers of this to require a *smart*
-      //  read action, at which point we can remove this try-catch.
-      logManifestIndexQueryError(e)
-    }
-    // If the index is unavailable fall back to direct filtering of the package names returned by the module system which is supposed
-    // to work in the dumb mode (i.e. it fallback to slow manifest parsing if the index is not available).
-    return project.androidFacetsForNonHolderModules().filter { it.getModuleSystem().getPackageName() == packageName }.toList()
+    val census = getGradleProjectCensus(project)
+    return census.packageToAndroidFacets[packageName] ?: emptyList()
   }
 
   override fun getKnownApplicationIds(project: Project): Set<String> {
