@@ -110,8 +110,7 @@ class ActionDispatcher(
 
   private fun doDispatch(ctx: ActionContext): CancellationToken {
     val (action, currentState, lastGoodState) = ctx
-    val connection =
-      currentState.connections.selected?.connection ?: return CancellationToken.noop(Action.NONE)
+    val connection = currentState.connections.selected ?: return CancellationToken.noop(Action.NONE)
 
     return when (action) {
       is Action.Multiple ->

@@ -31,6 +31,7 @@ import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
@@ -61,7 +62,7 @@ class VitalsClient(
   parentDisposable: Disposable,
   private val grpcClient: VitalsGrpcClient = VitalsGrpcClientImpl.create(parentDisposable)
 ) : AppInsightsClient {
-  override suspend fun listConnections(): LoadingState.Done<List<Connection>> = supervisorScope {
+  override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> = supervisorScope {
     runGrpcCatching(notFoundFallbackValue = LoadingState.Ready(emptyList())) {
       LoadingState.Ready(grpcClient.listAccessibleApps())
     }

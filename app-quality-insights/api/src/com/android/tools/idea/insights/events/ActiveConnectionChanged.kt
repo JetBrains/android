@@ -16,15 +16,15 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
-import com.android.tools.idea.insights.VariantConnection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 /** Any change to the active connection is propagated here. */
-data class ActiveConnectionChanged(val connection: VariantConnection) : ChangeEvent {
+data class ActiveConnectionChanged(val connection: Connection) : ChangeEvent {
 
   override fun transition(
     state: AppInsightsState,

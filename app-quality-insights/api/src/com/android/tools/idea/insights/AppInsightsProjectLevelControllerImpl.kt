@@ -81,7 +81,7 @@ class AppInsightsProjectLevelControllerImpl(
   override val coroutineScope: CoroutineScope,
   dispatcher: CoroutineDispatcher,
   appInsightsClient: AppInsightsClient,
-  appConnection: Flow<List<VariantConnection>>,
+  appConnection: Flow<List<Connection>>,
   offlineStatus: Flow<ConnectionMode>,
   private val setOfflineMode: (ConnectionMode) -> Unit,
   @TestOnly private val flowStart: SharingStarted = SharingStarted.Eagerly,
@@ -91,7 +91,6 @@ class AppInsightsProjectLevelControllerImpl(
   private val project: Project,
   queue: AppInsightsActionQueue,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
-  connectionInferrer: ActiveConnectionInferrer,
   private val defaultFilters: Filters,
   cache: AppInsightsCache
 ) : AppInsightsProjectLevelController {
@@ -149,9 +148,7 @@ class AppInsightsProjectLevelControllerImpl(
     state =
       merge(
           eventFlow,
-          appConnection.map {
-            SafeFiltersAdapter(ConnectionsChanged(it, connectionInferrer, defaultFilters))
-          },
+          appConnection.map { SafeFiltersAdapter(ConnectionsChanged(it, defaultFilters)) },
           offlineStatus.map { it.toEvent() }
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
@@ -209,7 +206,7 @@ class AppInsightsProjectLevelControllerImpl(
     emit(SignalChanged(value))
   }
 
-  override fun selectConnection(value: VariantConnection) {
+  override fun selectConnection(value: Connection) {
     emit(ActiveConnectionChanged(value))
   }
 

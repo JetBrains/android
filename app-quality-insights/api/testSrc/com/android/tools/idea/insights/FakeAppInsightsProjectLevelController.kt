@@ -54,7 +54,7 @@ class FakeAppInsightsProjectLevelController(
 
   override fun selectSignal(value: SignalType) {}
 
-  override fun selectConnection(value: VariantConnection) {}
+  override fun selectConnection(value: Connection) {}
 
   override fun openIssue(issue: AppInsightsIssue) {}
 

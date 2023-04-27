@@ -19,8 +19,10 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
-        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:javax-inject",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
     ],
 )
 

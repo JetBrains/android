@@ -23,7 +23,6 @@ import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.ActionToolbarListenerForOfflineBalloon
-import com.android.tools.idea.insights.ui.AppInsightsModuleSelector
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
@@ -109,15 +108,19 @@ class VitalsTab(
   private fun createToolbar(): ActionToolbar {
     val actionGroups =
       DefaultActionGroup().apply {
-        add(
-          AppInsightsModuleSelector(
-            "Module Selector",
-            null,
-            null,
-            connections,
-            projectController::selectConnection
-          )
-        )
+        //add(
+        //  AppInsightsModuleSelector(
+        //    "Module Selector",
+        //    null,
+        //    null,
+        //    connections,
+        //    { it.appId },
+        //    { it.any { connection -> connection.variantData != null } },
+        //    "Suggested",
+        //    "All apps",
+        //    projectController::selectConnection
+        //  )
+        //)
         addSeparator()
         add(
           AppInsightsToggleAction(

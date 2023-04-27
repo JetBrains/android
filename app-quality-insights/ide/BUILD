@@ -18,6 +18,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )
 

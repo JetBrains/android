@@ -26,7 +26,6 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.TimeIntervalFilter
-import com.android.tools.idea.insights.VariantConnection
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
@@ -90,7 +89,7 @@ private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
 
 private data class VitalsDetailsState(
-  val selectedConnection: VariantConnection?,
+  val selectedConnection: Connection?,
   val selectedTimeIntervalAsSeconds: TimeIntervalFilter?,
   val selectedVersion: Set<Version>,
   val selectedIssue: AppInsightsIssue?,
@@ -199,10 +198,10 @@ class VitalsIssueDetailsPanel(
         .filter { it.selectedIssue != null }
         .collect { state ->
           val issue = state.selectedIssue!!
-          if (state.selectedConnection?.connection != null) {
+          if (state.selectedConnection != null) {
             vitalsConsoleLink.setHyperlinkTarget(
               getConsoleUrl(
-                state.selectedConnection.connection!!,
+                state.selectedConnection,
                 state.selectedTimeIntervalAsSeconds?.asMillisFromNow(),
                 state.selectedVersion,
                 issue.issueDetails

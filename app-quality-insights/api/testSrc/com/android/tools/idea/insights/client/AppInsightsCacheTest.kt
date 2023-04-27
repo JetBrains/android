@@ -20,7 +20,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Caption
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventData
@@ -37,6 +36,7 @@ import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.Stacktrace
 import com.android.tools.idea.insights.StacktraceGroup
+import com.android.tools.idea.insights.TestConnection
 import com.google.common.truth.Truth.assertThat
 import java.time.Duration
 import java.time.Instant
@@ -48,7 +48,7 @@ class AppInsightsCacheTest {
   @get:Rule val flagRule = FlagRule(StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED, true)
 
   private val now = Instant.now()
-  private val connection = Connection("blah", "1234", "project12", "12")
+  private val connection = TestConnection("blah", "1234", "project12", "12")
 
   private val testEvent =
     Event(

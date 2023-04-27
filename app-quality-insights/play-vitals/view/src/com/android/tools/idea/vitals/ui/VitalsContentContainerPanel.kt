@@ -111,7 +111,7 @@ class VitalsContentContainerPanel(
         .map { it.connections.selected }
         .distinctUntilChanged()
         .collect { selected ->
-          if (selected == null || !selected.isConfigured()) {
+          if (selected == null || !selected.isConfigured) {
             // TODO(b/275438349): track zero state metrics
             (layout as CardLayout).show(this@VitalsContentContainerPanel, GET_STARTED)
           } else {

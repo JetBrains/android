@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.insights
 
-import com.intellij.openapi.module.Module
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.delay
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
   val waitIntervalMs = 50L
@@ -55,15 +52,10 @@ val TEST_FILTERS =
     selectionOf(SignalType.SIGNAL_UNSPECIFIED)
   )
 
-val MODULE1 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app1") }
-val MODULE2 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app2") }
-val MODULE3 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app3") }
-
-val CONNECTION1 = Connection("app1", "app-id1", "project1", "123")
-val CONNECTION2 = Connection("app2", "app-id2", "project2", "456")
-val VARIANT1 = VariantConnection(MODULE1, "variant1", CONNECTION1)
-val VARIANT2 = VariantConnection(MODULE2, "variant2", CONNECTION2)
-val PLACEHOLDER_CONNECTION = VariantConnection(MODULE3, "", null)
+val CONNECTION1 = TestConnection("app1", "app-id1", "project1", "123", "variant1", "app1")
+val CONNECTION2 = TestConnection("app2", "app-id2", "project2", "456", "variant2", "app2")
+val PLACEHOLDER_CONNECTION =
+  TestConnection("app3", "app-id3", "project3", "789", "variant3", "app3", isConfigured = false)
 
 val DEFAULT_FETCHED_VERSIONS = WithCount(10, Version("1", "1.0"))
 

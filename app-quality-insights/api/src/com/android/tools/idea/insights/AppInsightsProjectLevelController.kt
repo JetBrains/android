@@ -68,7 +68,7 @@ interface AppInsightsProjectLevelController {
 
   fun revertToSnapshot(state: AppInsightsState)
   fun selectSignal(value: SignalType)
-  fun selectConnection(value: VariantConnection)
+  fun selectConnection(value: Connection)
   fun openIssue(issue: AppInsightsIssue)
   fun closeIssue(issue: AppInsightsIssue)
   fun addNote(issue: AppInsightsIssue, message: String)

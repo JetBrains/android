@@ -105,7 +105,7 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker
   ): StateTransition<Action> {
-    state.connections.selected?.connection?.appId?.let { appId ->
+    state.connections.selected?.appId?.let { appId ->
       tracker.logNotesAction(
         appId,
         state.mode,

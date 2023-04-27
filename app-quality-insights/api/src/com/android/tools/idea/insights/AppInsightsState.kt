@@ -45,7 +45,7 @@ data class Timed<out V>(val value: V, val time: Instant)
 /** Represents the App Insights state model. */
 data class AppInsightsState(
   /** Available Connections. */
-  val connections: Selection<VariantConnection>,
+  val connections: Selection<Connection>,
 
   /** Available time interval filter values. */
   val filters: Filters,
@@ -94,22 +94,22 @@ data class AppInsightsState(
     copy(filters = filters.withFatalityToggle(value))
 
   /** Returns a new state with a new [FirebaseConnection] selected. */
-  fun selectConnection(value: VariantConnection): AppInsightsState =
+  fun selectConnection(value: Connection): AppInsightsState =
     copy(connections = connections.select(value))
 }
 
 fun AppInsightsState.toIssueRequest(): IssueRequest? {
-  if (connections.selected?.connection == null || filters.timeInterval.selected == null) {
+  if (connections.selected == null || filters.timeInterval.selected == null) {
     return null
   }
   return IssueRequest(
-    connection = connections.selected?.connection!!,
+    connection = connections.selected,
     filters =
       QueryFilters(
         interval =
           Instant.now().let {
             Interval(
-              startTime = it.minus(Duration.ofDays(filters.timeInterval.selected!!.numDays)),
+              startTime = it.minus(Duration.ofDays(filters.timeInterval.selected.numDays)),
               endTime = it
             )
           },

@@ -52,7 +52,7 @@ class AppInsightsDropDownActionTest {
   fun `popup has the right value selected`(): Unit =
     runBlocking(AndroidDispatchers.uiThread) {
       val flow = MutableStateFlow(selectionOf(TestValues.ONE))
-      val dropdown = AppInsightsDropDownAction("testName", null, null, flow, null) {}
+      val dropdown = AppInsightsDropDownAction("testName", null, null, flow, null, {})
 
       val fakeUi = initUi(dropdown)
 
@@ -79,8 +79,9 @@ class AppInsightsDropDownActionTest {
           null,
           null,
           flow,
-          { value -> if (value == TestValues.TWO) ICON else null }
-        ) {}
+          { value -> if (value == TestValues.TWO) ICON else null },
+          {}
+        )
 
       val fakeUi = initUi(dropdown)
 

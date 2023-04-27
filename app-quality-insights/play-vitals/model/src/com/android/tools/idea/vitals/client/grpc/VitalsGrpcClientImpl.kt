@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.Version
+import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.insights.client.retryRpc
 import com.android.tools.idea.io.grpc.ClientInterceptor
@@ -65,7 +66,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
   private val vitalsErrorGrpcClient =
     VitalsErrorsServiceGrpc.newFutureStub(channel).withInterceptors(authTokenInterceptor)
 
-  override suspend fun listAccessibleApps(maxNumResults: Int): List<Connection> {
+  override suspend fun listAccessibleApps(maxNumResults: Int): List<AppConnection> {
     val searchAccessibleAppsRequest =
       SearchAccessibleAppsRequest.newBuilder().apply { pageSize = maxNumResults }.build()
 
@@ -73,14 +74,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
         vitalsReportingServiceGrpcClient.searchAccessibleApps(searchAccessibleAppsRequest).await()
       }
       .appsList
-      .map {
-        Connection(
-          appId = it.name, // Format: apps/{app}
-          mobileSdkAppId = "n/a",
-          projectId = "n/a",
-          projectNumber = "n/a"
-        )
-      }
+      .map { AppConnection(it.name.substringAfter('/'), it.displayName) }
   }
 
   override suspend fun queryErrorCountMetrics(
@@ -106,7 +100,8 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     val queryErrorCountMetricsSetRequest =
       QueryErrorCountMetricSetRequest.newBuilder()
         .apply {
-          name = "${connection.appId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
+          name =
+            "${connection.clientId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
           timelineSpec = timelineSpecBuilder.build()
 
           addAllDimensions(dimensions.map { it.value })
@@ -145,7 +140,8 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     val queryErrorCountMetricsSetRequest =
       GetErrorCountMetricSetRequest.newBuilder()
         .apply {
-          name = "${connection.appId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
+          name =
+            "${connection.clientId}/errorCountMetricSet" // Format: apps/{app}/errorCountMetricSet
         }
         .build()
 
@@ -172,7 +168,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
 
   override suspend fun getReleases(connection: Connection): List<Version> {
     val fetchReleaseFilterOptionsRequest =
-      FetchReleaseFilterOptionsRequest.newBuilder().apply { name = connection.appId }.build()
+      FetchReleaseFilterOptionsRequest.newBuilder().apply { name = connection.clientId }.build()
 
     return retryRpc {
         vitalsReportingServiceGrpcClient
@@ -192,7 +188,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     val searchErrorIssuesRequest =
       SearchErrorIssuesRequest.newBuilder()
         .apply {
-          parent = connection.appId
+          parent = connection.clientId
           interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
           pageSize = maxNumResults
           filter =
@@ -221,7 +217,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     val searchErrorReportsRequest =
       SearchErrorReportsRequest.newBuilder()
         .apply {
-          parent = connection.appId
+          parent = connection.clientId
           interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
           filter = FilterBuilder().apply { addErrorIssue(issueId) }.build()
           pageSize = maxNumResults

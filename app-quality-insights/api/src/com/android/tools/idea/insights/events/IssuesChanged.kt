@@ -54,7 +54,7 @@ data class IssuesChanged(
 
     state.toIssueRequest()?.let { request ->
       tracker.logCrashesFetched(
-        state.connections.selected?.connection!!.appId,
+        state.connections.selected!!.appId,
         state.mode,
         AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.newBuilder()
           .apply {

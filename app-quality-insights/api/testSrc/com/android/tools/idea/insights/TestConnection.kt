@@ -15,27 +15,17 @@
  */
 package com.android.tools.idea.insights
 
-import com.intellij.openapi.module.Module
-
-data class VariantData(val module: Module, val variantName: String)
-
-/**
- * A single connection represented by credentials required to access resources for a given project.
- */
-interface Connection {
-  val mobileSdkAppId: String?
-  val projectId: String?
-  val projectNumber: String?
-  val appId: String
-
-  val variantData: VariantData?
-
-  val clientId: String
-  val isConfigured: Boolean
-
-  fun isPreferredConnection(): Boolean
+data class TestConnection(
+  override val appId: String,
+  override val mobileSdkAppId: String?,
+  override val projectId: String?,
+  override val projectNumber: String?,
+  val variantName: String = "variant1",
+  val moduleShortName: String = "app1",
+  override val isConfigured: Boolean = true,
+  val isPreferred: Boolean = true,
+  override val variantData: VariantData? = null
+) : Connection {
+  override val clientId: String = "android:${appId}"
+  override fun isPreferredConnection() = isPreferred
 }
-
-fun List<Connection>.noneIsConfigured(): Boolean = none { it.isConfigured }
-
-fun List<Connection>.anyIsConfigured(): Boolean = any { it.isConfigured }

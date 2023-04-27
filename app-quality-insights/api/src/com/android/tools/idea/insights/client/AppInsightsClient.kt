@@ -42,7 +42,7 @@ data class IssueResponse(
 )
 
 interface AppInsightsClient {
-  suspend fun listConnections(): LoadingState.Done<List<Connection>>
+  suspend fun listConnections(): LoadingState.Done<List<AppConnection>>
 
   suspend fun listTopOpenIssues(
     request: IssueRequest,

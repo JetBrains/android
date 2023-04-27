@@ -94,7 +94,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker
   ): StateTransition<Action> {
-    state.connections.selected?.connection?.appId?.let { appId ->
+    state.connections.selected?.appId?.let { appId ->
       tracker.logNotesAction(
         appId,
         state.mode,

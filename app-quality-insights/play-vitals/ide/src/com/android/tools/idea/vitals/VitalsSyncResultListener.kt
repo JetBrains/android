@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.vitals
 
-import com.android.tools.idea.insights.ActiveConnectionInferrer
-import com.android.tools.idea.insights.VariantConnection
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.vitals.ui.VitalsConfigurationManager
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 
-class VitalsConnectionInferrer : ActiveConnectionInferrer {
-  override fun canBecomeActiveConnection(variantConnection: VariantConnection): Boolean {
-    // TODO
-    return true
+class VitalsSyncResultListener(private val project: Project) :
+  ProjectSystemSyncManager.SyncResultListener {
+  override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+    if (StudioFlags.PLAY_VITALS_ENABLED.get()) {
+      project.service<VitalsConfigurationManager>().refreshConfiguration()
+    }
   }
 }

@@ -17,31 +17,34 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.AppInsightsService
-import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.VITALS_KEY
-import com.android.tools.idea.insights.VariantConnection
+import com.android.tools.idea.insights.VariantData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
+import com.android.tools.idea.insights.androidAppId
+import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
+import com.android.tools.idea.insights.getHolderModules
+import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
-import com.android.tools.idea.projectsystem.isHolderModule
-import com.android.tools.idea.vitals.VitalsConnectionInferrer
 import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
+import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.gct.login.LoginState
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
 import com.intellij.openapi.ui.MessageType
 import com.intellij.serviceContainer.NonInjectable
 import java.time.Clock
@@ -50,13 +53,12 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
 @Service(Service.Level.PROJECT)
@@ -80,11 +82,17 @@ constructor(
 
   private val queryConnectionsFlow =
     flow {
-        emit(client.listConnections())
-        refreshConfigurationFlow.collect { emit(client.listConnections()) }
+        refreshConfigurationFlow
+          .combine(loginState) { _, loggedIn -> loggedIn }
+          .collect { loggedIn ->
+            if (loggedIn) {
+              emit(client.listConnections())
+            } else {
+              emit(LoadingState.Unauthorized(null))
+            }
+          }
       }
-      .distinctUntilChanged()
-      .shareIn(scope, SharingStarted.Eagerly, 1)
+      .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
   private val controller =
     AppInsightsProjectLevelControllerImpl(
@@ -103,14 +111,9 @@ constructor(
       onErrorAction = { msg, hyperlinkListener ->
         AppInsightsToolWindowFactory.showBalloon(project, MessageType.ERROR, msg, hyperlinkListener)
       },
-      connectionInferrer = VitalsConnectionInferrer(),
       defaultFilters = createVitalsFilters(),
       cache = AppInsightsCacheImpl()
     )
-
-  init {
-    scope.launch { loginState.collect { refreshConfiguration() } }
-  }
 
   override val configuration =
     queryConnectionsFlow
@@ -123,16 +126,33 @@ constructor(
 
   override fun dispose() = Unit
 
-  private fun Flow<LoadingState.Done<List<Connection>>>
+  private fun Flow<LoadingState.Done<List<AppConnection>>>
     .mapConnectionsToVariantConnectionsIfReady() = mapNotNull { result ->
     (result as? LoadingState.Ready)?.let { ready ->
-      // TODO(b/265153845): pair connection to its app module if possible.
-      val module = project.modules.first { it.isHolderModule() }
-      ready.value.map { connection -> VariantConnection(module, "N/A", connection) }
+      val modules = project.getHolderModules().filter { it.isAndroidApp }
+      val appIdsToModules =
+        modules
+          .flatMap { module ->
+            GradleAndroidModel.get(module)
+              ?.androidProject
+              ?.basicVariants
+              ?.filter { it.applicationId != null }
+              ?.map { it.applicationId!! to VariantData(module, it.name) }
+              ?: emptyList()
+          }
+          .toMap()
+      ready.value.map { app ->
+        VitalsConnection(
+          app.appId,
+          app.displayName,
+          appIdsToModules[app.appId],
+          Module::androidAppId
+        )
+      }
     }
   }
 
-  private fun Flow<LoadingState.Done<List<Connection>>>.mapAvailableAppsToModel() = map {
+  private fun Flow<LoadingState.Done<List<AppConnection>>>.mapAvailableAppsToModel() = map {
     when (it) {
       is LoadingState.Ready -> {
         AppInsightsModel.Authenticated(controller)
