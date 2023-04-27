@@ -41,7 +41,7 @@ DisplayInfo::DisplayInfo(
 
 string DisplayInfo::ToDebugString() const {
   return StringPrintf("logical_size:%dx%d display_rotation:%d dpi:%d layer_stack:%d flags:0x%x",
-                      logical_size.width, logical_size.height, logical_density_dpi, rotation, layer_stack, flags);
+                      logical_size.width, logical_size.height, rotation, logical_density_dpi, layer_stack, flags);
 }
 
 }  // namespace screensharing
