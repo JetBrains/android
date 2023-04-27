@@ -15,9 +15,10 @@
  */
 package com.android.tools.adtui
 
-import com.intellij.ui.layout.CellBuilder
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.ComponentPredicate
-import com.intellij.ui.layout.panel
 import com.intellij.ui.layout.selected
 import com.intellij.util.ui.StartupUiUtil
 import java.awt.Color
@@ -49,10 +50,12 @@ class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccesso
 
   val panel = panel {
     row {
-      textField(growX).enableIf(button.selected).focusInWindowIf(button.selected)
-      right {
-        button(growX)
-      }
+      cell(textField)
+        .align(AlignX.FILL)
+        .resizableColumn()
+        .enabledIf(button.selected)
+        .focusInWindowIf(button.selected)
+      cell(button)
     }
   }
 
@@ -83,7 +86,7 @@ private class SometimesEditableTextField(text: String): JTextField(text) {
   override fun getBackground(): Color? = if (isEnabled || parent == null) super.getBackground() else parent.background
 }
 
-private fun CellBuilder<*>.focusInWindowIf(predicate: ComponentPredicate): CellBuilder<*> {
+private fun Cell<*>.focusInWindowIf(predicate: ComponentPredicate): Cell<*> {
   if (predicate()) {
     component.requestFocusInWindow()
   }
