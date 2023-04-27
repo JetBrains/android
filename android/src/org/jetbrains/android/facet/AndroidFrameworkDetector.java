@@ -81,7 +81,7 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
 
     StartupManager.getInstance(project).runWhenProjectIsInitialized(() -> DumbService.getInstance(project).runWhenSmart(() -> {
       doImportSdkAndFacetConfiguration(facet, model);
-      StoreUtil.saveDocumentsAndProjectSettings(project);
+      StoreUtil.saveSettings(project);
     }));
   }
 
