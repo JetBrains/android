@@ -24,6 +24,7 @@ import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentSt
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializer;
 import java.time.Clock;
 import java.time.Instant;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -40,15 +42,23 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DevicesSelectedServiceTest {
-  private final PersistentStateComponent myPersistentStateComponent = new PersistentStateComponent();
+  @NotNull
+  private PersistentStateComponent myPersistentStateComponent;
 
   @NotNull
   private final RunManager myRunManager = Mockito.mock(RunManager.class);
 
-  private final DevicesSelectedService myService =
-    new DevicesSelectedService(myPersistentStateComponent,
-                               myRunManager,
-                               Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles")));
+  @NotNull
+  private DevicesSelectedService myService;
+
+  @Before
+  public void setUp() {
+    Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
+    Project project = Mockito.mock(Project.class);
+    Mockito.when(project.getService(RunManager.class)).thenReturn(myRunManager);
+    myPersistentStateComponent = new PersistentStateComponent(project);
+    myService = new DevicesSelectedService(myPersistentStateComponent, myRunManager, clock);
+  }
 
   @Test
   public void getTargetSelectedWithComboBoxDevicesIsEmpty() {
@@ -312,6 +322,9 @@ public final class DevicesSelectedServiceTest {
     RunnerAndConfigurationSettings phoneConfig = mockConfigurationAndSettings("phone config");
     RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
 
+    List<RunConfiguration> runConfigurations = List.of(phoneConfig.getConfiguration(), wearConfig.getConfiguration());
+    Mockito.when(myRunManager.getAllConfigurationsList()).thenReturn(runConfigurations);
+
     Target phoneTarget = new RunningDeviceTarget(new SerialNumber("PHONE"));
     Target wearTarget = new RunningDeviceTarget(new SerialNumber("WEAR"));
 
@@ -353,6 +366,9 @@ public final class DevicesSelectedServiceTest {
   public void selectedTargetWithComboBoxHandlesNullConfiguration() {
     // Arrange
     RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
+
+    List<RunConfiguration> runConfigurations = List.of(wearConfig.getConfiguration());
+    Mockito.when(myRunManager.getAllConfigurationsList()).thenReturn(runConfigurations);
 
     Target phoneTarget = new RunningDeviceTarget(new SerialNumber("PHONE"));
     Target wearTarget = new RunningDeviceTarget(new SerialNumber("WEAR"));
@@ -397,6 +413,9 @@ public final class DevicesSelectedServiceTest {
     RunnerAndConfigurationSettings phoneConfig = mockConfigurationAndSettings("phone config");
     RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
 
+    List<RunConfiguration> runConfigurations = List.of(phoneConfig.getConfiguration(), wearConfig.getConfiguration());
+    Mockito.when(myRunManager.getAllConfigurationsList()).thenReturn(runConfigurations);
+
     Device phoneDevice = new VirtualDevice.Builder()
       .setName("Phone")
       .setKey(new SerialNumber("PHONE"))
@@ -438,6 +457,9 @@ public final class DevicesSelectedServiceTest {
   public void selectedTargetWithDialogHandlesNullConfiguration() {
     // Arrange
     RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
+
+    List<RunConfiguration> runConfigurations = List.of(wearConfig.getConfiguration());
+    Mockito.when(myRunManager.getAllConfigurationsList()).thenReturn(runConfigurations);
 
     Device phoneDevice = new VirtualDevice.Builder()
       .setName("Phone")

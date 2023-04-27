@@ -234,7 +234,14 @@ final class DevicesSelectedService {
     private MapState myMapState = new MapState();
 
     @NotNull
-    private State getState(@Nullable RunProfile runConfiguration) {
+    private final RunManager myRunManager;
+
+    PersistentStateComponent(@NotNull Project project) {
+      myRunManager = RunManager.getInstance(project);
+    }
+
+    @NotNull
+    public State getState(@Nullable RunProfile runConfiguration) {
       if (runConfiguration == null || Strings.isNullOrEmpty(runConfiguration.getName())) {
         return myMapState.defaultState;
       }
@@ -244,12 +251,23 @@ final class DevicesSelectedService {
     @NotNull
     @Override
     public MapState getState() {
+      removeStatesForNonExistingRunConfigurations();
       return myMapState;
     }
 
     @Override
     public void loadState(@NotNull MapState mapState) {
       myMapState = mapState;
+      removeStatesForNonExistingRunConfigurations();
+    }
+
+    private void removeStatesForNonExistingRunConfigurations() {
+      myMapState.value.entrySet().removeIf(entry -> !runConfigurationExists(entry.getKey()));
+    }
+
+    private boolean runConfigurationExists(String runConfigurationName) {
+      return myRunManager.getAllConfigurationsList().stream()
+        .anyMatch(runConfiguration -> runConfiguration.getName().equals(runConfigurationName));
     }
   }
 
@@ -277,7 +295,7 @@ final class DevicesSelectedService {
   }
 
   @VisibleForTesting
-  private static final class State {
+  static final class State {
     @OptionTag(tag = "runningDeviceTargetSelectedWithDropDown", nameAttribute = "")
     public @Nullable TargetState runningDeviceTargetSelectedWithDropDown;
 

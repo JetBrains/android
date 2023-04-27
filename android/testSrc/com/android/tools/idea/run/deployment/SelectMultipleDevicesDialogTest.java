@@ -112,7 +112,7 @@ public final class SelectMultipleDevicesDialogTest {
 
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
 
-    var service = new DevicesSelectedService(new PersistentStateComponent(), RunManager.getInstance(myRule.getProject()), clock);
+    DevicesSelectedService service = new DevicesSelectedService(new PersistentStateComponent(myRule.getProject()), RunManager.getInstance(myRule.getProject()), clock);
     service.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
 
     initDialog(Collections.singletonList(device), () -> false, project -> service);
