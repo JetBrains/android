@@ -219,11 +219,9 @@ class IssuePanelServiceTest {
     val panel = ProblemsViewPanel(rule.project, "ID_IssuePanelServiceTest", ProblemsViewState()) { "Problems" }
     Disposer.register(rule.testRootDisposable, panel)
 
-/* b/279794205
-    assertEquals(panel.getName(0), createTabName("Problems", 0))
-    assertEquals(panel.getName(1), createTabName("Problems", 1))
-    assertEquals(panel.getName(10), createTabName("Problems", 10))
-b/279794205 */
+    assertEqualsIgnoreSpaces(panel.getName(0), createTabName("Problems", 0))
+    assertEqualsIgnoreSpaces(panel.getName(1), createTabName("Problems", 1))
+    assertEqualsIgnoreSpaces(panel.getName(10), createTabName("Problems", 10))
   }
 
   @RunsInEdt
@@ -431,4 +429,9 @@ private class TestContentComponent(private val id: String) : JComponent(), Probl
   override fun getName(count: Int): String = id
 
   override fun getTabId(): String = id
+}
+
+/** Asserts [expected] and [actual] are the same string when removing all spaces and new lines. */
+fun assertEqualsIgnoreSpaces(expected: String, actual:String) {
+  assertEquals(expected.replace("\\s+".toRegex(), ""), actual.replace("\\s+".toRegex(), ""))
 }
