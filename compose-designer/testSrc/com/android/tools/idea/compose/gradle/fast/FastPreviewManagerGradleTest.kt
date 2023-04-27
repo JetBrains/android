@@ -34,7 +34,6 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
-import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.util.toIoFile
@@ -287,7 +286,6 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
     val deviceCompilations = AtomicLong(0)
     val deviceThread = thread {
-      mutableListOf<LiveEditCompilerOutput>()
       val function = runReadAction {
         psiMainFile.collectDescendantsOfType<KtNamedFunction>().first {
           it.name?.contains("TwoElementsPreview") ?: false
