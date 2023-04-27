@@ -95,6 +95,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
@@ -443,7 +444,18 @@ public class LayoutlibSceneManager extends SceneManager {
                                   @NotNull LayoutScannerConfiguration layoutScannerConfig,
                                   @NotNull Supplier<SessionClock> sessionClockFactory) {
     super(model, designSurface, sceneComponentProvider, sceneUpdateListener);
-    myProgressIndicator = new DesignSurfaceProgressIndicator(designSurface);
+    myProgressIndicator = new DesignSurfaceProgressIndicator(new ProgressRegistration() {
+
+      @Override
+      public void unregisterIndicator(@NotNull ProgressIndicatorBase indicator) {
+        designSurface.unregisterIndicator(indicator);
+      }
+
+      @Override
+      public void registerIndicator(@NotNull ProgressIndicatorBase indicator) {
+        designSurface.registerIndicator(indicator);
+      }
+    });
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     myRenderingQueue = renderingQueueFactory.apply(this);
     mySessionClockFactory = sessionClockFactory;
