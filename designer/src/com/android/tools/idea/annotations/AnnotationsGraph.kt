@@ -18,9 +18,11 @@ package com.android.tools.idea.annotations
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiModifierListOwner
+import org.jetbrains.kotlin.utils.ifEmpty
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
 
@@ -176,7 +178,21 @@ class AnnotationsGraph<S, T>(private val nodeInfoFactory: NodeInfoFactory<S>,
  * not guaranteed that it will work with other types of elements.
  */
 fun UElement.getUAnnotations() = runReadAction {
-  (this as? UMethod)?.uAnnotations
+  val annotations = (this as? UMethod)?.uAnnotations
   ?: (this.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull { it.toUElementOfType() as? UAnnotation }
   ?: emptyList()
+  annotations.flatMap { annotation ->
+    annotation.extractFromContainer().ifEmpty { listOf(annotation) }
+  }
+}
+
+/**
+ * MultiPreviews imported from a library will put repeated annotations of a given class (e.g. Previews)
+ * inside a container (more info at https://kotlinlang.org/docs/annotations.html#repeatable-annotations).
+ * This method extracts all annotations of a given container to have a list of individual annotations.
+ *
+ * When the annotation is not a container it returns an empty list.
+ */
+private fun UAnnotation.extractFromContainer() = runReadAction {
+  findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull { it.toUElement() as? UAnnotation } ?: emptyList()
 }
