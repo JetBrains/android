@@ -344,6 +344,19 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
+  public List<AnalysisResult> analyzeFile(String file) {
+    ASDriver.AnalyzeFileRequest.Builder builder = ASDriver.AnalyzeFileRequest.newBuilder().setFile(file);
+    ASDriver.AnalyzeFileRequest rq = builder.build();
+    ASDriver.AnalyzeFileResponse response = androidStudio.analyzeFile(rq);
+    return switch (response.getStatus()) {
+      case OK -> response.getAnalysisResultsList().stream().map(AnalysisResult::fromProto).toList();
+      case ERROR ->
+        throw new IllegalStateException(String.format("Could not analyze file \"%s\". Check the Android " +
+                                                      "Studio stderr log for the cause.", file));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getStatus()));
+    };
+  }
+
   public void waitForBuild() throws IOException, InterruptedException {
     // "Infinite" timeout
     waitForBuild(1, TimeUnit.DAYS);

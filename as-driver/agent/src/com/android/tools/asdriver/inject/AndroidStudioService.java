@@ -21,6 +21,11 @@ import com.android.tools.idea.io.grpc.Server;
 import com.android.tools.idea.io.grpc.ServerBuilder;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.google.common.base.Objects;
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
+import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer;
+import com.intellij.codeInspection.CommonProblemDescriptor;
+import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -31,6 +36,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.CaretModel;
@@ -50,9 +56,13 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.ui.UIUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -292,6 +302,113 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
 
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
+  }
+
+  @Override
+  public void analyzeFile(ASDriver.AnalyzeFileRequest request, StreamObserver<ASDriver.AnalyzeFileResponse> responseObserver) {
+    ASDriver.AnalyzeFileResponse.Builder builder = ASDriver.AnalyzeFileResponse.newBuilder();
+    builder.setStatus(ASDriver.AnalyzeFileResponse.Status.ERROR);
+    String fileNameOnly = request.getFile();
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      try {
+        Project project = getSingleProject();
+        File filePath = Path.of(project.getBasePath(), fileNameOnly).toFile().getCanonicalFile();
+        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(filePath);
+        if (virtualFile == null) {
+          System.err.println("File does not exist on filesystem with path: " + filePath);
+          return;
+        }
+
+        FileEditorManager manager = FileEditorManager.getInstance(project);
+        Editor editor = manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
+        if (editor == null) {
+          System.err.println("Could not open an editor with file: " + filePath);
+          return;
+        }
+        Document document = editor.getDocument();
+
+        System.out.println("Creating a TrafficLightRenderer to determine analysis issues of " + filePath);
+        Collection<HighlightInfo> highlightInfoList = analyzeViaTrafficLightRenderer(project, document);
+
+        System.out.printf("Found %d analysis result(s)%n", highlightInfoList.size());
+        processHighlightInfo(builder, document, highlightInfoList);
+
+        builder.setStatus(ASDriver.AnalyzeFileResponse.Status.OK);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    });
+
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
+  /**
+   * Analyzes a file using a {@code TrafficLightRenderer}. This returns more than just issues since
+   * {@code HighlightInfo} can be informational as well; it's up to the caller to determine which
+   * ones they're interested in.
+   */
+  private static Collection<HighlightInfo> analyzeViaTrafficLightRenderer(Project project, Document document)
+    throws ExecutionException, InterruptedException {
+    TrafficLightRenderer renderer = ReadAction.nonBlocking(() -> new TrafficLightRenderer(project, document)).submit(
+      AppExecutorUtil.getAppExecutorService()).get();
+    while (true) {
+      TrafficLightRenderer.DaemonCodeAnalyzerStatus status = renderer.getDaemonCodeAnalyzerStatus();
+      if (status.reasonWhyDisabled != null) {
+        // One reason I've seen for why it can be disabled is loading a file through the
+        // "wrong" path, e.g. loading through the "/var" symlink on macOS will have
+        // highlighting disabled.
+        System.err.println("Highlighting is disabled: " + status.reasonWhyDisabled);
+      }
+      if (status.errorAnalyzingFinished) {
+        // TODO(b/280811482): replace this horrible hack.
+        Thread.sleep(5000);
+        break;
+      }
+      UIUtil.dispatchAllInvocationEvents();
+    }
+    UIUtil.dispatchAllInvocationEvents();
+    List<HighlightInfo> highlightInfoList = DaemonCodeAnalyzerImpl.getHighlights(document, null, project);
+    renderer.dispose();
+    return highlightInfoList;
+  }
+
+  /**
+   * Converts a list of {@code HighlightInfo} instances into the expected proto form.
+   */
+  private static void processHighlightInfo(ASDriver.AnalyzeFileResponse.Builder builder,
+                                Document document,
+                                Collection<HighlightInfo> highlightInfoList) {
+    for (HighlightInfo info : highlightInfoList) {
+      String severityName = info.getSeverity().getName();
+      ASDriver.AnalysisResult.HighlightSeverity highlightSeverity;
+      try {
+        highlightSeverity = ASDriver.AnalysisResult.HighlightSeverity.valueOf(severityName);
+      }
+      catch (IllegalArgumentException e) {
+        System.err.printf("Unrecognized HighlightSeverity: %s%n", severityName);
+        // This is intentionally thrown so that the proto can be updated if HighlightSeverity
+        // ever changes.
+        throw e;
+      }
+
+      ASDriver.AnalysisResult.Builder resultBuilder = ASDriver.AnalysisResult.newBuilder()
+        .setSeverity(highlightSeverity)
+        .setText(info.getText())
+        .setLineNumber(document.getLineNumber(info.getStartOffset()));
+
+      String toolId = info.getInspectionToolId();
+      if (toolId != null) {
+        resultBuilder.setToolId(toolId);
+      }
+      String description = info.getDescription();
+      if (description != null) {
+        resultBuilder.setDescription(description);
+      }
+
+      builder.addAnalysisResults(resultBuilder.build());
+    }
   }
 
   /**
