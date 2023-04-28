@@ -29,7 +29,10 @@ import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AvdManagerUtils
+import kotlin.math.hypot
+import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
@@ -120,7 +123,13 @@ private fun isAdditionalDevice(device: Device): Boolean {
 }
 
 private fun sizeGroupNexus(device: Device): DeviceGroup {
-  val diagonalLength = device.defaultHardware.screen.diagonalLength
+  val screen = device.defaultHardware.screen
+  // For foldables the device definition diagonal might be for the unfolded device, calculate ourselves.
+  val diagonalLength = if (!screen.isFoldable)
+    screen.diagonalLength
+  else
+    hypot(screen.xDimension/screen.pixelDensity.dpiValue.toDouble(), screen.yDimension/screen.pixelDensity.dpiValue.toDouble())
+
   return when {
     diagonalLength < 5 -> DeviceGroup.NEXUS
     diagonalLength < 7 -> DeviceGroup.NEXUS_XL
