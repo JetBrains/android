@@ -29,6 +29,7 @@ import java.util.List;
 
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.SdkConstants.TAG_MENU;
 
 public class MenuHandler extends ViewGroupHandler {
   @Nullable
@@ -38,6 +39,12 @@ public class MenuHandler extends ViewGroupHandler {
                                        @NotNull List<NlComponent> items,
                                        @NotNull DragType type) {
     return new GroupDragHandler(editor, this, group, items, type);
+  }
+
+  @Override
+  public boolean acceptsChild(@NotNull NlComponent layout,
+                              @NotNull NlComponent newChild) {
+    return !TAG_MENU.equals(newChild.getTagName());
   }
 
   @Override
