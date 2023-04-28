@@ -38,6 +38,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -772,6 +773,10 @@ class ResourceExplorerListView(
         previewSize = DEFAULT_LIST_MODE_WIDTH
       }
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT;
+    }
   }
 
   /**
@@ -790,6 +795,10 @@ class ResourceExplorerListView(
         previewSize = MIN_CELL_WIDTH
       }
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT;
+    }
   }
 
   /**
@@ -804,6 +813,10 @@ class ResourceExplorerListView(
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = gridMode && previewSize > MIN_CELL_WIDTH
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT;
+    }
   }
 
   /**
@@ -817,6 +830,10 @@ class ResourceExplorerListView(
 
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = gridMode && previewSize < MAX_CELL_WIDTH
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.BGT;
     }
   }
 }

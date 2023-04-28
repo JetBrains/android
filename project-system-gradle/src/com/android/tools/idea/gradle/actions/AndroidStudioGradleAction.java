@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -48,6 +49,11 @@ public abstract class AndroidStudioGradleAction extends AnAction {
     Project project = e.getProject();
     assert project != null;
     doUpdate(e, project);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   protected abstract void doUpdate(@NotNull AnActionEvent e, @NotNull Project project);

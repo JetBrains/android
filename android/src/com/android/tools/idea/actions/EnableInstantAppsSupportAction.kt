@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -32,6 +33,8 @@ class EnableInstantAppsSupportAction : AnAction() {
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = isValidAndroidModuleSelected(e.dataContext)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
     val module = getSelectedModule(e.dataContext) ?: return

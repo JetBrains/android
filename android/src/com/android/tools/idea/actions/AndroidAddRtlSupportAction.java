@@ -18,6 +18,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.refactoring.rtl.RtlSupportManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
@@ -44,5 +45,10 @@ public class AndroidAddRtlSupportAction extends AnAction implements DumbAware {
   public void update(@NotNull AnActionEvent e) {
     Module module = e.getData(PlatformCoreDataKeys.MODULE);
     e.getPresentation().setEnabledAndVisible(module != null && GradleProjects.isIdeaAndroidModule(module));
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 }
