@@ -82,8 +82,8 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
   }
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
-    val canFindFacets = project.getProjectSystem().getAndroidFacetsWithPackageName(project, qualifiedName).isNotEmpty()
-    return if (canFindFacets) {
+    val isNamespaceOrParentPackage = project.getProjectSystem().isNamespaceOrParentPackage(qualifiedName)
+    return if (isNamespaceOrParentPackage) {
       AndroidLightPackage.withName(qualifiedName, project)
     }
     else {
