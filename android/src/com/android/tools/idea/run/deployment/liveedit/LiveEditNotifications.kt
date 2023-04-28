@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.literals.LiveEditAnActionListener.getLiveEditTriggerShortCutString
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
-import com.android.tools.idea.editors.liveedit.ui.ToggleLiveEditStatusAction
+import com.android.tools.idea.editors.liveedit.ui.ConfigureLiveEditStatusAction
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.notification.NotificationGroupManager
@@ -53,7 +53,7 @@ internal class LiveEditNotifications(val project: Project) {
           })
         }
       }
-      .addAction(ToggleLiveEditStatusAction())
+      .addAction(ConfigureLiveEditStatusAction())
       .notify(project)
   }
 
