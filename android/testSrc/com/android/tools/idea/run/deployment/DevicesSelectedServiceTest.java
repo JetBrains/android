@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.MapState;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.intellij.execution.RunManager;
@@ -504,8 +505,9 @@ public final class DevicesSelectedServiceTest {
 
   @NotNull
   private static RunnerAndConfigurationSettings mockConfigurationAndSettings(@NotNull String name) {
-    RunConfiguration runConfiguration = Mockito.mock(RunConfiguration.class);
+    AndroidRunConfiguration runConfiguration = Mockito.mock(AndroidRunConfiguration.class);
     Mockito.when(runConfiguration.getName()).thenReturn(name);
+    Mockito.when(runConfiguration.deploysToLocalDevice()).thenReturn(true);
     RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
     Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(runConfiguration);
     return configurationAndSettings;

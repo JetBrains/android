@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.execution.common.DeviceDeploymentUtil;
 import com.android.tools.idea.run.util.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.execution.RunManager;
-import com.intellij.execution.configurations.RunProfile;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -218,7 +219,7 @@ final class DevicesSelectedService {
   }
 
   @Nullable
-  private RunProfile getSelectedRunConfiguration() {
+  private RunConfiguration getSelectedRunConfiguration() {
     var configurationAndSettings = myRunManager.getSelectedConfiguration();
     if (configurationAndSettings == null) {
       return null;
@@ -241,32 +242,39 @@ final class DevicesSelectedService {
     }
 
     @NotNull
-    public State getState(@Nullable RunProfile runConfiguration) {
+    State getState(@Nullable RunConfiguration runConfiguration) {
       if (runConfiguration == null || Strings.isNullOrEmpty(runConfiguration.getName())) {
         return myMapState.defaultState;
       }
+
+      if (!DeviceDeploymentUtil.deploysToLocalDevice(runConfiguration)) {
+        // We do not want to create states for configurations that don't deploy to local devices
+        return myMapState.defaultState;
+      }
+
       return myMapState.value.computeIfAbsent(runConfiguration.getName(), configuration -> new State());
     }
 
     @NotNull
     @Override
     public MapState getState() {
-      removeStatesForNonExistingRunConfigurations();
+      removeStatesForNonValidRunConfigurations();
       return myMapState;
     }
 
     @Override
     public void loadState(@NotNull MapState mapState) {
       myMapState = mapState;
-      removeStatesForNonExistingRunConfigurations();
+      removeStatesForNonValidRunConfigurations();
     }
 
-    private void removeStatesForNonExistingRunConfigurations() {
-      myMapState.value.entrySet().removeIf(entry -> !runConfigurationExists(entry.getKey()));
+    private void removeStatesForNonValidRunConfigurations() {
+      myMapState.value.entrySet().removeIf(entry -> !validRunConfigurationExists(entry.getKey()));
     }
 
-    private boolean runConfigurationExists(String runConfigurationName) {
+    private boolean validRunConfigurationExists(String runConfigurationName) {
       return myRunManager.getAllConfigurationsList().stream()
+        .filter(DeviceDeploymentUtil::deploysToLocalDevice)
         .anyMatch(runConfiguration -> runConfiguration.getName().equals(runConfigurationName));
     }
   }

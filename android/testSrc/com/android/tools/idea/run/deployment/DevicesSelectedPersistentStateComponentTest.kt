@@ -22,6 +22,7 @@ import com.android.tools.idea.run.deployment.DevicesSelectedService.State
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
 import com.intellij.execution.RunManager
+import com.intellij.execution.configurations.SimpleConfigurationType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -59,16 +60,20 @@ class DevicesSelectedPersistentStateComponentTest {
   }
 
   @Test
-  fun testGetStateRemovesObsoleteRunConfigurationsStates() {
+  fun testGetStateRemovesInvalidRunConfigurationsStates() {
     val existingConfig = myRunManager.createConfiguration("existing config", AndroidRunConfigurationType::class.java)
+    val nonAndroidConfig = myRunManager.createConfiguration("non android config", SimpleConfigurationType::class.java)
     myRunManager.addConfiguration(existingConfig)
+    myRunManager.addConfiguration(nonAndroidConfig)
 
     myPersistentStateComponent.state.apply {
       value["existing config"] = State()
       value["obsolete config"] = State()
+      value["non android config"] = State()
     }
 
     assertThat(myPersistentStateComponent.state.value).containsKey("existing config")
     assertThat(myPersistentStateComponent.state.value).doesNotContainKey("obsolete config")
+    assertThat(myPersistentStateComponent.state.value).doesNotContainKey("non android config")
   }
 }
