@@ -382,32 +382,6 @@ class VitalsIssueDetailsPanel(
       insightsPanel.add(SdkInsightsPanel(it.category, it.title, it.body))
       insightsPanel.add(Box.createVerticalStrut(5))
     }
-
-    // TODO: to be removed.
-    if (issue.issueDetails.annotations.isEmpty()) {
-      insightsPanel.add(
-        SdkInsightsPanel(
-          "Sdk Insights",
-          "Out of Memory",
-          "The main thread was busy performing an I/O operation. This could be caused by network or file access (especially compressed files), but can also be caused by operations such as ClassLoader.loadClass.\n" +
-            "\n" +
-            "I/O operations are very unpredictable, and can block a thread for a long time. Avoid I/O in the main thread and refactor your code so that I/O operations are done in a separate thread from the main thread. (https://support.google.com/googleplay/android-developer/answer/9859174)"
-        )
-      )
-      insightsPanel.add(Box.createVerticalStrut(5))
-      insightsPanel.add(
-        SdkInsightsPanel(
-          "Insight",
-          "Native lock contention",
-          """
-            The main thread is blocked, waiting on a native synchronization routine, such as a mutex.
-
-            Native synchronization routines don't provide details on the exact lock, or where it is being held. Find the locked mutex in your source, and then locate other code locations where it is being acquired. You can use Android Studio's profiler to detect potential lock contentions if multiple threads frequently compete for the same lock. (https://support.google.com/googleplay/android-developer/answer/9859174)
-          """
-            .trimIndent()
-        )
-      )
-    }
   }
 
   override fun updateUI() {
