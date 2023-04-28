@@ -195,6 +195,7 @@ class AppInsightsProjectLevelControllerRule(
   fun toggleFatality(value: FailureType) = controller.toggleFailureType(value)
   fun updateConnections(connections: List<Connection>) = this.connections.tryEmit(connections)
   fun enterOfflineMode() = controller.enterOfflineMode()
+  fun selectVisibilityType(value: VisibilityType) = controller.selectVisibilityType(value)
 }
 
 /** Utility class that allows suspending functions until `completeWith` is called. */

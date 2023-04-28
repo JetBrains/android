@@ -41,6 +41,7 @@ import com.android.tools.idea.insights.events.SafeFiltersAdapter
 import com.android.tools.idea.insights.events.SelectedIssueChanged
 import com.android.tools.idea.insights.events.SignalChanged
 import com.android.tools.idea.insights.events.VersionsChanged
+import com.android.tools.idea.insights.events.VisibilityChanged
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueue
@@ -232,6 +233,10 @@ class AppInsightsProjectLevelControllerImpl(
 
   override fun deleteNote(note: Note) {
     emit(DeleteNoteRequested(note.id))
+  }
+
+  override fun selectVisibilityType(value: VisibilityType) {
+    emit(VisibilityChanged(value))
   }
 
   override fun selectTimeInterval(value: TimeIntervalFilter) {

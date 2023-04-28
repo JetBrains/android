@@ -1460,6 +1460,45 @@ class AppInsightsProjectLevelControllerTest {
       assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
       assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
     }
+
+  @Test
+  fun `when visibility type gets selected it propagates to the model`() = runBlocking {
+    // discard initial loading state, already tested above
+    controllerRule.consumeInitialState()
+
+    controllerRule.selectVisibilityType(VisibilityType.USER_PERCEIVED)
+
+    var model = controllerRule.consumeNext()
+    assertThat(model.filters.visibilityType.selected).isEqualTo(VisibilityType.USER_PERCEIVED)
+    assertThat(model.issues).isEqualTo(LoadingState.Loading)
+
+    client.completeIssuesCallWith(
+      LoadingState.Ready(
+        IssueResponse(
+          emptyList(),
+          listOf(DEFAULT_FETCHED_VERSIONS),
+          listOf(DEFAULT_FETCHED_DEVICES),
+          listOf(DEFAULT_FETCHED_OSES),
+          DEFAULT_FETCHED_PERMISSIONS
+        )
+      )
+    )
+
+    model = controllerRule.consumeNext()
+    assertThat(model.filters.visibilityType.selected).isEqualTo(VisibilityType.USER_PERCEIVED)
+    assertThat(model.issues).isInstanceOf(LoadingState.Ready::class.java)
+    assertThat(model.issues.map { it.value })
+      .isEqualTo(LoadingState.Ready(Selection<AppInsightsIssue>(null, emptyList())))
+
+    verify(client)
+      .listTopOpenIssues(
+        argThat { it.filters.visibilityType == VisibilityType.USER_PERCEIVED },
+        any(),
+        any(),
+        any()
+      )
+    return@runBlocking
+  }
 }
 
 private fun LoadingState<Timed<Selection<AppInsightsIssue>>>.selected() =

@@ -24,19 +24,13 @@ enum class FailureType {
   UNSPECIFIED,
   FATAL,
   NON_FATAL,
-  ANR,
-  USER_PERCEIVED_ONLY,
-  FOREGROUND,
-  BACKGROUND;
+  ANR;
 
   fun getIcon(): Icon? =
     when (this) {
       FATAL -> StudioIcons.AppQualityInsights.FATAL
       NON_FATAL -> StudioIcons.AppQualityInsights.NON_FATAL
       ANR -> StudioIcons.AppQualityInsights.ANR
-      USER_PERCEIVED_ONLY,
-      FOREGROUND,
-      BACKGROUND -> null // TODO: add icons
       // This scenario shouldn't ever be reached.
       UNSPECIFIED -> null
     }
@@ -47,6 +41,7 @@ enum class FailureType {
       FATAL -> AppQualityInsightsUsageEvent.CrashType.FATAL
       NON_FATAL -> AppQualityInsightsUsageEvent.CrashType.NON_FATAL
       ANR -> AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
+      // TODO(b/275438349): add vitals error types
       else -> {
         Logger.getInstance(FailureType::class.java)
           .warn("Unrecognized app insights usage event crash type: $this")

@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.Version
+import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.QueryFilters
 import com.google.common.truth.Truth.assertThat
@@ -45,16 +46,12 @@ class FilterBuilderTest {
         devices = setOf(Device.ALL),
         operatingSystems = setOf(OperatingSystemInfo.ALL),
         eventTypes = FailureType.values().toList(),
-        signal = SignalType.SIGNAL_UNSPECIFIED
+        signal = SignalType.SIGNAL_UNSPECIFIED,
+        visibilityType = VisibilityType.ALL
       )
     val generated = buildFiltersFromQuery(query)
 
-    assertThat(generated)
-      .isEqualTo(
-        "(appProcessState = BACKGROUND OR appProcessState = FOREGROUND) " +
-          "AND (errorIssueType = ANR OR errorIssueType = CRASH) " +
-          "AND (isUserPerceived)"
-      )
+    assertThat(generated).isEqualTo("(errorIssueType = ANR OR errorIssueType = CRASH)")
   }
 
   @Test
@@ -66,13 +63,39 @@ class FilterBuilderTest {
         devices = setOf(PIXEL_4A, PIXEL_4),
         operatingSystems = setOf(ANDROID_12, ANDROID_14),
         eventTypes = listOf(FailureType.FATAL, FailureType.ANR),
-        signal = SignalType.SIGNAL_UNSPECIFIED
+        signal = SignalType.SIGNAL_UNSPECIFIED,
+        visibilityType = VisibilityType.USER_PERCEIVED
       )
 
     val generated = buildFiltersFromQuery(query)
     assertThat(generated)
       .isEqualTo(
         "(apiLevel = 12 OR apiLevel = 14) " +
+          "AND (deviceModel = Pixel 4 OR deviceModel = Pixel 4a) " +
+          "AND (errorIssueType = ANR OR errorIssueType = CRASH) " +
+          "AND (isUserPerceived) " +
+          "AND (versionCode = 120 OR versionCode = 90)"
+      )
+  }
+
+  @Test
+  fun `check non-user-perceived maps to background filter`() {
+    val query =
+      QueryFilters(
+        interval = Interval(FAKE_6_DAYS_AGO, now),
+        versions = setOf(VERSION120, VERSION90),
+        devices = setOf(PIXEL_4A, PIXEL_4),
+        operatingSystems = setOf(ANDROID_12, ANDROID_14),
+        eventTypes = listOf(FailureType.FATAL, FailureType.ANR),
+        signal = SignalType.SIGNAL_UNSPECIFIED,
+        visibilityType = VisibilityType.NON_USER_PERCEIVED
+      )
+
+    val generated = buildFiltersFromQuery(query)
+    assertThat(generated)
+      .isEqualTo(
+        "(apiLevel = 12 OR apiLevel = 14) " +
+          "AND (appProcessState = BACKGROUND) " +
           "AND (deviceModel = Pixel 4 OR deviceModel = Pixel 4a) " +
           "AND (errorIssueType = ANR OR errorIssueType = CRASH) " +
           "AND (versionCode = 120 OR versionCode = 90)"
@@ -100,6 +123,7 @@ class FilterBuilderTest {
         addFailureTypes(queryFilters.eventTypes)
         addDevices(queryFilters.devices)
         addOperatingSystems(queryFilters.operatingSystems)
+        addVisibilityType(queryFilters.visibilityType)
       }
       .build()
   }
