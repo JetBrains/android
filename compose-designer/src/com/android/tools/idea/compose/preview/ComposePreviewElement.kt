@@ -44,6 +44,7 @@ import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.rendering.classloading.ModuleClassLoader
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
@@ -113,7 +114,7 @@ fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT)
   }
 
 private fun KtClass.hasDefaultConstructor() =
-  allConstructors.isEmpty().or(allConstructors.any { it.getValueParameters().isEmpty() })
+  allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })
 
 /**
  * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location,
@@ -552,69 +553,61 @@ class ParametrizedComposePreviewElementTemplate(
         )
     try {
       return parameterProviders
-        .map { previewParameter ->
-          try {
-            val parameterProviderClass =
-              classLoader.loadClass(previewParameter.providerClassFqn).kotlin
-            val parameterProviderSizeMethod =
-              parameterProviderClass.functions
-                .single { "getCount" == it.name }
-                .also { it.isAccessible = true }
-            val parameterProvider =
-              parameterProviderClass.constructors
-                .single { it.parameters.isEmpty() } // Find the default constructor
-                .also { it.isAccessible = true }
-                .call()
-            val providerCount =
-              min(
-                (parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0),
-                previewParameter.limit
-              )
-
-            return (0 until providerCount)
-              .map { index ->
-                ParametrizedComposePreviewElementInstance(
-                  basePreviewElement = basePreviewElement,
-                  parameterName = previewParameter.name,
-                  index = index,
-                  maxIndex = providerCount - 1,
-                  providerClassFqn = previewParameter.providerClassFqn
-                )
-              }
-              .asSequence()
-          } catch (e: Throwable) {
-            Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
-              .warn(
-                "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider",
-                e
-              )
-          }
-          // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
-          // should handle the exception that will be
-          // thrown for this method not being found.
-          // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
-          val fakeElementFqn =
-            "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
-          return sequenceOf(
-            SingleComposePreviewElementInstance(
-              fakeElementFqn,
-              PreviewDisplaySettings(
-                basePreviewElement.displaySettings.name,
-                null,
-                false,
-                false,
-                null
-              ),
-              null,
-              null,
-              PreviewConfiguration.cleanAndGet()
-            )
-          )
-        }
+        .map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }
         .first()
     } finally {
       ModuleClassLoaderManager.get().release(classLoader, this)
     }
+  }
+
+  private fun loadPreviewParameterProvider(
+    classLoader: ModuleClassLoader,
+    previewParameter: PreviewParameter
+  ): Sequence<ComposePreviewElementInstance> {
+    try {
+      val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn).kotlin
+      val parameterProviderSizeMethod =
+        parameterProviderClass.functions
+          .single { "getCount" == it.name }
+          .also { it.isAccessible = true }
+      val parameterProvider =
+        parameterProviderClass.constructors
+          .single { it.parameters.isEmpty() } // Find the default constructor
+          .also { it.isAccessible = true }
+          .call()
+      val parameterProviderSize = parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0
+      val providerCount = min(parameterProviderSize, previewParameter.limit)
+
+      return (0 until providerCount)
+        .map { index ->
+          ParametrizedComposePreviewElementInstance(
+            basePreviewElement = basePreviewElement,
+            parameterName = previewParameter.name,
+            index = index,
+            maxIndex = providerCount - 1,
+            providerClassFqn = previewParameter.providerClassFqn
+          )
+        }
+        .asSequence()
+    } catch (e: Throwable) {
+      Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
+        .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider", e)
+    }
+    // Return a fake SingleComposePreviewElementInstance here. ComposeRenderErrorContributor
+    // should handle the exception that will be
+    // thrown for this method not being found.
+    // TODO(b/238315228): propagate the exception so it's shown on the issues panel.
+    val fakeElementFqn =
+      "${previewParameter.providerClassFqn}.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD"
+    return sequenceOf(
+      SingleComposePreviewElementInstance(
+        fakeElementFqn,
+        PreviewDisplaySettings(basePreviewElement.displaySettings.name, null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet()
+      )
+    )
   }
 
   override fun equals(other: Any?): Boolean {
