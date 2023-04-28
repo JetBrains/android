@@ -73,9 +73,9 @@ private val visualLintTimeout: Long = if (ApplicationManager.getApplication().is
 private val LOG = Logger.getInstance(VisualLintService::class.java)
 
 /**
- * Service that runs visual lints
+ * Service that runs visual lints.
  */
-@Service
+@Service(Service.Level.PROJECT)
 class VisualLintService(val project: Project): Disposable {
 
   companion object {
