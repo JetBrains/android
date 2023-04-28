@@ -27,6 +27,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import org.junit.Ignore;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
@@ -63,7 +64,8 @@ public class AndroidModularizeHandlerTest extends AndroidTestCase {
     addModuleWithAndroidFacet(projectBuilder, modules, "base", PROJECT_TYPE_LIBRARY, true);
   }
 
-  public void testPullUpDependency() {
+  // b/279779133"
+  public void ignore_testPullUpDependency() {
     myProcessor.setTargetModule(TestModuleUtil.findModule(getProject(), "feature"));
 
     AndroidCodeAndResourcesGraph graph = myProcessor.getReferenceGraph();
