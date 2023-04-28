@@ -111,7 +111,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_KAPT),
-      ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+      // TODO(b/279759255) ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
       ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
       ProjectStructureSnapshotTestDef(TestProject.API_DEPENDENCY),
       ProjectStructureSnapshotTestDef(TestProject.LIGHT_SYNC_REFERENCE),

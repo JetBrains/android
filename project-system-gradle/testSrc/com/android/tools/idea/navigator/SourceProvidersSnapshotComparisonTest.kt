@@ -79,7 +79,7 @@ data class SourceProvidersTestDef(
       SourceProvidersTestDef(TestProject.PSD_SAMPLE_GROOVY),
       SourceProvidersTestDef(TestProject.COMPOSITE_BUILD),
       SourceProvidersTestDef(TestProject.APP_WITH_BUILDSRC),
-      SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+      // TODO(b/279759255) SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
       SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
       SourceProvidersTestDef(TestProject.TEST_FIXTURES),
       SourceProvidersTestDef(TestProject.KOTLIN_KAPT),

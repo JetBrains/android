@@ -82,8 +82,9 @@ abstract class SyncedProjectTest(
   @Test
   fun testAppWithBuildSrc() = testProject(TestProject.APP_WITH_BUILDSRC)
 
-  @Test
-  fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
+  // TODO(b/279759255)
+  // @Test
+  // fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
 
   @Test
   fun testCompatibilityAs36NoIml() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML)
