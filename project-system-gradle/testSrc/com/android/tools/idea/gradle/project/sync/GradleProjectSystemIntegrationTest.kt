@@ -164,25 +164,55 @@ data class GradleProjectSystemIntegrationTest(
           }
         },
         GradleProjectSystemIntegrationTest(
-          name = "allApplicationIds",
+          name = "module_allApplicationIds",
           testProject = TestProject.MULTI_FLAVOR
         ) { project, expect ->
           val appIds = AndroidModel.get(project.gradleModule(":app")!!)?.allApplicationIds.orEmpty()
-          expect.that(appIds).isEqualTo(
-            setOf(
-              "com.example.multiflavor.firstAbc.secondAbc.debug",
-              "com.example.multiflavor.firstAbc.secondAbc.debug.test",
-              "com.example.multiflavor.firstAbc.secondXyz.debug",
-              "com.example.multiflavor.firstAbc.secondXyz.debug.test",
-              "com.example.multiflavor.secondAbc.debug",
-              "com.example.multiflavor.secondAbc.debug.test",
-              "com.example.multiflavor.secondXyz.debug",
-              "com.example.multiflavor.secondXyz.debug.test",
-              "com.example.multiflavor.firstAbc.secondAbc.release",
-              "com.example.multiflavor.firstAbc.secondXyz.release",
-              "com.example.multiflavor.secondAbc.release",
-              "com.example.multiflavor.secondXyz.release"
-            )
+          expect.that(appIds).containsExactly(
+            "com.example.multiflavor.firstAbc.secondAbc.debug",
+            "com.example.multiflavor.firstAbc.secondAbc.debug.test",
+            "com.example.multiflavor.firstAbc.secondXyz.debug",
+            "com.example.multiflavor.firstAbc.secondXyz.debug.test",
+            "com.example.multiflavor.secondAbc.debug",
+            "com.example.multiflavor.secondAbc.debug.test",
+            "com.example.multiflavor.secondXyz.debug",
+            "com.example.multiflavor.secondXyz.debug.test",
+            "com.example.multiflavor.firstAbc.secondAbc.release",
+            "com.example.multiflavor.firstAbc.secondXyz.release",
+            "com.example.multiflavor.secondAbc.release",
+            "com.example.multiflavor.secondXyz.release"
+          )
+        },
+        GradleProjectSystemIntegrationTest(
+          name = "knownApplicationIds",
+          testProject = TestProject.MULTI_FLAVOR
+        ) { project, expect ->
+          val appIds = project.getProjectSystem().getKnownApplicationIds(project)
+          expect.that(appIds).containsExactly(
+            "com.example.multiflavor.firstAbc.secondAbc.debug",
+            "com.example.multiflavor.firstAbc.secondAbc.debug.test",
+            "com.example.multiflavor.firstAbc.secondAbc.release",
+            "com.example.multiflavor.firstAbc.secondXyz.debug",
+            "com.example.multiflavor.firstAbc.secondXyz.debug.test",
+            "com.example.multiflavor.firstAbc.secondXyz.release",
+            "com.example.multiflavor.secondAbc.debug",
+            "com.example.multiflavor.secondAbc.debug.test",
+            "com.example.multiflavor.secondAbc.release",
+            "com.example.multiflavor.secondXyz.debug",
+            "com.example.multiflavor.secondXyz.debug.test",
+            "com.example.multiflavor.secondXyz.release",
+          )
+        },
+        GradleProjectSystemIntegrationTest(
+          name = "knownApplicationIds",
+          testProject = TestProject.TRANSITIVE_DEPENDENCIES
+        ) { project, expect ->
+          val appIds = project.getProjectSystem().getKnownApplicationIds(project)
+          expect.that(appIds).containsExactly(
+            "com.example.alruiz.transitive_dependencies",
+            "com.example.alruiz.transitive_dependencies.test",
+            "com.example.library1.test",
+            "com.example.library2.test",
           )
         },
         GradleProjectSystemIntegrationTest(

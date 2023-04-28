@@ -55,6 +55,8 @@ import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.androidFacetsForNonHolderModules
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -247,15 +249,28 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   internal class GradleProjectCensus(
     val packageToAndroidFacets: Map<String, List<AndroidFacet>>,
     val namespacesWithPrefixes: Set<String>,
+    val applicationIdsToFacet: Map<String, List<AndroidFacet>>
   )
 
   private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
     return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
       val packageToAndroidFacets = mutableMapOf<String, MutableList<AndroidFacet>>()
+      val applicationIdsToFacet = mutableMapOf<String, MutableList<AndroidFacet>>()
 
       for (androidFacet in project.androidFacetsForNonHolderModules()) {
-        val namespace = GradleAndroidModel.get(androidFacet)?.androidProject?.namespace ?: continue
-        packageToAndroidFacets.getOrPut(namespace) { mutableListOf() }.add(androidFacet)
+        val model = GradleAndroidModel.get(androidFacet) ?: continue
+        model.androidProject.namespace?.let { namespace ->
+          packageToAndroidFacets.getOrPut(namespace) { mutableListOf() }.add(androidFacet)
+        }
+        for (variant in model.androidProject.basicVariants) {
+          when {
+            androidFacet.module.isAndroidTestModule() -> variant.testApplicationId
+            androidFacet.module.isMainModule() -> variant.applicationId
+            else -> null
+          }?.let { applicationId ->
+            applicationIdsToFacet.getOrPut(applicationId) { mutableListOf() }.add(androidFacet)
+          }
+        }
       }
       val namespacesWithPrefixes = HashSet<String>()
       for (namespace in packageToAndroidFacets.keys) {
@@ -267,7 +282,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
         }
       }
       return@CachedValueProvider CachedValueProvider.Result(
-        GradleProjectCensus(packageToAndroidFacets, namespacesWithPrefixes), ProjectSyncModificationTracker.getInstance(project)
+        GradleProjectCensus(packageToAndroidFacets, namespacesWithPrefixes, applicationIdsToFacet), ProjectSyncModificationTracker.getInstance(project)
       )
     })
   }
@@ -283,11 +298,8 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   }
 
   override fun getKnownApplicationIds(project: Project): Set<String> {
-    val model = getModel(project) ?: return emptySet()
-
-    val ids = model.allApplicationIds
-    ids.add(model.applicationId)
-    return ids
+    val census = getGradleProjectCensus(project)
+    return census.applicationIdsToFacet.keys
   }
 
   /**
@@ -295,20 +307,6 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
    */
   override fun supportsProfilingMode() = true
 
-  // TODO(b/228120633) reimplement this in a more efficient way
-  private fun getModel(project: Project): AndroidModel? {
-    if (project.isDisposed) {
-      return null
-    }
-
-    val module = ModuleManager.getInstance(project).modules.firstOrNull {
-      !it.isDisposed && AndroidFacet.getInstance(it)?.let { facet ->
-        facet.properties.PROJECT_TYPE == AndroidProjectTypes.PROJECT_TYPE_APP
-      } == true
-    } ?: return null
-
-    return AndroidModel.get(module)
-  }
 }
 
 private val IdeAndroidArtifact.scopeType: ScopeType
