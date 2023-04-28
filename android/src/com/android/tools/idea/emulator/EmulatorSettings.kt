@@ -19,7 +19,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.util.xmlb.XmlSerializerUtil
+import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Persistent Emulator-related settings.
@@ -87,10 +89,10 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
     }
   }
 
-  enum class SnapshotAutoDeletionPolicy(val displayName: String) {
-    DELETE_AUTOMATICALLY("Delete automatically"),
-    ASK_BEFORE_DELETING("Ask before deleting"),
-    DO_NOT_DELETE("Do not delete")
+  enum class SnapshotAutoDeletionPolicy(@NlsContexts.Label val displayName: String) {
+    DELETE_AUTOMATICALLY(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.delete")),
+    ASK_BEFORE_DELETING(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.ask")),
+    DO_NOT_DELETE(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.ignore"))
   }
 
   enum class CameraVelocityControls(val keys: String, val label: String) {

@@ -32,6 +32,7 @@ import com.intellij.ui.dsl.builder.LabelPosition
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.selected
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.Nls
 import javax.swing.JCheckBox
 
@@ -54,14 +55,13 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
   override fun createComponent() = panel {
     row {
       launchInToolWindowCheckBox =
-        checkBox("Launch in a tool window")
-          .comment("Enabling this setting will cause Android Emulator to launch in a tool window. " +
-                   "Otherwise Android Emulator will launch as a standalone application.")
+        checkBox(AndroidBundle.message("android.emulator.settings.launch.tool.window"))
+          .comment(AndroidBundle.message("android.emulator.settings.launch.tool.window.tooltip"))
           .component
     }.bottomGap(BottomGap.MEDIUM)
     row {
       synchronizeClipboardCheckBox =
-          checkBox("Enable clipboard sharing")
+          checkBox(AndroidBundle.message("android.emulator.settings.clipboard.sharing"))
             .enabledIf(launchInToolWindowCheckBox.selected)
             .component
     }
@@ -71,7 +71,7 @@ class EmulatorSettingsUi : SearchableConfigurable, Configurable.NoScroll {
                  renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it?.displayName })
           .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem, snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
           .enabledIf(launchInToolWindowCheckBox.selected)
-          .label("When encountering snapshots incompatible with the current configuration:", LabelPosition.TOP)
+          .label(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy"), LabelPosition.TOP)
           .component
     }
     row {
