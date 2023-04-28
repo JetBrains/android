@@ -91,7 +91,6 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Suppl
     } else if (devices.containsKey(serialNumber)) {
       devices[serialNumber]
     } else {
-      LOGGER.warn("Didn't find IDevice for serial number $serialNumber")
       null
     }
   }
