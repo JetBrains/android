@@ -1725,5 +1725,11 @@ public final class StudioFlags {
     false);
   // endregion PRIVACY_SANDBOX_SDK
 
+  // region STUDIO_BOT
+  private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Studio Bot");
+  public static final Flag<Boolean> STUDIOBOT_ENABLED =
+    Flag.create(STUDIOBOT, "enabled", "Enable Studio Bot", "Enable Studio Bot Tool Window", true);
+  // endregion STUDIO_BOT
+
   private StudioFlags() { }
 }
