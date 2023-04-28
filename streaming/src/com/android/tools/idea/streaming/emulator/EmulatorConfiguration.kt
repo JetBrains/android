@@ -92,16 +92,11 @@ class EmulatorConfiguration private constructor(
         emptyList()
       }
 
-      val api: Int
-      val systemImage = configIni["image.sysdir.1"]
-      if (systemImage != null) {
+      val api = configIni["image.sysdir.1"]?.let { systemImage ->
         val sourcePropertiesFile = androidSdkRoot.resolve(systemImage).resolve("source.properties")
         val sourceProperties = readKeyValueFile(sourcePropertiesFile, setOf("AndroidVersion.ApiLevel")) ?: return null
-        api = parseInt(sourceProperties["AndroidVersion.ApiLevel"], 0)
-      }
-      else {
-        api = 0
-      }
+        parseInt(sourceProperties["AndroidVersion.ApiLevel"], 0)
+      } ?: 0
 
       return EmulatorConfiguration(avdName = avdName,
                                    avdFolder = avdFolder,
