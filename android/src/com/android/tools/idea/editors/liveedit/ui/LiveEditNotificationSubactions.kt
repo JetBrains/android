@@ -61,15 +61,7 @@ const val SHOW_LOGCAT_ACTION_ID = "Compose.Live.Edit.ShowLogcat"
 /**
  * [AnAction] that opens the Live Edit settings page for the user to enable/disable live edit.
  */
-class ToggleLiveEditStatusAction : AnAction() {
-  override fun update(e: AnActionEvent) {
-    e.presentation.text = if (LiveEditApplicationConfiguration.getInstance().isLiveEdit) {
-      AndroidBundle.message("live.edit.action.disable.title")
-    } else {
-      AndroidBundle.message("live.edit.action.enable.title")
-    }
-  }
-
+class ConfigureLiveEditStatusAction : AnAction(AndroidBundle.message("live.edit.configurable.action.name")) {
   override fun actionPerformed(e: AnActionEvent) {
     ShowSettingsUtil.getInstance().showSettingsDialog(e.project, LiveEditConfigurable::class.java)
   }
