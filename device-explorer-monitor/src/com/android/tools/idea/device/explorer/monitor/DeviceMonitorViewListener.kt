@@ -23,4 +23,5 @@ interface DeviceMonitorViewListener {
   fun killNodesInvoked(rows: IntArray)
   fun forceStopNodesInvoked(rows: IntArray)
   fun debugNodes(rows: IntArray)
+  fun setPackageFilter(isActive: Boolean)
 }

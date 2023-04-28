@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.monitor.mocks
 
+import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
-import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
@@ -25,9 +25,9 @@ import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenu
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import javax.swing.JComponent
 
-class MockDeviceMonitorView(tableModel: DeviceMonitorTableModel): DeviceMonitorView {
-  private val table = ProcessListTableBuilder().build(tableModel)
-  private val viewImpl = DeviceMonitorViewImpl(tableModel, table)
+class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
+  private val table = ProcessListTableBuilder().build(model.tableModel)
+  private val viewImpl = DeviceMonitorViewImpl(model, table)
 
   override fun addListener(listener: DeviceMonitorViewListener) {
     viewImpl.addListener(listener)
@@ -43,6 +43,10 @@ class MockDeviceMonitorView(tableModel: DeviceMonitorTableModel): DeviceMonitorV
 
   override val panelComponent: JComponent
     get() = viewImpl.panelComponent
+
+  override suspend fun trackPackageFilter() {
+    viewImpl.trackPackageFilter()
+  }
 
   fun killNodes() {
     if (table.model.rowCount > 0) {

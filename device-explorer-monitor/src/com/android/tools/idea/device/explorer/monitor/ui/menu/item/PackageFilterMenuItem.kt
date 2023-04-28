@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,45 @@
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
-import icons.StudioIcons
+import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
-class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : NonToggleMenuItem(listener) {
+class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuItem(listener) {
+  var isActionSelected = false
+
   override fun getText(numOfNodes: Int): String {
-    val processStr = if (listener.numOfSelectedNodes > 1) "processes" else "process"
-    return if (context == MenuContext.Toolbar) {
-      "<html><b>Kill $processStr</b><br>Executes command: <code>am kill</code></html>"
-    } else {
-      "Kill $processStr"
-    }
+    val selectionText = if (isActionSelected) "off" else "on"
+    return "Turn $selectionText package filter"
   }
 
   override val icon: Icon
     get() {
-      return StudioIcons.DeviceProcessMonitor.KILL_PROCESS
+      return AllIcons.General.Locate
     }
 
   override val shortcutId: String
     get() {
       // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
-      return "KillProcess"
+      return "PackageFilter"
     }
 
   override val isVisible: Boolean
     get() {
-      return if (context == MenuContext.Popup) listener.numOfSelectedNodes > 0 else true
+      return true
     }
 
   override val isEnabled: Boolean
     get() {
-      return listener.numOfSelectedNodes > 0
+      return true
     }
 
   override fun run() {
-    listener.killNodes()
+    listener.setPackageFilter(!isActionSelected)
   }
+
+  override fun isSelected(): Boolean {
+    return isActionSelected
+  }
+
+  override fun setSelected(selected: Boolean) {}
 }

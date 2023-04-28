@@ -20,7 +20,7 @@ import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsLis
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
-class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
+class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : NonToggleMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     return "Attach debugger"
   }

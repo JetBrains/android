@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.monitor.ui
+package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
-import javax.swing.JComponent
+import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 
-interface DeviceMonitorView {
-  val panelComponent: JComponent
-  fun setup()
-  fun addListener(listener: DeviceMonitorViewListener)
-  fun removeListener(listener: DeviceMonitorViewListener)
-  suspend fun trackPackageFilter()
+abstract class NonToggleMenuItem(listener: DeviceMonitorActionsListener): TreeMenuItem(listener) {
+  override fun isSelected(): Boolean = false
+  override fun setSelected(selected: Boolean) {}
 }

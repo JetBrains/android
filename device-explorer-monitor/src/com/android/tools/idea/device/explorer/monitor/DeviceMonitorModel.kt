@@ -23,6 +23,7 @@ import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -31,6 +32,11 @@ class DeviceMonitorModel(private val processService: DeviceProcessService) {
   private var activeDevice: AdbDevice? = null
   private val activeDeviceMutex = Mutex()
   val tableModel = DeviceMonitorTableModel()
+  val isPackageFilterActive = MutableStateFlow(false)
+
+  fun setPackageFilter(isActive: Boolean) {
+    isPackageFilterActive.value = isActive
+  }
 
   suspend fun activeDeviceChanged(device: IDevice?) {
     if (device != null) {

@@ -68,7 +68,7 @@ class DeviceMonitorControllerImplTest {
       addClient(testDevice1, 60)
     }
     model = DeviceMonitorModel(processService)
-    mockView = MockDeviceMonitorView(model.tableModel)
+    mockView = MockDeviceMonitorView(model)
     mockView.setup()
     testDevice1 = adb.attachDevice("test_device_01", "Google", "Pix3l", "versionX", "29")
     addClient(testDevice1, 5)

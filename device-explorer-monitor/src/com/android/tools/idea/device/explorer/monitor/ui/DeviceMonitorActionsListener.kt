@@ -24,4 +24,5 @@ interface DeviceMonitorActionsListener {
   fun killNodes()
   fun forceStopNodes()
   fun debugNodes()
+  fun setPackageFilter(isActive: Boolean)
 }

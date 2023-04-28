@@ -511,6 +511,14 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
+  public static final Flag<Boolean> DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER = Flag.create(
+    RUNDEBUG,
+    "adb.device.explorer.package.filter.enable",
+    "Enable package filtering for the \"Device Explorer\" tool window",
+    "Enable package filtering for the \"Device Explorer\" tool window, which allows users to filter processes by app package ids.\n" +
+    "Changing the value of this flag requires restarting Android Studio.",
+    false);
+
   public static final Flag<Boolean> ADBLIB_MIGRATION_DEVICE_EXPLORER = Flag.create(
     RUNDEBUG,
     "adblib.migration.device.explorer",

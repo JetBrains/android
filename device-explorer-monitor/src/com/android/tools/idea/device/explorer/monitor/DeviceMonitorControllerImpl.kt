@@ -55,6 +55,7 @@ class DeviceMonitorControllerImpl(
     deviceService.addListener(deviceServiceListener)
     view.setup()
 
+    uiThreadScope.launch { view.trackPackageFilter() }
     uiThreadScope.launch {
       try {
         deviceService.start()
@@ -127,6 +128,12 @@ class DeviceMonitorControllerImpl(
       uiThreadScope.launch {
         model.debugNodesInvoked(project, rows)
         trackAction(DeviceExplorerEvent.Action.ATTACH_DEBUGGER)
+      }
+    }
+
+    override fun setPackageFilter(isActive: Boolean) {
+      uiThreadScope.launch {
+        model.setPackageFilter(isActive)
       }
     }
   }
