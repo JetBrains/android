@@ -32,16 +32,31 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
+
+private class TestSingleThreadExecutorService(private val delegate: ExecutorService): AbstractExecutorService(), SingleThreadExecutorService {
+  override val isBusy: Boolean = false
+  override fun stackTrace(): Array<StackTraceElement> = emptyArray()
+  override fun interrupt() {}
+  override fun execute(command: Runnable) = delegate.execute(command)
+  override fun shutdown() = delegate.shutdown()
+  override fun shutdownNow(): MutableList<Runnable> = delegate.shutdownNow()
+  override fun isShutdown(): Boolean = delegate.isShutdown
+
+  override fun isTerminated(): Boolean = delegate.isTerminated
+  override fun awaitTermination(timeout: Long, unit: TimeUnit): Boolean = delegate.awaitTermination(timeout, unit)
+}
 
 private fun RenderExecutor.runAsyncActionWithTestDefault(queueingTimeout: Long = 1,
                                                          queueingTimeoutUnit: TimeUnit = TimeUnit.SECONDS,
@@ -88,10 +103,10 @@ class RenderExecutorTest {
 
   @Test
   fun testTimeout() {
-    val actionExecutor = OnDemandExecutorService()
+    val actionExecutor = TestSingleThreadExecutorService(OnDemandExecutorService())
     val timeoutExecutorProvider = VirtualTimeScheduler()
-    val executor = RenderExecutor.createForTests(executorProvider = { actionExecutor },
-                                                 timeoutExecutorProvider = { timeoutExecutorProvider })
+    val executor = RenderExecutor.createForTests(executorService = actionExecutor,
+                                                 scheduledExecutorService = timeoutExecutorProvider)
     try {
       val result = executor.runAsyncActionWithTestDefault {
         fail("This should have not been executed.")
@@ -113,11 +128,9 @@ class RenderExecutorTest {
 
   @Test
   fun testExecuteAll() {
-    val executor = RenderExecutor.createForTests(executorProvider = { MoreExecutors.newDirectExecutorService() },
-                                                 timeoutExecutorProvider = {
-                                                   ScheduledThreadPoolExecutor(1).also {
-                                                     it.removeOnCancelPolicy = true
-                                                   }
+    val executor = RenderExecutor.createForTests(executorService = TestSingleThreadExecutorService(MoreExecutors.newDirectExecutorService()),
+                                                 scheduledExecutorService = ScheduledThreadPoolExecutor(1).also {
+                                                   it.removeOnCancelPolicy = true
                                                  })
     try {
       val counter = AtomicInteger(0)
@@ -141,8 +154,8 @@ class RenderExecutorTest {
   fun testQueueLimit() {
     val actionExecutor = OnDemandExecutorService()
     val timeoutExecutorProvider = VirtualTimeScheduler()
-    val executor = RenderExecutor.createForTests(executorProvider = { actionExecutor },
-                                                 timeoutExecutorProvider = { timeoutExecutorProvider })
+    val executor = RenderExecutor.createForTests(executorService =  TestSingleThreadExecutorService(actionExecutor),
+                                                 scheduledExecutorService = timeoutExecutorProvider)
     val counterHighPriority = AtomicInteger(0)
     val counterLowPriority = AtomicInteger(0)
     val lastToExecute = AtomicInteger(0)
@@ -169,8 +182,8 @@ class RenderExecutorTest {
   fun testSyncRenderActionTimeout() {
     val actionExecutor = OnDemandExecutorService()
     val timeoutExecutorProvider = VirtualTimeScheduler()
-    val executor = RenderExecutor.createForTests(executorProvider = { actionExecutor },
-                                                 timeoutExecutorProvider = { timeoutExecutorProvider })
+    val executor = RenderExecutor.createForTests(executorService = TestSingleThreadExecutorService(actionExecutor),
+                                                 scheduledExecutorService = timeoutExecutorProvider)
 
     // Force three timeouts to exceed the counter for the sync call
     executor.runAsyncActionWithTestDefault(queueingTimeout = 1) {
@@ -216,10 +229,10 @@ class RenderExecutorTest {
 
   @Test
   fun testActionTimeout() {
-    val actionExecutor = Executors.newSingleThreadExecutor()
+    val actionExecutor =  TestSingleThreadExecutorService(Executors.newSingleThreadExecutor())
     val timeoutExecutorProvider = VirtualTimeScheduler()
-    val executor = RenderExecutor.createForTests(executorProvider = { actionExecutor },
-                                                 timeoutExecutorProvider = { timeoutExecutorProvider })
+    val executor = RenderExecutor.createForTests(executorService = actionExecutor,
+                                                 scheduledExecutorService = timeoutExecutorProvider)
 
     val actionIsRunningLatch = CountDownLatch(1)
     val completeActionLatch = CountDownLatch(1)
@@ -340,8 +353,8 @@ class RenderExecutorTest {
   fun testCancelLowPriority() {
     val actionExecutor = OnDemandExecutorService()
     val timeoutExecutorProvider = VirtualTimeScheduler()
-    val executor = RenderExecutor.createForTests(executorProvider = { actionExecutor },
-                                                 timeoutExecutorProvider = { timeoutExecutorProvider })
+    val executor = RenderExecutor.createForTests(executorService = TestSingleThreadExecutorService(actionExecutor),
+                                                 scheduledExecutorService = timeoutExecutorProvider)
     val counterHighPriority = AtomicInteger(0)
     val counterLowPriority = AtomicInteger(0)
 
