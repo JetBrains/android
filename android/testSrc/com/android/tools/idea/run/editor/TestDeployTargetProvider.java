@@ -66,4 +66,9 @@ public class TestDeployTargetProvider extends DeployTargetProvider {
   public final DeployTarget getDeployTarget(@NotNull Project project) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public boolean canDeployToLocalDevice() {
+    return false;
+  }
 }

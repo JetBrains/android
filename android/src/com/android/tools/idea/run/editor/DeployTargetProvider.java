@@ -80,6 +80,8 @@ public abstract class DeployTargetProvider {
   @NotNull
   public abstract DeployTarget getDeployTarget(@NotNull Project project);
 
+  public abstract boolean canDeployToLocalDevice();
+
   public static class Renderer extends ColoredListCellRenderer<DeployTargetProvider> {
     @Override
     protected void customizeCellRenderer(@NotNull JList list, DeployTargetProvider value, int index, boolean selected, boolean hasFocus) {

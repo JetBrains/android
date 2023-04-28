@@ -16,15 +16,11 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.execution.common.DeviceDeploymentUtil;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.RunProfile;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.UserDataHolder;
 import icons.StudioIcons;
 import java.util.Collection;
 import java.util.Collections;
@@ -178,18 +174,9 @@ final class Updater {
       return;
     }
 
-    RunProfile configuration = myConfigurationAndSettings.getConfiguration();
+    var configuration = myConfigurationAndSettings.getConfiguration();
 
-        if (configuration instanceof AndroidRunConfiguration
-                || configuration instanceof AndroidTestRunConfiguration
-                || configuration instanceof AndroidWearConfiguration) {
-      myPresentation.setEnabled(true);
-      myPresentation.setDescription((String)null);
-
-      return;
-    }
-
-    if (configurationDeploysToLocalDevice()) {
+    if (DeviceDeploymentUtil.deploysToLocalDevice(configuration)) {
       myPresentation.setEnabled(true);
       myPresentation.setDescription((String)null);
 
@@ -203,18 +190,6 @@ final class Updater {
     else {
       myPresentation.setVisible(false);
     }
-  }
-
-  private boolean configurationDeploysToLocalDevice() {
-    assert myConfigurationAndSettings != null;
-    Object configuration = myConfigurationAndSettings.getConfiguration();
-
-    if (!(configuration instanceof UserDataHolder)) {
-      return false;
-    }
-
-    Boolean deploysToLocalDevice = ((UserDataHolder)configuration).getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE);
-    return deploysToLocalDevice != null && deploysToLocalDevice;
   }
 
   private void updateInToolbarForMultipleDevices() {

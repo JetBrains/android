@@ -10,6 +10,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
@@ -75,7 +76,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<AndroidRunConfigurationModule, Element>
   implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction,
-             RunConfigurationWithDebugger {
+             RunConfigurationWithDebugger, DeployableToDevice {
 
   /**
    * Element name used to group the {@link ProfilerState} settings
@@ -415,5 +416,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   @NotNull
   public ProfilerState getProfilerState() {
     return myProfilerState;
+  }
+
+  @Override
+  public boolean deploysToLocalDevice() {
+    return getDeployTargetContext().getCurrentDeployTargetProvider().canDeployToLocalDevice();
   }
 }

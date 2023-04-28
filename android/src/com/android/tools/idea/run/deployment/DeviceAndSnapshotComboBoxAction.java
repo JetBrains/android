@@ -16,9 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunManager;
 import com.intellij.ide.HelpTooltip;
@@ -59,13 +57,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
-  /**
-   * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
-   * to express their applicability for DeviceAndSnapshotComboBoxAction by setting it to true in their user data.
-   */
-  public static final com.intellij.openapi.util.Key<Boolean> DEPLOYS_TO_LOCAL_DEVICE =
-    com.intellij.openapi.util.Key.create("DeviceAndSnapshotComboBoxAction.deploysToLocalDevice");
-
   /**
    * The key for the LaunchCompatibility presentation client property
    */

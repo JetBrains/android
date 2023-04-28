@@ -759,5 +759,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
     ],
 )

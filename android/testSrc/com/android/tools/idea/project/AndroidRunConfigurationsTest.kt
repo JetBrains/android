@@ -61,4 +61,18 @@ class AndroidRunConfigurationsTest {
     }
   }
 
+  @Test
+  fun `run configuration deploys to local device`() {
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      project.requestSyncAndWait()
+      val configurationFactory = AndroidRunConfigurationType.getInstance().factory
+
+      val configurations = RunManager.getInstance(project).getConfigurationsList(configurationFactory.type)
+
+      assertThat(configurations).hasSize(1)
+      assertThat(configurations[0]).isInstanceOf(AndroidRunConfiguration::class.java)
+      assertThat((configurations[0] as AndroidRunConfiguration).deploysToLocalDevice()).isTrue()
+    }
+  }
 }

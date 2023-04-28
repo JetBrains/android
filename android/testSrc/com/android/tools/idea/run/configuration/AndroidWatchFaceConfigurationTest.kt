@@ -36,12 +36,21 @@ class AndroidWatchFaceConfigurationTest {
   @Test
   fun testProgramRunnerAvailable() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run complication", AndroidWatchFaceConfigurationType().configurationFactories.single())
+      "run watch face", AndroidWatchFaceConfigurationType().configurationFactories.single())
 
     val runnerForRun = ProgramRunner.getRunner(DefaultRunExecutor.EXECUTOR_ID, configSettings.configuration)
     assertThat(runnerForRun).isNotNull()
 
     val runnerForDebug = ProgramRunner.getRunner(DefaultDebugExecutor.EXECUTOR_ID, configSettings.configuration)
     assertThat(runnerForDebug).isNotNull()
+  }
+
+  @Test
+  fun testDeploysToLocalDevice() {
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "run watch face", AndroidWatchFaceConfigurationType().configurationFactories.single())
+    val runConfig = configSettings.configuration as AndroidWatchFaceConfiguration
+
+    assertThat(runConfig.deploysToLocalDevice()).isTrue()
   }
 }

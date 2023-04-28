@@ -44,4 +44,13 @@ class AndroidComplicationConfigurationTest {
     val runnerForDebug = ProgramRunner.getRunner(DefaultDebugExecutor.EXECUTOR_ID, configSettings.configuration)
     assertThat(runnerForDebug).isNotNull()
   }
+
+  @Test
+  fun testDeploysToLocalDevice() {
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
+    val runConfig = configSettings.configuration as AndroidComplicationConfiguration
+
+    assertThat(runConfig.deploysToLocalDevice()).isTrue()
+  }
 }

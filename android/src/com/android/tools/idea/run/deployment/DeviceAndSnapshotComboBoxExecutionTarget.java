@@ -17,14 +17,12 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.execution.common.DeviceDeploymentUtil;
 import com.android.tools.idea.run.DeploymentApplicationService;
-import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
 import java.util.Collection;
@@ -121,14 +119,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
   @Override
   public boolean canRun(@NotNull RunConfiguration configuration) {
-    Boolean deploysToLocalDevice = false;
-    // This allows BlazeCommandRunConfiguration to run as its DEPLOY_TO_LOCAL_DEVICE is set by BlazeAndroidBinaryRunConfigurationHandler
-    if (configuration instanceof UserDataHolderBase) {
-      deploysToLocalDevice = ((UserDataHolderBase)configuration).getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE);
-    }
-    return configuration instanceof AndroidRunConfigurationBase ||
-           configuration instanceof AndroidWearConfiguration ||
-           (deploysToLocalDevice != null && deploysToLocalDevice);
+    return DeviceDeploymentUtil.deploysToLocalDevice(configuration);
   }
 
   @Override

@@ -36,12 +36,21 @@ class AndroidTileConfigurationTest {
   @Test
   fun testProgramRunnerAvailable() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
-      "run complication", AndroidTileConfigurationType().configurationFactories.single())
+      "run tile", AndroidTileConfigurationType().configurationFactories.single())
 
     val runnerForRun = ProgramRunner.getRunner(DefaultRunExecutor.EXECUTOR_ID, configSettings.configuration)
     assertThat(runnerForRun).isNotNull()
 
     val runnerForDebug = ProgramRunner.getRunner(DefaultDebugExecutor.EXECUTOR_ID, configSettings.configuration)
     assertThat(runnerForDebug).isNotNull()
+  }
+
+  @Test
+  fun testDeploysToLocalDevice() {
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "run tile", AndroidTileConfigurationType().configurationFactories.single())
+    val runConfig = configSettings.configuration as AndroidTileConfiguration
+
+    assertThat(runConfig.deploysToLocalDevice()).isTrue()
   }
 }

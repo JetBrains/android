@@ -19,16 +19,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.withSettings;
 
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
 import icons.StudioIcons;
@@ -72,30 +72,10 @@ public final class UpdaterTest {
   }
 
   @Test
-  public void updateDependingOnConfigurationConfigurationInstanceOfAndroidRunConfiguration() {
-    // Arrange
-    RunConfiguration configuration = Mockito.mock(AndroidRunConfiguration.class);
-
-    Updater updater = new Updater.Builder()
-      .setProject(myRule.getProject())
-      .setPresentation(myPresentation)
-      .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))
-      .setConfigurationAndSettings(mockConfigurationAndSettings(configuration))
-      .build();
-
-    // Act
-    updater.update();
-
-    // Assert
-    assertTrue(myPresentation.isEnabled());
-    assertNull(myPresentation.getDescription());
-  }
-
-  @Test
   public void updateDependingOnConfigurationConfigurationDeploysToLocalDevice() {
     // Arrange
-    RunConfigurationBase<?> configuration = Mockito.mock(RunConfigurationBase.class);
-    Mockito.when(configuration.getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE)).thenReturn(true);
+    RunConfiguration configuration = Mockito.mock(RunConfiguration.class, withSettings().extraInterfaces(DeployableToDevice.class));
+    Mockito.when(((DeployableToDevice)configuration).deploysToLocalDevice()).thenReturn(true);
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())

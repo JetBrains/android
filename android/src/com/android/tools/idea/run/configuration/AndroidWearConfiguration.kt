@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
+import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
@@ -55,7 +56,7 @@ import org.jetbrains.android.util.AndroidBundle
 
 abstract class AndroidWearConfiguration(project: Project, factory: ConfigurationFactory) :
   ModuleBasedConfiguration<JavaRunConfigurationModule, Element>(JavaRunConfigurationModule(project, false), factory),
-  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, RunConfigurationWithDebugger {
+  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, RunConfigurationWithDebugger, DeployableToDevice {
 
   companion object {
     const val LAUNCH_OPTIONS_ELEMENT_NAME = "LaunchOptions"
@@ -177,4 +178,6 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
 
   val module: Module?
     get() = configurationModule.module
+
+  override fun deploysToLocalDevice() = true
 }

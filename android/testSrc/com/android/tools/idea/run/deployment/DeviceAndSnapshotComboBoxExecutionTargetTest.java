@@ -21,8 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.google.common.collect.Sets;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.application.ApplicationConfiguration;
@@ -115,15 +114,18 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   }
 
   @Test
-  public void deviceTargetNotSuggestedForNonAndroidRunConfigurations() {
+  public void deviceTargetNotSuggestedForConfigurationsThatDoNotDeployToLocalDevice() {
     ExecutionTarget target = new DeviceAndSnapshotComboBoxExecutionTarget(Collections.emptyList(), myGetter);
 
-    AndroidRunConfiguration android = Mockito.mock(AndroidRunConfiguration.class);
-    AndroidTestRunConfiguration androidTest = Mockito.mock(AndroidTestRunConfiguration.class);
-    ApplicationConfiguration nonAndroid = Mockito.mock(ApplicationConfiguration.class);
+    AndroidRunConfigurationBase androidDeployableLocally = Mockito.mock(AndroidRunConfigurationBase.class);
+    AndroidRunConfigurationBase androidNonDeployableLocally = Mockito.mock(AndroidRunConfigurationBase.class);
+    ApplicationConfiguration nonDeployableLocally = Mockito.mock(ApplicationConfiguration.class);
 
-    assertTrue(target.canRun(android));
-    assertTrue(target.canRun(androidTest));
-    assertFalse(target.canRun(nonAndroid));
+    Mockito.when(androidDeployableLocally.deploysToLocalDevice()).thenReturn(true);
+    Mockito.when(androidNonDeployableLocally.deploysToLocalDevice()).thenReturn(false);
+
+    assertTrue(target.canRun(androidDeployableLocally));
+    assertFalse(target.canRun(androidNonDeployableLocally));
+    assertFalse(target.canRun(nonDeployableLocally));
   }
 }
