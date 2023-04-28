@@ -85,7 +85,7 @@ class VisualLintService(val project: Project): Disposable {
     }
   }
 
-  val issueModel: IssueModel = IssueModel(this, project)
+  val issueModel: IssueModel
 
   private val basicAnalyzers = listOf(BoundsAnalyzer, OverlapAnalyzer, AtfAnalyzer)
   private val adaptiveAnalyzers = listOf(BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
@@ -110,6 +110,10 @@ class VisualLintService(val project: Project): Disposable {
         oldIgnoredTypes.filterNot { it in ignoredTypes }.forEach { VisualLintUsageTracker.getInstance().trackRuleStatusChanged(it, true) }
       }
     })
+    // We pass the VisualLintService as the IssueModel parent disposable. We need to initialize it only in the end of this constructor to
+    // prevent Project leaks if the constructor throws an exception sooner, because that could make the IssueModel never to be disposed,
+    // since it will be registered as the child of a broken VisualLintService object.
+    issueModel = IssueModel(this, project)
   }
 
   private fun getIgnoredTypesFromProfile(profile: InspectionProfile) {
