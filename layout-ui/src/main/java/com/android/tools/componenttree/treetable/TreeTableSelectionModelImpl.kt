@@ -61,7 +61,7 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
     }
 
   fun keepSelectionDuring(operation: () -> Unit) {
-    val oldSelection = table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }
+    val oldSelection = table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }.filterNotNull()
     update(operation)
 
     // Tricky:
