@@ -210,7 +210,7 @@ class VitalsTab(
             private val offlineState =
               offlineStateFlow.stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
             override fun actionPerformed(e: AnActionEvent) {
-              // TODO
+              projectController.refresh()
             }
             override fun getActionUpdateThread() = ActionUpdateThread.EDT
             override fun displayTextInToolbar() = true
