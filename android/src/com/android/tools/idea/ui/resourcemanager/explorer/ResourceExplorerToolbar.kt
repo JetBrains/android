@@ -354,7 +354,7 @@ private fun DefaultActionGroup.addOtherMenuTypeFilters(viewModel: ResourceExplor
 }
 
 private fun action(addAction: AnAction) =
-  ActionButton(addAction, addAction.templatePresentation, "", BUTTON_SIZE)
+  ActionButton(addAction, addAction.templatePresentation.clone(), "", BUTTON_SIZE)
 
 private fun GroupLayout.SequentialGroup.addFixedSizeComponent(
   jComponent: JComponent,

@@ -127,7 +127,7 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
   private val overFlowPopupAction = createOverflowPopupAction()
 
   val overflowButton = ActionButton(overFlowPopupAction,
-                                    overFlowPopupAction.templatePresentation,
+                                    overFlowPopupAction.templatePresentation.clone(),
                                     "",
                                     JBUI.size(20)).apply {
     border = JBUI.Borders.emptyRight(2)

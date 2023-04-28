@@ -49,6 +49,7 @@ import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Comparing
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
@@ -221,25 +222,32 @@ class ResourceExplorerToolbarViewModel(
   /**
    * Implementation of [DataProvider] needed for [CreateResourceFileAction]
    */
-  override fun getData(dataId: String): Any? = when (dataId) {
-    CommonDataKeys.PROJECT.name -> facet.module.project
-    PlatformCoreDataKeys.MODULE.name -> facet.module
-    LangDataKeys.IDE_VIEW.name -> this
-    CommonDataKeys.PSI_ELEMENT.name -> getPsiDirForResourceType()
+  override fun getData(dataId: String): Any? = when {
+    CommonDataKeys.PROJECT.`is`(dataId) -> facet.module.project
+    PlatformCoreDataKeys.MODULE.`is`(dataId) -> facet.module
+    LangDataKeys.IDE_VIEW.`is`(dataId) -> this
+    PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> {
+      val myFacet = facet
+      val myResourceType = resourceType
+      val myProject = facet.module.project
+
+      DataProvider { dataId -> getSlowData(dataId, myFacet, myResourceType, myProject) }
+    }
     else -> null
   }
 
-  /**
-   * Returns one of the existing directories used for the current [ResourceType], or the default 'res' directory.
-   *
-   * Needed for AssetStudio.
-   */
-  private fun getPsiDirForResourceType(): PsiDirectory? {
-    val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories
-    val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
-      getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
+  private fun getSlowData(dataId: String, facet: AndroidFacet, resourceType: ResourceType, project: Project): Any? {
+    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
+      val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories
+      val firstResourceSubdir = resDirs.firstOrNull()
+      val resourceTypeSubDir = FolderTypeRelationship.getRelatedFolders(resourceType)
+        .firstOrNull()
+        ?.let { resourceFolderType -> getResourceSubdirs(resourceFolderType, resDirs).firstOrNull() ?: firstResourceSubdir }
+
+      return resourceTypeSubDir?.let { PsiManager.getInstance(project).findDirectory(it) }
+    } else {
+      return null
     }
-    return (subDir ?: resDirs.firstOrNull())?.let { PsiManager.getInstance(facet.module.project).findDirectory(it) }
   }
 
   private fun onCreatedResource(name: String, type: ResourceType) {
