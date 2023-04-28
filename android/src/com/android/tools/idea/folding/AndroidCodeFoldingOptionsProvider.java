@@ -17,11 +17,16 @@ package com.android.tools.idea.folding;
 
 import com.intellij.application.options.editor.CodeFoldingOptionsProvider;
 import com.intellij.openapi.options.BeanConfigurable;
+import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidCodeFoldingOptionsProvider extends BeanConfigurable<AndroidFoldingSettings> implements CodeFoldingOptionsProvider {
   public AndroidCodeFoldingOptionsProvider() {
-    super(AndroidFoldingSettings.getInstance(), "Android");
+    super(AndroidFoldingSettings.getInstance(), AndroidBundle.message("group.Internal.Android.text"));
     AndroidFoldingSettings settings = getInstance();
-    checkBox("String References", settings::isCollapseAndroidStrings, settings::setCollapseAndroidStrings);
+    checkBox(
+      AndroidBundle.message("android.editor.settings.general.code.folding.string.references"),
+      settings::isCollapseAndroidStrings,
+      settings::setCollapseAndroidStrings
+    );
   }
 }
