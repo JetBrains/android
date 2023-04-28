@@ -81,7 +81,7 @@ public class CMakeListsTest {
       .expand(45);
     guiTest.waitForBackgroundTasks();
     paneFixture.clickPath("app", "cpp", C_FILE_NAME)
-      .invokeMenuPath("Refactor", "Rename...");
+      .invokeMenuPath("Refactor", "Rename\u2026");
 
     RenameFileDialogFixture.find(ideFrame)
       .enterText("hello")
