@@ -76,6 +76,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -358,6 +359,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public TraceProcessorService getTraceProcessorService() {
     return TraceProcessorServiceImpl.getInstance();
+  }
+
+  @Override
+  public void buildAndLaunchAction(boolean profileableMode, @NotNull JComponent component) {
+    ProfilerBuildAndLaunch.buildAndLaunchAction(profileableMode, component);
   }
 
   /**

@@ -27,6 +27,7 @@ import java.util.concurrent.Executor
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
+import javax.swing.JComponent
 
 interface IdeProfilerServices {
   /**
@@ -182,4 +183,8 @@ interface IdeProfilerServices {
    */
   val traceProcessorService: TraceProcessorService
 
+  /**
+   * If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction.
+   */
+  fun buildAndLaunchAction(profileableMode: Boolean, component: JComponent)
 }

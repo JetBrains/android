@@ -46,6 +46,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
@@ -401,6 +402,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   public TraceProcessorService getTraceProcessorService() {
     return myTraceProcessorService;
   }
+
+  @Override
+  public void buildAndLaunchAction(boolean profileableMode, @NotNull JComponent component) { }
 
   @Nullable
   public Notification getNotification() {
