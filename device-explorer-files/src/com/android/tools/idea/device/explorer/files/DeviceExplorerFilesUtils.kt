@@ -25,13 +25,14 @@ object DeviceExplorerFilesUtils {
    * Creates a [VirtualFile] corresponding to the [Path] passed as argument.
    */
   @AnyThread
-  suspend fun findFile(localPath: Path): VirtualFile {
+  suspend fun findFile(localPath: Path, inReadOnly: Boolean = false): VirtualFile {
     // We run this operation using invokeLater because we need to refresh a VirtualFile instance
     // this has to be done in a write-safe context.
     // See https://github.com/JetBrains/intellij-community/commit/10c0c11281b875e64c31186eac20fc28ba3fc37a
     return withWriteSafeContextWithCurrentModality {
       // findFileByIoFile should be called from the write thread, in a write-safe context
-      VfsUtil.findFileByIoFile(localPath.toFile(), true)
+      val file = localPath.toFile().apply { if (inReadOnly) setReadOnly() }
+      VfsUtil.findFileByIoFile(file, true)
           ?: throw RuntimeException("Unable to locate file \"$localPath\"")
     }
   }
