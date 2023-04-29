@@ -16,9 +16,11 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.annotations.concurrency.UiThread
+import com.android.emulator.control.CameraNotification
 import com.android.emulator.control.ClipData
 import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
+import com.android.emulator.control.DisplayConfigurationsChangedNotification
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
 import com.android.emulator.control.ExtendedControlsStatus
@@ -29,7 +31,6 @@ import com.android.emulator.control.ImageFormat.ImgFormat
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
-import com.android.emulator.control.Notification.EventType
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.Rotation
@@ -264,7 +265,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       if (newDisplays != displays) {
         displays = newDisplays
         val notificationObserver = notificationStreamObserver ?: return@execute
-        val response = Notification.newBuilder().setEvent(EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI).build()
+        val displayConfigurations = DisplayConfigurations.newBuilder().addAllDisplays(displays)
+        val notification = DisplayConfigurationsChangedNotification.newBuilder().setDisplayConfigurations(displayConfigurations)
+        val response = Notification.newBuilder().setDisplayConfigurationsChangedNotification(notification).build()
         sendStreamingResponse(notificationObserver, response)
       }
     }
@@ -470,8 +473,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private fun createVirtualSceneCameraNotification(cameraActive: Boolean): Notification {
-    val event = if (cameraActive) EventType.VIRTUAL_SCENE_CAMERA_ACTIVE else EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
-    return Notification.newBuilder().setEvent(event).build()
+    return Notification.newBuilder()
+        .setCameraNotification(CameraNotification.newBuilder().setActive(cameraActive).setDisplay(PRIMARY_DISPLAY_ID))
+        .build()
   }
 
   private inline fun <T> Semaphore.withPermit(action: () -> T): T {

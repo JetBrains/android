@@ -279,8 +279,13 @@ internal class EmulatorToolWindowPanel(
     var displayDescriptors = emptyList<DisplayDescriptor>()
 
     @AnyThread
-    override fun displayConfigurationChanged() {
-      refreshDisplayConfiguration()
+    override fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>?) {
+      if (displayConfigs == null) {
+        refreshDisplayConfiguration()
+      }
+      else {
+        displayConfigurationReceived(displayConfigs)
+      }
     }
 
     @AnyThread

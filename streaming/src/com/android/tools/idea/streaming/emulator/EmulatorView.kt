@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.ImageConverter
+import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
@@ -656,18 +657,27 @@ class EmulatorView(
       }
 
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        when (response.event) {
-          VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
-          VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
-          DISPLAY_CONFIGURATIONS_CHANGED_UI -> notifyDisplayConfigurationListeners()
-          else -> {}
+        when {
+          response.hasCameraNotification() -> virtualSceneCameraActive = response.cameraNotification.active
+          response.hasDisplayConfigurationsChangedNotification() ->
+              notifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification.displayConfigurations.displaysList)
+          else  -> {
+            // Old style notifications.
+            // TODO: Remove the following 'when' statement after January 1, 2024.
+            when (response.event) {
+              VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
+              VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
+              DISPLAY_CONFIGURATIONS_CHANGED_UI -> notifyDisplayConfigurationListeners(null)
+              else -> {}
+            }
+          }
         }
       }
     }
 
-    private fun notifyDisplayConfigurationListeners() {
+    private fun notifyDisplayConfigurationListeners(displayConfigs: List<DisplayConfiguration>?) {
       for (listener in displayConfigurationListeners) {
-        listener.displayConfigurationChanged()
+        listener.displayConfigurationChanged(displayConfigs)
       }
     }
   }
