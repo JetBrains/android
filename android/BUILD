@@ -139,8 +139,32 @@ iml_module(
     name = "intellij.android.core.tests",
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
-        "modularize": {
-            "test_filter": "com.android.tools.idea.refactoring.modularize",
+        # Keep sorted by the test_filter package, with "other" at the end.
+        "avdmanager": {
+            "test_filter": "com.android.tools.idea.avdmanager",
+        },
+        "AndroidKotlinCompletionContributorTest": {
+            "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
+        },
+        "designer.overlay": {
+            "test_filter": "com.android.tools.idea.designer.overlay",
+        },
+        "diagnostics": {
+            "test_filter": "com.android.tools.idea.diagnostics",
+        },
+        "editors.fast": {
+            "test_filter": "com.android.tools.idea.editors.fast",
+        },
+        "editors.manifest": {
+            "test_filter": "com.android.tools.idea.editors.manifest",
+        },
+        "editors.literals": {
+            # b/253897699
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.editors.literals",
+        },
+        "editors.strings": {
+            "test_filter": "com.android.tools.idea.editors.strings",
         },
         "gradle": {
             "shard_count": 6,
@@ -157,45 +181,41 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.gradle.project.sync",
         },
+        "imports": {
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.imports",
+        },
+        "instantapp": {
+            "test_filter": "com.android.tools.idea.instantapp",
+        },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.navigator",
         },
-        "imports": {
+        "modularize": {
+            "test_filter": "com.android.tools.idea.refactoring.modularize",
+        },
+        "rendering": {
+            "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
-            "test_filter": "com.android.tools.idea.imports",
+        },
+        "res": {
+            "test_filter": "com.android.tools.idea.res",
         },
         "run": {
             "shard_count": 5,
             "test_filter": "com.android.tools.idea.run",
         },
+        "sdk": {
+            "test_filter": "com.android.tools.idea.sdk",
+        },
         "testartifacts": {
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.testartifacts",
         },
-        "AndroidKotlinCompletionContributorTest": {
-            "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
-        },
-        "editors.fast": {
-            "test_filter": "com.android.tools.idea.editors.fast",
-        },
-        "editors.manifest": {
-            "test_filter": "com.android.tools.idea.editors.manifest",
-        },
-        "editors.literals": {
-            # b/253897699
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.editors.literals",
-        },
-        "editors.strings": {
-            "test_filter": "com.android.tools.idea.editors.strings",
-        },
-        "instantapp": {
-            "test_filter": "com.android.tools.idea.instantapp",
-        },
-        "rendering": {
-            "test_filter": "com.android.tools.idea.rendering",
+        "resourcemanager": {
+            "test_filter": "com.android.tools.idea.ui.resourcemanager",
             "shard_count": 2,
         },
         "jetbrains": {
@@ -207,25 +227,6 @@ iml_module(
             # before it in the same shard, image assets wouldn't be rendered as they'd be DummyIcons
             "test_filter": "org.jetbrains.android.AndroidGutterIconAnnotatorTest",
             "shard_count": 1,
-        },
-        "res": {
-            "test_filter": "com.android.tools.idea.res",
-        },
-        "resourcemanager": {
-            "test_filter": "com.android.tools.idea.ui.resourcemanager",
-            "shard_count": 2,
-        },
-        "designer.overlay": {
-            "test_filter": "com.android.tools.idea.designer.overlay",
-        },
-        "sdk": {
-            "test_filter": "com.android.tools.idea.sdk",
-        },
-        "avdmanager": {
-            "test_filter": "com.android.tools.idea.avdmanager",
-        },
-        "diagnostics": {
-            "test_filter": "com.android.tools.idea.diagnostics",
         },
         "other": {
             "shard_count": 5,
