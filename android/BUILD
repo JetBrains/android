@@ -140,17 +140,26 @@ iml_module(
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
         # Keep sorted by the test_filter package, with "other" at the end.
+        "actions": {
+            "test_filter": "com.android.tools.idea.actions",
+        },
+        "apk": {
+            "test_filter": "com.android.tools.idea.apk",
+        },
         "avdmanager": {
             "test_filter": "com.android.tools.idea.avdmanager",
         },
         "AndroidKotlinCompletionContributorTest": {
             "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
         },
-        "designer.overlay": {
-            "test_filter": "com.android.tools.idea.designer.overlay",
+        "configurations": {
+            "test_filter": "com.android.tools.idea.configurations",
         },
         "diagnostics": {
             "test_filter": "com.android.tools.idea.diagnostics",
+        },
+        "editors": {
+            "test_filter": "com.android.tools.idea.editors",
         },
         "editors.fast": {
             "test_filter": "com.android.tools.idea.editors.fast",
@@ -188,10 +197,22 @@ iml_module(
         "instantapp": {
             "test_filter": "com.android.tools.idea.instantapp",
         },
+        "javadoc": {
+            "test_filter": "com.android.tools.idea.javadoc",
+        },
+        "lang": {
+            "test_filter": "com.android.tools.idea.lang",
+        },
+        "model": {
+            "test_filter": "com.android.tools.idea.model",
+        },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.navigator",
+        },
+        "project": {
+            "test_filter": "com.android.tools.idea.project",
         },
         "modularize": {
             "test_filter": "com.android.tools.idea.refactoring.modularize",
@@ -214,7 +235,13 @@ iml_module(
             "shard_count": 3,
             "test_filter": "com.android.tools.idea.testartifacts",
         },
-        "resourcemanager": {
+        "ui": {
+            "test_filter": "com.android.tools.idea.ui",
+        },
+        "ui.designer.overlays": {
+            "test_filter": "com.android.tools.idea.ui.designer.overlays",
+        },
+        "ui.resourcemanager": {
             "test_filter": "com.android.tools.idea.ui.resourcemanager",
             "shard_count": 2,
         },
