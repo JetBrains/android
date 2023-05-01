@@ -1,6 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -228,17 +229,7 @@ iml_module(
     ],
 )
 
-compose_preview_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-}) + [
+compose_preview_data = [
     ":compose_preview_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//tools/adt/idea/compose-designer/testData:composepreview",
@@ -269,7 +260,7 @@ maven_repository(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "ComposePreviewKotlinTest",
     timeout = "long",
     data = compose_preview_data,

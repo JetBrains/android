@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -182,17 +183,7 @@ iml_module(
     ],
 )
 
-layout_editor_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-}) + [
+layout_editor_data = [
     ":layout_preview_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//prebuilts/studio/sdk:emulator",
@@ -219,7 +210,7 @@ maven_repository(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "LayoutEditorPreviewTest",
     timeout = "long",
     data = layout_editor_data,
@@ -235,7 +226,7 @@ iml_test(
     test_class = "com.android.tools.idea.designer.LayoutEditorPreviewTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "VisualLintTest",
     timeout = "long",
     data = layout_editor_data,

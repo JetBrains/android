@@ -1,4 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "ImlModuleInfo")
+load("//tools/base/bazel:bazel.bzl", "ImlModuleInfo", "iml_test")
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
@@ -1189,4 +1189,19 @@ def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
             "//tools/base/bazel:darwin_arm64": jars_darwin_aarch64,
             "//conditions:default": jars_linux,
         }),
+    )
+
+def iml_studio_test(
+        name,
+        data = [],
+        **kwargs):
+    iml_test(
+        name = name,
+        data = select({
+            "@platforms//os:linux": ["//tools/adt/idea/studio:android-studio.linux.zip"],
+            "@platforms//os:macos": ["//tools/adt/idea/studio:android-studio.mac.zip"],
+            "@platforms//os:windows": ["//tools/adt/idea/studio:android-studio.win.zip"],
+            "//conditions:default": [],
+        }) + data,
+        **kwargs
     )

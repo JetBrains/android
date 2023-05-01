@@ -1,6 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -19,21 +20,10 @@ iml_module(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "LaunchInspectorsTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-        "//conditions:default": [],
-    }) + [
+    data = [
         ":minapp",
         ":minapp_deps",
         "//prebuilts/studio/sdk:build-tools/30.0.3",

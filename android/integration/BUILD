@@ -1,6 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -21,23 +22,13 @@ iml_module(
     ],
 )
 
-open_project_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-}) + [
+open_project_data = [
     ":minapp",
     ":openproject_deps",
     INTEGRATION_TEST_GRADLE_VERSION,
 ]
 
-iml_test(
+iml_studio_test(
     name = "OpenProjectTest",
     timeout = "long",
     data = open_project_data,
@@ -47,7 +38,7 @@ iml_test(
     test_class = "com.android.tools.idea.OpenProjectTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "OpenProjectWithThreadingAgentDisabledTest",
     timeout = "long",
     data = open_project_data,
@@ -74,20 +65,10 @@ iml_test(
     test_class = "com.android.tools.idea.EmulatorTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "DebuggerTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }) + [
+    data = [
         ":buildproject_deps",
         ":minapp",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
@@ -119,19 +100,9 @@ iml_test(
     test_class = "com.android.tools.idea.AdbServerConnectionTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "EmulatorBeforeStudioTest",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }) + [
+    data = [
         ":minapp",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -147,19 +118,9 @@ iml_test(
     test_class = "com.android.tools.idea.EmulatorBeforeStudioTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "EmulatorAfterStudioTest",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }) + [
+    data = [
         ":minapp",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -178,21 +139,10 @@ iml_test(
     test_class = "com.android.tools.idea.EmulatorAfterStudioTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "LiveEditTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-        "//conditions:default": [],
-    }) + [
+    data = [
         ":live_edit_project_deps",
         ":liveeditproject",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
@@ -214,18 +164,7 @@ iml_test(
     test_class = "com.android.tools.idea.LiveEditTest",
 )
 
-build_and_run_test_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-    "//conditions:default": [],
-}) + [
+build_and_run_test_data = [
     ":buildproject_deps",
     ":minapp",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
@@ -235,7 +174,7 @@ build_and_run_test_data = select({
     INTEGRATION_TEST_SYSTEM_IMAGE,
 ]
 
-iml_test(
+iml_studio_test(
     name = "BuildAndRunTest",
     timeout = "long",
     data = build_and_run_test_data,
@@ -249,20 +188,10 @@ iml_test(
     test_class = "com.android.tools.idea.BuildAndRunTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "CreateProjectTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }) + [
+    data = [
         ":createproject_deps",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
         INTEGRATION_TEST_GRADLE_VERSION,
@@ -341,20 +270,10 @@ maven_repository(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "BuildProjectTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }) + [
+    data = [
         ":buildproject_deps",
         ":minapp",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
@@ -366,21 +285,10 @@ iml_test(
     test_class = "com.android.tools.idea.BuildProjectTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "RunApkTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-        "//conditions:default": [],
-    }) + [
+    data = [
         ":helloworldapk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:emulator",
@@ -400,21 +308,10 @@ iml_test(
     test_class = "com.android.tools.idea.RunApkTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "BuildAndRunInstrumentedTest",
     timeout = "long",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-        "//conditions:default": [],
-    }) + [
+    data = [
         ":instrumenttestapp",
         ":run_instrumented_test_project_deps",
         "//prebuilts/studio/sdk:build-tools/30.0.3",

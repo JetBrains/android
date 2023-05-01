@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/adt/idea/studio:studio.bzl", "android_studio", "studio_plugin")
+load("//tools/adt/idea/studio:studio.bzl", "android_studio", "iml_studio_test", "studio_plugin")
 
 studio_plugin(
     name = "org.jetbrains.android",
@@ -957,57 +957,25 @@ iml_module(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "StartUpTest",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }),
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.StartUpTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "StartUpCustomJvmTest",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }),
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.StartUpCustomJvmTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "UpdateTest",
-    data = select({
-        "@platforms//os:linux": [
-            ":android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            ":android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            ":android-studio.win.zip",
-        ],
-    }) + [
+    data = [
         ":updater",
         ":updater.jar",
     ],
