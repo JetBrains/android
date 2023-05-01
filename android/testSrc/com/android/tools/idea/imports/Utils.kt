@@ -153,6 +153,11 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "fqcns": [
                   "androidx.camera.core.ExtendableBuilder",
                   "androidx.camera.core.ImageCapture"
+                ],
+                "ktlfns": [
+                  {
+                    "fqn": "androidx.camera.core.FileFacadeKt.cameraCoreTopLevelFunction"
+                  }
                 ]
               },
               {

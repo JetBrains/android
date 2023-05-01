@@ -94,6 +94,69 @@ class AndroidMavenImportIntentionActionTest {
   }
 
   @Test
+  fun unresolvedTopLevelFunctionSymbolInAndroidX_kotlin() {
+    openTestProject(AndroidCoreTestProject.ANDROIDX_SIMPLE) {  // this project uses AndroidX
+      assertBuildGradle(project) { !it.contains("androidx.camera:camera-core:") }
+      fixture.loadNewFile(
+        "app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+      package test.pkg.imports
+      val view = cameraCoreTopLevelFunction() // Here cameraCoreTopLevelFunction is an unresolvable symbol
+      """.trimIndent()
+      )
+      val source = fixture.editor.document.text
+
+      val action = AndroidMavenImportIntentionAction()
+      val element = fixture.moveCaret("cameraCoreTopLevelFunction|")
+      val available = action.isAvailable(project, fixture.editor, element)
+      assertThat(available).isTrue()
+      assertThat(action.text).isEqualTo("Add dependency on androidx.camera:camera-core (alpha) and import")
+      // Note: We do perform, not performAndSync here, since the androidx libraries aren't available
+      // in the test prebuilts right now
+      performWithoutSync(action, element)
+
+      assertBuildGradle(project) { it.contains("implementation 'androidx.camera:camera-core:1.1.0-alpha03") }
+
+      // Make sure we've imported the function correctly as well
+      val newSource = fixture.editor.document.text
+      val diff = TestUtils.getDiff(source, newSource, 1)
+      assertThat(diff.trim()).isEqualTo(
+        """
+      @@ -2 +2
+        package test.pkg.imports
+      +
+      + import androidx.camera.core.cameraCoreTopLevelFunction
+      +
+        val view = cameraCoreTopLevelFunction() // Here cameraCoreTopLevelFunction is an unresolvable symbol
+      """.trimIndent().trim()
+      )
+    }
+  }
+
+  @Test
+  fun unresolvedTopLevelFunctionSymbolInAndroidX_java() {
+    openTestProject(AndroidCoreTestProject.ANDROIDX_SIMPLE) {  // this project uses AndroidX
+      assertBuildGradle(project) { !it.contains("androidx.camera:camera-core:") }
+      fixture.loadNewFile(
+        "app/src/main/java/test/pkg/imports/MainActivity2.java", """
+      package test.pkg.imports;
+      public class Test {
+          public static void Foo() {
+              cameraCoreTopLevelFunction() // Here cameraCoreTopLevelFunction is an unresolvable symbol
+          }
+      }
+      """.trimIndent()
+      )
+
+      val action = AndroidMavenImportIntentionAction()
+      val element = fixture.moveCaret("cameraCoreTopLevelFunction|")
+
+      // Top-level Kotlin functions should not be suggested outside Kotlin files.
+      val available = action.isAvailable(project, fixture.editor, element)
+      assertThat(available).isFalse()
+    }
+  }
+
+  @Test
   fun doNotImportAlreadyImported() {
     // Like testUnresolvedSymbolInAndroidX, but in this case the symbol is already imported in
     // the source file; in that case, make sure we don't add an extra import. (In Java this is

@@ -78,7 +78,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
 
       if (reference.resolve() == null) {
         val className: String = tag.name
-        val fixes = mavenClassRegistryManager.collectFixesFromMavenClassRegistry(className, tag.project)
+        val fixes = mavenClassRegistryManager.collectFixesFromMavenClassRegistry(className, tag.project, tag.containingFile?.fileType)
         getTagNameRange(tag)?.let {
           myResult.add(
             myInspectionManager.createProblemDescriptor(

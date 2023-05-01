@@ -18,6 +18,8 @@ package com.android.tools.idea.imports
 import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.gson.stream.JsonReader
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.fileTypes.FileType
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.name.FqName
 import java.io.IOException
 import java.io.InputStream
@@ -33,22 +35,27 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
   val lookup: LookupData = generateLookup()
 
   /**
-   * Given a class name, returns the likely collection of [LibraryImportData] objects for the maven.google.com artifacts containing that
-   * class.
-   *
-   * Here, the passed in [className] can be either short class name or fully qualified class name.
+   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the maven.google.com artifacts containing a
+   * class or function matching the name.
    *
    * This implementation only returns results of index data from [GMavenIndexRepository].
+   *
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name (any files) or a top-level Kotlin function
+   * name (Kotlin files only).
    */
-  override fun findLibraryData(className: String, useAndroidX: Boolean): Collection<LibraryImportData> {
+  override fun findLibraryData(name: String, useAndroidX: Boolean, completionFileType: FileType?): Collection<LibraryImportData> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
 
-    val index = className.lastIndexOf('.')
-    val shortName = className.substring(index + 1)
-    val packageName = if (index == -1) "" else className.substring(0, index)
+    val shortName = name.substringAfterLast('.', missingDelimiterValue = name)
+    val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
 
-    val foundArtifacts = lookup.classNameMap[shortName] ?: return emptyList()
+    val foundArtifacts = buildList {
+      lookup.classNameMap[shortName]?.let { addAll(it) }
+
+      // Only suggest top-level Kotlin functions when completing in a Kotlin file.
+      if (completionFileType == KotlinFileType.INSTANCE) lookup.topLevelFunctionsMap[shortName]?.let { addAll(it) }
+    }
 
     if (packageName.isEmpty()) return foundArtifacts
 

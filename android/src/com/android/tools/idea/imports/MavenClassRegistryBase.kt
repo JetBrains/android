@@ -16,6 +16,7 @@
 package com.android.tools.idea.imports
 
 import com.android.tools.idea.projectsystem.DependencyType
+import com.intellij.openapi.fileTypes.FileType
 
 /**
  * Registry provides lookup service for Google Maven Artifacts when asked.
@@ -41,9 +42,13 @@ abstract class MavenClassRegistryBase {
   data class Coordinate(val groupId: String, val artifactId: String, val version: String)
 
   /**
-   * Given a class name, returns the likely collection of [LibraryImportData] objects for the following quick fixes purposes.
+   * Given an unresolved name, returns the likely collection of [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com
+   * artifacts containing a class or function matching the name.
+   *
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name (any files) or a top-level Kotlin function
+   * name (Kotlin files only).
    */
-  abstract fun findLibraryData(className: String, useAndroidX: Boolean): Collection<LibraryImportData>
+  abstract fun findLibraryData(name: String, useAndroidX: Boolean, completionFileType: FileType?): Collection<LibraryImportData>
 
   /**
    * For the given runtime artifact, if Kotlin is the adopted language, the corresponding ktx library is provided.

@@ -32,6 +32,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.GlobalUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
@@ -98,7 +99,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
    */
   fun perform(project: Project, editor: Editor, element: PsiElement, sync: Boolean) {
     val resolvable = findResolvable(element, editor.caretModel.offset) { text ->
-      Resolvable.createNewOrNull(findLibraryData(project, text))
+      Resolvable.createNewOrNull(findLibraryData(project, text, element.containingFile?.fileType))
     } ?: return
 
     val suggestions = resolvable.libraries
@@ -249,7 +250,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     if (!module.getModuleSystem().canRegisterDependency().isSupported()) return false
 
     val resolvable = findResolvable(element, editor?.caretModel?.offset ?: -1) { text ->
-      Resolvable.createNewOrNull(findLibraryData(project, text))
+      Resolvable.createNewOrNull(findLibraryData(project, text, element.containingFile?.fileType))
     } ?: return false
 
     val foundLibraries = resolvable.libraries
@@ -402,8 +403,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     return null
   }
 
-  private fun findLibraryData(project: Project, text: String): Collection<MavenClassRegistryBase.LibraryImportData> {
-    return getMavenClassRegistry().findLibraryData(text, project.isAndroidx())
+  private fun findLibraryData(project: Project, text: String, completionFileType: FileType?)
+      : Collection<MavenClassRegistryBase.LibraryImportData> {
+    return getMavenClassRegistry().findLibraryData(text, project.isAndroidx(), completionFileType)
   }
 
   private fun resolveArtifact(project: Project, language: Language, artifact: String): String {
