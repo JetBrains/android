@@ -47,7 +47,7 @@ fun createVitalsFilters(
   versions: MultiSelection<WithCount<Version>> = MultiSelection.emptySelection(),
   /** Selection of [TimeIntervalFilter]s. */
   timeInterval: Selection<TimeIntervalFilter> =
-    Selection(TimeIntervalFilter.TWENTY_EIGHT_DAYS, VitalsTimeIntervals),
+    Selection(TimeIntervalFilter.SEVEN_DAYS, VitalsTimeIntervals),
   failureTypeToggles: MultiSelection<FailureType> =
     MultiSelection(
       VitalsFailureTypes.toSet() + listOf(FailureType.FATAL),
