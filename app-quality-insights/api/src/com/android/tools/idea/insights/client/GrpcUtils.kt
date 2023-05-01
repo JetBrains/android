@@ -77,7 +77,7 @@ suspend fun <T> retryRpc(
       Random.nextLong(currentDelay)
         .also {
           log()
-            .debug(
+            .warn(
               "Retry attempt #${count + 1} for $rpcCall, retrying in ${it / 1000.0} second(s)..."
             )
         }

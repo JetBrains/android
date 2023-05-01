@@ -153,7 +153,7 @@ class AppInsightsProjectLevelControllerImpl(
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
           Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
-            .info("Got event $event for $project.")
+            .debug("Got event $event for $project.")
           val (newState, action) = event.transition(currentState, tracker)
           if (currentState.issues != newState.issues) {
             updateIssueIndex(computeIssuesPerFilename(newState.issues.map { it.value }))
