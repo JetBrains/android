@@ -34,6 +34,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -48,7 +49,14 @@ class AbstractInspectorClientTest {
 
   private var shouldEcho = true
   private val commandHandler = object : DeviceCommandHandler("shell") {
-    override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String) =
+    override fun accept(
+      server: FakeAdbServer,
+      socketScope: CoroutineScope,
+      socket: Socket,
+      device: DeviceState,
+      command: String,
+      args: String
+    ) =
       if (command == ("shell")) {
         writeOkay(socket.getOutputStream())
         if (shouldEcho && args.startsWith("echo ")) {

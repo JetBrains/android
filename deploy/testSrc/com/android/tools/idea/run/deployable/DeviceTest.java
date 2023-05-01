@@ -19,8 +19,6 @@ import static com.android.fakeadbserver.DeviceState.DeviceStatus.ONLINE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
-import com.android.SdkConstants;
-import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
@@ -29,8 +27,6 @@ import com.android.fakeadbserver.ClientState;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler;
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
-import com.android.testutils.TestUtils;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -45,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import kotlinx.coroutines.CoroutineScope;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -269,11 +266,12 @@ public class DeviceTest {
                                                       @NotNull Supplier<CountDownLatch> finishedLatchSupplier) {
     return new DeviceCommandHandler("shell") {
       @Override
-      public boolean accept(@NonNull FakeAdbServer server,
-                            @NonNull Socket socket,
-                            @NonNull DeviceState device,
-                            @NonNull String command,
-                            @NonNull String args) {
+      public boolean accept(@NotNull FakeAdbServer server,
+                            @NotNull CoroutineScope socketScope,
+                            @NotNull Socket socket,
+                            @NotNull DeviceState device,
+                            @NotNull String command,
+                            @NotNull String args) {
         if (!this.command.equals(command) || !commandPattern.matcher(args).matches()) {
           return false;
         }

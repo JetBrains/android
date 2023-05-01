@@ -23,6 +23,7 @@ import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.google.common.truth.Truth.assertThat
 import java.net.Socket
+import kotlinx.coroutines.CoroutineScope
 import org.junit.Rule
 import org.junit.Test
 
@@ -56,6 +57,7 @@ private const val DUMP_PACKAGE = "dumpsys package "
 private class FakeShellDumpSysCommandHandler : DeviceCommandHandler("shell") {
   override fun accept(
     server: FakeAdbServer,
+    socketScope: CoroutineScope,
     socket: Socket,
     device: DeviceState,
     command: String,

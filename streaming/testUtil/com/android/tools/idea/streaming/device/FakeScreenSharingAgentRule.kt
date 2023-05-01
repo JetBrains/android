@@ -34,6 +34,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
@@ -101,7 +102,7 @@ class FakeScreenSharingAgentRule : TestRule {
   private fun createFakeAdbRule(): FakeAdbRule {
     return FakeAdbRule().apply {
       withDeviceCommandHandler(object : DeviceCommandHandler("shell,v2") {
-        override fun invoke(server: FakeAdbServer, socket: Socket, device: DeviceState, args: String) {
+        override fun invoke(server: FakeAdbServer, socketScope: CoroutineScope, socket: Socket, device: DeviceState, args: String) {
           if (args.contains("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")) {
             val fakeDevice = devices.find { it.serialNumber == device.deviceId }!!
             val shellProtocol = ShellV2Protocol(socket)
@@ -118,7 +119,7 @@ class FakeScreenSharingAgentRule : TestRule {
         }
       })
       withDeviceCommandHandler(object : DeviceCommandHandler("reverse") {
-        override fun invoke(server: FakeAdbServer, socket: Socket, device: DeviceState, args: String) {
+        override fun invoke(server: FakeAdbServer, socketScope: CoroutineScope, socket: Socket, device: DeviceState, args: String) {
           val fakeDevice = devices.find { it.serialNumber == device.deviceId }!!
           if (args.startsWith("forward:")) {
             val parts = args.split(';')

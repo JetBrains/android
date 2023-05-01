@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.adb
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import kotlinx.coroutines.CoroutineScope
 import java.net.Socket
 import java.util.ArrayDeque
 
@@ -30,7 +31,14 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
   override var debugViewAttributesApplicationPackage: String? = null
   override var debugViewAttributesChangesCount: Int = 0
 
-  override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
+  override fun accept(
+    server: FakeAdbServer,
+    socketScope: CoroutineScope,
+    socket: Socket,
+    device: DeviceState,
+    command: String,
+    args: String
+  ): Boolean {
     val response = when (command) {
       "shell" -> handleShellCommand(args) ?: return false
       else -> return false

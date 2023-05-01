@@ -41,6 +41,7 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.notification.EventLog
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import kotlinx.coroutines.CoroutineScope
 import org.fest.swing.core.MouseButton
 import org.fest.swing.data.TableCell
 import org.fest.swing.timing.Wait
@@ -350,7 +351,14 @@ class BasicLayoutInspectorUITest {
       get() = debugViewAttributes == null &&
               debugViewAttributesApplicationPackage == null
 
-    override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
+    override fun accept(
+      server: FakeAdbServer,
+      socketScope: CoroutineScope,
+      socket: Socket,
+      device: DeviceState,
+      command: String,
+      args: String
+    ): Boolean {
       val response = when (command) {
         "shell" -> handleShellCommand(args) ?: return false
         else -> return false

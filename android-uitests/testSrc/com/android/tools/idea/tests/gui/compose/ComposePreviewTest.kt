@@ -35,6 +35,7 @@ import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.exception.WaitTimedOutError
@@ -401,7 +402,14 @@ class ComposePreviewTest {
     var composableFqn: String = "com.example.MyComposable"
     var previewActivityName: String = "Activity"
 
-    override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
+    override fun accept(
+      server: FakeAdbServer,
+      socketScope: CoroutineScope,
+      socket: Socket,
+      device: DeviceState,
+      command: String,
+      args: String
+    ): Boolean {
       val deployArgs = "am start -n \"$composablePackageName/$previewActivityName\"" +
                        " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es composable $composableFqn"
       val stopArgs = "am force-stop $composablePackageName"
