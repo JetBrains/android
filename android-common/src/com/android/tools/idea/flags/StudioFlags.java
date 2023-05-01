@@ -1599,7 +1599,7 @@ public final class StudioFlags {
       "enable.play.vitals",
       "Enable the play vitals tool window tab.",
       "Enables the play vitals tab and its associated functionality.",
-      false);
+      true);
 
   public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
     Flag.create(
