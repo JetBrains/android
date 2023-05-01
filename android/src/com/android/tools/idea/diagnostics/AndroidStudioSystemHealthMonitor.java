@@ -309,6 +309,19 @@ public final class AndroidStudioSystemHealthMonitor {
           return false;
         }
       }
+
+      if (ServerFlagService.Companion.getInstance().getBoolean("diagnostics/forced_gc", false)) {
+        // Free up some memory by clearing weak/soft references
+        long memoryFreed = freeUpMemory();
+        LOG.warn("Forced clear of soft/weak references. Reason: " + reason + ", freed memory: " + (memoryFreed / 1_000_000) + "MB");
+        if (memoryFreed >= MEMORY_FREED_THRESHOLD_FOR_HEAP_REPORT) {
+          // Enough memory was freed, so there is no reason to send the report.
+          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.EXCESS_FREE_MEMORY_AFTER_GC).build()));
+          return false;
+        }
+      }
+
       if (reason == MemoryReportReason.FrequentLowMemoryNotification) {
         return false;
       }
