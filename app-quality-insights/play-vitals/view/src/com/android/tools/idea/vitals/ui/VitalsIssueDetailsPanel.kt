@@ -23,10 +23,14 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.IssueDetails
+import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.IssueState
+import com.android.tools.idea.insights.MultiSelection
+import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
+import com.android.tools.idea.insights.VisibilityType
+import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
@@ -88,24 +92,70 @@ private const val NOTHING_SELECTED_LABEL = "Select an issue."
 private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
 
-private data class VitalsDetailsState(
+data class VitalsDetailsState(
   val selectedConnection: Connection?,
-  val selectedTimeIntervalAsSeconds: TimeIntervalFilter?,
+  val selectedTimeInterval: TimeIntervalFilter?,
   val selectedVersion: Set<Version>,
   val selectedIssue: AppInsightsIssue?,
-  val connectionMode: ConnectionMode
-)
+  val connectionMode: ConnectionMode,
+  val selectedOsVersion: Set<OperatingSystemInfo>,
+  val selectedDevices: Set<Device>,
+  val selectedVisibility: VisibilityType?
+) {
+
+  fun toConsoleUrl(): String? {
+    if (selectedIssue == null) {
+      // Can't generate a link to an issue if none are selected.
+      return null
+    }
+
+    val params = mutableListOf<String>()
+    if (selectedTimeInterval != null) {
+      params.add("days=${selectedTimeInterval.numDays}")
+    }
+    if (selectedVersion.isNotEmpty()) {
+      params.add("versionCode=${selectedVersion.joinToString(",") { it.buildVersion }}")
+    }
+    if (selectedOsVersion.isNotEmpty()) {
+      params.add("osVersion=${selectedOsVersion.joinToString(",") { it.displayVersion }}")
+    }
+    if (selectedDevices.isNotEmpty()) {
+      params.add(
+        "deviceName=${selectedDevices.joinToString(",") { "${it.manufacturer}/${it.model}" }}"
+      )
+    }
+    if (selectedVisibility != null && selectedVisibility != VisibilityType.ALL) {
+      params.add(
+        // TODO(b/280341834): use isUserPerceived filter when it's available in the API.
+        when (selectedVisibility) {
+          VisibilityType.USER_PERCEIVED -> "appProcessState=Foreground"
+          VisibilityType.NON_USER_PERCEIVED -> "appProcessState=Background"
+          else -> "" // Shouldn't hit this case.
+        }
+      )
+    }
+    return "${selectedIssue.issueDetails.uri}?${params.joinToString("&")}"
+  }
+}
 
 private val DefaultVitalsDetailsState =
-  VitalsDetailsState(null, null, emptySet(), null, ConnectionMode.ONLINE)
+  VitalsDetailsState(
+    null,
+    null,
+    emptySet(),
+    null,
+    ConnectionMode.ONLINE,
+    emptySet(),
+    emptySet(),
+    null
+  )
 
 class VitalsIssueDetailsPanel(
   controller: AppInsightsProjectLevelController,
   project: Project,
   val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
-  private val tracker: AppInsightsTracker,
-  private val getConsoleUrl: (Connection, Pair<Long, Long>?, Set<Version>, IssueDetails) -> String
+  private val tracker: AppInsightsTracker
 ) : JPanel(BorderLayout()) {
   private val scope = AndroidCoroutineScope(parentDisposable)
   private val detailsState =
@@ -114,10 +164,12 @@ class VitalsIssueDetailsPanel(
         VitalsDetailsState(
           state.connections.selected,
           state.filters.timeInterval.selected,
-          if (state.filters.versions.allSelected()) emptySet()
-          else state.filters.versions.items.map { it.value }.toSet(),
+          state.filters.versions.getSelectedValueOrEmpty(),
           state.selectedIssue,
-          state.mode
+          state.mode,
+          state.filters.operatingSystems.getSelectedValueOrEmpty(),
+          state.filters.devices.getSelectedValueOrEmpty(),
+          state.filters.visibilityType.selected
         )
       }
       .stateIn(scope, SharingStarted.Eagerly, DefaultVitalsDetailsState)
@@ -199,14 +251,7 @@ class VitalsIssueDetailsPanel(
         .collect { state ->
           val issue = state.selectedIssue!!
           if (state.selectedConnection != null) {
-            vitalsConsoleLink.setHyperlinkTarget(
-              getConsoleUrl(
-                state.selectedConnection,
-                state.selectedTimeIntervalAsSeconds?.asMillisFromNow(),
-                state.selectedVersion,
-                issue.issueDetails
-              )
-            )
+            vitalsConsoleLink.setHyperlinkTarget(state.toConsoleUrl())
             vitalsConsoleLink.addMouseListener(
               object : MouseAdapter() {
                 override fun mousePressed(e: MouseEvent?) {
@@ -388,3 +433,6 @@ class VitalsIssueDetailsPanel(
     emptyText?.setFont(StartupUiUtil.getLabelFont())
   }
 }
+
+private fun <T> MultiSelection<WithCount<T>>.getSelectedValueOrEmpty() =
+  if (allSelected()) emptySet() else selected.map { it.value }.toSet()

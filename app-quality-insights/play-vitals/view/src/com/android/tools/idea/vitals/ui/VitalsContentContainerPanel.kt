@@ -98,10 +98,7 @@ class VitalsContentContainerPanel(
         AppInsightsIssuesTableCellRenderer,
         listOfNotNull(DistributionToolWindow.create(scope, projectController.state))
       ) {
-        VitalsIssueDetailsPanel(projectController, project, it, this, tracker) { _, _, _, _ ->
-          // TODO: construct actual link to play vitals console
-          "play.google.com"
-        }
+        VitalsIssueDetailsPanel(projectController, project, it, this, tracker)
       },
       MAIN_CARD
     )
