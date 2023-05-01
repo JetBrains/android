@@ -831,7 +831,10 @@ internal fun modelCacheV2Impl(
       /* If we are computing the runtime classpath then save references to any module dependencies within the graph */
       if (classpathId.classpathType == ClasspathType.RUNTIME) {
         projectIdToIndex.forEach { (id, index) ->
-          internedModels.projectReferenceToArtifactClasspathMap[id] = ideDependenciesCore to index
+          // Don't override stored classpath references, preferring the first classpath that we come across instead of the last.
+          internedModels.projectReferenceToArtifactClasspathMap.putIfAbsent(
+            id,
+            ideDependenciesCore to index)
         }
       }
 
