@@ -22,7 +22,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.FakeLogcatPresenter
-import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
@@ -81,7 +81,7 @@ class FilterTextFieldTest {
   private val project get() = projectRule.project
   private val filterHistory by lazy { AndroidLogcatFilterHistory.getInstance() }
   private val fakeLogcatPresenter by lazy { FakeLogcatPresenter().apply { Disposer.register(disposableRule.disposable, this) } }
-  private val logcatFilterParser by lazy { LogcatFilterParser(project, FakePackageNamesProvider()) }
+  private val logcatFilterParser by lazy { LogcatFilterParser(project, FakeProjectApplicationIdsProvider(project)) }
 
   @After
   fun tearDown() {

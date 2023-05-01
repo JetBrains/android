@@ -17,7 +17,7 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
@@ -38,8 +38,8 @@ import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange.EMPTY_RANGE
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.testFramework.replaceService
@@ -60,10 +60,13 @@ private val MESSAGE2 = logcatMessage(WARN, pid = 2, tid = 2, "app2", "Tag2", TIM
  * Tests for [LogcatFilter] implementations.
  */
 class LogcatFilterTest {
+  private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS))
+  val rule = RuleChain(projectRule, disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS))
+
+  private val project by lazy(projectRule::project)
 
   private val logcatSettings = AndroidLogcatSettings()
 
@@ -289,8 +292,9 @@ class LogcatFilterTest {
     val message1 = logcatMessage(appId = "foo")
     val message2 = logcatMessage(appId = "bar")
     val message3 = logcatMessage(appId = "foobar")
+    val filter = ProjectAppFilter(FakeProjectApplicationIdsProvider(project, "foo", "bar"), EMPTY_RANGE)
 
-    assertThat(ProjectAppFilter(FakePackageNamesProvider("foo", "bar"), EMPTY_RANGE).filter(listOf(message1, message2, message3)))
+    assertThat(filter.filter(listOf(message1, message2, message3)))
       .containsExactly(
         message1,
         message2
@@ -302,8 +306,9 @@ class LogcatFilterTest {
     val message1 = logcatMessage(appId = "foo")
     val message2 = logcatMessage(appId = "bar")
     val message3 = logcatMessage(appId = "error", logLevel = ERROR)
+    val filter = ProjectAppFilter(FakeProjectApplicationIdsProvider(project), EMPTY_RANGE)
 
-    assertThat(ProjectAppFilter(FakePackageNamesProvider(), EMPTY_RANGE).filter(listOf(message1, message2, message3))).isEmpty()
+    assertThat(filter.filter(listOf(message1, message2, message3))).isEmpty()
   }
 
   @Test
@@ -312,9 +317,10 @@ class LogcatFilterTest {
     val message2 = logcatMessage(logLevel = ERROR, message = "Error message from com.app2")
     val message3 = logcatMessage(logLevel = WARN, message = "Warning message from com.app2")
     val message4 = logcatMessage(logLevel = ERROR, message = "Error message from com.app3")
+    val filter = ProjectAppFilter(FakeProjectApplicationIdsProvider(project, "app1", "app2"), EMPTY_RANGE)
 
     assertThat(
-      ProjectAppFilter(FakePackageNamesProvider("app1", "app2"), EMPTY_RANGE).filter(listOf(message1, message2, message3, message4)))
+      filter.filter(listOf(message1, message2, message3, message4)))
       .containsExactly(
         message1,
         message2,
@@ -490,13 +496,12 @@ class LogcatFilterTest {
 
   @Test
   fun displayText_projectAppFilter() {
-    val packageNamesProvider = FakePackageNamesProvider()
-    val projectAppFilter = ProjectAppFilter(packageNamesProvider, EMPTY_RANGE)
+    val projectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project)
+    val projectAppFilter = ProjectAppFilter(projectApplicationIdsProvider, EMPTY_RANGE)
     assertThat(projectAppFilter.displayText)
       .isEqualTo("No project ids detected. Is the project synced?")
 
-    packageNamesProvider.getPackageNames().add("app1")
-    packageNamesProvider.getPackageNames().add("app2")
+    projectApplicationIdsProvider.setApplicationIds("app1", "app2")
     assertThat(projectAppFilter.displayText).isEqualTo(
       "<html>Filter logs from current project id(s):<br/>&nbsp;&nbsp;app1<br/>&nbsp;&nbsp;app2<html>")
   }

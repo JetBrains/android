@@ -18,23 +18,29 @@ package com.android.tools.idea.logcat.service
 import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.common.ProcessEvent.ProcessRemoved
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
-import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import org.junit.Rule
 import org.junit.Test
 
 /**
  * Tests for [ProjectAppMonitor]
  */
 class ProjectAppMonitorTest {
+  @get:Rule
+  val projectRule = ProjectRule()
+
   private val fakeProcessNameMonitor = FakeProcessNameMonitor()
 
-  private val fakePackageNamesProvider = FakePackageNamesProvider("com.example.app1", "com.example.app2")
+  private val project by lazy(projectRule::project)
+  private val fakeProjectApplicationIdsProvider by lazy { FakeProjectApplicationIdsProvider(project, "com.example.app1", "com.example.app2")}
 
   @Test
   fun addProcesses(): Unit = runBlocking {
@@ -42,7 +48,7 @@ class ProjectAppMonitorTest {
     fakeProcessTracker.send(ProcessAdded(1, "com.example.app1", "com.example.app1"))
     fakeProcessTracker.send(ProcessAdded(2, "com.example.app2", "com.example.app2"))
     fakeProcessTracker.send(ProcessAdded(3, "com.example.not-my-app", "com.example.not-my-app"))
-    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakePackageNamesProvider)
+    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakeProjectApplicationIdsProvider)
 
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
@@ -57,7 +63,7 @@ class ProjectAppMonitorTest {
   fun addProcesses_withNullApplicationId(): Unit = runBlocking {
     val fakeProcessTracker = fakeProcessNameMonitor.getProcessTracker("device1")
     fakeProcessTracker.send(ProcessAdded(1, null, "com.example.app1"))
-    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakePackageNamesProvider)
+    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakeProjectApplicationIdsProvider)
 
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
@@ -71,7 +77,7 @@ class ProjectAppMonitorTest {
   fun addProcesses_withDerivedApplicationId(): Unit = runBlocking {
     val fakeProcessTracker = fakeProcessNameMonitor.getProcessTracker("device1")
     fakeProcessTracker.send(ProcessAdded(1, null, "com.example.app1:service"))
-    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakePackageNamesProvider)
+    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakeProjectApplicationIdsProvider)
 
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
@@ -90,7 +96,7 @@ class ProjectAppMonitorTest {
     fakeProcessTracker.send(ProcessRemoved(1))
     fakeProcessTracker.send(ProcessRemoved(2))
     fakeProcessTracker.send(ProcessRemoved(3))
-    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakePackageNamesProvider)
+    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakeProjectApplicationIdsProvider)
 
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
@@ -108,7 +114,7 @@ class ProjectAppMonitorTest {
     val fakeProcessTracker = fakeProcessNameMonitor.getProcessTracker("device1")
     fakeProcessTracker.send(ProcessAdded(1, "com.example.app1", "com.example.app1"))
     fakeProcessTracker.send(ProcessAdded(1, "com.example.app1", "com.example.app1"))
-    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakePackageNamesProvider)
+    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakeProjectApplicationIdsProvider)
 
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
@@ -124,7 +130,7 @@ class ProjectAppMonitorTest {
     fakeProcessTracker.send(ProcessAdded(1, "com.example.app1", "com.example.app1"))
     fakeProcessTracker.send(ProcessRemoved(1))
     fakeProcessTracker.send(ProcessRemoved(1))
-    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakePackageNamesProvider)
+    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakeProjectApplicationIdsProvider)
 
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()
@@ -139,7 +145,7 @@ class ProjectAppMonitorTest {
   fun removeUnknownProcess(): Unit = runBlocking {
     val fakeProcessTracker = fakeProcessNameMonitor.getProcessTracker("device1")
     fakeProcessTracker.send(ProcessRemoved(1))
-    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakePackageNamesProvider)
+    val monitor = ProjectAppMonitor(fakeProcessNameMonitor, fakeProjectApplicationIdsProvider)
 
     val messages = async { monitor.monitorDevice("device1").toList() }
     fakeProcessTracker.close()

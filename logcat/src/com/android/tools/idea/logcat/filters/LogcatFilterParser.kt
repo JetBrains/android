@@ -17,7 +17,7 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.logcat.PackageNamesProvider
+import com.android.tools.idea.logcat.ProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -63,7 +63,7 @@ import java.time.Clock
  */
 internal class LogcatFilterParser(
   project: Project,
-  private val packageNamesProvider: PackageNamesProvider,
+  private val projectApplicationIdsProvider: ProjectApplicationIdsProvider,
   private val androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
   private val joinConsecutiveTopLevelValue: Boolean = false,
   private val topLevelSameKeyTreatment: CombineWith = OR,
@@ -286,14 +286,14 @@ internal class LogcatFilterParser(
   private fun LogcatFilterLiteralExpression.literalToFilter() =
     when (firstChild.elementType) {
       VALUE -> StringFilter(firstChild.toText(), IMPLICIT_LINE, TextRange(startOffset, endOffset))
-      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock, packageNamesProvider, androidProjectDetector)
+      KEY, STRING_KEY, REGEX_KEY -> toKeyFilter(clock, projectApplicationIdsProvider, androidProjectDetector)
       else -> throw ParseException("Unexpected elementType: $firstChild.elementType", -1) // Should not happen
     }
 }
 
 private fun LogcatFilterLiteralExpression.toKeyFilter(
   clock: Clock,
-  packageNamesProvider: PackageNamesProvider,
+  projectApplicationIdsProvider: ProjectApplicationIdsProvider,
   androidProjectDetector: AndroidProjectDetector,
 ): LogcatFilter {
   val textRange = TextRange(startOffset, endOffset)
@@ -326,7 +326,7 @@ private fun LogcatFilterLiteralExpression.toKeyFilter(
         isNegated -> NegatedStringFilter(value, field, textRange)
         isRegex -> RegexFilter(value, field, textRange)
         isExact -> ExactStringFilter(value, field, textRange)
-        key == "package" && value == "mine" && isAndroidProject() -> ProjectAppFilter(packageNamesProvider, textRange)
+        key == "package" && value == "mine" && isAndroidProject() -> ProjectAppFilter(projectApplicationIdsProvider, textRange)
         else -> StringFilter(value, field, textRange)
 
       }

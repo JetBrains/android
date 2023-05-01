@@ -21,7 +21,9 @@ import com.intellij.util.messages.Topic
 /**
  * Provides a set of application ids associated with the project
  */
-internal interface ProjectApplicationIdsProvider : PackageNamesProvider {
+internal interface ProjectApplicationIdsProvider {
+  fun getPackageNames(): Set<String>
+
   fun interface ProjectApplicationIdsListener {
     fun applicationIdsChanged(applicationIds: Set<String>)
   }

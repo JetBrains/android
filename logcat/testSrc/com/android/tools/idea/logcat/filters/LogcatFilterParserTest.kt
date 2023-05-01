@@ -18,7 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -67,8 +67,6 @@ private val invalidAges = listOf(
   "99999999999999999999999999999999999999999999999s", // Triggers a NumberFormatException
 )
 
-private val fakePackageNamesProvider = FakePackageNamesProvider()
-
 /**
  * Tests for [LogcatFilterParser]
  */
@@ -79,6 +77,8 @@ class LogcatFilterParserTest {
 
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
+
+  private val fakeProjectApplicationIdsProvider = FakeProjectApplicationIdsProvider(project)
 
   @Test
   fun parse_emptyFilter() {
@@ -383,7 +383,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_appFilter() {
-    assertThat(logcatFilterParser().parse("package:mine")).isEqualTo(ProjectAppFilter(fakePackageNamesProvider, "package:mine".asRange()))
+    assertThat(logcatFilterParser().parse("package:mine")).isEqualTo(ProjectAppFilter(fakeProjectApplicationIdsProvider, "package:mine".asRange()))
   }
 
   @Test
@@ -540,7 +540,7 @@ class LogcatFilterParserTest {
     clock: Clock = Clock.systemUTC(),
   ) = LogcatFilterParser(
     project,
-    fakePackageNamesProvider,
+    fakeProjectApplicationIdsProvider,
     androidProjectDetector,
     joinConsecutiveTopLevelValue,
     topLevelSameKeyTreatment,

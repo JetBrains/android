@@ -18,7 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.BUNDLE_NAME
 import com.android.tools.idea.logcat.LogcatBundle.message
-import com.android.tools.idea.logcat.PackageNamesProvider
+import com.android.tools.idea.logcat.ProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
@@ -261,22 +261,22 @@ internal data class AgeFilter(
  * A special filter that matches the appName field in a [LogcatMessage] against a list of package names from the project.
  */
 internal class ProjectAppFilter(
-  private val packageNamesProvider: PackageNamesProvider,
+  private val projectApplicationIdsProvider: ProjectApplicationIdsProvider,
   override val textRange: TextRange,
 ) : LogcatFilter(textRange) {
   private var packageNames: Set<String> = emptySet()
   private var packageNamesRegex: Regex? = null
 
   override val displayText: String
-    get() = when (packageNamesProvider.getPackageNames().size) {
+    get() = when (projectApplicationIdsProvider.getPackageNames().size) {
       0 -> message("logcat.filter.completion.hint.package.mine.empty")
       else -> message(
         "logcat.filter.completion.hint.package.mine.items",
-        packageNamesProvider.getPackageNames().joinToString("<br/>&nbsp;&nbsp;"))
+        projectApplicationIdsProvider.getPackageNames().joinToString("<br/>&nbsp;&nbsp;"))
     }
 
   override fun prepare() {
-    packageNames = packageNamesProvider.getPackageNames()
+    packageNames = projectApplicationIdsProvider.getPackageNames()
     packageNamesRegex = if (packageNames.isNotEmpty()) packageNames.joinToString("|") { it.replace(".", "\\.") }.toRegex() else null
   }
 
@@ -286,9 +286,9 @@ internal class ProjectAppFilter(
            || (header.logLevel >= ERROR && packageNamesRegex?.containsMatchIn(message.logcatMessage.message) == true)
   }
 
-  override fun equals(other: Any?) = other is ProjectAppFilter && packageNamesProvider == other.packageNamesProvider
+  override fun equals(other: Any?) = other is ProjectAppFilter && projectApplicationIdsProvider == other.projectApplicationIdsProvider
 
-  override fun hashCode() = packageNamesProvider.hashCode()
+  override fun hashCode() = projectApplicationIdsProvider.hashCode()
 }
 
 /*
