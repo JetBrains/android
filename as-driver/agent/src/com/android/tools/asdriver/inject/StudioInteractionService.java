@@ -19,6 +19,7 @@ import com.android.tools.asdriver.proto.ASDriver;
 import com.intellij.BundleBase;
 import com.intellij.ide.DataManager;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationsManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -118,11 +119,11 @@ public class StudioInteractionService {
 
     while (elapsedTime < timeoutMillis) {
       SwingUtilities.invokeLater(() -> {
-          Optional<Component> component = findComponentFromMatchers(matchers);
-          if (component.isPresent() && isComponentInvokable(component.get())) {
-            foundComponent.set(true);
-            invokeComponent(component.get());
-          }
+        Optional<Component> component = findComponentFromMatchers(matchers);
+        if (component.isPresent() && isComponentInvokable(component.get())) {
+          foundComponent.set(true);
+          invokeComponent(component.get());
+        }
       });
 
       // The invokeLater call above queues a Runnable to be executed on the UI thread at some point
@@ -195,7 +196,7 @@ public class StudioInteractionService {
       componentAsLink.doClick();
     } else if (component instanceof NotificationComponent) {
       log("Invoking hyperlink in Notification: " + component);
-      ((NotificationComponent)component).hyperlinkUpdate();
+      ((NotificationComponent)component).invokeHyperlink();
     } else if (component instanceof JListItemComponent) {
       log("Invoking JListItemComponent item: " + component);
       ((JListItemComponent)component).invoke();
@@ -482,7 +483,7 @@ public class StudioInteractionService {
       this.notification = notification;
     }
 
-    public void hyperlinkUpdate() {
+    private void invokeHyperlinkViaListener() {
       try {
         String source = "Link inside notification";
         HyperlinkEvent e = new HyperlinkEvent(source, HyperlinkEvent.EventType.ACTIVATED, new URL("http://localhost/madeup"));
@@ -490,6 +491,33 @@ public class StudioInteractionService {
       }
       catch (MalformedURLException ex) {
         ex.printStackTrace();
+      }
+    }
+
+    private void invokeHyperlinkViaAction() {
+      List<AnAction> actions = notification.getActions();
+      System.out.printf("Invoking a hyperlink via its first action (of %d)%n", actions.size());
+      NotificationAction action = (NotificationAction)actions.get(0);
+      try {
+        DataContext context = DataManager.getInstance().getDataContext();
+        AnActionEvent event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, context);
+        action.actionPerformed(event, notification);
+        System.out.println("Successfully ran the notification's action");
+      }
+      catch (Exception e) {
+        System.err.println("Got exception: " + e);
+        throw e;
+      }
+    }
+
+    public void invokeHyperlink() {
+      // A recent platform merge caused the listener to be null on Windows machines, in which case
+      // we have to invoke the hyperlink differently.
+      if (notification.getListener() == null) {
+        invokeHyperlinkViaAction();
+      }
+      else {
+        invokeHyperlinkViaListener();
       }
     }
   }
