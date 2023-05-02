@@ -17,6 +17,7 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
+import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.codeStyle.MinusculeMatcher
 import com.intellij.psi.codeStyle.NameUtil
@@ -61,7 +62,7 @@ private fun Int.modulo(other: Int): Int {
 /**
  * A popup menu used to display completions while editing a [CommonTextField].
  */
-class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, private val ui: LookupUI = DefaultLookupUI()) {
+class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, private val ui: LookupUI = DefaultLookupUI(editor)) {
   private val listModel = DefaultListModel<String>()
   private val filteredModel = FilteringListModel<String>(listModel)
   private var matcher = Matcher()
@@ -83,7 +84,6 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   private var currentValueIncluded = false
 
   init {
-    @Suppress("UNCHECKED_CAST")
     ui.createList(filteredModel as ListModel<String>, matcher, editor)
     ui.clickAction = { enter() }
     filteredModel.setFilter(condition)
@@ -325,8 +325,8 @@ interface LookupUI {
 /**
  * Implementation of the popup using a [JPopupMenu].
  */
-class DefaultLookupUI : LookupUI {
-  private val popup = JPopupMenu()
+class DefaultLookupUI(private val component: Component) : LookupUI {
+  private val popup = JPopupMenu().apply { isFocusable = false }
   private val renderer = LookupCellRenderer()
   private val list = JBList<String>()
 
@@ -335,7 +335,11 @@ class DefaultLookupUI : LookupUI {
   override var visible: Boolean
     get() = popup.isVisible
     set(value) {
-      popup.isVisible = value
+      if (value) {
+        JBPopupMenu.showBelow(component, popup)
+      } else {
+        popup.isVisible = false
+      }
     }
 
   override var visibleRowCount: Int
