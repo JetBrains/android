@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.app-quality-insights.play-vitals.view",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.play-vitals.view.iml"],
+    resources = ["resources"],
     test_class = "com.android.tools.idea.vitals.ui.VitalsUiTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
