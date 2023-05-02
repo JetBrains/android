@@ -19,7 +19,6 @@ import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtConstructorCalleeExpression
@@ -50,11 +49,10 @@ class KotlinTypeDefCompletionContributor : TypeDefCompletionContributor() {
     if (this is KtLambdaArgument) return null
 
     val calleeElement =
-      analyze(this) {
-        parentOfType<KtCallElement>()?.calleeExpression
-          ?.let { if (it is KtConstructorCalleeExpression) it.constructorReferenceExpression else it }
-          ?.mainReference?.resolve()?.navigationElement
-      } ?: return null
+      parentOfType<KtCallElement>()?.calleeExpression
+        ?.let { if (it is KtConstructorCalleeExpression) it.constructorReferenceExpression else it }
+        ?.mainReference?.resolve()?.navigationElement
+      ?: return null
 
     val index = (parent as KtValueArgumentList).arguments.indexOf(this)
     val name = getArgumentName()?.asName?.asString()

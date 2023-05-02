@@ -18,14 +18,9 @@ package com.android.tools.idea.lang.typedef
 import com.intellij.patterns.ElementPattern
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.util.parentOfType
-import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiCall
 import com.intellij.psi.PsiExpressionList
-import com.intellij.psi.PsiNameValuePair
-import org.jetbrains.kotlin.psi.KtClass
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.patterns.PlatformPatterns.or
-import com.intellij.psi.PsiAnnotationParameterList
 import com.intellij.psi.PsiElement
 
 /**
