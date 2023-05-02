@@ -149,24 +149,6 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
   )
 }
 
-fun CodeInsightTestFixture.stubComposeFoundation() {
-  addFileToProject(
-    "src/androidx/compose/foundation/text/BasicText.kt",
-    // language=kotlin
-    """
-    package androidx.compose.foundation.text
-
-    import androidx.compose.Composable
-
-    @Composable
-    @ComposableTarget("UI Composable")
-    fun BasicText(
-        text: String
-    ) { }
-    """.trimIndent()
-  )
-}
-
 fun CodeInsightTestFixture.stubPreviewAnnotation(modulePath: String = "") {
   addFileToProject(
     "$modulePath/src/androidx/compose/ui/tooling/preview/Preview.kt",
