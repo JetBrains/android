@@ -482,7 +482,7 @@ class SingleComposePreviewElementInstance(
   }
 }
 
-public class ParametrizedComposePreviewElementInstance(
+class ParametrizedComposePreviewElementInstance(
   private val basePreviewElement: ComposePreviewElement,
   parameterName: String,
   val providerClassFqn: String,
@@ -578,17 +578,39 @@ class ParametrizedComposePreviewElementTemplate(
       val parameterProviderSize = parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0
       val providerCount = min(parameterProviderSize, previewParameter.limit)
 
-      return (0 until providerCount)
-        .map { index ->
+      if (providerCount == 0) {
+        // Returns a ParametrizedComposePreviewElementInstance with the error:
+        // "IndexOutOfBoundsException: Sequence doesn't contain element at index 0."
+        // In case providerCount is 0 we want to show an error instance that there are no
+        // PreviewParameters instead of showing nothing.
+        // TODO(b/238315228): propagate the exception so it's shown on the issues panel instead of
+        // forcing the error changing the index.
+        Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
+          .warn(
+            "Failed to instantiate ${previewParameter.providerClassFqn} parameter provider: no parameters found"
+          )
+        return sequenceOf(
           ParametrizedComposePreviewElementInstance(
             basePreviewElement = basePreviewElement,
             parameterName = previewParameter.name,
-            index = index,
-            maxIndex = providerCount - 1,
+            index = 0,
+            maxIndex = 0,
             providerClassFqn = previewParameter.providerClassFqn
           )
-        }
-        .asSequence()
+        )
+      } else {
+        return (0 until providerCount)
+          .map { index ->
+            ParametrizedComposePreviewElementInstance(
+              basePreviewElement = basePreviewElement,
+              parameterName = previewParameter.name,
+              index = index,
+              maxIndex = providerCount - 1,
+              providerClassFqn = previewParameter.providerClassFqn
+            )
+          }
+          .asSequence()
+      }
     } catch (e: Throwable) {
       Logger.getInstance(ParametrizedComposePreviewElementTemplate::class.java)
         .warn("Failed to instantiate ${previewParameter.providerClassFqn} parameter provider", e)

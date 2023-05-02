@@ -18,7 +18,9 @@ package com.android.tools.idea.compose.gradle.datasource
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
+import com.android.tools.idea.compose.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PreviewElementTemplateInstanceProvider
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
@@ -69,7 +71,7 @@ class ParametrizedPreviewTest {
       )
     }
 
-    Assert.assertTrue(
+    assertTrue(
       "The project must compile correctly for the test to pass",
       projectRule.invokeTasks("compileDebugSources").isBuildSuccessful
     )
@@ -89,7 +91,8 @@ class ParametrizedPreviewTest {
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
         ProjectRootManager.getInstance(project).contentRoots[0]
-      )!!
+      )
+        ?: throw RuntimeException("Cannot find relative file")
 
     run {
       val elements =
@@ -198,7 +201,7 @@ class ParametrizedPreviewTest {
 
       assertEquals(
         listOf("00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"),
-        elements.map { it.displaySettings.name.removeSuffix(")").substringAfterLast(' ') }
+        getEnumerationNumberFromPreviewName(elements)
       )
 
       elements.forEach {
@@ -211,5 +214,38 @@ class ParametrizedPreviewTest {
         )
       }
     }
+
+    // Test handling provider with no values
+    run {
+      val elements =
+        PreviewElementTemplateInstanceProvider(
+            StaticPreviewProvider(
+              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+                .filter { it.displaySettings.name == "TestEmptyProvider" }
+            )
+          )
+          .previewElements()
+          .toList()
+
+      // The error preview is shown.
+      assertEquals(1, elements.count())
+
+      assertEquals(listOf("0"), getEnumerationNumberFromPreviewName(elements))
+
+      elements.forEach {
+        // Check that we create a ParametrizedComposePreviewElementInstance that fails to render
+        // because
+        // we'll try to render a composable with an empty sequence defined in ParametrizedPreviews
+        assertEquals(
+          "google.simpleapplication.ParametrizedPreviewsKt.TestEmptyProvider",
+          it.composableMethodFqn
+        )
+        assertTrue(it is ParametrizedComposePreviewElementInstance)
+        assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
+      }
+    }
   }
+
+  private fun getEnumerationNumberFromPreviewName(elements: List<ComposePreviewElementInstance>) =
+    elements.map { it.displaySettings.name.removeSuffix(")").substringAfterLast(' ') }
 }
