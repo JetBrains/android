@@ -1399,7 +1399,7 @@ class ComposePreviewRepresentation(
 
     refreshJob.invokeOnCompletion {
       log.debug("Completed")
-      Disposer.dispose(refreshProgressIndicator)
+      launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
       if (it is CancellationException) {
         composeWorkBench.onRefreshCancelledByTheUser()
       } else composeWorkBench.onRefreshCompleted()
