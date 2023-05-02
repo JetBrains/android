@@ -213,7 +213,7 @@ class CompactResourcePicker(
     val action = BrowseAction(facet, resourceType, contextFile, sources.contains(ResourcePickerSources.THEME_ATTR),
                               selectedResourceCallback, resourcePickerDialogOpenedCallback)
     add(ActionButtonWithText(action,
-                             action.templatePresentation,
+                             action.templatePresentation.clone(),
                              "",
                              JBUI.size(60, 0)).apply {
       foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
