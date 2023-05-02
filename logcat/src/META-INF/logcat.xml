@@ -65,9 +65,6 @@
         serviceInterface="com.android.tools.idea.logcat.service.LogcatService"
         serviceImplementation="com.android.tools.idea.logcat.service.LogcatServiceImpl"/>
     <projectService
-        serviceInterface="com.android.tools.idea.logcat.ProjectApplicationIdsProvider"
-        serviceImplementation="com.android.tools.idea.logcat.ProjectApplicationIdsProviderImpl"/>
-    <projectService
         serviceInterface="com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory"
         serviceImplementation="com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactoryImpl"/>
     <projectService

@@ -16,7 +16,8 @@
 package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.intellij.openapi.project.Project
 
 /** Test implementation of [ProjectApplicationIdsProvider] */

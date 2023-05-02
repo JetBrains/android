@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.logcat
+package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.AndroidPluginDisposable
 
 /**
  * Prod implementation of [ProjectApplicationIdsProvider]
  */
-internal class ProjectApplicationIdsProviderImpl(private val project: Project) : ProjectApplicationIdsProvider {
+class ProjectApplicationIdsProviderImpl(private val project: Project) : ProjectApplicationIdsProvider {
   private var applicationIds = loadApplicationIds()
 
   init {
-    project.messageBus.connect(
-      AndroidPluginDisposable.getProjectInstance(project)).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, RefreshApplicationIds())
+    project.messageBus.connect().subscribe(PROJECT_SYSTEM_SYNC_TOPIC, RefreshApplicationIds())
   }
 
   override fun getPackageNames(): Set<String> = applicationIds

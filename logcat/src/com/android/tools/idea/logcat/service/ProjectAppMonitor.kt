@@ -19,7 +19,7 @@ import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.common.ProcessEvent.ProcessRemoved
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.ProjectApplicationIdsProvider
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
 import kotlinx.coroutines.flow.Flow

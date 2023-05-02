@@ -67,6 +67,7 @@ import com.android.tools.idea.logcat.util.logcatEvents
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.util.onIdle
 import com.android.tools.idea.logcat.util.waitForCondition
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.ApplicationServiceRule

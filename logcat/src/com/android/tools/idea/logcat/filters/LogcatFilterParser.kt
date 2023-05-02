@@ -17,7 +17,7 @@ package com.android.tools.idea.logcat.filters
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.logcat.ProjectApplicationIdsProvider
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
