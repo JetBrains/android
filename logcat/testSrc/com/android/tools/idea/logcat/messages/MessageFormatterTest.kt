@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
@@ -28,7 +29,12 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.PID
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.TIME
+import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.RuleChain
+import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
@@ -40,6 +46,12 @@ private val ZONE_ID = ZoneId.of("Asia/Yerevan")
  * Tests for [MessageFormatter]
  */
 class MessageFormatterTest {
+  @get:Rule
+  val rule = RuleChain(
+    ApplicationRule(),
+    ApplicationServiceRule(IssueExplainer::class.java, TestIssueExplainer),
+  )
+
   private val logcatColors = LogcatColors()
   private val formattingOptions = FormattingOptions()
 
@@ -435,6 +447,50 @@ class MessageFormatterTest {
     """.trimIndent())
   }
 
+  @Test
+  fun formatMessages_exception_studioBotEnabled() {
+    TestIssueExplainer.available = true
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(logcatMessage(
+        message = "" +
+                  "Exception\n" +
+                  "\tat com.example(File.kt:1)\n"))
+    )
+
+    assertThat(textAccumulator.text.trim()).isEqualTo(
+      "" +
+      "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  Exception (Ask Studio Bot)\n" +
+      "                                                                                                    \tat com.example(File.kt:1)")
+  }
+
+  @Test
+  fun formatMessages_exception_studioBotDisabled() {
+    TestIssueExplainer.available = false
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(logcatMessage(
+        message = "" +
+                  "Exception\n" +
+                  "\tat com.example(File.kt:1)"))
+    )
+
+    assertThat(textAccumulator.text.trim()).isEqualTo(
+      "" +
+      "1970-01-01 04:00:10.000     1-2     ExampleTag              com.example.app                      I  Exception\n" +
+      "                                                                                                    \tat com.example(File.kt:1)")
+  }
+
+  private object TestIssueExplainer : IssueExplainer() {
+    var available = true
+    override fun isAvailable(): Boolean = available
+  }
 }
 
 private fun <T> TextAccumulator.Range<T>.getText(text: String) = text.substring(start, end)

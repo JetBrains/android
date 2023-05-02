@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.tools.idea.explainer.IssueExplainer
 import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.VisibleForTesting
@@ -26,8 +28,10 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * A [HyperlinkDetector] that adds hyperlinks to an [Editor]
  */
-internal class EditorHyperlinkDetector(private val project: Project, editor: Editor) : HyperlinkDetector {
+internal class EditorHyperlinkDetector(private val project: Project, private val editor: EditorEx) : HyperlinkDetector {
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
+
+  private val issueExplainer = IssueExplainer.get()
 
   @VisibleForTesting
   val filter = SdkSourceRedirectFilter(project, createFilters())
@@ -47,7 +51,13 @@ internal class EditorHyperlinkDetector(private val project: Project, editor: Edi
    * potentially affect all Console views. We limit this filter to Logcat for now.
    */
   private fun createFilters(): CompositeFilter {
-    val filters = ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)) + SimpleFileLinkFilter(project)
+    val filters = buildList {
+      addAll(ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)))
+      add(SimpleFileLinkFilter(project))
+      if (issueExplainer.isAvailable()) {
+        add(StudioBotFilter(editor))
+      }
+    }
     return CompositeFilter(project, filters)
       .apply { setForceUseAllFilters(true) }
   }
