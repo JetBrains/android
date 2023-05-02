@@ -198,7 +198,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
                 addVersions(filters.versions)
                 addFailureTypes(filters.eventTypes)
                 addVisibilityType(filters.visibilityType)
-                addDevices(filters.devices)
+                addDevicesForErrorIssue(filters.devices)
                 addOperatingSystems(filters.operatingSystems)
               }
               .build()

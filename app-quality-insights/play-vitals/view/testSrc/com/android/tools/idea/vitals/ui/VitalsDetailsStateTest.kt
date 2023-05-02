@@ -56,7 +56,7 @@ class VitalsDetailsStateTest {
           OperatingSystemInfo("os2", "os2"),
           OperatingSystemInfo("os3", "os3")
         ),
-        setOf(Device("Google", "Pixel 5"), Device("Samsung", "A32")),
+        setOf(Device("Google", "Google/Pixel 5"), Device("Samsung", "Samsung/A32")),
         VisibilityType.USER_PERCEIVED
       )
 

@@ -36,6 +36,12 @@ private const val API_LEVEL = "apiLevel"
 private const val VERSION_CODE = "versionCode"
 
 /**
+ * `deviceBrand`: Matches error issues that occurred in the requested device brands. Example:
+ * `deviceBrand = "Google".
+ */
+private const val DEVICE_BRAND = "deviceBrand"
+
+/**
  * `deviceModel`: Matches error issues that occurred in the requested devices. Example: `deviceModel
  * = "walleye" OR deviceModel = "marlin"`.
  */
@@ -132,6 +138,17 @@ class FilterBuilder {
     }
   }
 
+  /**
+   * Filter by "simple" device model name (e.g. hlte) as this is the valid id when querying error
+   * issue.
+   */
+  fun addDevicesForErrorIssue(devices: Collection<Device>) {
+    devices
+      .filterNot { it == Device.ALL }
+      .onEach { rawFilters.add(Filter(DEVICE_MODEL, it.model.substringAfter("/"))) }
+  }
+
+  /** Filter by device model name (e.g. samsung/hlte). */
   fun addDevices(devices: Collection<Device>) {
     devices.filterNot { it == Device.ALL }.onEach { rawFilters.add(Filter(DEVICE_MODEL, it.model)) }
   }

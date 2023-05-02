@@ -120,9 +120,7 @@ data class VitalsDetailsState(
       params.add("osVersion=${selectedOsVersion.joinToString(",") { it.displayVersion }}")
     }
     if (selectedDevices.isNotEmpty()) {
-      params.add(
-        "deviceName=${selectedDevices.joinToString(",") { "${it.manufacturer}/${it.model}" }}"
-      )
+      params.add("deviceName=${selectedDevices.joinToString(",") { it.model }}")
     }
     if (selectedVisibility != null && selectedVisibility != VisibilityType.ALL) {
       params.add(

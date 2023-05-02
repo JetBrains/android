@@ -56,6 +56,11 @@ enum class DimensionType(val value: String) {
   //     unique identifier of the user's device model.
   DEVICE_MODEL("deviceModel"),
 
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.{$api_version}.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand.
+  DEVICE_BRAND("deviceBrand"),
+
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.{$api_version}.DimensionValue.string_value]):
   //     identifier of the device's form factor, e.g., PHONE.

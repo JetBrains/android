@@ -32,9 +32,13 @@ fun Device.Companion.fromProto(proto: DeviceModelSummary): Device {
 fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
   var deviceModel = ""
   var displayName = ""
+  var manufacturer = ""
 
   dimensions.map {
     when (it.type) {
+      DimensionType.DEVICE_BRAND -> {
+        manufacturer = (it.value as DimensionValue.StringValue).value
+      }
       DimensionType.DEVICE_MODEL -> {
         deviceModel = (it.value as DimensionValue.StringValue).value
         displayName = it.displayValue
@@ -43,9 +47,5 @@ fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
     }
   }
 
-  return Device(
-    manufacturer = "", // TODO: We may need to request API to give us this info.
-    model = deviceModel,
-    displayName = displayName
-  )
+  return Device(manufacturer = manufacturer, model = deviceModel, displayName = displayName)
 }

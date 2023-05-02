@@ -95,15 +95,25 @@ class VitalsClient(
         )
       }
       val versions = async {
-        listVersions(request.connection, request.filters, null, MetricType.ERROR_REPORT_COUNT)
+        listVersions(
+          request.connection,
+          request.filters.copy(versions = setOf(Version.ALL)),
+          null,
+          MetricType.ERROR_REPORT_COUNT
+        )
       }
       val devices = async {
-        listDevices(request.connection, request.filters, null, MetricType.ERROR_REPORT_COUNT)
+        listDevices(
+          request.connection,
+          request.filters.copy(devices = setOf(Device.ALL)),
+          null,
+          MetricType.ERROR_REPORT_COUNT
+        )
       }
       val oses = async {
         listOperatingSystems(
           request.connection,
-          request.filters,
+          request.filters.copy(operatingSystems = setOf(OperatingSystemInfo.ALL)),
           null,
           MetricType.ERROR_REPORT_COUNT
         )
@@ -248,7 +258,7 @@ class VitalsClient(
     // info to build up the [Version] list.
     return getMetrics(
         connection = connection,
-        filters = filters.copy(versions = setOf(Version.ALL)),
+        filters = filters,
         issueId = issueId,
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.VERSION_CODE),
         metrics = listOf(metricType)
@@ -280,10 +290,15 @@ class VitalsClient(
   ): List<WithCount<Device>> {
     return getMetrics(
         connection = connection,
-        filters = filters.copy(devices = setOf(Device.ALL)),
+        filters = filters,
         issueId = issueId,
         dimensions =
-          listOf(DimensionType.REPORT_TYPE, DimensionType.DEVICE_TYPE, DimensionType.DEVICE_MODEL),
+          listOf(
+            DimensionType.REPORT_TYPE,
+            DimensionType.DEVICE_TYPE,
+            DimensionType.DEVICE_BRAND,
+            DimensionType.DEVICE_MODEL
+          ),
         metrics = listOf(metricType)
       )
       .map { dataPoint ->
@@ -304,7 +319,7 @@ class VitalsClient(
   ): List<WithCount<OperatingSystemInfo>> {
     return getMetrics(
         connection = connection,
-        filters = filters.copy(operatingSystems = setOf(OperatingSystemInfo.ALL)),
+        filters = filters,
         issueId = issueId,
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.API_LEVEL),
         metrics = listOf(metricType)

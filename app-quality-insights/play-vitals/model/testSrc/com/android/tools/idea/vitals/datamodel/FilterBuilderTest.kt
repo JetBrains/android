@@ -116,6 +116,14 @@ class FilterBuilderTest {
     assertThat(generated).isEqualTo("(errorIssueId = 123)")
   }
 
+  @Test
+  fun `check filtering by simple device model case`() {
+    val device = Device(manufacturer = "google", model = "google/pixel5")
+    val generated = FilterBuilder().apply { addDevicesForErrorIssue(listOf(device)) }.build()
+
+    assertThat(generated).isEqualTo("(deviceModel = pixel5)")
+  }
+
   private fun buildFiltersFromQuery(queryFilters: QueryFilters): String {
     return FilterBuilder()
       .apply {
