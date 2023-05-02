@@ -49,7 +49,7 @@ internal class DeviceClipboardSynchronizer(
     // when Studio gains focus.
     if (event.newValue != null && event.oldValue == null) {
       // Studio gained focus.
-      setDeviceClipboard()
+      setDeviceClipboard(forceSend = false)
     }
   }
 
@@ -58,7 +58,7 @@ internal class DeviceClipboardSynchronizer(
     copyPasteManager.addContentChangedListener(this, this)
     deviceController?.addDeviceClipboardListener(this)
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
-    setDeviceClipboard()
+    setDeviceClipboard(forceSend = true)
   }
 
   override fun dispose() {
@@ -69,16 +69,26 @@ internal class DeviceClipboardSynchronizer(
   }
 
   /**
-   * Sets the device clipboard to have the same content as the host clipboard.
+   * Sets the device clipboard to have the same content as the host clipboard unless the host
+   * clipboard is empty and [forceSend] is false.
    */
-  fun setDeviceClipboard() {
+  fun setDeviceClipboard(forceSend: Boolean) {
     val text = getClipboardText()
-    sendClipboardSyncMessage(text)
+    setDeviceClipboard(text, forceSend = forceSend)
   }
 
-  private fun sendClipboardSyncMessage(text: String) {
-    val message = StartClipboardSyncMessage(DeviceMirroringSettings.getInstance().maxSyncedClipboardLength, text)
-    deviceController?.sendControlMessage(message)
+  private fun setDeviceClipboard(text: String, forceSend: Boolean) {
+    val maxSyncedClipboardLength = DeviceMirroringSettings.getInstance().maxSyncedClipboardLength
+    if (forceSend || (text.isNotEmpty() && text != lastClipboardText)) {
+      val adjustedText = when {
+        text.length <= maxSyncedClipboardLength -> text
+        forceSend -> ""
+        else -> return
+      }
+      val message = StartClipboardSyncMessage(maxSyncedClipboardLength, adjustedText)
+      deviceController?.sendControlMessage(message)
+      lastClipboardText = adjustedText
+    }
   }
 
   private fun getClipboardText(): String {
@@ -93,11 +103,7 @@ internal class DeviceClipboardSynchronizer(
   @AnyThread
   override fun contentChanged(oldTransferable: Transferable?, newTransferable: Transferable?) {
     UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-      val text = newTransferable?.getText() ?: return@invokeLaterIfNeeded
-      if (text.isNotEmpty() && text != lastClipboardText) {
-        lastClipboardText = text
-        sendClipboardSyncMessage(text)
-      }
+      newTransferable?.getText()?.let { setDeviceClipboard(it, forceSend = false) }
     }
   }
 
