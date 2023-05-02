@@ -552,7 +552,6 @@ studio_plugin(
     libs = [
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:mockito",
         "//prebuilts/tools/common/m2:google-api-services-testing-v1-rev82-1.22.0",
     ],
     modules = {"gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"]},
