@@ -470,7 +470,6 @@ MODULE                        : project
                         - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -491,7 +490,6 @@ MODULE                        : project
                             - files                       : <ROOT>/lint/build/resources/test [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
                 artifactsByConfiguration
@@ -578,7 +576,6 @@ MODULE                        : project
                         - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -599,7 +596,6 @@ MODULE                        : project
                             - files                       : <ROOT>/lintpublish/build/resources/test [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                 artifactsByConfiguration
@@ -686,7 +682,6 @@ MODULE                        : project
                         - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -707,7 +702,6 @@ MODULE                        : project
                             - files                       : <ROOT>/lintpublish-remote/build/resources/test [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                 artifactsByConfiguration

@@ -964,7 +964,10 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses
@@ -1039,10 +1042,20 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
             Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
+            Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
+            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses
@@ -1208,6 +1221,8 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
             Scope                         : Test
+        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
+            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses

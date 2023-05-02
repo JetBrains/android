@@ -1241,7 +1241,6 @@ MODULE                        : MainActivity
                         - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -1294,7 +1293,6 @@ MODULE                        : MainActivity
                             - files                       : <ROOT>/javaLib/build/resources/main [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                 artifactsByConfiguration

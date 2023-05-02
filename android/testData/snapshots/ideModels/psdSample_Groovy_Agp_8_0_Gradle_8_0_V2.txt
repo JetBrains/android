@@ -1378,7 +1378,6 @@ MODULE                        : project
                         - artifacts                   : <ROOT>/jav/build/libs/jav.jar [-]
                         sourceCompatibility           : 1.6
                         targetCompatibility           : 1.6
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -1399,7 +1398,6 @@ MODULE                        : project
                             - files                       : <ROOT>/jav/build/resources/test [-]
                         sourceCompatibility           : 1.6
                         targetCompatibility           : 1.6
-                        jdkInstallationPath           : <DEV>/prebuilts/studio/jdk/jdk17/linux
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/jav/build/libs/jav.jar [-]
                 artifactsByConfiguration
