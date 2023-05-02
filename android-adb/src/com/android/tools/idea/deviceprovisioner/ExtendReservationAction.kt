@@ -84,7 +84,3 @@ class ExtendReservationAction : DefaultActionGroup() {
     }
   }
 }
-
-private fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
-
-private fun AnActionEvent.reservationAction() = deviceHandle()?.reservationAction

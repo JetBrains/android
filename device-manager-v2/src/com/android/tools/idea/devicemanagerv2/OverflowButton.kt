@@ -29,6 +29,8 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
     private val reservationActions =
       DefaultActionGroup(
         CustomActionsSchema.getInstance()
+          .getCorrectedAction("android.device.reservation.end"),
+        CustomActionsSchema.getInstance()
           .getCorrectedAction("android.device.reservation.extend.half.hour"),
         CustomActionsSchema.getInstance()
           .getCorrectedAction("android.device.reservation.extend.one.hour"),

@@ -63,5 +63,10 @@
               text="Extend Reservation by 1 Hour"
               description="Extend device reservation by 1 hour"/>
     </group>
+
+    <action id="android.device.reservation.end"
+            class="com.android.tools.idea.deviceprovisioner.EndReservationAction"
+            text="Force Check-in"
+            description="End reservation and return device"/>
   </actions>
 </idea-plugin>

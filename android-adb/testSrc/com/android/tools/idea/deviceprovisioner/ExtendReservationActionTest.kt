@@ -70,6 +70,8 @@ class ExtendReservationActionTest {
           return Instant.ofEpochSecond(duration.toMillis())
         }
 
+        override suspend fun endReservation() = Unit
+
         override val presentation = MutableStateFlow(defaultPresentation)
       })
     val dataContext = DataContext {
@@ -118,6 +120,8 @@ class ExtendReservationActionTest {
           totalDuration = totalDuration.plus(duration)
           return Instant.ofEpochSecond(duration.toMillis())
         }
+
+        override suspend fun endReservation() = Unit
 
         override val presentation = MutableStateFlow(defaultPresentation)
       })
@@ -198,6 +202,8 @@ class ExtendReservationActionTest {
         totalDuration = totalDuration.plus(duration)
         return Instant.ofEpochSecond(duration.toMillis())
       }
+
+      override suspend fun endReservation() = Unit
       override val presentation = MutableStateFlow(defaultPresentation)
     })
     val dataContext = DataContext {
