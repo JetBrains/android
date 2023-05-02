@@ -24,16 +24,23 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.common.SelectViewAction
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
+import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -42,7 +49,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -51,6 +57,7 @@ import com.jetbrains.rd.swing.fillRect
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doAnswer
@@ -72,11 +79,14 @@ private const val DIFF_THRESHOLD = 0.2
 
 class LayoutInspectorRendererTest {
 
-  @get:Rule
-  val testName = TestName()
+  private val androidProjectRule = AndroidProjectRule.withSdk()
+  private val fileOpenCaptureRule = FileOpenCaptureRule(androidProjectRule)
 
   @get:Rule
-  val disposableRule = DisposableRule()
+  val ruleChain = RuleChain.outerRule(androidProjectRule).around(fileOpenCaptureRule)!!
+
+  @get:Rule
+  val testName = TestName()
 
   @get:Rule
   val edtRule = EdtRule()
@@ -190,6 +200,35 @@ class LayoutInspectorRendererTest {
 
   @Test
   @RunsInEdt
+  fun testMouseDoubleClick() {
+    loadComposeFiles()
+    val inspectorModel = createModel()
+    val renderModel = RenderModel(inspectorModel, treeSettings) { DisconnectedClient }
+    renderSettings.drawLabel = false
+    val layoutInspectorRenderer = createRenderer(renderModel)
+    val parent = BorderLayoutPanel()
+    parent.add(layoutInspectorRenderer)
+    parent.size = screenDimension
+    layoutInspectorRenderer.size = screenDimension
+    layoutInspectorRenderer.interceptClicks = true
+
+    val fakeUi = FakeUi(layoutInspectorRenderer)
+
+    fakeUi.render()
+
+    // click mouse above VIEW1.
+    fakeUi.mouse.doubleClick(deviceFrame.x + 10, deviceFrame.y + 15)
+
+    fakeUi.render()
+    fakeUi.layoutAndDispatchEvents()
+
+    assertThat(renderModel.model.selection?.drawId).isEqualTo(2L)
+    runDispatching { GotoDeclarationAction.lastAction?.join() }
+    fileOpenCaptureRule.checkEditor("demo.xml", 2, "<RelativeLayout")
+  }
+
+  @Test
+  @RunsInEdt
   fun testContextMenu() {
     val layoutInspectorRenderer = createRenderer()
     val parent = BorderLayoutPanel()
@@ -199,7 +238,7 @@ class LayoutInspectorRendererTest {
     layoutInspectorRenderer.interceptClicks = true
 
     var latestPopup: FakeActionPopupMenu? = null
-    ApplicationManager.getApplication().replaceService(ActionManager::class.java, MockitoKt.mock(), disposableRule.disposable)
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, MockitoKt.mock(), androidProjectRule.testRootDisposable)
     doAnswer { invocation ->
       latestPopup = FakeActionPopupMenu(invocation.getArgument(1))
       latestPopup
@@ -299,11 +338,12 @@ class LayoutInspectorRendererTest {
     layoutInspectorRenderer.paint(graphics)
   }
 
-  private fun createRenderer(): LayoutInspectorRenderer {
+  private fun createRenderer(_renderModel: RenderModel = renderModel): LayoutInspectorRenderer {
     return LayoutInspectorRenderer(
-      disposableRule.disposable,
+      androidProjectRule.testRootDisposable,
+      AndroidCoroutineScope(androidProjectRule.testRootDisposable),
       renderLogic,
-      renderModel,
+      _renderModel,
       displayRectangleProvider = { deviceFrame },
       screenScaleProvider = { 1.0 }
     )
@@ -318,6 +358,25 @@ class LayoutInspectorRendererTest {
     ImageDiffUtil.assertImageSimilar(
       TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString), renderImage, DIFF_THRESHOLD
     )
+  }
+
+  private fun createModel(): InspectorModel =
+    model(androidProjectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(androidProjectRule.fixture) {
+      view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
+        compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
+          compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)
+          compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) {
+            compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3)
+          }
+        }
+      }
+    })
+
+  private fun loadComposeFiles() {
+    val fixture = androidProjectRule.fixture
+    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.copyFileToProject("java/com/example/MyCompose.kt")
+    fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
 }
 
