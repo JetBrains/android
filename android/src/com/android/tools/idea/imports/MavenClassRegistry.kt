@@ -32,14 +32,14 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
   val lookup: LookupData = generateLookup()
 
   /**
-   * Given a class name, returns the likely collection of [MavenClassRegistryBase.Library] objects for the maven.google.com
+   * Given a class name, returns the likely collection of [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com
    * artifacts containing that class.
    *
    * Here, the passed in [className] can be either short class name or fully qualified class name.
    *
    * This implementation only returns results of index data from [GMavenIndexRepository].
    */
-  override fun findLibraryData(className: String, useAndroidX: Boolean): Collection<Library> {
+  override fun findLibraryData(className: String, useAndroidX: Boolean): Collection<LibraryImportData> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
 
@@ -51,7 +51,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
 
     if (packageName.isEmpty()) return foundArtifacts
 
-    return foundArtifacts.filter { it.packageName == packageName }
+    return foundArtifacts.filter { it.importedItemPackageName == packageName }
   }
 
   override fun findKtxLibrary(artifact: String): String? {
@@ -93,7 +93,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
 
   @Throws(IOException::class)
   private fun readIndexArray(reader: JsonReader): LookupData {
-    val fqcnMap = mutableMapOf<String, List<Library>>()
+    val fqcnMap = mutableMapOf<String, List<LibraryImportData>>()
     val ktxMap = mutableMapOf<String, String>()
     val coordinateList = mutableListOf<Coordinate>()
 
@@ -240,14 +240,15 @@ data class GMavenArtifactIndex(
   val topLevelFunctions: Collection<KotlinTopLevelFunction>,
 ) {
   /**
-   * Converts to a map from class names to corresponding [MavenClassRegistryBase.Library]s.
+   * Converts to a map from class names to corresponding [MavenClassRegistryBase.LibraryImportData]s.
    */
-  fun toMavenClassRegistryMap(): Map<String, MavenClassRegistryBase.Library> {
+  fun toMavenClassRegistryMap(): Map<String, MavenClassRegistryBase.LibraryImportData> {
     return fqcns.asSequence()
       .map { fqName ->
-        val library = MavenClassRegistryBase.Library(
+        val library = MavenClassRegistryBase.LibraryImportData(
           artifact = "$groupId:$artifactId",
-          packageName = fqName.parent().asString(),
+          importedItemFqName = fqName.asString(),
+          importedItemPackageName = fqName.parent().asString(),
           version = version
         )
         fqName.shortName().asString() to library
@@ -313,9 +314,9 @@ data class KotlinTopLevelFunction(
  */
 data class LookupData(
   /**
-   * A map from simple class names to the corresponding [MavenClassRegistryBase.Library] objects.
+   * A map from simple class names to the corresponding [MavenClassRegistryBase.LibraryImportData] objects.
    */
-  val classNameMap: Map<String, List<MavenClassRegistryBase.Library>>,
+  val classNameMap: Map<String, List<MavenClassRegistryBase.LibraryImportData>>,
   /**
    * A map from non-KTX libraries to the associated KTX libraries.
    */

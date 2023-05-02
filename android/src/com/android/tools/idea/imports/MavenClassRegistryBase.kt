@@ -22,13 +22,18 @@ import com.android.tools.idea.projectsystem.DependencyType
  */
 abstract class MavenClassRegistryBase {
   /**
-   * Library for each of the GMaven artifact.
+   * Library data for importing a specific item (class or function) with its GMaven artifact.
    *
    * @property artifact maven coordinate: groupId:artifactId, please note version is not included here.
-   * @property packageName fully qualified package name which is used for the following import purposes.
+   * @property importedItemFqName fully-qualified name of the item to import. Can be a class or function name.
+   * @property importedItemPackageName package name of the item to import.
    * @property version the version of the [artifact].
    */
-  data class Library(val artifact: String, val packageName: String, val version: String? = null)
+  data class LibraryImportData(
+    val artifact: String,
+    val importedItemFqName: String,
+    val importedItemPackageName: String,
+    val version: String? = null)
 
   /**
    * Coordinate for Google Maven artifact.
@@ -36,9 +41,9 @@ abstract class MavenClassRegistryBase {
   data class Coordinate(val groupId: String, val artifactId: String, val version: String)
 
   /**
-   * Given a class name, returns the likely collection of [Library] objects for the following quick fixes purposes.
+   * Given a class name, returns the likely collection of [LibraryImportData] objects for the following quick fixes purposes.
    */
-  abstract fun findLibraryData(className: String, useAndroidX: Boolean): Collection<Library>
+  abstract fun findLibraryData(className: String, useAndroidX: Boolean): Collection<LibraryImportData>
 
   /**
    * For the given runtime artifact, if Kotlin is the adopted language, the corresponding ktx library is provided.

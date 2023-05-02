@@ -81,28 +81,32 @@ class MavenClassRegistryTest {
     assertThat(mavenClassRegistry.lookup.classNameMap).containsExactlyEntriesIn(
       mapOf(
         "ComponentActivity" to listOf(
-          MavenClassRegistryBase.Library(
+          MavenClassRegistryBase.LibraryImportData(
             artifact = "androidx.activity:activity",
-            packageName = "androidx.activity",
+            importedItemFqName = "androidx.activity.ComponentActivity",
+            importedItemPackageName = "androidx.activity",
             version = "1.1.0"
           )
         ),
         "Fake" to listOf(
-          MavenClassRegistryBase.Library(
+          MavenClassRegistryBase.LibraryImportData(
             artifact = "androidx.activity:activity",
-            packageName = "androidx.activity",
+            importedItemFqName = "androidx.activity.Fake",
+            importedItemPackageName = "androidx.activity",
             version = "1.1.0"
           ),
-          MavenClassRegistryBase.Library(
+          MavenClassRegistryBase.LibraryImportData(
             artifact = "androidx.annotation:annotation",
-            packageName = "androidx.annotation",
+            importedItemFqName = "androidx.annotation.Fake",
+            importedItemPackageName = "androidx.annotation",
             version = "1.1.0"
           )
         ),
         "AnimRes" to listOf(
-          MavenClassRegistryBase.Library(
+          MavenClassRegistryBase.LibraryImportData(
             artifact = "androidx.annotation:annotation",
-            packageName = "androidx.annotation",
+            importedItemFqName = "androidx.annotation.AnimRes",
+            importedItemPackageName = "androidx.annotation",
             version = "1.1.0"
           )
         )
@@ -386,28 +390,32 @@ class MavenClassRegistryTest {
     assertThat(mavenClassRegistry.lookup.classNameMap).containsExactlyEntriesIn(
       mapOf(
         "ComponentActivity" to listOf(
-          MavenClassRegistryBase.Library(
+          MavenClassRegistryBase.LibraryImportData(
             artifact = "androidx.activity:activity",
-            packageName = "androidx.activity",
+            importedItemFqName = "androidx.activity.ComponentActivity",
+            importedItemPackageName = "androidx.activity",
             version = "1.1.0"
           )
         ),
         "Fake" to listOf(
-          MavenClassRegistryBase.Library(
+          MavenClassRegistryBase.LibraryImportData(
             artifact = "androidx.activity:activity",
-            packageName = "androidx.activity",
+            importedItemFqName = "androidx.activity.Fake",
+            importedItemPackageName = "androidx.activity",
             version = "1.1.0"
           ),
-          MavenClassRegistryBase.Library(
+          MavenClassRegistryBase.LibraryImportData(
             artifact = "androidx.annotation:annotation",
-            packageName = "androidx.annotation",
+            importedItemFqName = "androidx.annotation.Fake",
+            importedItemPackageName = "androidx.annotation",
             version = "1.1.0"
           )
         ),
         "AnimRes" to listOf(
-          MavenClassRegistryBase.Library(
+          MavenClassRegistryBase.LibraryImportData(
             artifact = "androidx.annotation:annotation",
-            packageName = "androidx.annotation",
+            importedItemFqName = "androidx.annotation.AnimRes",
+            importedItemPackageName = "androidx.annotation",
             version = "1.1.0"
           )
         )
@@ -446,9 +454,10 @@ class MavenClassRegistryTest {
         assertThat(it).containsEntry(
           "ComponentActivity",
           listOf(
-            MavenClassRegistryBase.Library(
+            MavenClassRegistryBase.LibraryImportData(
               artifact = "androidx.activity:activity",
-              packageName = "androidx.activity",
+              importedItemFqName = "androidx.activity.ComponentActivity",
+              importedItemPackageName = "androidx.activity",
               version = "1.7.1"
             )
           )
@@ -456,9 +465,10 @@ class MavenClassRegistryTest {
         assertThat(it).containsEntry(
           "OnBackPressedDispatcher",
           listOf(
-            MavenClassRegistryBase.Library(
+            MavenClassRegistryBase.LibraryImportData(
               artifact = "androidx.activity:activity",
-              packageName = "androidx.activity",
+              importedItemFqName = "androidx.activity.OnBackPressedDispatcher",
+              importedItemPackageName = "androidx.activity",
               version = "1.7.1"
             )
           )
