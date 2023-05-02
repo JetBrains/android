@@ -377,7 +377,7 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
         src: ET.Element
         type = mapping["type"]
         if type == "module-output":
-            module: str = mapping["module"]
+            module: str = mapping["name"]
             src = ET.Element("orderEntry", {"type": "module", "module-name": module})
         elif type == "project-library":
             lib: str = mapping["library"]
