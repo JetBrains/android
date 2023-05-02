@@ -57,6 +57,7 @@ import java.awt.FlowLayout
 import java.awt.KeyboardFocusManager
 import java.awt.Rectangle
 import java.awt.event.ItemEvent
+import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.beans.PropertyChangeListener
@@ -357,6 +358,7 @@ class ResourceImportDialog(
     super.updateButtons(lastStep, canGoNext, firstStep)
     if (lastStep) {
       nextButton.text = "Import"
+      nextButton.mnemonic = KeyEvent.VK_I
     }
   }
 
