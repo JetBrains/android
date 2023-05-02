@@ -36,7 +36,9 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingCompletionTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(
+      namespace = { "test.vb" },
+      viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule
@@ -57,12 +59,6 @@ class ViewBindingCompletionTest {
   @Before
   fun setUp() {
     assertThat(facet.isViewBindingEnabled()).isTrue()
-    fixture.addFileToProject("src/main/AndroidManifest.xml", """
-      <?xml version="1.0" encoding="utf-8"?>
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.vb">
-        <application />
-      </manifest>
-    """.trimIndent())
 
     fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>

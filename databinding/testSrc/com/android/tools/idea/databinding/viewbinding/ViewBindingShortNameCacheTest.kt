@@ -34,7 +34,10 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingShortNameCacheTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(
+      namespace = { "test.db" },
+      viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }
+    ))
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule
@@ -45,17 +48,6 @@ class ViewBindingShortNameCacheTest {
 
   private val fixture
     get() = projectRule.fixture
-
-  @Before
-  fun setUp() {
-    assertThat(facet.isViewBindingEnabled()).isTrue()
-    fixture.addFileToProject("src/main/AndroidManifest.xml", """
-      <?xml version="1.0" encoding="utf-8"?>
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
-        <application />
-      </manifest>
-    """.trimIndent())
-  }
 
   @Test
   fun shortNameCacheContainsViewBindingClassesAndFields() {

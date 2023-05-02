@@ -42,7 +42,9 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class LightViewBindingClassTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
+    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(
+      namespace = { "test.db" },
+      viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -52,17 +54,6 @@ class LightViewBindingClassTest {
 
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
-
-  @Before
-  fun setUp() {
-    assertThat(facet.isViewBindingEnabled()).isTrue()
-    fixture.addFileToProject("src/main/AndroidManifest.xml", """
-      <?xml version="1.0" encoding="utf-8"?>
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
-        <application />
-      </manifest>
-    """.trimIndent())
-  }
 
   @Test
   fun lightClassGeneratedForViewBindingLayout() {
