@@ -56,7 +56,7 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> mySaveNodesAsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myCopyNodePathsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myDeleteNodesTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> mySynchronizeNodesTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Unit> mySynchronizeNodesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myUploadFilesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewDirectoryTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewFileTracker = new FutureValuesTracker<>();
@@ -355,7 +355,7 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<List<DeviceFileEntryNode>> getSynchronizeNodesTracker() {
+  public FutureValuesTracker<Unit> getSynchronizeNodesTracker() {
     return mySynchronizeNodesTracker;
   }
 
@@ -416,9 +416,9 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
     }
 
     @Override
-    public void synchronizeNodesInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
-      mySynchronizeNodesTracker.produce(treeNodes);
-      myListeners.forEach(l -> l.synchronizeNodesInvoked(treeNodes));
+    public void synchronizeNodesInvoked() {
+      mySynchronizeNodesTracker.produce(null);
+      myListeners.forEach(l -> l.synchronizeNodesInvoked());
     }
   }
 

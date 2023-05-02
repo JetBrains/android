@@ -565,45 +565,28 @@ class DeviceFileExplorerControllerImpl(
       }
     }
 
-    override fun synchronizeNodesInvoked(nodes: List<DeviceFileEntryNode>) {
-      if (nodes.isEmpty()) {
-        return
-      }
-
-      // Collect directories as well as parent directories of files
-      var directoryNodes = nodes
-        .mapNotNull {
-          when {
-            it.isSymbolicLinkToDirectory || it.entry.isDirectory -> it
-            else -> DeviceFileEntryNode.fromNode(it.parent)
-          }
-        }
-        .toSet()
-
-      // Add descendant directories that have been expanded/loaded
-      directoryNodes = directoryNodes.flatMap { node ->
-        val nodesToSynchronize: MutableList<DeviceFileEntryNode> = ArrayList()
-        val stack = Stack<DeviceFileEntryNode>() // iterative DFS traversal
-        stack.push(node)
-        while (!stack.isEmpty()) {
-          val currentNode = stack.pop()
-          nodesToSynchronize.add(currentNode)
-          for (child in currentNode.childEntryNodes) {
-            if (child.entry.isDirectory || child.isSymbolicLinkToDirectory) {
-              if (child.isLoaded) {
-                stack.push(child)
-              }
+    override fun synchronizeNodesInvoked() {
+      val rootNode = model.treeModel?.root as? DeviceFileEntryNode ?: return
+      val nodesToSynchronize: MutableList<DeviceFileEntryNode> = ArrayList()
+      val stack = Stack<DeviceFileEntryNode>() // iterative DFS traversal
+      stack.push(rootNode)
+      while (!stack.isEmpty()) {
+        val currentNode = stack.pop()
+        nodesToSynchronize.add(currentNode)
+        for (child in currentNode.childEntryNodes) {
+          if (child.entry.isDirectory || child.isSymbolicLinkToDirectory) {
+            if (child.isLoaded) {
+              stack.push(child)
             }
           }
         }
-        nodesToSynchronize
-      }.toSet()
+      }
 
       scope.launch {
         trackAction(DeviceExplorerEvent.Action.SYNC)
         view.startTreeBusyIndicator()
         try {
-          for (node in directoryNodes) {
+          for (node in nodesToSynchronize) {
             node.isLoaded = false
             try {
               loadNodeChildren(node)

@@ -406,8 +406,8 @@ class DeviceFileExplorerViewImpl(
       listeners.forEach(Consumer { it.deleteNodesInvoked(nodes) })
     }
 
-    override fun synchronizeNodes(nodes: List<DeviceFileEntryNode>) {
-      listeners.forEach(Consumer { it.synchronizeNodesInvoked(nodes) })
+    override fun synchronizeNodes() {
+      listeners.forEach(Consumer { it.synchronizeNodesInvoked() })
     }
 
     override fun newFile(node: DeviceFileEntryNode) {

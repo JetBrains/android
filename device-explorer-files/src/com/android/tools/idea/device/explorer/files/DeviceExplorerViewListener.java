@@ -31,7 +31,7 @@ public interface DeviceExplorerViewListener {
   void newDirectoryInvoked(@NotNull DeviceFileEntryNode parentTreeNode);
   void newFileInvoked(@NotNull DeviceFileEntryNode parentTreeNode);
   void deleteNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes);
-  void synchronizeNodesInvoked(@NotNull List<DeviceFileEntryNode> nodes);
+  void synchronizeNodesInvoked();
   void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode);
   void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<Path> files);
 }
