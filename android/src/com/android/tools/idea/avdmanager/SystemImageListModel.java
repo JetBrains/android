@@ -106,7 +106,14 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
   @Override
   public void setItems(@NotNull List<SystemImageDescription> items) {
     myUpdating = true;
-    super.setItems(items);
+
+    if (getItems().equals(items)) {
+      fireTableDataChanged();
+    }
+    else {
+      super.setItems(items);
+    }
+
     myUpdating = false;
   }
 
