@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -77,10 +78,15 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     }
 
   private val rootPanel = object : JPanel(BorderLayout()), DataProvider {
+    private fun getDataInBackground(dataId: String, node: DesignerCommonIssueNode): Any? = when (dataId) {
+      CommonDataKeys.NAVIGATABLE.name -> node.getNavigatable()
+      else -> null
+    }
+
     override fun getData(dataId: String): Any? {
       val node = getSelectedNode() ?: return null
-      if (CommonDataKeys.NAVIGATABLE.`is`(dataId)) {
-        return node.getNavigatable()
+      if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
+        return DataProvider { getDataInBackground(it, node) }
       }
       if (PlatformDataKeys.SELECTED_ITEM.`is`(dataId)) {
         return node
