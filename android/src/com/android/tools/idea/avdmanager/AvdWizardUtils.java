@@ -139,7 +139,7 @@ public class AvdWizardUtils {
   private static final String AVD_WIZARD_HELP_URL = "https://developer.android.com/r/studio-ui/avd-manager.html";
 
   /** Maximum amount of RAM to *default* an AVD to, if the physical RAM on the device is higher */
-  private static final int MAX_RAM_MB = 1536;
+  private static final int MAX_RAM_MB = 2048;
 
   private static final Revision MIN_SNAPSHOT_MANAGEMENT_VERSION = new Revision(27, 2, 5);
   private static final Revision MIN_WEBP_VERSION = new Revision(25, 2, 3);
