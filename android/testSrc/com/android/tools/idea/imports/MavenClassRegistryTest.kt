@@ -18,6 +18,7 @@ package com.android.tools.idea.imports
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import org.junit.Assert.assertThrows
@@ -48,6 +49,9 @@ class MavenClassRegistryTest {
               "ktlfns": [
                 {
                   "fqn": "androidx.activity.result.PickVisualMediaRequestKt.PickVisualMediaRequest"
+                },
+                {
+                  "fqn": "androidx.activity.FakeFunctionKt.FakeFunction"
                 }
               ]
             },
@@ -58,8 +62,7 @@ class MavenClassRegistryTest {
               "ktxTargets": [
                 "androidx.activity:activity"
               ],
-              "fqcns": [],
-              "ktlfns": []
+              "fqcns": []
             },
             {
               "groupId": "androidx.annotation",
@@ -69,6 +72,14 @@ class MavenClassRegistryTest {
               "fqcns": [
                 "androidx.annotation.AnimRes",
                 "androidx.annotation.Fake"
+              ],
+              "ktlfns": [
+                {
+                  "fqn": "androidx.annotation.FacadeFileKt.AnnotationFunction"
+                },
+                {
+                  "fqn": "androidx.annotation.FakeFunctionKt.FakeFunction"
+                }
               ]
             }
           ]
@@ -81,7 +92,7 @@ class MavenClassRegistryTest {
     assertThat(mavenClassRegistry.lookup.classNameMap).containsExactlyEntriesIn(
       mapOf(
         "ComponentActivity" to listOf(
-          MavenClassRegistryBase.LibraryImportData(
+          LibraryImportData(
             artifact = "androidx.activity:activity",
             importedItemFqName = "androidx.activity.ComponentActivity",
             importedItemPackageName = "androidx.activity",
@@ -89,13 +100,13 @@ class MavenClassRegistryTest {
           )
         ),
         "Fake" to listOf(
-          MavenClassRegistryBase.LibraryImportData(
+          LibraryImportData(
             artifact = "androidx.activity:activity",
             importedItemFqName = "androidx.activity.Fake",
             importedItemPackageName = "androidx.activity",
             version = "1.1.0"
           ),
-          MavenClassRegistryBase.LibraryImportData(
+          LibraryImportData(
             artifact = "androidx.annotation:annotation",
             importedItemFqName = "androidx.annotation.Fake",
             importedItemPackageName = "androidx.annotation",
@@ -103,13 +114,48 @@ class MavenClassRegistryTest {
           )
         ),
         "AnimRes" to listOf(
-          MavenClassRegistryBase.LibraryImportData(
+          LibraryImportData(
             artifact = "androidx.annotation:annotation",
             importedItemFqName = "androidx.annotation.AnimRes",
             importedItemPackageName = "androidx.annotation",
             version = "1.1.0"
           )
         )
+      )
+    )
+
+    assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap).containsExactlyEntriesIn(
+      mapOf(
+        "PickVisualMediaRequest" to listOf(
+          LibraryImportData(
+            artifact = "androidx.activity:activity",
+            importedItemFqName = "androidx.activity.result.PickVisualMediaRequest",
+            importedItemPackageName = "androidx.activity.result",
+            version = "1.1.0"
+          )
+        ),
+        "FakeFunction" to listOf(
+          LibraryImportData(
+            artifact = "androidx.activity:activity",
+            importedItemFqName = "androidx.activity.FakeFunction",
+            importedItemPackageName = "androidx.activity",
+            version = "1.1.0"
+          ),
+          LibraryImportData(
+            artifact = "androidx.annotation:annotation",
+            importedItemFqName = "androidx.annotation.FakeFunction",
+            importedItemPackageName = "androidx.annotation",
+            version = "1.1.0"
+          )
+        ),
+        "AnnotationFunction" to listOf(
+          LibraryImportData(
+            artifact = "androidx.annotation:annotation",
+            importedItemFqName = "androidx.annotation.AnnotationFunction",
+            importedItemPackageName = "androidx.annotation",
+            version = "1.1.0"
+          )
+        ),
       )
     )
 
@@ -325,9 +371,16 @@ class MavenClassRegistryTest {
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 
-    // TODO(b/155235180): Validate that top-level function names are exposed correctly.
-    // For now, just validating that the registry parsed and has values is enough to confirm that no exceptions were thrown during parsing.
-    assertThat(mavenClassRegistry.lookup.classNameMap).isNotEmpty()
+    assertThat(mavenClassRegistry.lookup.topLevelFunctionsMap).containsExactlyEntriesIn(
+      mapOf(
+        "someFqn" to listOf(LibraryImportData(
+          artifact = "group3:artifact3",
+          importedItemFqName = "someFqn",
+          importedItemPackageName = "",
+          version = "1"
+        ))
+      )
+    )
   }
 
   @Test
@@ -390,7 +443,7 @@ class MavenClassRegistryTest {
     assertThat(mavenClassRegistry.lookup.classNameMap).containsExactlyEntriesIn(
       mapOf(
         "ComponentActivity" to listOf(
-          MavenClassRegistryBase.LibraryImportData(
+          LibraryImportData(
             artifact = "androidx.activity:activity",
             importedItemFqName = "androidx.activity.ComponentActivity",
             importedItemPackageName = "androidx.activity",
@@ -398,13 +451,13 @@ class MavenClassRegistryTest {
           )
         ),
         "Fake" to listOf(
-          MavenClassRegistryBase.LibraryImportData(
+          LibraryImportData(
             artifact = "androidx.activity:activity",
             importedItemFqName = "androidx.activity.Fake",
             importedItemPackageName = "androidx.activity",
             version = "1.1.0"
           ),
-          MavenClassRegistryBase.LibraryImportData(
+          LibraryImportData(
             artifact = "androidx.annotation:annotation",
             importedItemFqName = "androidx.annotation.Fake",
             importedItemPackageName = "androidx.annotation",
@@ -412,7 +465,7 @@ class MavenClassRegistryTest {
           )
         ),
         "AnimRes" to listOf(
-          MavenClassRegistryBase.LibraryImportData(
+          LibraryImportData(
             artifact = "androidx.annotation:annotation",
             importedItemFqName = "androidx.annotation.AnimRes",
             importedItemPackageName = "androidx.annotation",
@@ -454,7 +507,7 @@ class MavenClassRegistryTest {
         assertThat(it).containsEntry(
           "ComponentActivity",
           listOf(
-            MavenClassRegistryBase.LibraryImportData(
+            LibraryImportData(
               artifact = "androidx.activity:activity",
               importedItemFqName = "androidx.activity.ComponentActivity",
               importedItemPackageName = "androidx.activity",
@@ -465,7 +518,7 @@ class MavenClassRegistryTest {
         assertThat(it).containsEntry(
           "OnBackPressedDispatcher",
           listOf(
-            MavenClassRegistryBase.LibraryImportData(
+            LibraryImportData(
               artifact = "androidx.activity:activity",
               importedItemFqName = "androidx.activity.OnBackPressedDispatcher",
               importedItemPackageName = "androidx.activity",

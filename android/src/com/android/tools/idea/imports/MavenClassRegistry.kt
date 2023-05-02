@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.gson.stream.JsonReader
 import com.intellij.openapi.diagnostic.logger
 import org.jetbrains.kotlin.name.FqName
@@ -32,8 +33,8 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
   val lookup: LookupData = generateLookup()
 
   /**
-   * Given a class name, returns the likely collection of [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com
-   * artifacts containing that class.
+   * Given a class name, returns the likely collection of [LibraryImportData] objects for the maven.google.com artifacts containing that
+   * class.
    *
    * Here, the passed in [className] can be either short class name or fully qualified class name.
    *
@@ -93,27 +94,20 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
 
   @Throws(IOException::class)
   private fun readIndexArray(reader: JsonReader): LookupData {
-    val fqcnMap = mutableMapOf<String, List<LibraryImportData>>()
-    val ktxMap = mutableMapOf<String, String>()
-    val coordinateList = mutableListOf<Coordinate>()
+    val classNames: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
+    val topLevelFunctions: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
+    val ktxMap: MutableMap<String, String> = mutableMapOf()
+    val coordinateList: MutableList<Coordinate> = mutableListOf()
 
     reader.beginArray()
     while (reader.hasNext()) {
       val indexData = readGMavenIndex(reader)
 
-      // Update "fqcn to artifacts" map.
-      indexData
-        .toMavenClassRegistryMap()
-        .asSequence()
-        .fold(fqcnMap) { acc, entry ->
-          // Merge the content of this entry into the accumulated map. If the class name(key of this entry) exists in
-          // this accumulated map, corresponding library(value of this entry) is appended to the existing list in this
-          // accumulated map. Else a new entry is added into this accumulated map.
-          acc.merge(entry.key, listOf(entry.value)) { oldValue, value ->
-            oldValue + value
-          }
-          acc
-        }
+      // Get class names and their associated libraries.
+      classNames.addAll(indexData.getClassSimpleNamesWithLibraries())
+
+      // Get top-level function names and their associated libraries.
+      topLevelFunctions.addAll(indexData.getTopLevelFunctionSimpleNamesWithLibraries())
 
       // Update "artifact to the associated KTX artifact" map.
       indexData.toKtxMapEntry()?.let {
@@ -124,7 +118,11 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
       coordinateList.add(Coordinate(indexData.groupId, indexData.artifactId, indexData.version))
     }
     reader.endArray()
-    return LookupData(fqcnMap, ktxMap, coordinateList)
+
+    val classNameMap = classNames.groupBy({ it.first }, { it.second })
+    val topLevelFunctionsMap = topLevelFunctions.groupBy({ it.first }, { it.second })
+
+    return LookupData(classNameMap, topLevelFunctionsMap, ktxMap, coordinateList)
   }
 
   @Throws(IOException::class)
@@ -239,21 +237,31 @@ data class GMavenArtifactIndex(
   val fqcns: Collection<FqName>,
   val topLevelFunctions: Collection<KotlinTopLevelFunction>,
 ) {
-  /**
-   * Converts to a map from class names to corresponding [MavenClassRegistryBase.LibraryImportData]s.
-   */
-  fun toMavenClassRegistryMap(): Map<String, MavenClassRegistryBase.LibraryImportData> {
-    return fqcns.asSequence()
+
+  /** Gets a list of simple class names and their corresponding [LibraryImportData]s. */
+  fun getClassSimpleNamesWithLibraries(): List<Pair<String, LibraryImportData>> {
+    return fqcns
       .map { fqName ->
-        val library = MavenClassRegistryBase.LibraryImportData(
+        fqName.shortName().asString() to LibraryImportData(
           artifact = "$groupId:$artifactId",
           importedItemFqName = fqName.asString(),
           importedItemPackageName = fqName.parent().asString(),
           version = version
         )
-        fqName.shortName().asString() to library
       }
-      .toMap()
+  }
+
+  /** Gets a list of top-level function simple names and their corresponding [LibraryImportData]s. */
+  fun getTopLevelFunctionSimpleNamesWithLibraries(): List<Pair<String, LibraryImportData>> {
+    return topLevelFunctions
+      .map { topLevelFunction ->
+        topLevelFunction.simpleName to LibraryImportData(
+          artifact = "$groupId:$artifactId",
+          importedItemFqName = topLevelFunction.kotlinFqName.asString(),
+          importedItemPackageName = topLevelFunction.packageName,
+          version = version
+        )
+      }
   }
 
   /**
@@ -314,9 +322,13 @@ data class KotlinTopLevelFunction(
  */
 data class LookupData(
   /**
-   * A map from simple class names to the corresponding [MavenClassRegistryBase.LibraryImportData] objects.
+   * A map from simple class names to the corresponding [LibraryImportData] objects.
    */
-  val classNameMap: Map<String, List<MavenClassRegistryBase.LibraryImportData>>,
+  val classNameMap: Map<String, List<LibraryImportData>>,
+  /**
+   * A map from simple Kotlin top-level function names to the corresponding [LibraryImportData] objects.
+   */
+  val topLevelFunctionsMap: Map<String, List<LibraryImportData>>,
   /**
    * A map from non-KTX libraries to the associated KTX libraries.
    */
@@ -329,7 +341,7 @@ data class LookupData(
 ) {
   companion object {
     @JvmStatic
-    val EMPTY = LookupData(emptyMap(), emptyMap(), emptyList())
+    val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
   }
 }
 
