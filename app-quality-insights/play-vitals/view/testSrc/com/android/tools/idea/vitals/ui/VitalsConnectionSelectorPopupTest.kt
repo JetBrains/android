@@ -29,6 +29,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import java.awt.Point
 import java.awt.event.MouseEvent
@@ -112,6 +113,20 @@ class VitalsConnectionSelectorPopupTest {
       fakeUi.findAllComponents<SimpleColoredComponent> { it !is JListSimpleColoredComponent<*> }
     assertThat(labels).hasSize(1)
     assertThat(labels.map { it.toString() }).containsExactly("All apps")
+  }
+
+  @Test
+  fun `popup shows empty state message when there are no apps at all`() = runTest {
+    val stateFlow = MutableStateFlow(Selection<VitalsConnection>(null, emptyList()))
+    val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
+    val mouseEvent = MouseEvent(JPanel(), MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, 1, true, 0)
+    action.actionPerformed(createTestEvent(action, DataContext.EMPTY_CONTEXT, mouseEvent))
+
+    val popup = popupRule.fakePopupFactory.getPopup<Unit>(0)
+    val fakeUi = FakeUi(popup.content as VitalsConnectionSelectorPopup)
+    val labels = fakeUi.findAllComponents<JBLabel>()
+    assertThat(labels).hasSize(3)
+    assertThat(labels[0].text).isEqualTo("No apps available")
   }
 
   @Test

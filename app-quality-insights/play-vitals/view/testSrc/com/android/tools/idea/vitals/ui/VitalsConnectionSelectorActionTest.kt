@@ -37,7 +37,7 @@ class VitalsConnectionSelectorActionTest {
     val action = VitalsConnectionSelectorAction(stateFlow, this, {}, { Point() })
     val event = createTestEvent()
     action.update(event)
-    assertThat(event.presentation.text).isEqualTo("None selected")
+    assertThat(event.presentation.text).isEqualTo("No apps available")
 
     stateFlow.value = Selection(TEST_CONNECTION_1, listOf(TEST_CONNECTION_1, TEST_CONNECTION_2))
     action.update(event)

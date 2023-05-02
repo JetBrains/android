@@ -26,6 +26,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.SearchTextField
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.util.ui.JBUI
@@ -88,6 +89,20 @@ class VitalsConnectionSelectorPopup(
       allContainer.add(allApps, BorderLayout.CENTER)
 
       contentPanel.add(allContainer)
+    }
+
+    if (mainConnections.isEmpty() && secondaryConnections.isEmpty()) {
+      val emptyMessagePanel = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(5) }
+      val title = JBLabel("No apps available").apply { border = JBUI.Borders.emptyBottom(5) }
+      val subtitle =
+        JBLabel("Your Play Console account does not have access to").apply {
+          foreground = JBColor.GRAY
+        }
+      val subtitleLine2 = JBLabel("Android Vitals for any app.").apply { foreground = JBColor.GRAY }
+      emptyMessagePanel.add(title, BorderLayout.NORTH)
+      emptyMessagePanel.add(subtitle, BorderLayout.CENTER)
+      emptyMessagePanel.add(subtitleLine2, BorderLayout.SOUTH)
+      contentPanel.add(emptyMessagePanel)
     }
 
     add(searchTextField, BorderLayout.NORTH)

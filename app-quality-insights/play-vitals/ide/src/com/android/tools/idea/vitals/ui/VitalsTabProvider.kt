@@ -41,7 +41,6 @@ import kotlinx.coroutines.launch
 class VitalsTabProvider : AppInsightsTabProvider {
   override val displayName = VITALS_KEY.displayName
 
-  // TODO(b/271918057): use real icon.
   override val icon = StudioIcons.Avd.DEVICE_PLAY_STORE
 
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {

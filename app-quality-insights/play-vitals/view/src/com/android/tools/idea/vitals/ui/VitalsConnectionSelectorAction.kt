@@ -41,7 +41,7 @@ class VitalsConnectionSelectorAction(
 
   override fun update(e: AnActionEvent) {
     e.presentation.setText(
-      flow.value.selected?.let { "${it.displayName} [${it.appId}]" } ?: "None selected",
+      flow.value.selected?.let { "${it.displayName} [${it.appId}]" } ?: "No apps available",
       false
     )
   }
