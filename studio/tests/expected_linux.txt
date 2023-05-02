@@ -407,7 +407,6 @@ android-studio/jbr/lib/server/libjsig.so
 android-studio/jbr/lib/server/libjvm.so
 android-studio/jbr/lib/tzdb.dat
 android-studio/jbr/release
-android-studio/lib/3rd-party-native.jar
 android-studio/lib/3rd-party-rt.jar
 android-studio/lib/annotations.jar
 android-studio/lib/ant/CONTRIBUTORS
@@ -450,7 +449,7 @@ android-studio/lib/ant/lib/classpath.index
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
 android-studio/lib/app.jar
-android-studio/lib/build-marker-AI-231.7515.13.2311.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-231.7665.28.2311.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/error-prone-annotations.jar
@@ -2726,12 +2725,12 @@ android-studio/plugins/google-cloud-tools-core-as/lib/gradle-appengine-builder-m
 android-studio/plugins/google-login-as/lib/google-login-as.jar
 android-studio/plugins/gradle-java/lib/gradle-java.jar
 android-studio/plugins/gradle-java/lib/gradle-jps.jar
-android-studio/plugins/gradle/lib/gradle-api-7.5.1.jar
-android-studio/plugins/gradle/lib/gradle-api-impldep-7.5.1.jar
-android-studio/plugins/gradle/lib/gradle-launcher-7.5.1.jar
+android-studio/plugins/gradle/lib/gradle-api-8.0.jar
+android-studio/plugins/gradle/lib/gradle-api-impldep-8.0.jar
+android-studio/plugins/gradle/lib/gradle-launcher-8.0.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-api.jar
 android-studio/plugins/gradle/lib/gradle-tooling-extension-impl.jar
-android-studio/plugins/gradle/lib/gradle-wrapper-7.5.1.jar
+android-studio/plugins/gradle/lib/gradle-wrapper-8.0.jar
 android-studio/plugins/gradle/lib/gradle.jar
 android-studio/plugins/html-tools/lib/html-tools.jar
 android-studio/plugins/java-coverage/lib/jacoco.jar
@@ -2786,11 +2785,11 @@ android-studio/plugins/studio-bot/lib/sml.jar
 android-studio/plugins/studio-bot/lib/studio_bot_proto.jar
 android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 android-studio/plugins/tasks/lib/tasks-core.jar
-android-studio/plugins/terminal/.zshenv
 android-studio/plugins/terminal/fish/init.fish
-android-studio/plugins/terminal/hooks.zsh
 android-studio/plugins/terminal/jediterm-bash.in
 android-studio/plugins/terminal/lib/terminal.jar
+android-studio/plugins/terminal/zsh/.zshenv
+android-studio/plugins/terminal/zsh/hooks.zsh
 android-studio/plugins/test-recorder/lib/swt.jar
 android-studio/plugins/test-recorder/lib/test-recorder.jar
 android-studio/plugins/test-recorder/lib/uiautomatorviewer.jar

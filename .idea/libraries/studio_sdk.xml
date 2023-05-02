@@ -1,7 +1,6 @@
 <component name="libraryTable">
   <library name="studio-sdk">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/3rd-party-native.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/3rd-party-rt.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/annotations.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/lib/ant/lib/ant.jar!/" />
