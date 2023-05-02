@@ -247,6 +247,38 @@ data class GMavenArtifactIndex(
  */
 data class KtxMapEntry(val ktxLibrary: String, val targetLibrary: String)
 
+/** A top-level Kotlin function. */
+data class KotlinTopLevelFunction(
+  /** Unqualified function name. */
+  val simpleName: String,
+  /** Package name of the function. */
+  val packageName: String,
+  /**
+   * Fully-qualified name of the function in Kotlin. This does not contain the synthetic class (e.g. "FileFacadeKt") that contains the
+   * function in the JVM. That makes this name appropriate to use when calling from Kotlin, but not from Java.
+   */
+  val kotlinFqName: FqName,
+) {
+
+  companion object {
+    fun fromJvmQualifiedName(fqName: String): KotlinTopLevelFunction {
+      require(fqName.contains('.')) {
+        "fqName does not have file facade class containing the function: '$fqName'"
+      }
+
+      val functionSimpleName = fqName.substringAfterLast('.')
+      val classFullName = fqName.substringBeforeLast('.')
+      val packageName = classFullName.substringBeforeLast('.', "")
+      val packagePrefix = if (packageName.isEmpty()) "" else "$packageName."
+
+      return KotlinTopLevelFunction(
+          simpleName = functionSimpleName,
+          kotlinFqName = FqName("$packagePrefix$functionSimpleName"),
+          packageName = packageName)
+    }
+  }
+}
+
 /**
  * Lookup data extracted from an index file.
  */

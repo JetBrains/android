@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
@@ -411,5 +412,28 @@ class MavenClassRegistryTest {
     finally {
       Disposer.dispose(repository)
     }
+  }
+
+  @Test
+  fun kotlinTopLevelFunction_fromJvmQualifiedName() {
+    with(KotlinTopLevelFunction.fromJvmQualifiedName("com.example.FileFacadeKt.foo")) {
+      assertThat(simpleName).isEqualTo("foo")
+      assertThat(packageName).isEqualTo("com.example")
+      assertThat(kotlinFqName.asString()).isEqualTo("com.example.foo")
+    }
+  }
+
+  @Test
+  fun kotlinTopLevelFunction_fromJvmQualifiedName_noPackageName() {
+    with(KotlinTopLevelFunction.fromJvmQualifiedName("FileFacadeKt.foo")) {
+      assertThat(simpleName).isEqualTo("foo")
+      assertThat(packageName).isEqualTo("")
+      assertThat(kotlinFqName.asString()).isEqualTo("foo")
+    }
+  }
+
+  @Test
+  fun kotlinTopLevelFunction_fromJvmQualifiedName_noFacadeFile() {
+    assertThrows(IllegalArgumentException::class.java) { KotlinTopLevelFunction.fromJvmQualifiedName("foo") }
   }
 }
