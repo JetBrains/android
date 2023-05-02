@@ -135,6 +135,8 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
     var version: String? = null
     var ktxTargets: Collection<String>? = null
     var fqcns: Collection<FqName>? = null
+    // Top-level functions aren't in the index when empty in order to save bytes. Missing is not consider malformed, so allow empty list.
+    var topLevelFunctions: Collection<KotlinTopLevelFunction> = emptyList()
     while (reader.hasNext()) {
       when (reader.nextName()) {
         INDEX_KEY.GROUP_ID.key -> {
@@ -152,6 +154,9 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
         INDEX_KEY.FQCNS.key -> {
           fqcns = readFqcns(reader)
         }
+        INDEX_KEY.TOP_LEVEL_FUNCTIONS.key -> {
+          topLevelFunctions = readTopLevelFunctions(reader)
+        }
         else -> {
           reader.skipValue()
         }
@@ -163,7 +168,8 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
       artifactId = artifactId ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
       version = version ?: throw MalformedIndexException("Version is missing($reader)."),
       ktxTargets = ktxTargets ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
-      fqcns = fqcns ?: throw MalformedIndexException("Fully qualified class names are missing($reader).")
+      fqcns = fqcns ?: throw MalformedIndexException("Fully qualified class names are missing($reader)."),
+      topLevelFunctions = topLevelFunctions,
     )
     reader.endObject()
     return gMavenIndex
@@ -178,6 +184,27 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
     }
     reader.endArray()
     return fqcns
+  }
+
+  @Throws(IOException::class)
+  private fun readTopLevelFunctions(reader: JsonReader): Collection<KotlinTopLevelFunction> {
+    return buildList {
+      reader.beginArray()
+      while (reader.hasNext()) {
+        reader.beginObject()
+        var fqName: String? = null
+        while (reader.hasNext()) {
+          when (reader.nextName()) {
+            "fqn" -> fqName = reader.nextString()
+            else -> reader.skipValue()
+          }
+        }
+        reader.endObject()
+
+        if (fqName != null) add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
+      }
+      reader.endArray()
+    }
   }
 
   @Throws(IOException::class)
@@ -196,7 +223,8 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
     ARTIFACT_ID("artifactId"),
     VERSION("version"),
     KTX_TARGETS("ktxTargets"),
-    FQCNS("fqcns")
+    FQCNS("fqcns"),
+    TOP_LEVEL_FUNCTIONS("ktlfns"),
   }
 }
 
@@ -208,7 +236,8 @@ data class GMavenArtifactIndex(
   val artifactId: String,
   val version: String,
   val ktxTargets: Collection<String>,
-  val fqcns: Collection<FqName>
+  val fqcns: Collection<FqName>,
+  val topLevelFunctions: Collection<KotlinTopLevelFunction>,
 ) {
   /**
    * Converts to a map from class names to corresponding [MavenClassRegistryBase.Library]s.

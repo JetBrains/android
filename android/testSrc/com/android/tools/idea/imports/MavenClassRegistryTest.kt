@@ -44,6 +44,11 @@ class MavenClassRegistryTest {
               "fqcns": [
                 "androidx.activity.ComponentActivity",
                 "androidx.activity.Fake"
+              ],
+              "ktlfns": [
+                {
+                  "fqn": "androidx.activity.result.PickVisualMediaRequestKt.PickVisualMediaRequest"
+                }
               ]
             },
             {
@@ -53,7 +58,8 @@ class MavenClassRegistryTest {
               "ktxTargets": [
                 "androidx.activity:activity"
               ],
-              "fqcns": []
+              "fqcns": [],
+              "ktlfns": []
             },
             {
               "groupId": "androidx.annotation",
@@ -262,6 +268,62 @@ class MavenClassRegistryTest {
 
     assertThat(mavenClassRegistry.lookup.classNameMap).isEmpty()
     assertThat(mavenClassRegistry.lookup.ktxMap).isEmpty()
+  }
+
+  @Test
+  fun parseJsonFile_topLevelFunctionsPropertyIsOptional() {
+    val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
+    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
+      """
+        {
+          "Index": [
+            {
+              "groupId": "group1",
+              "artifactId": "artifact1",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [
+                "class1"
+              ]
+            },
+            {
+              "groupId": "group2",
+              "artifactId": "artifact2",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [
+                "class2"
+              ],
+              "ktlfns": []
+            },
+            {
+              "groupId": "group3",
+              "artifactId": "artifact3",
+              "version": "1",
+              "ktxTargets": [],
+              "fqcns": [
+                "class3"
+              ],
+              "ktlfns": [
+                {
+                  "fqn": "FacadeFileKt.someFqn",
+                  "unrecognized": "should be ignored"
+                },
+                {
+                  "has_no_fqn": "should be ignored"
+                }
+              ]
+            }
+          ]
+        }
+      """.trimIndent().byteInputStream(UTF_8)
+    )
+
+    val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
+
+    // TODO(b/155235180): Validate that top-level function names are exposed correctly.
+    // For now, just validating that the registry parsed and has values is enough to confirm that no exceptions were thrown during parsing.
+    assertThat(mavenClassRegistry.lookup.classNameMap).isNotEmpty()
   }
 
   @Test
