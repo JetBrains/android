@@ -397,7 +397,7 @@ class DeviceViewPanel(
   }
 
   private fun getFitZoom(): Int {
-    val size = getScreenSize()
+    val size = layoutInspector.inspectorModel.screenDimension
     val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
     val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
     val desiredWidth = (size.width).toDouble()
@@ -408,20 +408,6 @@ class DeviceViewPanel(
     else {
       (90 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
     }
-  }
-
-  private fun getScreenSize(): Dimension {
-    // Use the screen size from the resource lookup if available.
-    // This will make sure the screen size is correct even if there are windows we don't know about yet.
-    // Example: If the initial screen has a dialog open, we may receive the dialog first. We do not want to zoom to fit the dialog size
-    // since it is often smaller than the screen size.
-    val size = layoutInspector.inspectorModel.resourceLookup.screenDimension
-    if (size != null) {
-      return size
-    }
-    // For the legacy inspector and for snapshots loaded from file, we do not have the screen size, but we know that all windows are loaded.
-    val root = layoutInspector.inspectorModel.root
-    return Dimension(root.layoutBounds.width, root.layoutBounds.height)
   }
 
   override fun canZoomIn() = renderSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty

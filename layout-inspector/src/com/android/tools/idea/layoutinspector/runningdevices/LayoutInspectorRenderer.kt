@@ -114,10 +114,8 @@ class LayoutInspectorRenderer(
    * @param displayRectangle The rectangle on which the device display is rendered.
    */
   private fun getTransform(displayRectangle: Rectangle): AffineTransform {
-    val rootView = renderModel.model.root
-
     // calculate how much we need to scale the Layout Inspector bounds to match the device frame.
-    val scale = displayRectangle.width.toDouble() / rootView.layoutBounds.bounds.width.toDouble()
+    val scale = displayRectangle.width.toDouble() / renderModel.model.screenDimension.width.toDouble()
 
     return AffineTransform().apply {
       // translate to center of panel
