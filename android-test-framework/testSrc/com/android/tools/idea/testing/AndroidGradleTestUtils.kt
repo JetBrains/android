@@ -597,10 +597,12 @@ data class AndroidProjectBuilder(
 
 @JvmOverloads
 fun createAndroidProjectBuilderForDefaultTestProjectStructure(
-  projectType: IdeAndroidProjectType = IdeAndroidProjectType.PROJECT_TYPE_APP
+  projectType: IdeAndroidProjectType = IdeAndroidProjectType.PROJECT_TYPE_APP,
+  namespace: String? = null,
 ): AndroidProjectBuilder =
   AndroidProjectBuilder(
     projectType = { projectType },
+    namespace = { namespace },
     minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
     targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
     mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },

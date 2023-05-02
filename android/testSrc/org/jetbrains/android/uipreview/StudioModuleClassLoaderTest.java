@@ -236,7 +236,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
       new AndroidModuleModelBuilder(
         ":",
         "debug",
-        createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)));
+        createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, "p1.p2")));
 
     SourceProviders sourceProviderManager = SourceProviderManager.getInstance(myFacet);
     VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
