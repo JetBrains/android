@@ -26,6 +26,7 @@ import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.common.SelectViewAction
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.InspectorModel
@@ -42,6 +43,7 @@ import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.runDispatching
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
@@ -93,6 +95,8 @@ class LayoutInspectorRendererTest {
 
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  private val sessionStats = SessionStatisticsImpl(DisconnectedClient.clientType)
 
   private val inspectorModel = model {
     view(ROOT, 0, 0, 100, 150) {
@@ -225,6 +229,11 @@ class LayoutInspectorRendererTest {
     assertThat(renderModel.model.selection?.drawId).isEqualTo(2L)
     runDispatching { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("demo.xml", 2, "<RelativeLayout")
+
+    val data = DynamicLayoutInspectorSession.newBuilder()
+    sessionStats.save(data)
+    // TODO(b/265150325) enable after merging metrics
+    //assertThat(data.gotoDeclaration.doubleClicksFromRender).isEqualTo(1)
   }
 
   @Test
@@ -345,7 +354,8 @@ class LayoutInspectorRendererTest {
       renderLogic,
       _renderModel,
       displayRectangleProvider = { deviceFrame },
-      screenScaleProvider = { 1.0 }
+      screenScaleProvider = { 1.0 },
+      { sessionStats }
     )
   }
 

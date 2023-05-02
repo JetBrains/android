@@ -31,9 +31,9 @@ class GotoDeclarationStatisticsTest {
     goto.gotoSourceFromTreeActionMenu(mock())
     goto.gotoSourceFromTreeActionMenu(mockKeyShortcut())
     goto.gotoSourceFromTreeActionMenu(mockKeyShortcut())
-    goto.gotoSourceFromDoubleClick()
-    goto.gotoSourceFromDoubleClick()
-    goto.gotoSourceFromDoubleClick()
+    goto.gotoSourceFromTreeDoubleClick()
+    goto.gotoSourceFromTreeDoubleClick()
+    goto.gotoSourceFromTreeDoubleClick()
     val data1 = DynamicLayoutInspectorGotoDeclaration.newBuilder()
     goto.save { data1 }
     assertThat(data1.clicksMenuAction).isEqualTo(1)

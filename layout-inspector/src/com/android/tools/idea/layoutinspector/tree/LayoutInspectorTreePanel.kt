@@ -258,7 +258,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   @Suppress("UNUSED_PARAMETER")
   private fun doubleClick(item: Any) {
     layoutInspector?.let {
-      it.currentClient.stats.gotoSourceFromDoubleClick()
+      it.currentClient.stats.gotoSourceFromTreeDoubleClick()
       GotoDeclarationAction.navigateToSelectedView(it.coroutineScope, it.inspectorModel)
     }
   }

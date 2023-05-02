@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
+import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
@@ -52,7 +53,8 @@ class LayoutInspectorRenderer(
   private val renderLogic: RenderLogic,
   private val renderModel: RenderModel,
   private val displayRectangleProvider: () -> Rectangle?,
-  private val screenScaleProvider: () -> Double
+  private val screenScaleProvider: () -> Double,
+  private val currentSessionStatistics: () -> SessionStatistics
 ): JPanel(), Disposable {
 
   var interceptClicks = false
@@ -173,6 +175,7 @@ class LayoutInspectorRenderer(
       renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
       // Navigate to sources on double click.
       GotoDeclarationAction.navigateToSelectedView(coroutineScope, renderModel.model)
+      currentSessionStatistics().gotoSourceFromRenderDoubleClick()
       return true
     }
   }

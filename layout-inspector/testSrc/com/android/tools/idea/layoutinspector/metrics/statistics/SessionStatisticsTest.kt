@@ -86,7 +86,7 @@ class SessionStatisticsTest {
     stats.showRecompositions = true
     stats.frameReceived()
     stats.frameReceived()
-    stats.gotoSourceFromDoubleClick()
+    stats.gotoSourceFromTreeDoubleClick()
     stats.selectionMadeFromComponentTree(compose1)
     stats.debuggerInUse(false)
 

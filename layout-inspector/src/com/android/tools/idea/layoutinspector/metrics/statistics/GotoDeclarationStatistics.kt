@@ -34,9 +34,14 @@ class GotoDeclarationStatistics {
   private var actionShortcutKeyStrokes = 0
 
   /**
-   * How many times was double click for "Goto Declaration" used
+   * How many times was double click for "Goto Declaration" used, from the component tree
    */
-  private var doubleClicks = 0
+  private var treeDoubleClicks = 0
+
+  /**
+   * How many times was double click for "Goto Declaration" used, from the device image
+   */
+  private var renderDoubleClicks = 0
 
   /**
    * Start a new session by resetting all counters.
@@ -44,18 +49,19 @@ class GotoDeclarationStatistics {
   fun start() {
     menuActionClicks = 0
     actionShortcutKeyStrokes = 0
-    doubleClicks = 0
+    treeDoubleClicks = 0
   }
 
   /**
    * Save the session data recorded since [start].
    */
   fun save(dataSupplier: () -> DynamicLayoutInspectorGotoDeclaration.Builder) {
-    if (menuActionClicks > 0 || actionShortcutKeyStrokes > 0 || doubleClicks > 0) {
+    if (menuActionClicks > 0 || actionShortcutKeyStrokes > 0 || treeDoubleClicks > 0) {
       dataSupplier().let {
         it.clicksMenuAction = menuActionClicks
         it.keyStrokesShortcut = actionShortcutKeyStrokes
-        it.doubleClicks = doubleClicks
+        it.doubleClicks = treeDoubleClicks
+        // TODO(b/265150325): add metrics for device image double clicks
       }
     }
   }
@@ -69,7 +75,11 @@ class GotoDeclarationStatistics {
     }
   }
 
-  fun gotoSourceFromDoubleClick() {
-    doubleClicks++
+  fun gotoSourceFromTreeDoubleClick() {
+    treeDoubleClicks++
+  }
+
+  fun gotoSourceFromRenderDoubleClick() {
+    renderDoubleClicks++
   }
 }

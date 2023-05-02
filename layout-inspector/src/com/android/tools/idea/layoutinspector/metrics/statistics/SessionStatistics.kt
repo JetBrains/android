@@ -67,7 +67,12 @@ interface SessionStatistics {
   /**
    * Navigate to source from the component tree via a double click.
    */
-  fun gotoSourceFromDoubleClick()
+  fun gotoSourceFromTreeDoubleClick()
+
+  /**
+   * Navigate to source from the device render via a double click.
+   */
+  fun gotoSourceFromRenderDoubleClick()
 
   /**
    * The recomposition numbers changed.
@@ -192,8 +197,12 @@ class SessionStatisticsImpl(
     goto.gotoSourceFromTreeActionMenu(event)
   }
 
-  override fun gotoSourceFromDoubleClick() {
-    goto.gotoSourceFromDoubleClick()
+  override fun gotoSourceFromTreeDoubleClick() {
+    goto.gotoSourceFromTreeDoubleClick()
+  }
+
+  override fun gotoSourceFromRenderDoubleClick() {
+    goto.gotoSourceFromRenderDoubleClick()
   }
 
   override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {

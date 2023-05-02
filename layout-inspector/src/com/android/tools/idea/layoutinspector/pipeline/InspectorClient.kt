@@ -288,7 +288,8 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override fun refreshButtonClicked() {}
   override fun gotoSourceFromPropertyValue(view: ViewNode?) {}
   override fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {}
-  override fun gotoSourceFromDoubleClick() {}
+  override fun gotoSourceFromTreeDoubleClick() {}
+  override fun gotoSourceFromRenderDoubleClick() {}
   override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {}
   override fun resetRecompositionCountsClick() {}
   override fun attachSuccess() {}

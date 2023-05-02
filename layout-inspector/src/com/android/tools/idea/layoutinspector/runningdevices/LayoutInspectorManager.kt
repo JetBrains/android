@@ -268,7 +268,8 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       layoutInspector.renderLogic,
       layoutInspector.renderModel,
       { tabComponents.displayView.displayRectangle },
-      { tabComponents.displayView.screenScalingFactor }
+      { tabComponents.displayView.screenScalingFactor },
+      { layoutInspector.currentClient.stats }
     )
   ) {
 
