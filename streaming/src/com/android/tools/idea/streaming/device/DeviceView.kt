@@ -396,7 +396,7 @@ internal class DeviceView(
     }
     else {
       // Pass the new value of maxSyncedClipboardLength to the device.
-      synchronizer.setDeviceClipboard()
+      synchronizer.setDeviceClipboard(forceSend = true)
     }
   }
 
