@@ -138,6 +138,14 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
               }
           }
         }
+        if (StudioFlags.COMPOSE_PREVIEW_LITE_MODE.get()) {
+          row {
+            checkBox("Enable Compose Preview essentials mode")
+              .bindSelected(state::isComposePreviewLiteModeEnabled) {
+                state.isComposePreviewLiteModeEnabled = it
+              }
+          }
+        }
       }
     }
   }
