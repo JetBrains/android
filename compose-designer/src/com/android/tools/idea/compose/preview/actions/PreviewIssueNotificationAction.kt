@@ -258,6 +258,9 @@ class PreviewIssueNotificationAction(
       e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
     }
   }
+
+  // EDT is needed because of calls to ComposePreviewManager.status() in getStatusInfo
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 }
 
 /**

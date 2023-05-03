@@ -40,5 +40,6 @@ class StopUiCheckPreviewAction :
     findComposePreviewManagersForContext(e.dataContext).forEach { it.stopUiCheckPreview() }
   }
 
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  // EDT is needed because of calls to ComposePreviewManager.status()
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 }
