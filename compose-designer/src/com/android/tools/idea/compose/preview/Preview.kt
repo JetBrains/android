@@ -307,9 +307,10 @@ class ComposePreviewRepresentation(
   private val log = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val isDisposed = AtomicBoolean(false)
 
-  private val project = psiFile.project
   private val module = runReadAction { psiFile.module }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val project
+    get() = psiFilePointer.project
 
   private val previewElementsFlow: MutableStateFlow<Set<ComposePreviewElement>> =
     MutableStateFlow(emptySet())
