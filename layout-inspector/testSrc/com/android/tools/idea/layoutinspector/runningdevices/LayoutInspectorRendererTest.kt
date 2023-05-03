@@ -96,7 +96,7 @@ class LayoutInspectorRendererTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
-  private val sessionStats = SessionStatisticsImpl(DisconnectedClient.clientType)
+  private lateinit var sessionStats: SessionStatisticsImpl
 
   private val inspectorModel = model {
     view(ROOT, 0, 0, 100, 150) {
@@ -121,6 +121,7 @@ class LayoutInspectorRendererTest {
   fun setUp() {
     renderModel = RenderModel(inspectorModel, treeSettings) { DisconnectedClient }
     renderLogic = RenderLogic(renderModel, renderSettings)
+    sessionStats = SessionStatisticsImpl(DisconnectedClient.clientType)
   }
 
   @Test
@@ -232,8 +233,7 @@ class LayoutInspectorRendererTest {
 
     val data = DynamicLayoutInspectorSession.newBuilder()
     sessionStats.save(data)
-    // TODO(b/265150325) enable after merging metrics
-    //assertThat(data.gotoDeclaration.doubleClicksFromRender).isEqualTo(1)
+    assertThat(data.gotoDeclaration.doubleClicksFromRender).isEqualTo(1)
   }
 
   @Test
