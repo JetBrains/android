@@ -18,6 +18,7 @@ package com.android.tools.rendering.api
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
+import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.analytics.crash.CrashReporter
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.IRenderLogger
@@ -57,4 +58,6 @@ interface EnvironmentContext {
   fun getModuleClassLoaderManager(): ModuleClassLoaderManager
 
   fun getCrashReporter(): CrashReporter
+
+  fun createCrashReport(t: Throwable): CrashReport
 }

@@ -18,9 +18,11 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
+import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.analytics.crash.CrashReporter
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.requiresAndroidModel
@@ -50,7 +52,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 import org.jetbrains.android.sdk.AndroidSdkUtils
-import org.jetbrains.android.uipreview.StudioModuleClassLoader
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 
 /** Studio-specific implementation of [EnvironmentContext]. */
@@ -123,4 +124,8 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   override fun getModuleClassLoaderManager(): ModuleClassLoaderManager = StudioModuleClassLoaderManager.get()
 
   override fun getCrashReporter(): CrashReporter = StudioCrashReporter.getInstance()
+
+  override fun createCrashReport(t: Throwable): CrashReport {
+    return StudioExceptionReport.Builder().setThrowable(t, false, true).build()
+  }
 }
