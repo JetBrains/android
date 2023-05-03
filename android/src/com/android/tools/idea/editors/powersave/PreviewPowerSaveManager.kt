@@ -24,5 +24,5 @@ object PreviewPowerSaveManager {
    * Same as [PowerSaveMode] but obeys to the [DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT] to allow disabling the functionality.
    */
   val isInPowerSaveMode: Boolean
-    get() = DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() && (PowerSaveMode.isEnabled() ||  EssentialHighlightingMode.isEnabled ())
+    get() = DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() && (PowerSaveMode.isEnabled() || EssentialHighlightingMode.isEnabled())
 }
