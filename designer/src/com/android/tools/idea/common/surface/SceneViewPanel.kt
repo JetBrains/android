@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.layout.findAllScanlines
@@ -24,7 +25,6 @@ import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
@@ -32,13 +32,13 @@ import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.margin
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.launch
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -139,14 +139,17 @@ private val nameLabelHoverColor = JBColor(0x5a5d6b, 0xf0f1f2)
  */
 @VisibleForTesting
 class SceneViewPeerPanel(val sceneView: SceneView,
+                         disposable: Disposable,
                          private val sceneViewStatusIcon: JComponent?,
                          private val sceneViewToolbar: JComponent?,
                          private val sceneViewBottomBar: JComponent?,
                          private val sceneViewLeftBar: JComponent?,
                          private val sceneViewRightBar: JComponent?,
-                         private val sceneViewErrorsPanel: JComponent?) : JPanel() {
+                         private val sceneViewErrorsPanel: JComponent?,
+                         private val onLabelClicked: (suspend (SceneView, Boolean) -> Boolean)) : JPanel() {
 
-  private val scope = AndroidCoroutineScope(sceneView.surface)
+
+  private val scope = AndroidCoroutineScope(disposable)
 
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
@@ -173,7 +176,7 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       }
       override fun mouseClicked(e: MouseEvent?) {
         scope.launch {
-          (sceneView.surface as? NlDesignSurface)?.navigationHandler?.handleNavigate(sceneView, false)
+          onLabelClicked(sceneView, false)
         }
       }
     })
@@ -484,10 +487,16 @@ class SceneViewPeerPanel(val sceneView: SceneView,
  * A [JPanel] responsible for displaying [SceneView]s provided by the [sceneViewProvider].
  *
  * @param interactionLayersProvider A [Layer] provider that returns the additional interaction [Layer]s, if any
+ * @param actionManagerProvider provides an [ActionManager]
+ * @param disposable
+ * @param shouldRenderErrorsPanel Returns true whether render error panels should be rendered when [SceneView] in this surface have render errors.
  * @param layoutManager the [PositionableContentLayoutManager] responsible for positioning and measuring the [SceneView]s
  */
 internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<SceneView>,
                               private val interactionLayersProvider: () -> Collection<Layer>,
+                              private val actionManagerProvider: () -> ActionManager<*>,
+                              private val disposable: Disposable,
+                              private val shouldRenderErrorsPanel : () -> Boolean,
                               layoutManager: PositionableContentLayoutManager) :
   JPanel(layoutManager) {
   /**
@@ -529,6 +538,11 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
     invalidate()
   }
 
+  /**
+   * Invoked when label in [SceneViewPeerPanel] is clicked.
+   */
+  var onLabelClicked : (suspend (SceneView, Boolean) -> Boolean) = { _, _ -> true }
+
   @UiThread
   private fun revalidateSceneViews() {
     // Check if the SceneViews are still valid
@@ -540,17 +554,17 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
     // Invalidate the current components
     removeAll()
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-      val toolbar = sceneView.surface.actionManager.getSceneViewContextToolbar(sceneView)
-      val bottomBar = sceneView.surface.actionManager.getSceneViewBottomBar(sceneView)
-      val statusIcon = sceneView.surface.actionManager.getSceneViewStatusIcon(sceneView)
+      val toolbar = actionManagerProvider().getSceneViewContextToolbar(sceneView)
+      val bottomBar = actionManagerProvider().getSceneViewBottomBar(sceneView)
+      val statusIcon = actionManagerProvider().getSceneViewStatusIcon(sceneView)
 
       // The left bar is only added for the first panel
-      val leftBar = if (index == 0) sceneView.surface.actionManager.getSceneViewLeftBar(sceneView) else null
-      val rightBar = sceneView.surface.actionManager.getSceneViewRightBar(sceneView)
+      val leftBar = if (index == 0) actionManagerProvider().getSceneViewLeftBar(sceneView) else null
+      val rightBar = actionManagerProvider().getSceneViewRightBar(sceneView)
 
-      val errorsPanel = if (sceneView.surface.shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() } else null
+      val errorsPanel = if (shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() } else null
 
-      add(SceneViewPeerPanel(sceneView, statusIcon, toolbar, bottomBar, leftBar, rightBar, errorsPanel).also {
+      add(SceneViewPeerPanel(sceneView, disposable, statusIcon, toolbar, bottomBar, leftBar, rightBar, errorsPanel, onLabelClicked).also {
         it.alignmentX = sceneViewAlignment
       })
     }
@@ -587,7 +601,7 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
       for (sceneViewPeerPanel in sceneViewPeerPanels) {
         val positionable = sceneViewPeerPanel.positionableAdapter
         val size = positionable.getScaledContentSize(reusableDimension)
-        val renderErrorPanel = sceneViewPeerPanel.sceneView.surface.shouldRenderErrorsPanel() && sceneViewPeerPanel.sceneView.hasRenderErrors()
+        val renderErrorPanel = shouldRenderErrorsPanel() && sceneViewPeerPanel.sceneView.hasRenderErrors()
         @SwingCoordinate
         val right = positionable.x + if (renderErrorPanel) sceneViewPeerPanel.sceneViewCenterPanel.preferredSize.width else size.width
         @SwingCoordinate

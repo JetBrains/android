@@ -215,7 +215,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull private final JComponent myContentContainerPane;
   @NotNull private final DesignSurfaceViewport myViewport;
   @NotNull private final JLayeredPane myLayeredPane;
-  @NotNull private final SceneViewPanel mySceneViewPanel;
+  @NotNull protected final SceneViewPanel mySceneViewPanel;
   @NotNull private final MouseClickDisplayPanel myMouseClickDisplayPanel;
   @VisibleForTesting
   private final GuiInputHandler myGuiInputHandler;
@@ -350,6 +350,9 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     mySceneViewPanel = new SceneViewPanel(
       this::getSceneViews,
       () -> getGuiInputHandler().getLayers(),
+      this::getActionManager,
+      this,
+      this::shouldRenderErrorsPanel,
       positionableLayoutManagerProvider.apply(this));
     mySceneViewPanel.setBackground(getBackground());
 

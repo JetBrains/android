@@ -442,6 +442,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
+      mySceneViewPanel.setOnLabelClicked(myNavigationHandler::handleNavigate);
     }
 
     myMinScale = minScale;
