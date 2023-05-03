@@ -22,6 +22,10 @@ import com.android.ide.common.rendering.HardwareConfigHelper.*
 import com.android.ide.common.rendering.api.HardwareConfig
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
+import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
+import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Computable
@@ -30,9 +34,7 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AvdManagerUtils
 import kotlin.math.hypot
-import kotlin.math.pow
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
@@ -116,10 +118,10 @@ private fun isCanonicalDevice(device: Device): Boolean {
 private fun isAdditionalDevice(device: Device): Boolean {
   val id = device.id
 
-  return id == AdditionalDeviceService.DEVICE_CLASS_PHONE_ID ||
-         id == AdditionalDeviceService.DEVICE_CLASS_FOLDABLE_ID ||
-         id == AdditionalDeviceService.DEVICE_CLASS_TABLET_ID ||
-         id == AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID
+  return id == DEVICE_CLASS_PHONE_ID ||
+         id == DEVICE_CLASS_FOLDABLE_ID ||
+         id == DEVICE_CLASS_TABLET_ID ||
+         id == DEVICE_CLASS_DESKTOP_ID
 }
 
 private fun sizeGroupNexus(device: Device): DeviceGroup {
@@ -197,13 +199,13 @@ fun getReferenceDevice(config: Configuration, type: ReferenceDeviceType) = getRe
 fun getReferenceDevice(devices: Map<DeviceGroup, List<Device>>, type: ReferenceDeviceType): Device? {
   return when (type) {
     ReferenceDeviceType.MEDIUM_PHONE ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_PHONE_ID }
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_PHONE_ID }
     ReferenceDeviceType.FOLDABLE ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_FOLDABLE_ID }
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_FOLDABLE_ID }
     ReferenceDeviceType.MEDIUM_TABLET ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_TABLET_ID }
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_TABLET_ID }
     ReferenceDeviceType.DESKTOP ->
-      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID }
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == DEVICE_CLASS_DESKTOP_ID }
   }
 }
 

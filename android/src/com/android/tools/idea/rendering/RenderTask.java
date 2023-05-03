@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.rendering;
 
-import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID;
-import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_TABLET_ID;
+import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_DESKTOP_ID;
+import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_TABLET_ID;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.rendering.ProblemSeverity.WARNING;
 
