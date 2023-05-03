@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -71,8 +70,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
     }
   }
 
-  override fun isApplicable(project: Project) =
-    StudioFlags.APP_INSIGHTS_ENABLED.get() && IdeInfo.getInstance().isAndroidStudio
+  override fun isApplicable(project: Project) = IdeInfo.getInstance().isAndroidStudio
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     createTabs(project, toolWindow)

@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.GroupAware
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.WithCount
@@ -165,8 +164,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     )
 
     add(
-      if (secondaryToPrimaryGroups.isEmpty() || !StudioFlags.ADDITIONAL_FILTERS_ENABLED.get())
-        searchTextField
+      if (secondaryToPrimaryGroups.isEmpty()) searchTextField
       else
         JPanel().apply {
           layout = BoxLayout(this, BoxLayout.PAGE_AXIS)

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Frame
@@ -58,9 +56,6 @@ class AppInsightsExternalAnnotatorTest {
   @get:Rule val edtRule = EdtRule()
 
   @get:Rule val disposableRule = DisposableRule()
-
-  @get:Rule val appInsightsFlagRule = FlagRule(StudioFlags.APP_INSIGHTS_ENABLED, true)
-  @get:Rule val gutterSupportFlagRule = FlagRule(StudioFlags.APP_INSIGHTS_GUTTER_SUPPORT, true)
 
   private lateinit var mainActivityFile: PsiFile
 

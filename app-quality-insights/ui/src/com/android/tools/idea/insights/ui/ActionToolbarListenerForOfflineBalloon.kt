@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsPersistentStateComponent
 import com.android.tools.idea.insights.ConnectionMode
 import com.intellij.openapi.actionSystem.AnAction
@@ -98,17 +97,15 @@ class ActionToolbarListenerForOfflineBalloon(
     // we can act on it, such as hiding it from view.
     if (actionButton.action == offlineAction && initialized.compareAndSet(false, true)) {
       actionButton.isVisible = false
-      if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
-        scope.launch(AndroidDispatchers.uiThread) {
-          offlineStateFlow.collect { mode ->
-            actionButton.isVisible = mode == ConnectionMode.OFFLINE
-            if (
-              mode == ConnectionMode.OFFLINE &&
-                !AppInsightsPersistentStateComponent.getInstance(project)
-                  .isOfflineNotificationDismissed
-            ) {
-              showOfflineNotificationBalloon(actionButton)
-            }
+      scope.launch(AndroidDispatchers.uiThread) {
+        offlineStateFlow.collect { mode ->
+          actionButton.isVisible = mode == ConnectionMode.OFFLINE
+          if (
+            mode == ConnectionMode.OFFLINE &&
+              !AppInsightsPersistentStateComponent.getInstance(project)
+                .isOfflineNotificationDismissed
+          ) {
+            showOfflineNotificationBalloon(actionButton)
           }
         }
       }

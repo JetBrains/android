@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Event
@@ -86,7 +85,6 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
 
   // TODO(b/249297282): Fetch top issues for "default" filter in the background
   override fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>? {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return null
     val allIssues =
       compositeIssuesCache.getIfPresent(request.connection)?.asMap()?.values ?: return null
     return allIssues
@@ -132,7 +130,6 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
   }
 
   override fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>) {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return
     val issuesCache = getOrCreateIssuesCache(connection).asMap()
     issues.forEach { newIssue ->
       issuesCache.compute(newIssue.issueDetails.id) { _, oldValue ->
@@ -142,7 +139,6 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
   }
 
   override fun getEvent(issueRequest: IssueRequest, issueId: IssueId): Event? {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return null
     val cachedEvents =
       compositeIssuesCache
         .getIfPresent(issueRequest.connection)
@@ -154,12 +150,10 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
   }
 
   override fun getNotes(connection: Connection, issueId: IssueId): List<Note>? {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return null
     return compositeIssuesCache.getIfPresent(connection)?.getIfPresent(issueId)?.notes
   }
 
   override fun populateNotes(connection: Connection, issueId: IssueId, notes: List<Note>) {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return
     val issuesCache = getOrCreateIssuesCache(connection).asMap()
 
     issuesCache.compute(issueId) { _, oldValue ->

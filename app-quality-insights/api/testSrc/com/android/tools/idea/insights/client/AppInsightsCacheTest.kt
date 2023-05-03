@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.Caption
@@ -40,13 +38,9 @@ import com.android.tools.idea.insights.TestConnection
 import com.google.common.truth.Truth.assertThat
 import java.time.Duration
 import java.time.Instant
-import org.junit.Rule
 import org.junit.Test
 
 class AppInsightsCacheTest {
-
-  @get:Rule val flagRule = FlagRule(StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED, true)
-
   private val now = Instant.now()
   private val connection = TestConnection("blah", "1234", "project12", "12")
 

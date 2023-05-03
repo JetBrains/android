@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
@@ -183,7 +182,6 @@ class ActionDispatcher(
             result,
             state.mode == ConnectionMode.ONLINE &&
               state.permission == Permission.FULL &&
-              StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get() &&
               queue.size > 0
           )
         )

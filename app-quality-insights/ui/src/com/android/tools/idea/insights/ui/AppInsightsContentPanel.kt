@@ -17,7 +17,6 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
@@ -82,21 +81,13 @@ class AppInsightsContentPanel(
           issuesTableView.table.tableEmptyText.apply {
             clear()
             appendText("Fetching issues is taking longer than expected.", EMPTY_STATE_TITLE_FORMAT)
-
-            if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
-              appendSecondaryText("You can wait, ", EMPTY_STATE_TEXT_FORMAT, null)
-              appendSecondaryText("retry", EMPTY_STATE_LINK_FORMAT) { projectController.refresh() }
-              appendSecondaryText(" or ", EMPTY_STATE_TEXT_FORMAT, null)
-              appendSecondaryText("enter offline mode", EMPTY_STATE_LINK_FORMAT) {
-                projectController.enterOfflineMode()
-              }
-              appendSecondaryText(" to see cached data.", EMPTY_STATE_TEXT_FORMAT, null)
-            } else if (cause.snapshot != null) {
-              appendSecondaryText("You can wait or ", EMPTY_STATE_TEXT_FORMAT, null)
-              appendSecondaryText("cancel the request", EMPTY_STATE_LINK_FORMAT) {
-                projectController.revertToSnapshot(cause.snapshot as AppInsightsState)
-              }
+            appendSecondaryText("You can wait, ", EMPTY_STATE_TEXT_FORMAT, null)
+            appendSecondaryText("retry", EMPTY_STATE_LINK_FORMAT) { projectController.refresh() }
+            appendSecondaryText(" or ", EMPTY_STATE_TEXT_FORMAT, null)
+            appendSecondaryText("enter offline mode", EMPTY_STATE_LINK_FORMAT) {
+              projectController.enterOfflineMode()
             }
+            appendSecondaryText(" to see cached data.", EMPTY_STATE_TEXT_FORMAT, null)
           }
         }
         else -> {

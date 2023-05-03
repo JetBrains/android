@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
@@ -57,11 +56,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     doCollectInformation(file)
 
   private fun doCollectInformation(file: PsiFile): InitialInfo? {
-    if (
-      !LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider) ||
-        !StudioFlags.APP_INSIGHTS_ENABLED.get() ||
-        !StudioFlags.APP_INSIGHTS_GUTTER_SUPPORT.get()
-    ) {
+    if (!LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider)) {
       return null
     }
 

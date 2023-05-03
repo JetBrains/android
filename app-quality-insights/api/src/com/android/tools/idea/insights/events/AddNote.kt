@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.IssueId
@@ -147,17 +146,11 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
 
 internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementPendingRequests(
   issueId: IssueId
-) =
-  if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
-    applyUpdate(issueId, AppInsightsIssue::incrementPendingRequests)
-  } else this
+) = applyUpdate(issueId, AppInsightsIssue::incrementPendingRequests)
 
 internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.decrementPendingRequests(
   issueId: IssueId
-) =
-  if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
-    applyUpdate(issueId, AppInsightsIssue::decrementPendingRequests)
-  } else this
+) = applyUpdate(issueId, AppInsightsIssue::decrementPendingRequests)
 
 internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementNotesCount(
   issueId: IssueId

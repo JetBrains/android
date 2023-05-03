@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argThat
 import com.android.testutils.time.FakeClock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.testing.AndroidExecutorsRule
@@ -42,8 +40,6 @@ class AppInsightsProjectLevelControllerTest {
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(executorsRule).around(controllerRule)!!
-
-  @get:Rule val flagRule = FlagRule(StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED, true)
 
   private val client: TestAppInsightsClient
     get() = controllerRule.client

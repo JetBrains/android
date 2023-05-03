@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
@@ -60,8 +58,6 @@ class ErrorBalloonTest {
     }
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule)!!
-
-  @get:Rule val flagRule = FlagRule(StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED, true)
 
   private class TransferableArgumentMatcher(private val expectedData: String) :
     ArgumentMatcher<Transferable> {

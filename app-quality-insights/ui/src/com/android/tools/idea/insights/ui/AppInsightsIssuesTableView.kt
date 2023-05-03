@@ -19,7 +19,6 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
@@ -157,15 +156,13 @@ class AppInsightsIssuesTableView(
                   " the request",
                   EMPTY_STATE_TEXT_FORMAT,
                 )
-                if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
-                  appendText(" or, if you currently don't", EMPTY_STATE_TEXT_FORMAT)
-                  appendLine("have a network connection, enter ", EMPTY_STATE_TEXT_FORMAT, null)
-                  appendText(
-                    "Offline Mode",
-                    EMPTY_STATE_LINK_FORMAT,
-                  ) {
-                    controller.enterOfflineMode()
-                  }
+                appendText(" or, if you currently don't", EMPTY_STATE_TEXT_FORMAT)
+                appendLine("have a network connection, enter ", EMPTY_STATE_TEXT_FORMAT, null)
+                appendText(
+                  "Offline Mode",
+                  EMPTY_STATE_LINK_FORMAT,
+                ) {
+                  controller.enterOfflineMode()
                 }
                 appendText(".", EMPTY_STATE_TEXT_FORMAT)
               }

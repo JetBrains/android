@@ -1521,21 +1521,6 @@ public final class StudioFlags {
 
   // region App Insights
   private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
-  public static final Flag<Boolean> APP_INSIGHTS_ENABLED =
-    Flag.create(
-      APP_INSIGHTS,
-      "enabled",
-      "Enabled",
-      "Enable App Insights tool window and highlighting support.",
-      true);
-
-  public static final Flag<Boolean> APP_INSIGHTS_GUTTER_SUPPORT =
-    Flag.create(
-      APP_INSIGHTS,
-      "insights.gutter",
-      "Gutter Support",
-      "Use gutter icons rather than code highlight to display insights in the editor",
-      true);
 
   public static final Flag<Boolean> APP_INSIGHTS_VCS_SUPPORT =
     Flag.create(
@@ -1559,38 +1544,6 @@ public final class StudioFlags {
       "crashlytics.grpc.use.transport.security",
       "Use transport security",
       "Set Crashlytics gRpc channel to use transport security",
-      true);
-
-  public static final Flag<Boolean> OPEN_CLOSE_ISSUES_ENABLED =
-    Flag.create(
-      APP_INSIGHTS,
-      "enable.open.close.issues",
-      "Enable open/close issue functionality.",
-      "Add open/close button to App Quality Insights panel.",
-      true);
-
-  public static final Flag<Boolean> ADDITIONAL_FILTERS_ENABLED =
-    Flag.create(
-      APP_INSIGHTS,
-      "enable.issue.filters",
-      "Enable additional issue filters.",
-      "Add device, OS, Play Track filters to App Quality Insights panel.",
-      true);
-
-  public static final Flag<Boolean> OFFLINE_MODE_SUPPORT_ENABLED =
-    Flag.create(
-      APP_INSIGHTS,
-      "enable.offline.mode.support",
-      "Enable offline mode support.",
-      "Show previously cached data when network has issues.",
-      true);
-
-  public static final Flag<Boolean> NOTES_ENABLED =
-    Flag.create(
-      APP_INSIGHTS,
-      "enable.notes",
-      "Enable read/write notes functionality.",
-      "Add notes tab to App Quality Insights panel.",
       true);
 
   public static final Flag<Boolean> PLAY_VITALS_ENABLED =
