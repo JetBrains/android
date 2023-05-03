@@ -25,7 +25,7 @@ import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.compose.preview.delayUntilCondition
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
@@ -49,8 +49,8 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -182,7 +182,7 @@ class RenderErrorTest {
     val sceneViewPanel = panels.single { it.displayName == "PreviewWithContrastError" }
     val issueModel = sceneViewPanel.sceneView.surface.issueModel
     runBlocking {
-      waitForCondition(5, TimeUnit.SECONDS) {
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 5.seconds) {
         issueModel.issues.filter { it.category == "Accessibility" }.size == 2
       }
     }
@@ -203,8 +203,7 @@ class RenderErrorTest {
   fun testVisualLintErrors() {
     val issueModel = VisualLintService.getInstance(project).issueModel
     runBlocking {
-      waitForCondition(10, TimeUnit.SECONDS) {
-        println(issueModel.issueCount)
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 10.seconds) {
         issueModel.issueCount == 2
       }
     }
