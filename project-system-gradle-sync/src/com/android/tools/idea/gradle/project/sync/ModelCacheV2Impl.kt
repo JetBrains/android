@@ -804,8 +804,7 @@ internal fun modelCacheV2Impl(
       /* If we are computing the runtime classpath then save references to any module dependencies within the graph */
       if (classpathId.classpathType == ClasspathType.RUNTIME) {
         projectIdToIndex.forEach { (id, index) ->
-          internedModels.projectReferenceToMainArtifactRuntimeClasspathMap[id] =
-            IdeDependenciesCoreRef(ideDependenciesCore, index)
+          internedModels.projectReferenceToArtifactClasspathMap[id] = ideDependenciesCore to index
         }
       }
 
@@ -830,7 +829,8 @@ internal fun modelCacheV2Impl(
     }
 
     fun createDependencyRef(): IdeDependenciesCoreRef? {
-      return internedModels.projectReferenceToMainArtifactRuntimeClasspathMap[classpathId]
+      val classpathToIndex = internedModels.projectReferenceToArtifactClasspathMap[classpathId] ?: return null
+      return IdeDependenciesCoreRef(classpathToIndex.first, classpathToIndex.second)
     }
 
     val dependenciesCore = createIdeDependenciesInstance()

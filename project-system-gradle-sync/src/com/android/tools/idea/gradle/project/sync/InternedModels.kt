@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreRef
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
@@ -62,7 +63,7 @@ class InternedModels(private val buildRootDirectory: File?) {
   private val unknownLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
   var artifactToLibraryReferenceMap: Map<File, LibraryReference>? = null ; private set
 
-  internal val projectReferenceToMainArtifactRuntimeClasspathMap: MutableMap<ClasspathIdentifier, IdeDependenciesCoreRef> = HashMap()
+  internal val projectReferenceToArtifactClasspathMap: MutableMap<ClasspathIdentifier, Pair<IdeDependenciesCoreDirect, Int>> = HashMap()
 
   fun lookup(reference: LibraryReference): IdeUnresolvedLibrary = libraries[reference.libraryIndex]
 
