@@ -205,9 +205,9 @@
     <option name="design" hit="Design Tools" />
     <option name="tools" hit="Design Tools" />
     <option name="drawables" hit="Drawables:" />
-    <option name="enable" hit="Enable live update" />
-    <option name="live" hit="Enable live update" />
-    <option name="update" hit="Enable live update" />
+    <option name="enable" hit="Enable live updates" />
+    <option name="live" hit="Enable live updates" />
+    <option name="updates" hit="Enable live updates" />
     <option name="files" hit="Other Kotlin files:" />
     <option name="kotlin" hit="Other Kotlin files:" />
     <option name="other" hit="Other Kotlin files:" />

@@ -71,12 +71,10 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
 
   override fun createPanel(): DialogPanel {
     // The bazel test //tools/adt/idea/searchable-options:searchable_options_test compares the
-    // created option list with a static xml file,
-    // which doesn't include the options added at runtime.
-    // We disable magnify support in headless environment to make this bazel test passes on all
-    // platform. In thee meanwhile, we use the unit
-    // tests in NlOptionConfigurableSearchableOptionContributorTest to cover the magnify options
-    // created at runtime.
+    // created option list with a static xml file, which doesn't include the options added at
+    // runtime. We disable magnify support in headless environment to make this bazel test passes
+    // on all platforms. Meanwhile, we use the NlOptionConfigurableSearchableOptionContributorTest
+    // unit tests to cover the magnify options created at runtime.
     val showMagnify = MAGNIFY_SUPPORTED && !GraphicsEnvironment.isHeadless()
 
     return panel {
@@ -132,7 +130,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       group("Compose Preview") {
         if (StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
           row {
-            checkBox("Enable live update")
+            checkBox("Enable live updates")
               .bindSelected(fastPreviewState::isEnabled) {
                 fastPreviewState.isEnabled = it
               }
