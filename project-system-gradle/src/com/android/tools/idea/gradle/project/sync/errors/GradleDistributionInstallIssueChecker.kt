@@ -58,16 +58,22 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
 
       val pathAssembler = PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME, File(issueData.projectPath))
       val localDistribution = pathAssembler.getDistribution(wrapperConfiguration)
-      var zipFile = localDistribution.zipFile
-      if (zipFile.exists()) {
+      var stateFile = localDistribution.zipFile
+      if (!stateFile.exists()) {
+        stateFile = File(stateFile.parentFile, "${stateFile.name}.ok")
+      }
+      if (stateFile.exists()) {
         try {
-          zipFile = zipFile.canonicalFile
-        } catch (e : Exception) {}
+          stateFile = stateFile.canonicalFile
+        }
+        catch (e: Exception) {
+        }
 
-        buildIssueComposer.addDescription("The cached zip file ${zipFile} may be corrupted.")
+        buildIssueComposer.addDescription("The cached Gradle state file $stateFile may be corrupted.")
         buildIssueComposer.addQuickFix(
-          "Delete file and sync project", DeleteFileAndSyncQuickFix(zipFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED))
-         return buildIssueComposer.composeBuildIssue()
+          "Delete file and sync project",
+          DeleteFileAndSyncQuickFix(stateFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED))
+        return buildIssueComposer.composeBuildIssue()
       }
     }
     return null
