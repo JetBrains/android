@@ -63,6 +63,8 @@ class JumpToDefinitionAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    scope.launch { composePreviewNavigationHandler.handleNavigate(sceneView, x, y, true) }
+    scope.launch {
+      composePreviewNavigationHandler.handleNavigateWithCoordinates(sceneView, x, y, true)
+    }
   }
 }

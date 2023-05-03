@@ -34,7 +34,7 @@ interface NavigationHandler : Disposable {
    * @param y y coordinate within the [SceneView] where the click action was initiated
    * @param requestFocus true if the navigation should focus the editor
    */
-  suspend fun handleNavigate(
+  suspend fun handleNavigateWithCoordinates(
     sceneView: SceneView,
     @SwingCoordinate x: Int,
     @SwingCoordinate y: Int,

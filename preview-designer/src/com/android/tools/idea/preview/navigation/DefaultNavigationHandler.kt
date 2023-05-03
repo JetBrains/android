@@ -60,7 +60,7 @@ open class DefaultNavigationHandler(
       .also { LOG.debug { "Navigated to default? $it" } }
   }
 
-  override suspend fun handleNavigate(
+  override suspend fun handleNavigateWithCoordinates(
     sceneView: SceneView,
     @SwingCoordinate hitX: Int,
     @SwingCoordinate hitY: Int,

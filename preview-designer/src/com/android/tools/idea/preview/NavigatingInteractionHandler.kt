@@ -175,7 +175,7 @@ class NavigatingInteractionHandler(
     val navHandler = (surface as NlDesignSurface).navigationHandler ?: return
     val scene = sceneView.scene
     scope.launch(AndroidDispatchers.workerThread) {
-      if (!navHandler.handleNavigate(sceneView, x, y, needsFocusEditor)) {
+      if (!navHandler.handleNavigateWithCoordinates(sceneView, x, y, needsFocusEditor)) {
         val sceneComponent =
           scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
         navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)

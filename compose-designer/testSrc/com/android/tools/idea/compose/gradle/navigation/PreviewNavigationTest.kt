@@ -73,7 +73,7 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     expectedInvocationsCountDownLatch = CountDownLatch(newExpectedInvocations)
   }
 
-  override suspend fun handleNavigate(
+  override suspend fun handleNavigateWithCoordinates(
     sceneView: SceneView,
     x: Int,
     y: Int,
