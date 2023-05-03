@@ -96,7 +96,7 @@ internal class PreviewSurfaceActionManager(
         // Do not allocate space for the "see more" chevron if not needed
         setReservePlaceAutoPopupIcon(false)
         setShowSeparatorTitles(true)
-        targetComponent = sceneView.surface
+        targetComponent = surface
       }
       .component
       .apply {
@@ -107,6 +107,6 @@ internal class PreviewSurfaceActionManager(
   override fun getSceneViewStatusIcon(sceneView: SceneView) =
     createStatusIcon(
       ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview(),
-      sceneView.surface
+      surface
     )
 }

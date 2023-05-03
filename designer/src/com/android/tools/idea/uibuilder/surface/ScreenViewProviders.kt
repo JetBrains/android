@@ -180,7 +180,7 @@ internal fun blueprintProvider(surface: NlDesignSurface,
         if (!isSecondary) {
           add(CanvasResizeLayer(it) { surface.repaint() })
         }
-        add(SceneLayer(it.surface, it, true))
+        add(SceneLayer(surface, it, true))
       }.build()
     }
     .build()
@@ -198,7 +198,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
         // Always has border in visualization tool.
         add(BorderLayer(it, isRotating = { surface.isRotating }))
         add(ScreenViewLayer(it, colorBlindMode))
-        add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
+        add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
         add(WarningLayer(it) {
           if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get())
             IssuePanelService.getInstance(surface.project).getSelectedIssues()

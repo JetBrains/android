@@ -49,7 +49,7 @@ internal val GLANCE_SCREEN_VIEW_PROVIDER =
           ImmutableList.builder<Layer>()
             .apply {
               add(ScreenViewLayer(it, colorBlindFilter))
-              add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
+              add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
               StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
                 add(ClassLoadingDebugLayer(surface.models.first().facet.module))
               }

@@ -56,7 +56,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
                   when {
                     StudioFlags.COMPOSE_PREVIEW_SELECTION.get() &&
                       sceneView.isRootComponentSelected() -> BorderColor.SELECTED
-                    sceneView == sceneView.surface.sceneViewAtMousePosition -> BorderColor.HOVERED
+                    sceneView == surface.sceneViewAtMousePosition -> BorderColor.HOVERED
                     else -> BorderColor.DEFAULT_WITHOUT_SHADOW
                   }
                 }
@@ -64,7 +64,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
             }
             add(ScreenViewLayer(it, colorBlindFilter))
             add(
-              SceneLayer(it.surface, it, false).apply {
+              SceneLayer(surface, it, false).apply {
                 isShowOnHover = true
                 setShowOnHoverFilter { sceneView ->
                   previewManager.isInStaticAndNonAnimationMode &&
