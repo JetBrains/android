@@ -20,7 +20,6 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
-import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.android.tools.idea.rendering.RenderSettings;
@@ -53,7 +52,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @NotNull private final RenderSettings myRenderSettings;
 
   private JPanel myPanel;
-  private JCheckBox myUseL2DependenciesCheckBox;
+  private JCheckBox myUseMultiVariantExtraArtifacts;
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myConfigureAllGradleTasks;
   private JCheckBox myTraceGradleSyncCheckBox;
@@ -78,9 +77,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
                                    @NotNull RenderSettings renderSettings) {
     mySettings = settings;
     myRenderSettings = renderSettings;
-
-    // TODO make visible once Gradle Sync switches to L2 dependencies
-    myUseL2DependenciesCheckBox.setVisible(false);
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
@@ -124,7 +120,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   @Override
   public boolean isModified() {
-    return mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isL2DependenciesInSyncEnabled() ||
+    return mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS != isUseMultiVariantExtraArtifact() ||
            // SKIP_GRADLE_TASK_LIST is reversed since original text implies the opposite action.
            mySettings.SKIP_GRADLE_TASKS_LIST == isConfigureAllGradleTasksEnabled() ||
            mySettings.TRACE_GRADLE_SYNC != isTraceGradleSyncEnabled() ||
@@ -142,7 +138,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   @Override
   public void apply() throws ConfigurationException {
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isL2DependenciesInSyncEnabled();
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = isUseMultiVariantExtraArtifact();
     mySettings.SKIP_GRADLE_TASKS_LIST = !isConfigureAllGradleTasksEnabled();
     mySettings.ENABLE_PARALLEL_SYNC = isParallelSyncEnabled();
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
@@ -162,13 +158,13 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   }
 
   @VisibleForTesting
-  boolean isL2DependenciesInSyncEnabled() {
-    return myUseL2DependenciesCheckBox.isSelected();
+  boolean isUseMultiVariantExtraArtifact() {
+    return myUseMultiVariantExtraArtifacts.isSelected();
   }
 
   @TestOnly
-  void enableL2DependenciesInSync(boolean value) {
-    myUseL2DependenciesCheckBox.setSelected(value);
+  void enableUseMultiVariantExtraArtifacts(boolean value) {
+    myUseMultiVariantExtraArtifacts.setSelected(value);
   }
 
   boolean isConfigureAllGradleTasksEnabled() {
@@ -236,6 +232,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
         ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
       }
     });
+
+    myUseMultiVariantExtraArtifacts.setVisible(StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get());
 
     myTraceProfilePathField.addBrowseFolderListener("Trace Profile", "Please select trace profile",
                                                     null, createSingleFileDescriptor("profile"));
@@ -306,7 +304,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   @Override
   public void reset() {
-    myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
+    myUseMultiVariantExtraArtifacts.setSelected(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     myConfigureAllGradleTasks.setSelected(!mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);

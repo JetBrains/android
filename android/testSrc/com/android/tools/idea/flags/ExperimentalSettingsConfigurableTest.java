@@ -42,10 +42,10 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
   }
 
   public void testIsModified() {
-    myConfigurable.enableL2DependenciesInSync(true);
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
+    myConfigurable.enableUseMultiVariantExtraArtifacts(true);
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
     assertTrue(myConfigurable.isModified());
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = true;
     assertFalse(myConfigurable.isModified());
 
     myConfigurable.enableConfigureAllGradleTasks(false);
@@ -86,7 +86,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
   }
 
   public void testApply() throws ConfigurationException {
-    myConfigurable.enableL2DependenciesInSync(true);
+    myConfigurable.enableUseMultiVariantExtraArtifacts(true);
     myConfigurable.enableConfigureAllGradleTasks(false);
     myConfigurable.enableTraceGradleSync(true);
     myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
@@ -96,7 +96,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
 
     myConfigurable.apply();
 
-    assertTrue(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
+    assertTrue(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertTrue(mySettings.TRACE_GRADLE_SYNC);
     assertEquals("/tmp/text1.profile", mySettings.TRACE_PROFILE_LOCATION);
@@ -104,7 +104,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertTrue(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
 
-    myConfigurable.enableL2DependenciesInSync(false);
+    myConfigurable.enableUseMultiVariantExtraArtifacts(false);
     myConfigurable.enableConfigureAllGradleTasks(true);
     myConfigurable.enableTraceGradleSync(false);
     myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
@@ -114,7 +114,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
 
     myConfigurable.apply();
 
-    assertFalse(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
+    assertFalse(mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS);
     assertFalse(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertFalse(mySettings.TRACE_GRADLE_SYNC);
     assertEquals("/tmp/text2.profile", mySettings.TRACE_PROFILE_LOCATION);
@@ -124,7 +124,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
   }
 
   public void testReset() {
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = true;
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
     mySettings.TRACE_GRADLE_SYNC = true;
     mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
@@ -134,7 +134,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
 
     myConfigurable.reset();
 
-    assertTrue(myConfigurable.isL2DependenciesInSyncEnabled());
+    assertTrue(myConfigurable.isUseMultiVariantExtraArtifact());
     assertFalse(myConfigurable.isConfigureAllGradleTasksEnabled());
     assertTrue(myConfigurable.isTraceGradleSyncEnabled());
     assertEquals("/tmp/text1.profile", myConfigurable.getTraceProfileLocation());
@@ -142,7 +142,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isParallelSyncEnabled());
     assertTrue(myConfigurable.isGradleApiOptimizationEnabled());
 
-    mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
+    mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
     mySettings.TRACE_GRADLE_SYNC = false;
     mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
@@ -152,7 +152,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
 
     myConfigurable.reset();
 
-    assertFalse(myConfigurable.isL2DependenciesInSyncEnabled());
+    assertFalse(myConfigurable.isUseMultiVariantExtraArtifact());
     assertTrue(myConfigurable.isConfigureAllGradleTasksEnabled());
     assertFalse(myConfigurable.isTraceGradleSyncEnabled());
     assertEquals("/tmp/text2.profile", myConfigurable.getTraceProfileLocation());

@@ -1533,6 +1533,13 @@
     <option name="gradle" hit="Enable parallel Gradle Sync" />
     <option name="parallel" hit="Enable parallel Gradle Sync" />
     <option name="sync" hit="Enable parallel Gradle Sync" />
+    <option name="and" hit="Enable support for multi-variant Javadocs and Sources" />
+    <option name="enable" hit="Enable support for multi-variant Javadocs and Sources" />
+    <option name="for" hit="Enable support for multi-variant Javadocs and Sources" />
+    <option name="javadocs" hit="Enable support for multi-variant Javadocs and Sources" />
+    <option name="multi-variant" hit="Enable support for multi-variant Javadocs and Sources" />
+    <option name="sources" hit="Enable support for multi-variant Javadocs and Sources" />
+    <option name="support" hit="Enable support for multi-variant Javadocs and Sources" />
     <option name="experimental" hit="Experimental" />
     <option name="gradle" hit="Gradle" />
     <option name="compose" hit="Jetpack Compose" />
@@ -1567,13 +1574,6 @@
     <option name="profile" hit="Trace Gradle import with profile:" />
     <option name="trace" hit="Trace Gradle import with profile:" />
     <option name="with" hit="Trace Gradle import with profile:" />
-    <option name="dependency" hit="Use new dependency mechanism during Gradle sync" />
-    <option name="during" hit="Use new dependency mechanism during Gradle sync" />
-    <option name="gradle" hit="Use new dependency mechanism during Gradle sync" />
-    <option name="mechanism" hit="Use new dependency mechanism during Gradle sync" />
-    <option name="new" hit="Use new dependency mechanism during Gradle sync" />
-    <option name="sync" hit="Use new dependency mechanism during Gradle sync" />
-    <option name="use" hit="Use new dependency mechanism during Gradle sync" />
   </configurable>
   <configurable id="gradle.compiler" configurable_name="Gradle-Android Compiler">
     <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />

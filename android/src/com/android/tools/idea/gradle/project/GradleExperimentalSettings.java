@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
     @Storage("gradle.experimental.xml")}
 )
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
-  public boolean USE_L2_DEPENDENCIES_ON_SYNC = true;
+  public boolean USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
   public boolean SKIP_GRADLE_TASKS_LIST = IdeInfo.getInstance().isAndroidStudio();
 
   public boolean ENABLE_PARALLEL_SYNC = true;
