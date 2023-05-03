@@ -522,6 +522,8 @@ data class AndroidProjectBuilder(
   fun withNdkModel(ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel?) =
     copy(ndkModel = ndkModel)
 
+  fun withNamespace(namespace: String) = copy(namespace = {namespace})
+
 
   fun build(): AndroidProjectBuilderCore =
     fun(

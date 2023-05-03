@@ -50,6 +50,7 @@ public class MlProjectTestUtil {
         new AndroidProjectBuilder()
           .withMinSdk(it -> minSdk)
           .withMlModelBindingEnabled(it -> true)
+          .withNamespace("p1.p2")
           .withMainSourceProvider(it -> new IdeSourceProviderImpl(
             ARTIFACT_NAME_MAIN,
             it.getModuleBasePath(),
