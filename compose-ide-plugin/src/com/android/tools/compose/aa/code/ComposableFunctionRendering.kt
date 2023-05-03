@@ -68,6 +68,12 @@ private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbo
 }
 
 fun KtAnalysisSession.isComposableFunctionParameter(valueParamSymbol: KtValueParameterSymbol): Boolean {
+  // Since vararg is not a function type parameter, we have to return false for a parameter with a vararg.
+  // In FE1.0, it was simple because vararg has an array type and checking that the parameter is a function type returns false.
+  // On the other hand, K2's value parameter symbol deliberately unwraps it and returns the element type as a symbol's returnType.
+  // We need a separate check for a vararg.
+  if (valueParamSymbol.isVararg) return false
+
   val parameterType = valueParamSymbol.returnType
   // Mimic FE1.0 `KotlinType.isBuiltinFunctionalType`.
   val isBuiltinFunctionalType = parameterType.isFunctionType || parameterType.isSuspendFunctionType

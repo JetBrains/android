@@ -667,15 +667,16 @@ class ComposeCompletionContributorTest {
       """.trimIndent()
     )
 
-    // When:
-    ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = false
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    myFixture.completeBasic()
+    try {
+      // When:
+      ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = false
+      myFixture.configureFromExistingVirtualFile(file.virtualFile)
+      myFixture.completeBasic()
 
-    // Then:
-    myFixture.checkResult(
-      // language=kotlin
-      """
+      // Then:
+      myFixture.checkResult(
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -685,9 +686,10 @@ class ComposeCompletionContributorTest {
         FoobarOne()
       }
       """.trimIndent()
-    )
-
-    ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
+      )
+    } finally {
+      ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
+    }
   }
 
   @Test
