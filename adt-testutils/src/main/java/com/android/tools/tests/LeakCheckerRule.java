@@ -19,6 +19,9 @@ import com.android.testutils.MockitoThreadLocalsCleaner;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.psi.stubs.StubIndex;
+import com.intellij.psi.stubs.StubIndexEx;
+import com.intellij.psi.stubs.StubIndexImpl;
 import org.junit.rules.ExternalResource;
 
 public class LeakCheckerRule extends ExternalResource {
@@ -36,11 +39,27 @@ public class LeakCheckerRule extends ExternalResource {
       return;
     }
     try {
+      ensureFileUpdatesProcessedByModificationTracker();
       clearMockitoThreadLocals();
       Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
       leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
     } catch (Exception e) {
       throw new AssertionError(e);
+    }
+  }
+
+  /**
+   * {@code PerFileElementTypeStubModificationTracker} keeps a queue of file operations, items of this
+   * queue contain references to the Project. Normally this queue is processed reasonably fast and items for disposed projects are just
+   * skipped.
+   * However, in test, if there are heavy file operations and not enough time to process them in the end it can happen that leak  checker
+   * runs before all the file updates are processed resulting in a disposed project leak detection.
+   * We need to force-run this queue processing before running leak check to avoid this problem.
+   */
+  private static void ensureFileUpdatesProcessedByModificationTracker() {
+    StubIndex stubIndex = StubIndex.getInstance();
+    if (stubIndex instanceof StubIndexEx) {
+      ((StubIndexEx) stubIndex).getPerFileElementTypeModificationTrackerUpdateProcessor().endUpdatesBatch();
     }
   }
 

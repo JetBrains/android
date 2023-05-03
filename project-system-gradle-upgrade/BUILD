@@ -162,7 +162,6 @@ old_agp_test(
     ],
     tags = [
         "block-network",
-        "manual",  # b/279393325
         "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
@@ -191,7 +190,6 @@ old_agp_test(
     ],
     tags = [
         "block-network",
-        "manual",  # b/279393325
         "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
@@ -220,7 +218,6 @@ old_agp_test(
     ],
     tags = [
         "block-network",
-        "manual",  # b/279393325
         "no_test_mac",  # b/215483578
         "no_test_windows",
     ],
