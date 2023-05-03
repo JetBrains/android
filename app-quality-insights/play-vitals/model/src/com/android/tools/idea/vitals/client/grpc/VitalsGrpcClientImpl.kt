@@ -198,7 +198,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
                 addVersions(filters.versions)
                 addFailureTypes(filters.eventTypes)
                 addVisibilityType(filters.visibilityType)
-                addDevicesForErrorIssue(filters.devices)
+                addDevices(filters.devices)
                 addOperatingSystems(filters.operatingSystems)
               }
               .build()
@@ -221,7 +221,16 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
         .apply {
           parent = connection.clientId
           interval = filters.interval.toProtoDateTime(TimeGranularity.HOURLY)
-          filter = FilterBuilder().apply { addErrorIssue(issueId) }.build()
+          filter =
+            FilterBuilder()
+              .apply {
+                addErrorIssue(issueId)
+                addVersions(filters.versions)
+                addVisibilityType(filters.visibilityType)
+                addDevices(filters.devices)
+                addOperatingSystems(filters.operatingSystems)
+              }
+              .build()
           pageSize = maxNumResults
         }
         .build()

@@ -31,8 +31,8 @@ import org.junit.Test
 
 private val VERSION90 = Version(buildVersion = "90")
 private val VERSION120 = Version(buildVersion = "120")
-private val PIXEL_4A = Device(manufacturer = "Google", model = "Pixel 4a")
-private val PIXEL_4 = Device(manufacturer = "Google", model = "Pixel 4")
+private val PIXEL_4A = Device(manufacturer = "Google", model = "Google/Pixel 4a")
+private val PIXEL_4 = Device(manufacturer = "Google", model = "Google/Pixel 4")
 private val ANDROID_12 = OperatingSystemInfo(displayVersion = "12", displayName = "Android (12)")
 private val ANDROID_14 = OperatingSystemInfo(displayVersion = "14", displayName = "Android (14)")
 
@@ -71,7 +71,7 @@ class FilterBuilderTest {
     assertThat(generated)
       .isEqualTo(
         "(apiLevel = 12 OR apiLevel = 14) " +
-          "AND (deviceModel = Pixel 4 OR deviceModel = Pixel 4a) " +
+          "AND (deviceModel = Google/Pixel 4 OR deviceModel = Google/Pixel 4a) " +
           "AND (errorIssueType = ANR OR errorIssueType = CRASH) " +
           "AND (isUserPerceived) " +
           "AND (versionCode = 120 OR versionCode = 90)"
@@ -96,7 +96,7 @@ class FilterBuilderTest {
       .isEqualTo(
         "(apiLevel = 12 OR apiLevel = 14) " +
           "AND (appProcessState = BACKGROUND) " +
-          "AND (deviceModel = Pixel 4 OR deviceModel = Pixel 4a) " +
+          "AND (deviceModel = Google/Pixel 4 OR deviceModel = Google/Pixel 4a) " +
           "AND (errorIssueType = ANR OR errorIssueType = CRASH) " +
           "AND (versionCode = 120 OR versionCode = 90)"
       )
@@ -114,14 +114,6 @@ class FilterBuilderTest {
     val generated = FilterBuilder().apply { addErrorIssue(IssueId("123")) }.build()
 
     assertThat(generated).isEqualTo("(errorIssueId = 123)")
-  }
-
-  @Test
-  fun `check filtering by simple device model case`() {
-    val device = Device(manufacturer = "google", model = "google/pixel5")
-    val generated = FilterBuilder().apply { addDevicesForErrorIssue(listOf(device)) }.build()
-
-    assertThat(generated).isEqualTo("(deviceModel = pixel5)")
   }
 
   private fun buildFiltersFromQuery(queryFilters: QueryFilters): String {

@@ -125,7 +125,7 @@ fun List<WithCount<Device>>.summarizeDevicesFromRawDataPoints(
         val totalDataPoints =
           reports
             .sortedByDescending { it.count }
-            .map { DataPoint(it.value.model, it.count.percentOf(totalEvents)) }
+            .map { DataPoint(it.value.model.substringAfter("/"), it.count.percentOf(totalEvents)) }
 
         val resolvedGroupSize =
           totalDataPoints.map { it.percentage }.resolveElementCountBy(minGroupSize, minPercentage)

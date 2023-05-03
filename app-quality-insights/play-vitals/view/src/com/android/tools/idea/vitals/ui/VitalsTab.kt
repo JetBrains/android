@@ -157,7 +157,7 @@ class VitalsTab(
             flow = devices,
             scope = scope,
             groupNameSupplier = { it.manufacturer },
-            nameSupplier = { it.model },
+            nameSupplier = { it.model.substringAfter("/") },
             onSelected = projectController::selectDevices
           )
         )

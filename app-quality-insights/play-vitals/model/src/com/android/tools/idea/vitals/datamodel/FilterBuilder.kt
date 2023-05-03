@@ -48,12 +48,6 @@ private const val DEVICE_BRAND = "deviceBrand"
 private const val DEVICE_MODEL = "deviceModel"
 
 /**
- * `deviceType`: Matches error issues that occurred in the requested device types. Example:
- * `deviceType = "PHONE"`.
- */
-private const val DEVICE_TYPE = "deviceType"
-
-/**
  * `errorIssueType`: Matches error issues of the requested types only. Valid candidates: `CRASH`,
  * `ANR`. Example: `errorIssueType = CRASH OR errorIssueType = ANR`.
  */
@@ -136,16 +130,6 @@ class FilterBuilder {
       VisibilityType.NON_USER_PERCEIVED -> rawFilters.add(Filter(APP_PROCESS_STATE, "BACKGROUND"))
       VisibilityType.ALL -> Unit
     }
-  }
-
-  /**
-   * Filter by "simple" device model name (e.g. hlte) as this is the valid id when querying error
-   * issue.
-   */
-  fun addDevicesForErrorIssue(devices: Collection<Device>) {
-    devices
-      .filterNot { it == Device.ALL }
-      .onEach { rawFilters.add(Filter(DEVICE_MODEL, it.model.substringAfter("/"))) }
   }
 
   /** Filter by device model name (e.g. samsung/hlte). */

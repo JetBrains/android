@@ -293,12 +293,7 @@ class VitalsClient(
         filters = filters,
         issueId = issueId,
         dimensions =
-          listOf(
-            DimensionType.REPORT_TYPE,
-            DimensionType.DEVICE_TYPE,
-            DimensionType.DEVICE_BRAND,
-            DimensionType.DEVICE_MODEL
-          ),
+          listOf(DimensionType.REPORT_TYPE, DimensionType.DEVICE_BRAND, DimensionType.DEVICE_MODEL),
         metrics = listOf(metricType)
       )
       .map { dataPoint ->
