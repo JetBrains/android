@@ -125,9 +125,6 @@ class FilterBuilder {
   fun addVisibilityType(visibilityType: VisibilityType) {
     when (visibilityType) {
       VisibilityType.USER_PERCEIVED -> rawFilters.add(Filter(IS_USER_PERCEIVED, ""))
-      // TODO(b/280341834): There is no way to filter for non user perceived. Luckily it's
-      // equivalent to BACKGROUND
-      VisibilityType.NON_USER_PERCEIVED -> rawFilters.add(Filter(APP_PROCESS_STATE, "BACKGROUND"))
       VisibilityType.ALL -> Unit
     }
   }

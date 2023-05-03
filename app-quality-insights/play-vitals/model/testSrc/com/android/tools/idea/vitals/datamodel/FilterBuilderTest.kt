@@ -79,30 +79,6 @@ class FilterBuilderTest {
   }
 
   @Test
-  fun `check non-user-perceived maps to background filter`() {
-    val query =
-      QueryFilters(
-        interval = Interval(FAKE_6_DAYS_AGO, now),
-        versions = setOf(VERSION120, VERSION90),
-        devices = setOf(PIXEL_4A, PIXEL_4),
-        operatingSystems = setOf(ANDROID_12, ANDROID_14),
-        eventTypes = listOf(FailureType.FATAL, FailureType.ANR),
-        signal = SignalType.SIGNAL_UNSPECIFIED,
-        visibilityType = VisibilityType.NON_USER_PERCEIVED
-      )
-
-    val generated = buildFiltersFromQuery(query)
-    assertThat(generated)
-      .isEqualTo(
-        "(apiLevel = 12 OR apiLevel = 14) " +
-          "AND (appProcessState = BACKGROUND) " +
-          "AND (deviceModel = Google/Pixel 4 OR deviceModel = Google/Pixel 4a) " +
-          "AND (errorIssueType = ANR OR errorIssueType = CRASH) " +
-          "AND (versionCode = 120 OR versionCode = 90)"
-      )
-  }
-
-  @Test
   fun `check filtering by issue id case`() {
     val generated = FilterBuilder().apply { addIssue(IssueId("123")) }.build()
 

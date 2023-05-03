@@ -107,7 +107,6 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
           addAllDimensions(dimensions.map { it.value })
           addAllMetrics(metrics.map { it.value })
 
-          // TODO(b/280056146): add isUserPerceived filter when it's live
           filter =
             FilterBuilder()
               .apply {
@@ -115,6 +114,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
                 addReportTypes(filters.eventTypes)
                 addDevices(filters.devices)
                 addOperatingSystems(filters.operatingSystems)
+                addVisibilityType(filters.visibilityType)
                 issueId?.let { addIssue(issueId) }
               }
               .build()

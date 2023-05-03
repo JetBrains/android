@@ -127,7 +127,6 @@ data class VitalsDetailsState(
         // TODO(b/280341834): use isUserPerceived filter when it's available in the API.
         when (selectedVisibility) {
           VisibilityType.USER_PERCEIVED -> "appProcessState=Foreground"
-          VisibilityType.NON_USER_PERCEIVED -> "appProcessState=Background"
           else -> "" // Shouldn't hit this case.
         }
       )

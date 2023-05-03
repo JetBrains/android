@@ -22,8 +22,5 @@ enum class VisibilityType(val displayName: String) {
   },
   USER_PERCEIVED("User-perceived") {
     override fun toString() = displayName
-  },
-  NON_USER_PERCEIVED("Non-user-perceived") {
-    override fun toString() = displayName
   }
 }
