@@ -16,29 +16,27 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.google.wireless.android.sdk.stats.DeviceManagerEvent
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_DUPLICATE_ACTION
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import kotlinx.coroutines.launch
 
-/** Invokes the DeviceHandle's edit action, if available. */
-class EditDeviceAction : AnAction("Edit", "Edit this device", AllIcons.Actions.Edit) {
+class DuplicateDeviceAction :
+  AnAction("Duplicate", "Duplicate this device", AllIcons.Actions.Copy) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::editAction)
+    e.updateFromDeviceAction(DeviceHandle::duplicateAction)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val handle = DEVICE_HANDLE_KEY.getData(e.dataContext) ?: return
+    val deviceHandle = e.deviceHandle()
+    val duplicateAction = deviceHandle?.duplicateAction ?: return
 
-    DeviceManagerUsageTracker.logDeviceManagerEvent(
-      DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION
-    )
+    DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_DUPLICATE_ACTION)
 
-    handle.scope.launch { handle.editAction?.edit() }
+    deviceHandle.scope.launch { duplicateAction.duplicate() }
   }
 }

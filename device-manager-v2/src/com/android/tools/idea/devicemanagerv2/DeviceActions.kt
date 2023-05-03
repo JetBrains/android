@@ -15,30 +15,22 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.google.wireless.android.sdk.stats.DeviceManagerEvent
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import kotlinx.coroutines.launch
 
-/** Invokes the DeviceHandle's edit action, if available. */
-class EditDeviceAction : AnAction("Edit", "Edit this device", AllIcons.Actions.Edit) {
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::editAction)
-  }
-
-  override fun actionPerformed(e: AnActionEvent) {
-    val handle = DEVICE_HANDLE_KEY.getData(e.dataContext) ?: return
-
-    DeviceManagerUsageTracker.logDeviceManagerEvent(
-      DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION
-    )
-
-    handle.scope.launch { handle.editAction?.edit() }
+fun AnActionEvent.updateFromDeviceAction(deviceActionProperty: DeviceHandle.() -> DeviceAction?) {
+  val handle = deviceHandle()
+  when (val deviceAction = handle?.deviceActionProperty()) {
+    null -> presentation.isEnabledAndVisible = false
+    else -> {
+      val actionPresentation = deviceAction.presentation.value
+      presentation.isVisible = true
+      presentation.isEnabled = actionPresentation.enabled
+      presentation.text = actionPresentation.label
+    }
   }
 }
+
+fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)

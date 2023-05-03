@@ -43,11 +43,18 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
       )
     val actions =
       DefaultActionGroup(
-        EditDeviceAction(),
-        Separator.create(),
         reservationActions,
         Separator.create(),
+        // TODO: Cold Boot action
         wearableActions,
+        Separator.create(),
+        EditDeviceAction(),
+        DuplicateDeviceAction(),
+        WipeDataAction(),
+        DeleteAction(),
+        Separator.create(),
+        // TODO: View Details
+        ShowAction(),
       )
   }
 

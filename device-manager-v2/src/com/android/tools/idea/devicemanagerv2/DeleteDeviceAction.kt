@@ -16,29 +16,42 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.google.wireless.android.sdk.stats.DeviceManagerEvent
-import com.intellij.icons.AllIcons
+import com.android.tools.adtui.actions.componentToRestoreFocusTo
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.PHYSICAL_DELETE_ACTION
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_DELETE_ACTION
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.ui.MessageDialogBuilder
+import icons.StudioIcons
 import kotlinx.coroutines.launch
 
-/** Invokes the DeviceHandle's edit action, if available. */
-class EditDeviceAction : AnAction("Edit", "Edit this device", AllIcons.Actions.Edit) {
+class DeleteAction : AnAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::editAction)
+    e.updateFromDeviceAction(DeviceHandle::deleteAction)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val handle = DEVICE_HANDLE_KEY.getData(e.dataContext) ?: return
+    val deviceHandle = e.deviceHandle()
+    val deleteAction = deviceHandle?.deleteAction ?: return
 
-    DeviceManagerUsageTracker.logDeviceManagerEvent(
-      DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION
-    )
+    if (
+      MessageDialogBuilder.yesNo(
+          "Confirm Deletion",
+          "Do you really want to delete ${deviceHandle.state.properties.title}?"
+        )
+        .ask(e.componentToRestoreFocusTo())
+    ) {
+      DeviceManagerUsageTracker.logDeviceManagerEvent(
+        when {
+          deviceHandle.state.properties.isVirtual == true -> VIRTUAL_DELETE_ACTION
+          else -> PHYSICAL_DELETE_ACTION
+        }
+      )
 
-    handle.scope.launch { handle.editAction?.edit() }
+      deviceHandle.scope.launch { deleteAction.delete() }
+    }
   }
 }
