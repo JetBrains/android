@@ -201,8 +201,6 @@ class SingleDeviceAndroidProcessMonitor(
     when (myState) {
       INIT, WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {
         finishAndroidProcessCallback(targetDevice)
-        // For non-debuggable app we don't have a client, so we do our best shot - force stop.
-        targetDevice.forceStop(targetApplicationId)
         myState = PROCESS_FINISHED
       }
 

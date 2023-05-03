@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.debug.utils.showError
 import com.android.tools.idea.execution.common.debug.utils.waitForClientReadyForDebug
@@ -79,7 +80,7 @@ object DebugSessionStarter {
     debugProcessHandler.startNotify()
     debugProcessHandler.addProcessListener(object : ProcessAdapter() {
       override fun processTerminated(event: ProcessEvent) {
-        destroyRunningProcess(device)
+        executeOnPooledThread { destroyRunningProcess(device) }
         super.processTerminated(event)
       }
     })

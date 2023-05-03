@@ -188,7 +188,10 @@ class StartReattachingDebuggerTest {
       executionEnvironment,
       AndroidJavaDebugger(),
       AndroidJavaDebugger().createState(),
-      destroyRunningProcess = { it.forceStop(APP_ID) },
+      destroyRunningProcess = {
+        it.forceStop(APP_ID)
+        it.forceStop(MASTER_PROCESS_NAME)
+      },
       EmptyProgressIndicator()
     )
 

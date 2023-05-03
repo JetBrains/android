@@ -57,7 +57,10 @@ class ReattachingConnectDebuggerTask<S : AndroidDebuggerState>(
       environment,
       androidDebugger,
       androidDebuggerState,
-      destroyRunningProcess = { },
+      destroyRunningProcess = {
+        it.forceStop(applicationId)
+        it.forceStop(masterAndroidProcessName)
+      },
       progressIndicator,
       console,
       timeoutSeconds.toLong()

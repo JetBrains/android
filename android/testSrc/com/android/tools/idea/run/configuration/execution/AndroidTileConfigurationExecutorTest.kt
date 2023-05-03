@@ -38,6 +38,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import io.ktor.util.reflect.instanceOf
 import org.junit.Test
@@ -292,7 +293,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     assertThat(runContentDescriptor.processHandler).instanceOf(AndroidRemoteDebugProcessHandler::class)
 
     // Stop configuration.
-    runContentDescriptor.processHandler!!.destroyProcess()
+    runInEdt { runContentDescriptor.processHandler!!.destroyProcess() }
     if (!processTerminatedLatch.await(10, TimeUnit.SECONDS)) {
       fail("process is not terminated")
     }
