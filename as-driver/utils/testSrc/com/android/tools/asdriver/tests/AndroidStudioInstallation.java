@@ -16,6 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS;
+import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.DUMP_HPROF_SNAPSHOT;
 
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
@@ -146,6 +147,9 @@ public class AndroidStudioInstallation {
     vmOptions.append(String.format("-Djdk.attach.allowAttachSelf=true%n"));
     if (Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)) {
       vmOptions.append(String.format("-D%s=true%n", COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS));
+    }
+    if (Boolean.getBoolean(DUMP_HPROF_SNAPSHOT)) {
+      vmOptions.append(String.format("-D%s=true%n", DUMP_HPROF_SNAPSHOT));
     }
 
     Files.writeString(vmOptionsPath, vmOptions.toString());

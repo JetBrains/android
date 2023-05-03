@@ -29,6 +29,9 @@ import java.util.concurrent.TimeUnit
 // to enable collection of extended memory usage reports
 const val COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS: String = "studio.collect.extended.memory.reports"
 
+// The name of the flag that is used for enabling gathering hprof snapshots
+const val DUMP_HPROF_SNAPSHOT: String = "studio.dump.hprof.snapshot"
+
 /**
  * Util class that requests memory usage report collection by calling internal action `IntegrationTestCollectMemoryUsageStatisticsAction`,
  * parses the output and sends the results to perfgate.
