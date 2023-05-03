@@ -141,7 +141,12 @@ class GradleAndroidModel(
   }
 
   override fun getAllApplicationIds(): Set<String> {
-    return androidProject.basicVariants.mapNotNull { variant -> variant.applicationId }.toSet()
+    return buildSet {
+      androidProject.basicVariants.forEach { variant ->
+        variant.applicationId?.let { add(it) }
+        variant.testApplicationId?.let { add(it) }
+      }
+    }
   }
 
   override fun isDebuggable(): Boolean {

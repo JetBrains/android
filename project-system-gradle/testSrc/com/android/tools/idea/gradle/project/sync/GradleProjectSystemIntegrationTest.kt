@@ -171,9 +171,13 @@ data class GradleProjectSystemIntegrationTest(
           expect.that(appIds).isEqualTo(
             setOf(
               "com.example.multiflavor.firstAbc.secondAbc.debug",
+              "com.example.multiflavor.firstAbc.secondAbc.debug.test",
               "com.example.multiflavor.firstAbc.secondXyz.debug",
+              "com.example.multiflavor.firstAbc.secondXyz.debug.test",
               "com.example.multiflavor.secondAbc.debug",
+              "com.example.multiflavor.secondAbc.debug.test",
               "com.example.multiflavor.secondXyz.debug",
+              "com.example.multiflavor.secondXyz.debug.test",
               "com.example.multiflavor.firstAbc.secondAbc.release",
               "com.example.multiflavor.firstAbc.secondXyz.release",
               "com.example.multiflavor.secondAbc.release",
