@@ -17,6 +17,7 @@ package com.android.tools.idea.explainer
 
 import com.intellij.openapi.application.ApplicationManager.getApplication
 import com.intellij.openapi.project.Project
+import javax.swing.Icon
 
 /**
  * Service which lets clients access the explanation service and request an explanation.
@@ -39,6 +40,21 @@ open class IssueExplainer {
   /**
    * Returns a suitable label to use for the quickfix or hyperlink labels to request an explanation
    */
+  open fun getIcon(): Icon? = null
+
+  /**
+   * Returns a suitable label to use for the quickfix or hyperlink labels to request an explanation
+   */
+  open fun getShortLabel(): String? = null
+
+  /**
+   * Returns a suitable label to use for the quickfix or hyperlink labels to request an explanation
+   */
+  fun getConsoleLinkText(): String = ">> ${getShortLabel()}"
+
+  /**
+   * Returns a suitable label to use for the quickfix or hyperlink labels to request an explanation
+   */
   @JvmOverloads
   open fun getFixLabel(item: String = "error"): String = "Explain this $item"
 
@@ -46,6 +62,8 @@ open class IssueExplainer {
     ERROR,
     INFO,
     LOGCAT,
+    SYNC_ISSUE,
+    BUILD_ISSUE,
   }
 
   /**

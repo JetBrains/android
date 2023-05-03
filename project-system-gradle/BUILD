@@ -53,6 +53,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/explainer:intellij.android.explainer[module]",
     ],
 )
 
@@ -95,8 +96,8 @@ iml_module(
     test_resources = ["testSrc/resources"],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
+        "cpu:3",
         "no_test_mac",
     ],
     test_timeout = "long",

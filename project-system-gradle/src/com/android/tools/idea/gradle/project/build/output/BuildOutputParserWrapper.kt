@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.build.output
 import com.android.SdkConstants
 import com.android.ide.common.blame.parser.aapt.AbstractAaptOutputParser.AAPT_TOOL_NAME
 import com.android.ide.common.resources.MergingException.RESOURCE_ASSET_MERGER_TOOL_NAME
+import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.gradle.project.build.output.AndroidGradlePluginOutputParser.ANDROID_GRADLE_PLUGIN_MESSAGES_GROUP
 import com.android.tools.idea.gradle.project.build.output.CmakeOutputParser.CMAKE
 import com.android.tools.idea.gradle.project.build.output.XmlErrorOutputParser.Companion.XML_PARSING_GROUP
@@ -27,8 +28,11 @@ import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.FileMessageEvent
 import com.intellij.build.events.MessageEvent
+import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import java.io.File
 import java.util.function.Consumer
 
@@ -56,10 +60,35 @@ class BuildOutputParserWrapper(val parser: BuildOutputParser) : BuildOutputParse
 
   val buildErrorMessages = ArrayList<BuildErrorMessage>()
 
+  private val explainerAvailable = IssueExplainer.get().isAvailable()
+
   override fun parse(line: String?, reader: BuildOutputInstantReader?, messageConsumer: Consumer<in BuildEvent>?): Boolean {
     return parser.parse(line, reader) {
-      messageConsumer?.accept(it)
+      val taskId = it.parentId as? ExternalSystemTaskId
+      val event =
+        if (explainerAvailable
+            && ExternalSystemTaskType.RESOLVE_PROJECT == taskId?.type
+            && !it.message.startsWith("Unresolved reference:"))
+        {
+          it.injectExplanationText()
+        } else {
+          it
+        }
+      messageConsumer?.accept(event)
       reportErrorEvent(it)
+    }
+  }
+
+  /**
+   * Insert text in error to explain the issue; this will be picked up as a URL by
+   * ExplainBuildErrorFilter
+   */
+  private fun BuildEvent.injectExplanationText(): BuildEvent {
+    return if (this is FileMessageEvent) {
+      val description = (description?.trimEnd()?.plus("\n\n") ?: "") + "${IssueExplainer.get().getConsoleLinkText()}: " + message
+      FileMessageEventImpl(parentId ?: "", kind, group, message, description, filePosition)
+    } else {
+      this
     }
   }
 
