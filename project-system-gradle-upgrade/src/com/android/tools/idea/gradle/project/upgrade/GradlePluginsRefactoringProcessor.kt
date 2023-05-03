@@ -69,20 +69,22 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
     // the Gradle version.  (Also, this makes it substantially easier to test the action of this processor on a file at a time.)
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       model.buildscript().dependencies().artifacts(CommonConfigurationNames.CLASSPATH).forEach dep@{ dep ->
-        val currentVersion = Version.parse(dep.version().toString()).takeIf { it > Version.prefixInfimum("0") } ?: return@dep
-        WELL_KNOWN_GRADLE_PLUGIN_TABLE["${dep.group()}:${dep.name()}"]?.let { info ->
-          val minVersion = info(compatibleGradleVersion)
-          if (minVersion <= currentVersion) return@dep
-          val resultModel = dep.version().resultModel
-          val psiElement = when (val element = resultModel.rawElement) {
-            null -> return@dep
-            // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
-            is FakeArtifactElement -> element.realExpression.psiElement
-            else -> element.psiElement
-          }
-          psiElement?.let {
-            val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
-            usages.add(WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, dep, resultModel, minVersion.toString()))
+        if (dep.version().valueType == GradlePropertyModel.ValueType.STRING) {
+          val currentVersion = Version.parse(dep.version().toString()).takeIf { it > Version.prefixInfimum("0") } ?: return@dep
+          WELL_KNOWN_GRADLE_PLUGIN_TABLE["${dep.group()}:${dep.name()}"]?.let { info ->
+            val minVersion = info(compatibleGradleVersion)
+            if (minVersion <= currentVersion) return@dep
+            val resultModel = dep.version().resultModel
+            val psiElement = when (val element = resultModel.rawElement) {
+              null -> return@dep
+              // TODO(xof): most likely we need a range in PsiElement, if the dependency is expressed in compactNotation
+              is FakeArtifactElement -> element.realExpression.psiElement
+              else -> element.psiElement
+            }
+            psiElement?.let {
+              val wrappedPsiElement = WrappedPsiElement(psiElement, this, WELL_KNOWN_GRADLE_PLUGIN_USAGE_TYPE)
+              usages.add(WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, dep, resultModel, minVersion.toString()))
+            }
           }
         }
       }

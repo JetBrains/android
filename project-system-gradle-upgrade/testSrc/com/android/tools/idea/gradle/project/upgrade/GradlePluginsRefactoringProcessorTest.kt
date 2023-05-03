@@ -16,11 +16,28 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.utils.FileUtils
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
 
 @RunsInEdt
 class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
+  private lateinit var versionCatalogFile : VirtualFile
+
+  @Before
+  fun setUpGradlePropertiesFile() {
+    runWriteAction {
+      versionCatalogFile = projectRule.fixture.tempDirFixture.createFile(FileUtils.toSystemDependentPath("gradle/libs.versions.toml"))
+      Assert.assertTrue(versionCatalogFile.isWritable)
+    }
+  }
+
   @Test
   fun testKotlinPluginVersionInLiteral() {
     writeToBuildFile(TestFileName("GradlePlugins/KotlinPluginVersionInLiteral"))
@@ -365,5 +382,22 @@ class GradlePluginsRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.run()
 
     verifyFileContents(buildFile, TestFileName("GradlePlugins/ProtobufVersion80Expected"))
+  }
+
+  @Test
+  fun testUnresolvableVersionInBuildscriptClasspath() {
+    writeToBuildFile(TestFileName("GradlePlugins/UnresolvableVersionInBuildscriptClasspath"))
+    writeToVersionCatalogFile(TestFileName("GradlePlugins/UnresolvableVersionCatalog"))
+    val processor = GradlePluginsRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("8.0.0"))
+    processor.run()
+
+    verifyFileContents(buildFile, TestFileName("GradlePlugins/UnresolvableVersionInBuildscriptClasspath"))
+  }
+
+  private fun writeToVersionCatalogFile(fileName: TestFileName) {
+    val testFile = fileName.toFile(testDataPath, ".toml")
+    Assert.assertTrue(testFile.exists())
+    val virtualTestFile = VfsUtil.findFileByIoFile(testFile, true)
+    runWriteAction { VfsUtil.saveText(versionCatalogFile, VfsUtilCore.loadText(virtualTestFile!!)) }
   }
 }
