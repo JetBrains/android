@@ -68,9 +68,8 @@ public class SceneLayer extends Layer {
     if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
     }
-    if (!myShowAlways && getSceneView().getSurface() instanceof NlDesignSurface) {
-      NlDesignSurface designSurface = (NlDesignSurface) getSceneView().getSurface();
-      if (designSurface.isRenderingSynchronously() && !designSurface.isInAnimationScrubbing()) {
+    if (!myShowAlways && myDesignSurface instanceof NlDesignSurface nlSurface) {
+      if (nlSurface.isRenderingSynchronously() && !nlSurface.isInAnimationScrubbing()) {
         return;
       }
     }
@@ -94,9 +93,7 @@ public class SceneLayer extends Layer {
       }
 
       // When screen rotation feature is enabled, we want to hide the relevant drawings.
-      DesignSurface<?> sufrace = mySceneView.getSurface();
-      if (sufrace instanceof NlDesignSurface) {
-        NlDesignSurface nlSurface = (NlDesignSurface)sufrace;
+      if (myDesignSurface instanceof NlDesignSurface nlSurface) {
         if (nlSurface.isRotating()) {
           return;
         }
