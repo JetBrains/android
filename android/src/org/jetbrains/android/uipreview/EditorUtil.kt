@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.ide.impl.ProjectViewSelectInPaneTarget
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.application.ApplicationManager
@@ -34,14 +33,7 @@ object EditorUtil {
    */
   @JvmStatic
   fun openEditor(project: Project, vFile: VirtualFile) {
-    val descriptor =
-      if (vFile.fileType === XmlFileType.INSTANCE && AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) {
-        OpenFileDescriptor(project, vFile, 0)
-      }
-      else {
-        OpenFileDescriptor(project, vFile)
-      }
-    FileEditorManager.getInstance(project).openEditor(descriptor, true)
+    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), true)
   }
 
   /**

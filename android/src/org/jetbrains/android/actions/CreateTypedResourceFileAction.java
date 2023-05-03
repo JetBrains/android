@@ -57,7 +57,6 @@ import org.jetbrains.android.dom.font.FontFamilyDomFileDescription;
 import org.jetbrains.android.dom.navigation.NavigationDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
@@ -154,11 +153,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
     if (file.isValid() && LayoutPullParsers.isSupported(new PsiXmlFile(file))) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null && virtualFile.isValid()) {
-        if (AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {
-          new OpenFileDescriptor(file.getProject(), virtualFile, 0).navigate(true);
-        } else {
-          new OpenFileDescriptor(file.getProject(), virtualFile).navigate(true);
-        }
+        new OpenFileDescriptor(file.getProject(), virtualFile).navigate(true);
       }
     } else {
       PsiNavigateUtil.navigate(file);

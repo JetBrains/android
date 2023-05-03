@@ -172,15 +172,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     // Handle the case where preferredDrawableEditorMode and preferredEditorMode were not set for
     // the first time yet.
     if (state.preferredDrawableEditorMode == null && state.preferredEditorMode == null) {
-      if (state.isPreferXmlEditor) {
-        // Preserve the user preference if they had set the old "Prefer XML editor" option.
-        preferredDrawablesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.CODE
-        preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.CODE
-      } else {
-        // Otherwise default drawables to SPLIT and other resource types to DESIGN
-        preferredDrawablesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.SPLIT
-        preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.DESIGN
-      }
+      // Default drawables to SPLIT and other resource types to DESIGN
+      preferredDrawablesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.SPLIT
+      preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.DESIGN
     } else {
       preferredDrawablesEditorMode.selectedItem = state.preferredDrawableEditorMode
       preferredEditorMode.selectedItem = state.preferredEditorMode
