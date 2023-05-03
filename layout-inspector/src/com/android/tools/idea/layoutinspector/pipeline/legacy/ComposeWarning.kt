@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel.Status
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
@@ -37,7 +38,7 @@ class ComposeWarning(private val project: Project) {
         "Cannot display compose nodes, try restarting the application"
       }
       val bannerService = InspectorBannerService.getInstance(project)
-      bannerService?.addNotification(message, listOf(bannerService.DISMISS_ACTION))
+      bannerService?.addNotification(message, Status.Warning, listOf(bannerService.DISMISS_ACTION))
     }
   }
 

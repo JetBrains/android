@@ -241,7 +241,7 @@ class InspectorClientLauncher(
         // when we're reenabled, so leave the process selected.
         processes.selectedProcess = null
       }
-      notifications.forEach { bannerService.addNotification(it.message, it.actions) }
+      notifications.forEach { bannerService.addNotification(it.message, it.status, it.actions, it.sticky) }
     }
   }
 

@@ -59,6 +59,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.ui.EditorNotificationPanel.Status
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -335,14 +336,14 @@ class AppInspectionInspectorClient(
           message = API_29_BUG_MESSAGE
           actions = listOf(bannerService.DISMISS_ACTION)
         }
-        bannerService.addNotification(message, actions)
+        bannerService.addNotification(message, Status.Warning, actions)
       }
       sdkHandler.getSdkManager(logger).load(0, null, listOf(showBanner), null,
                                             StudioProgressRunner(false, false, "Checking available system images", null),
                                             StudioDownloader(), StudioSettingsController.getInstance())
     }
     else {
-      bannerService.addNotification(API_29_BUG_MESSAGE, listOf(bannerService.DISMISS_ACTION))
+      bannerService.addNotification(API_29_BUG_MESSAGE, Status.Warning, listOf(bannerService.DISMISS_ACTION))
     }
     throw ConnectionFailedException("Unsupported system image revision", AttachErrorCode.LOW_API_LEVEL)
   }

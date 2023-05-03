@@ -39,6 +39,7 @@ import com.android.tools.layoutinspector.toInt
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel.Status
 import java.awt.Rectangle
 import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
@@ -136,7 +137,7 @@ class ViewAndroidWindow(
     val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
 
     if (errorMessage != null) {
-      InspectorBannerService.getInstance(project)?.addNotification(errorMessage)
+      InspectorBannerService.getInstance(project)?.addNotification(errorMessage, Status.Warning)
     }
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)

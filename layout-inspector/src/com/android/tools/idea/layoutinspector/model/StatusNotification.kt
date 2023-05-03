@@ -16,17 +16,20 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.ui.EditorNotificationPanel
 
 /**
  * A notification to be shown on top of the Inspector.
  */
 interface StatusNotification {
+  val status: EditorNotificationPanel.Status
   val message: String
   val sticky: Boolean
   val actions: List<AnAction>
 }
 
 class StatusNotificationImpl(
+  override val status: EditorNotificationPanel.Status,
   override val message: String,
   override val sticky: Boolean = false,
   override val actions: List<AnAction> = listOf()

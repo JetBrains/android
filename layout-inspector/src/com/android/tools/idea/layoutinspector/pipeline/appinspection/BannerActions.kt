@@ -36,6 +36,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.AbstractPainter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPaneUtil
+import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.components.JBTabbedPane
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.awt.Component
@@ -115,7 +116,7 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
   if (showEnableAction) {
     actions.add(0, enableInRunConfigAction)
   }
-  banner.addNotification(LayoutInspectorBundle.message("activity.restart"), actions)
+  banner.addNotification(LayoutInspectorBundle.message("activity.restart"), Status.Info, actions)
 }
 
 private fun moduleFromCurrentProjectBeingInspected(project: Project, process: ProcessDescriptor): Module? =

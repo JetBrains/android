@@ -44,6 +44,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
+import com.intellij.ui.EditorNotificationPanel.Status
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import java.awt.Component
@@ -285,7 +286,7 @@ class LayoutInspector private constructor(
       else -> return
     }
     if (message != null) {
-      InspectorBannerService.getInstance(inspectorModel.project)?.addNotification(message)
+      InspectorBannerService.getInstance(inspectorModel.project)?.addNotification(message, Status.Error)
 
       if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
         ApplicationManager.getApplication().invokeLater {

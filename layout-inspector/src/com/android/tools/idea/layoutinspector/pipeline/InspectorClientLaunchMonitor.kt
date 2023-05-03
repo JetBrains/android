@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CancellationException
 import org.jetbrains.annotations.TestOnly
@@ -138,7 +139,7 @@ class InspectorClientLaunchMonitor(
       }
     }
     val disconnect = createDisconnectAction(attemptDumpViews = false) // The legacy inspector cannot get information either...
-    banner?.addNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY), listOf(resumeDebugger, disconnect))
+    banner?.addNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY), Status.Error, listOf(resumeDebugger, disconnect))
     banner?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
   }
 
@@ -161,7 +162,7 @@ class InspectorClientLaunchMonitor(
       }
     }
     val disconnect = createDisconnectAction(attemptDumpViews = true)
-    banner?.addNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY), listOf(continueWaiting, disconnect))
+    banner?.addNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY), Status.Warning, listOf(continueWaiting, disconnect))
   }
 
   private fun createDisconnectAction(attemptDumpViews: Boolean): AnAction {

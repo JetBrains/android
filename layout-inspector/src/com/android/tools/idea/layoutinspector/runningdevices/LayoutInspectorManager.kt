@@ -45,6 +45,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.content.Content
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
@@ -318,6 +319,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     if (shouldShowWarning()) {
       InspectorBannerService.getInstance(project)?.addNotification(
         text = notificationText,
+        status = Status.Info,
         sticky = true,
         actions = listOf(
           object : AnAction(LayoutInspectorBundle.message("do.not.show.again")) {

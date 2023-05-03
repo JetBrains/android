@@ -29,6 +29,7 @@ import com.android.tools.profiler.proto.Transport
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel.Status
 
 /**
  * Class responsible for listening to events published by the transport.
@@ -46,7 +47,7 @@ class TransportErrorListener(
       val bannerService = InspectorBannerService.getInstance(project)
       if (hasStartServerFailed) {
         // the banner can't be dismissed. It will automatically be dismissed when the Transport tries to start again.
-        bannerService?.addNotification(errorMessage, emptyList())
+        bannerService?.addNotification(errorMessage, Status.Error, emptyList())
         // TODO(b/258453315) log to metrics
       }
       else {

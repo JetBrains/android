@@ -27,6 +27,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.runReadAction
 import com.intellij.pom.Navigatable
+import com.intellij.ui.EditorNotificationPanel.Status
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -68,7 +69,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
       val layout = node.layout?.name
       if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
         val banner = InspectorBannerService.getInstance(model.project)
-        banner?.addNotification(LayoutInspectorBundle.message(VIEW_NOT_FOUND, node.unqualifiedName, layout))
+        banner?.addNotification(LayoutInspectorBundle.message(VIEW_NOT_FOUND, node.unqualifiedName, layout), Status.Warning)
       }
       navigatable
     }
