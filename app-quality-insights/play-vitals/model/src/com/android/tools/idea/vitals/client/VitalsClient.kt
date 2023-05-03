@@ -32,6 +32,7 @@ import com.android.tools.idea.insights.Permission
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.client.AppConnection
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
@@ -60,6 +61,7 @@ private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
 // TODO(b/265153845): implement vitals client.
 class VitalsClient(
   parentDisposable: Disposable,
+  private val cache: AppInsightsCache,
   private val grpcClient: VitalsGrpcClient = VitalsGrpcClientImpl.create(parentDisposable)
 ) : AppInsightsClient {
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> = supervisorScope {
@@ -86,6 +88,12 @@ class VitalsClient(
           )
         )
     ) {
+      if (mode.isOfflineMode()) {
+        val topCachedIssues = cache.getTopIssues(request) ?: emptyList()
+        return@runGrpcCatching LoadingState.Ready(
+          IssueResponse(topCachedIssues, emptyList(), emptyList(), emptyList(), Permission.FULL)
+        )
+      }
       val versions = async {
         listVersions(request.connection, request.filters, null, MetricType.ERROR_REPORT_COUNT)
       }
@@ -100,7 +108,13 @@ class VitalsClient(
           MetricType.ERROR_REPORT_COUNT
         )
       }
-      val issues = async { fetchIssues(request) } // TODO: add "fetchEventsForAllIssues: Boolean"
+      val issues = async {
+        fetchIssues(
+          request,
+          fetchSource ==
+            AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.REFRESH
+        )
+      }
 
       LoadingState.Ready(
         IssueResponse(
@@ -177,12 +191,26 @@ class VitalsClient(
     throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
-  private suspend fun fetchIssues(request: IssueRequest): List<AppInsightsIssue> = coroutineScope {
+  private suspend fun fetchIssues(
+    request: IssueRequest,
+    fetchEventsForAllIssues: Boolean = false
+  ): List<AppInsightsIssue> = coroutineScope {
     val topIssues = grpcClient.listTopIssues(request.connection, request.filters)
 
+    val (requestIssues, cachedSampleEvents) =
+      if (fetchEventsForAllIssues) {
+        topIssues to emptyMap()
+      } else {
+        val cachedSampleEvents =
+          topIssues
+            .mapNotNull { cache.getEvent(request, it.id)?.let { event -> it to event } }
+            .toMap()
+        topIssues.filterNot { it in cachedSampleEvents.keys } to cachedSampleEvents
+      }
+
     // TODO: revisit once we have a new API.
-    val topEvents =
-      topIssues
+    val requestedEventsByIssue =
+      requestIssues
         .map { issueDetails ->
           async {
             grpcClient
@@ -194,11 +222,17 @@ class VitalsClient(
           }
         }
         .awaitAll()
+        .mapIndexed { index, event -> requestIssues[index] to event }
+        .toMap()
 
-    // TODO: add fetching from cache logic.
-    return@coroutineScope topEvents.mapIndexed { index, event ->
-      AppInsightsIssue(issueDetails = topIssues[index], sampleEvent = event)
-    }
+    return@coroutineScope topIssues
+      .map { issueDetails ->
+        AppInsightsIssue(
+          issueDetails,
+          cachedSampleEvents[issueDetails] ?: requestedEventsByIssue[issueDetails]!!
+        )
+      }
+      .also { cache.populateIssues(request.connection, it) }
   }
 
   private suspend fun listVersions(

@@ -71,7 +71,9 @@ constructor(
   loginState: Flow<Boolean> = LoginState.loggedIn
 ) : AppInsightsConfigurationManager, Disposable {
   @Suppress("unused")
-  constructor(project: Project) : this(project, { disposable -> VitalsClient(disposable) })
+  constructor(
+    project: Project
+  ) : this(project, { disposable -> VitalsClient(disposable, AppInsightsCacheImpl()) })
 
   private val client = createVitalsClient(this)
   private val scope = AndroidCoroutineScope(this)
