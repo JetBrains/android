@@ -41,12 +41,15 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -56,6 +59,7 @@ import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -159,6 +163,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
     // Use per-project code style settings so we never modify the IDE defaults.
     CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
+    IdeSdks ideSdks = IdeSdks.getInstance();
+
+    final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
+    Disposer.register(getTestRootDisposable(), () -> {
+      WriteAction.runAndWait(() -> {
+        AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.toPath() : null);
+      });
+    });
   }
 
   public void setUpFixture() throws Exception {

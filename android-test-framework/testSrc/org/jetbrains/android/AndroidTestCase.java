@@ -9,6 +9,7 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
@@ -184,6 +185,14 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
+    IdeSdks ideSdks = IdeSdks.getInstance();
+
+    final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
+    Disposer.register(myFixture.getTestRootDisposable(), () -> {
+      WriteAction.runAndWait(() -> {
+        AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.toPath() : null);
+      });
+    });
     ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));
   }
 
