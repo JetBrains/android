@@ -56,7 +56,6 @@ iml_module(
         "//tools/base/perflib:studio.android.sdktools.perflib[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
-        "//tools/adt/idea/android/lib:spantable",
         "//tools/base/repository:studio.android.sdktools.repository[module]",
         "//tools/data-binding:studio.baseLibrary[module]",
         "//tools/data-binding:studio.baseLibrarySupport[module]",

@@ -21,17 +21,6 @@
     <orderEntry type="module" module-name="android.sdktools.perflib" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/spantable.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/spantable-src.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
     <orderEntry type="module" module-name="db-baseLibrary" />
     <orderEntry type="module" module-name="db-baseLibrarySupport" />

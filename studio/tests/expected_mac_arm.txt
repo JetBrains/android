@@ -536,7 +536,6 @@ Android Studio Preview.app/Contents/license/pepk-NOTICE
 Android Studio Preview.app/Contents/license/r8_license.txt
 Android Studio Preview.app/Contents/license/samplesindex-v1-1.0-SNAPSHOT.jar-NOTICE
 Android Studio Preview.app/Contents/license/saxon-conditions.html
-Android Studio Preview.app/Contents/license/spantable-NOTICE
 Android Studio Preview.app/Contents/license/swt.jar-NOTICE
 Android Studio Preview.app/Contents/license/third-party-libraries.html
 Android Studio Preview.app/Contents/license/third-party-libraries.json
@@ -1998,11 +1997,11 @@ Android Studio Preview.app/Contents/plugins/android/lib/adt-ui.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-base-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-extensions-ide.jar
+Android Studio Preview.app/Contents/plugins/android/lib/android-gradle.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-kotlin.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-profilers.jar
-Android Studio Preview.app/Contents/plugins/android/lib/android-rt.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-project-system-gradle-models.jar
-Android Studio Preview.app/Contents/plugins/android/lib/android-gradle.jar
+Android Studio Preview.app/Contents/plugins/android/lib/android-rt.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android.jar
 Android Studio Preview.app/Contents/plugins/android/lib/animation-core-desktop-1.3.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/animation-desktop-1.3.1.jar
@@ -2103,7 +2102,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-window
 Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/spantable.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sqlite_inspector_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-grpc.jar

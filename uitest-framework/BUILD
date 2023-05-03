@@ -24,7 +24,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/swing-testing/fest-swing[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android/lib:spantable[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
