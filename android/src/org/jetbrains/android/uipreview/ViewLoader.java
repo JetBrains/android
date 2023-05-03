@@ -333,7 +333,7 @@ public class ViewLoader {
     final Ref<Boolean> token = new Ref<>();
     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
     try {
-      return DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
+      Class<?> superclass = DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
         PsiClass psiClass = myModule.getDependencies().findPsiClassInModuleAndDependencies(className);
 
         if (psiClass == null) {
@@ -364,13 +364,7 @@ public class ViewLoader {
                 }
               }
               if (aClass != null) {
-                try {
-                  RenderSecurityManager.exitSafeRegion(token.get());
-                  return createNewInstance(aClass, constructorSignature, constructorArgs, true);
-                }
-                finally {
-                  token.set(RenderSecurityManager.enterSafeRegion(myCredential));
-                }
+                return aClass;
               }
             }
             catch (Throwable e) {
@@ -381,6 +375,19 @@ public class ViewLoader {
         }
         return null;
       });
+      if (superclass != null) {
+        try {
+          RenderSecurityManager.exitSafeRegion(token.get());
+          return createNewInstance(superclass, constructorSignature, constructorArgs, true);
+        }
+        catch (Throwable e) {
+          LOG.debug(e);
+        }
+        finally {
+          token.set(RenderSecurityManager.enterSafeRegion(myCredential));
+        }
+      }
+      return null;
     }
     finally {
       RenderSecurityManager.exitSafeRegion(token.get());
