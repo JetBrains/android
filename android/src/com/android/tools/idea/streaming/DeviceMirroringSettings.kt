@@ -29,16 +29,13 @@ import kotlin.reflect.KProperty
 @State(name = "DeviceMirroringSettings", storages = [(Storage("device.mirroring.xml"))])
 class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings> {
 
-  private var initialized = false
   var deviceMirroringEnabled: Boolean by ChangeNotifyingProperty(StudioFlags.DEVICE_MIRRORING_ENABLED_BY_DEFAULT.get())
   var activateOnConnection: Boolean by ChangeNotifyingProperty(false)
   var activateOnAppLaunch: Boolean by ChangeNotifyingProperty(true)
   var activateOnTestLaunch: Boolean by ChangeNotifyingProperty(false)
   var synchronizeClipboard: Boolean by ChangeNotifyingProperty(true)
-
   /** Max length of clipboard text to participate in clipboard synchronization. */
   var maxSyncedClipboardLength: Int by ChangeNotifyingProperty(MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT)
-
   var turnOffDisplayWhileMirroring: Boolean by ChangeNotifyingProperty(false)
 
   /**
@@ -46,6 +43,8 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
    * It is not reflected in DeviceMirroringSettingsUi.
    */
   var confirmationDialogShown: Boolean = false
+
+  private var initialized = false
 
   override fun getState(): DeviceMirroringSettings = this
 
