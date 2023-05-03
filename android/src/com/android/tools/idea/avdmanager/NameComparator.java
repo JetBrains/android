@@ -20,16 +20,25 @@ import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This comparator special cases the canonical device definitions ("Small Phone", "Medium Phone", and "Medium Tablet") to sort before other
- * names in the device definition table. After that, names that start with a letter sort before names that do not (as before). And after
- * that we use natural string order (as before).
+ * Sorts names so they appear in the device definition table in the following order
+ *
+ * <ol>
+ *   <li>Small Phone
+ *   <li>Medium Phone
+ *   <li>Medium Tablet
+ *   <li>Names whose first character is a letter (and then reversed natural order)
+ *   <li>Names whose first character isn't a letter (and then reversed natural order)
+ *   <li>Resizable (Experimental)
+ * </ol>
  */
+@SuppressWarnings("GrazieInspection")
 final class NameComparator implements Comparator<Device> {
   @NotNull
   private static final Comparator<String> COMPARATOR = Comparator.comparing(SortKey::valueOfDeviceName)
     .thenComparing(Comparator.naturalOrder());
 
   private enum SortKey {
+    RESIZABLE_EXPERIMENTAL,
     FIRST_CHAR_ISNT_LETTER,
     FIRST_CHAR_IS_LETTER,
     MEDIUM_TABLET,
@@ -39,6 +48,7 @@ final class NameComparator implements Comparator<Device> {
     @NotNull
     private static SortKey valueOfDeviceName(@NotNull String deviceName) {
       return switch (deviceName) {
+        case "Resizable (Experimental)" -> RESIZABLE_EXPERIMENTAL;
         case "Medium Tablet" -> MEDIUM_TABLET;
         case "Medium Phone" -> MEDIUM_PHONE;
         case "Small Phone" -> SMALL_PHONE;

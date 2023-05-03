@@ -19,7 +19,9 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.devices.Device;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -30,30 +32,97 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class NameComparatorTest {
+  private final Comparator<Device> myComparator = new NameComparator();
+
   @Test
-  public void compare() {
+  public void comparePhone() {
     // Arrange
-    var expectedDevices = List.of(mockDevice("7.6\" Fold-in with outer display"),
-                                  mockDevice("8\" Fold-out"),
+    var expectedDevices = List.of(mockDevice("Resizable (Experimental)"),
+                                  mockDevice("7.6\" Fold-in with outer display"),
+                                  mockDevice("Pixel"),
+                                  mockDevice("Pixel 2"),
+                                  mockDevice("Pixel 2 XL"),
+                                  mockDevice("Pixel 3"),
+                                  mockDevice("Pixel 3 XL"),
+                                  mockDevice("Pixel 3a"),
+                                  mockDevice("Pixel 3a XL"),
+                                  mockDevice("Pixel 4"),
+                                  mockDevice("Pixel 4 XL"),
+                                  mockDevice("Pixel 4a"),
+                                  mockDevice("Pixel 5"),
+                                  mockDevice("Pixel 6"),
+                                  mockDevice("Pixel 6 Pro"),
+                                  mockDevice("Pixel 6a"),
+                                  mockDevice("Pixel 7"),
+                                  mockDevice("Pixel 7 Pro"),
+                                  mockDevice("Pixel Fold"),
                                   mockDevice("Pixel XL"),
-                                  mockDevice("Resizable (Experimental)"),
-                                  mockDevice("Medium Tablet"),
                                   mockDevice("Medium Phone"),
                                   mockDevice("Small Phone"));
 
-    var actualDevices = new ArrayList<>(expectedDevices);
-    Collections.shuffle(actualDevices);
-
-    var actualNames = actualDevices.stream()
-      .map(Device::getDisplayName)
-      .collect(Collectors.joining(", "));
-
-    System.out.println("Shuffled devices: " + actualNames);
-
-    var comparator = new NameComparator();
+    var actualDevices = shuffle(expectedDevices);
 
     // Act
-    actualDevices.sort(comparator);
+    actualDevices.sort(myComparator);
+
+    // Assert
+    assertEquals(expectedDevices, actualDevices);
+  }
+
+  @Test
+  public void compareTablet() {
+    // Arrange
+    var expectedDevices = List.of(mockDevice("Pixel C"),
+                                  mockDevice("Pixel Tablet"),
+                                  mockDevice("Medium Tablet"));
+
+    var actualDevices = shuffle(expectedDevices);
+
+    // Act
+    actualDevices.sort(myComparator);
+
+    // Assert
+    assertEquals(expectedDevices, actualDevices);
+  }
+
+  @Test
+  public void compareLegacy() {
+    var expectedDevices = List.of(mockDevice("10.1\" WXGA (Tablet)"),
+                                  mockDevice("13.5\" Freeform"),
+                                  mockDevice("2.7\" QVGA"),
+                                  mockDevice("2.7\" QVGA slider"),
+                                  mockDevice("3.2\" HVGA slider (ADP1)"),
+                                  mockDevice("3.2\" QVGA (ADP2)"),
+                                  mockDevice("3.3\" WQVGA"),
+                                  mockDevice("3.4\" WQVGA"),
+                                  mockDevice("3.7\" FWVGA slider"),
+                                  mockDevice("3.7\" WVGA (Nexus One)"),
+                                  mockDevice("4\" WVGA (Nexus S)"),
+                                  mockDevice("4.65\" 720p (Galaxy Nexus)"),
+                                  mockDevice("4.7\" WXGA"),
+                                  mockDevice("5.1\" WVGA"),
+                                  mockDevice("5.4\" FWVGA"),
+                                  mockDevice("6.7\" Horizontal Fold-in"),
+                                  mockDevice("7\" WSVGA (Tablet)"),
+                                  mockDevice("7.4\" Rollable"),
+                                  mockDevice("8\" Fold-out"),
+                                  mockDevice("Galaxy Nexus"),
+                                  mockDevice("Nexus 10"),
+                                  mockDevice("Nexus 4"),
+                                  mockDevice("Nexus 5"),
+                                  mockDevice("Nexus 5X"),
+                                  mockDevice("Nexus 6"),
+                                  mockDevice("Nexus 6P"),
+                                  mockDevice("Nexus 7"),
+                                  mockDevice("Nexus 7 (2012)"),
+                                  mockDevice("Nexus 9"),
+                                  mockDevice("Nexus One"),
+                                  mockDevice("Nexus S"));
+
+    var actualDevices = shuffle(expectedDevices);
+
+    // Act
+    actualDevices.sort(myComparator);
 
     // Assert
     assertEquals(expectedDevices, actualDevices);
@@ -62,8 +131,23 @@ public final class NameComparatorTest {
   @NotNull
   private static Device mockDevice(@NotNull String name) {
     var device = Mockito.mock(Device.class);
+
     Mockito.when(device.getDisplayName()).thenReturn(name);
+    Mockito.when(device.toString()).thenReturn(name);
 
     return device;
+  }
+
+  @NotNull
+  private static List<Device> shuffle(@NotNull Collection<Device> expectedDevices) {
+    var actualDevices = new ArrayList<>(expectedDevices);
+    Collections.shuffle(actualDevices);
+
+    var actualNames = actualDevices.stream()
+      .map(Device::getDisplayName)
+      .collect(Collectors.joining(", "));
+
+    System.out.println("Shuffled devices: " + actualNames);
+    return actualDevices;
   }
 }
