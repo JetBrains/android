@@ -316,3 +316,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:google-baksmali_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "gradle-shared-proto",
+    jars = ["//tools/base/build-system/gradle-core:common_proto.jar"],
+    visibility = ["//visibility:public"],
+)

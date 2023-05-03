@@ -514,6 +514,7 @@ filegroup(
         "//tools/base/bazel:studio-proto",
         "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
+        "//tools/base/build-system/gradle-core:common_proto",
         "//tools/base/common:version",
         "//tools/base/ddmlib:am-instrumentation-data-proto",
         "//tools/base/ddmlib:app-processes-proto",
