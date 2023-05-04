@@ -55,7 +55,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import org.jetbrains.kotlin.utils.keysToMap
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -125,17 +124,19 @@ class LaunchTaskRunner(
 
     printLaunchTaskStartedMessage(console)
 
-    // Create launch tasks for each device.
-    indicator.text = "Getting task for devices"
-    val launchTaskMap = devices.keysToMap { launchTasksProvider.getTasks(it) }
 
     // A list of devices that we have launched application successfully.
     indicator.text = "Launching on devices"
-    launchTaskMap.entries.map { (device, tasks) ->
+    devices.map { device ->
       async {
         LOG.info("Launching on device ${device.name}")
         val launchContext = LaunchContext(env, device, console, processHandler, indicator)
-        runLaunchTasks(tasks, launchContext)
+
+        val deployTasks = launchTasksProvider.getDeployTasks(device, packageName)
+        runLaunchTasks(deployTasks, launchContext)
+
+        val launchTasks = launchTasksProvider.getLaunchTasks(device)
+        runLaunchTasks(launchTasks, launchContext)
         // Notify listeners of the deployment.
         project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
       }

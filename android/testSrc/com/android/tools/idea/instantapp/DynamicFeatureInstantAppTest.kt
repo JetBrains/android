@@ -116,9 +116,7 @@ class DynamicFeatureInstantAppTest  {
       false
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device)
-
-    val deployTask = launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)
+    val deployTask = launchTaskProvider.getDeployTasks(device, project.applicationIdProvider.packageName).single()
 
     assertThat(deployTask).isNotNull()
     assertInstanceOf(deployTask, RunInstantAppTask::class.java)
@@ -150,9 +148,7 @@ class DynamicFeatureInstantAppTest  {
       false
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device)
-
-    val deployTask = launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)
+    val deployTask = launchTaskProvider.getDeployTasks(device, project.applicationIdProvider.packageName).single()
 
     assertThat(deployTask).isNotNull()
     assertInstanceOf(deployTask, RunInstantAppTask::class.java)
@@ -179,8 +175,8 @@ class DynamicFeatureInstantAppTest  {
       false
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device)
+    val deployTasks = launchTaskProvider.getDeployTasks(device, project.applicationIdProvider.packageName)
 
-    assertThat(launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)).isNull()
+    assertThat(deployTasks.filterIsInstance<RunInstantAppTask>()).isEmpty()
   }
 }

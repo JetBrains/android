@@ -37,8 +37,6 @@ import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask;
 import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
 import com.android.tools.idea.run.util.SwapInfo;
-import com.android.tools.idea.stats.RunStats;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -85,14 +83,8 @@ public class AndroidLaunchTasksProvider {
   }
 
   @NotNull
-  public List<LaunchTask> getTasks(@NotNull IDevice device) throws ExecutionException {
+  public List<LaunchTask> getLaunchTasks(@NotNull IDevice device) throws ExecutionException {
     final List<LaunchTask> launchTasks = new ArrayList<>();
-    try {
-      launchTasks.addAll(getDeployTasks(device, myPackageName));
-    }
-    catch (ApkProvisionException e) {
-      throw new ExecutionException(e);
-    }
 
     if (!shouldDeployAsInstant()) {
       // A separate deep link launch task is not necessary if launch will be handled by
@@ -126,9 +118,7 @@ public class AndroidLaunchTasksProvider {
   }
 
   @NotNull
-  @VisibleForTesting
-  List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ApkProvisionException {
-
+  public List<LaunchTask> getDeployTasks(@NotNull final IDevice device, @NotNull final String packageName) throws ExecutionException {
     // regular APK deploy flow
     if (!myLaunchOptions.isDeploy()) {
       return Collections.emptyList();
@@ -139,14 +129,21 @@ public class AndroidLaunchTasksProvider {
 
     List<String> disabledFeatures = myRunConfig.getDisabledDynamicFeatures();
     // Add packages to the deployment, filtering out any dynamic features that are disabled.
-    List<ApkInfo> packages = myApkProvider.getApks(device).stream()
+    Collection<ApkInfo> apks = null;
+    try {
+      apks = myApkProvider.getApks(device);
+    }
+    catch (ApkProvisionException e) {
+      throw new ExecutionException(e);
+    }
+    List<ApkInfo> packages = apks.stream()
       .map(apkInfo -> filterDisabledFeatures(apkInfo, disabledFeatures))
       .collect(Collectors.toList());
     switch (deployType) {
       case RUN_INSTANT_APP:
         DeepLinkLaunch.State state = (DeepLinkLaunch.State)myRunConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
         assert state != null;
-        tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
+        tasks.add(new RunInstantAppTask(apks, state.DEEP_LINK, disabledFeatures));
         break;
       case APPLY_CHANGES:
         tasks.add(new ApplyChangesTask(
@@ -176,7 +173,7 @@ public class AndroidLaunchTasksProvider {
           myRunConfig.ALWAYS_INSTALL_WITH_PM));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         if (LiveEditService.usesCompose(myProject)) {
-          LiveEditApp app = new LiveEditApp(getApkPaths(device, myApkProvider), device.getVersion().getApiLevel());
+          LiveEditApp app = new LiveEditApp(getApkPaths(apks), device.getVersion().getApiLevel());
           tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(packageName, device, app)));
         }
         break;
@@ -185,9 +182,9 @@ public class AndroidLaunchTasksProvider {
     return ImmutableList.copyOf(tasks);
   }
 
-  private static Set<Path> getApkPaths(@NotNull IDevice device, @NotNull ApkProvider apkProvider) throws ApkProvisionException {
+  private static Set<Path> getApkPaths(Iterable<? extends ApkInfo> apks) {
     Set<Path> apksPaths = new HashSet<>();
-    for(ApkInfo apkInfo:  apkProvider.getApks(device)) {
+    for (ApkInfo apkInfo : apks) {
       for (ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
         apksPaths.add(apkFileUnit.getApkPath());
       }
