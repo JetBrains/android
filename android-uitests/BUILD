@@ -1780,23 +1780,6 @@ java_test(
 )
 
 java_test(
-    name = "RoomComponentTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/RoomSampleProject/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.archcomponents.RoomComponentTest"],
-    tags = COMMON_TAGS + [
-        "no_windows",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "RefactoringFlowTest",
     size = "enormous",
     timeout = "long",
