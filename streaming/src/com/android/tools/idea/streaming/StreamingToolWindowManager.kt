@@ -24,6 +24,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
@@ -49,6 +50,7 @@ import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionButtonComponent
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -683,15 +685,14 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun createMirroringActions(): DefaultActionGroup {
     return DefaultActionGroup().apply {
       val deviceDescriptions = devicesExcludedFromMirroring.values.toTypedArray().sortedBy { it.deviceName }
-      if (deviceDescriptions.isEmpty()) {
-        add(Message("No connected physical devices to mirror"))
-      }
-      else {
+      if (deviceDescriptions.isNotEmpty()) {
         add(Separator("Connected Physical Devices"))
         for (deviceDescription in deviceDescriptions) {
           add(StartMirroringAction(deviceDescription))
         }
+        add(Separator.getInstance())
       }
+      add(ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID))
     }
   }
 
@@ -860,21 +861,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-  }
-
-  private class Message(text: String) : DumbAwareAction(text) {
-
-    override fun actionPerformed(e: AnActionEvent) {
-      throw UnsupportedOperationException()
-    }
-
-    override fun update(event: AnActionEvent) {
-      event.presentation.isEnabled = false
-    }
-
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
-    override fun toString(): String = templateText!!
   }
 
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,

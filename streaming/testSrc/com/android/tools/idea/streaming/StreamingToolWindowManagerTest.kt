@@ -481,7 +481,8 @@ class StreamingToolWindowManagerTest {
 
     newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
     var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup()
-    assertThat(popup.items.toString()).isEqualTo("[No connected physical devices to mirror]")
+    assertThat(popup.actions.toString()).isEqualTo(
+        "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     contentManager.removeContent(contentManager.contents[0], true)
     contentManager.removeContent(contentManager.contents[0], true)
@@ -489,7 +490,8 @@ class StreamingToolWindowManagerTest {
     executeStreamingAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup()
     assertThat(popup.actions.toString()).isEqualTo(
-        "[Separator (Connected Physical Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null)]")
+        "[Separator (Connected Physical Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
+        "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     executeStreamingAction(popup.actions[2], toolWindow.component, project)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
@@ -498,7 +500,9 @@ class StreamingToolWindowManagerTest {
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup()
-    assertThat(popup.actions.toString()).isEqualTo("[Separator (Connected Physical Devices), Pixel 4 API 30 (null)]")
+    assertThat(popup.actions.toString()).isEqualTo(
+        "[Separator (Connected Physical Devices), Pixel 4 API 30 (null), " +
+                "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
@@ -507,7 +511,8 @@ class StreamingToolWindowManagerTest {
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup()
-    assertThat(popup.actions.toString()).isEqualTo("[No connected physical devices to mirror]")
+    assertThat(popup.actions.toString()).isEqualTo(
+        "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
   }
 
   @Test
