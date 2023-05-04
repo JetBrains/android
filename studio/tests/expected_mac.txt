@@ -2742,7 +2742,6 @@ Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/googl
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-source.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-cloud-tools-core-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/gradle-appengine-builder-model-0.1.0.jar
-Android Studio Preview.app/Contents/plugins/google-login-as/lib/google-login-as.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-jps.jar
 Android Studio Preview.app/Contents/plugins/gradle/lib/gradle-api-8.0.jar
