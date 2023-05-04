@@ -16,7 +16,7 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbChannel
-import com.android.adblib.AdbChannelProvider
+import com.android.adblib.AdbServerChannelProvider
 import com.android.adblib.AdbChannelProviderFactory
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
@@ -32,18 +32,18 @@ import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit
 
 /**
- * An [AdbChannelProvider] that keeps track of [Project] instances to retrieve the path
+ * An [AdbServerChannelProvider] that keeps track of [Project] instances to retrieve the path
  * to `adb` on a "best effort" basis. If it "best effort", because Android Studio currently
  * does not support multiple `adb` paths and/or versions.
  *
  * This class is thread-safe.
  */
 @AnyThread
-internal class AndroidAdbChannelProvider(private val host: AndroidAdbSessionHost) : AdbChannelProvider {
+internal class AndroidAdbServerChannelProvider(private val host: AndroidAdbSessionHost) : AdbServerChannelProvider {
   private val logger = thisLogger()
 
   /**
-   * The [AdbChannelProvider] we delegate to
+   * The [AdbServerChannelProvider] we delegate to
    */
   private val connectProvider = AdbChannelProviderFactory.createConnectAddresses(host) {
     listOf(getAdbSocketAddress())
@@ -63,7 +63,7 @@ internal class AndroidAdbChannelProvider(private val host: AndroidAdbSessionHost
   private val projectProviders = LinkedHashMap<Project, AdbFileProvider>()
 
   /**
-   * [AdbChannelProvider] implementation: delegate to [connectProvider]
+   * [AdbServerChannelProvider] implementation: delegate to [connectProvider]
    */
   override suspend fun createChannel(timeout: Long, unit: TimeUnit): AdbChannel {
     return connectProvider.createChannel(timeout, unit)

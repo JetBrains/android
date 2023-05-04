@@ -16,7 +16,7 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbChannel
-import com.android.adblib.AdbChannelProvider
+import com.android.adblib.AdbServerChannelProvider
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
 import com.android.ddmlib.DdmPreferences
@@ -46,9 +46,9 @@ class AdbLibApplicationService : Disposable {
   private val host = AndroidAdbSessionHost()
 
   /**
-   * The custom [AdbChannelProvider] that ensures `adb` is started before opening [AdbChannel].
+   * The custom [AdbServerChannelProvider] that ensures `adb` is started before opening [AdbChannel].
    */
-  private val channelProvider = AndroidAdbChannelProvider(host)
+  private val channelProvider = AndroidAdbServerChannelProvider(host)
 
   /**
    * A [AdbSession] customized to work in the Android plugin.
@@ -78,7 +78,7 @@ class AdbLibApplicationService : Disposable {
   }
 
   /**
-   * The [StartupActivity] that registers [Project] instance to the [AndroidAdbChannelProvider].
+   * The [StartupActivity] that registers [Project] instance to the [AndroidAdbServerChannelProvider].
    */
   class MyStartupActivity : StartupActivity.DumbAware {
     override fun runActivity(project: Project) {
