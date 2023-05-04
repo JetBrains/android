@@ -19,10 +19,8 @@ import com.android.tools.adtui.stdui.CommonHyperLinkLabel
 import com.android.tools.adtui.stdui.SmallTextLabel
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowCallback
+import com.android.tools.componenttree.api.ComponentTreeBuildResult
 import com.android.tools.componenttree.api.ComponentTreeBuilder
-import com.android.tools.componenttree.api.ComponentTreeModel
-import com.android.tools.componenttree.api.ComponentTreeSelectionModel
-import com.android.tools.componenttree.api.TableVisibility
 import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.componenttree.api.createIntColumn
 import com.android.tools.idea.layoutinspector.LayoutInspector
@@ -53,7 +51,6 @@ import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableActions
-import com.intellij.ui.TreeActions
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.treeStructure.Tree
@@ -87,17 +84,26 @@ private const val TEXT_HORIZONTAL_BORDER = 5
 const val COMPONENT_TREE_NAME = "COMPONENT_TREE"
 
 class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
+  @VisibleForTesting
+  val nodeType = InspectorViewNodeType()
+
+  private val componentTreeBuildResult = buildComponentTree(nodeType)
+
   private var layoutInspector: LayoutInspector? = null
-  private val inspectorModel: InspectorModel?
-    get() = layoutInspector?.inspectorModel
+  private val inspectorModel get() = layoutInspector?.inspectorModel
+
   @VisibleForTesting
-  val tree: Tree
+  val tree = componentTreeBuildResult.tree
   @VisibleForTesting
-  val focusComponent: JComponent
-  private val componentTreePanel: JComponent
+  val focusComponent = componentTreeBuildResult.focusComponent
   @VisibleForTesting
-  val componentTreeModel: ComponentTreeModel
-  private val interactions: TableVisibility
+  val componentTreeModel = componentTreeBuildResult.model
+  @VisibleForTesting
+  val componentTreeSelectionModel = componentTreeBuildResult.selectionModel
+
+  private val componentTreePanel = componentTreeBuildResult.component
+
+  private val interactions = componentTreeBuildResult.interactions
   // synthetic node to hold the root of the tree.
   private var root: TreeViewNode = ViewNode("root").treeNode
   // synthetic node for computing new hierarchy.
@@ -118,69 +124,27 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private val loadingPanel = JBLoadingPanel(BorderLayout(), parentDisposable, 0)
 
   @VisibleForTesting
-  val nodeType = InspectorViewNodeType()
-
-  @VisibleForTesting
-  val componentTreeSelectionModel: ComponentTreeSelectionModel
-
-  @VisibleForTesting
-  val nodeViewType: ViewNodeType<TreeViewNode>
-    get() = nodeType
+  val nodeViewType get() = nodeType
 
   private var layoutInspectorLoadingObserver: LayoutInspectorLoadingObserver? = null
 
   init {
-    val builder = ComponentTreeBuilder()
-      .withHiddenRoot()
-      .withAutoScroll()
-      .withNodeType(nodeType)
-      .withDoubleClick(::doubleClick)
-      .withToggleClickCount(3)
-      .withContextMenu(::showPopup)
-      .withoutTreeSearch()
-      .withHeaderRenderer(createTreeHeaderRenderer())
-      .withColumn(createIntColumn<TreeViewNode>(
-        "Counts",
-        { (it.view as? ComposeViewNode)?.recompositions?.count },
-        leftDivider = true,
-        maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
-        minInt = { 0 },
-        headerRenderer = createCountsHeader())
-      )
-      .withColumn(createIntColumn<TreeViewNode>(
-        "Skips",
-        { (it.view as? ComposeViewNode)?.recompositions?.skips },
-        foreground = JBColor(Gray._192, Gray._128),
-        maxInt = { inspectorModel?.maxRecomposition?.skips ?: 0 },
-        minInt = { 0 },
-        headerRenderer = createSkipsHeader())
-      )
-      .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
-      .withHorizontalScrollBar()
-      .withComponentName("inspectorComponentTree")
-      .withPainter { if (layoutInspector?.treeSettings?.supportLines == true) LINES else null }
-      .withKeyboardActions(::installKeyboardActions)
-
-    val result = builder.build()
-    componentTreePanel = result.component
     rootPanel.add(componentTreePanel)
 
-    tree = result.tree
-    focusComponent = result.focusComponent
-    componentTreeModel = result.model
-    componentTreeSelectionModel = result.selectionModel
-    interactions = result.interactions
-    ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.shortcutSet
-      ?.let { GotoDeclarationAction.registerCustomShortcutSet(it, componentTreePanel, parentDisposable) }
-    componentTreeSelectionModel.addSelectionListener {
-      inspectorModel?.apply {
-        val view = (it.firstOrNull() as? TreeViewNode)?.view
-        setSelection(view, SelectionOrigin.COMPONENT_TREE)
-        layoutInspector?.currentClient?.stats?.selectionMadeFromComponentTree(view)
-      }
+    val gotoDeclarationAction = ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION)
+    if (gotoDeclarationAction != null) {
+      GotoDeclarationAction.registerCustomShortcutSet(gotoDeclarationAction.shortcutSet, componentTreePanel, parentDisposable)
     }
+    componentTreeSelectionModel.addSelectionListener {
+      val view = (it.firstOrNull() as? TreeViewNode)?.view
+      inspectorModel?.setSelection(view, SelectionOrigin.COMPONENT_TREE)
+      layoutInspector?.currentClient?.stats?.selectionMadeFromComponentTree(view)
+    }
+
     inspectorModel?.modificationListeners?.add { _, _, _ -> componentTreePanel.repaint() }
-    focusComponent.name = COMPONENT_TREE_NAME // For UI tests
+
+    // For UI tests
+    focusComponent.name = COMPONENT_TREE_NAME
     focusComponent.addKeyListener(object : KeyAdapter() {
       override fun keyTyped(event: KeyEvent) {
         if (Character.isAlphabetic(event.keyChar.code)) {
@@ -190,9 +154,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     })
 
     val treeExpander = object : DefaultTreeExpander({ tree }) {
-      override fun isEnabled(tree: JTree): Boolean {
-        return componentTreePanel.isShowing && tree.rowCount > 0
-      }
+      override fun isEnabled(tree: JTree) = componentTreePanel.isShowing && tree.rowCount > 0
     }
     val commonActionManager = CommonActionsManager.getInstance()
     additionalActions = listOf(
@@ -200,6 +162,44 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       commonActionManager.createExpandAllAction(treeExpander, tree),
       commonActionManager.createCollapseAllAction(treeExpander, tree)
     )
+  }
+
+  private fun buildComponentTree(nodeType: InspectorViewNodeType): ComponentTreeBuildResult {
+    val recompositionCountsColumn = createIntColumn<TreeViewNode>(
+      "Counts",
+      { (it.view as? ComposeViewNode)?.recompositions?.count },
+      leftDivider = true,
+      maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
+      minInt = { 0 },
+      headerRenderer = createCountsHeader()
+    )
+
+    val recompositionSkipsColumn = createIntColumn<TreeViewNode>(
+      "Skips",
+      { (it.view as? ComposeViewNode)?.recompositions?.skips },
+      foreground = JBColor(Gray._192, Gray._128),
+      maxInt = { inspectorModel?.maxRecomposition?.skips ?: 0 },
+      minInt = { 0 },
+      headerRenderer = createSkipsHeader()
+    )
+
+    return ComponentTreeBuilder()
+      .withHiddenRoot()
+      .withAutoScroll()
+      .withNodeType(nodeType)
+      .withDoubleClick(::doubleClick)
+      .withToggleClickCount(3)
+      .withContextMenu(::showPopup)
+      .withoutTreeSearch()
+      .withHeaderRenderer(createTreeHeaderRenderer())
+      .withColumn(recompositionCountsColumn)
+      .withColumn(recompositionSkipsColumn)
+      .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
+      .withHorizontalScrollBar()
+      .withComponentName("inspectorComponentTree")
+      .withPainter { if (layoutInspector?.treeSettings?.supportLines == true) LINES else null }
+      .withKeyboardActions(::installKeyboardActions)
+      .build()
   }
 
   private fun createTreeHeaderRenderer(): TableCellRenderer {
@@ -222,11 +222,19 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     return TableCellRenderer { _, _, _, _, _, _ -> panel }
   }
 
-  private fun createCountsHeader() =
-    createIconHeader(StudioIcons.LayoutInspector.RECOMPOSITION_COUNT, "Number of times this composable has been recomposed")
+  private fun createCountsHeader(): TableCellRenderer {
+    return createIconHeader(
+      StudioIcons.LayoutInspector.RECOMPOSITION_COUNT,
+      toolTipText = "Number of times this composable has been recomposed"
+    )
+  }
 
-  private fun createSkipsHeader() =
-    createIconHeader(StudioIcons.LayoutInspector.RECOMPOSITION_SKIPPED, "Number of times recomposition for this component has been skipped")
+  private fun createSkipsHeader(): TableCellRenderer {
+    return createIconHeader(
+      StudioIcons.LayoutInspector.RECOMPOSITION_SKIPPED,
+      toolTipText = "Number of times recomposition for this component has been skipped"
+    )
+  }
 
   private fun createIconHeader(icon: Icon, toolTipText: String? = null) : TableCellRenderer {
     val label = JBLabel(icon)
@@ -236,8 +244,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   }
 
   private fun installKeyboardActions(focusedComponent: JComponent) {
-    val (down, up) =
-      if (focusedComponent is JTree) Pair(TreeActions.Down.ID, TreeActions.Up.ID) else Pair(TableActions.Down.ID, TableActions.Up.ID)
+    val down = TableActions.Down.ID
+    val up = TableActions.Up.ID
+
     if (downAction == null) {
       // Save the default up and down actions:
       downAction = focusedComponent.actionMap.get(down)
@@ -422,10 +431,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val id = node.view.viewId?.name
     val text = node.view.textValue.ifEmpty { null }
     val searchString = listOfNotNull(name, id, text).joinToString(" - ")
-    if (comparator.matchingFragments(filter, searchString) != null) {
-      return true
-    }
-    return false
+    return comparator.matchingFragments(filter, searchString) != null
   }
 
   private fun selectNode(node: TreeViewNode) {
