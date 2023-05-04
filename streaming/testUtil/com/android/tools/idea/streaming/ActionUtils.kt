@@ -39,26 +39,29 @@ import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_E
 
-/**
- * Executes an action related to device streaming.
- */
-fun executeDeviceAction(actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.TOOLBAR) {
+/** Executes an action related to device streaming. */
+fun executeStreamingAction(actionId: String, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR) {
   val action = ActionManager.getInstance().getAction(actionId)
-  val event = createTestEvent(displayView, project, place)
+  executeStreamingAction(action, source, project, place)
+}
+
+/** Executes an action related to device streaming. */
+fun executeStreamingAction(action: AnAction, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR) {
+  val event = createTestEvent(source, project, place)
   action.update(event)
   assertThat(event.presentation.isEnabledAndVisible).isTrue()
   action.actionPerformed(event)
 }
 
-fun updateAndGetActionPresentation(actionId: String, displayView: AbstractDisplayView, project: Project,
+fun updateAndGetActionPresentation(actionId: String, source: Component, project: Project,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
-  return updateAndGetActionPresentation(action, displayView, project, place)
+  return updateAndGetActionPresentation(action, source, project, place)
 }
 
-fun updateAndGetActionPresentation(action: AnAction, displayView: AbstractDisplayView, project: Project,
+fun updateAndGetActionPresentation(action: AnAction, source: Component, project: Project,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
-  val event = createTestEvent(displayView, project, place)
+  val event = createTestEvent(source, project, place)
   action.update(event)
   return event.presentation
 }

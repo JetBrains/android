@@ -34,7 +34,7 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
-import com.android.tools.idea.streaming.executeDeviceAction
+import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.mockStatic
@@ -399,7 +399,7 @@ class EmulatorToolWindowPanelTest {
     assertAppearance(ui, "ChangeDisplayMode1", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
 
     // Set the desktop display mode.
-    executeDeviceAction("android.emulator.display.mode.tablet", emulatorView, project)
+    executeStreamingAction("android.emulator.display.mode.tablet", emulatorView, project)
     val setDisplayModeCall = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(setDisplayModeCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setDisplayMode")
     assertThat(shortDebugString(setDisplayModeCall.request)).isEqualTo("value: TABLET")

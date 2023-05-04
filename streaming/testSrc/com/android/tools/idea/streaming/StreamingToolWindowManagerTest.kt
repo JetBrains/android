@@ -486,27 +486,28 @@ class StreamingToolWindowManagerTest {
     contentManager.removeContent(contentManager.contents[0], true)
     contentManager.removeContent(contentManager.contents[0], true)
 
-    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    executeStreamingAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup()
-    assertThat(popup.items.toString()).isEqualTo("[Connected physical devices, Pixel 4 API 30, Pixel 7 API 33]")
+    assertThat(popup.actions.toString()).isEqualTo(
+        "[Separator (Connected Physical Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null)]")
 
-    popup.choose(2)
+    executeStreamingAction(popup.actions[2], toolWindow.component, project)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 7 API 33")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 7 API 33")
 
-    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    executeStreamingAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup()
-    assertThat(popup.items.toString()).isEqualTo("[Connected physical devices, Pixel 4 API 30]")
+    assertThat(popup.actions.toString()).isEqualTo("[Separator (Connected Physical Devices), Pixel 4 API 30 (null)]")
 
-    popup.choose(1)
+    executeStreamingAction(popup.actions[1], toolWindow.component, project)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
-    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    executeStreamingAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup()
-    assertThat(popup.items.toString()).isEqualTo("[No connected physical devices to mirror]")
+    assertThat(popup.actions.toString()).isEqualTo("[No connected physical devices to mirror]")
   }
 
   @Test

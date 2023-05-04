@@ -49,18 +49,18 @@ import com.intellij.ide.actions.ToggleToolbarAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionButtonComponent
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.ListPopup
-import com.intellij.openapi.ui.popup.PopupStep
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
+import com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
@@ -680,6 +680,21 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
+  private fun createMirroringActions(): DefaultActionGroup {
+    return DefaultActionGroup().apply {
+      val deviceDescriptions = devicesExcludedFromMirroring.values.toTypedArray().sortedBy { it.deviceName }
+      if (deviceDescriptions.isEmpty()) {
+        add(Message("No connected physical devices to mirror"))
+      }
+      else {
+        add(Separator("Connected Physical Devices"))
+        for (deviceDescription in deviceDescriptions) {
+          add(StartMirroringAction(deviceDescription))
+        }
+      }
+    }
+  }
+
   private inner class MyDeviceHeadsUpListener : DeviceHeadsUpListener {
 
     override fun userInvolvementRequired(deviceSerialNumber: String, project: Project) {
@@ -802,7 +817,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
 
-
     override fun dispose() {
       deviceClients.clear() // The clients have been disposed already.
       removeAllPhysicalDevicePanels()
@@ -812,19 +826,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private inner class NewTabAction : DumbAwareAction("New Tab", "Show a new device", AllIcons.General.Add), DumbAware {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val items = mutableListOf<DeviceListItem>()
-      val deviceDescriptions = devicesExcludedFromMirroring.values.toTypedArray().sortedBy { it.deviceName }
-      if (deviceDescriptions.isNotEmpty()) {
-        items.add(DeviceListItem("Connected physical devices"))
-        for (deviceDescription in deviceDescriptions) {
-          items.add(PhysicalDeviceSelector(deviceDescription))
-        }
-      }
-      else {
-        items.add(DeviceListItem("No connected physical devices to mirror"))
-      }
+      val actionGroup = createMirroringActions()
 
-      val popup: ListPopup = JBPopupFactory.getInstance().createListPopup(MirroringPopupStep(items))
+      val popup = JBPopupFactory.getInstance().createActionGroupPopup(
+          null, actionGroup, event.dataContext,
+          if (actionGroup.childrenCount > 1) ActionSelectionAid.NUMBERING else ActionSelectionAid.SPEEDSEARCH,
+          true, null, -1, null,
+          ActionPlaces.getActionGroupPopupPlace(ActionPlaces.TOOLWINDOW_TOOLBAR_BAR))
 
       val component = event.inputEvent?.component
       val actionComponent = if (component is ActionButtonComponent) component else event.findComponentForAction(this)
@@ -838,48 +846,31 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       (popup as? ListPopupImpl)?.list?.clearSelection()
     }
 
-    override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT
-    }
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
-  private inner class MirroringPopupStep(items: List<DeviceListItem>) : BaseListPopupStep<DeviceListItem>(null, items) {
+  private inner class StartMirroringAction(private val device: DeviceDescription) : DumbAwareAction(device.deviceName) {
 
-    override fun onChosen(selectedValue: DeviceListItem, finalChoice: Boolean): PopupStep<*>? {
-      if (selectedValue is PhysicalDeviceSelector) {
-        activateMirroring(selectedValue.deviceDescription)
-      }
-      return FINAL_CHOICE
+    override fun actionPerformed(event: AnActionEvent) {
+      activateMirroring(device)
     }
 
-    override fun getTextFor(value: DeviceListItem): String =
-      value.label
-
-    override fun isSelectable(value: DeviceListItem): Boolean =
-      value.isSelectable
-
-    override fun isAutoSelectionEnabled(): Boolean =
-        false
-
-    override fun getDefaultOptionIndex(): Int {
-      return -1
-    }
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
-  private open class DeviceListItem(val label: String) {
+  private class Message(text: String) : DumbAwareAction(text) {
 
-    open val isSelectable: Boolean
-      get() = false
-
-    override fun toString(): String {
-      return label
+    override fun actionPerformed(e: AnActionEvent) {
+      throw UnsupportedOperationException()
     }
-  }
 
-  private open class PhysicalDeviceSelector(val deviceDescription: DeviceDescription) : DeviceListItem(deviceDescription.deviceName) {
+    override fun update(event: AnActionEvent) {
+      event.presentation.isEnabled = false
+    }
 
-    override val isSelectable: Boolean
-      get() = true
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+    override fun toString(): String = templateText!!
   }
 
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,

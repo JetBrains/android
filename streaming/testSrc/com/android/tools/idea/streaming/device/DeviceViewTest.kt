@@ -37,7 +37,7 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
-import com.android.tools.idea.streaming.executeDeviceAction
+import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
 import com.android.tools.idea.testing.executeCapturingLoggedErrors
@@ -244,7 +244,7 @@ internal class DeviceViewTest {
         MotionEventMessage(listOf(horizontalScrollPointer), MotionEventMessage.ACTION_SCROLL, 0)
       )
 
-      executeDeviceAction("android.device.rotate.left", view, project)
+      executeStreamingAction("android.device.rotate.left", view, project)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage((i + 1) % 4))
     }
 
@@ -523,7 +523,7 @@ internal class DeviceViewTest {
         else -> SetMaxVideoResolutionMessage(234, 400)
       }
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
-      executeDeviceAction("android.device.rotate.right", view, project)
+      executeStreamingAction("android.device.rotate.right", view, project)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(3 - i))
       fakeUi.layoutAndDispatchEvents()
       assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
