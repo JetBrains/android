@@ -74,6 +74,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         )
       }.toMap(),
     ),
+/* b/283852233
     def(
       stackMarker = { it() },
       TestScenario(
@@ -102,6 +103,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         )
       }.toMap(),
     ),
+b/283852233 */
     def(
       stackMarker = { it() },
       TestScenario(

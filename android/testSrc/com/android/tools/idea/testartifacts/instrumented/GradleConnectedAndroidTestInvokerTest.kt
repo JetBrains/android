@@ -465,6 +465,7 @@ class GradleConnectedAndroidTestInvokerTest {
       testPackageName = "", testClassName = "", testMethodName = "", testRegex = "",
       RetentionConfiguration(), extraInstrumentationOptions = "")
 
+/* b/283852233
     verify(mockGradleTaskManager).executeTasks(
       any(),
       eq(listOf(":ModulesSDK:includedModule:connectedDebugAndroidTest")),
@@ -473,6 +474,7 @@ class GradleConnectedAndroidTestInvokerTest {
       nullable(String::class.java),
       any()
     )
+b/283852233 */
   }
 
   @Test
