@@ -802,6 +802,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         val deviceClient = getOrCreateDeviceClient(serialNumber, device.handle, config)
         if (contentCreated) {
           activateMirroring(serialNumber, deviceClient)
+          if (recentAttentionRequests.getIfPresent(serialNumber) != null) {
+            recentAttentionRequests.invalidate(serialNumber)
+            onPhysicalDeviceHeadsUp(serialNumber)
+          }
         }
         else if (deviceMirroringSettings.activateOnConnection || recentAttentionRequests.getIfPresent(serialNumber) != null) {
           recentAttentionRequests.invalidate(serialNumber)

@@ -464,12 +464,12 @@ class StreamingToolWindowManagerTest {
     assertThat(toolWindow.isVisible).isFalse()
     toolWindow.show()
 
-    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.contents[0].isCloseable).isTrue()
 
-    val device2 = agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
+    agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
     assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 7 API 33")
     assertThat(contentManager.contents[1].isCloseable).isTrue()
@@ -508,6 +508,30 @@ class StreamingToolWindowManagerTest {
     executeStreamingAction(newTabAction, toolWindow.component, project)
     popup = popupRule.fakePopupFactory.getNextPopup()
     assertThat(popup.actions.toString()).isEqualTo("[No connected physical devices to mirror]")
+  }
+
+  @Test
+  fun testMirroringUserInvolvementRequired() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    createToolWindowContent()
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+    toolWindow.show()
+
+    agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+
+    // Calling userInvolvementRequired should trigger device selection even if it is done before the device is connected.
+    val nextSerialNumber = "2"
+    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(nextSerialNumber, project)
+    val device = agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
+    assertThat(device.serialNumber).isEqualTo(nextSerialNumber)
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 7 API 33")
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 7 API 33")
   }
 
   @Test
