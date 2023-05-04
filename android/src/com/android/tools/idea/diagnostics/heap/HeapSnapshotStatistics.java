@@ -28,6 +28,8 @@ import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -116,6 +118,11 @@ final class HeapSnapshotStatistics {
                                             boolean isRetainedByPlatform) {
     ComponentClusterObjectsStatistics stats = componentStats.get(componentId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
+    
+    if (stats.getComponent().getTrackedFQNs() != null && stats.getComponent().getTrackedFQNs().contains(objectClassName)) {
+      stats.addTrackedFQNInstance(objectClassName);
+    }
+
     if (config.collectHistograms && extendedReportStatistics != null) {
       extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size, isRoot);
     }
@@ -134,6 +141,9 @@ final class HeapSnapshotStatistics {
                                                     boolean isRetainedByPlatform) {
     CategoryClusterObjectsStatistics stats = categoryComponentStats.get(categoryId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
+    if (stats.getComponentCategory().getTrackedFQNs() != null && stats.getComponentCategory().getTrackedFQNs().contains(objectClassName)) {
+      stats.addTrackedFQNInstance(objectClassName);
+    }
     if (config.collectHistograms && extendedReportStatistics != null) {
       extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size, isRoot);
     }
@@ -192,7 +202,13 @@ final class HeapSnapshotStatistics {
                           getOptimalUnitsStatisticsPresentation(stat.getOwnedClusterStat().getObjectsStatistics())));
           extendedReportStatistics.logCategoryHistogram((String s) -> categoryReportBuilder.append(s).append("\n"),
                                                         stat.getComponentCategory());
-          categoryReportBuilder.append(String.format(Locale.US, "Platform object: %s[%s]",
+          if (!stat.getTrackedFQNInstanceCounter().isEmpty()) {
+            categoryReportBuilder.append("Number of instances of tracked classes:\n");
+            for (String s : stat.getTrackedFQNInstanceCounter().keySet()) {
+              categoryReportBuilder.append(String.format(Locale.US, "      %s:%d\n", s, stat.getTrackedFQNInstanceCounter().getInt(s)));
+            }
+          }
+          categoryReportBuilder.append(String.format(Locale.US, "Platform object: %s[%s]\n",
                                                      getOptimalUnitsStatisticsPresentation(
                                                        stat.getOwnedClusterStat().platformObjectsSelfStats),
                                                      getOptimalUnitsStatisticsPresentation(
@@ -207,6 +223,12 @@ final class HeapSnapshotStatistics {
             String.format(Locale.US, "Owned: %s\n",
                           getOptimalUnitsStatisticsPresentation(stat.getOwnedClusterStat().getObjectsStatistics())));
           extendedReportStatistics.logComponentHistogram((String s) -> componentReportBuilder.append(s).append("\n"), stat.getComponent());
+          if (!stat.getTrackedFQNInstanceCounter().isEmpty()) {
+            componentReportBuilder.append("Number of instances of tracked classes:\n");
+            for (String s : stat.getTrackedFQNInstanceCounter().keySet()) {
+              componentReportBuilder.append(String.format(Locale.US, "      %s:%d\n", s, stat.getTrackedFQNInstanceCounter().getInt(s)));
+            }
+          }
           componentReportBuilder.append(String.format(Locale.US, "Platform object: %s[%s]",
                                                       getOptimalUnitsStatisticsPresentation(
                                                         stat.getOwnedClusterStat().platformObjectsSelfStats),
@@ -479,6 +501,8 @@ final class HeapSnapshotStatistics {
     private final ObjectsStatisticsWithPlatformTracking retainedClusterStat = new ObjectsStatisticsWithPlatformTracking();
     @NotNull
     private final ObjectsStatisticsWithPlatformTracking ownedClusterStat = new ObjectsStatisticsWithPlatformTracking();
+    @NotNull
+    private final Object2IntMap<String> trackedFQNInstanceCounter = new Object2IntOpenHashMap<>();
 
     public void addOwnedObject(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
       ownedClusterStat.addObject(size, isPlatformObject, isRetainedByPlatform);
@@ -496,6 +520,15 @@ final class HeapSnapshotStatistics {
     @NotNull
     public ObjectsStatisticsWithPlatformTracking getRetainedClusterStat() {
       return retainedClusterStat;
+    }
+
+    @NotNull
+    public Object2IntMap<String> getTrackedFQNInstanceCounter() {
+      return trackedFQNInstanceCounter;
+    }
+
+    public void addTrackedFQNInstance(String name) {
+      trackedFQNInstanceCounter.put(name, trackedFQNInstanceCounter.getOrDefault(name, 0) + 1);
     }
 
     static class ObjectsStatisticsWithPlatformTracking {

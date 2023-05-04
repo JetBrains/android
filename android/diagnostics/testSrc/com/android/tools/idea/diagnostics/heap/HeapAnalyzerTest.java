@@ -518,6 +518,30 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   }
 
   @Test
+  public void testTrackedFQNs() throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("diagnostics_main",
+                                                        Long.MAX_VALUE,
+                                                        defaultCategory,
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics"),
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B",
+                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
+      /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new D(new B(), new B(), new B()))));
+    Assert.assertEquals(3, statistics.getComponentStats().get(1).getTrackedFQNInstanceCounter()
+      .getInt("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+    Assert.assertEquals(1, statistics.getComponentStats().get(1).getTrackedFQNInstanceCounter()
+      .getInt("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+  }
+
+  @Test
   public void testExtendedReportCollection() throws IOException {
     ComponentsSet componentsSet = new ComponentsSet();
 
@@ -526,11 +550,13 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         1,
                                                         defaultCategory,
                                                         Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
     componentsSet.addComponentWithPackagesAndClassNames("B",
                                                         2,
                                                         defaultCategory,
                                                         Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
       /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
@@ -583,6 +609,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
               24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
             Component roots histogram:
               24/1 objects[40/2 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+      Number of instances of tracked classes:
+            com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A:1
       Platform object: 0/0 objects[0/0 objects]""");
     assertRequestContainsField(serializedExtendedReport, "Component B", """
       Owned: 16/1 objects
@@ -592,6 +620,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
               16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
             Component roots histogram:
               16/1 objects[16/1 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+      Number of instances of tracked classes:
+            com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B:1
       Platform object: 0/0 objects[0/0 objects]""");
     assertRequestContainsFieldWithPattern(serializedExtendedReport, "Disposer tree information", "Disposer tree size: \\d+\n" +
                                                                                                  "Total number of disposed but strong referenced objects: 0");
