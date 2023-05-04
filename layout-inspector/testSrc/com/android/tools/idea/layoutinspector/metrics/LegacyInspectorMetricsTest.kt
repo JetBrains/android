@@ -132,7 +132,7 @@ class LegacyInspectorMetricsTest {
     assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:
-    banner.notifications.single().actions.last().actionPerformed(mock())
+    banner.notifications.single().actions.last().invoke(mock())
     connectThread.join()
     val usages = waitFor3Events()
     var studioEvent = usages[0].studioEvent

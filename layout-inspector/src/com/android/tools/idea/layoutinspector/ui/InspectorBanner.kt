@@ -16,10 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.StatusNotification
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
@@ -52,13 +48,7 @@ class InspectorBanner(project: Project) : JPanel() {
         val panel = EditorNotificationPanel(notification.status)
         panel.text = notification.message
         notification.actions.forEach { action ->
-          panel.createActionLabel(action.templatePresentation.description ?: action.templateText ?: "") {
-            val context = DataContext { dataId -> if (NOTIFICATION_KEY.`is`(dataId)) notification else null }
-            val presentation = action.templatePresentation.clone()
-            val event = AnActionEvent(null, context, ActionPlaces.NOTIFICATION, presentation, ActionManager.getInstance(), 0)
-            action.update(event)
-            action.actionPerformed(event)
-          }
+          panel.createActionLabel(action.name) { action.invoke(notification) }
         }
         add(panel)
       }

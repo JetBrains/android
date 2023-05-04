@@ -20,10 +20,10 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.ui.EditorNotificationPanel.Status
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 
 /**
  * Supply a warning banner if a LegacyClient is used for a compose application.
@@ -38,13 +38,13 @@ class ComposeWarning(private val project: Project) {
         "Cannot display compose nodes, try restarting the application"
       }
       val bannerService = InspectorBannerService.getInstance(project)
-      bannerService?.addNotification(message, Status.Warning, listOf(bannerService.DISMISS_ACTION))
+      bannerService?.addNotification(message, Status.Warning, listOf(bannerService.dismissAction))
     }
   }
 
   // Check if this is the current project, in which case we can check if this is a compose application with "isUsingCompose"
   private fun isRunningCurrentProject(client: InspectorClient): Boolean =
-    project.allModules().any { module ->
+    project.modules.any { module ->
       val facet = AndroidFacet.getInstance(module)
       val manifest = facet?.let { Manifest.getMainManifest(it) }
       val packageName = runReadAction { manifest?.`package`?.stringValue }
@@ -52,5 +52,5 @@ class ComposeWarning(private val project: Project) {
     }
 
   private fun isUsingCompose(): Boolean =
-    project.allModules().any { it.getModuleSystem().usesCompose }
+    project.modules.any { it.getModuleSystem().usesCompose }
 }

@@ -33,6 +33,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.ErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -40,6 +41,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMoni
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.ui.learnMoreAction
 import com.android.tools.idea.protobuf.CodedInputStream
 import com.android.tools.idea.transport.TransportException
 import com.android.tools.idea.util.StudioPathManager
@@ -47,7 +49,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
@@ -256,7 +257,7 @@ class ComposeLayoutInspectorClient(
       isRunningFromSourcesInTests: Boolean?,
       error: ErrorInfo
     ): ComposeLayoutInspectorClient? {
-      val actions = mutableListOf<AnAction>()
+      val actions = mutableListOf<StatusNotificationAction>()
       val message: String = when (error.code) {
         AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY -> {
           // This is not an error we want to report.
@@ -268,7 +269,7 @@ class ComposeLayoutInspectorClient(
         AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION ->
           LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY)
         AttachErrorCode.APP_INSPECTION_PROGUARDED_APP -> {
-          actions.add(InspectorBannerService.LearnMoreAction(PROGUARD_LEARN_MORE))
+          actions.add(learnMoreAction(PROGUARD_LEARN_MORE))
           LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY)
         }
         AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED ->
@@ -287,7 +288,7 @@ class ComposeLayoutInspectorClient(
         }
       }
       val banner = InspectorBannerService.getInstance(project) ?: return null
-      actions.add(banner.DISMISS_ACTION)
+      actions.add(banner.dismissAction)
       banner.addNotification(message, EditorNotificationPanel.Status.Warning, actions)
       logErrorToMetrics(error.code)
       return null

@@ -20,6 +20,7 @@ import com.android.ddmlib.Client
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
@@ -31,8 +32,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
@@ -127,14 +126,12 @@ class InspectorClientLaunchMonitor(
     client?.stats?.debuggerInUse(isPaused = true)
     // Cancel the timeout check since we now know that the attach delay is caused by a debugging session:
     timeoutFuture?.cancel(true)
-    val resumeDebugger = object : AnAction("Resume Debugger") {
-      override fun actionPerformed(event: AnActionEvent) {
-        banner?.removeNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
-        synchronized(clientLock) {
-          if (client != null) {
-            adbClient?.let { resumeDebugger(it) }
-            debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
-          }
+    val resumeDebugger = StatusNotificationAction("Resume Debugger") {
+      banner?.removeNotification(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      synchronized(clientLock) {
+        if (client != null) {
+          adbClient?.let { resumeDebugger(it) }
+          debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
         }
       }
     }
@@ -151,13 +148,11 @@ class InspectorClientLaunchMonitor(
     // Allow the user to wait as long as they want in case it takes a long time to connect.
     // This action simply removes the banner and schedules another check after CONNECT_TIMEOUT_SECONDS.
     val banner = InspectorBannerService.getInstance(project)
-    val continueWaiting = object : AnAction("Continue Waiting") {
-      override fun actionPerformed(event: AnActionEvent) {
-        banner?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-        synchronized(clientLock) {
-          if (client != null) {
-            timeoutFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-          }
+    val continueWaiting = StatusNotificationAction("Continue Waiting") {
+      banner?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      synchronized(clientLock) {
+        if (client != null) {
+          timeoutFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         }
       }
     }
@@ -165,16 +160,14 @@ class InspectorClientLaunchMonitor(
     banner?.addNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY), Status.Warning, listOf(continueWaiting, disconnect))
   }
 
-  private fun createDisconnectAction(attemptDumpViews: Boolean): AnAction {
+  private fun createDisconnectAction(attemptDumpViews: Boolean): StatusNotificationAction {
     val disconnectText = if (attemptDumpViews && client?.clientType == ClientType.APP_INSPECTION_CLIENT) "Dump Views" else "Disconnect"
-    return object : AnAction(disconnectText) {
-      override fun actionPerformed(event: AnActionEvent) {
-        InspectorBannerService.getInstance(project)?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-        Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
-          "Client $client timed out during attach at step $currentProgress on the users request")
-        logAttachError(AttachErrorCode.CONNECT_TIMEOUT)
-        client?.disconnect()
-      }
+    return StatusNotificationAction(disconnectText) {
+      InspectorBannerService.getInstance(project)?.removeNotification(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
+        "Client $client timed out during attach at step $currentProgress on the users request")
+      logAttachError(AttachErrorCode.CONNECT_TIMEOUT)
+      client?.disconnect()
     }
   }
 

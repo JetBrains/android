@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -25,20 +26,18 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunManager
 import com.intellij.execution.impl.ProjectRunConfigurationConfigurable
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.options.ex.GlassPanel
 import com.intellij.openapi.options.newEditor.SingleSettingEditor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.ui.AbstractPainter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeGlassPaneUtil
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.components.JBTabbedPane
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.awt.Component
 import java.awt.Container
 import java.awt.Graphics2D
@@ -59,45 +58,42 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
    * Action for opening the "Miscellaneous" tab in the Android run configuration for the project,
    * and mark where the "Enable layout inspection without an activity restart" checkbox is.
    */
-  val enableInRunConfigAction = object : AnAction(LayoutInspectorBundle.message("activity.restart.action")) {
-    override fun actionPerformed(event: AnActionEvent) {
-      val configurable = ProjectRunConfigurationConfigurable(project)
-      ShowSettingsUtil.getInstance().editConfigurable(project, configurable) {
-        configurable.selectConfigurableOnShow()
-        ApplicationManager.getApplication().invokeLater {
-          val dialog = SwingUtilities.windowForComponent(configurable.tree)
-          val tabbedPanel = dialog.firstComponentOfClass(JBTabbedPane::class.java)
-          val checkBox = tabbedPanel?.firstComponentWithName(AndroidRunConfigurationEditor.LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART)
-                           as? JComponent ?: return@invokeLater
-          val editor = SwingUtilities.getAncestorOfClass(SingleSettingEditor::class.java, tabbedPanel) as SingleSettingEditor
-          val glassPanel = GlassPanel(editor)
-          val painter = object : AbstractPainter() {
-            override fun executePaint(component: Component, g: Graphics2D) {
-              glassPanel.paintSpotlight(g, editor)
-            }
-            override fun needsRepaint() = true
+  val enableInRunConfigAction = StatusNotificationAction(LayoutInspectorBundle.message("activity.restart.action")) {
+    val configurable = ProjectRunConfigurationConfigurable(project)
+    ShowSettingsUtil.getInstance().editConfigurable(project, configurable) {
+      configurable.selectConfigurableOnShow()
+      ApplicationManager.getApplication().invokeLater {
+        val dialog = SwingUtilities.windowForComponent(configurable.tree)
+        val tabbedPanel = dialog.firstComponentOfClass(JBTabbedPane::class.java)
+        val checkBox = tabbedPanel?.firstComponentWithName(AndroidRunConfigurationEditor.LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART)
+                         as? JComponent ?: return@invokeLater
+        val editor = SwingUtilities.getAncestorOfClass(SingleSettingEditor::class.java, tabbedPanel) as SingleSettingEditor
+        val glassPanel = GlassPanel(editor)
+        val painter = object : AbstractPainter() {
+          override fun executePaint(component: Component, g: Graphics2D) {
+            glassPanel.paintSpotlight(g, editor)
           }
-          glassPanel.addSpotlight(checkBox)
-          val disposable = Disposer.newDisposable()
-          IdeGlassPaneUtil.installPainter(editor, painter, disposable)
-          tabbedPanel.selectTabWithComponent(checkBox)
-          dialog.addComponentListener(object : ComponentAdapter() {
-            override fun componentHidden(event: ComponentEvent) {
-              // Remove the painter when the dialog is closed:
-              Disposer.dispose(disposable)
-            }
-          })
+
+          override fun needsRepaint() = true
         }
+        glassPanel.addSpotlight(checkBox)
+        val disposable = Disposer.newDisposable()
+        IdeGlassPaneUtil.installPainter(editor, painter, disposable)
+        tabbedPanel.selectTabWithComponent(checkBox)
+        dialog.addComponentListener(object : ComponentAdapter() {
+          override fun componentHidden(event: ComponentEvent) {
+            // Remove the painter when the dialog is closed:
+            Disposer.dispose(disposable)
+          }
+        })
       }
     }
   }
 
-  val doNotShowAgainAction = object : AnAction(LayoutInspectorBundle.message("do.not.show.again")) {
-    override fun actionPerformed(event: AnActionEvent) {
-      PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
-      val banner = InspectorBannerService.getInstance(project) ?: return
-      banner.DISMISS_ACTION.actionPerformed(event)
-    }
+  val doNotShowAgainAction = StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification ->
+    PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
+    val banner = InspectorBannerService.getInstance(project)
+    banner?.dismissAction?.invoke?.invoke(notification)
   }
 
   if (PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER)) {
@@ -112,7 +108,7 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
   val banner = InspectorBannerService.getInstance(project) ?: return
   val config = module?.let { getConfiguration(module) }
   val showEnableAction = config?.INSPECTION_WITHOUT_ACTIVITY_RESTART == false
-  val actions = mutableListOf(doNotShowAgainAction, banner.DISMISS_ACTION)
+  val actions = mutableListOf(doNotShowAgainAction, banner.dismissAction)
   if (showEnableAction) {
     actions.add(0, enableInRunConfigAction)
   }
@@ -120,7 +116,7 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
 }
 
 private fun moduleFromCurrentProjectBeingInspected(project: Project, process: ProcessDescriptor): Module? =
-  project.allModules().firstOrNull { process.name == StudioAndroidModuleInfo.getInstance(it)?.packageName }
+  project.modules.firstOrNull { process.name == StudioAndroidModuleInfo.getInstance(it)?.packageName }
 
 /**
  * Get the [AndroidRunConfiguration] for the specified [module].

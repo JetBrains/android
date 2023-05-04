@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
@@ -55,8 +56,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.EditorNotificationPanel.Status
@@ -318,23 +317,21 @@ class AppInspectionInspectorClient(
       val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
       val showBanner = RepoManager.RepoLoadedListener { packages ->
         val message: String
-        val actions: List<AnAction>
+        val actions: List<StatusNotificationAction>
         val remote = packages.consolidatedPkgs[image.path]?.remote
         if (remote != null &&
             ((tags.contains(SystemImage.GOOGLE_APIS_TAG) && remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
              (tags.contains(SystemImage.DEFAULT_TAG) && remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))) {
           message = "$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE"
-          actions = listOf(object : AnAction("Download Update") {
-            override fun actionPerformed(e: AnActionEvent) {
-              if (SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))?.showAndGet() == true) {
-                Messages.showInfoMessage(project, "Please restart the emulator for update to take effect.", "Restart Required")
-              }
+          actions = listOf(StatusNotificationAction("Download Update") {
+            if (SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))?.showAndGet() == true) {
+              Messages.showInfoMessage(project, "Please restart the emulator for update to take effect.", "Restart Required")
             }
-          }, bannerService.DISMISS_ACTION)
+          }, bannerService.dismissAction)
         }
         else {
           message = API_29_BUG_MESSAGE
-          actions = listOf(bannerService.DISMISS_ACTION)
+          actions = listOf(bannerService.dismissAction)
         }
         bannerService.addNotification(message, Status.Warning, actions)
       }
@@ -343,7 +340,7 @@ class AppInspectionInspectorClient(
                                             StudioDownloader(), StudioSettingsController.getInstance())
     }
     else {
-      bannerService.addNotification(API_29_BUG_MESSAGE, Status.Warning, listOf(bannerService.DISMISS_ACTION))
+      bannerService.addNotification(API_29_BUG_MESSAGE, Status.Warning, listOf(bannerService.dismissAction))
     }
     throw ConnectionFailedException("Unsupported system image revision", AttachErrorCode.LOW_API_LEVEL)
   }

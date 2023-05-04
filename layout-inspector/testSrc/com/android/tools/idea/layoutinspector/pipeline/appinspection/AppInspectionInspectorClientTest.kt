@@ -901,7 +901,7 @@ class AppInspectionInspectorClientTest {
 
     val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("No banner")
     val notification1 = bannerService.notifications.single()
-    notification1.actions[1].actionPerformed(mock())
+    notification1.actions[1].invoke(notification1)
     assertThat(PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER)).isTrue()
   }
 
@@ -1030,25 +1030,21 @@ class AppInspectionInspectorClientTest {
   private fun verifyActivityRestartBanner(runConfigActionExpected: Boolean) {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val service = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
-    val notification1 = service.notifications.single()
-    assertThat(notification1.message).isEqualTo("The activity was restarted. This can be avoided by selecting " +
-                                                "\"Enable view attribute inspection\" in the developer options on the device or " +
-                                                "by enabling \"Connect without restarting activity\" in the run configuration options.")
+    val notification = service.notifications.single()
+    assertThat(notification.message).isEqualTo("The activity was restarted. This can be avoided by selecting " +
+                                               "\"Enable view attribute inspection\" in the developer options on the device or " +
+                                               "by enabling \"Connect without restarting activity\" in the run configuration options.")
 
-    notification1.actions.last().actionPerformed(mock())
-    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-
-    val notification2 = service.notifications.single()
     if (runConfigActionExpected) {
-      assertThat(notification2.actions.size).isEqualTo(3)
-      assertThat(notification2.actions[0].templateText).isEqualTo("Open Run Configuration")
-      assertThat(notification2.actions[1].templateText).isEqualTo("Don't Show Again")
-      assertThat(notification2.actions[2].templateText).isEqualTo("Dismiss")
+      assertThat(notification.actions.size).isEqualTo(3)
+      assertThat(notification.actions[0].name).isEqualTo("Open Run Configuration")
+      assertThat(notification.actions[1].name).isEqualTo("Don't Show Again")
+      assertThat(notification.actions[2].name).isEqualTo("Dismiss")
     }
     else {
-      assertThat(notification2.actions.size).isEqualTo(2)
-      assertThat(notification2.actions[0].templateText).isEqualTo("Don't Show Again")
-      assertThat(notification2.actions[1].templateText).isEqualTo("Dismiss")
+      assertThat(notification.actions.size).isEqualTo(2)
+      assertThat(notification.actions[0].name).isEqualTo("Don't Show Again")
+      assertThat(notification.actions[1].name).isEqualTo("Dismiss")
     }
   }
 }

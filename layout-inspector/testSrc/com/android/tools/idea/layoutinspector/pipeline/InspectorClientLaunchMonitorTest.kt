@@ -145,33 +145,33 @@ class InspectorClientLaunchMonitorTest {
     verify(client, never()).disconnect()
     val notification1 = banner.notifications.single()
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-    assertThat(notification1.actions.first().templateText).isEqualTo("Continue Waiting")
-    assertThat(notification1.actions.last().templateText).isEqualTo(expectedDisconnectMessage)
+    assertThat(notification1.actions.first().name).isEqualTo("Continue Waiting")
+    assertThat(notification1.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
     // Continue waiting:
-    notification1.actions.first().actionPerformed(mock())
+    notification1.actions.first().invoke(mock())
     assertThat(banner.notifications).isEmpty()
 
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
     val notification2 = banner.notifications.single()
     assertThat(notification2.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-    assertThat(notification2.actions.first().templateText).isEqualTo("Continue Waiting")
-    assertThat(notification2.actions.last().templateText).isEqualTo(expectedDisconnectMessage)
+    assertThat(notification2.actions.first().name).isEqualTo("Continue Waiting")
+    assertThat(notification2.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
     // Continue waiting:
-    notification2.actions.first().actionPerformed(mock())
+    notification2.actions.first().invoke(mock())
     assertThat(banner.notifications).isEmpty()
 
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
     val notification3 = banner.notifications.single()
     assertThat(notification3.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-    assertThat(notification3.actions.first().templateText).isEqualTo("Continue Waiting")
-    assertThat(notification3.actions.last().templateText).isEqualTo(expectedDisconnectMessage)
+    assertThat(notification3.actions.first().name).isEqualTo("Continue Waiting")
+    assertThat(notification3.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
     // Disconnect:
-    notification3.actions.last().actionPerformed(mock())
+    notification3.actions.last().invoke(mock())
     assertThat(banner.notifications).isEmpty()
     verify(client).disconnect()
   }
@@ -194,8 +194,8 @@ class InspectorClientLaunchMonitorTest {
     verify(client, never()).disconnect()
     val notification1 = banner.notifications.single()
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-    assertThat(notification1.actions.first().templateText).isEqualTo("Continue Waiting")
-    assertThat(notification1.actions.last().templateText).isEqualTo("Disconnect")
+    assertThat(notification1.actions.first().name).isEqualTo("Continue Waiting")
+    assertThat(notification1.actions.last().name).isEqualTo("Disconnect")
 
     monitor.updateProgress(CONNECTED_STATE)
     assertThat(banner.notifications).isEmpty()
@@ -239,11 +239,11 @@ class InspectorClientLaunchMonitorTest {
       // Check that the timeout warning is not shown when the debugger warning is shown
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
       assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
-      assertThat(banner.notifications.single().actions.first().templateText).isEqualTo("Resume Debugger")
-      assertThat(banner.notifications.single().actions.last().templateText).isEqualTo("Disconnect")
+      assertThat(banner.notifications.single().actions.first().name).isEqualTo("Resume Debugger")
+      assertThat(banner.notifications.single().actions.last().name).isEqualTo("Disconnect")
 
       // Resume the debugger:
-      banner.notifications.single().actions.first().actionPerformed(mock())
+      banner.notifications.single().actions.first().invoke(mock())
       val manager = XDebuggerManager.getInstance(projectRule.project)
       verify(manager.debugSessions.single()).resume()
       verify(client, never()).disconnect()
@@ -274,7 +274,7 @@ class InspectorClientLaunchMonitorTest {
       assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Resume the debugger:
-      banner.notifications.single().actions.first().actionPerformed(mock())
+      banner.notifications.single().actions.first().invoke(mock())
       val manager = XDebuggerManager.getInstance(projectRule.project)
       verify(manager.debugSessions.filter { it.isPaused }.single()).resume()
       verify(manager.debugSessions.filter { !it.isPaused }.single(), never()).resume()

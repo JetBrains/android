@@ -303,11 +303,10 @@ class LayoutInspectorManagerTest {
     assertHasWorkbench(tab1)
     val notifications1 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
     assertThat(notifications1).hasSize(1)
-    assertThat(notifications1.first().message).isEqualTo(
-      "(Experimental) Layout Inspector is now embedded within Running Devices window"
-    )
-    assertThat(notifications1.first().actions[0].templatePresentation.text).isEqualTo("Don't Show Again")
-    assertThat(notifications1.first().actions[1].templatePresentation.text).isEqualTo("Opt-out")
+    val firstNotification = notifications1.single()
+    assertThat(firstNotification.message).isEqualTo("(Experimental) Layout Inspector is now embedded within Running Devices window")
+    assertThat(firstNotification.actions[0].name).isEqualTo("Don't Show Again")
+    assertThat(firstNotification.actions[1].name).isEqualTo("Opt-out")
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
 
@@ -317,7 +316,8 @@ class LayoutInspectorManagerTest {
     val notifications2 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
     assertThat(notifications2).hasSize(1)
 
-    notifications1.first().actions[0].actionPerformed(createTestActionEvent(notifications1.first().actions[0]))
+    val doNotShowAgain = firstNotification.actions[0]
+    doNotShowAgain.invoke(firstNotification)
 
     val notifications3 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
     assertThat(notifications3).hasSize(0)

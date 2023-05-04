@@ -119,7 +119,7 @@ class LegacyClientTest {
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:
-    notification1.actions.last().actionPerformed(MockitoKt.mock())
+    notification1.actions.last().invoke(MockitoKt.mock())
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient === DisconnectedClient }
     executor.shutdownNow()
     inspectorRule.awaitLaunch()
