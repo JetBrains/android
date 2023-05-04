@@ -88,8 +88,8 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     )
 
     // notify DeviceViewPanel that a new foreground process showed up
-    layoutInspector.foregroundProcessDetection?.foregroundProcessListeners?.add(ForegroundProcessListener { _, foregroundProcess ->
-      deviceViewPanel.onNewForegroundProcess(foregroundProcess)
+    layoutInspector.foregroundProcessDetection?.foregroundProcessListeners?.add(ForegroundProcessListener { _, _, isDebuggable ->
+      deviceViewPanel.onNewForegroundProcess(isDebuggable)
     })
 
     return deviceViewPanel

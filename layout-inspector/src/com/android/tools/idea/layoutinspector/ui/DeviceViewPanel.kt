@@ -28,7 +28,6 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
 import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
@@ -193,15 +192,9 @@ class DeviceViewPanel(
    * If the new [ForegroundProcess] is not debuggable (it's not present in [ProcessesModel]),
    * [DeviceViewContentPanel] will show an error message.
    */
-  fun onNewForegroundProcess(foregroundProcess: ForegroundProcess) {
-    isCurrentForegroundProcessDebuggable = if (layoutInspector.processModel == null) {
-      false
-    }
-    else {
-      hasForegroundProcess = true
-      val processDescriptor = foregroundProcess.matchToProcessDescriptor(layoutInspector.processModel)
-      processDescriptor != null
-    }
+  fun onNewForegroundProcess(isDebuggable: Boolean) {
+    hasForegroundProcess = true
+    isCurrentForegroundProcessDebuggable = isDebuggable
   }
 
   init {

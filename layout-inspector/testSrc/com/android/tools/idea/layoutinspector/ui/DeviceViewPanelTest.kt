@@ -68,7 +68,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ICON_LEGACY_PHONE
@@ -1148,8 +1147,8 @@ class DeviceViewPanelWithNoClientsTest {
     // becomes true, because the device is connected but no foreground process showed up yet
     assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isTrue()
 
-    // send a non-debuggable process (not in the process model)
-    panel.onNewForegroundProcess(ForegroundProcess(1, "random"))
+    // send a non-debuggable process
+    panel.onNewForegroundProcess(false)
 
     // remains true because the foreground process is not in the process model
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isTrue()
@@ -1162,8 +1161,8 @@ class DeviceViewPanelWithNoClientsTest {
     postCreateLatch.countDown()
     inspectorRule.awaitLaunch()
 
-    // send a debuggable process (in the process model)
-    panel.onNewForegroundProcess(ForegroundProcess(MODERN_PROCESS.pid, MODERN_PROCESS.name))
+    // send a debuggable process
+    panel.onNewForegroundProcess(true)
 
     // goes back to false because MODERN_PROCESS is in the process model
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()

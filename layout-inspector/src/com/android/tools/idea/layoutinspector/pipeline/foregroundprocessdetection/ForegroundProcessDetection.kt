@@ -53,12 +53,18 @@ data class ForegroundProcess(val pid: Int, val processName: String)
 /**
  * Match a [ForegroundProcess] with a [ProcessDescriptor].
  */
-fun ForegroundProcess.matchToProcessDescriptor(processModel: ProcessesModel): ProcessDescriptor? {
+internal fun ForegroundProcess.matchToProcessDescriptor(processModel: ProcessesModel): ProcessDescriptor? {
   return processModel.processes.firstOrNull { it.pid == this.pid }
 }
 
 fun interface ForegroundProcessListener {
-  fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess)
+  /**
+   * Called when a new foreground process is detected.
+   * @param device The device the process belongs to.
+   * @param foregroundProcess The foreground process.
+   * @param isDebuggable True if the foreground process is debuggable.
+   */
+  fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess, isDebuggable: Boolean)
 }
 
 /**
@@ -200,7 +206,9 @@ class ForegroundProcessDetection(
               ).collect { streamEvent ->
                 val foregroundProcess = streamEvent.toForegroundProcess()
                 if (foregroundProcess != null) {
-                  foregroundProcessListeners.forEach { it.onNewProcess(streamDevice, foregroundProcess) }
+                  // The ProcessesModel only contains debuggable processes.
+                  val isDebuggable = foregroundProcess.matchToProcessDescriptor(processModel) != null
+                  foregroundProcessListeners.forEach { it.onNewProcess(streamDevice, foregroundProcess, isDebuggable) }
                 }
               }
             }

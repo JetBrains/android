@@ -102,19 +102,19 @@ class ForegroundProcessDetectionInitializerTest {
 
     deviceModel.setSelectedDevice(device1)
 
-    foregroundProcessListener.onNewProcess(device1, ForegroundProcess(1, "process1"))
+    foregroundProcessListener.onNewProcess(device1, ForegroundProcess(1, "process1"), true)
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
 
-    foregroundProcessListener.onNewProcess(device1, ForegroundProcess(2, "process2"))
+    foregroundProcessListener.onNewProcess(device1, ForegroundProcess(2, "process2"), true)
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess2)
 
     deviceModel.setSelectedDevice(device2)
 
-    foregroundProcessListener.onNewProcess(device2, ForegroundProcess(1, "process1"))
+    foregroundProcessListener.onNewProcess(device2, ForegroundProcess(1, "process1"), true)
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
 
     // foreground process comes from device1, but selected device is device2. So it should be ignored.
-    foregroundProcessListener.onNewProcess(device1, ForegroundProcess(2, "process2"))
+    foregroundProcessListener.onNewProcess(device1, ForegroundProcess(2, "process2"), true)
     assertThat(processModel.selectedProcess).isEqualTo(fakeProcess1)
   }
 

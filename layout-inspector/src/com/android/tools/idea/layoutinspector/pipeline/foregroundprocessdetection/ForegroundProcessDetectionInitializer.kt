@@ -37,7 +37,7 @@ object ForegroundProcessDetectionInitializer {
   @VisibleForTesting
   fun getDefaultForegroundProcessListener(deviceModel: DeviceModel, processModel: ProcessesModel): ForegroundProcessListener {
     return object : ForegroundProcessListener {
-      override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess) {
+      override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess, isDebuggable: Boolean) {
         // There could be multiple projects open. Project1 with device1 selected, Project2 with device2 selected.
         // Because every event from the Transport is dispatched to every open project,
         // both Project1 and Project2 are going to receive events from device1 and device2.
@@ -45,20 +45,17 @@ object ForegroundProcessDetectionInitializer {
           return
         }
 
-        val foregroundProcessDescriptor = foregroundProcess.matchToProcessDescriptor(processModel)
-        if (foregroundProcessDescriptor == null) {
-          logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\" " +
-                      "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
-          )
+        if (isDebuggable) {
+          logger.info("Process descriptor found for foreground process \"${foregroundProcess.processName}\" " +
+                      "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\"")
         }
         else {
-          logger.info("Process descriptor found for foreground process \"${foregroundProcess.processName}\" " +
-                      "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
-          )
+          logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\" " +
+                      "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\"")
         }
 
         // set the foreground process to be the selected process.
-        processModel.selectedProcess = foregroundProcessDescriptor
+        processModel.selectedProcess = foregroundProcess.matchToProcessDescriptor(processModel)
       }
     }
   }
