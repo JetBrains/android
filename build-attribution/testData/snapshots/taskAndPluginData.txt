@@ -44,6 +44,10 @@ Task                          : :app:createDebugVariantModel
     TaskType                      : com.android.build.gradle.tasks.sync.LibraryVariantModelTask
     PrimaryTaskCategory           : SYNC
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:expandDebugArtProfileWildcards
+    TaskType                      : com.android.build.gradle.internal.tasks.ExpandArtProfileWildcardsTask
+    PrimaryTaskCategory           : ART_PROFILE
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:extractDeepLinksDebug
     TaskType                      : com.android.build.gradle.tasks.ExtractDeepLinksTask
     PrimaryTaskCategory           : ANDROID_RESOURCES
