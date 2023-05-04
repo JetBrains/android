@@ -46,7 +46,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
       jmethodID register_callback_method =
           device_state_manager_class.GetMethod("registerCallback", "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V");
       request_state_method_ = device_state_manager_class.GetMethod("requestState", "(Landroid/os/IBinder;II)V");
-      if (Agent::api_level() >= 32) {
+      if (Agent::api_level() >= 33) {
         cancel_state_request_method_ = device_state_manager_class.GetMethod("cancelStateRequest", "()V");
       }
       get_device_state_info_method_ =
