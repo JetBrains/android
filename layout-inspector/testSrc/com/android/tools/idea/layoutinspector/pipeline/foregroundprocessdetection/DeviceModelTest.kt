@@ -83,16 +83,16 @@ class DeviceModelTest {
   @Test
   fun testDeviceModelsRemoveThemselvesWhenDisposed() {
     val deviceModel1 = DeviceModel(disposableRule.disposable, processModel)
-    assertThat(ForegroundProcessDetection.deviceModels).containsExactly(deviceModel1)
+    assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1)
 
     val deviceModel2 = DeviceModel(disposableRule.disposable, processModel)
-    assertThat(ForegroundProcessDetection.deviceModels).containsExactly(deviceModel1, deviceModel2)
+    assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1, deviceModel2)
 
     Disposer.dispose(deviceModel2)
-    assertThat(ForegroundProcessDetection.deviceModels).containsExactly(deviceModel1)
+    assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1)
 
     Disposer.dispose(deviceModel1)
-    assertThat(ForegroundProcessDetection.deviceModels).isEmpty()
+    assertThat(ForegroundProcessDetectionImpl.deviceModels).isEmpty()
   }
 
   @Test

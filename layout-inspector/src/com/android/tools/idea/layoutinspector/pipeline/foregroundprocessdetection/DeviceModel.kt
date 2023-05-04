@@ -42,11 +42,11 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
 
   init {
     Disposer.register(parentDisposable, this)
-    ForegroundProcessDetection.addDeviceModel(this)
+    ForegroundProcessDetectionImpl.addDeviceModel(this)
   }
 
   override fun dispose() {
-    ForegroundProcessDetection.removeDeviceModel(this)
+    ForegroundProcessDetectionImpl.removeDeviceModel(this)
   }
 
   /**

@@ -77,7 +77,7 @@ object ForegroundProcessDetectionInitializer {
     metrics: ForegroundProcessDetectionMetrics,
     layoutInspectorMetrics: LayoutInspectorMetrics = LayoutInspectorMetrics
   ): ForegroundProcessDetection {
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       project,
       deviceModel,
       processModel,
@@ -87,7 +87,7 @@ object ForegroundProcessDetectionInitializer {
       coroutineScope
     )
 
-    foregroundProcessDetection.foregroundProcessListeners.add(foregroundProcessListener)
+    foregroundProcessDetection.addForegroundProcessListener(foregroundProcessListener)
 
     // TODO move inside ForegroundProcessDetection, when b/250404336 is resolved
     processModel.addSelectedProcessListeners {

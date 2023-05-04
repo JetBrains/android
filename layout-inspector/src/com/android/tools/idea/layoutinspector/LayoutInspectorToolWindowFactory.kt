@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
@@ -88,9 +87,9 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     )
 
     // notify DeviceViewPanel that a new foreground process showed up
-    layoutInspector.foregroundProcessDetection?.foregroundProcessListeners?.add(ForegroundProcessListener { _, _, isDebuggable ->
+    layoutInspector.foregroundProcessDetection?.addForegroundProcessListener { _, _, isDebuggable ->
       deviceViewPanel.onNewForegroundProcess(isDebuggable)
-    })
+    }
 
     return deviceViewPanel
   }

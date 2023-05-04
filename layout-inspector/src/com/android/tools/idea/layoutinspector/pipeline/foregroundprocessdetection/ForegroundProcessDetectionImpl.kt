@@ -30,6 +30,7 @@ import com.android.tools.idea.transport.manager.StreamEvent
 import com.android.tools.idea.transport.manager.StreamEventQuery
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamManager
+import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
@@ -68,6 +69,31 @@ fun interface ForegroundProcessListener {
 }
 
 /**
+ * Used to:
+ * 1. Start and stop foreground process detection on a device.
+ * 2. Receive foreground process events from a device.
+ */
+interface ForegroundProcessDetection {
+  fun addForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener)
+
+  fun removeForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener)
+
+  /**
+   * Start polling for foreground process on [newDevice].
+   *
+   * If we are already polling on another device and stopPollingPreviousDevice is true,
+   * we send a stop command to that device before sending a start command to the new device.
+   */
+  fun startPollingDevice(newDevice: DeviceDescriptor, stopPollingPreviousDevice: Boolean = true)
+
+  /**
+   * Stop listening to foreground process events from [DeviceModel.selectedDevice].
+   * Then sets [DeviceModel.selectedDevice] to null.
+   */
+  fun stopPollingSelectedDevice()
+}
+
+/**
  * This class is responsible for establishing a connection to the transport, sending commands to it and receiving events from it.
  *
  * The code that tracks the foreground process on the device is a library added to the transport's daemon, which runs on Android.
@@ -76,7 +102,7 @@ fun interface ForegroundProcessListener {
  *
  * @param deviceModel At any time reflects on which device we are polling for foreground process.
  */
-class ForegroundProcessDetection(
+class ForegroundProcessDetectionImpl(
   private val project: Project,
   private val deviceModel: DeviceModel,
   processModel: ProcessesModel,
@@ -86,10 +112,11 @@ class ForegroundProcessDetection(
   scope: CoroutineScope,
   workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
   @TestOnly private val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {},
-  @TestOnly private val pollingIntervalMs: Long = 2000) {
+  @TestOnly private val pollingIntervalMs: Long = 2000
+) : ForegroundProcessDetection {
 
   companion object {
-    private val logger = Logger.getInstance(ForegroundProcessDetection::class.java)
+    private val logger = Logger.getInstance(ForegroundProcessDetectionImpl::class.java)
 
     /**
      * We are storing static references of [DeviceModel] because when multiple projects are open, they  need to coordinate with each other.
@@ -147,7 +174,7 @@ class ForegroundProcessDetection(
     }
   }
 
-  val foregroundProcessListeners = mutableListOf<ForegroundProcessListener>()
+  private val foregroundProcessListeners = ListenerCollection.createWithDirectExecutor<ForegroundProcessListener>()
 
   /**
    * Maps groupId to connected stream. Each stream corresponds to a device.
@@ -293,13 +320,15 @@ class ForegroundProcessDetection(
     }
   }
 
-  /**
-   * Start polling for foreground process on [newDevice].
-   *
-   * If we are already polling on another device and stopPollingPreviousDevice is true,
-   * we send a stop command to that device before sending a start command to the new device.
-   */
-  fun startPollingDevice(newDevice: DeviceDescriptor, stopPollingPreviousDevice: Boolean = true) {
+  override fun addForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {
+    foregroundProcessListeners.add(foregroundProcessListener)
+  }
+
+  override fun removeForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {
+    foregroundProcessListeners.remove(foregroundProcessListener)
+  }
+
+  override fun startPollingDevice(newDevice: DeviceDescriptor, stopPollingPreviousDevice: Boolean) {
     val selectedDevice = deviceModel.selectedDevice
     if (newDevice == selectedDevice) {
       return
@@ -324,11 +353,7 @@ class ForegroundProcessDetection(
     }
   }
 
-  /**
-   * Stop listening to foreground process events from [DeviceModel.selectedDevice].
-   * Then sets [DeviceModel.selectedDevice] to null.
-   */
-  fun stopPollingSelectedDevice() {
+  override fun stopPollingSelectedDevice() {
     val selectedDevice = deviceModel.selectedDevice ?: return
     val transportStreamChannel = connectedStreams.values.find { it.stream.device.serial == selectedDevice.serial }
     if (transportStreamChannel != null) {
@@ -357,10 +382,10 @@ class ForegroundProcessDetection(
    * The polling should be stopped on a device only if it's not the selected device on any other [DeviceModel].
    * There can be multiple [DeviceModel]s if there are multiple projects open in Studio.
    *
-   * @see ForegroundProcessDetection.deviceModels
+   * @see ForegroundProcessDetectionImpl.deviceModels
    */
   private fun shouldStopPollingDevice(selectedDevice: DeviceDescriptor): Boolean {
-    val deviceModels = ForegroundProcessDetection.deviceModels
+    val deviceModels = ForegroundProcessDetectionImpl.deviceModels
     val count = deviceModels.mapNotNull { it.selectedDevice }.count { it.serial == selectedDevice.serial }
     return count <= 1
   }

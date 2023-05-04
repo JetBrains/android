@@ -214,7 +214,7 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testReceiveForegroundProcessesDevice(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1)
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -228,9 +228,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, _ ->
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    }
 
     connectDevice(device1)
     val (handshakeDevice, supportType) = handshakeSyncChannel.receive()
@@ -267,7 +267,7 @@ class ForegroundProcessDetectionTest {
     val coroutineScope2 = AndroidCoroutineScope(disposableRule.disposable)
 
     // studio1
-    val foregroundProcessDetection1 = ForegroundProcessDetection(
+    val foregroundProcessDetection1 = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel1,
       processModel1,
@@ -281,7 +281,7 @@ class ForegroundProcessDetectionTest {
     )
 
     // studio2
-    val foregroundProcessDetection2 = ForegroundProcessDetection(
+    val foregroundProcessDetection2 = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel2,
       processModel2,
@@ -295,9 +295,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection1.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, _ ->
+    foregroundProcessDetection1.addForegroundProcessListener { device, foregroundProcess, _ ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    }
 
     connectDevice(device1)
     val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
@@ -338,7 +338,7 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testReceiveForegroundProcessesFromSelectedDevice(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1, device2)
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -352,9 +352,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, _ ->
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    }
 
     connectDevice(device1)
     handshakeSyncChannel.receive()
@@ -390,7 +390,7 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testHandshakeDeviceIsNotSupported(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device3)
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -404,9 +404,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, _ ->
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    }
 
     connectDevice(device3)
     val (connectedDevice, supportType) = handshakeSyncChannel.receive()
@@ -430,7 +430,7 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testStopPollingSelectedDevice() = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1, device2)
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -444,9 +444,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, _ ->
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    }
 
     val selectedDeviceSyncChannel = Channel<DeviceDescriptor?>()
     deviceModel.newSelectedDeviceListeners.add { device ->
@@ -521,7 +521,7 @@ class ForegroundProcessDetectionTest {
     }
 
     val (deviceModel, processModel) = createDeviceModel(device1)
-    ForegroundProcessDetection(
+    ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -557,7 +557,7 @@ class ForegroundProcessDetectionTest {
 
     deviceModel2.setSelectedDevice(device1.toDeviceDescriptor())
 
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel1,
       processModel1,
@@ -571,9 +571,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, _ ->
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    }
 
     connectDevice(device1)
     val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
@@ -643,7 +643,7 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testSelectedProcessOnNotSupportedDeviceReInitiatesHandshake(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1)
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -657,9 +657,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, _ ->
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    }
 
     val selectedDeviceSyncChannel = Channel<DeviceDescriptor?>()
     deviceModel.newSelectedDeviceListeners.add { device ->
@@ -718,7 +718,7 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testSelectedProcessOnSupportedDeviceDoesNotReInitiatesHandshake(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1)
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -732,9 +732,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, _ ->
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    }
 
     connectDevice(device1)
     val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
@@ -755,7 +755,7 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testSelectedProcessOnUnknownSupportDeviceDoesNotCreateSimultaneousHandshake(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device4)
-    ForegroundProcessDetection(
+    ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -818,7 +818,7 @@ class ForegroundProcessDetectionTest {
     val layoutInspectorMetrics = mock<LayoutInspectorMetrics>()
 
     val (deviceModel, processModel) = createDeviceModel(device1)
-    ForegroundProcessDetection(
+    ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -880,7 +880,7 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testStopPollingIsNotSentWhenPollingNewDevice(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1, device2)
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -924,7 +924,7 @@ class ForegroundProcessDetectionTest {
   fun testNonDebuggableProcessIsMarkedAsNonDebuggable(): Unit = runBlocking {
     val processDiscovery = TestProcessDiscovery()
     val (deviceModel, processModel) = createDeviceModel(listOf(device1), processDiscovery)
-    val foregroundProcessDetection = ForegroundProcessDetection(
+    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -938,9 +938,9 @@ class ForegroundProcessDetectionTest {
     )
 
     val foregroundProcessSyncChannel = Channel<Pair<NewForegroundProcess, Boolean>>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess, isDebuggable ->
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, isDebuggable ->
       coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess) to isDebuggable) }
-    })
+    }
 
     connectDevice(device1)
     val (handshakeDevice, supportType) = handshakeSyncChannel.receive()
