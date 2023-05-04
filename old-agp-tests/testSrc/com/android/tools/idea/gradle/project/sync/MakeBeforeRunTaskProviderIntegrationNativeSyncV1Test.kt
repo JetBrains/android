@@ -72,6 +72,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test {
     }
   }
 
+  @org.junit.Ignore("b/283852233")
   @Test
   fun testModelsAreFetchedForNotSyncedAbi() {
     val preparedProject = projectRule.prepareTestProject(

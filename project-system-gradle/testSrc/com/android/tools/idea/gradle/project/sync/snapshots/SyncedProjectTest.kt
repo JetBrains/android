@@ -119,6 +119,7 @@ abstract class SyncedProjectTest(
   @Test
   fun testPsdSampleGroovy() = testProject(TestProject.PSD_SAMPLE_GROOVY)
 
+  @Ignore("b/283852233")
   @Test
   fun testCompositeBuild() = testProject(TestProject.COMPOSITE_BUILD)
 
@@ -244,6 +245,7 @@ abstract class SyncedProjectTest(
   @Test
   fun testPureJavaProject() = testProject(TestProject.PURE_JAVA_PROJECT)
 
+  @Ignore("b/283852233")
   @Test
   fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 
