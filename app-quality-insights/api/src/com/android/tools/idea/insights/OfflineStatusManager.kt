@@ -16,10 +16,18 @@
 package com.android.tools.idea.insights
 
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-class AppInsightsServiceImpl : AppInsightsService {
+/** Manages the offline status of an AQI tool. */
+interface OfflineStatusManager {
+  val offlineStatus: Flow<ConnectionMode>
+
+  fun enterMode(mode: ConnectionMode)
+}
+
+class OfflineStatusManagerImpl : OfflineStatusManager {
   private val _offlineStatus =
     MutableSharedFlow<ConnectionMode>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 

@@ -25,5 +25,7 @@ interface AppInsightsConfigurationManager {
 
   val configuration: StateFlow<AppInsightsModel>
 
+  val offlineStatusManager: OfflineStatusManager
+
   fun refreshConfiguration() = Unit
 }

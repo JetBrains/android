@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.insights
 
-import kotlinx.coroutines.flow.Flow
+import com.android.tools.idea.insights.ui.AppInsightsTabProvider
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 
-/** Common utility that can be shared by all insights tools. */
-interface AppInsightsService {
-  val offlineStatus: Flow<ConnectionMode>
-
-  fun enterMode(mode: ConnectionMode)
+class EnterOfflineModeInternalAction : AnAction("Enter Offline Mode in AQI") {
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    AppInsightsTabProvider.EP_NAME.extensionList
+      .filter { it.isApplicable() }
+      .forEach {
+        it.getConfigurationManager(project).offlineStatusManager.enterMode(ConnectionMode.OFFLINE)
+      }
+  }
 }

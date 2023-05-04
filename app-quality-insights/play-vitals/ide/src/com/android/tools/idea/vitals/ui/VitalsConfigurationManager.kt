@@ -21,8 +21,8 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
-import com.android.tools.idea.insights.AppInsightsService
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.VariantData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -42,7 +42,6 @@ import com.google.gct.login.LoginState
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -80,8 +79,6 @@ constructor(
   private val refreshConfigurationFlow =
     MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-  private val insightsService = service<AppInsightsService>()
-
   private val queryConnectionsFlow =
     flow {
         refreshConfigurationFlow
@@ -96,6 +93,8 @@ constructor(
       }
       .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
+  override val offlineStatusManager = OfflineStatusManagerImpl()
+
   private val controller =
     AppInsightsProjectLevelControllerImpl(
       key = VITALS_KEY,
@@ -103,8 +102,8 @@ constructor(
       AndroidDispatchers.workerThread,
       client,
       queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
-      insightsService.offlineStatus,
-      setOfflineMode = { status -> insightsService.enterMode(status) },
+      offlineStatusManager.offlineStatus,
+      setOfflineMode = { status -> offlineStatusManager.enterMode(status) },
       onIssuesChanged = { DaemonCodeAnalyzer.getInstance(project).restart() },
       tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
       clock = Clock.systemDefaultZone(),

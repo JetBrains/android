@@ -19,6 +19,7 @@ import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.FakeAppInsightsProjectLevelController
+import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.intellij.openapi.project.Project
@@ -45,6 +46,7 @@ sealed class TestTabProvider(override val displayName: String) : AppInsightsTabP
         get() = throw RuntimeException()
       override val configuration: StateFlow<AppInsightsModel>
         get() = modelFlow
+      override val offlineStatusManager = OfflineStatusManagerImpl()
     }
 
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) =
