@@ -35,7 +35,6 @@ import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAcces
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.ui.LINES
-import com.android.tools.idea.layoutinspector.ui.LayoutInspectorLoadingObserver
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.CommonActionsManager
 import com.intellij.ide.DefaultTreeExpander
@@ -47,17 +46,16 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TableActions
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Cursor
@@ -87,7 +85,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   @VisibleForTesting
   val nodeType = InspectorViewNodeType()
 
-  private val componentTreeBuildResult = buildComponentTree(nodeType)
+  @VisibleForTesting
+  val componentTreeBuildResult = buildComponentTree(nodeType)
 
   private var layoutInspector: LayoutInspector? = null
   private val inspectorModel get() = layoutInspector?.inspectorModel
@@ -120,17 +119,13 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private var upAction: Action? = null
   private var downAction: Action? = null
 
-  private val rootPanel = BorderLayoutPanel()
-  private val loadingPanel = JBLoadingPanel(BorderLayout(), parentDisposable, 0)
+  private val rootPanel = RootPanel(this, componentTreePanel)
 
   @VisibleForTesting
   val nodeViewType get() = nodeType
 
-  private var layoutInspectorLoadingObserver: LayoutInspectorLoadingObserver? = null
-
   init {
-    rootPanel.add(componentTreePanel)
-
+    Disposer.register(parentDisposable, this)
     val gotoDeclarationAction = ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION)
     if (gotoDeclarationAction != null) {
       GotoDeclarationAction.registerCustomShortcutSet(gotoDeclarationAction.shortcutSet, componentTreePanel, parentDisposable)
@@ -301,8 +296,6 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     inspectorModel?.modificationListeners?.remove(modelModifiedListener)
     inspectorModel?.selectionListeners?.remove(selectionChangedListener)
     inspectorModel?.connectionListeners?.remove(connectionListener)
-    layoutInspectorLoadingObserver?.destroy()
-    layoutInspectorLoadingObserver = null
 
     layoutInspector = toolContext
 
@@ -313,30 +306,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     inspectorModel?.selectionListeners?.add(selectionChangedListener)
     inspectorModel?.connectionListeners?.add(connectionListener)
     inspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
-
-    if (toolContext != null) {
-      layoutInspectorLoadingObserver = createLoadingObserver(toolContext)
-    }
+    rootPanel.layoutInspector = toolContext
 
     updateRecompositionColumnVisibility()
-  }
-
-  private fun createLoadingObserver(layoutInspector: LayoutInspector): LayoutInspectorLoadingObserver {
-    val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(layoutInspector)
-    layoutInspectorLoadingObserver.listeners.add(object : LayoutInspectorLoadingObserver.Listener {
-      override fun onStartLoading() {
-        rootPanel.remove(componentTreePanel)
-        rootPanel.addToCenter(loadingPanel)
-        loadingPanel.startLoading()
-      }
-
-      override fun onStopLoading() {
-        loadingPanel.stopLoading()
-        rootPanel.remove(loadingPanel)
-        rootPanel.addToCenter(componentTreePanel)
-      }
-    })
-    return layoutInspectorLoadingObserver
   }
 
   override fun getAdditionalActions() = additionalActions

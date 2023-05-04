@@ -85,7 +85,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
@@ -277,7 +276,7 @@ class LayoutInspectorTreePanelTest {
       model.setSelection(model["title"], SelectionOrigin.INTERNAL)
 
       val focusManager = FakeKeyboardFocusManager(disposable)
-      focusManager.focusOwner = tree.component.components.first()
+      focusManager.focusOwner = tree.componentTreeBuildResult.component
 
       val dispatcher = IdeKeyEventDispatcher(null)
       val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
@@ -890,38 +889,6 @@ class LayoutInspectorTreePanelTest {
     assertThat(nodeType.textValueOf(model[VIEW4]!!.treeNode)).isEqualTo("\"Hello World!\"")
     assertThat(nodeType.textValueOf(model[COMPOSE1]!!.treeNode)).isNull()
     assertThat(nodeType.textValueOf(model[COMPOSE3]!!.treeNode)).isEqualTo("(inline)")
-  }
-
-  @Test
-  @RunsInEdt
-  fun testLoadingScreenIsShown() {
-    val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
-    setToolContext(treePanel, inspectorRule.inspector)
-    UIUtil.dispatchAllInvocationEvents()
-
-    val latch = ReportingCountDownLatch(1)
-    inspectorRule.launchSynchronously = false
-    appInspectorRule.viewInspector.listenWhen({ true }) {
-      latch.await(20, TimeUnit.SECONDS)
-      // update the model, once the process is connected
-      inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
-    }
-
-    assertThat(treePanel.component.components.filterIsInstance<JBLoadingPanel>()).isEmpty()
-
-    // Start connecting, loading should show
-    inspectorRule.startLaunch(2)
-    inspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
-
-    waitForCondition(1, TimeUnit.SECONDS) { treePanel.component.components.filterIsInstance<JBLoadingPanel>().isNotEmpty() }
-    waitForCondition(1, TimeUnit.SECONDS) { treePanel.component.components.filterIsInstance<JBLoadingPanel>().first().isLoading }
-
-    // Release the response from the agent and wait for connection.
-    // The loading should stop and the empty text should not be visible, because now we are connected and showing views on screen
-    latch.countDown()
-    inspectorRule.awaitLaunch()
-
-    waitForCondition(1, TimeUnit.SECONDS) { treePanel.component.components.filterIsInstance<JBLoadingPanel>().isEmpty() }
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
