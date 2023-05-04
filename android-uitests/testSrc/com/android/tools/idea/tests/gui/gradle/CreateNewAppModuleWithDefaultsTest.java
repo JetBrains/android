@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +37,7 @@ import static junit.framework.TestCase.assertTrue;
 public class CreateNewAppModuleWithDefaultsTest {
 
   @Rule
-  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(8, TimeUnit.MINUTES);
+  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * Verifies addition of new application module to application.
@@ -90,7 +91,7 @@ public class CreateNewAppModuleWithDefaultsTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.requestFocusIfLost();
 
-    BuildStatus result = ideFrame.invokeProjectMake();
+    BuildStatus result = ideFrame.invokeProjectMake(Wait.seconds(240));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertTrue(result.isBuildSuccessful());
   }

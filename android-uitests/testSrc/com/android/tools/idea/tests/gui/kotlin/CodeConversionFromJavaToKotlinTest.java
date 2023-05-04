@@ -97,8 +97,7 @@ public class CodeConversionFromJavaToKotlinTest {
     */
 
     EditorFixture kotlinEditor = ideFrameFixture.getEditor()
-      .open(FILE_NAME,
-            EditorFixture.Tab.EDITOR)
+      .open(FILE_NAME)
       .moveBetween("setContentView(R.layout.activity_main)\n    }", "");
 
     kotlinEditor.pasteText(JAVA_METHOD);

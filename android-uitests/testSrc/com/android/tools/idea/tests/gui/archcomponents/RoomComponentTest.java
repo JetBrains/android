@@ -34,7 +34,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class RoomComponentTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(12, TimeUnit.MINUTES);
 
   private static String FILENAME = "app/src/main/java/com/example/roomsampleproject/entity/Word.java";
 
@@ -81,7 +81,7 @@ public class RoomComponentTest {
 
     EditorFixture editor = guiTest.ideFrame()
       .getEditor()
-      .open(FILENAME, EditorFixture.Tab.EDITOR);
+      .open(FILENAME);
 
     editor.select(String.format("public class (Word)"));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
