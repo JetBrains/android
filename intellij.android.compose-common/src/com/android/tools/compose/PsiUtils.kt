@@ -66,7 +66,7 @@ private fun KtAnnotated.getAnnotationWithCaching(key: Key<CachedValue<KtAnnotati
 fun PsiElement.isComposableAnnotation(): Boolean {
   if (this !is KtAnnotationEntry) return false
 
-  return fqNameMatches(COMPOSABLE_FQ_NAMES)
+  return fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME)
 }
 
 /**
@@ -75,7 +75,7 @@ fun PsiElement.isComposableAnnotation(): Boolean {
 fun KtAnalysisSession.isComposableAnnotation(element: PsiElement): Boolean {
   if (element !is KtAnnotationEntry) return false
 
-  return fqNameMatches(element, COMPOSABLE_FQ_NAMES)
+  return fqNameMatches(element, COMPOSABLE_ANNOTATION_FQ_NAME)
 }
 
 private const val DEPRECATED_ANNOTATION_NAME = "Deprecated"

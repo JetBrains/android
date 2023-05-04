@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.aa.code
 
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
@@ -77,7 +77,6 @@ fun KtAnalysisSession.isComposableFunctionParameter(valueParamSymbol: KtValuePar
   val parameterType = valueParamSymbol.returnType
   // Mimic FE1.0 `KotlinType.isBuiltinFunctionalType`.
   val isBuiltinFunctionalType = parameterType.isFunctionType || parameterType.isSuspendFunctionType
-  return isBuiltinFunctionalType && COMPOSABLE_FQ_NAMES.any {
-    parameterType.annotationsByClassId(ClassId.topLevel(FqName(it))).isNotEmpty()
-  }
+  return isBuiltinFunctionalType &&
+         parameterType.annotationsByClassId(ClassId.topLevel(FqName(COMPOSABLE_ANNOTATION_FQ_NAME))).isNotEmpty()
 }

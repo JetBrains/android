@@ -155,16 +155,15 @@ fun KtAnnotationEntry.fqNameMatches(fqName: Set<String>, analysisSession: KtAnal
  * K2 version of [fqNameMatches]; determine if [ktAnnotationEntry] has one of a
  * set of fully qualified names [fqName].
  */
-fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: Set<String>): Boolean {
+fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String): Boolean {
   val shortName = ktAnnotationEntry.shortName?.asString() ?: return false
-  val fqNameFiltered = fqName.filter { it.endsWith(shortName) }
-  if (fqNameFiltered.isEmpty()) return false
+  if (!fqName.endsWith(shortName)) return false
 
   // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it has a performance intensive workload
   // (analysis). It is important check early returns before calling `getQualifiedName(..)`. Previously, we used `lazy { .. }`, but
   // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint error.
   val qualifiedName = getQualifiedName(ktAnnotationEntry)
-  return fqNameFiltered.any { it == qualifiedName }
+  return fqName == qualifiedName
 }
 
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */

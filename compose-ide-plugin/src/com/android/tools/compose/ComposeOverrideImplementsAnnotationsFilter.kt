@@ -24,5 +24,5 @@ import org.jetbrains.kotlin.psi.KtFile
  */
 class ComposeOverrideImplementsAnnotationsFilter : OverrideImplementsAnnotationsFilter {
   override fun getAnnotations(file: PsiFile): Array<String> =
-    if (file is KtFile && isComposeEnabled(file)) COMPOSABLE_FQ_NAMES_ARRAY else arrayOf()
+    if (file is KtFile && isComposeEnabled(file)) arrayOf(COMPOSABLE_ANNOTATION_FQ_NAME) else arrayOf()
 }

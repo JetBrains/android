@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -107,7 +107,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
               COMPOSE_PREVIEW_ANNOTATION_FQN == importDirective.importedFqName?.asString()
           isComposableFile =
             isComposableFile ||
-              COMPOSABLE_FQ_NAMES.contains(importDirective.importedFqName?.asString())
+              COMPOSABLE_ANNOTATION_FQ_NAME == importDirective.importedFqName?.asString()
         }
 
         override fun visitAnnotationEntry(annotationEntry: KtAnnotationEntry) {
@@ -115,7 +115,8 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
 
           isPreviewFile =
             isPreviewFile || annotationEntry.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN)
-          isComposableFile = isComposableFile || annotationEntry.fqNameMatches(COMPOSABLE_FQ_NAMES)
+          isComposableFile =
+            isComposableFile || annotationEntry.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME)
         }
 
         override fun visitNamedFunction(function: KtNamedFunction) {
@@ -256,7 +257,8 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     previewAnnotation: KtAnnotationEntry,
     isMultiPreview: Boolean
   ) {
-    val nonComposable = function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
+    val nonComposable =
+      function.annotationEntries.none { it.fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME) }
     if (nonComposable) {
       holder.registerProblem(
         previewAnnotation.psiOrParent as PsiElement,

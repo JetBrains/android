@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.analytics
 
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder.getPreviewNodes
@@ -454,8 +454,12 @@ class MultiPreviewUsageTrackerTest {
   }
 
   private fun getPreviewNodes(vFile: VirtualFile) = runBlocking {
-    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME) {
-        methods ->
+    findAnnotatedMethodsValues(
+        project,
+        vFile,
+        COMPOSABLE_ANNOTATION_FQ_NAME,
+        COMPOSABLE_ANNOTATION_NAME
+      ) { methods ->
         getPreviewNodes(methods, true).asSequence()
       }
       .filterIsInstance<MultiPreviewNode>()

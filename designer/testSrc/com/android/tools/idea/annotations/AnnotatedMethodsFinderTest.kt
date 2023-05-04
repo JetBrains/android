@@ -67,12 +67,12 @@ class AnnotatedMethodsFinderTest {
         """.trimIndent())
 
     assertEquals(0, CacheKeysManager.getInstance(project).map().size)
-    assertTrue(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
+    assertTrue(hasAnnotation(project, sourceFile.virtualFile, "com.android.annotations.MyAnnotation", "MyAnnotation"))
     assertEquals(1, CacheKeysManager.getInstance(project).map().size)
-    assertTrue(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
+    assertTrue(hasAnnotation(project, sourceFile.virtualFile, "com.android.annotations.MyAnnotation", "MyAnnotation"))
     // Check that call with the same args combination does not create a new key and reuses the cache:
     assertEquals(1, CacheKeysManager.getInstance(project).map().size)
-    assertFalse(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.IDoNotExist"), "IDoNotExist"))
+    assertFalse(hasAnnotation(project, sourceFile.virtualFile, "com.android.annotations.IDoNotExist", "IDoNotExist"))
     assertEquals(2, CacheKeysManager.getInstance(project).map().size)
   }
 
@@ -101,11 +101,11 @@ class AnnotatedMethodsFinderTest {
     val testDumbService = TestDumbService(fixture.project)
     fixture.project.replaceService(DumbService::class.java, testDumbService, project)
 
-    assertFalse(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
+    assertFalse(hasAnnotation(project, sourceFile.virtualFile, "com.android.annotations.MyAnnotation", "MyAnnotation"))
 
     testDumbService.dumbMode = false
 
-    assertTrue(hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotation"), "MyAnnotation"))
+    assertTrue(hasAnnotation(project, sourceFile.virtualFile, "com.android.annotations.MyAnnotation", "MyAnnotation"))
   }
 
   @Test
@@ -171,24 +171,24 @@ class AnnotatedMethodsFinderTest {
     assertEquals(
       nLetters,
       findAnnotatedMethodsValues(
-        project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", toValues = ::nameLetters).size)
+        project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationA", "MyAnnotationA", toValues = ::nameLetters).size)
     assertTrue("Unexpectedly no new cache keys", CacheKeysManager.getInstance(project).map().size > 0)
     val cacheKeys = CacheKeysManager.getInstance(project).map().size
     assertEquals(
       nLetters,
       findAnnotatedMethodsValues(
-        project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", toValues = ::nameLetters).size)
+        project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationA", "MyAnnotationA", toValues = ::nameLetters).size)
     // Check that call with the same args combination does not create new keys and reuses the cache:
     assertEquals(cacheKeys, CacheKeysManager.getInstance(project).map().size)
     assertEquals(
       2,
       findAnnotatedMethodsValues(
-        project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", toValues = ::identity).size)
+        project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationA", "MyAnnotationA", toValues = ::identity).size)
     assertTrue("Unexpectedly no new cache keys", cacheKeys < CacheKeysManager.getInstance(project).map().size)
     assertEquals(
       0,
       findAnnotatedMethodsValues(
-        project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationB"),"MyAnnotationB", toValues = ::identity).size)
+        project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationB","MyAnnotationB", toValues = ::identity).size)
   }
 
   @Test
@@ -220,7 +220,7 @@ class AnnotatedMethodsFinderTest {
         fun abcde() { }
         """.trimIndent())
 
-    val res = hasAnnotations(project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA") {
+    val res = hasAnnotation(project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationA", "MyAnnotationA") {
       ReadAction.compute<Boolean, Throwable> {
         it.psiOrParent.toUElementOfType<UAnnotation>()?.findAttributeValue("param1")?.evaluate() == "foo"
       }
@@ -273,13 +273,13 @@ class AnnotatedMethodsFinderTest {
     assertEquals(
       1,
       findAnnotatedMethodsValues(
-        project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"), "MyAnnotationA", fooFilter, ::identity).size)
+        project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationA", "MyAnnotationA", fooFilter, ::identity).size)
     assertTrue("Unexpectedly no new cache keys", CacheKeysManager.getInstance(project).map().size > 0)
     val cacheKeys = CacheKeysManager.getInstance(project).map().size
     assertEquals(
       1,
       findAnnotatedMethodsValues(
-        project, sourceFile.virtualFile, setOf("com.android.annotations.MyAnnotationA"),"MyAnnotationA", fooFilter, ::identity).size)
+        project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationA","MyAnnotationA", fooFilter, ::identity).size)
     // Check that call with the same args combination does not create new keys and reuses the cache:
     assertEquals(cacheKeys, CacheKeysManager.getInstance(project).map().size)
   }

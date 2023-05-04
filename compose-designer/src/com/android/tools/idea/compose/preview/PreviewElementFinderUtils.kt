@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
@@ -302,10 +302,10 @@ internal fun UAnnotation.toPreviewElement(
  * method, or if the method is not also annotated with @Composable
  */
 internal fun UAnnotation.getContainingComposableUMethod() =
-  this.getContainingUMethodAnnotatedWith(COMPOSABLE_FQ_NAMES)
+  this.getContainingUMethodAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
 
 /** Returns true when the UMethod is not null, and it is annotated with @Composable */
-private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_FQ_NAMES)
+private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
 
 internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
   when (val resolvedImplmentation = this.resolve()) {

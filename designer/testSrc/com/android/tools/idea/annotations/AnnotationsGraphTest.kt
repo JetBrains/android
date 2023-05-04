@@ -141,7 +141,7 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single().let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
@@ -180,7 +180,7 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single().let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
@@ -222,7 +222,7 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single().let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
@@ -264,7 +264,7 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single().let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
@@ -282,7 +282,7 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single().let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph
       .traverse(listOf(rootMethod), isLeafAnnotation = { annotation ->
@@ -306,7 +306,7 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single().let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph
       .traverse(listOf(rootMethod), annotationFilter = { _, annotation ->

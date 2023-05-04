@@ -43,10 +43,8 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.isRejected
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -60,13 +58,13 @@ import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.toUElementOfType
 
 /**
- * Finds if [vFile] in [project] has any of the given [annotations] FQCN or the given
+ * Finds if [vFile] in [project] has any of the given [annotationFqn] FQCN or the given
  * [shortAnnotationName] with the properties enforced by the [filter].
  */
 private fun hasAnnotationsUncached(
   project: Project,
   vFile: VirtualFile,
-  annotations: Set<String>,
+  annotationFqn: String,
   shortAnnotationName: String,
   filter: (KtAnnotationEntry) -> Boolean
 ): Boolean = runReadAction {
@@ -76,17 +74,15 @@ private fun hasAnnotationsUncached(
   // This method can not call any methods that require smart mode.
   fun isFullNameAnnotation(annotation: KtAnnotationEntry) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
-    annotations.any { annotationFqn ->
-      // In brackets annotations don't start with '@', but typical annotations do. Normalize them by
-      // removing it
-      annotation.text.removePrefix("@").startsWith(annotationFqn)
-    }
+    // In brackets annotations don't start with '@', but typical annotations do. Normalize them by
+    // removing it
+    annotation.text.removePrefix("@").startsWith(annotationFqn)
 
   val psiFile = PsiManager.getInstance(project).findFile(vFile)
   // Look into the imports first to avoid resolving the class name into all methods.
   val hasAnnotationImport =
     PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java).any {
-      annotations.contains(it.importedFqName?.asString())
+      annotationFqn == it.importedFqName?.asString()
     }
 
   return@runReadAction PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java).any {
@@ -121,7 +117,7 @@ class CacheKeysManager {
 private val ANY_KT_ANNOTATION: (KtAnnotationEntry) -> Boolean = { true }
 
 private data class HasFilteredAnnotationsKey(
-  val annotations: Set<String>,
+  val annotationFqn: String,
   val shortAnnotationName: String,
   val filter: (KtAnnotationEntry) -> Boolean
 )
@@ -133,14 +129,14 @@ fun <T> CachedValuesManager.getCachedValue(
 ): T = this.getCachedValue(dataHolder, key, provider, false)
 
 /**
- * Finds if [vFile] in [project] has any of the given [annotations] FQCN or the given
+ * Finds if [vFile] in [project] has any of the given [annotationFqn] FQCN or the given
  * [shortAnnotationName]. To benefit from caching make sure the same parameters are passed to the
  * function call as all the parameters constitute the key.
  */
-fun hasAnnotations(
+fun hasAnnotation(
   project: Project,
   vFile: VirtualFile,
-  annotations: Set<String>,
+  annotationFqn: String,
   shortAnnotationName: String,
   filter: (KtAnnotationEntry) -> Boolean = ANY_KT_ANNOTATION
 ): Boolean {
@@ -148,10 +144,10 @@ fun hasAnnotations(
   return CachedValuesManager.getManager(project).getCachedValue(
     psiFile,
     CacheKeysManager.getInstance(project)
-      .getKey(HasFilteredAnnotationsKey(annotations, shortAnnotationName, filter))
+      .getKey(HasFilteredAnnotationsKey(annotationFqn, shortAnnotationName, filter))
   ) {
     CachedValueProvider.Result.create(
-      hasAnnotationsUncached(project, vFile, annotations, shortAnnotationName, filter),
+      hasAnnotationsUncached(project, vFile, annotationFqn, shortAnnotationName, filter),
       psiFile,
       DumbService.getInstance(project).modificationTracker
     )
@@ -207,24 +203,24 @@ private class PromiseModificationTracker(private val promise: Promise<*>) : Modi
     }
 }
 
-fun UMethod?.isAnnotatedWith(annotations: Set<String>) = runReadAction {
-  this?.uAnnotations?.any { annotation -> annotations.contains(annotation.qualifiedName) } ?: false
+fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
+  this?.uAnnotations?.any { annotation -> annotationFqn == annotation.qualifiedName } ?: false
 }
 
 /**
  * Returns the [UMethod] annotated by this [UAnnotation], or null if it is not annotating a method,
- * or if the method is not also annotated with [annotations].
+ * or if the method is not also annotated with [annotationFqn].
  */
-fun UAnnotation.getContainingUMethodAnnotatedWith(annotations: Set<String>): UMethod? =
+fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMethod? =
   runReadAction {
     val uMethod =
       getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
-    if (uMethod.isAnnotatedWith(annotations)) uMethod else null
+    if (uMethod.isAnnotatedWith(annotationFqn)) uMethod else null
   }
 
 /**
  * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with
- * [annotations] and [shortAnnotationName], with the properties enforced by the [annotationFilter],
+ * [annotationFqn] and [shortAnnotationName], with the properties enforced by the [annotationFilter],
  * from [vFile] of [project]. Technically, this function could just return a collection of methods,
  * but [toValues] might be slow to calculate so caching the values rather than methods is more
  * useful. To benefit from caching make sure the same parameters are passed to the function call as
@@ -233,7 +229,7 @@ fun UAnnotation.getContainingUMethodAnnotatedWith(annotations: Set<String>): UMe
 private fun <T> findAnnotatedMethodsCachedValues(
   project: Project,
   vFile: VirtualFile,
-  annotations: Set<String>,
+  annotationFqn: String,
   shortAnnotationName: String,
   annotationFilter: (UAnnotation) -> Boolean,
   toValues: (methods: List<UMethod>) -> Sequence<T>
@@ -251,7 +247,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
             findAnnotations(project, vFile, shortAnnotationName)
               .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
               .filter(annotationFilter)
-              .mapNotNull { it.getContainingUMethodAnnotatedWith(annotations) }
+              .mapNotNull { it.getContainingUMethodAnnotatedWith(annotationFqn) }
               .distinct() // avoid looking more than once per method
 
           toValues(uMethods).toList()
@@ -274,7 +270,7 @@ private fun <T> findAnnotatedMethodsCachedValues(
 }
 
 private data class CachedValuesKey<T>(
-  val annotations: Set<String>,
+  val annotationFqn: String,
   val shortAnnotationName: String,
   val filter: (UAnnotation) -> Boolean,
   val toValues: (methods: List<UMethod>) -> Sequence<T>
@@ -284,12 +280,12 @@ private val ANY_U_ANNOTATION: (UAnnotation) -> Boolean = { true }
 
 /**
  * Finds all the values calculated by [toValues] associated with the methods annotated with
- * [annotations] and [shortAnnotationName] from [vFile] in [project].
+ * [annotationFqn] and [shortAnnotationName] from [vFile] in [project].
  */
 suspend fun <T> findAnnotatedMethodsValues(
   project: Project,
   vFile: VirtualFile,
-  annotations: Set<String>,
+  annotationFqn: String,
   shortAnnotationName: String,
   annotationFilter: (UAnnotation) -> Boolean = ANY_U_ANNOTATION,
   toValues: (methods: List<UMethod>) -> Sequence<T>
@@ -302,12 +298,12 @@ suspend fun <T> findAnnotatedMethodsValues(
             psiFile,
             CacheKeysManager.getInstance(project)
               .getKey(
-                CachedValuesKey(annotations, shortAnnotationName, annotationFilter, toValues)
+                CachedValuesKey(annotationFqn, shortAnnotationName, annotationFilter, toValues)
               ),
             findAnnotatedMethodsCachedValues(
               project,
               vFile,
-              annotations,
+              annotationFqn,
               shortAnnotationName,
               annotationFilter,
               toValues
