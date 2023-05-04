@@ -1,6 +1,6 @@
 package com.example.composable
 
-import androidx.compose.Composable
+import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Text
 
 @Composable

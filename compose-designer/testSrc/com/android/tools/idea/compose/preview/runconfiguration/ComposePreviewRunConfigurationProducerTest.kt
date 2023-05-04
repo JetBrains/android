@@ -198,7 +198,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         // language=kotlin
         """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import androidx.compose.runtime.Composable
 
         @Preview
         @Composable

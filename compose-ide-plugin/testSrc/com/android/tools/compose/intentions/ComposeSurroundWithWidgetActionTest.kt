@@ -265,7 +265,7 @@ class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
       import androidx.compose.foundation.layout.Box
 
       @Composable

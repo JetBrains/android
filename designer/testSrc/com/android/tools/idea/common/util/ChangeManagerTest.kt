@@ -103,7 +103,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
     @Language("kotlin")
     val startFileContent = """
       import androidx.compose.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       @Preview
@@ -179,7 +179,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
     @Language("kotlin")
     val startFileContent = """
       import androidx.compose.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       @Preview
@@ -218,7 +218,7 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
     @Language("kotlin")
     val startFileContent = """
       import androidx.compose.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
 
       @Composable
       @Preview

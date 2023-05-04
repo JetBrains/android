@@ -76,10 +76,10 @@ class ComposeResolverTest {
   private fun createModel(): InspectorModel =
     model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture) {
       view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
-        compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
-          compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)
-          compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) {
-            compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3)
+        compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
+          compose(-3, "Text", "MyCompose.kt", 49835523, 593, 18)
+          compose(-4, "Greeting", "MyCompose.kt", 49835523, 622, 19) {
+            compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
           }
         }
       }

@@ -80,7 +80,7 @@ internal class DeviceSpecInjectorTest {
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import androidx.compose.runtime.Composable
 
         @Preview(device = "id:device$caret name")
         @Composable
@@ -105,7 +105,7 @@ internal class DeviceSpecInjectorTest {
       // language=kotlin
       """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import androidx.compose.runtime.Composable
 
         const val heightDp = "841dp"
         const val specPref = "spec:"
@@ -145,7 +145,7 @@ internal class DeviceSpecInjectorTest {
       // language=kotlin
       """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import androidx.compose.runtime.Composable
 
         const val heightPx = "1900px"
 
@@ -162,7 +162,7 @@ internal class DeviceSpecInjectorTest {
       // language=kotlin
       """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import androidx.compose.runtime.Composable
 
         const val heightPx = "1900px"
 
@@ -187,7 +187,7 @@ internal class DeviceSpecInjectorTest {
       """
         package example
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import androidx.compose.runtime.Composable
 
         @Preview($parameterName = "id:device$caret name")
         @Composable

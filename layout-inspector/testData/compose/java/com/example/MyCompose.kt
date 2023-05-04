@@ -2,7 +2,7 @@ package com.example
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.Composable
+import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Text
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.core.Modifier
