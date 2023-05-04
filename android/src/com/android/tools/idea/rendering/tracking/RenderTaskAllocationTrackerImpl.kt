@@ -20,22 +20,17 @@ import com.android.tools.idea.ui.GuiTestingService
 import com.intellij.openapi.application.ApplicationManager
 import java.util.WeakHashMap
 
-// We only track allocations in testing mode
-private val shouldTrackAllocations = GuiTestingService.getInstance()?.isGuiTestingMode == true ||
-                                     ApplicationManager.getApplication()?.isUnitTestMode == true
 private val allocations = WeakHashMap<RenderTask, StackTraceCapture>()
 private val scheduledDispose = WeakHashMap<RenderTask, StackTraceCapture>()
 
 data class AllocationStackTrace(override val stackTrace: List<StackTraceElement>): StackTraceCapture() {
   override fun bind(renderTask: RenderTask) {
-    if (!shouldTrackAllocations) return
     synchronized(allocations) { allocations[renderTask] = this }
   }
 }
 
 data class DisposeStackTrace(override val stackTrace: List<StackTraceElement>): StackTraceCapture() {
   override fun bind(renderTask: RenderTask) {
-    if (!shouldTrackAllocations) return
     // Remove the task from allocations and move to scheduledDispose
     synchronized(scheduledDispose) { scheduledDispose[renderTask] = this }
     synchronized(allocations) { allocations[renderTask] = null }
@@ -56,15 +51,11 @@ private val NULL_STACK_TRACE = object: StackTraceCapture() {
  * Resets the existing tracked allocation
  */
 fun clearTrackedAllocations() {
-  if (shouldTrackAllocations) {
-    synchronized(allocations) { allocations.clear() }
-    synchronized(scheduledDispose) { scheduledDispose.clear() }
-  }
+  synchronized(allocations) { allocations.clear() }
+  synchronized(scheduledDispose) { scheduledDispose.clear() }
 }
 
 fun notDisposedRenderTasks(): Sequence<Pair<RenderTask, StackTraceCapture>> {
-  if (!shouldTrackAllocations) emptySequence<StackTraceElement>()
-
   return (allocations + scheduledDispose).asSequence()
     .filter { (task, _) ->
       task != null && !task.isDisposed
@@ -73,7 +64,7 @@ fun notDisposedRenderTasks(): Sequence<Pair<RenderTask, StackTraceCapture>> {
     }
 }
 
-object RenderTaskAllocationTrackerImpl : RenderTaskAllocationTracker {
+class RenderTaskAllocationTrackerImpl(private val shouldTrackAllocations: Boolean) : RenderTaskAllocationTracker {
   override fun captureDisposeStackTrace(): StackTraceCapture =
     if (shouldTrackAllocations) {
       // Capture the current stack trace dropping the dispose point stack frame, one for captureDisposeStackTrace and one for getTrace

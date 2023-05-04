@@ -60,4 +60,6 @@ interface EnvironmentContext {
   fun getCrashReporter(): CrashReporter
 
   fun createCrashReport(t: Throwable): CrashReport
+
+  fun isInTest(): Boolean
 }

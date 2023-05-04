@@ -27,6 +27,7 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
+import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.IRenderLogger
@@ -128,4 +129,8 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
   override fun createCrashReport(t: Throwable): CrashReport {
     return StudioExceptionReport.Builder().setThrowable(t, false, true).build()
   }
+
+  // We only track allocations in testing mode
+  override fun isInTest(): Boolean = GuiTestingService.getInstance()?.isGuiTestingMode == true ||
+                                         ApplicationManager.getApplication()?.isUnitTestMode == true
 }

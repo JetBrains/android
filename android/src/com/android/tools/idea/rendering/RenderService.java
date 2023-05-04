@@ -25,6 +25,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
+import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTracker;
 import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTrackerImpl;
 import com.android.tools.idea.rendering.tracking.StackTraceCapture;
 import com.android.tools.layoutlib.LayoutlibFactory;
@@ -491,7 +492,9 @@ final public class RenderService implements Disposable {
      */
     @NotNull
     public CompletableFuture<RenderTask> build() {
-      StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerImpl.INSTANCE.captureAllocationStackTrace();
+      // We only track allocations in testing mode
+      RenderTaskAllocationTracker tracker = new RenderTaskAllocationTrackerImpl(myContext.getModule().getEnvironment().isInTest());
+      StackTraceCapture stackTraceCaptureElement = tracker.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
         RenderModelModule module = myContext.getModule();
@@ -537,7 +540,7 @@ final public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myContext, myContext.getModule().getEnvironment().getModuleClassLoaderManager(), myLogger, layoutLib,
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement,
+                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
 

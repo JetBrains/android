@@ -49,6 +49,7 @@ import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.dom.ActivityAttributesSnapshot;
+import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTracker;
 import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTrackerImpl;
 import com.android.tools.idea.rendering.tracking.StackTraceCapture;
 import com.android.tools.rendering.CachingImageFactory;
@@ -148,6 +149,7 @@ public class RenderTask {
   private static final ExecutorService ourDisposeService =
     AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
 
+  @NotNull RenderTaskAllocationTracker myTracker;
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderContext myContext;
 
@@ -204,6 +206,7 @@ public class RenderTask {
              boolean isSecurityManagerEnabled,
              float quality,
              @NotNull StackTraceCapture stackTraceCaptureElement,
+             @NotNull RenderTaskAllocationTracker tracker,
              boolean privateClassLoader,
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
@@ -212,6 +215,7 @@ public class RenderTask {
              boolean reportOutOfDateUserClasses,
              @NotNull RenderAsyncActionExecutor.RenderingPriority priority,
              float minDownscalingFactor) throws NoDeviceException {
+    myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
     myClassLoaderManager = classLoaderManager;
@@ -382,7 +386,7 @@ public class RenderTask {
       return Futures.immediateFailedFuture(new IllegalStateException("RenderTask was already disposed"));
     }
 
-    RenderTaskAllocationTrackerImpl.INSTANCE.captureDisposeStackTrace().bind(this);
+    myTracker.captureDisposeStackTrace().bind(this);
 
     return ourDisposeService.submit(() -> {
       try {
