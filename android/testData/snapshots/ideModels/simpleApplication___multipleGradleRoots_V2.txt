@@ -1,10 +1,14 @@
 MODULE                        : gradle_project_1
     externalProject               : gradle_project_1 (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : gradle_project_1
         qName                         : gradle_project_1
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : gradle_project_1
@@ -1156,11 +1160,15 @@ MODULE                        : gradle_project_1.app.main
 MODULE                        : gradle_project_1.app.unitTest
 MODULE                        : gradle_project_name
     externalProject               : gradle_project_name (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : gradle_project_name
         qName                         : gradle_project_name
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : gradle_project_name

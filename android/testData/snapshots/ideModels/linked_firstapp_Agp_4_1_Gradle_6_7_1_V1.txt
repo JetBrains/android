@@ -1,6 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT>/firstapp (IdeBuildImpl)
-        buildName                     : :
+MODULE                        : My_First_App
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : My First App
+    LinkedProjectPath             : <ROOT>/firstapp
+    RootProjectPath               : <ROOT>/firstapp
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/firstapp/build/classes/production/My_First_App [-]
+        compilerTestOutputPath        : file://<ROOT>/firstapp/build/classes/test/My_First_App [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/firstapp/.idea/modules/My_First_App.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>/firstapp
+        EXCLUDE_FOLDER                : file://<ROOT>/firstapp/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/firstapp/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : androidx.appcompat:appcompat:1.0.2@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/aidl [-]
@@ -543,11 +564,15 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : My_First_App
     externalProject               : My First App (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : My First App
         qName                         : My First App
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : My First App
@@ -556,6 +581,8 @@ MODULE                        : My_First_App
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 childProjects
                     mysharedlibrary               : :app:mysharedlibrary (DefaultExternalProject)
+                        path                          : :app:mysharedlibrary [-]
+                        identityPath                  : :app:mysharedlibrary [-]
                         name                          : mysharedlibrary
                         qName                         : :app:mysharedlibrary
                         group                         : My First App.app

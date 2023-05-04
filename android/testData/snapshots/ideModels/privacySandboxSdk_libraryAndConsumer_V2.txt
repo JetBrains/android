@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : project
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : project
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/project [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/project [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/project.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : androidx.appcompat:appcompat:1.4.1@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/aidl [-]
@@ -739,11 +759,15 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : project
         qName                         : project
         version                       : unspecified
         childProjects
             ads-sdk                       : :ads-sdk (DefaultExternalProject)
+                path                          : :ads-sdk [-]
+                identityPath                  : :ads-sdk [-]
                 name                          : ads-sdk
                 qName                         : :ads-sdk
                 group                         : project
@@ -761,6 +785,8 @@ MODULE                        : project
                     includeRuntimeUnmerged        : <empty>
                     runtimeElements               : <empty>
             ads-sdk-implementation        : :ads-sdk-implementation (DefaultExternalProject)
+                path                          : :ads-sdk-implementation [-]
+                identityPath                  : :ads-sdk-implementation [-]
                 name                          : ads-sdk-implementation
                 qName                         : :ads-sdk-implementation
                 group                         : project
@@ -989,6 +1015,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : project
@@ -1210,6 +1238,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             app-with-dynamic-feature      : :app-with-dynamic-feature (DefaultExternalProject)
+                path                          : :app-with-dynamic-feature [-]
+                identityPath                  : :app-with-dynamic-feature [-]
                 name                          : app-with-dynamic-feature
                 qName                         : :app-with-dynamic-feature
                 group                         : project
@@ -1431,6 +1461,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             feature                       : :feature (DefaultExternalProject)
+                path                          : :feature [-]
+                identityPath                  : :feature [-]
                 name                          : feature
                 qName                         : :feature
                 group                         : project

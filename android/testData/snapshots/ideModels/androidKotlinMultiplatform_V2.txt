@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : Kotlin_Multiplatform
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : Kotlin Multiplatform
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/Kotlin_Multiplatform [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/Kotlin_Multiplatform [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/Kotlin_Multiplatform.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : junit:junit:4.13.2 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
@@ -55,11 +75,15 @@ LIBRARY_TABLE
         variant                       : typeoneModeoneDebug
 MODULE                        : Kotlin_Multiplatform
     externalProject               : Kotlin Multiplatform (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : Kotlin Multiplatform
         qName                         : Kotlin Multiplatform
         version                       : unspecified
         childProjects
             androidLib                    : :androidLib (DefaultExternalProject)
+                path                          : :androidLib [-]
+                identityPath                  : :androidLib [-]
                 name                          : androidLib
                 qName                         : :androidLib
                 group                         : Kotlin Multiplatform
@@ -499,6 +523,8 @@ MODULE                        : Kotlin_Multiplatform
                     typetwoWearApp                : <empty>
                     wearApp                       : <empty>
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : Kotlin Multiplatform
@@ -613,6 +639,8 @@ MODULE                        : Kotlin_Multiplatform
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             kmpFirstLib                   : :kmpFirstLib (DefaultExternalProject)
+                path                          : :kmpFirstLib [-]
+                identityPath                  : :kmpFirstLib [-]
                 name                          : kmpFirstLib
                 qName                         : :kmpFirstLib
                 group                         : Kotlin Multiplatform
@@ -741,6 +769,8 @@ MODULE                        : Kotlin_Multiplatform
                     unitTestKotlinScriptDef       : <empty>
                     unitTestKotlinScriptDefExtensions       : <empty>
             kmpJvmOnly                    : :kmpJvmOnly (DefaultExternalProject)
+                path                          : :kmpJvmOnly [-]
+                identityPath                  : :kmpJvmOnly [-]
                 name                          : kmpJvmOnly
                 qName                         : :kmpJvmOnly
                 group                         : Kotlin Multiplatform
@@ -838,6 +868,8 @@ MODULE                        : Kotlin_Multiplatform
                     testKotlinScriptDef           : <empty>
                     testKotlinScriptDefExtensions : <empty>
             kmpSecondLib                  : :kmpSecondLib (DefaultExternalProject)
+                path                          : :kmpSecondLib [-]
+                identityPath                  : :kmpSecondLib [-]
                 name                          : kmpSecondLib
                 qName                         : :kmpSecondLib
                 group                         : Kotlin Multiplatform

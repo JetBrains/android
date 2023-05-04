@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : NonStandardSourceSetDependencies
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : NonStandardSourceSetDependencies
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/NonStandardSourceSetDependencies [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/NonStandardSourceSetDependencies [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/NonStandardSourceSetDependencies.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : __wrapped_aars__::aarWrapperLib:unspecified@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <ROOT>/aarWrapperLib/build/.transforms/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/aarWrapperedLib/aidl [-]
@@ -670,11 +690,15 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : NonStandardSourceSetDependencies
     externalProject               : NonStandardSourceSetDependencies (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : NonStandardSourceSetDependencies
         qName                         : NonStandardSourceSetDependencies
         version                       : unspecified
         childProjects
             aarWrapperLib                 : :aarWrapperLib (DefaultExternalProject)
+                path                          : :aarWrapperLib [-]
+                identityPath                  : :aarWrapperLib [-]
                 name                          : aarWrapperLib
                 qName                         : :aarWrapperLib
                 group                         : NonStandardSourceSetDependencies
@@ -686,6 +710,8 @@ MODULE                        : NonStandardSourceSetDependencies
                 artifactsByConfiguration
                     - default                     : <ROOT>/aarWrapperLib/aarWrapperedLib.aar
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : NonStandardSourceSetDependencies
@@ -912,6 +938,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             common                        : :common (DefaultExternalProject)
+                path                          : :common [-]
+                identityPath                  : :common [-]
                 name                          : common
                 qName                         : :common
                 group                         : NonStandardSourceSetDependencies
@@ -1009,6 +1037,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testKotlinScriptDef           : <empty>
                     testKotlinScriptDefExtensions : <empty>
             desktop                       : :desktop (DefaultExternalProject)
+                path                          : :desktop [-]
+                identityPath                  : :desktop [-]
                 name                          : desktop
                 qName                         : :desktop
                 group                         : NonStandardSourceSetDependencies
@@ -1142,6 +1172,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             feature-a                     : :feature-a (DefaultExternalProject)
+                path                          : :feature-a [-]
+                identityPath                  : :feature-a [-]
                 name                          : feature-a
                 qName                         : :feature-a
                 group                         : NonStandardSourceSetDependencies
@@ -1379,6 +1411,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             feature-b                     : :feature-b (DefaultExternalProject)
+                path                          : :feature-b [-]
+                identityPath                  : :feature-b [-]
                 name                          : feature-b
                 qName                         : :feature-b
                 group                         : NonStandardSourceSetDependencies
@@ -1715,6 +1749,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             jarWrapperLib                 : :jarWrapperLib (DefaultExternalProject)
+                path                          : :jarWrapperLib [-]
+                identityPath                  : :jarWrapperLib [-]
                 name                          : jarWrapperLib
                 qName                         : :jarWrapperLib
                 group                         : NonStandardSourceSetDependencies
@@ -1726,6 +1762,8 @@ MODULE                        : NonStandardSourceSetDependencies
                 artifactsByConfiguration
                     - default                     : <ROOT>/jarWrapperLib/JarWrappedLib.jar
             javaLibrary                   : :javaLibrary (DefaultExternalProject)
+                path                          : :javaLibrary [-]
+                identityPath                  : :javaLibrary [-]
                 name                          : javaLibrary
                 qName                         : :javaLibrary
                 group                         : NonStandardSourceSetDependencies
@@ -1908,12 +1946,16 @@ MODULE                        : NonStandardSourceSetDependencies
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             kmp-java                      : :kmp-java (DefaultExternalProject)
+                path                          : :kmp-java [-]
+                identityPath                  : :kmp-java [-]
                 name                          : kmp-java
                 qName                         : :kmp-java
                 group                         : NonStandardSourceSetDependencies
                 version                       : unspecified
                 childProjects
                     sample                        : :kmp-java:sample (DefaultExternalProject)
+                        path                          : :kmp-java:sample [-]
+                        identityPath                  : :kmp-java:sample [-]
                         name                          : sample
                         qName                         : :kmp-java:sample
                         group                         : NonStandardSourceSetDependencies.kmp-java
@@ -2096,6 +2138,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             testRuntimeClasspath          : <empty>
                             testRuntimeOnly               : <empty>
                     sample-test                   : :kmp-java:sample-test (DefaultExternalProject)
+                        path                          : :kmp-java:sample-test [-]
+                        identityPath                  : :kmp-java:sample-test [-]
                         name                          : sample-test
                         qName                         : :kmp-java:sample-test
                         group                         : NonStandardSourceSetDependencies.kmp-java
@@ -2219,6 +2263,8 @@ MODULE                        : NonStandardSourceSetDependencies
                 buildFile                     : <ROOT>/kmp-java/build.gradle [-]
                 externalSystemId              : GRADLE
             lib                           : :lib (DefaultExternalProject)
+                path                          : :lib [-]
+                identityPath                  : :lib [-]
                 name                          : lib
                 qName                         : :lib
                 group                         : NonStandardSourceSetDependencies

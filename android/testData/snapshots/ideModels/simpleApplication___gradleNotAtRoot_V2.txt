@@ -1,10 +1,14 @@
 MODULE                        : gradle_project
     externalProject               : gradle_project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : gradle_project
         qName                         : gradle_project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : gradle_project

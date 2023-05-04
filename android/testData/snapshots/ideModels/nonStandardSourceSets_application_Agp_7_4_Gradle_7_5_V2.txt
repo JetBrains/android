@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT>/application (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : application
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : application
+    LinkedProjectPath             : <ROOT>/application
+    RootProjectPath               : <ROOT>/application
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/application/build/classes/production/application [-]
+        compilerTestOutputPath        : file://<ROOT>/application/build/classes/test/application [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/application/.idea/modules/application.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>/application
+        EXCLUDE_FOLDER                : file://<ROOT>/application/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/application/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : com.android.support:appcompat-v7:28.0.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/aidl [-]
@@ -582,11 +602,15 @@ LIBRARY_TABLE
         artifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
 MODULE                        : application
     externalProject               : application (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : application
         qName                         : application
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : application

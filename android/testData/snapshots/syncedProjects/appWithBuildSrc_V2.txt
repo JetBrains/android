@@ -610,7 +610,7 @@ PROJECT                       : project
     MODULE                        : project.buildSrc
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc
+        LinkedProjectId               : :buildSrc
         LinkedProjectPath             : <PROJECT>/buildSrc
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -618,8 +618,11 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.buildSrc [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/project.buildSrc.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/project.buildSrc.iml [-]
         ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/build
@@ -628,13 +631,25 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:assemble, :buildSrc:testClasses
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean, :buildSrc:testClasses
+                COMPILE_JAVA                  : :buildSrc:compileJava, :buildSrc:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:assemble
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean
+                COMPILE_JAVA                  : :buildSrc:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:assemble, :buildSrc:testClasses
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean, :buildSrc:testClasses
+                COMPILE_JAVA                  : :buildSrc:compileJava, :buildSrc:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:assemble
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean
+                COMPILE_JAVA                  : :buildSrc:compileJava
     MODULE                        : project.buildSrc.lib1
         ExternalModuleGroup           : buildSrc
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc:lib1
+        LinkedProjectId               : :buildSrc:lib1
         LinkedProjectPath             : <PROJECT>/buildSrc/lib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -642,8 +657,11 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.buildSrc.lib1 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib1/project.buildSrc.lib1.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/project.buildSrc.lib1.iml [-]
         ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/build
@@ -652,21 +670,33 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:lib1:assemble, :buildSrc:lib1:testClasses
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean, :buildSrc:lib1:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava, :buildSrc:lib1:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:lib1:assemble
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:lib1:assemble, :buildSrc:lib1:testClasses
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean, :buildSrc:lib1:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava, :buildSrc:lib1:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:lib1:assemble
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava
     MODULE                        : project.buildSrc.lib1.main
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc:lib1:main
+        LinkedProjectId               : :buildSrc:lib1:main
         LinkedProjectPath             : <PROJECT>/buildSrc/lib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib1/project.buildSrc.lib1.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/project.buildSrc.lib1.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/main
             JavaSource                    : file://<PROJECT>/buildSrc/lib1/src/main/java
@@ -677,16 +707,29 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.buildSrc.lib2.main
         Classes
             -                             : file://<PROJECT>/buildSrc/lib1/build/classes/java/main
+            -                             : file://<PROJECT>/buildSrc/lib1/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:lib1:assemble, :buildSrc:lib1:testClasses
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean, :buildSrc:lib1:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava, :buildSrc:lib1:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:lib1:assemble
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:lib1:assemble, :buildSrc:lib1:testClasses
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean, :buildSrc:lib1:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava, :buildSrc:lib1:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:lib1:assemble
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava
     MODULE                        : project.buildSrc.lib1.test
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc:lib1:test
+        LinkedProjectId               : :buildSrc:lib1:test
         LinkedProjectPath             : <PROJECT>/buildSrc/lib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -695,7 +738,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.buildSrc.lib1.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib1/project.buildSrc.lib1.test.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib1/project.buildSrc.lib1.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/lib1/src/test/java [-]
@@ -707,13 +750,25 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.buildSrc.lib2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:lib1:assemble, :buildSrc:lib1:testClasses
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean, :buildSrc:lib1:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava, :buildSrc:lib1:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:lib1:assemble
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:lib1:assemble, :buildSrc:lib1:testClasses
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean, :buildSrc:lib1:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava, :buildSrc:lib1:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:lib1:assemble
+                REBUILD                       : :buildSrc:lib1:assemble, :buildSrc:lib1:clean
+                COMPILE_JAVA                  : :buildSrc:lib1:compileJava
     MODULE                        : project.buildSrc.lib2
         ExternalModuleGroup           : buildSrc
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc:lib2
+        LinkedProjectId               : :buildSrc:lib2
         LinkedProjectPath             : <PROJECT>/buildSrc/lib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -721,8 +776,11 @@ PROJECT                       : project
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/project.buildSrc.lib2 [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib2/project.buildSrc.lib2.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/project.buildSrc.lib2.iml [-]
         ModuleTypeName                : JAVA_MODULE
+        FACET                         : Android-Gradle
+            TypeId                        : android-gradle
+            ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/build
@@ -731,21 +789,33 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:lib2:assemble, :buildSrc:lib2:testClasses
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean, :buildSrc:lib2:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava, :buildSrc:lib2:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:lib2:assemble
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:lib2:assemble, :buildSrc:lib2:testClasses
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean, :buildSrc:lib2:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava, :buildSrc:lib2:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:lib2:assemble
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava
     MODULE                        : project.buildSrc.lib2.main
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc:lib2:main
+        LinkedProjectId               : :buildSrc:lib2:main
         LinkedProjectPath             : <PROJECT>/buildSrc/lib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/lib2/project.buildSrc.lib2.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/project.buildSrc.lib2.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/main
             JavaSource                    : file://<PROJECT>/buildSrc/lib2/src/main/java
@@ -755,16 +825,29 @@ PROJECT                       : project
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/buildSrc/lib2/build/classes/java/main
+            -                             : file://<PROJECT>/buildSrc/lib2/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:lib2:assemble, :buildSrc:lib2:testClasses
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean, :buildSrc:lib2:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava, :buildSrc:lib2:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:lib2:assemble
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:lib2:assemble, :buildSrc:lib2:testClasses
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean, :buildSrc:lib2:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava, :buildSrc:lib2:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:lib2:assemble
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava
     MODULE                        : project.buildSrc.lib2.test
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc:lib2:test
+        LinkedProjectId               : :buildSrc:lib2:test
         LinkedProjectPath             : <PROJECT>/buildSrc/lib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -773,7 +856,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.buildSrc.lib2.main
-        ModuleFile                    : <PROJECT>/.idea/modules/lib2/project.buildSrc.lib2.test.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/lib2/project.buildSrc.lib2.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/lib2/src/test/java [-]
@@ -784,21 +867,33 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.buildSrc.lib2.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:lib2:assemble, :buildSrc:lib2:testClasses
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean, :buildSrc:lib2:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava, :buildSrc:lib2:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:lib2:assemble
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:lib2:assemble, :buildSrc:lib2:testClasses
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean, :buildSrc:lib2:testClasses
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava, :buildSrc:lib2:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:lib2:assemble
+                REBUILD                       : :buildSrc:lib2:assemble, :buildSrc:lib2:clean
+                COMPILE_JAVA                  : :buildSrc:lib2:compileJava
     MODULE                        : project.buildSrc.main
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc:main
+        LinkedProjectId               : :buildSrc:main
         LinkedProjectPath             : <PROJECT>/buildSrc
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/buildSrc/build/classes/java/main
             isCompilerPathInherited       : false
             isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/project.buildSrc.main.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/project.buildSrc.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/main
             JavaSource                    : file://<PROJECT>/buildSrc/src/main/java
@@ -917,16 +1012,30 @@ PROJECT                       : project
             Scope                         : Runtime
         Classes
             -                             : file://<PROJECT>/buildSrc/build/classes/java/main
+            -                             : file://<PROJECT>/buildSrc/build/classes/groovy/main
+            -                             : file://<PROJECT>/buildSrc/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:assemble, :buildSrc:testClasses
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean, :buildSrc:testClasses
+                COMPILE_JAVA                  : :buildSrc:compileJava, :buildSrc:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:assemble
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean
+                COMPILE_JAVA                  : :buildSrc:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:assemble, :buildSrc:testClasses
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean, :buildSrc:testClasses
+                COMPILE_JAVA                  : :buildSrc:compileJava, :buildSrc:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:assemble
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean
+                COMPILE_JAVA                  : :buildSrc:compileJava
     MODULE                        : project.buildSrc.test
         ExternalModuleGroup           :
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : project:buildSrc:test
+        LinkedProjectId               : :buildSrc:test
         LinkedProjectPath             : <PROJECT>/buildSrc
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -935,7 +1044,7 @@ PROJECT                       : project
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : project.buildSrc.main
-        ModuleFile                    : <PROJECT>/.idea/modules/project.buildSrc.test.iml [-]
+        ModuleFile                    : <PROJECT>/.idea/modules/buildSrc/project.buildSrc.test.iml [-]
         ModuleTypeName                : JAVA_MODULE
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/src/test [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/buildSrc/src/test/groovy [-]
@@ -1055,9 +1164,21 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.buildSrc.main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
+                ASSEMBLE                      : :buildSrc:assemble, :buildSrc:testClasses
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean, :buildSrc:testClasses
+                COMPILE_JAVA                  : :buildSrc:compileJava, :buildSrc:testClasses
             TEST_COMPILE_MODE             : Android tests
+                ASSEMBLE                      : :buildSrc:assemble
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean
+                COMPILE_JAVA                  : :buildSrc:compileJava
             TEST_COMPILE_MODE             : Unit tests
+                ASSEMBLE                      : :buildSrc:assemble, :buildSrc:testClasses
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean, :buildSrc:testClasses
+                COMPILE_JAVA                  : :buildSrc:compileJava, :buildSrc:testClasses
             TEST_COMPILE_MODE             : None
+                ASSEMBLE                      : :buildSrc:assemble
+                REBUILD                       : :buildSrc:assemble, :buildSrc:clean
+                COMPILE_JAVA                  : :buildSrc:compileJava
     RUN_CONFIGURATION             : app
         *class*                       : AndroidRunConfiguration
         ModuleName                    : project.app.main
@@ -1200,33 +1321,33 @@ PROJECT                       : project
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::buildSrc:assemble
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib2:compileJava
             SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::buildSrc:assemble
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib2:compileJava
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

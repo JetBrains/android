@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : MainActivity
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : MainActivity
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/MainActivity [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/MainActivity [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/MainActivity.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : androidx.core:core-ktx:1.0.1@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-ktx-1.0.1/aidl [-]
@@ -689,11 +709,15 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : MainActivity
     externalProject               : MainActivity (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : MainActivity
         qName                         : MainActivity
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : MainActivity
@@ -1231,6 +1255,8 @@ MODULE                        : MainActivity
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             javaLib                       : :javaLib (DefaultExternalProject)
+                path                          : :javaLib [-]
+                identityPath                  : :javaLib [-]
                 name                          : javaLib
                 qName                         : :javaLib
                 group                         : MainActivity
@@ -1384,6 +1410,8 @@ MODULE                        : MainActivity
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
             lib                           : :lib (DefaultExternalProject)
+                path                          : :lib [-]
+                identityPath                  : :lib [-]
                 name                          : lib
                 qName                         : :lib
                 group                         : MainActivity
