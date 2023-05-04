@@ -16,23 +16,31 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor
-import org.jetbrains.android.AndroidTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.testFramework.RunsInEdt
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
-  override fun setUp() {
-    super.setUp()
+class AndroidWearRunLineMarkerContributorTest {
 
-    myFixture.addWearDependenciesToProject()
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+
+  @Before
+  fun setUp() {
+
+    projectRule.fixture.addWearDependenciesToProject()
   }
 
-  override fun tearDown() {
-    super.tearDown()
-  }
 
   @Test
+  @RunsInEdt
   fun testGetWatchFaceInfo() {
-    val watchFaceFile = myFixture.addFileToProject(
+    val watchFaceFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyTestWatchFace.kt",
       """
       package com.example.myapplication
@@ -52,8 +60,9 @@ class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
   }
 
   @Test
+  @RunsInEdt
   fun testGetTileInfo() {
-    val tileFile = myFixture.addFileToProject(
+    val tileFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyTileService.kt",
       """
       package com.example.myapplication
@@ -70,8 +79,9 @@ class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
   }
 
   @Test
+  @RunsInEdt
   fun testGetComplicationInfo() {
-    val complicationFile = myFixture.addFileToProject(
+    val complicationFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.kt",
       """
       package com.example.myapplication
@@ -88,8 +98,9 @@ class AndroidWearRunLineMarkerContributorTest : AndroidTestCase() {
   }
 
   @Test
+  @RunsInEdt
   fun testGetComplicationInfoJava() {
-    val complicationFile = myFixture.addFileToProject(
+    val complicationFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.java",
       """
       package com.example.myapplication;

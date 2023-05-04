@@ -17,30 +17,36 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
-  override fun setUp() {
-    super.setUp()
+class AndroidWatchFaceRunConfigurationProducerTest {
 
-    myFixture.addWearDependenciesToProject()
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+
+  @Before
+  fun setUp() {
+    projectRule.fixture.addWearDependenciesToProject()
   }
 
-  override fun tearDown() {
-    super.tearDown()
-  }
 
   @Test
+  @RunsInEdt
   fun testSetupConfigurationFromContext() {
-    val watchFaceFile = myFixture.addFileToProject(
+    val watchFaceFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyTestWatchFace.kt",
       """
       package com.example.myapplication
@@ -59,12 +65,13 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
 
     assertEquals("MyTestWatchFace", configurationFromClass.name)
     assertEquals("com.example.myapplication.MyTestWatchFace", configurationFromClass.componentLaunchOptions.componentName)
-    assertEquals(myModule, configurationFromClass.module)
+    assertEquals(projectRule.fixture.module, configurationFromClass.module)
   }
 
   @Test
+  @RunsInEdt
   fun testJavaSetupConfigurationFromContext() {
-    val watchFaceFile = myFixture.addFileToProject(
+    val watchFaceFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyWatchFaceService.java",
       """
       package com.example.myapplication;
@@ -80,12 +87,13 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
 
     assertEquals("MyWatchFaceService", configurationFromClass.name)
     assertEquals("com.example.myapplication.MyWatchFaceService", configurationFromClass.componentLaunchOptions.componentName)
-    assertEquals(myModule, configurationFromClass.module)
+    assertEquals(projectRule.fixture.module, configurationFromClass.module)
   }
 
   @Test
+  @RunsInEdt
   fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
-    val watchFaceFile = myFixture.addFileToProject(
+    val watchFaceFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyTestWatchFace.kt",
       """
       package com.example.myapplication
@@ -118,5 +126,6 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   private fun createRunConfiguration() =
-    AndroidWatchFaceConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidWatchFaceConfiguration
+    AndroidWatchFaceConfigurationType().configurationFactories[0].createTemplateConfiguration(
+      projectRule.project) as AndroidWatchFaceConfiguration
 }

@@ -18,18 +18,29 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.deployer.model.component.Complication.ComplicationType.LONG_TEXT
 import com.android.tools.deployer.model.component.Complication.ComplicationType.RANGED_VALUE
 import com.android.tools.deployer.model.component.Complication.ComplicationType.SHORT_TEXT
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.onEdt
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.UsefulTestCase.assertThrows
 import junit.framework.TestCase
-import org.jetbrains.android.AndroidTestCase
+import org.junit.Rule
+import org.junit.Test
 import java.io.IOException
 
-class ComplicationTypeUtilsTest : AndroidTestCase() {
+class ComplicationTypeUtilsTest {
+  @get:Rule
+  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.SIMPLE_APPLICATION).onEdt()
+
   private val manifestString = """
-        <manifest package="com.example.android.wearable.watchface"
+        <manifest package="google.simpleapplication"
           xmlns:android="http://schemas.android.com/apk/res/android">
           <application
           android:allowBackup="true"
@@ -54,16 +65,19 @@ class ComplicationTypeUtilsTest : AndroidTestCase() {
         </manifest>
 """
 
+  @Test
+  @RunsInEdt
   fun testExtractSupportedComplicationTypes() {
     val mergedManifest: MergedManifestSnapshot =
       getMergedManifest(String.format(manifestString, "RANGED_VALUE,, , INVALID, SHORT_TEXT, LONG_TEXT"))!!
     assertEquals(
       listOf(RANGED_VALUE.toString(), "", "", "INVALID", SHORT_TEXT.toString(), LONG_TEXT.toString()),
       extractSupportedComplicationTypes(mergedManifest,
-                                        "com.example.android.wearable.watchface.provider.IncrementingNumberComplicationProviderService")
+                                        "google.simpleapplication.provider.IncrementingNumberComplicationProviderService")
     )
   }
 
+  @Test
   fun testParseComplicationTypes() {
     val typesStr = listOf("RANGED_VALUE", "INVALID", "LONG_TEXT")
     assertEquals(
@@ -72,6 +86,7 @@ class ComplicationTypeUtilsTest : AndroidTestCase() {
     )
   }
 
+  @Test
   fun testParseComplicationTypesWarning() {
     val typesStr = listOf("RANGED_VALUE", "INVALID", "LONG_TEXT")
     assertThrows(RuntimeConfigurationWarning::class.java) {
@@ -81,8 +96,8 @@ class ComplicationTypeUtilsTest : AndroidTestCase() {
 
   @Throws(Exception::class)
   private fun getMergedManifest(manifestContents: String): MergedManifestSnapshot? {
-    val path = "AndroidManifest.xml"
-    val manifest: VirtualFile = myFixture.findFileInTempDir(path)
+    val path = "app/src/main/AndroidManifest.xml"
+    val manifest: VirtualFile = projectRule.fixture.findFileInTempDir(path)
     ApplicationManager.getApplication().runWriteAction(object : Runnable {
       override fun run() {
         try {
@@ -93,7 +108,8 @@ class ComplicationTypeUtilsTest : AndroidTestCase() {
         }
       }
     })
-    myFixture.addFileToProject(path, manifestContents)
-    return MergedManifestManager.getMergedManifest(myModule).get()
+    projectRule.fixture.addFileToProject(path, manifestContents)
+
+    return MergedManifestManager.getMergedManifest(projectRule.projectRule.project.findAppModule()).get()
   }
 }

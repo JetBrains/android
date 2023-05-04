@@ -17,26 +17,36 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
-  override fun setUp() {
-    super.setUp()
+class AndroidComplicationRunConfigurationProducerTest {
 
-    myFixture.addWearDependenciesToProject()
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+
+  @Before
+  fun setUp() {
+    projectRule.fixture.addWearDependenciesToProject()
   }
 
+
   @Test
+  @RunsInEdt
   fun testSetupConfigurationFromContext() {
-    val complicationFile = myFixture.addFileToProject(
+    val complicationFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.kt",
       """
       package com.example.myapplication
@@ -52,12 +62,13 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
 
     assertEquals("MyTestComplication", configurationFromClass.name)
     assertEquals("com.example.myapplication.MyTestComplication", configurationFromClass.componentLaunchOptions.componentName)
-    assertEquals(myModule, configurationFromClass.module)
+    assertEquals(projectRule.fixture.module, configurationFromClass.module)
   }
 
   @Test
+  @RunsInEdt
   fun testJavaSetupConfigurationFromContext() {
-    val complicationFile = myFixture.addFileToProject(
+    val complicationFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.java",
       """
       package com.example.myapplication;
@@ -73,12 +84,13 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
 
     assertEquals("MyComplicationService", configurationFromClass.name)
     assertEquals("com.example.myapplication.MyComplicationService", configurationFromClass.componentLaunchOptions.componentName)
-    assertEquals(myModule, configurationFromClass.module)
+    assertEquals(projectRule.fixture.module, configurationFromClass.module)
   }
 
   @Test
+  @RunsInEdt
   fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
-    val complicationFile = myFixture.addFileToProject(
+    val complicationFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyComplicationService.kt",
       """
       package com.example.myapplication
@@ -108,5 +120,5 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   private fun createRunConfiguration() = AndroidComplicationConfigurationType().configurationFactories[0]
-    .createTemplateConfiguration(project) as AndroidComplicationConfiguration
+    .createTemplateConfiguration(projectRule.project) as AndroidComplicationConfiguration
 }

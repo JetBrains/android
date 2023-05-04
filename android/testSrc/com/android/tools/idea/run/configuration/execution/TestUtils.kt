@@ -29,7 +29,7 @@ import com.android.utils.NullLogger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
 
@@ -93,7 +93,7 @@ internal class TestApplicationInstaller : ApplicationDeployer {
   }
 }
 
-internal fun JavaCodeInsightTestFixture.addWearDependenciesToProject() {
+internal fun CodeInsightTestFixture.addWearDependenciesToProject() {
   // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
   addFileToProject(
     "src/android/support/wearable/watchface/WatchFaceService.kt",

@@ -19,18 +19,28 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver.INVALID_ARGUMENT_CODE
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
 import com.intellij.execution.ExecutionException
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.UsefulTestCase.assertThrows
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito
 
-class UtilsTest : AndroidTestCase() {
+class UtilsTest {
+
+  @get:Rule
+  val projectRule = ProjectRule()
+
+  @Test
   fun testWearDebugSurfaceVersion() {
     val version = 10
     val device = getMockDevice { request ->
       when (request) {
         "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" ->
           "Broadcast completed: result=1, data=\"$version\""
+
         else -> "Unknown request: $request"
       }
     }
@@ -38,11 +48,13 @@ class UtilsTest : AndroidTestCase() {
     assertEquals(version, device.getWearDebugSurfaceVersion(EmptyProgressIndicator()))
   }
 
+  @Test
   fun testWearDebugSurfaceVersionWhenInvalidResult() {
     val device = getMockDevice { request ->
       when (request) {
         "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" ->
           "Broadcast completed: result=0"
+
         else -> "Unknown request: $request"
       }
     }
@@ -51,11 +63,13 @@ class UtilsTest : AndroidTestCase() {
     }
   }
 
+  @Test
   fun testWearDebugSurfaceVersionWhenMissingVersionOp() {
     val device = getMockDevice { request ->
       when (request) {
         "am broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version" ->
           "Broadcast completed: result=$INVALID_ARGUMENT_CODE, data=\"Unrecognized operation version\""
+
         else -> "Unknown request: $request"
       }
     }

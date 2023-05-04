@@ -17,30 +17,35 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
-  override fun setUp() {
-    super.setUp()
+class AndroidTileRunConfigurationProducerTest {
 
-    myFixture.addWearDependenciesToProject()
-  }
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  override fun tearDown() {
-    super.tearDown()
+  @Before
+  fun setUp() {
+    projectRule.fixture.addWearDependenciesToProject()
   }
 
   @Test
+  @RunsInEdt
   fun testSetupConfigurationFromContext() {
-    val tileFile = myFixture.addFileToProject(
+    val tileFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyTileService.kt",
       """
       package com.example.myapplication
@@ -56,12 +61,13 @@ class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
 
     assertEquals("MyTestTile", configurationFromClass.name)
     assertEquals("com.example.myapplication.MyTestTile", configurationFromClass.componentLaunchOptions.componentName)
-    assertEquals(myModule, configurationFromClass.module)
+    assertEquals(projectRule.fixture.module, configurationFromClass.module)
   }
 
   @Test
+  @RunsInEdt
   fun testJavaSetupConfigurationFromContext() {
-    val tileFile = myFixture.addFileToProject(
+    val tileFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyTileService.java",
       """
       package com.example.myapplication;
@@ -77,12 +83,13 @@ class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
 
     assertEquals("MyTileService", configurationFromClass.name)
     assertEquals("com.example.myapplication.MyTileService", configurationFromClass.componentLaunchOptions.componentName)
-    assertEquals(myModule, configurationFromClass.module)
+    assertEquals(projectRule.fixture.module, configurationFromClass.module)
   }
 
   @Test
+  @RunsInEdt
   fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
-    val tileFile = myFixture.addFileToProject(
+    val tileFile = projectRule.fixture.addFileToProject(
       "src/com/example/myapplication/MyTileService.kt",
       """
       package com.example.myapplication
@@ -112,5 +119,5 @@ class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
   }
 
   private fun createRunConfiguration() =
-    AndroidTileConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidTileConfiguration
+    AndroidTileConfigurationType().configurationFactories[0].createTemplateConfiguration(projectRule.project) as AndroidTileConfiguration
 }
