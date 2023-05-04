@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.enhance
+package com.android.tools.idea.insights.vcs
 
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -39,9 +39,7 @@ interface VcsForAppInsights {
   companion object {
     @JvmField
     val EP_NAME =
-      ExtensionPointName<VcsForAppInsights>(
-        "com.android.tools.idea.insights.enhance.vcsForAppInsights"
-      )
+      ExtensionPointName<VcsForAppInsights>("com.android.tools.idea.insights.vcs.vcsForAppInsights")
 
     fun getExtensionByKey(key: VCS_CATEGORY): VcsForAppInsights? {
       return EP_NAME.extensionList.firstOrNull { it.key == key }

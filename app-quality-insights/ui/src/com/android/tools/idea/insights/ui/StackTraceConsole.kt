@@ -23,8 +23,8 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
-import com.android.tools.idea.insights.enhance.InsightsAttachInlayDiffLinkFilter
-import com.android.tools.idea.insights.enhance.VCS_INFO_OF_SELECTED_CRASH
+import com.android.tools.idea.insights.vcs.InsightsAttachInlayDiffLinkFilter
+import com.android.tools.idea.insights.vcs.VCS_INFO_OF_SELECTED_CRASH
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.TextConsoleBuilderFactory

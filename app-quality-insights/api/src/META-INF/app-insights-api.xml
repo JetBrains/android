@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensionPoints>
-    <extensionPoint qualifiedName="com.android.tools.idea.insights.enhance.vcsForAppInsights"
-                    interface="com.android.tools.idea.insights.enhance.VcsForAppInsights"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.insights.vcs.vcsForAppInsights"
+                    interface="com.android.tools.idea.insights.vcs.VcsForAppInsights"/>
   </extensionPoints>
 </idea-plugin>
