@@ -30,6 +30,7 @@ import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -88,6 +89,8 @@ class DeviceSpecInjectionPerformer : LanguageInjectionPerformer {
   }
 
   override fun performInjection(registrar: MultiHostRegistrar, injection: Injection, context: PsiElement): Boolean {
+    if (suppressAndroidPlugin()) return false
+
     val containingExpression = context.parentOfType<KtValueArgument>()?.getArgumentExpression() ?: return false
 
     val internalExpressions = PsiTreeUtil.collectElements(containingExpression) {

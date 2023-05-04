@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.editor.EditorGutter
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -50,6 +51,8 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   public final override fun setupConfigurationFromContext(configuration: ComposePreviewRunConfiguration,
                                                           context: ConfigurationContext,
                                                           sourceElement: Ref<PsiElement>): Boolean {
+    if (suppressAndroidPlugin()) return false
+
     configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
     context.containingComposePreviewFunction()?.let {
       configuration.name = it.name!!
