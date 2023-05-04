@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.testFramework.EdtRule
@@ -48,12 +45,6 @@ class CopyMessageTextActionTest {
 
   private val editor get() = logcatEditorRule.editor
 
-  /**
-   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
-   * they are valid.
-   */
-  private val markers = mutableListOf<RangeMarker>()
-
   @Test
   fun update_emptyDocument() {
     val event = testActionEvent(editor)
@@ -77,7 +68,7 @@ class CopyMessageTextActionTest {
   @Test
   fun update_emptySelection() {
     val event = testActionEvent(editor)
-    editor.putLogcatMessages(logcatMessage(message = "Message 1"))
+    logcatEditorRule.putLogcatMessages(logcatMessage(message = "Message 1"))
     editor.caretModel.moveToOffset(editor.document.textLength / 2)
     val action = CopyMessageTextAction()
 
@@ -90,7 +81,7 @@ class CopyMessageTextActionTest {
   @Test
   fun update_wholeLineSelection() {
     val event = testActionEvent(editor)
-    editor.putLogcatMessages(
+    logcatEditorRule.putLogcatMessages(
       logcatMessage(message = "Message 1"),
       logcatMessage(message = "Message 2"),
       logcatMessage(message = "Message 3"),
@@ -108,7 +99,7 @@ class CopyMessageTextActionTest {
   @Test
   fun update_multiLineSelection() {
     val event = testActionEvent(editor)
-    editor.putLogcatMessages(
+    logcatEditorRule.putLogcatMessages(
       logcatMessage(message = "Message 1"),
       logcatMessage(message = "Message 2"),
       logcatMessage(message = "Message 3"),
@@ -126,7 +117,7 @@ class CopyMessageTextActionTest {
   @Test
   fun actionPerformed_emptySelection() {
     val event = testActionEvent(editor)
-    editor.putLogcatMessages(logcatMessage(message = "Message 1"))
+    logcatEditorRule.putLogcatMessages(logcatMessage(message = "Message 1"))
     editor.caretModel.moveToOffset(editor.document.textLength / 2)
     val action = CopyMessageTextAction()
 
@@ -138,7 +129,7 @@ class CopyMessageTextActionTest {
   @Test
   fun actionPerformed_wholeLineSelection() {
     val event = testActionEvent(editor)
-    editor.putLogcatMessages(
+    logcatEditorRule.putLogcatMessages(
       logcatMessage(message = "Message 1"),
       logcatMessage(message = "Message 2"),
       logcatMessage(message = "Message 3"),
@@ -155,7 +146,7 @@ class CopyMessageTextActionTest {
   @Test
   fun actionPerformed_multiLineSelection() {
     val event = testActionEvent(editor)
-    editor.putLogcatMessages(
+    logcatEditorRule.putLogcatMessages(
       logcatMessage(message = "Message 1"),
       logcatMessage(message = "Message 2"),
       logcatMessage(message = "Message 3"),
@@ -172,18 +163,6 @@ class CopyMessageTextActionTest {
       Message 3
 
     """.trimIndent())
-  }
-
-  private fun EditorEx.putLogcatMessages(vararg messages: LogcatMessage) {
-    messages.forEach {
-      val start = document.textLength
-      val text = it.toString()
-      document.insertString(start, "$text\n")
-      document.createRangeMarker(start, start + text.length).apply {
-        putUserData(LOGCAT_MESSAGE_KEY, it)
-        markers.add(this)
-      }
-    }
   }
 }
 

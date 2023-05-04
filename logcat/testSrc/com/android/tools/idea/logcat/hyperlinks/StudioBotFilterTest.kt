@@ -3,14 +3,11 @@ package com.android.tools.idea.logcat.hyperlinks
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.Filter.ResultItem
-import com.intellij.openapi.editor.RangeMarker
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -28,7 +25,6 @@ class StudioBotFilterTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  private val markers = mutableListOf<RangeMarker>()
   private val mockIssueExplainer = mock<IssueExplainer>()
 
   @get:Rule
@@ -59,7 +55,7 @@ class StudioBotFilterTest {
       message =
       "Exception\n" +
       "\tat com.example(File.kt:1)")
-    editor.putLogcatMessage(message)
+    logcatEditorRule.putLogcatMessages(message, formatMessage = LogcatMessage::formatMessage)
     val line = editor.document.text.split("\n")[0]
     editor.caretModel.moveToOffset(editor.document.text.indexOf("StudioBot"))
     val result = filter.applyFilter(line, line.length) ?: fail()
@@ -72,16 +68,8 @@ class StudioBotFilterTest {
       """.trimIndent()
     verify(mockIssueExplainer).explain(project, expectedQuestion, IssueExplainer.RequestKind.LOGCAT)
   }
-
-  private fun EditorEx.putLogcatMessage(message: LogcatMessage) {
-    val start = document.textLength
-    val text = message.toString().replace("Exception", "Exception  (Ask Studio Bot)")
-    document.insertString(start, "$text\n")
-    document.createRangeMarker(start, start + text.length).apply {
-      putUserData(LOGCAT_MESSAGE_KEY, message)
-      markers.add(this)
-    }
-  }
 }
+
+private fun LogcatMessage.formatMessage(): String = message.toString().replace("Exception", "Exception  (Ask Studio Bot)")
 
 private fun ResultItem.getText(line: String) = line.substring(highlightStartOffset, highlightEndOffset)

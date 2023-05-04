@@ -16,15 +16,12 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.explainer.IssueExplainer
-import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
@@ -82,27 +79,13 @@ class ExplainLogcatCrashActionTest {
   fun testActionPerformedEmptySelection() {
     testIssueExplainer.requests.clear()
     val event = testActionEvent(editor)
-    editor.putLogcatMessages(logcatMessage(message = "Message 1"))
+    logcatEditorRule.putLogcatMessages(logcatMessage(message = "Message 1"))
     editor.caretModel.moveToOffset(editor.document.textLength / 2)
     val action = ExplainLogcatCrashAction()
 
     action.actionPerformed(event)
 
     assertThat(testIssueExplainer.requests[0]).isEqualTo("Message 1 with tag ExampleTag\n")
-  }
-
-  private val markers = mutableListOf<RangeMarker>()
-
-  private fun EditorEx.putLogcatMessages(vararg messages: LogcatMessage) {
-    messages.forEach {
-      val start = document.textLength
-      val text = it.toString()
-      document.insertString(start, "$text\n")
-      document.createRangeMarker(start, start + text.length).apply {
-        putUserData(LOGCAT_MESSAGE_KEY, it)
-        markers.add(this)
-      }
-    }
   }
 
   private fun testActionEvent(editor: EditorEx): AnActionEvent {
