@@ -45,7 +45,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
       DefaultActionGroup(
         reservationActions,
         Separator.create(),
-        // TODO: Cold Boot action
+        ColdBootAction(),
         wearableActions,
         Separator.create(),
         EditDeviceAction(),

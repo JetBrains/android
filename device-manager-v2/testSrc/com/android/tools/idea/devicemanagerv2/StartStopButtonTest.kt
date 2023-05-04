@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.sdklib.deviceprovisioner.ActivationAction
-import com.android.sdklib.deviceprovisioner.ActivationParams
 import com.android.sdklib.deviceprovisioner.DeactivationAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
@@ -53,7 +52,7 @@ class StartStopButtonTest {
 
     inner class FakeActivationAction : ActivationAction {
       var invoked = 0
-      override suspend fun activate(params: ActivationParams) {
+      override suspend fun activate() {
         invoked++
         active = true
         presentation.update { it.copy(enabled = false) }

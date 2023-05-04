@@ -55,11 +55,14 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
             AvdWizardUtils.createAvdWizard(null, project, avdInfo).showAndGet()
           }
 
-        override suspend fun startAvd(avdInfo: AvdInfo) {
+        override suspend fun startAvd(avdInfo: AvdInfo, coldBoot: Boolean) {
           // Note: the original DeviceManager does this in UI thread, but this may call
           // @Slow methods so switch
           withContext(workerThread) {
-            avdManagerConnection.startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
+            when {
+              coldBoot -> avdManagerConnection.coldBoot(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
+              else -> avdManagerConnection.startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
+            }
           }
         }
 
