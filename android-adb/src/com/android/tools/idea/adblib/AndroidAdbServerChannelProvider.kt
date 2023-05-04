@@ -17,7 +17,6 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbChannel
 import com.android.adblib.AdbServerChannelProvider
-import com.android.adblib.AdbChannelProviderFactory
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ddmlib.AndroidDebugBridge
@@ -45,7 +44,7 @@ internal class AndroidAdbServerChannelProvider(private val host: AndroidAdbSessi
   /**
    * The [AdbServerChannelProvider] we delegate to
    */
-  private val connectProvider = AdbChannelProviderFactory.createConnectAddresses(host) {
+  private val connectProvider = AdbServerChannelProvider.createConnectAddresses(host) {
     listOf(getAdbSocketAddress())
   }
 
