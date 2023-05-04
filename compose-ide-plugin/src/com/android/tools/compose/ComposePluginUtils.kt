@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.type
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
@@ -77,7 +78,8 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): F
 }
 
 internal fun KtDeclaration.returnTypeFqName(): FqName? = if (isK2Plugin()) {
-  analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
+  if (this !is KtCallableDeclaration) null
+  else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
 }
 else {
   this.type()?.fqName

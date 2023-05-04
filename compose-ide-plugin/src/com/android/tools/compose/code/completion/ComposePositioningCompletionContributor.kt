@@ -35,6 +35,8 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.fir.utils.addImportToFile
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.base.util.allScope
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
@@ -119,11 +121,19 @@ private data class ClassWithDeclarationsToSuggest(
         // Add import in addition to filling in the completion.
         val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
         val ktFile = context.file as KtFile
-        val modifierDescriptor = ktFile.resolveImportReference(FqName(classToImport)).singleOrNull()
-        if (modifierDescriptor != null) {
-          ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, modifierDescriptor)
+        if (isK2Plugin()) {
+          // TODO(jaebaek): The visibility of `addImportToFile` is `public` but we have to double-check if it is ok to use it
+          //                outside of the module. Revisit here after checking it with JB.
+          addImportToFile(context.project, ktFile, FqName(classToImport))
           psiDocumentManager.commitAllDocuments()
           psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+        } else {
+          val modifierDescriptor = ktFile.resolveImportReference(FqName(classToImport)).singleOrNull()
+          if (modifierDescriptor != null) {
+            ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, modifierDescriptor)
+            psiDocumentManager.commitAllDocuments()
+            psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+          }
         }
       }
 
