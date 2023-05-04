@@ -33,10 +33,10 @@ import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.ProjectApplicationIdsListener
+import com.android.tools.idea.logcat.actions.AskStudioBotAction
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CopyMessageTextAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
-import com.android.tools.idea.logcat.actions.ExplainLogcatCrashAction
 import com.android.tools.idea.logcat.actions.IgnoreTagAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
@@ -419,7 +419,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(CreateScratchFileAction())
       add(Separator.create())
       if (IssueExplainer.get().isAvailable()) {
-        add(ExplainLogcatCrashAction())
+        add(AskStudioBotAction())
         add(Separator.create())
       }
       actions.forEach { add(it) }
