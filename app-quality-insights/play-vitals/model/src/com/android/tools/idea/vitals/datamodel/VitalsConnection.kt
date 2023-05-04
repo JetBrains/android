@@ -16,37 +16,17 @@
 package com.android.tools.idea.vitals.datamodel
 
 import com.android.tools.idea.insights.Connection
-import com.android.tools.idea.insights.VariantData
-import com.intellij.openapi.module.Module
 
 data class VitalsConnection(
   override val appId: String,
   val displayName: String,
-  override val variantData: VariantData?
+  val isPreferred: Boolean
 ) : Connection {
   override val isConfigured: Boolean = true
   override val mobileSdkAppId = null
   override val projectId = null
   override val projectNumber = null
   override val clientId = "apps/${appId}"
-  private var androidAppId: (Module.() -> String?)? = null
-  val shortMenuItemText = "$displayName [$appId]"
-  val menuItemText = shortMenuItemText
-  val titleText = menuItemText
 
-  constructor(
-    appId: String,
-    displayName: String,
-    variantData: VariantData?,
-    androidAppId: Module.() -> String?
-  ) : this(appId, displayName, variantData) {
-    this.androidAppId = androidAppId
-  }
-
-  override fun isPreferredConnection(): Boolean {
-    if (variantData?.module == null) {
-      return false
-    }
-    return androidAppId?.let { variantData.module.it() } == appId
-  }
+  override fun isPreferredConnection() = isPreferred
 }

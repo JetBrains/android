@@ -52,8 +52,7 @@ class VitalsConnectionSelectorPopup(
   private val searchTextField = SearchTextField(false)
 
   init {
-    val (mainConnections, secondaryConnections) =
-      selection.items.partition { it.variantData != null }
+    val (mainConnections, secondaryConnections) = selection.items.partition { it.isPreferred }
 
     val contentPanel = JPanel().apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
 

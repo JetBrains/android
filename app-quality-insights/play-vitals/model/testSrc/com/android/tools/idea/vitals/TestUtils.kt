@@ -15,16 +15,8 @@
  */
 package com.android.tools.idea.vitals
 
-import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.insights.VariantData
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
-import com.intellij.openapi.module.Module
-import org.mockito.Mockito.`when`
 
-private val MODULE1 = mock<Module>().apply { `when`(name).thenReturn("app1") }
-private val MODULE2 = mock<Module>().apply { `when`(name).thenReturn("app2") }
-val TEST_CONNECTION_1 =
-  VitalsConnection("appId1", "Test App 1", VariantData(MODULE1, "variant1")) { name }
-val TEST_CONNECTION_2 =
-  VitalsConnection("appId2", "Test App 2", VariantData(MODULE2, "variant2")) { name }
-val TEST_CONNECTION_3 = VitalsConnection("appId3", "Test App 3", null) { name }
+val TEST_CONNECTION_1 = VitalsConnection("appId1", "Test App 1", true)
+val TEST_CONNECTION_2 = VitalsConnection("appId2", "Test App 2", true)
+val TEST_CONNECTION_3 = VitalsConnection("appId3", "Test App 3", false)

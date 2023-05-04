@@ -28,8 +28,6 @@ interface Connection {
   val projectNumber: String?
   val appId: String
 
-  val variantData: VariantData?
-
   val clientId: String
   val isConfigured: Boolean
 

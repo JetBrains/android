@@ -24,10 +24,8 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OfflineStatusManagerImpl
 import com.android.tools.idea.insights.VITALS_KEY
-import com.android.tools.idea.insights.VariantData
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
-import com.android.tools.idea.insights.androidAppId
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
@@ -42,7 +40,6 @@ import com.google.gct.login.LoginState
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.serviceContainer.NonInjectable
@@ -131,25 +128,11 @@ constructor(
     .mapConnectionsToVariantConnectionsIfReady() = mapNotNull { result ->
     (result as? LoadingState.Ready)?.let { ready ->
       val modules = project.getHolderModules().filter { it.isAndroidApp }
-      val appIdsToModules =
+      val appIds =
         modules
-          .flatMap { module ->
-            GradleAndroidModel.get(module)
-              ?.androidProject
-              ?.basicVariants
-              ?.filter { it.applicationId != null }
-              ?.map { it.applicationId!! to VariantData(module, it.name) }
-              ?: emptyList()
-          }
-          .toMap()
-      ready.value.map { app ->
-        VitalsConnection(
-          app.appId,
-          app.displayName,
-          appIdsToModules[app.appId],
-          Module::androidAppId
-        )
-      }
+          .flatMap { module -> GradleAndroidModel.get(module)?.allApplicationIds ?: emptyList() }
+          .toSet()
+      ready.value.map { app -> VitalsConnection(app.appId, app.displayName, app.appId in appIds) }
     }
   }
 
