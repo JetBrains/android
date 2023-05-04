@@ -27,6 +27,7 @@ import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
+import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.withKotlin
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
@@ -86,7 +87,8 @@ class ComposeGradleProjectRule(
     get() = projectRule.fixture
 
   private val delegate =
-    RuleChain.outerRule(projectRule)
+    RuleChain.outerRule(TestLoggerRule())
+      .around(projectRule)
       .around(ComposeGradleProjectRuleImpl(projectPath, kotlinVersion, projectRule))
       .around(EdtRule())
       .around(FlagRule(StudioFlags.GRADLE_SAVE_LOG_TO_FILE, true))

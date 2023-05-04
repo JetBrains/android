@@ -20,6 +20,7 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
+import com.android.tools.idea.testing.TestLoggerRule
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -68,8 +69,9 @@ class ComposeProjectRule(
     get() = projectRule.fixture
 
   private val delegate =
-    RuleChain.outerRule(projectRule).around(ComposeProjectRuleImpl(projectRule))
-
+    RuleChain.outerRule(TestLoggerRule())
+      .around(projectRule)
+      .around(ComposeProjectRuleImpl(projectRule))
   override fun apply(base: Statement, description: Description): Statement =
     delegate.apply(base, description)
 }
