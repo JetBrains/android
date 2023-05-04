@@ -16,14 +16,10 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.intellij.codeInsight.editorActions.TextBlockTransferable
 import com.intellij.openapi.actionSystem.ActionUpdateThread.BGT
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAwareAction
 import javax.swing.Icon
@@ -48,18 +44,4 @@ internal class CopyMessageTextAction : DumbAwareAction(null as Icon?) {
 private fun Presentation.enable(text: String) {
   isVisible = true
   this.text = text
-}
-
-private fun AnActionEvent.getLogcatMessages(): List<LogcatMessage> {
-  val editor = getData(CommonDataKeys.EDITOR) as EditorEx? ?: return emptyList()
-  val selectionModel = editor.selectionModel
-  return buildList {
-    editor.document.processRangeMarkersOverlappingWith(selectionModel.selectionStart, selectionModel.selectionEnd) {
-      val message = it.getUserData(LOGCAT_MESSAGE_KEY)
-      if (message != null && it.startOffset != selectionModel.selectionEnd) {
-        add(message)
-      }
-      true
-    }
-  }
 }

@@ -20,6 +20,7 @@ import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
@@ -64,10 +65,8 @@ class CopyMessageTextActionTest {
   }
 
   @Test
-  fun update_noSelection() {
+  fun update_noMessages() {
     val event = testActionEvent(editor)
-    editor.putLogcatMessages(logcatMessage(message = "Message 1"))
-    editor.selectionModel.removeSelection()
     val action = CopyMessageTextAction()
 
     action.update(event)
@@ -188,8 +187,8 @@ class CopyMessageTextActionTest {
   }
 }
 
-private fun testActionEvent(editor: EditorEx): TestActionEvent {
-  return TestActionEvent(MapDataContext().apply {
+private fun testActionEvent(editor: EditorEx): AnActionEvent {
+  return TestActionEvent.createTestEvent(MapDataContext().apply {
     put(CommonDataKeys.EDITOR, editor)
   })
 }

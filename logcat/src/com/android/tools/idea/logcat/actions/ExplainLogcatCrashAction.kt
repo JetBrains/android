@@ -21,9 +21,7 @@ import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.util.extractStudioBotQuestion
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 
@@ -61,7 +59,7 @@ internal class ExplainLogcatCrashAction : DumbAwareAction() {
    * the entry is part of a stacktrace, try to collect the whole stacktrace and summarize it.
    */
   private fun getMessage(e: AnActionEvent): List<String> {
-    val editor = e.getData(CommonDataKeys.EDITOR) as EditorEx? ?: return emptyList()
+    val editor = e.getEditor() ?: return emptyList()
     val selectionModel = editor.selectionModel
     return buildList {
       editor.document.processRangeMarkersOverlappingWith(

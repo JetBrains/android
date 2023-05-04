@@ -28,14 +28,14 @@ import com.intellij.openapi.project.DumbAwareAction
 internal class PauseLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.pause.action.pause.text"), "", AllIcons.Actions.Pause) {
 
   override fun update(e: AnActionEvent) {
-    val logcatPresenter = e.getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION) ?: return
+    val logcatPresenter = e.getLogcatPresenter() ?: return
     e.presentation.isEnabled = logcatPresenter.getConnectedDevice() != null
     e.presentation.text = getActionText(logcatPresenter)
     e.presentation.icon = getActionIcon(logcatPresenter)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val logcatPresenter = e.getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION) ?: return
+    val logcatPresenter = e.getLogcatPresenter() ?: return
     if (logcatPresenter.isLogcatPaused()) {
       logcatPresenter.resumeLogcat()
     }

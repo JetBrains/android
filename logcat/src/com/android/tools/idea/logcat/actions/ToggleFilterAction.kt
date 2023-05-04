@@ -22,8 +22,6 @@ import com.android.tools.idea.logcat.util.getFilterHint
 import com.android.tools.idea.logcat.util.toggleFilterTerm
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.DumbAwareAction
 
 /**
@@ -63,7 +61,7 @@ internal class ToggleFilterAction(
 }
 
 private fun getFilterHintTerm(e: AnActionEvent): String? {
-  val editor = e.getData(EDITOR) as EditorEx? ?: return null
-  val formattingOptions = e.getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION)?.formattingOptions ?: return null
+  val editor = e.getEditor() ?: return null
+  val formattingOptions = e.getLogcatPresenter()?.formattingOptions ?: return null
   return editor.getFilterHint(editor.caretModel.offset, formattingOptions)?.getFilter()
 }
