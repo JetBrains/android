@@ -94,15 +94,15 @@ class StartStopButtonTest {
     button.doClick()
 
     yieldUntil { handle.activationAction.invoked == 1 }
+    yieldUntil { button.baseIcon == StudioIcons.Avd.STOP }
 
-    assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.STOP)
     assertThat(button.isEnabled).isTrue()
 
     button.doClick()
 
     yieldUntil { handle.deactivationAction.invoked == 1 }
+    yieldUntil { button.baseIcon == StudioIcons.Avd.RUN }
 
-    assertThat(button.baseIcon).isEqualTo(StudioIcons.Avd.RUN)
     handle.scope.cancel()
   }
 }
