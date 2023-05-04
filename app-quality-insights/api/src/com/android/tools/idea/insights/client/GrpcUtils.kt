@@ -79,7 +79,7 @@ suspend fun <T> retryRpc(
         .also {
           log()
             .warn(
-              "Retry attempt #${count + 1} for $rpcCall, retrying in ${it / 1000.0} second(s)..."
+              "Retry attempt #${count + 1} for a rpc call, retrying in ${it / 1000.0} second(s)..."
             )
         }
         .apply { delay(this) }
