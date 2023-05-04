@@ -1543,7 +1543,7 @@ public final class StudioFlags {
       "insights.vcs",
       "VCS Support",
       "Enhance code navigation to aid crash investigation with the recorded VCS info",
-      false);
+      true);
 
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
     Flag.create(
