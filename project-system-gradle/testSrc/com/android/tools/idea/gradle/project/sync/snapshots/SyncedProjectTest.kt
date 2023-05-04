@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
-import com.android.tools.idea.gradle.project.sync.GradleModuleSystemIntegrationTest
+import com.android.tools.idea.gradle.project.sync.GradleProjectSystemIntegrationTest
 import com.android.tools.idea.gradle.project.sync.HighlightProjectTestDef
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
@@ -53,14 +53,14 @@ abstract class SyncedProjectTest(
   companion object {
     val tests = (
       IdeModelSnapshotComparisonTestDefinition.tests() +
-        SourceProvidersTestDef.tests +
-        ProjectStructureSnapshotTestDef.tests +
-        AndroidProjectViewSnapshotComparisonTestDef.tests +
-        GradleSyncLoggedEventsTestDef.tests +
-        GradleModuleHierarchyProviderTest.tests +
-        GradleModuleSystemIntegrationTest.tests +
-        HighlightProjectTestDef.tests +
-        selfChecks()
+      SourceProvidersTestDef.tests +
+      ProjectStructureSnapshotTestDef.tests +
+      AndroidProjectViewSnapshotComparisonTestDef.tests +
+      GradleSyncLoggedEventsTestDef.tests +
+      GradleModuleHierarchyProviderTest.tests +
+      GradleProjectSystemIntegrationTest.tests +
+      HighlightProjectTestDef.tests +
+      selfChecks()
       ).groupBy { it.testProject }
   }
 

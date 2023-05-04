@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.model.AndroidModel
@@ -34,7 +33,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import java.io.File
 
-data class GradleModuleSystemIntegrationTest(
+data class GradleProjectSystemIntegrationTest(
   override val name: String,
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
@@ -44,7 +43,7 @@ data class GradleModuleSystemIntegrationTest(
   companion object {
     val tests =
       listOf(
-        GradleModuleSystemIntegrationTest(
+        GradleProjectSystemIntegrationTest(
           name = "manifestOverrides",
           testProject = TestProject.MULTI_FLAVOR
         ) { project, expect ->
@@ -66,7 +65,7 @@ data class GradleModuleSystemIntegrationTest(
           expect.that(overrides[ManifestSystemProperty.Application.TEST_ONLY]).isNull()
           expect.that(ManifestSystemProperty.values.size).isEqualTo(15)
         },
-        GradleModuleSystemIntegrationTest(
+        GradleProjectSystemIntegrationTest(
           name = "manifestOverrides_firstXyzSecondXyzRelease",
           testProject = TestProject.MULTI_FLAVOR_SWITCH_VARIANT
         ) { project, expect ->
@@ -88,7 +87,7 @@ data class GradleModuleSystemIntegrationTest(
           expect.that(overrides[ManifestSystemProperty.Application.TEST_ONLY]).isNull()
           expect.that(ManifestSystemProperty.values.size).isEqualTo(15)
         },
-        GradleModuleSystemIntegrationTest(
+        GradleProjectSystemIntegrationTest(
           name = "manifestOverridesInLibrary",
           testProject = TestProject.INCLUDE_FROM_LIB
         ) { project, expect ->
@@ -103,7 +102,7 @@ data class GradleModuleSystemIntegrationTest(
             )
           )
         },
-        GradleModuleSystemIntegrationTest(
+        GradleProjectSystemIntegrationTest(
           name = "manifestOverridesInSeparateTest",
           testProject = TestProject.TEST_ONLY_MODULE
         ) { project, expect ->
@@ -116,21 +115,21 @@ data class GradleModuleSystemIntegrationTest(
             )
           )
         },
-        GradleModuleSystemIntegrationTest(
+        GradleProjectSystemIntegrationTest(
           name = "packageName",
           testProject = TestProject.MULTI_FLAVOR
         ) { project, expect ->
           val packageName = project.gradleModule(":app")!!.getModuleSystem().getPackageName()
           expect.that(packageName).isEqualTo("com.example.multiflavor")
         },
-        GradleModuleSystemIntegrationTest(
+        GradleProjectSystemIntegrationTest(
           name = "packageName_firstXyzSecondXyzRelease",
           testProject = TestProject.MULTI_FLAVOR_SWITCH_VARIANT
         ) { project, expect ->
           val packageName = project.gradleModule(":app")!!.getModuleSystem().getPackageName()
           expect.that(packageName).isEqualTo("com.example.multiflavor")
         },
-        GradleModuleSystemIntegrationTest(
+        GradleProjectSystemIntegrationTest(
           name = "allApplicationIds",
           testProject = TestProject.MULTI_FLAVOR
         ) { project, expect ->
@@ -148,7 +147,7 @@ data class GradleModuleSystemIntegrationTest(
             )
           )
         },
-        GradleModuleSystemIntegrationTest(
+        GradleProjectSystemIntegrationTest(
           name = "getResolvedDependency",
           testProject = TestProject.SIMPLE_APPLICATION
         ) { project, expect ->
