@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
+import java.awt.Component
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.CTRL_DOWN_MASK
@@ -62,14 +63,18 @@ fun updateAndGetActionPresentation(action: AnAction, displayView: AbstractDispla
   return event.presentation
 }
 
-fun createTestEvent(displayView: AbstractDisplayView, project: Project, place: String): AnActionEvent {
-  val inputEvent = KeyEvent(displayView, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_E, CHAR_UNDEFINED)
-  return AnActionEvent(inputEvent, TestDataContext(displayView, project), place, Presentation(), ActionManager.getInstance(), 0)
+fun createTestEvent(source: Component, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT): AnActionEvent {
+  val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_E, CHAR_UNDEFINED)
+  return AnActionEvent(inputEvent, TestDataContext(source, project), place, Presentation(), ActionManager.getInstance(), 0)
 }
 
-private class TestDataContext(private val displayView: AbstractDisplayView, private val project: Project) : DataContext {
-  private val emulatorView = displayView as? EmulatorView
-  private val deviceView = displayView as? DeviceView
+private class TestDataContext(private val component: Component, private val project: Project) : DataContext {
+  private val emulatorView
+    get() = component as? EmulatorView
+  private val deviceView
+    get() = component as? DeviceView
+  private val displayView
+    get() = component as? AbstractDisplayView
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
@@ -79,8 +84,8 @@ private class TestDataContext(private val displayView: AbstractDisplayView, priv
       DEVICE_CLIENT_KEY.name -> deviceView?.deviceClient
       DEVICE_CONTROLLER_KEY.name -> deviceView?.deviceController
       DISPLAY_VIEW_KEY.name -> displayView
-      ZOOMABLE_KEY.name -> displayView
-      SERIAL_NUMBER_KEY.name -> emulatorView?.deviceSerialNumber ?: deviceView?.deviceSerialNumber
+      ZOOMABLE_KEY.name -> component as? ZoomablePanel
+      SERIAL_NUMBER_KEY.name -> displayView?.deviceSerialNumber
       CommonDataKeys.PROJECT.name -> project
       else -> null
     }

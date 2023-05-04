@@ -37,7 +37,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -166,9 +165,9 @@ class FilterKeysActionTest {
   fun actionPerformed_showAllKeys() {
     filterKeysAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(4)
-    val selectedAction = popup.items[0]
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(4)
+    val selectedAction = popup.actions[0]
     assertThat(selectedAction.templateText).isEqualTo("Show All Keys")
 
     selectedAction.actionPerformed(event)
@@ -181,9 +180,9 @@ class FilterKeysActionTest {
   fun actionPerformed_showTranslatableKeys() {
     filterKeysAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(4)
-    val selectedAction = popup.items[1]
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(4)
+    val selectedAction = popup.actions[1]
     assertThat(selectedAction.templateText).isEqualTo("Show Translatable Keys")
 
     selectedAction.actionPerformed(event)
@@ -195,9 +194,9 @@ class FilterKeysActionTest {
   fun actionPerformed_showKeysNeedingTranslation() {
     filterKeysAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(4)
-    val selectedAction = popup.items[2]
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(4)
+    val selectedAction = popup.actions[2]
     assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing Translation")
 
     selectedAction.actionPerformed(event)
@@ -210,9 +209,9 @@ class FilterKeysActionTest {
     enableHeadlessDialogs(projectRule.project)
     filterKeysAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(4)
-    val selectedAction = popup.items[3]
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(4)
+    val selectedAction = popup.actions[3]
     assertThat(selectedAction.templateText).isEqualTo("Filter By Text")
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(AllIcons.General.Filter)
 
@@ -230,9 +229,9 @@ class FilterKeysActionTest {
     enableHeadlessDialogs(projectRule.project)
     filterKeysAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(4)
-    val selectedAction = popup.items[3]
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(4)
+    val selectedAction = popup.actions[3]
     assertThat(selectedAction.templateText).isEqualTo("Filter By Text")
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(AllIcons.General.Filter)
 
@@ -253,9 +252,9 @@ class FilterKeysActionTest {
     val filterText = "my great text"
     filterKeysAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(4)
-    val selectedAction = popup.items[3]
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(4)
+    val selectedAction = popup.actions[3]
     assertThat(selectedAction.templateText).isEqualTo("Filter By Text")
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(AllIcons.General.Filter)
 
@@ -276,10 +275,10 @@ class FilterKeysActionTest {
 
     filterKeysAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(6)
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(6)
 
-    var selectedAction = popup.items[4]
+    var selectedAction = popup.actions[4]
     assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
 
@@ -289,7 +288,7 @@ class FilterKeysActionTest {
     assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
     assertThat(rowFilter!!.getIcon()).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
 
-    selectedAction = popup.items[5]
+    selectedAction = popup.actions[5]
     assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
 

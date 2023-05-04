@@ -27,10 +27,13 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.adtui.swing.popup.FakeListPopup
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
@@ -44,8 +47,10 @@ import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
+import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -88,11 +93,13 @@ class StreamingToolWindowManagerTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val emulatorRule = FakeEmulatorRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
+  private val popupRule = JBPopupRule()
   @get:Rule
-  val ruleChain = RuleChain(agentRule, emulatorRule, androidExecutorsRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule())
+  val ruleChain =
+      RuleChain(agentRule, emulatorRule, androidExecutorsRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
-  private val toolWindow: ToolWindow by lazy { createToolWindow() }
+  private val toolWindow: TestToolWindow by lazy { createToolWindow() }
   private val contentManager: ContentManager by lazy { toolWindow.contentManager }
 
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
@@ -326,6 +333,7 @@ class StreamingToolWindowManagerTest {
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    assertThat(contentManager.contents[0].isCloseable).isFalse()
 
     agentRule.disconnectDevice(device)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
@@ -443,6 +451,62 @@ class StreamingToolWindowManagerTest {
     agentRule.disconnectDevice(device)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
     waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
+  }
+
+  @Test
+  fun testMirroringStoppingStarting() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
+    createToolWindowContent()
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+    toolWindow.show()
+
+    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    assertThat(contentManager.contents[0].isCloseable).isTrue()
+
+    val device2 = agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 7 API 33")
+    assertThat(contentManager.contents[1].isCloseable).isTrue()
+
+    assertThat(toolWindow.tabActions).isNotEmpty()
+    val newTabAction = toolWindow.tabActions[0]
+    assertThat(newTabAction.templateText).isEqualTo("New Tab")
+    assertThat(newTabAction.templatePresentation.icon).isEqualTo(AllIcons.General.Add)
+
+    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup()
+    assertThat(popup.items.toString()).isEqualTo("[No connected physical devices to mirror]")
+
+    contentManager.removeContent(contentManager.contents[0], true)
+    contentManager.removeContent(contentManager.contents[0], true)
+
+    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    popup = popupRule.fakePopupFactory.getNextPopup()
+    assertThat(popup.items.toString()).isEqualTo("[Connected physical devices, Pixel 4 API 30, Pixel 7 API 33]")
+
+    popup.choose(2)
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 7 API 33")
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 7 API 33")
+
+    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    popup = popupRule.fakePopupFactory.getNextPopup()
+    assertThat(popup.items.toString()).isEqualTo("[Connected physical devices, Pixel 4 API 30]")
+
+    popup.choose(1)
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
+
+    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    popup = popupRule.fakePopupFactory.getNextPopup()
+    assertThat(popup.items.toString()).isEqualTo("[No connected physical devices to mirror]")
   }
 
   @Test
@@ -571,7 +635,7 @@ class StreamingToolWindowManagerTest {
   private val FakeEmulator.avdName
     get() = avdId.replace('_', ' ')
 
-  private fun createToolWindow(): ToolWindow {
+  private fun createToolWindow(): TestToolWindow {
     val windowManager = TestToolWindowManager(project)
     project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
     return windowManager.toolWindow
@@ -599,10 +663,12 @@ class StreamingToolWindowManagerTest {
     private val manager: ToolWindowManager
   ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
 
-    private var available = true
-    private var visible = false
+    var tabActions: List<AnAction> = emptyList()
+      private set
     var titleActions: List<AnAction> = emptyList()
       private set
+    private var available = true
+    private var visible = false
     private var type = ToolWindowType.DOCKED
 
     override fun setAvailable(available: Boolean) {
@@ -628,6 +694,10 @@ class StreamingToolWindowManagerTest {
     }
 
     override fun isVisible() = visible
+
+    override fun setTabActions(vararg actions: AnAction) {
+      tabActions = listOf(*actions)
+    }
 
     override fun setTitleActions(actions: List<AnAction>) {
       this.titleActions = actions

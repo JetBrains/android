@@ -82,7 +82,7 @@ private fun AnActionEvent.findComponentForAction(action: AnAction, toolWindowId:
     return component
   }
   val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(toolWindowId) ?: return null
-  return toolWindow.component.parent.findComponentForAction(action)
+  return toolWindow.component.parent?.findComponentForAction(action)
 }
 
 /**

@@ -15,14 +15,17 @@
  */
 package com.android.tools.adtui.swing.popup
 
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.popup.PopupFactoryImpl.ActionItem
 import com.intellij.util.Consumer
 import java.awt.Component
 import java.awt.Dimension
@@ -54,6 +57,21 @@ open class FakeJBPopup<T>(
 
   var showStyle: ShowStyle? = null
   var showArgs: List<Any>? = null
+  val actions: List<AnAction> by lazy {
+      if (items.isEmpty()) {
+        return@lazy emptyList()
+      }
+      val result = mutableListOf<AnAction>()
+      for (item in items) {
+        item as? ActionItem ?: throw AssertionError("The popup is not an action popup")
+        if (item.isPrependWithSeparator) {
+          result.add(Separator.create(item.separatorText))
+        }
+        result.add(item.action)
+      }
+      return@lazy result
+    }
+
   private var minSize: Dimension? = null
   private val registeredListeners = mutableListOf<JBPopupListener>()
 

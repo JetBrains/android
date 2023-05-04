@@ -15,11 +15,11 @@
  */
 package com.android.tools.adtui.swing.popup
 
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -37,10 +37,12 @@ import com.intellij.openapi.ui.popup.TreePopup
 import com.intellij.openapi.ui.popup.TreePopupStep
 import com.intellij.openapi.util.Condition
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.ui.popup.ActionPopupStep
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
 import java.util.function.Function
+import java.util.function.Supplier
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JList
@@ -50,19 +52,21 @@ import javax.swing.ListCellRenderer
 import javax.swing.event.HyperlinkListener
 
 /**
- * A Fake implementation of [JBPopupFactory] for testing.
+ * A fake implementation of [JBPopupFactory] for testing.
  *
  * This class is implemented ad hoc. All unused methods will throw a [NotImplementedError].
  *
- * This class keeps track of the popups that it creates. Popups can be created directly by this class or indirectly via builders. A test can
- * retrieve the popup it needs using the [getPopup] or [getBalloon] method. Type safety is the responsibility of the caller.
+ * This class keeps track of the popups that it creates. Popups can be created directly by this
+ * class or indirectly via builders. A test can retrieve the popup it needs using the [getPopup],
+ * [getNextPopup], [getBalloon] or [getNextBalloon] method. Type safety is the responsibility of
+ * the caller.
  *
  * Note to contributors:
  * As methods are implemented, please move them towards the top of the file.
  */
 class FakeJBPopupFactory : JBPopupFactory() {
-  private val popups = mutableListOf<JBPopup>()
-  private val balloons = mutableListOf<FakeBalloon>()
+  private val popups = ArrayDeque<JBPopup>()
+  private val balloons = ArrayDeque<FakeBalloon>()
 
   /**
    * Returns a popup that has been created using this factory.
@@ -73,11 +77,22 @@ class FakeJBPopupFactory : JBPopupFactory() {
   fun <T> getPopup(i: Int): FakeJBPopup<T> = popups[i] as FakeJBPopup<T>
 
   /**
-   * Returns a popup that has been created using this factory.
+   * Returns the oldest popup that was created using this factory and removes it from the factory.
    *
    * Type safety is the responsibility of the caller.
    */
+  @Suppress("UNCHECKED_CAST")
+  fun <T, U : FakeJBPopup<T>> getNextPopup(): U = popups.removeFirst() as U
+
+  /**
+   * Returns a balloon that has been created using this factory.
+   */
   fun getBalloon(i: Int): FakeBalloon = balloons[i]
+
+  /**
+   * Returns the oldest balloon that was created using this factory and removes it from the factory.
+   */
+  fun getNextBalloon(i: Int): FakeBalloon = balloons.removeFirst()
 
   internal fun <T> addPopup(popup: FakeJBPopup<T>) {
     popups.add(popup)
@@ -87,7 +102,7 @@ class FakeJBPopupFactory : JBPopupFactory() {
     balloons.add(balloon)
   }
 
-  override fun <T> createPopupChooserBuilder(list: List<out T>): IPopupChooserBuilder<T> =
+  override fun <T> createPopupChooserBuilder(list: List<T>): IPopupChooserBuilder<T> =
     FakePopupChooserBuilder(this, list)
 
   override fun createActionGroupPopup(
@@ -101,9 +116,22 @@ class FakeJBPopupFactory : JBPopupFactory() {
     preselectActionCondition: Condition<in AnAction>?,
     actionPlace: String?)
     : ListPopup {
-    @Suppress("UnstableApiUsage")
-    val actions = Utils.expandActionGroup(actionGroup, PresentationFactory(), dataContext, ActionPlaces.UNKNOWN)
-    val popup = FakeListPopup(actions)
+    val component: Component? = PlatformCoreDataKeys.CONTEXT_COMPONENT.getData(dataContext)
+    val step = ActionPopupStep.createActionsStep(
+        actionGroup,
+        dataContext,
+        /* showNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING || aid == ActionSelectionAid.NUMBERING,
+        /* useAlphaAsNumbers= */ aid == ActionSelectionAid.ALPHA_NUMBERING,
+        showDisabledActions,
+        title,
+        /* honorActionMnemonics= */ aid == ActionSelectionAid.MNEMONICS,
+        /* autoSelectionEnabled= */ false,
+        getComponentContextSupplier(dataContext, component),
+        actionPlace,
+        preselectActionCondition,
+        /* defaultOptionIndex= */ -1,
+        /* presentationFactory= */ null)
+    val popup = FakeListPopup(step)
     popups.add(popup)
     return popup
   }
@@ -118,15 +146,31 @@ class FakeJBPopupFactory : JBPopupFactory() {
                                       maxRowCount: Int,
                                       preselectActionCondition: Condition<in AnAction>?): ListPopup =
     createActionGroupPopup(
-      title,
-      actionGroup,
-      dataContext,
-      /* aid= */ null,
-      showDisabledActions,
-      disposeCallback,
-      maxRowCount,
-      preselectActionCondition,
-      /* actionPlace= */ null)
+        title,
+        actionGroup,
+        dataContext,
+        /* aid= */ null,
+        showDisabledActions,
+        disposeCallback,
+        maxRowCount,
+        preselectActionCondition,
+        /* actionPlace= */ null)
+
+  override fun createListPopup(step: ListPopupStep<*>): ListPopup {
+    val popup = FakeListPopup(step)
+    popups.add(popup)
+    return popup
+  }
+
+  override fun createListPopup(step: ListPopupStep<*>, maxRowCount: Int): ListPopup {
+    return createListPopup(step)
+  }
+
+  override fun createListPopup(project: Project,
+                               step: ListPopupStep<*>,
+                               cellRendererProducer: Function<in ListCellRenderer<Any>, out ListCellRenderer<Any>>): ListPopup {
+    return createListPopup(step)
+  }
 
   override fun createComponentPopupBuilder(content: JComponent, preferableFocusComponent: JComponent?): ComponentPopupBuilder =
     FakeComponentPopupBuilder(this, content, preferableFocusComponent)
@@ -136,8 +180,19 @@ class FakeJBPopupFactory : JBPopupFactory() {
   override fun <T> createPopupComponentAdapter(
     builder: PopupChooserBuilder<T>,
     list: JList<T>
-  ): PopupChooserBuilder.PopupComponentAdapter<T> = FakePopupListAdapter(builder,
-                                                                                                                                    list)
+  ): PopupChooserBuilder.PopupComponentAdapter<T> = FakePopupListAdapter(builder, list)
+
+  @Suppress("UnstableApiUsage")
+  private fun getComponentContextSupplier(parentDataContext: DataContext,
+                                          component: Component?): Supplier<DataContext> {
+    if (component == null) return Supplier { parentDataContext }
+    val dataContext = Utils.wrapDataContext(DataManager.getInstance().getDataContext(component))
+    return when {
+      Utils.isAsyncDataContext(dataContext) -> Supplier { dataContext }
+      else -> Supplier { DataManager.getInstance().getDataContext(component) }
+    }
+  }
+
 
   // PLEASE KEEP UNIMPLEMENTED METHODS ONLY BELLOW THIS COMMENT
 
@@ -180,20 +235,6 @@ class FakeJBPopupFactory : JBPopupFactory() {
   }
 
   override fun guessBestPopupLocation(editor: Editor): RelativePoint {
-    TODO("Not yet implemented")
-  }
-
-  override fun createListPopup(step: ListPopupStep<*>): ListPopup {
-    TODO("Not yet implemented")
-  }
-
-  override fun createListPopup(step: ListPopupStep<*>, maxRowCount: Int): ListPopup {
-    TODO("Not yet implemented")
-  }
-
-  override fun createListPopup(project: Project,
-                               step: ListPopupStep<*>,
-                               cellRendererProducer: Function<in ListCellRenderer<Any>, out ListCellRenderer<Any>>): ListPopup {
     TODO("Not yet implemented")
   }
 

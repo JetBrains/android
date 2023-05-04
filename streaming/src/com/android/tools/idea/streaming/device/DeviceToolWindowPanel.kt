@@ -47,31 +47,11 @@ private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.Avd.DEVICE_PHONE)
  */
 internal class DeviceToolWindowPanel(
   private val project: Project,
-  private val deviceClient: DeviceClient,
+  val deviceClient: DeviceClient,
 ) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
 
-  private var displayPanel: DeviceDisplayPanel? = null
-  private var contentDisposable: Disposable? = null
-  private var primaryDeviceView: DeviceView? = null
-  private val deviceSerialNumber: String
+  val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber
-  private val deviceConfig
-    get() = deviceClient.deviceConfig
-  private val deviceStateListener = object : DeviceController.DeviceStateListener {
-    override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
-      updateMainToolbarLater()
-    }
-
-    override fun onDeviceStateChanged(deviceState: Int) {
-      updateMainToolbarLater()
-    }
-
-    private fun updateMainToolbarLater() {
-      EventQueue.invokeLater {
-        mainToolbar.updateActionsImmediately()
-      }
-    }
-  }
 
   override val title: String
     get() = deviceClient.deviceName
@@ -92,6 +72,27 @@ internal class DeviceToolWindowPanel(
       field = value
       displayPanel?.zoomToolbarVisible = value
     }
+
+  private var displayPanel: DeviceDisplayPanel? = null
+  private var contentDisposable: Disposable? = null
+  private var primaryDeviceView: DeviceView? = null
+  private val deviceConfig
+    get() = deviceClient.deviceConfig
+  private val deviceStateListener = object : DeviceController.DeviceStateListener {
+    override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
+      updateMainToolbarLater()
+    }
+
+    override fun onDeviceStateChanged(deviceState: Int) {
+      updateMainToolbarLater()
+    }
+
+    private fun updateMainToolbarLater() {
+      EventQueue.invokeLater {
+        mainToolbar.updateActionsImmediately()
+      }
+    }
+  }
 
   override fun setDeviceFrameVisible(visible: Boolean) {
     // Showing device frame is not supported for physical devices.

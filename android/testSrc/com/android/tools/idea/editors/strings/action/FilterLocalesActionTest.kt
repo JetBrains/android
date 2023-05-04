@@ -31,7 +31,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -158,9 +157,9 @@ class FilterLocalesActionTest {
   fun actionPerformed_showAllLocales() {
     filterLocalesAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(1)
-    val selectedAction = popup.items[0]
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(1)
+    val selectedAction = popup.actions[0]
     assertThat(selectedAction.templateText).isEqualTo("Show All Locales")
 
     selectedAction.actionPerformed(event)
@@ -177,10 +176,10 @@ class FilterLocalesActionTest {
 
     filterLocalesAction.actionPerformed(event)
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items).hasSize(3)
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions).hasSize(3)
 
-    var selectedAction = popup.items[1]
+    var selectedAction = popup.actions[1]
     assertThat(selectedAction.templateText).isEqualTo("Show Arabic (ar)")
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
 
@@ -190,7 +189,7 @@ class FilterLocalesActionTest {
     assertThat(columnFilter!!.getDescription()).isEqualTo("Arabic (ar)")
     assertThat(columnFilter!!.getIcon()).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
 
-    selectedAction = popup.items[2]
+    selectedAction = popup.actions[2]
     assertThat(selectedAction.templateText).isEqualTo("Show Spanish (es) in United States (US)")
     assertThat(selectedAction.templatePresentation.icon).isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
 
