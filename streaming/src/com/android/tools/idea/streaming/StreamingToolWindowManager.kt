@@ -290,16 +290,16 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun onPhysicalDeviceHeadsUp(deviceSerialNumber: String) {
-    if (!toolWindow.isVisible) {
-      lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
-      toolWindow.showAndActivate()
-    }
-    else {
+    if (toolWindow.isVisible) {
       val panel = findPanelBySerialNumber(deviceSerialNumber)
       if (panel != null) {
         selectPanel(panel)
         toolWindow.showAndActivate()
       }
+    }
+    else {
+      lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
+      toolWindow.showAndActivate()
     }
   }
 
