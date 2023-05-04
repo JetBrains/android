@@ -34,6 +34,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.google.wireless.android.sdk.stats.LayoutEditorState;
 import com.intellij.mock.MockModule;
+import com.intellij.mock.MockProject;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 
@@ -93,7 +94,8 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(result.getRootViews()).thenReturn(ImmutableList.of(rootView));
     when(result.getRenderResult()).thenReturn(renderResult);
     when(result.getLogger()).thenReturn(logger);
-    when(result.getModule()).thenReturn(new MockModule(getTestRootDisposable()));
+    MockModule module = new MockModule(new MockProject(null, getTestRootDisposable()), getTestRootDisposable());
+    when(result.getModule()).thenReturn(module);
     when(result.getStats()).thenReturn(new RenderResultStats(-1, 230L, -1, -1, -1));
 
     tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, CommonUsageTracker.RenderResultType.RENDER);

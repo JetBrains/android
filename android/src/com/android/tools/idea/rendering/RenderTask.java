@@ -883,8 +883,9 @@ public class RenderTask {
           if (message == null) {
             message = ex.toString();
           }
-          RenderProblem.RunnableFixFactory fixFactory = myContext.getModule().getEnvironment().getRunnableFixFactory();
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex, fixFactory));
+          RenderModelModule module = myContext.getModule();
+          RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), ex, fixFactory));
         }
 
         if (result != null) {
@@ -1077,9 +1078,10 @@ public class RenderTask {
         if (message == null) {
           message = e.toString();
         }
-        RenderProblem.RunnableFixFactory fixFactory = myContext.getModule().getEnvironment().getRunnableFixFactory();
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e, fixFactory));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile.getPsiFile(), e));
+        RenderModelModule module = myContext.getModule();
+        RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
+        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(module, xmlFile.getPsiFile(), e));
       }
     });
   }

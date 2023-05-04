@@ -257,13 +257,11 @@ public class RenderErrorContributor {
   }
 
   private void reportMissingSize(@NotNull HtmlBuilder builder,
-                                 @NotNull RenderLogger logger,
                                  @NotNull String fill,
                                  @NotNull XmlTag tag,
                                  @NotNull String id,
                                  @NotNull String attribute) {
-    Project project = logger.getProject();
-    if (project == null) {
+    if (myModule.isDisposed()) {
       return;
     }
     String wrapUrl = myLinkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
@@ -321,11 +319,11 @@ public class RenderErrorContributor {
                                                                       }
 
                                                                       if (missingWidth) {
-                                                                        reportMissingSize(builder, logger, fill, tag, id,
+                                                                        reportMissingSize(builder, fill, tag, id,
                                                                                           ATTR_LAYOUT_WIDTH);
                                                                       }
                                                                       if (missingHeight) {
-                                                                        reportMissingSize(builder, logger, fill, tag, id,
+                                                                        reportMissingSize(builder, fill, tag, id,
                                                                                           ATTR_LAYOUT_HEIGHT);
                                                                       }
                                                                     }));
@@ -621,8 +619,11 @@ public class RenderErrorContributor {
    */
   private boolean reportRtlNotEnabled(@NotNull RenderLogger logger) {
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-      Project project = logger.getProject();
-      if (project == null || project.isDisposed()) {
+      if (myModule.isDisposed()) {
+        return false;
+      }
+      Project project = myModule.getProject();
+      if (project.isDisposed()) {
         return false;
       }
 
@@ -998,8 +999,8 @@ public class RenderErrorContributor {
 
       if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
         builder.newline().addNbsps(3);
-        Project project = logger.getProject();
-        boolean useAndroidX = project == null || MigrateToAndroidxUtil.isAndroidx(project);
+        Project project = myModule.getProject();
+        boolean useAndroidX = MigrateToAndroidxUtil.isAndroidx(project);
         GoogleMavenArtifactId artifact = useAndroidX ?
                                          GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                          GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
@@ -1061,7 +1062,7 @@ public class RenderErrorContributor {
     }
 
     HtmlBuilder builder = new HtmlBuilder();
-    final Project project = logger.getProject();
+    final Project project = myModule.getProject();
 
     for (Throwable throwable : brokenClasses.values()) {
       if (RenderLogger.isIssue164378(throwable)) {
@@ -1089,7 +1090,7 @@ public class RenderErrorContributor {
         .add(className)
         .add(" (")
         .addLink("Open Class", myLinkManager.createOpenClassUrl(className));
-      if (throwable != null && project != null) {
+      if (throwable != null) {
         builder.add(", ");
         ShowExceptionFix detailsFix = new ShowExceptionFix(project, throwable);
         builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
@@ -1138,7 +1139,7 @@ public class RenderErrorContributor {
     }
 
     final String fragmentTagName;
-    if (MigrateToAndroidxUtil.isAndroidx(logger.getProject())) {
+    if (MigrateToAndroidxUtil.isAndroidx(myModule.getProject())) {
       fragmentTagName = FRAGMENT_CONTAINER_VIEW;
     }
     else {
@@ -1168,12 +1169,11 @@ public class RenderErrorContributor {
       builder.add(" (");
 
       if (isActivityKnown) {
-        final Project project = logger.getProject();
+        final Project project = myModule.getProject();
         ApplicationManager.getApplication().runReadAction(() -> {
           // TODO: Look up layout references in the given layout, if possible
           // Find activity class
           // Look for R references in the layout
-          assert project != null;
           GlobalSearchScope scope = GlobalSearchScope.allScope(project);
           PsiClass clz = DumbService.getInstance(project).isDumb() ?
                          null :
@@ -1272,7 +1272,10 @@ public class RenderErrorContributor {
     reportOtherProblems(logger);
     reportUnknownFragments(logger);
     reportRenderingFidelityProblems(logger);
-    myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler));
+
+    if (!myModule.isDisposed()) {
+      myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler, myModule.getProject()));
+    }
 
     return getIssues();
   }

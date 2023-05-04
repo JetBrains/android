@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.rendering.HtmlLinkManager
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.project.Project
 import javax.swing.event.HyperlinkListener
 
 object ComposeRenderErrorContributor {
@@ -78,7 +79,8 @@ object ComposeRenderErrorContributor {
   @JvmStatic
   fun reportComposeErrors(logger: RenderLogger,
                           linkManager: HtmlLinkManager,
-                          linkHandler: HyperlinkListener): List<RenderErrorModel.Issue> =
+                          linkHandler: HyperlinkListener,
+                          project: Project): List<RenderErrorModel.Issue> =
     logger.messages
       .mapNotNull {
         when {
@@ -94,7 +96,7 @@ object ComposeRenderErrorContributor {
                                 .addLink("You can ", "read more", " about preview limitations in our external documentation.",
                                           // TODO(b/199834697): add correct header once the ViewModel documentation is published on DAC
                                          "https://developer.android.com/jetpack/compose/tooling")
-                                .addShowException(linkManager, logger.project, it.throwable)
+                                .addShowException(linkManager, project, it.throwable)
               )
           }
           isCompositionLocalStackTrace(it.throwable) -> {
@@ -105,7 +107,7 @@ object ComposeRenderErrorContributor {
                                 .addLink("This preview was unable to find a ", "CompositionLocal", ". ",
                                          "https://developer.android.com/jetpack/compose/compositionlocal")
                                 .add("You might need to define it so it can render correctly.")
-                                .addShowException(linkManager, logger.project, it.throwable)
+                                .addShowException(linkManager, project, it.throwable)
               )
           }
           isComposeNotFoundThrowable(it.throwable) -> {

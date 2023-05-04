@@ -1196,7 +1196,7 @@ public class LayoutlibSceneManager extends SceneManager {
                 if (exception instanceof ClassNotFoundException) {
                   logger.addMessage(RenderProblem.createPlain(ERROR,
                                                               "Error inflating the preview",
-                                                              logger.getProject(),
+                                                              renderModule.getProject(),
                                                               logger.getLinkManager(), exception, ShowFixFactory.INSTANCE));
                 }
                 else {

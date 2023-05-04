@@ -111,6 +111,10 @@ public class RenderLogger implements IRenderLogger {
     public void logAndroidFramework(int priority, String tag, @NotNull String message) {}
   };
 
+  private interface RenderProblemBuilder {
+    RenderProblem build(Throwable throwable, String tag, String description);
+  }
+
   public static final String TAG_MISSING_DIMENSION = "missing.dimension";
   public static final String TAG_MISSING_FRAGMENT = "missing.fragment";
   public static final String TAG_STILL_BUILDING = "project.building";
@@ -136,7 +140,7 @@ public class RenderLogger implements IRenderLogger {
   private static boolean ourIgnoreAllFidelityWarnings;
   private static boolean ourIgnoreFragments;
 
-  private final Project myProject;
+  private final String myProjectBasePath;
   private Set<String> myFidelityWarningStrings;
   private boolean myHaveExceptions;
   private Multiset<String> myTags;
@@ -157,8 +161,7 @@ public class RenderLogger implements IRenderLogger {
 
   private final boolean myLogFramework;
 
-  private final RenderProblem.RunnableFixFactory myFixFactory;
-
+  private final RenderProblemBuilder myRenderProblemBuilder;
   private final Supplier<HtmlLinkManager> myHtmlLinkManagerFactory;
 
   public RenderLogger(
@@ -167,11 +170,18 @@ public class RenderLogger implements IRenderLogger {
     boolean logFramework,
     @NotNull RenderProblem.RunnableFixFactory fixFactory,
     @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
-    myProject = project;
+    myProjectBasePath = project == null ? null : project.getBasePath();
     myCredential = credential;
     myLogFramework = logFramework;
-    myFixFactory = fixFactory;
     myHtmlLinkManagerFactory = linkManagerFactory;
+    myRenderProblemBuilder = (throwable, tag, description) -> {
+      if (project == null) {
+        return RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable);
+      }
+      else {
+        return RenderProblem.createPlain(ERROR, description, project, getLinkManager(), throwable, fixFactory).tag(tag);
+      }
+    };
   }
 
   /**
@@ -239,11 +249,6 @@ public class RenderLogger implements IRenderLogger {
   }
 
   // ---- extends ILayoutLog ----
-
-  @Nullable
-  public Project getProject() {
-    return myProject;
-  }
 
   private void logMessageToIdeaLog(@NotNull String message, @Nullable Throwable t) {
     String logMessage;
@@ -422,8 +427,7 @@ public class RenderLogger implements IRenderLogger {
             builder.add("Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.");
             builder.newline().newline();
             path = FileUtil.toSystemIndependentName(path);
-            String basePath = getProject() != null && getProject().getBasePath() != null ?
-                              FileUtil.toSystemIndependentName(getProject().getBasePath()) : null;
+            String basePath = myProjectBasePath == null ? null : FileUtil.toSystemIndependentName(myProjectBasePath);
             if (basePath != null && path.startsWith(basePath)) {
               path = path.substring(basePath.length());
               path = StringUtil.trimStart(path, File.separator);
@@ -512,12 +516,7 @@ public class RenderLogger implements IRenderLogger {
     }
 
     addTag(tag);
-    if (getProject() == null) {
-      addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
-    }
-    else {
-      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable, myFixFactory).tag(tag));
-    }
+    addMessage(myRenderProblemBuilder.build(throwable, tag, description));
   }
 
   // ---- Tags ----
