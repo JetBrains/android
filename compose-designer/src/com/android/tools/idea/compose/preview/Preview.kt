@@ -307,7 +307,6 @@ class ComposePreviewRepresentation(
   private val log = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val isDisposed = AtomicBoolean(false)
 
-  private val module = runReadAction { psiFile.module }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val project
     get() = psiFilePointer.project
@@ -598,7 +597,8 @@ class ComposePreviewRepresentation(
   }
 
   override val hasDesignInfoProviders: Boolean
-    get() = module?.let { hasDesignInfoProviders(it) } ?: false
+    get() =
+      runReadAction { psiFilePointer.element?.module }?.let { hasDesignInfoProviders(it) } ?: false
 
   override var showDebugBoundaries: Boolean = false
     set(value) {
@@ -786,6 +786,7 @@ class ComposePreviewRepresentation(
     }
     val psiFile = psiFilePointer.element
     requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
+    val module = runReadAction { psiFile.module }
 
     setupBuildListener(
       project,
@@ -812,7 +813,11 @@ class ComposePreviewRepresentation(
           }
 
           // If Fast Preview is enabled, prefetch the daemon for the current configuration.
-          if (module != null && FastPreviewManager.getInstance(project).isEnabled) {
+          if (
+            module != null &&
+              !module.isDisposed &&
+              FastPreviewManager.getInstance(project).isEnabled
+          ) {
             FastPreviewManager.getInstance(project).preStartDaemon(module)
           }
 
