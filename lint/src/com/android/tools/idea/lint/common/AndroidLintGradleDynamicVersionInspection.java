@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint.common;
 
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.gradle.Dependency;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
@@ -34,24 +34,17 @@ public class AndroidLintGradleDynamicVersionInspection extends AndroidLintInspec
                                          @NotNull String message,
                                          @Nullable LintFix fixData) {
     String gc = LintFix.getString(fixData, GradleDetector.KEY_COORDINATE, null);
-    GradleCoordinate plus;
-    if (gc != null) {
-      plus = GradleCoordinate.parseCoordinateString(gc);
-    } else {
-      plus = null;
-    }
-    //noinspection ConstantConditions
-    if (plus != null && plus.getArtifactId() != null) {
-      return new LintIdeQuickFix[]{
-        new ReplaceStringQuickFix("Replace with specific version", null, plus.getRevision(), "specific version") {
-          @Nullable
-          @Override
-          protected String getNewValue() {
-            return LintIdeSupport.get().resolveDynamic(startElement.getProject(), plus);
-          }
-        }};
-    }
+    String revision = LintFix.getString(fixData, GradleDetector.KEY_REVISION, null);
+    if (gc == null || revision == null) return super.getQuickFixes(startElement, endElement, message, fixData);
 
-    return super.getQuickFixes(startElement, endElement, message, fixData);
+    Dependency dependency = Dependency.Companion.parse(gc);
+    return new LintIdeQuickFix[]{
+      new ReplaceStringQuickFix("Replace with specific version", null, revision, "specific version") {
+        @Nullable
+        @Override
+        protected String getNewValue() {
+          return LintIdeSupport.get().resolveDynamicDependency(startElement.getProject(), dependency);
+        }
+      }};
   }
 }

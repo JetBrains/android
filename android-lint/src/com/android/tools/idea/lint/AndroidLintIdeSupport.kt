@@ -269,11 +269,14 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     }
   }
 
-  override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? {
+  override fun resolveDynamicDependency(project: Project, dependency: Dependency): String? {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val dependency = Dependency.parse(gc.toString())
     return RepositoryUrlManager.get().resolveDependencyRichVersion(dependency, project, sdkHandler)
   }
+
+  @Deprecated("Use resolveDynamicDependency instead")
+  override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? =
+    resolveDynamicDependency(project, Dependency.parse(gc.toString()))
 
   override fun getPlatforms(): EnumSet<Platform> = Platform.ANDROID_SET
 

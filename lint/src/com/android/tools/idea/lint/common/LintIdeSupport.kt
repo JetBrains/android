@@ -18,6 +18,7 @@ package com.android.tools.idea.lint.common
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.lint.client.api.IssueRegistry
@@ -158,7 +159,11 @@ abstract class LintIdeSupport {
   open fun updateAgpToLatest(project: Project) {}
   open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project): Boolean = false
   open fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {}
-
+  open fun resolveDynamicDependency(project: Project, dependency: Dependency): String? = null
+  @Deprecated(
+    "Use resolveDynamicDependency instead",
+    replaceWith = ReplaceWith("resolveDynamicDependency(project, Dependency.parse(gc.toString())")
+  )
   open fun resolveDynamic(project: Project, gc: GradleCoordinate): String? = null
   // Analytics
   open fun canRequestFeedback(): Boolean = false
