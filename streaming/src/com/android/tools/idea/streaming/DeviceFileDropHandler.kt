@@ -32,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.EnumSet
 import javax.swing.JComponent
@@ -73,6 +74,9 @@ private class DeviceFileDropHandler(
 
   override fun drop(event: DnDEvent) {
     val files = FileCopyPasteUtil.getFileListFromAttachedObject(event.attachedObject).map(File::toPath)
+    if (!checkFiles(files)) {
+      return
+    }
     val fileTypes = getFileTypes(files)
     if (fileTypes.size > 1) {
       notifyOfError("Drag-and-drop can either install an APK, or copy one or more non-APK files to the device.")
@@ -124,6 +128,24 @@ private class DeviceFileDropHandler(
         }
       }
     }
+  }
+
+  /** Checks the files and, if any error is detected, reports it and returns false. */
+  private fun checkFiles(files: List<Path>): Boolean {
+    for (file in files) {
+      val problemMessage = when {
+        Files.isDirectory(file) -> "is a directory"
+        !Files.isReadable(file) -> "is not readable"
+        else -> continue
+      }
+      var fileForDisplay = file.toString()
+      if (fileForDisplay.length > 30) {
+        fileForDisplay = file.fileName.toString()
+      }
+      notifyOfError("$fileForDisplay $problemMessage")
+      return false
+    }
+    return true
   }
 
   private fun formatForDisplay(prefixForPluralCase: String, files: List<Path>): String =
