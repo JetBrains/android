@@ -39,6 +39,7 @@ class ToggleLayoutInspectorAction : ToggleAction() {
   }
 
   override fun update(e: AnActionEvent) {
+    super.update(e)
     val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
     e.presentation.isVisible = isEnabled
 
