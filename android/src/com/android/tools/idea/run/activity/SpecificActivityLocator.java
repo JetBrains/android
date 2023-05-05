@@ -16,15 +16,16 @@
 package com.android.tools.idea.run.activity;
 
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryActivitiesFromManifestIndex;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.ActivitiesAndAliases;
 import com.android.tools.idea.model.AndroidManifestIndex;
 import com.intellij.execution.JavaExecutionUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -135,7 +136,9 @@ public class SpecificActivityLocator extends ActivityLocator {
     if (manifest == null) {
       return false;
     }
-    final String aPackage = invokeAndWaitIfNeeded(() -> manifest.getPackage().getStringValue());
+    final String aPackage = ApplicationManager.getApplication().runReadAction(
+      (Computable<String>)() -> manifest.getPackage().getStringValue()
+    );
     return aPackage != null && aPackage.contains("${");
   }
 }
