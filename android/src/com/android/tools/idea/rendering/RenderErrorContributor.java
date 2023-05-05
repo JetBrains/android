@@ -64,7 +64,6 @@ import com.google.common.collect.Sets;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -138,10 +137,9 @@ public class RenderErrorContributor {
   @NotNull private final RenderLogger myLogger;
   @Nullable private final RenderContext myRenderContext;
   private final boolean myHasRequestedCustomViews;
-  private final DataContext myDataContext;
   private final EditorDesignSurface myDesignSurface;
 
-  protected RenderErrorContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
+  protected RenderErrorContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result) {
     // To get rid of memory leak, get needed RenderResult attributes to avoid referencing RenderResult.
     myModule = result.getModule();
     mySourceFile = result.getSourceFile();
@@ -163,8 +161,6 @@ public class RenderErrorContributor {
         performClick(e.getDescription());
       }
     };
-
-    myDataContext = dataContext;
   }
 
   private static boolean isHiddenFrame(@NotNull StackTraceElement frame) {
@@ -1297,8 +1293,8 @@ public class RenderErrorContributor {
       return true;
     }
 
-    public RenderErrorContributor getContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
-      return new RenderErrorContributor(surface, result, dataContext);
+    public RenderErrorContributor getContributor(@Nullable EditorDesignSurface surface, @NotNull RenderResult result) {
+      return new RenderErrorContributor(surface, result);
     }
   }
 }
