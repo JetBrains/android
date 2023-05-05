@@ -45,7 +45,6 @@ import com.intellij.codeInspection.inferNullity.InferNullityAnnotationsAction;
 import com.intellij.codeInspection.inferNullity.NullityInferrer;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
-import com.intellij.openapi.application.AppUIExecutor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.CommandProcessor;
@@ -228,9 +227,9 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
                                              GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
                                              GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
-          String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
+          String annotationsComponentIdentifier = manager.getArtifactComponentIdentifier(annotation, true);
           for (Module module : modulesWithoutAnnotations) {
-            addDependency(module, annotationsLibraryCoordinate);
+            addDependency(module, annotationsComponentIdentifier);
           }
 
           syncAndRestartAnalysis(project, scope);

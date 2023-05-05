@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
@@ -32,6 +33,8 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.PlatformTestUtil;
+import java.util.Objects;
+import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -296,8 +299,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
   }
 
   private static String getAppCompatGradleCoordinate() {
-    return RepositoryUrlManager.get().getArtifactStringCoordinate(GoogleMavenArtifactId.APP_COMPAT_V7,
-                                                                  v -> v.getMajor() == Math.min(28, GradleImport.CURRENT_COMPILE_VERSION),
-                                                                  false);
+    Predicate<Version> filter = v -> Objects.equals(v.getMajor(), Math.min(28, GradleImport.CURRENT_COMPILE_VERSION));
+    return RepositoryUrlManager.get().getArtifactComponentIdentifier(GoogleMavenArtifactId.APP_COMPAT_V7, filter, false);
   }
 }

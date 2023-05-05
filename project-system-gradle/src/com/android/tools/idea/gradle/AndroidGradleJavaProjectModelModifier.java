@@ -29,8 +29,8 @@ import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
+import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Version;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -260,15 +260,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         Predicate<Version> filter =
           descriptor.getMinVersion() == null ? null : (v -> v.toString().startsWith(descriptor.getMinVersion()));
 
-        String gc = RepositoryUrlManager.get().getArtifactStringCoordinate(library, filter,false);
-        if (gc == null) {
-          gc = RepositoryUrlManager.get().getLibraryRevision(libraryGroupId, libraryArtifactId,
-                                                             filter, false,
-                                                             FileSystems.getDefault());
-        }
-        GradleCoordinate coordinate;
-        if (gc != null && (coordinate = GradleCoordinate.parseCoordinateString(gc)) != null) {
-          version = coordinate.getRevision();
+        String componentIdentifier = RepositoryUrlManager.get().getArtifactComponentIdentifier(library, filter, false);
+        if (componentIdentifier != null) {
+          Component component = Component.Companion.tryParse(componentIdentifier);
+          if (component != null) {
+            version = component.getVersion().toString();
+          }
         }
       }
     }

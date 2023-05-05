@@ -17,8 +17,8 @@ package com.android.tools.idea.lint.inspections;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 
+import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Version;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -145,24 +145,23 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
 
     private static String getExifLibraryCoordinate() {
       RepositoryUrlManager manager = RepositoryUrlManager.get();
-      String libraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE, true);
-      if (libraryCoordinate != null) {
-        return libraryCoordinate;
+      String libraryComponentIdentifier = manager.getArtifactComponentIdentifier(GoogleMavenArtifactId.ANDROIDX_EXIF_INTERFACE, true);
+      if (libraryComponentIdentifier != null) {
+        return libraryComponentIdentifier;
       }
 
-      libraryCoordinate = manager.getArtifactStringCoordinate(GoogleMavenArtifactId.EXIF_INTERFACE, true);
-      if (libraryCoordinate == null) {
+      libraryComponentIdentifier = manager.getArtifactComponentIdentifier(GoogleMavenArtifactId.EXIF_INTERFACE, true);
+      if (libraryComponentIdentifier == null) {
         return null;
       }
-      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
-      if (coordinate != null) {
-        Version version = Version.Companion.parse(coordinate.getRevision());
-        if (version.compareTo(Version.Companion.parse("25.1.0")) < 0) {
-          libraryCoordinate = coordinate.getGroupId() + ':' + coordinate.getArtifactId() + ":25.1.0";
+      Component component = Component.Companion.tryParse(libraryComponentIdentifier);
+      if (component != null) {
+        if (component.getVersion().compareTo(Version.Companion.parse("25.1.0")) < 0) {
+          libraryComponentIdentifier = GoogleMavenArtifactId.EXIF_INTERFACE.getComponent("25.1.0").toIdentifier();
         }
       }
 
-      return libraryCoordinate;
+      return libraryComponentIdentifier;
     }
 
     /**
