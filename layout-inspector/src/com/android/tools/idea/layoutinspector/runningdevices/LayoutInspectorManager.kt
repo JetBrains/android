@@ -83,8 +83,7 @@ interface LayoutInspectorManager {
 
 /** This class is meant to be used on the UI thread, to avoid concurrency issues. */
 @UiThread
-// TODO(b/265150325): do not use project as disposable
-private class LayoutInspectorManagerImpl(private val project: Project) : LayoutInspectorManager {
+private class LayoutInspectorManagerImpl(private val project: Project) : LayoutInspectorManager, Disposable {
 
   /** Tabs on which Layout Inspector is enabled. */
   private var tabsWithLayoutInspector = setOf<TabId>()
@@ -187,7 +186,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       displayView = displayView
     )
 
-    return SelectedTabState(project, tabId, tabComponents, project.getLayoutInspector())
+    return SelectedTabState(project, this, tabId, tabComponents, project.getLayoutInspector())
   }
 
   override fun addStateListener(listener: LayoutInspectorManager.StateListener) {
@@ -258,6 +257,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
    */
   private data class SelectedTabState(
     val project: Project,
+    val disposable: Disposable,
     val tabId: TabId,
     val tabComponents: TabComponents,
     val layoutInspector: LayoutInspector,
@@ -291,7 +291,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         subPanel.add(InspectorBanner(project), BorderLayout.NORTH)
         subPanel.add(centerPanel, BorderLayout.CENTER)
 
-        createLayoutInspectorWorkbench(project, layoutInspector, mainPanel)
+        createLayoutInspectorWorkbench(project, disposable, layoutInspector, mainPanel)
       }
       tabComponents.displayView.add(layoutInspectorRenderer)
 
@@ -335,14 +335,17 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       InspectorBannerService.getInstance(project)?.removeNotification(notificationText)
     }
   }
+
+  override fun dispose() { }
 }
 
 private fun createLayoutInspectorWorkbench(
   project: Project,
+  parentDisposable: Disposable,
   layoutInspector: LayoutInspector,
   centerPanel: JComponent
 ): WorkBench<LayoutInspector> {
-  val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, project)
+  val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
   val toolsDefinition = listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())
   workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
   DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
