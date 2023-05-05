@@ -26,6 +26,8 @@ import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.codeInsight.daemon.impl.LineMarkersPass
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -76,16 +78,18 @@ internal class SpringPickerLineMarkerProviderTest {
     )
   }
 
+  @OptIn(KtAllowAnalysisOnEdt::class)
   @RunsInEdt
   @Test
   fun gutterIconOnSpringDeclarations() {
     Dependencies.add(rule.fixture, "compose/animation/animation-core")
     val psiFile = fixture.findPsiFile(FILE_PATH)
-    val springLineMarkerInfos =
+    val springLineMarkerInfos = allowAnalysisOnEdt {
       LineMarkersPass.queryLineMarkers(psiFile, psiFile.viewProvider.document!!).filter {
         lineMarkerInfo ->
         lineMarkerInfo.lineMarkerTooltip == "SpringSpec configuration picker"
       }
+    }
     assertEquals(3, springLineMarkerInfos.size)
     assertEquals("SpringSpec<Float>()", springLineMarkerInfos[0].element!!.parent.parent.text)
     assertEquals("spring<Float>()", springLineMarkerInfos[1].element!!.parent.parent.text)

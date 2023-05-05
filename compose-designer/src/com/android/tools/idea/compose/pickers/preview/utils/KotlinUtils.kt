@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.compose.pickers.preview.utils
 
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.calls.KtFunctionCall
+import org.jetbrains.kotlin.analysis.api.symbols.KtConstructorSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -37,3 +42,17 @@ internal fun KtCallElement.addNewValueArgument(
   if (valueArguments.isEmpty()) add(psiFactory.createCallArguments("()"))
   return valueArgumentList!!.addArgument(newValueArgument)
 }
+
+internal fun KtAnalysisSession.containingPackage(functionSymbol: KtFunctionLikeSymbol) =
+  when (functionSymbol) {
+    is KtConstructorSymbol -> functionSymbol.containingClassIdIfNonLocal?.packageFqName
+    else -> functionSymbol.callableIdIfNonLocal?.packageName
+  }
+
+internal fun KtAnalysisSession.getArgumentForParameter(
+  functionCall: KtFunctionCall<*>,
+  parameterSymbol: KtValueParameterSymbol
+) =
+  functionCall.argumentMapping.entries
+    .singleOrNull { (_, parameter) -> parameter.symbol == parameterSymbol }
+    ?.key

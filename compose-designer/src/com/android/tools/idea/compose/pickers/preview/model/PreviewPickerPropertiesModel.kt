@@ -35,6 +35,7 @@ import com.android.tools.idea.compose.pickers.preview.inspector.PreviewPropertie
 import com.android.tools.idea.compose.pickers.preview.property.DeviceParameterPropertyItem
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
+import com.android.tools.idea.compose.pickers.preview.utils.getArgumentForParameter
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
@@ -63,7 +64,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.calls.successfulFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -367,15 +368,10 @@ private class PreviewPropertiesProvider(
     properties: MutableCollection<PsiPropertyItem>,
   ) = allowAnalysisOnEdt {
     analyze(annotationEntry) {
-      val resolvedFunctionCall =
-        annotationEntry.resolveCall().successfulFunctionCallOrNull() ?: return
-      val callableSymbol = resolvedFunctionCall.partiallyAppliedSymbol.symbol
+      val resolvedFunctionCall = annotationEntry.resolveCall().singleFunctionCallOrNull() ?: return
+      val callableSymbol = resolvedFunctionCall.symbol
       callableSymbol.valueParameters.forEach { parameter ->
-        val argumentToParameter =
-          resolvedFunctionCall.argumentMapping.entries.singleOrNull { (_, param) ->
-            param.symbol == parameter
-          }
-        val argument = argumentToParameter?.key
+        val argument = getArgumentForParameter(resolvedFunctionCall, parameter)
         val defaultValue = defaultValues[parameter.name.asString()]
         collectParameterPropertyItems(
           project,
