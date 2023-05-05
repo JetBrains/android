@@ -8,19 +8,17 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
-public class AndroidCommonBundle extends DynamicBundle {
-  @NonNls private static final String BUNDLE = "messages.AndroidCommonBundle";
-  private static final AndroidCommonBundle INSTANCE = new AndroidCommonBundle();
+public class AndroidCommonBundle {
+  private static final @NonNls String BUNDLE = "messages.AndroidCommonBundle";
+  private static final DynamicBundle INSTANCE = new DynamicBundle(AndroidCommonBundle.class, BUNDLE);
 
-  private AndroidCommonBundle() { super(BUNDLE); }
+  private AndroidCommonBundle() {}
 
-  @NotNull
-  public static @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
+  public static @NotNull @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
     return INSTANCE.getMessage(key, params);
   }
 
-  @NotNull
-  public static Supplier<String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
+  public static @NotNull Supplier<String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
     return INSTANCE.getLazyMessage(key, params);
   }
 }

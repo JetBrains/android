@@ -22,19 +22,17 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
-public class LayoutlibBundle extends DynamicBundle {
-  @NonNls private static final String BUNDLE = "messages.LayoutlibBundle";
-  private static final LayoutlibBundle INSTANCE = new LayoutlibBundle();
+public class LayoutlibBundle {
+  private static final @NonNls String BUNDLE = "messages.LayoutlibBundle";
+  private static final DynamicBundle INSTANCE = new DynamicBundle(LayoutlibBundle.class, BUNDLE);
 
-  private LayoutlibBundle() { super(BUNDLE); }
+  private LayoutlibBundle() {}
 
-  @NotNull
-  public static @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
+  public static @NotNull @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
     return INSTANCE.getMessage(key, params);
   }
 
-  @NotNull
-  public static Supplier<String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
+  public static @NotNull Supplier<String> messagePointer(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
     return INSTANCE.getLazyMessage(key, params);
   }
 }
