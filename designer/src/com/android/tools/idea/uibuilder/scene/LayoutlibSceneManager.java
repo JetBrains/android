@@ -865,7 +865,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
       }
 
       @Override
-      public boolean canEat(Update update) {
+      public boolean canEat(@NotNull Update update) {
         return this.equals(update);
       }
     };

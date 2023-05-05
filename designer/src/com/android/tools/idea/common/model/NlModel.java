@@ -965,7 +965,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         }
 
         @Override
-        public boolean canEat(Update update) {
+        public boolean canEat(@NotNull Update update) {
           return true;
         }
       }

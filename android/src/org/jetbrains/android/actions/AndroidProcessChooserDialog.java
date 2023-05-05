@@ -448,7 +448,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       }
 
       @Override
-      public boolean canEat(Update update) {
+      public boolean canEat(@NotNull Update update) {
         return true;
       }
     });

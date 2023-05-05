@@ -359,7 +359,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
       }
 
       @Override
-      public boolean canEat(Update update) {
+      public boolean canEat(@NotNull Update update) {
         return this.equals(update);
       }
     });
