@@ -59,6 +59,10 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     trackProjectStructure()
   }
 
+  override fun syncSkipped(project: Project) {
+    trackProjectStructure()
+  }
+
   private fun trackProjectStructure() {
     if (ApplicationManager.getApplication().isUnitTestMode) {
       // Run synchronously in unit tests as it is difficult to wait for a pooled thread in unit tests.
@@ -141,7 +145,7 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     val gradleNativeAndroidModules: MutableList<GradleNativeAndroidModule> = ArrayList()
     val appId = AnonymizerUtil.anonymizeUtf8(model.applicationId)
     val androidProject = model.androidProject
-    var gradleVersionString = GradleVersions.getInstance().getGradleVersion(myProject)!!.version
+    var gradleVersionString = GradleVersions.getInstance().getGradleVersion(myProject)?.version
     if (gradleVersionString == null) {
       gradleVersionString = "0.0.0"
     }
