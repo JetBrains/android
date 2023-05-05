@@ -28,8 +28,8 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Computable;
-import gnu.trove.TIntArrayList;
-import gnu.trove.TObjectIntHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
@@ -83,9 +83,9 @@ public class ResourceClassGenerator {
   }
 
   private long myIdGeneratorGeneration = -1L;
-  private Map<ResourceType, TObjectIntHashMap<String>> myCache;
+  private Map<ResourceType, Object2IntOpenHashMap<String>> myCache;
   /** For int[] in styleables. The ints in styleables are stored in {@link #myCache}. */
-  private Map<String, TIntArrayList> myStyleableCache;
+  private Map<String, IntArrayList> myStyleableCache;
   @NotNull private final ResourceRepository myResources;
   @NotNull private final NumericIdProvider myIdProvider;
   @NotNull private final ResourceNamespace myNamespace;
@@ -141,20 +141,20 @@ public class ResourceClassGenerator {
       }
       if (type == ResourceType.STYLEABLE) {
         if (myStyleableCache == null) {
-          myCache.put(ResourceType.STYLEABLE, new TObjectIntHashMap<>());
+          myCache.put(ResourceType.STYLEABLE, new Object2IntOpenHashMap<>());
           myStyleableCache = Maps.newHashMap();
           generateStyleable(cw, className);
         }
         else {
-          TObjectIntHashMap<String> indexFieldsCache = myCache.get(ResourceType.STYLEABLE);
+          Object2IntOpenHashMap<String> indexFieldsCache = myCache.get(ResourceType.STYLEABLE);
           assert indexFieldsCache != null;
           generateFields(cw, indexFieldsCache);
           generateIntArraysFromCache(cw, className);
         }
       } else {
-        TObjectIntHashMap<String> typeCache = myCache.get(type);
+        Object2IntOpenHashMap<String> typeCache = myCache.get(type);
         if (typeCache == null) {
-          typeCache = new TObjectIntHashMap<>();
+          typeCache = new Object2IntOpenHashMap<>();
           myCache.put(type, typeCache);
           generateValuesForType(cw, type, typeCache);
         }
@@ -176,7 +176,7 @@ public class ResourceClassGenerator {
     return cw.toByteArray();
   }
 
-  private void generateValuesForType(@NotNull ClassWriter cw, @NotNull ResourceType resType, @NotNull TObjectIntHashMap<String> cache) {
+  private void generateValuesForType(@NotNull ClassWriter cw, @NotNull ResourceType resType, @NotNull Object2IntOpenHashMap<String> cache) {
     Collection<String> resourceNames = myResources.getResourceNames(myNamespace, resType);
     for (String name : resourceNames) {
       int initialValue = myIdProvider.getOrGenerateId(new ResourceReference(myNamespace, resType, name));
@@ -204,7 +204,7 @@ public class ResourceClassGenerator {
     }
     boolean debug = LOG.isDebugEnabled() && isPublicClass(className);
 
-    TObjectIntHashMap<String> indexFieldsCache = myCache.get(ResourceType.STYLEABLE);
+    Object2IntOpenHashMap<String> indexFieldsCache = myCache.get(ResourceType.STYLEABLE);
     Collection<String> styleableNames = myResources.getResourceNames(myNamespace, ResourceType.STYLEABLE);
     List<MergedStyleable> mergedStyleables = new ArrayList<>(styleableNames.size());
 
@@ -248,7 +248,7 @@ public class ResourceClassGenerator {
     mv.visitCode();
     for (MergedStyleable mergedStyleable : mergedStyleables) {
       String fieldName = RClassNaming.getFieldNameByResourceName(mergedStyleable.name);
-      TIntArrayList values = new TIntArrayList();
+      IntArrayList values = new IntArrayList();
       for (ResourceReference attr : mergedStyleable.attrs) {
         values.add(myIdProvider.getOrGenerateId(attr));
       }
@@ -260,10 +260,9 @@ public class ResourceClassGenerator {
     mv.visitEnd();
   }
 
-  private static void generateFields(@NotNull final ClassWriter cw, @NotNull TObjectIntHashMap<String> values) {
-    values.forEachEntry((name, value) -> {
+  private static void generateFields(@NotNull final ClassWriter cw, @NotNull Object2IntOpenHashMap<String> values) {
+    values.forEach((name, value) -> {
       generateField(cw, name, value);
-      return true;
     });
   }
 
@@ -308,7 +307,7 @@ public class ResourceClassGenerator {
    * @param mv the class initializer's MethodVisitor (&lt;clinit&gt;)
    */
   private static void generateArrayInitialization(@NotNull MethodVisitor mv, String className, String fieldName,
-                                                  @NotNull TIntArrayList values) {
+                                                  @NotNull IntArrayList values) {
     if (values.isEmpty()) {
       return;
     }
