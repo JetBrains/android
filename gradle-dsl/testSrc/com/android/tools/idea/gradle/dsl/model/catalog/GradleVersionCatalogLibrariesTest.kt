@@ -19,37 +19,15 @@ import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.dependencies.LibraryDeclarationSpecImpl
 import com.android.tools.idea.gradle.dsl.model.dependencies.VersionDeclarationSpecImpl
-import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler.GROOVY_LANGUAGE
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.jetbrains.annotations.Contract
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Ignore
 import org.junit.Test
-import org.junit.runners.Parameterized
 import java.io.File
 
-@Suppress("ACCIDENTAL_OVERRIDE")
 class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
-
-  companion object {
-    /**
-     * Declare only one parameter - Groovy Language. That is, all test projects will be
-     * created with Groovy build files only. Most/all build files intended to be empty here
-     * as we test mainly catalog model.
-     * Despite that one parameter Groovy configuration is a stub for now, it can be
-     * transformed in future in the full kotlin/groovy parametrized test
-     */
-    @Contract(pure = true)
-    @Parameterized.Parameters(name = "{1}")
-    @JvmStatic
-    fun languageExtensions(): Collection<*> {
-      return listOf(
-        arrayOf<Any>(".gradle", GROOVY_LANGUAGE),
-      )
-    }
-  }
 
   @Test
   fun testAllDependencies() {

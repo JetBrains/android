@@ -73,5 +73,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//prebuilts/tools/common/m2:junit-4.12[test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
