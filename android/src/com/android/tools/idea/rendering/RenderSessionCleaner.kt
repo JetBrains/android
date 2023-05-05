@@ -47,6 +47,11 @@ private const val LOCAL_BROADCAST_MANAGER_FQN = "androidx.localbroadcastmanager.
 
 private const val GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker"
 
+private const val INTERNAL_PACKAGE = "_layoutlib_._internal_."
+private const val ANDROID_UI_DISPATCHER_FQN = "androidx.compose.ui.platform.AndroidUiDispatcher"
+private const val ANDROID_UI_DISPATCHER_COMPANION_FQN = "$ANDROID_UI_DISPATCHER_FQN\$Companion"
+private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.CombinedContext"
+
 /**
  * Initiates a custom [RenderSession] disposal, involving clearing several static collections including some Compose-related objects as well
  * as executing default [RenderSession.dispose].
@@ -56,6 +61,7 @@ private const val GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorke
 fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture<Void> {
   var disposeMethod = Optional.empty<Method>()
   val applyObserversRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
+  val toRunTrampolinedRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
   if (classLoader.hasLoadedClass(COMPOSE_VIEW_ADAPTER_FQN)) {
     try {
       val composeViewAdapter: Class<*> = classLoader.findClass(COMPOSE_VIEW_ADAPTER_FQN)
@@ -84,6 +90,7 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
       LOG.debug("Unable to dispose the recompose animationScale", ex)
     }
     applyObserversRef.set(WeakReference(findApplyObservers(classLoader)))
+    toRunTrampolinedRef.set(WeakReference(findToRunTrampolined(classLoader)))
   }
 
   try {
@@ -119,6 +126,11 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
       val applyObservers = weakApplyObservers.get()
       applyObservers?.clear()
     }
+    val weakToRunTrampolined = toRunTrampolinedRef.get()
+    if (weakToRunTrampolined != null) {
+      val toRunTrampolined = weakToRunTrampolined.get()
+      toRunTrampolined?.clear()
+    }
     broadcastManagerInstanceField.get()?.set(null, null)
     this@dispose.dispose()
   }
@@ -144,6 +156,31 @@ private fun disposeIfCompose(viewInfo: ViewInfo, disposeMethod: Method) {
   catch (ex: InvocationTargetException) {
     LOG.warn("Unexpected error while disposing compose view", ex)
   }
+}
+
+private fun findToRunTrampolined(classLoader: LayoutlibCallbackImpl): MutableCollection<*>? {
+  try {
+    val uiDispatcher = classLoader.findClass(ANDROID_UI_DISPATCHER_FQN)
+    val uiDispatcherCompanion = classLoader.findClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)
+    val uiDispatcherCompanionField = uiDispatcher.getDeclaredField("Companion")
+    val uiDispatcherCompanionObj = uiDispatcherCompanionField[null]
+    val getMainMethod = uiDispatcherCompanion.getDeclaredMethod("getMain").apply { isAccessible = true }
+    val mainObj = getMainMethod.invoke(uiDispatcherCompanionObj)
+    val combinedContext = classLoader.findClass(COMBINED_CONTEXT_FQN)
+    val elementField = combinedContext.getDeclaredField("element").apply { isAccessible = true }
+    val uiDispatcherObj = elementField[mainObj]
+
+    val toRunTrampolinedField = uiDispatcher.getDeclaredField("toRunTrampolined").apply { isAccessible = true }
+    val toRunTrampolinedObj = toRunTrampolinedField[uiDispatcherObj]
+    if (toRunTrampolinedObj is MutableCollection<*>) {
+      return toRunTrampolinedObj
+    }
+    LOG.warn("AndroidUiDispatcher.toRunTrampolined found but it is not a MutableCollection")
+  }
+  catch (ex: ReflectiveOperationException) {
+    LOG.warn("Unable to find AndroidUiDispatcher.toRunTrampolined", ex)
+  }
+  return null
 }
 
 private fun findApplyObservers(classLoader: LayoutlibCallbackImpl): MutableCollection<*>? {

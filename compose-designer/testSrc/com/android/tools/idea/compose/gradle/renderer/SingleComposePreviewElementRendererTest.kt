@@ -140,6 +140,24 @@ class SingleComposePreviewElementRendererTest {
 
     assertTrue(applyObservers.isNotEmpty())
 
+    val uiDispatcher = classLoader.loadClass("androidx.compose.ui.platform.AndroidUiDispatcher")
+    val uiDispatcherCompanion =
+      classLoader.loadClass("androidx.compose.ui.platform.AndroidUiDispatcher\$Companion")
+    val uiDispatcherCompanionField = uiDispatcher.getDeclaredField("Companion")
+    val uiDispatcherCompanionObj = uiDispatcherCompanionField[null]
+    val getMainMethod =
+      uiDispatcherCompanion.getDeclaredMethod("getMain").apply { isAccessible = true }
+    val mainObj = getMainMethod.invoke(uiDispatcherCompanionObj)
+    val combinedContext =
+      classLoader.loadClass("_layoutlib_._internal_.kotlin.coroutines.CombinedContext")
+    val elementField = combinedContext.getDeclaredField("element").apply { isAccessible = true }
+    val uiDispatcherObj = elementField[mainObj]
+    val toRunTrampolinedField =
+      uiDispatcher.getDeclaredField("toRunTrampolined").apply { isAccessible = true }
+    val toRunTrampolined = toRunTrampolinedField[uiDispatcherObj] as MutableCollection<*>
+
+    assertTrue(toRunTrampolined.isNotEmpty())
+
     renderTask.dispose().get()
     assertTrue(
       "animationScale should have been cleared",
@@ -150,6 +168,8 @@ class SingleComposePreviewElementRendererTest {
     assertEquals("FontRequestWorker.PENDING_REPLIES size must be 0 after dispose", 0, size)
 
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
+
+    assertTrue("toRunTrampolined should have been cleared", toRunTrampolined.isEmpty())
   }
 
   @Test
