@@ -93,7 +93,7 @@ class MemoryUsageBenchmarkRule (
   /* This case is used for restricting and tracking the max heap only, for projects where the full measurement is not feasible. */
   fun openProjectAndRecordMaxHeapOnly() = runBlocking {
     startMemoryPolling()
-    setJvmArgs(enableAgent = false)
+    setJvmArgs(enableMeasurements = false)
     analysisFlag.clearOverride() // Turn off measurements
     testEnvironmentRule.openTestProject(testProjectTemplateFromPath(
       path = MemoryBenchmarkTestSuite.DIRECTORY,
@@ -149,6 +149,12 @@ class MemoryUsageBenchmarkRule (
   }
 
   private fun recordGradleMeasurements(measurementSuffix : String = "") {
+    recordAgentValues(measurementSuffix)
+    recordHistogramValues(measurementSuffix)
+    recordMaxHeap()
+  }
+
+  private fun recordAgentValues(measurementSuffix: String) {
     for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
       when {
         metricFilePath.name.endsWith("before_sync_strong") -> "Before_Sync"
@@ -158,19 +164,36 @@ class MemoryUsageBenchmarkRule (
         else -> null
       }?.let { recordMeasurement(it, measurementSuffix, metricFilePath.readText().toLong()) }
     }
-    recordMaxHeap()
+  }
+
+  private fun recordHistogramValues(measurementSuffix: String) {
+    for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
+      when {
+        metricFilePath.name.endsWith("before_sync_histogram") -> "Before_Sync_Histogram_Experimental"
+        metricFilePath.name.endsWith("after_sync_histogram") -> "After_Sync_Histogram_Experimental"
+        else -> null
+      }?.let {
+        val total = metricFilePath.readLines()
+          .last()
+          .trim()
+          .split("\\s+".toRegex())[2]
+          .toLong()
+        recordMeasurement(it, measurementSuffix, total)
+        Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
+      }
+    }
   }
 
   private fun recordMaxHeap() {
     recordMeasurement("Max_Heap", suffix="", memoryLimitMb.toLong() shl 20)
   }
 
-  private fun setJvmArgs(enableAgent: Boolean = true) {
+  private fun setJvmArgs(enableMeasurements: Boolean = true) {
     GradleProperties(MemoryBenchmarkTestSuite.TEST_DATA.resolve(MemoryBenchmarkTestSuite.DIRECTORY).resolve(
       SdkConstants.FN_GRADLE_PROPERTIES).toFile()).apply {
       setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
-      if (enableAgent) {
-        setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath}")
+      if (enableMeasurements) {
+        setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath} -XX:SoftRefLRUPolicyMSPerMB=0")
       }
       save()
     }

@@ -20,9 +20,12 @@ import com.android.tools.memory.usage.LightweightHeapTraverseConfig
 import com.android.tools.memory.usage.LightweightTraverseResult
 import com.intellij.util.MemoryDumpHelper
 import java.io.File
+import java.lang.management.ManagementFactory
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import javax.management.MBeanServer
+import javax.management.ObjectName
 import kotlin.system.measureTimeMillis
 
 fun captureSnapshot(outputPath: String, name: String) {
@@ -57,7 +60,20 @@ fun analyzeCurrentProcessHeap(outputPath: String, name: String, lightweightMode:
   println("Heap $name strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
   val fileStrong = File(outputPath).resolve("${getTimestamp()}_${name}_strong")
   fileStrong.writeText(result!!.totalStrongReferencedObjectsSizeBytes.toString())
+
+  val server = ManagementFactory.getPlatformMBeanServer()
+  val histogram = server.execute("gcClassHistogram").toString()
+  val fileHistogram = File(outputPath).resolve("${getTimestamp()}_${name}_histogram")
+  fileHistogram.writeText(histogram)
+  println("Histogram $name\n $histogram")
 }
+
+private fun MBeanServer.execute(name: String) = invoke(
+  ObjectName("com.sun.management:type=DiagnosticCommand"),
+  name,
+  arrayOf(null),
+  arrayOf(Array<String>::class.java.name)
+)
 
 private fun getTimestamp() = DateTimeFormatter
   .ofPattern("yyyy.MM.dd-HH:mm")
