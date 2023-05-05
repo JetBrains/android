@@ -29,46 +29,52 @@ import com.intellij.util.ui.UIUtil
 import javax.swing.JLabel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.junit.Assert
 
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
 suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi) =
-  withTimeout(timeout = 30.seconds) {
-    Logger.getInstance(ComposePreviewRepresentation::class.java)
-      .debug("Activating ComposePreviewRepresentation for tests")
-    onActivate()
+  try {
+    withTimeout(timeout = 30.seconds) {
+      Logger.getInstance(ComposePreviewRepresentation::class.java)
+        .debug("Activating ComposePreviewRepresentation for tests")
+      onActivate()
 
-    var retryCounter = 0
+      var retryCounter = 0
 
-    val sceneViewPeerPanels = mutableSetOf<SceneViewPeerPanel>()
-    while (isActive && sceneViewPeerPanels.isEmpty()) {
-      withContext(Dispatchers.Main) {
-        delay(250)
-        UIUtil.invokeAndWaitIfNeeded(Runnable { fakeUi.root.validate() })
-        sceneViewPeerPanels.addAll(fakeUi.findAllComponents())
+      val sceneViewPeerPanels = mutableSetOf<SceneViewPeerPanel>()
+      while (isActive && sceneViewPeerPanels.isEmpty()) {
+        withContext(Dispatchers.Main) {
+          delay(250)
+          UIUtil.invokeAndWaitIfNeeded(Runnable { fakeUi.root.validate() })
+          sceneViewPeerPanels.addAll(fakeUi.findAllComponents())
 
-        if (retryCounter++ % 4 == 0) {
-          Logger.getInstance(ComposePreviewRepresentation::class.java).debug {
-            val resultsString =
-              sceneViewPeerPanels
-                .mapNotNull { it.sceneView.sceneManager as? LayoutlibSceneManager }
-                .joinToString { it.renderResult.toString() }
-            "Retry $retryCounter $resultsString"
+          if (retryCounter++ % 4 == 0) {
+            Logger.getInstance(ComposePreviewRepresentation::class.java).debug {
+              val resultsString =
+                sceneViewPeerPanels
+                  .mapNotNull { it.sceneView.sceneManager as? LayoutlibSceneManager }
+                  .joinToString { it.renderResult.toString() }
+              "Retry $retryCounter $resultsString"
+            }
           }
         }
       }
-    }
-    Logger.getInstance(ComposePreviewRepresentation::class.java)
-      .debug("ComposePreviewRepresentation active")
+      Logger.getInstance(ComposePreviewRepresentation::class.java)
+        .debug("ComposePreviewRepresentation active")
 
-    // Now wait for them to be rendered
-    waitForRender(sceneViewPeerPanels)
+      // Now wait for them to be rendered
+      waitForRender(sceneViewPeerPanels)
+    }
+  } catch (e: TimeoutCancellationException) {
+    Assert.fail("Timeout while waiting for render to complete")
   }
 
-suspend fun ComposePreviewRepresentation.waitForRender(
+private suspend fun ComposePreviewRepresentation.waitForRender(
   sceneViewPeerPanels: Set<SceneViewPeerPanel>
 ) =
   withTimeout(timeout = 30.seconds) {
