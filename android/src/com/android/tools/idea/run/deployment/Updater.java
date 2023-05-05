@@ -240,6 +240,7 @@ final class Updater {
     }
 
     myPresentation.setIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES);
+    myPresentation.putClientProperty(DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY, null);
     myPresentation.setText("Multiple Devices (" + selectedTargets.size() + ")");
   }
 
@@ -260,6 +261,7 @@ final class Updater {
       .orElseThrow(AssertionError::new);
 
     myPresentation.setIcon(device.getIcon());
+    myPresentation.putClientProperty(DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY, device.launchCompatibility());
     myPresentation.setText(getText(device, target), false);
   }
 

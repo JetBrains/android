@@ -18,48 +18,16 @@ package com.android.tools.idea.run.deployment
 import com.android.tools.idea.run.LaunchCompatibility
 import com.intellij.ide.HelpTooltip
 import org.jetbrains.android.util.AndroidBundle
-import javax.swing.JComponent
 
-internal class UpdatableDeviceHelpTooltip {
-  private var myCompatibility: LaunchCompatibility? = null
-  private var owner: JComponent? = null
-
-  fun installOn(component: JComponent) {
-    owner = component
-  }
-
-  fun updateTooltip(device: Device) {
-    val compatibility = device.launchCompatibility
-    if (owner == null || compatibility == myCompatibility) {
-      return
-    }
-
-    cancel()
-    myCompatibility = compatibility
-
-    val helpTooltip = HelpTooltip()
-    if (updateTooltip(device, helpTooltip)) {
-      helpTooltip.installOn(owner!!)
-    }
-  }
-
-  fun cancel() {
-    myCompatibility = null
-    if (owner != null) {
-      HelpTooltip.dispose(owner!!)
-    }
-  }
-}
-
-internal fun updateTooltip(device: Device, helpTooltip: HelpTooltip): Boolean {
-  val title = when (device.launchCompatibility.state) {
+internal fun updateTooltip(compatibility: LaunchCompatibility, helpTooltip: HelpTooltip): Boolean {
+  val title = when (compatibility.state) {
     LaunchCompatibility.State.OK -> return false
     LaunchCompatibility.State.WARNING -> AndroidBundle.message("warning.level.title")
     LaunchCompatibility.State.ERROR -> AndroidBundle.message("error.level.title")
   }
 
   helpTooltip.setTitle(title)
-  helpTooltip.setDescription(device.launchCompatibility.reason)
+  helpTooltip.setDescription(compatibility.reason)
 
   return true
 }
