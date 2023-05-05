@@ -475,6 +475,11 @@ interface FeatureTracker {
    * Tracks the loading of a trace or file
    */
   fun trackLoading(loading: AndroidProfilerEvent.Loading)
+
+  /**
+   * Tracks the number of power rails and battery counters found in captured power profiler data
+   */
+  fun trackPowerProfilerCapture(powerRailCount: Int, batteryCounterCount: Int)
 }
 
 /**

@@ -65,6 +65,7 @@ import com.google.wireless.android.sdk.stats.EnergyEventMetadata;
 import com.google.wireless.android.sdk.stats.EnergyRangeMetadata;
 import com.google.wireless.android.sdk.stats.FilterMetadata;
 import com.google.wireless.android.sdk.stats.MemoryInstanceFilterMetadata;
+import com.google.wireless.android.sdk.stats.PowerProfilerCaptureMetadata;
 import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
 import com.google.wireless.android.sdk.stats.ProfilerSessionSelectionMetaData;
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
@@ -669,6 +670,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
     newTracker(AndroidProfilerEvent.Type.LOADING).setLoading(loading).track();
   }
 
+  @Override
+  public void trackPowerProfilerCapture(int powerRailCount, int batteryCounterCount) {
+    newTracker(AndroidProfilerEvent.Type.POWER_PROFILER_DATA_CAPTURED).setPowerProfilerCaptureMetadata(
+        PowerProfilerCaptureMetadata.newBuilder().setPowerRailCount(powerRailCount).setBatteryCounterCount(batteryCounterCount).build())
+      .track();
+  }
+
   /**
    * Convenience method for creating a new tracker with all the minimum data supplied.
    */
@@ -708,6 +716,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private AdtUiBoxSelectionMetadata myBoxSelectionMetadata;
     private int myEventCount = 0;
     @Nullable private AndroidProfilerEvent.Loading myLoading;
+    @Nullable private PowerProfilerCaptureMetadata myPowerProfilerCaptureMetadata;
 
     @Nullable private RunWithProfilingMetadata myRunWithProfilingMetadata;
 
@@ -836,6 +845,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
 
     @NotNull
+    private Tracker setPowerProfilerCaptureMetadata(PowerProfilerCaptureMetadata powerProfilerCaptureMetadata) {
+      myPowerProfilerCaptureMetadata = powerProfilerCaptureMetadata;
+      return this;
+    }
+
+    @NotNull
     private Tracker setRunWithProfilingMetadata(@NotNull RunWithProfilingMetadata metadata) {
       myRunWithProfilingMetadata = metadata;
       return this;
@@ -904,6 +919,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case RUN_WITH_PROFILING:
           profilerEvent.setRunWithProfilingMetadata(myRunWithProfilingMetadata);
+          break;
+        case POWER_PROFILER_DATA_CAPTURED:
+          profilerEvent.setPowerProfilerCaptureMetadata(myPowerProfilerCaptureMetadata);
           break;
         default:
           break;
