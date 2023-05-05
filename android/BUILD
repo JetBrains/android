@@ -158,6 +158,8 @@ iml_module(
             "test_filter": "com.android.tools.idea.diagnostics",
         },
         "editors": {
+            # b/281109986
+            "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.editors",
         },
         "editors.fast": {
