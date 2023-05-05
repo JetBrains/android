@@ -158,7 +158,7 @@ public class StudioInteractionService {
     }
   }
 
-  public void waitForComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
+  public void waitForComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException {
     log("Attempting to wait for a component with matchers: " + matchers);
     // TODO(b/234067246): consider this timeout when addressing b/234067246. This particular
     // timeout is so high because ComposePreviewKotlin performs a Gradle build, and that takes >10m
@@ -186,32 +186,30 @@ public class StudioInteractionService {
   }
 
   private void invokeComponent(Component component) {
-    if (component instanceof ActionLink) {
-      ActionLink componentAsLink = (ActionLink)component;
+    if (component instanceof ActionLink componentAsLink) {
       log("Invoking ActionLink: " + componentAsLink);
       performAction(componentAsLink.getAction(), componentAsLink);
-    } else if (component instanceof LinkLabel) {
-      LinkLabel componentAsLink = (LinkLabel)component;
+    } else if (component instanceof LinkLabel<?> componentAsLink) {
       log("Invoking LinkLabel: " + componentAsLink);
       componentAsLink.doClick();
-    } else if (component instanceof NotificationComponent) {
-      log("Invoking hyperlink in Notification: " + component);
-      ((NotificationComponent)component).invokeHyperlink();
-    } else if (component instanceof JListItemComponent) {
-      log("Invoking JListItemComponent item: " + component);
-      ((JListItemComponent)component).invoke();
-    } else if (component instanceof JButton) {
-      log("Invoking JButton: " + component);
-      invokeButton((JButton)component);
-    } else if (component instanceof ActionButton) {
-      log("Invoking ActionButton: " + component);
-      ((ActionButton)component).click();
-    } else if (component instanceof ActionMenu) {
-      log("Invoking ActionMenu: " + component);
-      ((ActionMenu)component).doClick();
-    } else if (component instanceof ActionMenuItem) {
-      log("Invoking ActionMenuItem: " + component);
-      ((ActionMenuItem)component).doClick();
+    } else if (component instanceof NotificationComponent componentAsNotification) {
+      log("Invoking hyperlink in Notification: " + componentAsNotification);
+      componentAsNotification.invokeHyperlink();
+    } else if (component instanceof JListItemComponent componentAsListItem) {
+      log("Invoking JListItemComponent item: " + componentAsListItem);
+      componentAsListItem.invoke();
+    } else if (component instanceof JButton componentAsButton) {
+      log("Invoking JButton: " + componentAsButton);
+      invokeButton(componentAsButton);
+    } else if (component instanceof ActionButton componentAsButton) {
+      log("Invoking ActionButton: " + componentAsButton);
+      componentAsButton.click();
+    } else if (component instanceof ActionMenu componentAsMenu) {
+      log("Invoking ActionMenu: " + componentAsMenu);
+      componentAsMenu.doClick();
+    } else if (component instanceof ActionMenuItem componentAsMenuItem) {
+      log("Invoking ActionMenuItem: " + componentAsMenuItem);
+      componentAsMenuItem.doClick();
     } else {
       throw new IllegalArgumentException(String.format("Don't know how to invoke a component of class \"%s\"", component.getClass()));
     }
@@ -219,7 +217,7 @@ public class StudioInteractionService {
 
   /**
    * Finds a component (if exactly one exists) based on a list of matchers.
-   *
+   * <p>
    * This method abstracts the complexity of the platform so that callers have an easy-to-use API.
    */
   private Optional<Component> findComponentFromMatchers(List<ASDriver.ComponentMatcher> matchers) {
@@ -325,11 +323,10 @@ public class StudioInteractionService {
   private List<JListItemComponent> findJListItems(Set<Component> componentsToLookUnder, String text) {
     List<JListItemComponent> matchingComponents = new ArrayList<>();
     for (Component component : componentsToLookUnder) {
-      if (!(component instanceof JList)) {
+      if (!(component instanceof JList<?> jList)) {
         continue;
       }
 
-      JList<?> jList = (JList<?>)component;
       ListModel<?> model = jList.getModel();
 
       int numItems = model.getSize();
@@ -359,12 +356,11 @@ public class StudioInteractionService {
    */
   private List<String> getIconNamesFromIcon(Icon icon) {
     List<String> paths = new ArrayList<>();
-    if (icon instanceof CachedImageIcon) {
-      String path = ((CachedImageIcon)icon).getOriginalPath();
+    if (icon instanceof CachedImageIcon cachedImageIcon) {
+      String path = cachedImageIcon.getOriginalPath();
       paths.add(path);
     }
-    else if (icon instanceof LayeredIcon) {
-      LayeredIcon layeredIcon = (LayeredIcon)icon;
+    else if (icon instanceof LayeredIcon layeredIcon) {
       for (int i = 0; i < layeredIcon.getIconCount(); i++) {
         Icon subIcon = layeredIcon.getIcon(i);
         List<String> subPaths = getIconNamesFromIcon(subIcon);
@@ -397,7 +393,7 @@ public class StudioInteractionService {
       }
     }
 
-    return matchingLinks.stream().collect(Collectors.toSet());
+    return new HashSet<>(matchingLinks);
   }
 
   private Set<Component> getEntireSwingHierarchy() {
@@ -463,8 +459,7 @@ public class StudioInteractionService {
     componentsToSearch.add(root);
     while (!componentsToSearch.isEmpty()) {
       Component c = componentsToSearch.poll();
-      if (c instanceof Container) {
-        Container container = (Container)c;
+      if (c instanceof Container container) {
         Collections.addAll(componentsToSearch, container.getComponents());
       }
       componentsFound.add(c);
@@ -487,7 +482,7 @@ public class StudioInteractionService {
       try {
         String source = "Link inside notification";
         HyperlinkEvent e = new HyperlinkEvent(source, HyperlinkEvent.EventType.ACTIVATED, new URL("http://localhost/madeup"));
-        notification.getListener().hyperlinkUpdate(notification, e);
+        Objects.requireNonNull(notification.getListener()).hyperlinkUpdate(notification, e);
       }
       catch (MalformedURLException ex) {
         ex.printStackTrace();
