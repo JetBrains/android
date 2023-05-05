@@ -1033,7 +1033,7 @@ public class NlModel implements Disposable, ModificationTracker {
         }
 
         @Override
-        public boolean canEat(Update update) {
+        public boolean canEat(@NotNull Update update) {
           return true;
         }
       }

@@ -836,7 +836,7 @@ public class LayoutlibSceneManager extends SceneManager {
       }
 
       @Override
-      public boolean canEat(Update update) {
+      public boolean canEat(@NotNull Update update) {
         return this.equals(update);
       }
     };
@@ -925,7 +925,7 @@ public class LayoutlibSceneManager extends SceneManager {
       }
 
       @Override
-      public boolean canEat(Update update) {
+      public boolean canEat(@NotNull Update update) {
         return equals(update);
       }
     });

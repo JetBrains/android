@@ -864,7 +864,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       }
 
       @Override
-      public boolean canEat(Update update) {
+      public boolean canEat(@NotNull Update update) {
         return true;
       }
     });
