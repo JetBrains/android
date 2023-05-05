@@ -331,7 +331,8 @@ internal class DeviceClient(
                 (if (StudioFlags.DEVICE_MIRRORING_FOLDING_SUPPORT.get()) SUPPORT_FOLDING else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRateArg = when {
-      deviceSerialNumber.startsWith("emulator-") -> " --max_bit_rate=$MAX_BIT_RATE_EMULATOR"
+      deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true ->
+          " --max_bit_rate=$MAX_BIT_RATE_EMULATOR"
       StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get() > 0 -> " --max_bit_rate=${StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()}"
       else -> ""
     }

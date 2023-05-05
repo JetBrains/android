@@ -276,7 +276,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     else {
       recentAttentionRequests.put(deviceSerialNumber, deviceSerialNumber)
       alarm.addRequest(recentAttentionRequests::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
-      if (isEmulator(deviceSerialNumber)) {
+      if (isLocalEmulator(deviceSerialNumber)) {
         val future = RunningEmulatorCatalog.getInstance().updateNow()
         future.addCallback(EdtExecutorService.getInstance(),
                            success = { emulators ->
@@ -708,7 +708,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     override fun launchingApp(deviceSerialNumber: String, project: Project) {
       val activate =
-          if (isEmulator(deviceSerialNumber)) emulatorSettings.activateOnAppLaunch else deviceMirroringSettings.activateOnAppLaunch
+          if (isLocalEmulator(deviceSerialNumber)) emulatorSettings.activateOnAppLaunch else deviceMirroringSettings.activateOnAppLaunch
       if (activate) {
         userInvolvementRequired(deviceSerialNumber, project)
       }
@@ -716,7 +716,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     override fun launchingTest(deviceSerialNumber: String, project: Project) {
       val activate =
-        if (isEmulator(deviceSerialNumber)) emulatorSettings.activateOnTestLaunch else deviceMirroringSettings.activateOnTestLaunch
+        if (isLocalEmulator(deviceSerialNumber)) emulatorSettings.activateOnTestLaunch else deviceMirroringSettings.activateOnTestLaunch
       if (activate) {
         userInvolvementRequired(deviceSerialNumber, project)
       }
@@ -792,7 +792,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     @AnyThread
     private fun deviceConnected(serialNumber: String, device: ConnectedDevice) {
-      val config = DeviceConfiguration(device.state.properties, useTitleAsName = isEmulator(serialNumber))
+      val config = DeviceConfiguration(device.state.properties, useTitleAsName = isLocalEmulator(serialNumber))
       UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
         deviceConnected(serialNumber, device, config)
       }
@@ -885,14 +885,16 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
   }
 
   val deviceSerialNumber = serialNumber
-  if (isEmulator(deviceSerialNumber)) {
+  if (isLocalEmulator(deviceSerialNumber) || properties.isVirtual == true) {
     if (!StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
       return false
     }
-    val emulators = RunningEmulatorCatalog.getInstance().updateNow().suspendingGet()
-    val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber }
-    if (emulator == null || emulator.emulatorId.isEmbedded) {
-      return false
+    if (isLocalEmulator(deviceSerialNumber)) {
+      val emulators = RunningEmulatorCatalog.getInstance().updateNow().suspendingGet()
+      val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber }
+      if (emulator == null || emulator.emulatorId.isEmbedded) {
+        return false
+      }
     }
   }
 
@@ -904,7 +906,7 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
 private val DeviceState.Connected.serialNumber: String
     get() = connectedDevice.serialNumber
 
-private fun isEmulator(deviceSerialNumber: String) =
+private fun isLocalEmulator(deviceSerialNumber: String) =
     deviceSerialNumber.startsWith("emulator-")
 
 private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
