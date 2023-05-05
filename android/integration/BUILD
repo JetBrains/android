@@ -197,6 +197,7 @@ iml_studio_test(
         INTEGRATION_TEST_GRADLE_VERSION,
     ],
     module = ":intellij.android.core.integration",
+    tags = ["manual"],  # Disabled due to b/281051084
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.CreateProjectTest",
