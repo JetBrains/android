@@ -474,6 +474,7 @@ android-studio/jbr/lib/tzdb.dat
 android-studio/jbr/lib/tzmappings
 android-studio/jbr/release
 android-studio/jre/bin/.marker
+android-studio/lib/3rd-party-native.jar
 android-studio/lib/3rd-party-rt.jar
 android-studio/lib/annotations.jar
 android-studio/lib/ant/CONTRIBUTORS
