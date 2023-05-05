@@ -59,6 +59,7 @@ import com.intellij.problems.ProblemListener
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
@@ -482,6 +483,9 @@ class ComposePreviewRepresentationGradleTest {
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
       FileDocumentManager.getInstance().saveAllDocuments()
     }
+    withContext(uiThread) {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
+    }
     waitForRefreshToFinish()
     assertTrue(composePreviewRepresentation.status().isOutOfDate)
     buildAndRefresh()
@@ -502,6 +506,9 @@ class ComposePreviewRepresentationGradleTest {
         projectRule.fixture.type("\nText(\"added during test execution\")")
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
         FileDocumentManager.getInstance().saveAllDocuments()
+      }
+      withContext(uiThread) {
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
       }
 
       waitForRefreshToFinish()
