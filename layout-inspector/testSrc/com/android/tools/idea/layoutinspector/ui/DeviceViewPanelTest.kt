@@ -30,7 +30,6 @@ import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider
 import com.android.tools.adtui.common.replaceAdtUiCursorWithPredefinedCursor
-import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse.Button
 import com.android.tools.adtui.swing.FakeUi
@@ -116,6 +115,8 @@ import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_B
+import java.awt.event.KeyEvent.VK_SPACE
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.Icon
@@ -406,7 +407,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     // Press ctrl-B / command-B when the selectedView is selected:
     model.setSelection(model[selectedView], SelectionOrigin.INTERNAL)
-    dispatcher.dispatchKeyEvent(KeyEvent(panel, KeyEvent.KEY_PRESSED, 0, modifier, KeyEvent.VK_B, 'B'))
+    dispatcher.dispatchKeyEvent(KeyEvent(panel, KeyEvent.KEY_PRESSED, 0, modifier, VK_B, 'B'))
     runDispatching { GotoDeclarationAction.lastAction?.join() }
     UIUtil.dispatchAllInvocationEvents()
   }
@@ -766,8 +767,8 @@ class DeviceViewPanelTest {
 
   @Test
   fun testDragWithSpace() {
-    testPan({ ui, _ -> ui.keyboard.press(FakeKeyboard.Key.SPACE) },
-            { ui, _ -> ui.keyboard.release(FakeKeyboard.Key.SPACE) })
+    testPan({ ui, _ -> ui.keyboard.press(VK_SPACE) },
+            { ui, _ -> ui.keyboard.release(VK_SPACE) })
   }
 
   @Test
@@ -784,8 +785,8 @@ class DeviceViewPanelTest {
   @Test
   fun testDragWithSpaceFromSnapshot() {
     testPan(
-      { ui, _ -> ui.keyboard.press(FakeKeyboard.Key.SPACE) },
-      { ui, _ -> ui.keyboard.release(FakeKeyboard.Key.SPACE) },
+      { ui, _ -> ui.keyboard.press(VK_SPACE) },
+      { ui, _ -> ui.keyboard.release(VK_SPACE) },
       fromSnapshot = true
     )
   }

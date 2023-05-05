@@ -24,7 +24,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.analytics.UsageTrackerRule
@@ -113,6 +112,7 @@ import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
@@ -233,9 +233,9 @@ internal class DeviceViewTest {
       )
 
       // Java fakes horizontal scrolling by pretending shift was held down during the scroll.
-      fakeUi.keyboard.press(FakeKeyboard.Key.SHIFT)
+      fakeUi.keyboard.press(VK_SHIFT)
       fakeUi.mouse.wheel(60, 55, 1)
-      fakeUi.keyboard.release(FakeKeyboard.Key.SHIFT)
+      fakeUi.keyboard.release(VK_SHIFT)
       val horizontalAxisValues = Int2FloatOpenHashMap(1).apply {
         put(MotionEventMessage.AXIS_HSCROLL, ANDROID_SCROLL_ADJUSTMENT_FACTOR)
       }

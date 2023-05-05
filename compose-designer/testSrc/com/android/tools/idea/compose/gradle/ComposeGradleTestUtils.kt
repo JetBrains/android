@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle
 
-import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -26,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
+import java.awt.event.KeyEvent.VK_SHIFT
 import javax.swing.JLabel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -112,13 +112,13 @@ internal fun FakeUi.clickPreviewImage(
 ) {
   sceneViewPanel.positionableAdapter.let {
     runInEdtAndWait {
-      if (pressingShift) keyboard.press(FakeKeyboard.Key.SHIFT)
+      if (pressingShift) keyboard.press(VK_SHIFT)
       mouse.click(
         it.x + it.scaledContentSize.width / 2,
         it.y + it.scaledContentSize.height / 2,
         if (rightClick) FakeMouse.Button.RIGHT else FakeMouse.Button.LEFT
       )
-      if (pressingShift) keyboard.release(FakeKeyboard.Key.SHIFT)
+      if (pressingShift) keyboard.release(VK_SHIFT)
     }
   }
 }

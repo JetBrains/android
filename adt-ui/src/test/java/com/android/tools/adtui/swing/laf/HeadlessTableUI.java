@@ -38,7 +38,7 @@ import javax.swing.plaf.basic.BasicTableUI;
  * {@link FakeKeyboard}.
  *
  * To use, you must remember to call {@code someTable.setUI(new HeadlessTableUI()} before calling
- * methods like {@link FakeMouse#click(int, int)} or {@link FakeKeyboard#press(FakeKeyboard.Key)}.
+ * methods like {@link FakeMouse#click(int, int)} or {@link FakeKeyboard#press}.
  *
  * NOTE: Changing the UI of a component can subtly change its behavior! This class may need to be
  * updated in the future to add more functionality, so it more closely matches its parent class.

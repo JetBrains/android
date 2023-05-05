@@ -24,7 +24,6 @@ import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackGroupActionListener
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
-import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.laf.HeadlessListUI
 import com.google.common.truth.Truth.assertThat
@@ -35,6 +34,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
 import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent.VK_ENTER
 import javax.swing.JCheckBox
 
 @RunsInEdt
@@ -214,14 +214,14 @@ class TrackGroupTest {
     trackGroup.trackList.selectedIndices = intArrayOf(0, 1)
     ui.keyboard.setFocus(trackGroup.trackList)
 
-    ui.keyboard.press(FakeKeyboard.Key.ENTER)
-    ui.keyboard.release(FakeKeyboard.Key.ENTER)
+    ui.keyboard.press(VK_ENTER)
+    ui.keyboard.release(VK_ENTER)
 
     assertThat(trackGroupModel[0].isCollapsed).isFalse()
     assertThat(trackGroupModel[1].isCollapsed).isFalse()
 
-    ui.keyboard.press(FakeKeyboard.Key.ENTER)
-    ui.keyboard.release(FakeKeyboard.Key.ENTER)
+    ui.keyboard.press(VK_ENTER)
+    ui.keyboard.release(VK_ENTER)
 
     assertThat(trackGroupModel[0].isCollapsed).isTrue()
     assertThat(trackGroupModel[1].isCollapsed).isTrue()
@@ -230,14 +230,14 @@ class TrackGroupTest {
 
     trackGroup.trackList.selectedIndices = intArrayOf(0)
 
-    ui.keyboard.press(FakeKeyboard.Key.ENTER)
-    ui.keyboard.release(FakeKeyboard.Key.ENTER)
+    ui.keyboard.press(VK_ENTER)
+    ui.keyboard.release(VK_ENTER)
 
     assertThat(trackGroupModel[0].isCollapsed).isFalse()
     assertThat(trackGroupModel[1].isCollapsed).isTrue()
 
-    ui.keyboard.press(FakeKeyboard.Key.ENTER)
-    ui.keyboard.release(FakeKeyboard.Key.ENTER)
+    ui.keyboard.press(VK_ENTER)
+    ui.keyboard.release(VK_ENTER)
 
     assertThat(trackGroupModel[0].isCollapsed).isTrue()
     assertThat(trackGroupModel[1].isCollapsed).isTrue()

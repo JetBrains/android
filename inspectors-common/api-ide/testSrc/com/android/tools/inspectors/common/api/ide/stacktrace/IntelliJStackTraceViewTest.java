@@ -16,9 +16,9 @@
 package com.android.tools.inspectors.common.api.ide.stacktrace;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.awt.event.KeyEvent.VK_ENTER;
 
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeMouse;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessListUI;
@@ -37,7 +37,6 @@ import com.intellij.testFramework.RunsInEdt;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
@@ -219,7 +218,7 @@ public class IntelliJStackTraceViewTest {
     assertThat(invocationCount[0]).isEqualTo(0);
 
     fakeUi.keyboard.setFocus(list);
-    fakeUi.keyboard.press(FakeKeyboard.Key.ENTER);
+    fakeUi.keyboard.press(VK_ENTER);
     assertThat(invocationCount[0]).isEqualTo(1);
   }
 
