@@ -17,6 +17,7 @@ package com.android.tools.idea.common.model;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.XMLNS;
 import static com.android.SdkConstants.XMLNS_PREFIX;
@@ -32,6 +33,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.tools.rendering.parsers.RenderXmlTag;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -70,6 +72,10 @@ import org.jetbrains.annotations.TestOnly;
  * if visual it has bounds, etc.
  */
 public class NlComponent implements NlAttributesHolder {
+
+  // Attribute value applied to a TagSnapshot in LayoutPsiPullParser.TAG_SNAPSHOT_DECORATOR
+  @VisibleForTesting
+  public static final String ID_DYNAMIC = "@+id/_dynamic";
 
   @Nullable private XmlModelComponentMixin myMixin;
 
@@ -491,7 +497,14 @@ public class NlComponent implements NlAttributesHolder {
   public String getAttributeImpl(@Nullable String namespace, @NotNull String attribute) {
     TagSnapshot snapshot = mySnapshot;
     if (snapshot != null) {
-      return snapshot.getAttribute(attribute, namespace);
+      String value = snapshot.getAttribute(attribute, namespace);
+      // Hack for: b/280503416
+      // The LayoutPsiPullParser.TAG_SNAPSHOT_DECORATOR may add a synthetic id to a List_VIEW. Ignore this id:
+      if (ID_DYNAMIC.equals(value) && attribute.equals(ATTR_ID) && getTagName().equals(LIST_VIEW) &&
+          myBackend.getAttribute(attribute, namespace) == null) {
+        value = null;
+      }
+      return value;
     }
 
     return myBackend.getAttribute(attribute, namespace);
