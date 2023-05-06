@@ -260,6 +260,16 @@ public class EditorFixture {
   }
 
   /**
+   * Replace current editor text by the given text. The method is similar to replaceText, but will not be selecting Tab editor for files like MainActivity.java as Select Tab option is not available.
+   *
+   * @param text the text to paste at the current editor position
+   */
+  public EditorFixture replaceFileContents(@NotNull String text) {
+    invokeAction(EditorFixture.EditorAction.SELECT_ALL);
+    return pasteText(text);
+  }
+
+  /**
    * Enter the given text into the editor. Types short strings, pastes longer ones to save time. Most fixtures or tests that enter
    * text into the editor should use this method. If there's a good reason to force one mode of entry or the other, use typeText or
    * pasteText as appropriate.

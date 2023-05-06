@@ -91,4 +91,13 @@ public abstract class FluentMatcher<T extends Component> extends GenericTypeMatc
       }
     });
   }
+
+  public FluentMatcher<T> andIsVisible() {
+    return and(new FluentMatcher<T>(supportedType()) {
+      @Override
+      protected boolean isMatching(@NotNull T component) {
+        return component.isVisible();
+      }
+    });
+  }
 }

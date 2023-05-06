@@ -95,7 +95,7 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   private void changePane(@NotNull String paneName) {
     myToolWindow.getComponent().requestFocusInWindow();
-    Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byType(ContentLabel.class).andIsShowing().andIsEnabled());
+    Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byType(ContentLabel.class).andIsShowing().andIsEnabled().andIsVisible());
     myRobot.click(projectDropDown.getParent());
 
     String paneFullName = "Content name=" + paneName + "; tab name='"+ paneName +"'; toolwindow='"+ paneName +"'";
