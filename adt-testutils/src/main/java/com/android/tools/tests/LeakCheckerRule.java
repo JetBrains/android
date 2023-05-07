@@ -21,6 +21,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.stubs.StubIndexEx;
+import com.intellij.testFramework.TestApplicationManager;
 import org.junit.rules.ExternalResource;
 
 public class LeakCheckerRule extends ExternalResource {
@@ -37,14 +38,9 @@ public class LeakCheckerRule extends ExternalResource {
       // This can happen when multiple LeakCheckerRules are "nested", and the inner LeakCheckerRule has already run.
       return;
     }
-    try {
-      ensureFileUpdatesProcessedByModificationTracker();
-      clearMockitoThreadLocals();
-      Class<?> leakTestClass = Class.forName("_LastInSuiteTest");
-      leakTestClass.getMethod("testProjectLeak").invoke(leakTestClass.newInstance());
-    } catch (Exception e) {
-      throw new AssertionError(e);
-    }
+    ensureFileUpdatesProcessedByModificationTracker();
+    clearMockitoThreadLocals();
+    TestApplicationManager.disposeApplicationAndCheckForLeaks();
   }
 
   /**
