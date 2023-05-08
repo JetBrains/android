@@ -19,7 +19,6 @@ import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
@@ -28,7 +27,6 @@ import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

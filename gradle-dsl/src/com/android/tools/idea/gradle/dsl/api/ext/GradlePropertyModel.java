@@ -16,7 +16,6 @@ package com.android.tools.idea.gradle.dsl.api.ext;
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;

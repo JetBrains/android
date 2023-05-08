@@ -28,8 +28,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.PluginModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;

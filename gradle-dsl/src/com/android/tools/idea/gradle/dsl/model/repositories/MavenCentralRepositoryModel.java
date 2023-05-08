@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

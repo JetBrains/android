@@ -34,12 +34,9 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceDirectoryModelImpl;
 import com.android.tools.idea.gradle.dsl.model.android.sourceSets.SourceFileModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 

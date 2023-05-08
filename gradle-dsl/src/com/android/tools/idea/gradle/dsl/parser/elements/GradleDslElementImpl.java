@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;

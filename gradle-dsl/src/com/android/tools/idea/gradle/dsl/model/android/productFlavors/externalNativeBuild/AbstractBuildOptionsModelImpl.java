@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyTy
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.AbstractBuildOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import org.jetbrains.annotations.NonNls;

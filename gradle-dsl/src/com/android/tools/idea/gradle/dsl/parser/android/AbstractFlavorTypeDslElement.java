@@ -23,7 +23,6 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemantics
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
 
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;

@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 
 import com.intellij.psi.PsiElement;
-import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

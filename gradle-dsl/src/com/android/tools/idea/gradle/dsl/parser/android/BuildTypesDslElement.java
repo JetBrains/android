@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 

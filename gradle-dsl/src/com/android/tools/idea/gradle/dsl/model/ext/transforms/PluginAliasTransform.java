@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpres
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

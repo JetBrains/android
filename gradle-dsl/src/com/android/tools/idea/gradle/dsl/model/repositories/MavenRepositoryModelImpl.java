@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**

@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElem
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.intellij.psi.PsiElement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

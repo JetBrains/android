@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.android.splits;
 
 import com.android.tools.idea.gradle.dsl.api.android.splits.DensityModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
