@@ -606,6 +606,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
     trackTrackGroupAction(title, AdtUiTrackGroupMetadata.TrackGroupActionType.COLLAPSE);
   }
 
+  @Override
+  public void trackMouseOverTrackGroup(@NotNull String title) {
+    trackTrackGroupAction(title, AdtUiTrackGroupMetadata.TrackGroupActionType.MOUSE_OVER);
+  }
+
   private void trackTrackGroupAction(@NotNull String title, @NotNull AdtUiTrackGroupMetadata.TrackGroupActionType actionType) {
     newTracker(AndroidProfilerEvent.Type.TRACK_GROUP_ACTION).setTrackGroupMetadata(
       AdtUiTrackGroupMetadata.newBuilder()

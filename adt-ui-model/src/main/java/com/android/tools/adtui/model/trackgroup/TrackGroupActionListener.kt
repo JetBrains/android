@@ -23,4 +23,5 @@ interface TrackGroupActionListener {
   fun onGroupMovedDown(title: String) {}
   fun onGroupCollapsed(title: String) {}
   fun onGroupExpanded(title: String) {}
+  fun onMouseOver(title: String) {}
 }

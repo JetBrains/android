@@ -503,6 +503,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
       public void onGroupExpanded(@NotNull String title) {
         featureTracker.trackExpandTrackGroup(title);
       }
+
+      @Override
+      public void onMouseOver(@NotNull String title) {
+        featureTracker.trackMouseOverTrackGroup(title);
+      }
     }));
   }
 

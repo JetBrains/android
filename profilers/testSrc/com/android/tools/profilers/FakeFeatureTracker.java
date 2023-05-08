@@ -500,6 +500,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public void trackCollapseTrackGroup(@NotNull String title) { }
 
   @Override
+  public void trackMouseOverTrackGroup(@NotNull String title) { }
+
+  @Override
   public void trackSelectBox(long durationUs, int trackCount) { }
 
   @Override

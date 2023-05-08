@@ -437,6 +437,13 @@ interface FeatureTracker {
   fun trackCollapseTrackGroup(title: String)
 
   /**
+   * Track when a track group is mouse-overed.
+   *
+   * @param title track group title, e.g. Display.
+   */
+  fun trackMouseOverTrackGroup(title: String)
+
+  /**
    * Track when a box selection is performed.
    *
    * @param durationUs box selection duration in microseconds.
