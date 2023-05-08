@@ -58,8 +58,7 @@ class TomlDslParser(
         val key = element.header.key
         if (key != null) {
           key.doWithContext(context) { segment, context ->
-            val map = GradleDslExpressionMap(context, element, GradleNameElement.from(segment, this@TomlDslParser), true)
-            context.addParsedElement(map)
+            val map = context.getOrCreateMap(segment, element)
             getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
           }
         }
@@ -108,6 +107,13 @@ class TomlDslParser(
       }
     }
     psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
+  }
+
+  private fun GradlePropertiesDslElement.getOrCreateMap(segment: TomlKeySegment, psiElement: PsiElement): GradleDslExpressionMap {
+    val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
+    return getPropertyElement(description) ?: GradleDslExpressionMap(this, psiElement,
+                                                                        GradleNameElement.from(segment, this@TomlDslParser),
+                                                                        true).also { addParsedElement(it) }
   }
 
   override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? {
@@ -163,15 +169,16 @@ class TomlDslParser(
                                     nameElement: GradleNameElement?): GradlePropertiesDslElement? {
     return null
   }
-}
 
-fun TomlKey.doWithContext(context: GradlePropertiesDslElement, thunk: (TomlKeySegment, GradlePropertiesDslElement) -> Unit) {
-  val lastSegmentIndex = segments.size - 1
-  var currentContext = context
-  segments.forEachIndexed { i, segment ->
-    if (i == lastSegmentIndex) return thunk(segment, currentContext)
-    val description = PropertiesElementDescription(segment.name, GradleDslExpressionMap::class.java, ::GradleDslExpressionMap)
-    currentContext = currentContext.ensurePropertyElement(description)
-    if (currentContext.psiElement == null) currentContext.psiElement = segment
+  fun TomlKey.doWithContext(context: GradlePropertiesDslElement, thunk: (TomlKeySegment, GradlePropertiesDslElement) -> Unit) {
+    val lastSegmentIndex = segments.size - 1
+    var currentContext = context
+    segments.forEachIndexed { i, segment ->
+      if (i == lastSegmentIndex) return thunk(segment, currentContext)
+      val map = currentContext.getOrCreateMap(segment, segment)
+      currentContext = map
+      if (currentContext.psiElement == null) currentContext.psiElement = segment
+    }
   }
+
 }

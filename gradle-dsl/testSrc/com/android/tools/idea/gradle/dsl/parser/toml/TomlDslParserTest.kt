@@ -186,6 +186,52 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testImplicitTable2() {
+    val toml = """
+      [table1.table2]
+      key2 = "value2"
+      [table1.table3]
+      key3 = "value3"
+    """.trimIndent()
+    val expected = mapOf("table1" to mapOf("table2" to mapOf("key2" to "value2"), "table3" to mapOf( "key3" to "value3")))
+    doTest(toml, expected)
+  }
+
+  fun testComplexTable() {
+    val toml = """
+      [table1]
+      key1 = "value1"
+      [table1.table2]
+      key2 = "value2"
+    """.trimIndent()
+    val expected = mapOf("table1" to mapOf("key1" to "value1", "table2" to mapOf("key2" to "value2")))
+    doTest(toml, expected)
+  }
+
+  fun testComplexTableReverse() {
+    val toml = """
+      [table1.table2]
+      key2 = "value2"
+      [table1]
+      key1 = "value1"
+    """.trimIndent()
+    val expected = mapOf("table1" to mapOf("table2" to mapOf("key2" to "value2"), "key1" to "value1"))
+    doTest(toml, expected)
+  }
+
+  // Key/Table duplication is NOT allowed in TOML https://github.com/toml-lang/toml/issues/697
+  // but at least we make sure we don't fail in this case
+  fun testImplicitTableWithContinuation() {
+    val toml = """
+      [libraries.junit]
+      module = "junit:junit"
+      [libraries.junit]
+      version = "4.13"
+    """.trimIndent()
+    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to "junit:junit", "version" to "4.13")))
+    doTest(toml, expected)
+  }
+
   fun testImplicitTableQuoted() {
     val toml = """
       ['libraries'."junit"]
@@ -299,6 +345,18 @@ class TomlDslParserTest : PlatformTestCase() {
       [[table.arrayTable]]
       key2 = "val2"
       key3 = "val3"
+    """.trimIndent()
+    val expected = mapOf("table" to mapOf("key1" to "val1", "arrayTable" to listOf(mapOf("key2" to "val2", "key3" to "val3"))))
+    doTest(toml, expected)
+  }
+
+  fun testSegmentedArrayTableReverse() {
+    val toml = """
+      [[table.arrayTable]]
+      key2 = "val2"
+      key3 = "val3"
+      [table]
+      key1 = "val1"
     """.trimIndent()
     val expected = mapOf("table" to mapOf("key1" to "val1", "arrayTable" to listOf(mapOf("key2" to "val2", "key3" to "val3"))))
     doTest(toml, expected)

@@ -94,6 +94,22 @@ class TomlDslChangerTest : PlatformTestCase() {
   }
 
   @Test
+  fun testDeleteSingleLiteralInSegmentedTable() {
+    val toml = """
+      [table1.table2]
+      foo = "bar"
+    """.trimIndent()
+    val expected = """
+      [table1.table2]
+
+    """.trimIndent()
+    doTest(toml, expected) {
+      val table1 = (getPropertyElement("table1") as? GradleDslExpressionMap)
+      val table2  = table1?.getPropertyElement("table2") as? GradleDslExpressionMap
+      table2?.removeProperty("foo")
+    }
+  }
+  @Test
   fun testRenameSingleLiteralInTable() {
     val toml = """
       [table]
