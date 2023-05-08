@@ -233,6 +233,77 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testArrayTable() {
+    val toml = """
+      [[arrayTable]]
+      key1 = "val1"
+      key2 = "val2"
+    """.trimIndent()
+    val expected = mapOf("arrayTable" to listOf(mapOf("key1" to "val1", "key2" to "val2")))
+    doTest(toml, expected)
+  }
+
+  fun testArrayTableEmptyName() {
+    val toml = """
+      [[ ]]
+      key1 = "val1"
+      key2 = "val2"
+    """.trimIndent()
+    val expected = mapOf<String, Any>()
+    doTest(toml, expected)
+  }
+
+  fun testArrayTableMultipleElements() {
+    val toml = """
+      [[arrayTable]]
+      key1 = "val1"
+      key2 = "val2"
+
+      [[arrayTable]]
+      key3 = "val3"
+      key4 = "val4"
+    """.trimIndent()
+    val expected = mapOf("arrayTable" to listOf(mapOf("key1" to "val1", "key2" to "val2"), mapOf("key3" to "val3", "key4" to "val4")))
+    doTest(toml, expected)
+  }
+
+  fun testArrayTableMultipleElements2() {
+    val toml = """
+      [[table.arrayTable]]
+      key1 = "val1"
+      key2 = "val2"
+
+      [[table.arrayTable]]
+      key3 = "val3"
+      key4 = "val4"
+    """.trimIndent()
+    val expected = mapOf(
+      "table" to mapOf("arrayTable" to listOf(mapOf("key1" to "val1", "key2" to "val2"), mapOf("key3" to "val3", "key4" to "val4"))))
+    doTest(toml, expected)
+  }
+
+  fun testSegmentedArrayTable() {
+    val toml = """
+      [[table.arrayTable]]
+      key1 = "val1"
+      key2 = "val2"
+    """.trimIndent()
+    val expected = mapOf("table" to mapOf("arrayTable" to listOf(mapOf("key1" to "val1", "key2" to "val2"))))
+    doTest(toml, expected)
+  }
+
+  fun testSegmentedArrayTable2() {
+    val toml = """
+      [table]
+      key1 = "val1"
+      [[table.arrayTable]]
+      key2 = "val2"
+      key3 = "val3"
+    """.trimIndent()
+    val expected = mapOf("table" to mapOf("key1" to "val1", "arrayTable" to listOf(mapOf("key2" to "val2", "key3" to "val3"))))
+    doTest(toml, expected)
+  }
+
   fun testArrayWithInlineTable() {
     val toml = """
       [bundles]

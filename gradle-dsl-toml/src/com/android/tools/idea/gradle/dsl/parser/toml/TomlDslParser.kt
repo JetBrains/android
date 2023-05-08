@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
@@ -54,17 +55,17 @@ class TomlDslParser(
   override fun parse() {
     fun getVisitor(context: GradlePropertiesDslElement, name: GradleNameElement): TomlRecursiveVisitor = object : TomlRecursiveVisitor() {
       override fun visitTable(element: TomlTable) {
-          val key = element.header.key
-          if (key != null) {
-            key.doWithContext(context) { segment, context ->
-              val map = GradleDslExpressionMap(context, element, GradleNameElement.from(segment, this@TomlDslParser), true)
-              context.addParsedElement(map)
-              getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
-            }
+        val key = element.header.key
+        if (key != null) {
+          key.doWithContext(context) { segment, context ->
+            val map = GradleDslExpressionMap(context, element, GradleNameElement.from(segment, this@TomlDslParser), true)
+            context.addParsedElement(map)
+            getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
           }
-          else {
-            super.visitTable(element)
-          }
+        }
+        else {
+          super.visitTable(element)
+        }
       }
 
       override fun visitArray(element: TomlArray) {
@@ -85,10 +86,25 @@ class TomlDslParser(
       }
 
       override fun visitKeyValue(element: TomlKeyValue) {
-          element.key.doWithContext(context) { segment, context ->
-            val key = GradleNameElement.from(segment, this@TomlDslParser)
-            getVisitor(context, key).let { element.value?.accept(it) }
-          }
+        element.key.doWithContext(context) { segment, context ->
+          val key = GradleNameElement.from(segment, this@TomlDslParser)
+          getVisitor(context, key).let { element.value?.accept(it) }
+        }
+      }
+
+      override fun visitArrayTable(element: TomlArrayTable) {
+        val key = element.header.key
+        key?.doWithContext(context) { segment, context ->
+          segment.name ?: return@doWithContext
+          val description = PropertiesElementDescription(segment.name, GradleDslExpressionList::class.java, ::GradleDslExpressionList)
+          val list: GradlePropertiesDslElement = context.getPropertyElement(description) ?:
+             GradleDslExpressionList(context, GradleNameElement.create(segment.name!!), true)
+          val map = GradleDslExpressionMap(context, element, GradleNameElement.empty(), true)
+
+          list.addParsedElement(map)
+          context.addParsedElement(list)
+          getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
+        }
       }
     }
     psiFile.accept(getVisitor(dslFile, GradleNameElement.empty()))
