@@ -113,6 +113,20 @@ private fun Component.isComponentForAction(action: AnAction): Boolean =
     this is AnActionHolder && this.action === action
 
 /**
+ * If the device is connected by WiFi, extracts the device's own serial number from the serial
+ * number returned by ADB, otherwise returns the original serial number. For example, converts
+ * "adb-3211105H802MQD-wG1oxA._adb-tls-connect._tcp." to "3211105H802MQD".
+ */
+fun normalizeDeviceSerialNumber(serialNumber: String) : String {
+  val prefix = "adb-"
+  if (serialNumber.startsWith(prefix)) {
+    val end = serialNumber.indexOf('-', prefix.length)
+    return if (end > prefix.length) serialNumber.substring(prefix.length, end) else serialNumber.substring(prefix.length)
+  }
+  return serialNumber
+}
+
+/**
  * Returns this integer scaled and rounded to the closest integer.
  *
  * @param scale the scale factor
