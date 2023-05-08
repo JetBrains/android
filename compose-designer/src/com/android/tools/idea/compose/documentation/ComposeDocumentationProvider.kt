@@ -63,7 +63,6 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -86,14 +85,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
     val isComposableFunction =
       ReadAction.compute<Boolean, Throwable> {
-        return@compute element != null &&
-          element.isValid &&
-          if (isK2Plugin()) {
-            val ktElement = element as? KtElement ?: return@compute false
-            analyze(ktElement) { isComposableFunction(ktElement) }
-          } else {
-            element.isComposableFunction()
-          }
+        return@compute element != null && element.isValid && element.isComposableFunction()
       }
     if (!isComposableFunction) return CompletableFuture.completedFuture(null)
 

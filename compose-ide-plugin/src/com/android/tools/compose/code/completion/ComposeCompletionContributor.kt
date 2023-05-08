@@ -65,7 +65,6 @@ import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
@@ -150,12 +149,7 @@ class ComposeCompletionContributor : CompletionContributor() {
     val psi = lookupElement.psiElement ?: return completionResult
 
     // For @Composable functions: remove the "special" lookup element (docs below), but otherwise apply @Composable function decoration.
-    val isComposableFunction = if (isK2Plugin()) {
-      (psi as? KtElement)?.let { analyze(it) { isComposableFunction(it) } } ?: false
-    } else {
-      psi.isComposableFunction()
-    }
-    if (isComposableFunction) {
+    if (psi.isComposableFunction()) {
       return if (lookupElement.isForSpecialLambdaLookupElement()) null
       else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
     }

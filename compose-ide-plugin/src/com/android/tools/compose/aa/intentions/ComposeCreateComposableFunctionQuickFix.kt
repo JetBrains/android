@@ -97,7 +97,7 @@ class ComposeCreateComposableFunctionQuickFix(
     ): ComposeCreateComposableFunctionQuickFix? {
       val unresolvedCall = diagnostic.psi.parent as? KtCallExpression ?: return null
       val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null
-      if (!isComposableFunction(parentFunction)) return null
+      if (!parentFunction.isComposableFunction()) return null
 
       val unresolvedName = (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName() ?: return null
       if (unresolvedName.isBlank() || !unresolvedName[0].isUpperCase()) return null
