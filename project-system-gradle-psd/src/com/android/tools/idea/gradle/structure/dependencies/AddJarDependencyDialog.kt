@@ -65,6 +65,12 @@ class AddJarDependencyDialog(module: PsModule) : AbstractAddDependenciesDialog(m
   override fun doValidate(): ValidationInfo? {
     if (jarDependenciesForm?.directoryOrFile.isNullOrBlank()) {
       return ValidationInfo("Please specify the file or directory to add as dependency", jarDependenciesForm!!.preferredFocusedComponent)
+    } else {
+      val file = File(jarDependenciesForm!!.directoryOrFile)
+      val resolvedFile = module.rootDir?.resolve(file) ?: file
+      if (!resolvedFile.exists()) {
+          return ValidationInfo("The file or directory specified must exist", jarDependenciesForm!!.preferredFocusedComponent)
+      }
     }
     return scopesPanel.validateInput()
   }
