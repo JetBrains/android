@@ -94,7 +94,7 @@ public final class ScreenDiagram extends JPanel {
     // Leave room at the top and to the right for the dimensions text
     FontMetrics metrics = graphics.getFontMetrics(FIGURE_FONT);
 
-    double maxWidth = getWidth() - metrics.stringWidth("0000 dps") - getFigurePadding() - getOutlineLineWidth() / 2.0 - getLeftPadding();
+    double maxWidth = getWidth() - metrics.stringWidth("0000 dp") - getFigurePadding() - getOutlineLineWidth() / 2.0 - getLeftPadding();
     double maxHeight = getHeight() - metrics.getHeight() - getFigurePadding() - getOutlineLineWidth() / 2.0;
 
     double sideRatio = (double) width / (double) height;
@@ -127,7 +127,7 @@ public final class ScreenDiagram extends JPanel {
     // Erase the part of the line that the text overlays
     graphics2d.setColor(getBackground());
 
-    String text = width + " dps";
+    String text = width + " dp";
 
     int textWidth = metrics.stringWidth(text);
     int textX = round(getLeftPadding() + (scaledDimension.width - textWidth) / 2.0);
@@ -177,7 +177,7 @@ public final class ScreenDiagram extends JPanel {
     // Paint the text
     graphics2d.setColor(getForeground());
 
-    graphics2d.drawString(height + " dps", lineX - JBUIScale.scale(10), textY);
+    graphics2d.drawString(height + " dp", lineX - JBUIScale.scale(10), textY);
   }
 
   private static int getFigurePadding() {
