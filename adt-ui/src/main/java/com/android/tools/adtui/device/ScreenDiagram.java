@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager;
+package com.android.tools.adtui.device;
 
-import com.android.tools.idea.avdmanager.AvdWizardUtils;
-import com.android.tools.idea.device.Resolution;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
+import com.intellij.util.ui.JBFont;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -33,11 +33,15 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 public final class ScreenDiagram extends JPanel {
-  private static final Color GRAY = new JBColor(Gray._192, Gray._96);
-  private final @NotNull Device myDevice;
+  private static final Font FIGURE_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 10));
 
-  public ScreenDiagram(@NotNull Device device) {
-    myDevice = device;
+  private static final Color GRAY = new JBColor(Gray._192, Gray._96);
+  private final int width;
+  private final int height;
+
+  public ScreenDiagram(int width, int height) {
+    this.width = width;
+    this.height = height;
   }
 
   @Override
@@ -66,7 +70,7 @@ public final class ScreenDiagram extends JPanel {
     try {
       graphics2d = (Graphics2D)graphics.create();
 
-      graphics2d.setFont(AvdWizardUtils.FIGURE_FONT);
+      graphics2d.setFont(FIGURE_FONT);
       GraphicsUtil.setupAAPainting(graphics2d);
       GraphicsUtil.setupAntialiasing(graphics2d);
 
@@ -88,15 +92,12 @@ public final class ScreenDiagram extends JPanel {
    */
   private @NotNull Dimension getScaledDimension(@NotNull Graphics graphics) {
     // Leave room at the top and to the right for the dimensions text
-    FontMetrics metrics = graphics.getFontMetrics(AvdWizardUtils.FIGURE_FONT);
+    FontMetrics metrics = graphics.getFontMetrics(FIGURE_FONT);
 
     double maxWidth = getWidth() - metrics.stringWidth("0000 dps") - getFigurePadding() - getOutlineLineWidth() / 2.0 - getLeftPadding();
     double maxHeight = getHeight() - metrics.getHeight() - getFigurePadding() - getOutlineLineWidth() / 2.0;
 
-    Resolution dp = myDevice.getDp();
-    assert dp != null;
-
-    double sideRatio = (double)dp.getWidth() / (double)dp.getHeight();
+    double sideRatio = (double) width / (double) height;
 
     int width;
     int height;
@@ -118,7 +119,7 @@ public final class ScreenDiagram extends JPanel {
     graphics2d.setColor(GRAY);
     graphics2d.setStroke(new BasicStroke(getDimensionLineWidth()));
 
-    FontMetrics metrics = graphics2d.getFontMetrics(AvdWizardUtils.FIGURE_FONT);
+    FontMetrics metrics = graphics2d.getFontMetrics(FIGURE_FONT);
     int lineY = metrics.getHeight() / 2;
 
     graphics2d.drawLine(getLeftPadding(), lineY, round(getLeftPadding() + scaledDimension.width), lineY);
@@ -126,10 +127,7 @@ public final class ScreenDiagram extends JPanel {
     // Erase the part of the line that the text overlays
     graphics2d.setColor(getBackground());
 
-    Resolution dp = myDevice.getDp();
-
-    assert dp != null;
-    String text = dp.getWidth() + " dps";
+    String text = width + " dps";
 
     int textWidth = metrics.stringWidth(text);
     int textX = round(getLeftPadding() + (scaledDimension.width - textWidth) / 2.0);
@@ -145,7 +143,7 @@ public final class ScreenDiagram extends JPanel {
     graphics2d.setColor(getForeground());
     graphics2d.setStroke(new BasicStroke(getOutlineLineWidth()));
 
-    int y = graphics2d.getFontMetrics(AvdWizardUtils.FIGURE_FONT).getHeight() + JBUIScale.scale(getFigurePadding());
+    int y = graphics2d.getFontMetrics(FIGURE_FONT).getHeight() + JBUIScale.scale(getFigurePadding());
 
     Shape shape = new RoundRectangle2D.Double(getLeftPadding(),
                                               y,
@@ -162,7 +160,7 @@ public final class ScreenDiagram extends JPanel {
     graphics2d.setColor(GRAY);
     graphics2d.setStroke(new BasicStroke(getDimensionLineWidth()));
 
-    FontMetrics metrics = graphics2d.getFontMetrics(AvdWizardUtils.FIGURE_FONT);
+    FontMetrics metrics = graphics2d.getFontMetrics(FIGURE_FONT);
     int lineX = round(getLeftPadding() + scaledDimension.width + JBUIScale.scale(15));
     int rectangleOffsetY = metrics.getHeight() + getFigurePadding();
 
@@ -179,10 +177,7 @@ public final class ScreenDiagram extends JPanel {
     // Paint the text
     graphics2d.setColor(getForeground());
 
-    Resolution dp = myDevice.getDp();
-
-    assert dp != null;
-    graphics2d.drawString(dp.getHeight() + " dps", lineX - JBUIScale.scale(10), textY);
+    graphics2d.drawString(height + " dps", lineX - JBUIScale.scale(10), textY);
   }
 
   private static int getFigurePadding() {

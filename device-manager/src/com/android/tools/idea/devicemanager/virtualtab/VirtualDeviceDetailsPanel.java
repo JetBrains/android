@@ -23,7 +23,7 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
-import com.android.tools.idea.devicemanager.ScreenDiagram;
+import com.android.tools.adtui.device.ScreenDiagram;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
@@ -142,7 +142,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private void initScreenDiagram() {
     FutureCallback<Device> callback = new DeviceManagerFutureCallback<>(VirtualDeviceDetailsPanel.class, device -> {
       if (device.getDp() != null) {
-        myScreenDiagram = new ScreenDiagram(device);
+        myScreenDiagram = new ScreenDiagram(device.getDp().getWidth(), device.getDp().getHeight());
         setInfoSectionPanelLayout();
       }
     });
