@@ -27,8 +27,8 @@ import com.android.tools.idea.insights.ui.ActionToolbarListenerForOfflineBalloon
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
+import com.android.tools.idea.insights.ui.actions.OfflineStatusLabelAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
-import com.android.tools.idea.insights.ui.offlineModeIcon
 import com.android.tools.idea.insights.ui.toTimestamp
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.intellij.openapi.Disposable
@@ -53,17 +53,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-
-private val offlineAction =
-  object : AnAction("Android Vitals is offline.", null, offlineModeIcon) {
-    override fun actionPerformed(e: AnActionEvent) {}
-    override fun getActionUpdateThread() = ActionUpdateThread.EDT
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = false
-      e.presentation.disabledIcon = offlineModeIcon
-      super.update(e)
-    }
-  }
 
 class VitalsTab(
   private val projectController: AppInsightsProjectLevelController,
@@ -95,106 +84,111 @@ class VitalsTab(
   private val timestamp: Flow<Timestamp> =
     projectController.state.toTimestamp(clock).distinctUntilChanged()
 
-  private val offlineStateFlow = projectController.state.map { it.mode }.distinctUntilChanged()
+  private val offlineStateFlow =
+    projectController.state
+      .map { it.mode }
+      .stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
+
+  private val offlineAction = OfflineStatusLabelAction("Android Vitals is offline")
 
   init {
     add(createToolbar().component, BorderLayout.NORTH)
     add(VitalsContentContainerPanel(projectController, project, tracker, this))
   }
 
-  private fun createToolbar(): ActionToolbar {
-    @Suppress("UNCHECKED_CAST")
-    val actionGroups =
-      DefaultActionGroup().apply {
-        add(
-          VitalsConnectionSelectorAction(
-            connections as StateFlow<Selection<VitalsConnection>>,
-            scope,
-            projectController::selectConnection
-          )
+  private fun addActionsToGroup(group: DefaultActionGroup) {
+    group.apply {
+      @Suppress("UNCHECKED_CAST")
+      add(
+        VitalsConnectionSelectorAction(
+          connections as StateFlow<Selection<VitalsConnection>>,
+          scope,
+          projectController::selectConnection
         )
-        addSeparator()
-        add(
-          AppInsightsDropDownAction(
-            "Interval",
-            null,
-            null,
-            intervals,
-            null,
-            projectController::selectTimeInterval
-          )
+      )
+      addSeparator()
+      add(
+        AppInsightsDropDownAction(
+          "Interval",
+          null,
+          null,
+          intervals,
+          null,
+          projectController::selectTimeInterval
         )
-        add(
-          AppInsightsDropDownAction(
-            "Visibility types",
-            null,
-            null,
-            visibilityTypes,
-            null,
-            projectController::selectVisibilityType
-          )
+      )
+      add(
+        AppInsightsDropDownAction(
+          "Visibility types",
+          null,
+          null,
+          visibilityTypes,
+          null,
+          projectController::selectVisibilityType
         )
-        add(
-          TreeDropDownAction(
-            name = "versions",
-            flow = versions,
-            scope = scope,
-            groupNameSupplier = { it.displayVersion },
-            nameSupplier = { it.buildVersion },
-            secondaryGroupSupplier = { it.tracks },
-            onSelected = projectController::selectVersions,
-            secondaryTitleSupplier = {
-              JLabel(StudioIcons.Avd.DEVICE_PLAY_STORE).apply {
-                text = "Play Tracks"
-                horizontalAlignment = SwingConstants.LEFT
-              }
-            }
-          )
-        )
-        add(
-          TreeDropDownAction(
-            name = "devices",
-            flow = devices,
-            scope = scope,
-            groupNameSupplier = { it.manufacturer },
-            nameSupplier = { it.model.substringAfter("/") },
-            onSelected = projectController::selectDevices
-          )
-        )
-        add(
-          TreeDropDownAction(
-            name = "operating systems",
-            flow = operatingSystems,
-            scope = scope,
-            groupNameSupplier = { it.displayName },
-            nameSupplier = { it.displayName },
-            onSelected = projectController::selectOperatingSystems
-          )
-        )
-        addSeparator()
-        add(offlineAction)
-        add(
-          object : AnAction("Refresh", null, StudioIcons.LayoutEditor.Toolbar.REFRESH) {
-            private val offlineState =
-              offlineStateFlow.stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
-            override fun actionPerformed(e: AnActionEvent) {
-              projectController.refresh()
-            }
-            override fun getActionUpdateThread() = ActionUpdateThread.EDT
-            override fun displayTextInToolbar() = true
-            override fun update(e: AnActionEvent) {
-              e.presentation.text =
-                if (offlineState.value == ConnectionMode.OFFLINE) "Reconnect" else null
+      )
+      add(
+        TreeDropDownAction(
+          name = "versions",
+          flow = versions,
+          scope = scope,
+          groupNameSupplier = { it.displayVersion },
+          nameSupplier = { it.buildVersion },
+          secondaryGroupSupplier = { it.tracks },
+          onSelected = projectController::selectVersions,
+          secondaryTitleSupplier = {
+            JLabel(StudioIcons.Avd.DEVICE_PLAY_STORE).apply {
+              text = "Play Tracks"
+              horizontalAlignment = SwingConstants.LEFT
             }
           }
         )
-        add(AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope))
-      }
+      )
+      add(
+        TreeDropDownAction(
+          name = "devices",
+          flow = devices,
+          scope = scope,
+          groupNameSupplier = { it.manufacturer },
+          nameSupplier = { it.model.substringAfter("/") },
+          onSelected = projectController::selectDevices
+        )
+      )
+      add(
+        TreeDropDownAction(
+          name = "operating systems",
+          flow = operatingSystems,
+          scope = scope,
+          groupNameSupplier = { it.displayName },
+          nameSupplier = { it.displayName },
+          onSelected = projectController::selectOperatingSystems
+        )
+      )
+      addSeparator()
+      add(offlineAction)
+      add(
+        object : AnAction("Refresh", null, StudioIcons.LayoutEditor.Toolbar.REFRESH) {
+          override fun actionPerformed(e: AnActionEvent) {
+            projectController.refresh()
+          }
+          override fun getActionUpdateThread() = ActionUpdateThread.BGT
+          override fun displayTextInToolbar() = true
+          override fun update(e: AnActionEvent) {
+            e.presentation.text =
+              if (offlineStateFlow.value == ConnectionMode.OFFLINE) "Reconnect" else null
+          }
+        }
+      )
+      add(AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope))
+    }
+  }
+
+  private fun createToolbar(): ActionToolbar {
+    val group = DefaultActionGroup()
     val actionToolbar =
-      ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
+      ActionManager.getInstance().createActionToolbar("AppInsights", group, true).apply {
         targetComponent = this@VitalsTab
       }
-    ActionToolbarUtil.findActionButton(actionToolbar, offlineAction)?.isVisible = false
     actionToolbar.component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.component.addContainerListener(
@@ -206,6 +200,7 @@ class VitalsTab(
         offlineStateFlow
       )
     )
+    addActionsToGroup(group)
     return actionToolbar
   }
 
