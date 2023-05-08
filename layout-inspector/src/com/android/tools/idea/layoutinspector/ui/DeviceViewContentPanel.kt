@@ -48,6 +48,7 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.StatusText
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Dimension
@@ -79,7 +80,8 @@ class DeviceViewContentPanel(
   disposableParent: Disposable,
   val isLoading: () -> Boolean,
   val isCurrentForegroundProcessDebuggable: () -> Boolean,
-  val hasForegroundProcess: () -> Boolean
+  val hasForegroundProcess: () -> Boolean,
+  val coroutineScope: CoroutineScope
 ) : AdtPrimaryPanel() {
 
   private val renderSettings get() = renderLogic.renderSettings
@@ -215,10 +217,16 @@ class DeviceViewContentPanel(
         }
       }
 
-      override fun mouseClicked(e: MouseEvent) {
-        if (e.isConsumed) return
-        val modelCoordinates = toModelCoordinates(e.x, e.y)
-        renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
+      override fun mouseClicked(event: MouseEvent) {
+        if (event.isConsumed) return
+        if (event.clickCount > 1) {
+          // The View was selected with the first click of the double click
+          GotoDeclarationAction.navigateToSelectedView(coroutineScope, renderModel.model)
+          currentClient()?.stats?.gotoSourceFromRenderDoubleClick()
+        } else {
+          val modelCoordinates = toModelCoordinates(event.x, event.y)
+          renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
+        }
       }
 
       override fun mouseMoved(e: MouseEvent) {

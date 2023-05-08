@@ -114,7 +114,8 @@ class DeviceViewPanel(
     isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable },
     hasForegroundProcess = { hasForegroundProcess },
     renderLogic = layoutInspector.renderLogic,
-    renderModel = layoutInspector.renderModel
+    renderModel = layoutInspector.renderModel,
+    coroutineScope = layoutInspector.coroutineScope
   )
 
   private fun showGrab() {

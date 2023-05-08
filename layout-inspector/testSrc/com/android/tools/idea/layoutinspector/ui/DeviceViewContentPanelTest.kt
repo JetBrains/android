@@ -37,6 +37,7 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.common.SelectViewAction
@@ -58,14 +59,18 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
+import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.DropDownActionWithButton
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_ORANGE
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.runDispatching
 import com.android.tools.layoutinspector.BitmapType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.BrowserUtil
@@ -120,13 +125,14 @@ private const val DIFF_THRESHOLD_TEXT = 0.2
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class DeviceViewContentPanelTest {
-  private val projectRule = ProjectRule()
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
   @get:Rule
   val disposable = DisposableRule()
 
   @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
+  val chain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule).around(EdtRule()).around(IconLoaderRule())!!
 
   @get:Rule
   val fontRule = PortableUiFontRule()
@@ -554,6 +560,52 @@ class DeviceViewContentPanelTest {
     treeSettings.hideSystemNodes = true
     fakeUi.mouse.click(40, 50)
     assertThat(model.selection).isSameAs(model[VIEW1]!!)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testDoubleClick() {
+    projectRule.fixture.addFileToProject("res/layout/activity_main.xml", """
+      <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/action_bar_root"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+        <TextView
+            android:id="@+id/text1"
+            android:text="Hello"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+      </LinearLayout>
+    """.trimIndent())
+    val layoutMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+    val layoutAppcompat = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val model = model(projectRule.project) {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50, layout = layoutMain, viewId = ResourceReference(ResourceNamespace.ANDROID, ResourceType.ID, "text1")) {
+          view(VIEW2, 30, 35, 40, 40, layout = layoutAppcompat) {
+            view(VIEW3, 35, 40, 30, 30, layout = layoutAppcompat)
+          }
+        }
+      }
+    }
+
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
+    val treeSettings = FakeTreeSettings()
+    treeSettings.hideSystemNodes = false
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
+    panel.setSize(100, 200)
+    val fakeUi = FakeUi(panel)
+    assertThat(model.selection).isNull()
+
+    treeSettings.hideSystemNodes = false
+    fakeUi.mouse.doubleClick(27, 35)
+    runDispatching { GotoDeclarationAction.lastAction?.join() }
+    fileOpenCaptureRule.checkEditor("activity_main.xml", 7, "<TextView")
   }
 
   @Test
@@ -1274,6 +1326,7 @@ private fun createDeviceViewContentPanel(
     isCurrentForegroundProcessDebuggable = { false },
     hasForegroundProcess = { false },
     renderModel = renderModel,
-    renderLogic = renderLogic
+    renderLogic = renderLogic,
+    coroutineScope = AndroidCoroutineScope(disposable)
   )
 }
