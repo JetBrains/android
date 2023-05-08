@@ -14,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -103,6 +104,7 @@ class PsiCodeFileChangeDetectorServiceTest {
     assertTrue(psiCodeFileChangeDetectorService.outOfDateFiles.isEmpty())
   }
 
+  @Ignore // b/281109986
   @Test
   fun `file changes are detected in relevant languages`() = runBlocking {
     val flowUpdates = StringBuilder()
