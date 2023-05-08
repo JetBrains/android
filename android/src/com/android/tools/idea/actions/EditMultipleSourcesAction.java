@@ -88,7 +88,7 @@ public class EditMultipleSourcesAction extends AnAction {
       list.setCellRenderer(new GotoFileCellRenderer(width));
 
       JBPopup popup =
-        JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChoosenCallback(() -> {
+        JBPopupFactory.getInstance().createListPopupBuilder(list).setTitle("Choose Target File").setItemChosenCallback(() -> {
           Object selectedValue = list.getSelectedValue();
           PsiClassNavigation navigationWrapper = null;
           for (Navigatable file : files) {

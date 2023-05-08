@@ -154,7 +154,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     }
 
     final JList list = new JBList(dependencies);
-    JBPopup popup = new PopupChooserBuilder(list).setItemChoosenCallback(new Runnable() {
+    JBPopup popup = new PopupChooserBuilder(list).setItemChosenCallback(new Runnable() {
       @Override
       public void run() {
         for (Object selectedValue : list.getSelectedValues()) {

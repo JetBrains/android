@@ -279,7 +279,7 @@ internal class FilterTextField(
     val popup = PopupChooserBuilder(list)
       .setMovable(false)
       .setRequestFocus(true)
-      .setItemChosenCallback {
+      .setItemChosenCallback { it ->
         (it as? Item)?.let { item ->
           text = item.filter
           isFavorite = item.isFavorite
