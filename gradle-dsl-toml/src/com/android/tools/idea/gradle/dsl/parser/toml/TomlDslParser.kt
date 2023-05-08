@@ -143,7 +143,7 @@ class TomlDslParser(
             text == "nan" || text == "+nan" -> Double.NaN
             text == "-nan" -> Double.NaN // no distinct NaN value available
             text.contains("[eE.]".toRegex()) -> text.toDouble()
-            else -> text.replace("_", "").toLong(10)
+            else -> text.replace("_", "").let { it.toIntOrNull(10) ?: it.toLong(10) }
           }
         }
         is TomlLiteralKind.DateTime -> literal.text // No Gradle Dsl representation of Toml DateTime

@@ -400,10 +400,20 @@ class TomlDslParserTest : PlatformTestCase() {
       int7 = 53_49_221  # Indian number system grouping
       int8 = 1_2_3_4_5  # VALID but discouraged
     """.trimIndent()
-    val expected = mapOf<String, Long>("int1" to 99, "int2" to 42, "int3" to 0, "int4" to -17, "int5" to 1000, "int6" to 5349221,
+    val expected = mapOf("int1" to 99, "int2" to 42, "int3" to 0, "int4" to -17, "int5" to 1000, "int6" to 5349221,
                                        "int7" to 5349221, "int8" to 12345)
     doTest(toml, expected)
   }
+
+  fun testLong() {
+    val toml = """
+      long1 = 1844674407370955161
+      long2 = -1844674407370955161
+    """.trimIndent()
+    val expected = mapOf("long1" to 1844674407370955161L, "long2" to -1844674407370955161L)
+    doTest(toml, expected)
+  }
+
 
   fun testIntegerRadixPrefixes() {
     val toml = """
