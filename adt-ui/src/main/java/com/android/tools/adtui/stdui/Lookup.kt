@@ -51,7 +51,6 @@ import javax.swing.SwingUtilities
 import kotlin.math.max
 import kotlin.math.min
 
-private const val BORDER_WIDTH = 4
 private const val DEFAULT_CELL_HEIGHT = 16
 private const val MAX_LOOKUP_LIST_HEIGHT = 11
 
@@ -246,13 +245,12 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   private fun hideLookup() {
     lookupCancelled = true
     showBelow = true
-    ui.visible = false
+    ui.hide()
     ui.semiFocused = false
   }
 
   private fun display() {
     ui.updateLocation(computeLocation(), editor)
-    ui.visible = true
     ui.selectedIndex = 0
   }
 
@@ -272,16 +270,18 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
     val popupSize = ui.popupSize
     val screenBounds = ui.screenBounds(editor)
     val editorBounds = ui.editorBounds(editor)
-    val xPos = max(min(editorBounds.x + BORDER_WIDTH, screenBounds.x + screenBounds.width - popupSize.width), screenBounds.x)
-    val yPosAbove = editorBounds.y + BORDER_WIDTH - popupSize.height
-    val yPosBelow = editorBounds.y + editorBounds.height - BORDER_WIDTH
+    val xPos = max(min(editorBounds.x, screenBounds.x + screenBounds.width - popupSize.width), screenBounds.x)
+    val yPosAbove = editorBounds.y - popupSize.height
+    val yPosBelow = editorBounds.y + editorBounds.height
     showBelow = when {
       !showBelow && yPosAbove > screenBounds.y -> false
       yPosBelow + popupSize.height < screenBounds.y + screenBounds.height -> true
       yPosAbove > screenBounds.y -> false
       else -> true
     }
-    return if (showBelow) Point(xPos, yPosBelow) else Point(xPos, yPosAbove)
+    val point = if (showBelow) Point(xPos, yPosBelow) else Point(xPos, yPosAbove)
+    point.translate(-editorBounds.x, -editorBounds.y)
+    return point
   }
 }
 
@@ -308,7 +308,7 @@ class Matcher {
  * The UI abstraction for popup. This allows [Lookup] to be testable.
  */
 interface LookupUI {
-  var visible: Boolean
+  val visible: Boolean
   var visibleRowCount: Int
   var selectedIndex: Int
   var selectedValue: String?
@@ -320,6 +320,7 @@ interface LookupUI {
   fun updateLocation(location: Point, editor: JComponent)
   fun screenBounds(editor: JComponent): Rectangle
   fun editorBounds(editor: JComponent): Rectangle
+  fun hide()
 }
 
 /**
@@ -332,15 +333,8 @@ class DefaultLookupUI(private val component: Component) : LookupUI {
 
   override var clickAction: () -> Unit = {}
 
-  override var visible: Boolean
+  override val visible: Boolean
     get() = popup.isVisible
-    set(value) {
-      if (value) {
-        JBPopupMenu.showBelow(component, popup)
-      } else {
-        popup.isVisible = false
-      }
-    }
 
   override var visibleRowCount: Int
     get() = list.visibleRowCount
@@ -398,17 +392,7 @@ class DefaultLookupUI(private val component: Component) : LookupUI {
   }
 
   override fun updateLocation(location: Point, editor: JComponent) {
-    val window = SwingUtilities.getWindowAncestor(popup)
-    if (visible && window != null) {
-      window.size = window.preferredSize
-      if (window.location != location) {
-        window.location = location
-      }
-    }
-    else {
-      popup.size = popup.preferredSize
-      popup.location = location
-    }
+    popup.show(editor, location.x, location.y)
   }
 
   override fun screenBounds(editor: JComponent): Rectangle {
@@ -427,6 +411,10 @@ class DefaultLookupUI(private val component: Component) : LookupUI {
     val topLeft = Point()
     SwingUtilities.convertPointToScreen(topLeft, editor)
     return Rectangle(topLeft.x, topLeft.y, editor.width, editor.height)
+  }
+
+  override fun hide() {
+    popup.isVisible = false
   }
 
   /**
