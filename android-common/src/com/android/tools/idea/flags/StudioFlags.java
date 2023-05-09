@@ -1540,13 +1540,13 @@ public final class StudioFlags {
       "Set Crashlytics gRpc server address, mainly used for testing purposes.",
       "firebasecrashlytics.googleapis.com");
 
-  public static final Flag<Boolean> CRASHLYTICS_GRPC_USE_TRANSPORT_SECURITY =
+  public static final Flag<Boolean> CRASHLYTICS_INTEGRATION_TEST_MODE =
     Flag.create(
       APP_INSIGHTS,
-      "crashlytics.grpc.use.transport.security",
-      "Use transport security",
-      "Set Crashlytics gRpc channel to use transport security",
-      true);
+      "crashlytics.integration.test.mode",
+      "Crashlytics Integration Test Mode",
+      "Set Crashlytics to be in integration test mode.",
+      false);
 
   public static final Flag<Boolean> PLAY_VITALS_ENABLED =
     Flag.create(
