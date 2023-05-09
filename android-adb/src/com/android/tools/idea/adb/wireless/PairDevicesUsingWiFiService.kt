@@ -62,5 +62,5 @@ class PairDevicesUsingWiFiService(private val project: Project) : Disposable {
   }
 
   val isFeatureEnabled: Boolean
-    get() = StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get()
+    get() = true
 }

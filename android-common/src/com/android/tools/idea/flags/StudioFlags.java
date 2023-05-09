@@ -488,13 +488,6 @@ public final class StudioFlags {
     "Enables and shows the ADB connection status widget in the status bar",
     false);
 
-  public static final Flag<Boolean> ADB_WIRELESS_PAIRING_ENABLED = Flag.create(
-    RUNDEBUG,
-    "adb.wireless.enabled",
-    "Enable pairing devices through ADB wireless",
-    "Allow pairing new physical device through QR Code pairing via ADB wireless",
-    true);
-
   public static final Flag<Boolean> ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE = Flag.create(
     RUNDEBUG,
     "adb.server.management.mode.settings.visible",

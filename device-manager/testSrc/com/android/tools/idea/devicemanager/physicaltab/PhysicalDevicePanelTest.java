@@ -176,28 +176,10 @@ public final class PhysicalDevicePanelTest {
   }
 
   @Test
-  public void initPairUsingWiFiButtonFeatureIsntEnabled() {
-    // Act
-    myPanel = new PhysicalDevicePanel(myProject,
-                                      myParent,
-                                      project -> myService,
-                                      myManager,
-                                      () -> myComponent,
-                                      model -> myListener,
-                                      PhysicalDeviceDetailsPanel::new,
-                                      mySupplier,
-                                      PhysicalDevicePanel::newSetDevices);
-
-    // Assert
-    assertNull(myPanel.getPairUsingWiFiButton());
-  }
-
-  @Test
   public void initPairUsingWiFiButton() {
     // Arrange
     WiFiPairingController controller = Mockito.mock(WiFiPairingController.class);
 
-    Mockito.when(myService.isFeatureEnabled()).thenReturn(true);
     Mockito.when(myService.createPairingDialogController()).thenReturn(controller);
 
     // Act

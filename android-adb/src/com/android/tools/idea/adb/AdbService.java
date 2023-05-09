@@ -364,7 +364,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
     options.useDdmlibCommandService(StudioFlags.ENABLE_DDMLIB_COMMAND_SERVICE.get());
     options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
-    if (StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get() && getInstance().myAllowMdnsOpenscreen) {
+    if (getInstance().myAllowMdnsOpenscreen) {
       // Enables Open Screen mDNS implementation in ADB host.
       // See https://android-review.googlesource.com/c/platform/packages/modules/adb/+/1549744
       options.withEnv("ADB_MDNS_OPENSCREEN", AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ? "1" : "0");

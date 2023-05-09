@@ -22,7 +22,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -70,16 +69,9 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
       .commit();
   }
 
-  /** Indicates if any of the settings in this UI are actually enabled. If this is false, we shouldn't show this UI at all. */
-  public static boolean hasComponents() {
-    return hasUseLibusbBackendCheckbox() || hasAdbServerLifecycleManagementComponents() || hasEnableAdbMdnsCheckbox();
-  }
-
   @NotNull
   @Override
   public JComponent getComponent() {
-    assert hasComponents();
-
     if (!hasUseLibusbBackendCheckbox()) {
       myPanel.remove(myUseLibusbBackendCheckbox);
     }
@@ -87,9 +79,6 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
       myPanel.remove(myExistingAdbServerPortSpinner);
       myPanel.remove(myAutomaticallyStartAndManageServerRadioButton);
       myPanel.remove(myUseExistingManuallyManagedServerRadioButton);
-    }
-    if (!hasEnableAdbMdnsCheckbox()) {
-      myPanel.remove(myEnableAdbMdnsCheckBox);
     }
     return myPanel;
   }
@@ -142,9 +131,5 @@ public class AdbConfigurableUi implements ConfigurableUi<AdbOptionsService> {
 
   private static boolean hasAdbServerLifecycleManagementComponents() {
     return StudioFlags.ADB_SERVER_MANAGEMENT_MODE_SETTINGS_VISIBLE.get();
-  }
-
-  private static boolean hasEnableAdbMdnsCheckbox() {
-    return StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get();
   }
 }
