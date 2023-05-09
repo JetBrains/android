@@ -30,6 +30,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.MIGRAT
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.EXECUTE
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.FIND_USAGES
 import com.google.wireless.android.sdk.stats.NonTransitiveRClassMigrationEvent.NonTransitiveRClassMigrationEventKind.SYNC_SKIPPED
+import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
 import com.intellij.codeInspection.unusedImport.UnusedImportInspection
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.runUndoTransparentWriteAction
@@ -203,6 +204,7 @@ class MigrateToNonTransitiveRClassesProcessorTest : AndroidTestCase() {
 
     myFixture.enableInspections(KotlinUnusedImportInspection())
     myFixture.enableInspections(UnusedImportInspection())
+    myFixture.enableInspections(UnusedDeclarationInspection())
 
     myFixture.addFileToProject(
       "src/com/other/folder/AppOtherPackageJavaClass.java",
