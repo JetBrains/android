@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "iml_studio_test", "studio_plugin")
+load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 
 studio_plugin(
     name = "org.jetbrains.android",
@@ -678,12 +679,12 @@ android_studio(
     ],
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
-    version_code_name = "Hedgehog",
-    version_micro_patch = "1.5",
+    version_code_name = STUDIO_CODENAME,
+    version_micro_patch = STUDIO_MICRO_PATCH,
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 5,
-    version_type = "Canary",
+    version_release_number = STUDIO_RELEASE_NUMBER,
+    version_type = STUDIO_VERSION,
     visibility = ["//visibility:public"],
 )
 
