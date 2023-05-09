@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.adblib.utils.createChildScope
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.CreateDeviceAction
 import com.android.sdklib.deviceprovisioner.CreateDeviceTemplateAction
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
@@ -30,6 +32,7 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceTableColumns.columns
+import com.android.tools.idea.devicemanagerv2.details.DeviceDetailsPanel
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.collect.ConcurrentHashMultiset
@@ -40,10 +43,13 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -59,14 +65,18 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidPluginDisposable
 
 /** The main Device Manager panel, containing a table of devices and a toolbar of buttons above. */
-internal class DeviceManagerPanel(val project: Project) : JPanel() {
+internal class DeviceManagerPanel(
+  val project: Project,
+  private val deviceProvisioner: DeviceProvisioner =
+    project.service<DeviceProvisionerService>().deviceProvisioner
+) : JPanel(), DataProvider {
 
-  private val panelScope =
+  internal val panelScope =
     AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project))
-  private val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
 
+  private val splitter = JBSplitter(true)
   private val scrollPane = JBScrollPane()
-  private var deviceTable =
+  internal var deviceTable =
     CategoryTable(
       columns(project, panelScope),
       DeviceRowData::key,
@@ -121,7 +131,10 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
 
     deviceTable.toggleSortOrder(DeviceTableColumns.nameAttribute)
     deviceTable.addToScrollPane(scrollPane)
-    add(scrollPane, BorderLayout.CENTER)
+
+    splitter.firstComponent = scrollPane
+    // second component will be the details panel if/when it's created
+    add(splitter, BorderLayout.CENTER)
 
     panelScope.launch(uiThread) { trackDevices() }
     panelScope.launch(uiThread) { trackDeviceTemplates() }
@@ -226,6 +239,41 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
     return toolbar
   }
+
+  var deviceDetailsPanel: DeviceDetailsPanel?
+    get() = splitter.secondComponent as? DeviceDetailsPanel
+    set(panel) {
+      deviceDetailsPanel?.dispose()
+      splitter.secondComponent = panel
+    }
+
+  fun showDeviceDetails(handle: DeviceHandle) {
+    getOrCreateDetailsPanelForHandle(handle).showDeviceInfo()
+  }
+
+  fun showPairedDevices(handle: DeviceHandle) {
+    getOrCreateDetailsPanelForHandle(handle).showPairedDevices()
+  }
+
+  private fun getOrCreateDetailsPanelForHandle(handle: DeviceHandle): DeviceDetailsPanel {
+    var panel = deviceDetailsPanel
+    if (panel?.handle != handle) {
+      panel = createDetailsPanel(handle)
+      deviceDetailsPanel = panel
+    }
+    return panel
+  }
+
+  private fun createDetailsPanel(handle: DeviceHandle): DeviceDetailsPanel =
+    DeviceDetailsPanel.create(panelScope.createChildScope(isSupervisor = true), handle).apply {
+      addCloseActionListener { deviceDetailsPanel = null }
+    }
+
+  override fun getData(dataId: String): Any? =
+    when {
+      DEVICE_MANAGER_PANEL_KEY.`is`(dataId) -> this
+      else -> null
+    }
 }
 
 @UiThread
@@ -240,3 +288,5 @@ internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =
   }
 
 private const val TOOLBAR_ID = "DeviceManager2"
+
+internal val DEVICE_MANAGER_PANEL_KEY = DataKey.create<DeviceManagerPanel>("DeviceManagerPanel")

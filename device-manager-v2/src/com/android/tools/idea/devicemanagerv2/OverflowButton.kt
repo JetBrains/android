@@ -52,7 +52,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
         WipeDataAction(),
         DeleteAction(),
         Separator.create(),
-        // TODO: View Details
+        ViewDetailsAction(),
         ShowAction(),
       )
   }

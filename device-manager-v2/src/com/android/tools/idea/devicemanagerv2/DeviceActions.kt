@@ -34,3 +34,5 @@ fun AnActionEvent.updateFromDeviceAction(deviceActionProperty: DeviceHandle.() -
 }
 
 fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
+
+internal fun AnActionEvent.deviceManagerPanel() = DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
