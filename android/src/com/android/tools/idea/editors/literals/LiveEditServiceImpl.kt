@@ -18,10 +18,12 @@ package com.android.tools.idea.editors.literals
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.usesCompose
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
+import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
@@ -30,10 +32,14 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup.Companion.getExecutorSetting
+import com.android.tools.idea.run.profiler.ProfilingMode
+import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.ExecutionManager
+import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.notification.BrowseNotificationAction
 import com.intellij.notification.NotificationGroupManager
@@ -42,6 +48,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
@@ -49,6 +56,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executor
 
@@ -180,8 +188,12 @@ class LiveEditServiceImpl(val project: Project,
   /**
    * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
    */
-  override fun notifyAppDeploy(packageName: String, device: IDevice, app: LiveEditApp): Boolean {
-    return deployMonitor.notifyAppDeploy(packageName, device, app)
+  override fun notifyAppDeploy(runProfile: RunProfile,
+                               executor: com.intellij.execution.Executor,
+                               packageName: String,
+                               device: IDevice,
+                               app: LiveEditApp): Boolean {
+    return deployMonitor.notifyAppDeploy(packageName, device, app) { isLiveEditable(runProfile, executor) }
   }
 
   override fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {
@@ -220,5 +232,24 @@ class LiveEditServiceImpl(val project: Project,
 
   override fun notifyLiveEditAvailability(device: IDevice) {
     notifications.notifyLiveEditAvailability(device)
+  }
+
+  private fun isLiveEditable(runProfile: RunProfile, executor: com.intellij.execution.Executor): Boolean {
+    // TODO(b/281742972): Move this to use ManifestInfo and remove direct work around profilers.
+    // Profiler has a hack in AGP that sets debugability of the APK to false, and is not reflected in the AndroidModel.
+    // To properly catch this, we need to parse the APK for the debugability flag, which is a much bigger change than we want for now.
+    val profilerSetting = getExecutorSetting(executor.id)
+    if (!usesCompose(project)) {
+      return false
+    }
+    if (profilerSetting != null && profilerSetting.profilingMode !== ProfilingMode.DEBUGGABLE) {
+      return false
+    }
+    if (runProfile !is AndroidRunConfigurationBase) {
+      return false
+    }
+    val module: Module = runProfile.configurationModule.module ?: return false
+    val facet = AndroidFacet.getInstance(module)
+    return facet != null && LaunchUtils.canDebugApp(facet)
   }
 }

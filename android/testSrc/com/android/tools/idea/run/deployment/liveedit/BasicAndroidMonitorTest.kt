@@ -95,7 +95,7 @@ class BasicAndroidMonitorTest {
     LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 
-    monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 24))
+    monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 24)) { true }
   }
 
   @Test

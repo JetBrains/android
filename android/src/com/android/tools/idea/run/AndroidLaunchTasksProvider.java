@@ -172,10 +172,9 @@ public class AndroidLaunchTasksProvider {
           myRunConfig.ALL_USERS,
           myRunConfig.ALWAYS_INSTALL_WITH_PM));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        if (LiveEditService.usesCompose(myProject)) {
-          LiveEditApp app = new LiveEditApp(getApkPaths(apks), device.getVersion().getApiLevel());
-          tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(packageName, device, app)));
-        }
+        LiveEditApp app = new LiveEditApp(getApkPaths(apks), device.getVersion().getApiLevel());
+        tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(
+          myRunConfig, myEnv.getExecutor(), packageName, device, app)));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }

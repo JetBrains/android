@@ -69,6 +69,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -322,7 +323,13 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   // Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
-  public boolean notifyAppDeploy(String applicationId, IDevice device, @NotNull LiveEditApp app) throws ExecutionException, InterruptedException {
+  public boolean notifyAppDeploy(String applicationId, IDevice device, @NotNull LiveEditApp app, @NotNull Supplier<Boolean> isLiveEditable) throws ExecutionException, InterruptedException {
+    if (!isLiveEditable.get()) {
+      LOGGER.info("Can not live edit the app due to either non-debuggability or does not use Compose");
+      liveEditDevices.clear(device);
+      return false;
+    }
+
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
       if (supportLiveEdits(device) && LiveEditService.usesCompose(project)) {
         LiveEditService.getInstance(project).notifyLiveEditAvailability(device);

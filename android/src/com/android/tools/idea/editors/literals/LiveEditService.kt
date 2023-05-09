@@ -24,6 +24,8 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
+import com.intellij.execution.Executor
+import com.intellij.execution.configurations.RunProfile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.keymap.KeymapUtil
@@ -103,7 +105,7 @@ interface LiveEditService : Disposable {
   /**
    * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
    */
-  fun notifyAppDeploy(packageName: String, device: IDevice, app: LiveEditApp): Boolean
+  fun notifyAppDeploy(runProfile: RunProfile, executor: Executor, packageName: String, device: IDevice, app: LiveEditApp): Boolean
   fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode)
   fun toggleLiveEditMode(oldMode: LiveEditTriggerMode, newMode: LiveEditTriggerMode)
   fun triggerLiveEdit()
