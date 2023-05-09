@@ -217,7 +217,7 @@ public final class StudioFlags {
     "Configure the max size of the cache used by ProjectSystemClassLoader",
     "Allow configuring the maximum size (in bytes) of the cache used by the ProjectSystemClassLoader to load classes from JAR files. " +
     "Files larger than the cache limit will cause a file miss and the file will need to be read again.",
-    1_000_000
+    20_000_000
   );
   //endregion
 
