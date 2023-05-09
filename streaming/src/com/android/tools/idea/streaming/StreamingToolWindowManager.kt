@@ -42,6 +42,8 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.utils.FlightRecorder
+import com.android.utils.TraceUtils
 import com.google.common.cache.CacheBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
@@ -58,6 +60,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -165,6 +168,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         is DeviceToolWindowPanel -> stopMirroring(panel.deviceSerialNumber)
       }
 
+      FlightRecorder.log {
+        "${TraceUtils.currentTime()} StreamingToolWindowManager.ContentManagerListener.contentRemoveQuery:" +
+        " removing panel with id ${panel.id}"
+      }
       panels.remove(panel)
       savedUiState.remove(panel.id)
       if (panels.isEmpty()) {
@@ -208,6 +215,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
   init {
+    FlightRecorder.initialize(10000)
     Disposer.register(toolWindow.disposable, this)
 
     if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
@@ -421,6 +429,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
+    FlightRecorder.log {
+      "${TraceUtils.currentTime()} StreamingToolWindowManager.addEmulatorPanel emulatorId: ${emulator.emulatorId}" +
+      "\n${TraceUtils.getCurrentStack()}"
+    }
     emulator.addConnectionStateListener(connectionStateListener)
     addPanel(EmulatorToolWindowPanel(project, emulator))
   }
@@ -430,6 +442,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun addPanel(panel: RunningDevicePanel) {
+    FlightRecorder.log {
+      "${TraceUtils.currentTime()} StreamingToolWindowManager.addPanel(${TraceUtils.getSimpleId(panel)})" +
+      " panel.id: ${panel.id}"
+    }
     val contentManager = toolWindow.contentManager
     var placeholderContent: Content? = null
     if (panels.isEmpty()) {
@@ -456,7 +472,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     panel.zoomToolbarVisible = zoomToolbarIsVisible
 
     val index = panels.binarySearch(panel, PANEL_COMPARATOR).inv()
-    assert(index >= 0)
+    if (index < 0) {
+      val trace = FlightRecorder.getAndClear().joinToString("\n")
+      thisLogger().error("An attempt to add a duplicate panel with id ${panel.id}\n$trace")
+    }
 
     if (index >= 0) {
       panels.add(index, panel)
