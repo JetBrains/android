@@ -143,18 +143,20 @@ internal class FilterTextField(
   private val logcatPresenter: LogcatPresenter,
   private val filterParser: LogcatFilterParser,
   initialText: String,
+  var matchCase: Boolean,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
 ) : BorderLayoutPanel() {
   private val filterHistory = AndroidLogcatFilterHistory.getInstance()
 
   @TestOnly
   internal val notifyFilterChangedTask = ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
-  private val documentChangedListeners = mutableListOf<DocumentListener>()
+  private val filterChangedListeners = mutableListOf<FilterChangedListener>()
   private val textField = FilterEditorTextField(project, logcatPresenter, androidProjectDetector)
   private val historyButton = InlineButton(FILTER_HISTORY)
   private val clearButton = JLabel(AllIcons.Actions.Close)
   private val favoriteButton = JLabel(FAVORITE_OUTLINE)
-  private var filter: LogcatFilter? = filterParser.parse(initialText)
+  private val matchCaseButton = JLabel(if (matchCase) AllIcons.Actions.MatchCaseSelected else AllIcons.Actions.MatchCase)
+  private var filter: LogcatFilter? = filterParser.parse(initialText, matchCase)
 
   private var isFavorite: Boolean = false
     set(value) {
@@ -174,7 +176,7 @@ internal class FilterTextField(
 
     addToLeft(historyButton)
     addToCenter(textField)
-    val buttonPanel = InlinePanel(clearButton, JSeparator(VERTICAL), favoriteButton)
+    val buttonPanel = InlinePanel(clearButton, matchCaseButton, JSeparator(VERTICAL), favoriteButton)
     addToRight(buttonPanel)
 
     if (initialText.isEmpty()) {
@@ -199,12 +201,12 @@ internal class FilterTextField(
     textField.apply {
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
-          filter = filterParser.parse(text)
+          filter = filterParser.parse(text, matchCase)
           isFavorite = filterHistory.favorites.contains(text)
           filterHistory.mostRecentlyUsed = textField.text
           notifyFilterChangedTask.reschedule(APPLY_FILTER_DELAY_MS) {
-            for (listener in documentChangedListeners) {
-              listener.documentChanged(event)
+            for (listener in filterChangedListeners) {
+              listener.onFilterChanged(text, matchCase)
             }
           }
           buttonPanel.isVisible = textField.text.isNotEmpty()
@@ -235,15 +237,35 @@ internal class FilterTextField(
         })
     }
 
+    matchCaseButton.apply {
+      toolTipText = LogcatBundle.message("logcat.filter.match.case.tooltip")
+      addMouseListener(object : MouseAdapter() {
+        override fun mouseEntered(e: MouseEvent) {
+          icon = AllIcons.Actions.MatchCaseHovered
+        }
+
+        override fun mouseExited(e: MouseEvent) {
+          icon = if (matchCase) AllIcons.Actions.MatchCaseSelected else AllIcons.Actions.MatchCase
+        }
+
+        override fun mouseClicked(e: MouseEvent) {
+          matchCase = !matchCase
+          for (listener in filterChangedListeners) {
+            listener.onFilterChanged(this@FilterTextField.text, matchCase)
+          }
+        }
+      })
+    }
+
     clearButton.apply {
       toolTipText = LogcatBundle.message("logcat.filter.clear.tooltip")
       addMouseListener(object : MouseAdapter() {
         override fun mouseEntered(e: MouseEvent) {
-          clearButton.icon = AllIcons.Actions.CloseHovered
+          icon = AllIcons.Actions.CloseHovered
         }
 
         override fun mouseExited(e: MouseEvent) {
-          clearButton.icon = AllIcons.Actions.Close
+          icon = AllIcons.Actions.Close
         }
 
         override fun mouseClicked(e: MouseEvent) {
@@ -275,8 +297,8 @@ internal class FilterTextField(
   }
 
   @UiThread
-  fun addDocumentListener(listener: DocumentListener) {
-    documentChangedListeners.add(listener)
+  fun addFilterChangedListener(listener: FilterChangedListener) {
+    filterChangedListeners.add(listener)
   }
 
   @TestOnly
@@ -314,7 +336,7 @@ internal class FilterTextField(
     LogcatUsageTracker.log(
       LogcatUsageEvent.newBuilder()
         .setType(FILTER_ADDED_TO_HISTORY)
-        .setLogcatFilter(filterParser.getUsageTrackingEvent(text)?.setIsFavorite(isFavorite)))
+        .setLogcatFilter(filterParser.getUsageTrackingEvent(text, matchCase)?.setIsFavorite(isFavorite)))
   }
 
   private inner class FilterTextFieldBorder : DarculaTextBorder() {
@@ -378,7 +400,10 @@ internal class FilterTextField(
       layout = BoxLayout(this, LINE_AXIS)
       isOpaque = true
       border = verticalSeparatorBorder
-      children.forEach { add(it) }
+      children.forEach {
+        it.border = JBUI.Borders.empty(0, 3)
+        add(it)
+      }
     }
 
     // On theme change, copy the background from textField.
@@ -412,7 +437,7 @@ internal class FilterTextField(
         addAll(filterHistory.nonFavorites.map { Item(filter = it, isFavorite = false, count = null, filterParser) })
       }
       // Parse all the filters here while we're still in the EDT
-      val filters = items.map { if (it is Item) filterParser.parse(it.filter) else null }
+      val filters = items.map { if (it is Item) filterParser.parse(it.filter, matchCase) else null }
       model = listModel
       listModel.addAll(0, items)
       addKeyListener(object : KeyAdapter() {
@@ -637,11 +662,12 @@ internal class FilterTextField(
       }
 
       init {
-        val filterName = filterParser.parse(filter)?.filterName
+        val matchCase = true // Unused to just pass in `true`
+        val filterName = filterParser.parse(filter, matchCase)?.filterName
         if (filterName != null) {
           val history = AndroidLogcatFilterHistory.getInstance().items
           // If there is more than one Item with the same filterName, show the name and the filter.
-          val sameName = history.count { filterParser.parse(it)?.filterName == filterName }
+          val sameName = history.count { filterParser.parse(it, matchCase)?.filterName == filterName }
           filterLabel.append(filterName, namedFilterHistoryItemColor)
           val filterWithoutName = filterParser.removeFilterNames(filter)
           tooltip = if (sameName > 1) {
@@ -687,6 +713,7 @@ internal class FilterTextField(
         return component
       }
 
+      @Suppress("UnstableApiUsage") // isNewUI() is experimental
       private fun whiteIconForOldUI(icon: Icon): Icon =
         if (isNewUI()) icon else ColoredIconGenerator.generateWhiteIcon(icon)
 
@@ -698,9 +725,7 @@ internal class FilterTextField(
 
         other as Item
 
-        if (filter != other.filter) return false
-
-        return true
+        return filter == other.filter
       }
 
       // Items have unique text, so we only need to check the "filter" field
@@ -726,6 +751,10 @@ internal class FilterTextField(
     }
 
     abstract fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent
+  }
+
+  interface FilterChangedListener {
+    fun onFilterChanged(filter: String, matchCase: Boolean)
   }
 }
 

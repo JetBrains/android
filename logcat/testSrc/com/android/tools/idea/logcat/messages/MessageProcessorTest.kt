@@ -160,7 +160,7 @@ class MessageProcessorTest {
     val message2 = LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag2", timestamp), "message2")
     val messageProcessor = messageProcessor(fakeLogcatPresenter)
     val batch = listOf(message1, message2)
-    messageProcessor.logcatFilter = StringFilter("tag2", LINE, EMPTY_RANGE)
+    messageProcessor.logcatFilter = StringFilter("tag2", LINE, matchCase = true, EMPTY_RANGE)
     messageProcessor.appendMessages(batch)
 
     messageProcessor.onIdle {
@@ -174,7 +174,7 @@ class MessageProcessorTest {
     val message2 = LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag2", timestamp), "message2")
     val messageProcessor = messageProcessor(fakeLogcatPresenter)
     val batch = listOf(message1, message2)
-    messageProcessor.logcatFilter = StringFilter("no-such-line", LINE, EMPTY_RANGE)
+    messageProcessor.logcatFilter = StringFilter("no-such-line", LINE, matchCase = true, EMPTY_RANGE)
     messageProcessor.appendMessages(batch)
 
     messageProcessor.onIdle {

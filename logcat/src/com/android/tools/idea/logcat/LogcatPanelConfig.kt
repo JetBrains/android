@@ -48,6 +48,7 @@ internal data class LogcatPanelConfig(
   var device: Device?,
   var formattingConfig: FormattingConfig,
   var filter: String,
+  var filterMatchCase: Boolean,
   var isSoftWrap: Boolean,
 ) {
 
@@ -115,7 +116,7 @@ internal data class LogcatPanelConfig(
      * Encodes a [LogcatPanelConfig] into a JSON string.
      *
      * We replace all double quotes with single quotes because the XML serializer will replace double quotes with `@quot;` while single
-     * quotes seem to be fine. This makes the JSON string more human readable.
+     * quotes seem to be fine. This makes the JSON string more human-readable.
      *
      * GSON can handle single quoted JSON strings.
      */

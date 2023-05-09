@@ -255,6 +255,7 @@ internal class LogcatMainPanel @TestOnly constructor(
     logcatPresenter = this,
     logcatFilterParser,
     state?.filter ?: getDefaultFilter(project, androidProjectDetector),
+    state?.filterMatchCase ?: false,
     state?.device,
   )
 
@@ -263,7 +264,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   internal val messageProcessor = MessageProcessor(
     this,
     ::formatMessages,
-    logcatFilterParser.parse(headerPanel.filter))
+    logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase))
 
   private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
@@ -368,7 +369,7 @@ internal class LogcatMainPanel @TestOnly constructor(
         .setPanelAdded(
           LogcatPanelEvent.newBuilder()
             .setIsRestored(state != null)
-            .setFilter(logcatFilterParser.getUsageTrackingEvent(headerPanel.filter))
+            .setFilter(logcatFilterParser.getUsageTrackingEvent(headerPanel.filter, headerPanel.filterMatchCase))
             .setFormatConfiguration(state?.formattingConfig.toUsageTracking())))
 
     project.messageBus.let { messageBus ->
@@ -489,6 +490,7 @@ internal class LogcatMainPanel @TestOnly constructor(
         headerPanel.getSelectedDevice()?.copy(isOnline = false),
         if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
         headerPanel.filter,
+        headerPanel.filterMatchCase,
         isSoftWrapEnabled))
   }
 
@@ -695,6 +697,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
         ScreenRecorderAction.Parameters(it.name, it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
       }
+
       CONNECTED_DEVICE.name -> device
       EDITOR.name -> editor
       else -> null
