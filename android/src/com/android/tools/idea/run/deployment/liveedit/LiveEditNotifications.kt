@@ -45,7 +45,7 @@ internal class LiveEditNotifications(val project: Project) {
         "Enable Live Edit on Device",
         "Push code edits to the device without rerunning the app${
           if (Strings.isEmpty(shortcut)) ""
-          else " $shortcut"
+          else " ($shortcut)"
         }.${getBuildSystemRequirements().let { if (Strings.isEmpty(it)) "" else "<br>$it" }}",
         NotificationType.INFORMATION)
       .apply {
