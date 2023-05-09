@@ -23,6 +23,7 @@ import com.android.ddmlib.IDevice;
 import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.util.concurrent.Futures;
@@ -93,7 +94,15 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Before
   public void mockRunManager() {
+    var configuration = Mockito.mock(AndroidRunConfiguration.class);
+    Mockito.when(configuration.getName()).thenReturn("default configuration");
+    Mockito.when(configuration.deploysToLocalDevice()).thenReturn(true);
+
+    var configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
+    Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(configuration);
+
     myRunManager = Mockito.mock(RunManager.class);
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(configurationAndSettings);
   }
 
   @Before

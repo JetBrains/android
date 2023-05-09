@@ -23,6 +23,7 @@ import static org.mockito.Mockito.withSettings;
 
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +55,18 @@ public final class UpdaterTest {
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   private final Presentation myPresentation = new Presentation();
+
+  @NotNull
+  private RunManager myRunManager;
+
+  @Before
+  public void initRunManager() {
+    myRunManager = RunManager.getInstance(myRule.getProject());
+
+    var configuration = myRunManager.createConfiguration("default configuration", AndroidRunConfigurationType.class);
+    myRunManager.addConfiguration(configuration);
+    myRunManager.setSelectedConfiguration(configuration);
+  }
 
   @Test
   public void updateDependingOnConfigurationConfigurationAndSettingsIsNull() {
@@ -405,8 +419,8 @@ public final class UpdaterTest {
 
   @NotNull
   private DevicesSelectedService newDevicesSelectedService() {
-    Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
-    return new DevicesSelectedService(new PersistentStateComponent(myRule.getProject()), RunManager.getInstance(myRule.getProject()), clock);
+    var clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
+    return new DevicesSelectedService(new PersistentStateComponent(myRule.getProject()), myRunManager, clock);
   }
 
   @Test

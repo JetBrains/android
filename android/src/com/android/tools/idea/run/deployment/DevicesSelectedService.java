@@ -244,12 +244,12 @@ final class DevicesSelectedService {
     @NotNull
     State getState(@Nullable RunConfiguration runConfiguration) {
       if (runConfiguration == null || Strings.isNullOrEmpty(runConfiguration.getName())) {
-        return myMapState.defaultState;
+        return new State();
       }
 
       if (!DeviceDeploymentUtil.deploysToLocalDevice(runConfiguration)) {
-        // We do not want to create states for configurations that don't deploy to local devices
-        return myMapState.defaultState;
+        // We do not want to keep track of states for configurations that don't deploy to local devices
+        return new State();
       }
 
       return myMapState.value.computeIfAbsent(runConfiguration.getName(), configuration -> new State());
@@ -284,21 +284,14 @@ final class DevicesSelectedService {
     @XMap
     public Map<String, State> value = new HashMap<>();
 
-    @NotNull
-    public State defaultState = new State();
-
     @Override
     public int hashCode() {
-      return Objects.hash(value, defaultState);
+      return value.hashCode();
     }
 
     @Override
     public boolean equals(@Nullable Object object) {
-      if (!(object instanceof MapState state)) {
-        return false;
-      }
-
-      return value.equals(state.value) && defaultState.equals(state.defaultState);
+      return object instanceof MapState state && value.equals(state.value);
     }
   }
 

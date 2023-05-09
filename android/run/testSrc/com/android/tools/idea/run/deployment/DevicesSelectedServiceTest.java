@@ -52,6 +52,9 @@ public final class DevicesSelectedServiceTest {
   @NotNull
   private DevicesSelectedService myService;
 
+  @NotNull
+  private final RunnerAndConfigurationSettings myDefaultRunnerAndConfigurationSettings = mockConfigurationAndSettings("default config");
+
   @Before
   public void setUp() {
     Clock clock = Clock.fixed(Instant.parse("2018-11-28T01:15:27Z"), ZoneId.of("America/Los_Angeles"));
@@ -64,6 +67,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxDevicesIsEmpty() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     List<Device> devices = Collections.emptyList();
 
     // Act
@@ -76,6 +81,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxTargetSelectedWithDropDownIsNull() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setKey(Keys.PIXEL_4_API_30)
@@ -94,6 +101,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxSelectedDeviceIsntPresent() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     myService.setTargetSelectedWithComboBox(new QuickBootTarget(Keys.PIXEL_3_API_30));
 
     Device device = new VirtualDevice.Builder()
@@ -114,6 +123,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxConnectedDeviceIsntPresent() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Target target = new ColdBootTarget(Keys.PIXEL_4_API_30);
 
     myService.setTargetSelectedWithComboBox(target);
@@ -136,6 +147,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxTimeTargetWasSelectedWithDropDownIsBeforeConnectionTime() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     myService.setTargetSelectedWithComboBox(new QuickBootTarget(Keys.PIXEL_4_API_30));
 
     Device disconnectedDevice = new VirtualDevice.Builder()
@@ -163,6 +176,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBox() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Target target = new ColdBootTarget(Keys.PIXEL_4_API_30);
     myService.setTargetSelectedWithComboBox(target);
 
@@ -195,6 +210,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxTimeTargetWasSelectedWithDropDownAssertionDoesntFail() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Target target = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
 
     Device device = new VirtualDevice.Builder()
@@ -219,6 +236,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void setTargetSelectedWithComboBox() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Target target2 = new QuickBootTarget(Keys.PIXEL_3_API_30);
 
     Device device1 = new VirtualDevice.Builder()
@@ -250,6 +269,9 @@ public final class DevicesSelectedServiceTest {
 
   @Test
   public void setMultipleDevicesSelectedInComboBox() {
+    // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     // Act
     myService.setMultipleDevicesSelectedInComboBox(true);
 
@@ -260,6 +282,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void setTargetsSelectedWithDialog() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Set<Target> targets = Collections.singleton(new QuickBootTarget(Keys.PIXEL_4_API_30));
 
     // Act
@@ -272,6 +296,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void targetStateTargetIsInstanceOfColdBootTarget() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Set<Target> targets = Collections.singleton(new ColdBootTarget(Keys.PIXEL_4_API_30));
 
     // Act
@@ -284,6 +310,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void targetStateTargetIsInstanceOfBootWithSnapshotTarget() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Set<Target> targets = Collections.singleton(new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2));
 
     // Act
@@ -296,6 +324,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void keyStateKeyIsInstanceOfVirtualDeviceName() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Set<Target> targets = Collections.singleton(new QuickBootTarget(new VirtualDeviceName("Pixel_4_API_30")));
 
     // Act
@@ -308,6 +338,8 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void keyStateKeyIsInstanceOfSerialNumber() {
     // Arrange
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
+
     Set<Target> targets = Collections.singleton(new RunningDeviceTarget(new SerialNumber("86UX00F4R")));
 
     // Act
@@ -364,12 +396,9 @@ public final class DevicesSelectedServiceTest {
 
 
   @Test
-  public void selectedTargetWithComboBoxHandlesNullConfiguration() {
+  public void selectedTargetWithComboBoxDoesNotPersistStateWhenSelectedConfigurationIsNull() {
     // Arrange
-    RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
-
-    List<RunConfiguration> runConfigurations = List.of(wearConfig.getConfiguration());
-    Mockito.when(myRunManager.getAllConfigurationsList()).thenReturn(runConfigurations);
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
 
     Target phoneTarget = new RunningDeviceTarget(new SerialNumber("PHONE"));
     Target wearTarget = new RunningDeviceTarget(new SerialNumber("WEAR"));
@@ -391,19 +420,10 @@ public final class DevicesSelectedServiceTest {
     List<Device> devices = List.of(phoneDevice, wearDevice);
 
     // Act
-    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
-    myService.setTargetSelectedWithComboBox(phoneTarget);
-
-    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(wearConfig);
     myService.setTargetSelectedWithComboBox(wearTarget);
 
     // Assert
-    assertEquals(Optional.of(wearTarget), myService.getTargetSelectedWithComboBox(devices));
-
-    // Act
-    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
-
-    // Assert
+    // The wearTarget state is not persisted, we should default to the first of the devices
     assertEquals(Optional.of(phoneTarget), myService.getTargetSelectedWithComboBox(devices));
     assertPersistentStateComponentCanBeSerializedAndDeserialized();
   }
@@ -455,12 +475,9 @@ public final class DevicesSelectedServiceTest {
   }
 
   @Test
-  public void selectedTargetWithDialogHandlesNullConfiguration() {
+  public void selectedTargetWithDialogDoesNotPersistStateWhenSelectedConfigurationIsNull() {
     // Arrange
-    RunnerAndConfigurationSettings wearConfig = mockConfigurationAndSettings("wear config");
-
-    List<RunConfiguration> runConfigurations = List.of(wearConfig.getConfiguration());
-    Mockito.when(myRunManager.getAllConfigurationsList()).thenReturn(runConfigurations);
+    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
 
     Device phoneDevice = new VirtualDevice.Builder()
       .setName("Phone")
@@ -477,25 +494,14 @@ public final class DevicesSelectedServiceTest {
       .build();
 
     List<Device> devices = List.of(phoneDevice, wearDevice);
-
-    Set<Target> phoneTargets = Set.of(new RunningDeviceTarget(phoneDevice.key()));
     Set<Target> wearTargets = Set.of(new RunningDeviceTarget(wearDevice.key()));
 
     // Act
-    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
-    myService.setTargetsSelectedWithDialog(phoneTargets);
-
-    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(wearConfig);
     myService.setTargetsSelectedWithDialog(wearTargets);
 
     // Assert
-    assertEquals(wearTargets, myService.getTargetsSelectedWithDialog(devices));
-
-    // Act
-    Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(null);
-
-    // Assert
-    assertEquals(phoneTargets, myService.getTargetsSelectedWithDialog(devices));
+    // The dialog selection should not be persisted, so we expect an empty selection
+    assertEquals(Set.of(), myService.getTargetsSelectedWithDialog(devices));
     assertPersistentStateComponentCanBeSerializedAndDeserialized();
   }
 
