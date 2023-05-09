@@ -503,6 +503,7 @@ studio_plugin(
     visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.testing",
+        ":com.google.services.firebase",
         ":org.jetbrains.android",
     ],
 )
