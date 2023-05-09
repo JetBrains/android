@@ -30,6 +30,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -72,11 +73,9 @@ class AppWidgetPreviewRepresentationProvider(
    * the [PreviewRepresentation] of them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
+    if (DumbService.isDumb(project)) return false
     val virtualFile = psiFile.virtualFile
-
-    if (!virtualFile.isKotlinFileType()) {
-      return false
-    }
+    if (!virtualFile.isKotlinFileType()) return false
 
     return StudioFlags.GLANCE_APP_WIDGET_PREVIEW.get() &&
       filePreviewElementFinder.hasPreviewElements(project, virtualFile)
