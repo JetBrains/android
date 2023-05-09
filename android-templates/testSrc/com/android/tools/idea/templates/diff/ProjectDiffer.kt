@@ -76,13 +76,15 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
 }
 
 private fun getNonEmptyDirEntries(dir: Path, printPrefix: String = ""): MutableSet<String> {
-  return Files.list(dir).filter {
-    !it.isDirectory() || !isDirectoryEmpty(it, printPrefix)
-  }.map { it.fileName.toString() }.toList().toMutableSet()
+  return Files.list(dir).use { pathStream ->
+    pathStream.filter {
+      !it.isDirectory() || !isDirectoryEmpty(it, printPrefix)
+    }.map { it.fileName.toString() }.toList().toMutableSet()
+  }
 }
 
 private fun isDirectoryEmpty(dir: Path, printPrefix: String = ""): Boolean {
-  val empty = Files.list(dir).isEmpty()
+  val empty = Files.list(dir).use { it.isEmpty() }
   if (empty) {
     println("${printPrefix}Skipping empty $dir")
   }
