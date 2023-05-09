@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationM
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.requestFastPreviewRefreshAndTrack
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
@@ -813,10 +814,12 @@ class ComposePreviewRepresentation(
           }
 
           // If Fast Preview is enabled, prefetch the daemon for the current configuration.
+          // This should not happen when lite mode is enabled.
           if (
             module != null &&
               !module.isDisposed &&
-              FastPreviewManager.getInstance(project).isEnabled
+              FastPreviewManager.getInstance(project).isEnabled &&
+              !ComposePreviewLiteModeManager.isLiteModeEnabled
           ) {
             FastPreviewManager.getInstance(project).preStartDaemon(module)
           }
@@ -998,7 +1001,7 @@ class ComposePreviewRepresentation(
               .debounce {
                 // The debounce timer is smaller when running with Fast Preview so the changes are
                 // more responsive to typing.
-                if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
+                if (isFastPreviewAvailable()) 250L else 1000L
               },
             syntaxErrorFlow(project, this@ComposePreviewRepresentation, log, null)
               // Detect when problems disappear
@@ -1011,7 +1014,7 @@ class ComposePreviewRepresentation(
               //  - Fast Preview is not active, we do not need to detect files having
               // problems removed.
               .filter {
-                FastPreviewManager.getInstance(project).isAvailable &&
+                isFastPreviewAvailable() &&
                   psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()
               }
               .filter { file ->
@@ -1026,7 +1029,7 @@ class ComposePreviewRepresentation(
             // If Fast Preview is enabled and there are Kotlin files out of date,
             // trigger a compilation. Otherwise, we will just refresh normally.
             if (
-              FastPreviewManager.getInstance(project).isAvailable &&
+              isFastPreviewAvailable() &&
                 psiCodeFileChangeDetectorService.outOfDateKtFiles.isNotEmpty()
             ) {
               try {
@@ -1040,13 +1043,23 @@ class ComposePreviewRepresentation(
             if (
               !PreviewPowerSaveManager.isInPowerSaveMode &&
                 interactiveMode.isStoppingOrDisabled() &&
-                !animationInspection.get()
+                !animationInspection.get() &&
+                !ComposePreviewLiteModeManager.isLiteModeEnabled
             )
               requestRefresh()
           }
       }
     }
   }
+
+  /**
+   * Whether fast preview is available. In addition to checking its normal availability from
+   * [FastPreviewManager], we also verify that lite mode is not enabled, because fast preview should
+   * not be available in this case.
+   */
+  private fun isFastPreviewAvailable() =
+    FastPreviewManager.getInstance(project).isAvailable &&
+      !ComposePreviewLiteModeManager.isLiteModeEnabled
 
   override fun onActivate() {
     lifecycleManager.activate()
@@ -1068,7 +1081,7 @@ class ComposePreviewRepresentation(
     }
 
     val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
-    if (FastPreviewManager.getInstance(project).isAvailable && anyKtFilesOutOfDate) {
+    if (isFastPreviewAvailable() && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
       // the annotations have changed.

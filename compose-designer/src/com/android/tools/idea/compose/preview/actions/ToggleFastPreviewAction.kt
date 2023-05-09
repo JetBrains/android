@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
@@ -59,7 +60,13 @@ class ToggleFastPreviewAction : AnAction(null, null, null) {
       presentation.isEnabledAndVisible = false
       return
     }
-    if (PreviewPowerSaveManager.isInPowerSaveMode) {
+    if (ComposePreviewLiteModeManager.isLiteModeEnabled) {
+      presentation.description =
+        message("action.preview.fast.refresh.disabled.in.lite.mode.description")
+      presentation.isEnabled = false
+    } else if (PreviewPowerSaveManager.isInPowerSaveMode) {
+      // TODO(b/280583075): merge description with Lite Mode when/if Power Save enables Lite Mode by
+      // default.
       presentation.description =
         message("action.preview.fast.refresh.disabled.in.power.save.description")
       presentation.isEnabled = false
