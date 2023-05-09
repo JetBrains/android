@@ -158,7 +158,7 @@ class StreamingToolWindowManagerTest {
     dispatchAllInvocationEvents()
     assertThat(toolWindow.isVisible).isFalse() // Indirect AVD launches don't open the Running Devices tool window.
 
-    project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.DIRECT, project)
+    project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.DIRECT_DEVICE_MANAGER, project)
     dispatchAllInvocationEvents()
     // The Running Devices tool is opened when an embedded emulator is launched by a direct request.
     assertThat(toolWindow.isVisible).isTrue()

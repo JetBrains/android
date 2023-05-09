@@ -88,7 +88,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
       DeviceManagerUsageTracker.log(deviceManagerEvent);
       Project project = myPanel.getProject();
 
-      Futures.addCallback(getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo(), RequestType.DIRECT),
+      Futures.addCallback(getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo(), RequestType.DIRECT_DEVICE_MANAGER),
                           new ShowErrorDialogFutureCallback(project),
                           EdtExecutorService.getInstance());
     });

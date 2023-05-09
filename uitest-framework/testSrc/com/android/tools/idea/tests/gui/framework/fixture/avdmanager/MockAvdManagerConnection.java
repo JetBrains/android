@@ -162,8 +162,9 @@ public class MockAvdManagerConnection extends AvdManagerConnection {
   protected @NotNull GeneralCommandLine newEmulatorCommand(@Nullable Project project,
                                                            @NotNull Path emulator,
                                                            @NotNull AvdInfo avd,
+                                                           boolean forceLaunchInToolWindow,
                                                            @NotNull EmulatorCommandBuilderFactory factory) {
-    GeneralCommandLine command = super.newEmulatorCommand(project, emulator, avd, factory);
+    GeneralCommandLine command = super.newEmulatorCommand(project, emulator, avd, forceLaunchInToolWindow, factory);
     command.addParameter("-no-window");
 
     return command;

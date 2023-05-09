@@ -415,7 +415,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     try {
       assert skinnyAvd != null;
-      mAvdManagerConnection.startAvd(null, skinnyAvd, RequestType.DIRECT).get(4, TimeUnit.SECONDS);
+      mAvdManagerConnection.startAvd(null, skinnyAvd, RequestType.DIRECT_DEVICE_MANAGER).get(4, TimeUnit.SECONDS);
       fail();
     }
     catch (ExecutionException expected) {
@@ -476,7 +476,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     try {
       assert skinlessAvd != null;
-      mAvdManagerConnection.startAvd(null, skinlessAvd, RequestType.DIRECT).get(4, TimeUnit.SECONDS);
+      mAvdManagerConnection.startAvd(null, skinlessAvd, RequestType.DIRECT_DEVICE_MANAGER).get(4, TimeUnit.SECONDS);
       fail();
     }
     catch (ExecutionException expected) {

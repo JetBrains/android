@@ -242,7 +242,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
                                        RunningEmulatorCatalog.getInstance().updateNow()
                                        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
                                          showLiveIndicator()
-                                         if (requestType == AvdLaunchListener.RequestType.DIRECT) {
+                                         if (requestType != AvdLaunchListener.RequestType.INDIRECT) {
                                            onEmulatorHeadsUp(avd.name)
                                          }
                                        }

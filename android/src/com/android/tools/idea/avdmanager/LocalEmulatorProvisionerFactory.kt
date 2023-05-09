@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -60,7 +59,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
           // Note: the original DeviceManager does this in UI thread, but this may call
           // @Slow methods so switch
           withContext(workerThread) {
-            avdManagerConnection.startAvd(project, avdInfo, RequestType.DIRECT)
+            avdManagerConnection.startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
           }
         }
 

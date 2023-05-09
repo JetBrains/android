@@ -25,9 +25,7 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
-import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
@@ -419,7 +417,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
     connectedDevicesProvider().find { it.getDeviceID() == deviceId }?.apply {
       return Futures.immediateFuture(this)
     }
-    return getDefaultAvdManagerConnection().startAvd(project, avdInfo, RequestType.DIRECT)
+    return getDefaultAvdManagerConnection().startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
   }
 
   private fun findAdb() : AndroidDebugBridge? {
