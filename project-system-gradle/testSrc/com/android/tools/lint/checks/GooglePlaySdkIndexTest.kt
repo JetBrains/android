@@ -16,16 +16,12 @@
 package com.android.tools.lint.checks
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class GooglePlaySdkIndexTest {
   @Test
   fun `Default options should match StudioFlags`() {
-    assertThat(GooglePlaySdkIndex.DEFAULT_SHOW_MESSAGES).isEqualTo(StudioFlags.SHOW_SDK_INDEX_MESSAGES.get())
-    assertThat(GooglePlaySdkIndex.DEFAULT_SHOW_LINKS).isEqualTo(StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get())
-    assertThat(GooglePlaySdkIndex.DEFAULT_SHOW_CRITICAL_ISSUES).isEqualTo(StudioFlags.SHOW_SDK_INDEX_CRITICAL_ISSUES.get())
     assertThat(GooglePlaySdkIndex.DEFAULT_SHOW_POLICY_ISSUES).isEqualTo(StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get())
   }
 }

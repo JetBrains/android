@@ -127,9 +127,6 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
    */
   fun initializeAndSetFlags() {
     initialize()
-    showCriticalIssues = StudioFlags.SHOW_SDK_INDEX_CRITICAL_ISSUES.get()
-    showMessages = StudioFlags.SHOW_SDK_INDEX_MESSAGES.get()
-    showLinks = StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get()
     showPolicyIssues = StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get()
   }
 
