@@ -50,7 +50,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTracker;
-import com.android.tools.idea.rendering.tracking.RenderTaskAllocationTrackerImpl;
 import com.android.tools.idea.rendering.tracking.StackTraceCapture;
 import com.android.tools.rendering.CachingImageFactory;
 import com.android.tools.rendering.ExecuteCallbacksResult;
@@ -182,6 +181,7 @@ public class RenderTask {
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private RenderXmlFile myXmlFile;
+  @NotNull private String myDefaultForegroundColor = "#333333";
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
@@ -344,6 +344,20 @@ public class RenderTask {
   @Nullable
   public RenderXmlFile getXmlFile() {
     return myXmlFile;
+  }
+
+  /**
+   * Sets the default foreground color in the format #XXXXXX that can be used by different previews if they do not have dedicated color by
+   * default, used e.g. to set color that is distinguishable in the current IDE color scheme.
+   */
+  public void setDefaultForegroundColor(@NotNull String defaultForegroundColor) {
+    myDefaultForegroundColor = defaultForegroundColor;
+  }
+
+  /** Returns the default foreground color in the format #XXXXXX. */
+  @NotNull
+  public String getDefaultForegroundColor() {
+    return myDefaultForegroundColor;
   }
 
   @NotNull

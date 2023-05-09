@@ -38,8 +38,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.ColorUtil;
-import com.intellij.util.ui.UIUtil;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.android.AndroidTestCase;
@@ -247,7 +245,6 @@ public class LayoutPullParsersTest extends AndroidTestCase {
       Element root = ((DomPullParser)parser).getRoot();
 
       String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
-      String labelColor = "#" + ColorUtil.toHex(UIUtil.getLabelForeground());
       String expectedLayout = Joiner.on(System.lineSeparator()).join(
         "<LinearLayout",
         "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
@@ -260,7 +257,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
         "    fontFamily=\"@font/fontb\"",
         "    paddingBottom=\"20dp\"",
         "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
-        "    textColor=\"" + labelColor + "\"",
+        "    textColor=\"#333333\"",
         "    textSize=\"30sp\"",
         "    textStyle=\"normal\" />",
         "<TextView",
@@ -269,7 +266,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
         "    fontFamily=\"@font/fonta\"",
         "    paddingBottom=\"20dp\"",
         "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
-        "    textColor=\"" + labelColor + "\"",
+        "    textColor=\"#333333\"",
         "    textSize=\"30sp\"",
         "    textStyle=\"normal\" />",
         "</LinearLayout>",
@@ -293,12 +290,12 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertNotNull(file);
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    ILayoutPullParser parser = LayoutPullParsers.createFontFamilyParser(new PsiXmlFile((XmlFile)psiFile), (name) -> compoundFontFamily);
+    ILayoutPullParser parser =
+      LayoutPullParsers.createFontFamilyParser(new PsiXmlFile((XmlFile)psiFile), (name) -> compoundFontFamily, "#333333");
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
     String actualLayout = XmlPrettyPrinter.prettyPrint(root, true);
-    String labelColor = "#" + ColorUtil.toHex(UIUtil.getLabelForeground());
     String expectedLayout = Joiner.on(System.lineSeparator()).join(
       "<LinearLayout",
       "xmlns:android=\"http://schemas.android.com/apk/res/android\"",
@@ -311,7 +308,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
       "    fontFamily=\"@font/roboto_bold\"",
       "    paddingBottom=\"20dp\"",
       "    text=\"Lorem ipsum dolor sit amet, consectetur adipisicing elit.\"",
-      "    textColor=\"" + labelColor + "\"",
+      "    textColor=\"#333333\"",
       "    textSize=\"30sp\"",
       "    textStyle=\"italic\" />",
       "</LinearLayout>",

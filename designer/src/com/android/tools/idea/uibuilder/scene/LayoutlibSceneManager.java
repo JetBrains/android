@@ -100,6 +100,7 @@ import com.intellij.openapi.progress.util.ProgressIndicatorBase;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.ui.ColorUtil;
 import com.intellij.util.SlowOperations;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -1187,6 +1188,7 @@ public class LayoutlibSceneManager extends SceneManager {
     return setupRenderTaskBuilder(renderTaskBuilder).build()
       .thenCompose(newTask -> {
         if (newTask != null) {
+          newTask.setDefaultForegroundColor('#' + ColorUtil.toHex(UIUtil.getLabelForeground()));
           return newTask.inflate().whenComplete((result, inflateException) -> {
             Throwable exception = null;
             if (inflateException != null) {

@@ -67,12 +67,9 @@ import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColorUtil;
-import com.intellij.util.ui.UIUtil;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -208,7 +205,7 @@ public class LayoutPullParsers {
         renderTask.setTransparentBackground();
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        return createFontFamilyParser(file, (fontName) -> (new ProjectFonts(manager)).getFont(fontName));
+        return createFontFamilyParser(file, (fontName) -> (new ProjectFonts(manager)).getFont(fontName), renderTask.getDefaultForegroundColor());
       default:
         // Should have been prevented by isSupported(PsiFile)
         assert false : folderType;
@@ -305,7 +302,11 @@ public class LayoutPullParsers {
 
   @VisibleForTesting
   @Nullable
-  static ILayoutPullParser createFontFamilyParser(@NotNull RenderXmlFile file, @NotNull Function<String, FontFamily> getDownloadableFont) {
+  static ILayoutPullParser createFontFamilyParser(
+    @NotNull RenderXmlFile file,
+    @NotNull Function<String, FontFamily> getDownloadableFont,
+    @NotNull String fontColor
+  ) {
     RenderXmlTag rootTag = file.getRootTag();
 
     if (rootTag == null || !TAG_FONT_FAMILY.equals(rootTag.getName())) {
@@ -319,7 +320,7 @@ public class LayoutPullParsers {
     setAndroidAttr(rootLayout, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     setAndroidAttr(rootLayout, ATTR_ORIENTATION, VALUE_VERTICAL);
 
-    String loremText = new LoremGenerator().generate(8, true);
+    String loremText = "Lorem ipsum dolor sit amet, consectetur adipisicing elit.";
 
     ResourceFolderType type = file.getFolderType();
     assert type != null;
@@ -343,7 +344,6 @@ public class LayoutPullParsers {
     }
 
     boolean[] hasElements = new boolean[1];
-    String fontColor = '#' + ColorUtil.toHex(UIUtil.getLabelForeground());
     fontStream.forEach(font -> {
       hasElements[0] = true;
       Element fontElement = document.createElement(TEXT_VIEW);
