@@ -42,7 +42,7 @@ internal class LiveEditNotifications(val project: Project) {
     NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
       .createNotification(
         "Enable Live Edit on Device",
-        "Push code edits to the device without rerunning the app ${getLiveEditTriggerShortCutString()}.${getBuildSystemRequirements().let { if (Strings.isEmpty(it)) "" else "<br>$it" }}",
+        "Push code edits to the device without rerunning the app (${getLiveEditTriggerShortCutString()}).${getBuildSystemRequirements().let { if (Strings.isEmpty(it)) "" else "<br>$it" }}",
         NotificationType.INFORMATION)
       .apply {
         if (LiveEditProjectMonitor.supportLiveEdits(device)) {
