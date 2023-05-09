@@ -911,6 +911,10 @@ public final class StudioFlags {
     "Treats standalone emulators the same as physical devices for the purpose of display mirroring;" +
     " not intended for production use due to slowness of video encoding in emulated mode",
     false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_REMOTE_EMULATORS = Flag.create(
+    DEVICE_MIRRORING, "allow.remote.emulators", "Allow Mirroring of Remote Emulators",
+    "Treats remote emulators the same as physical devices for the purpose of display mirroring",
+    false);
   public static final Flag<Boolean> DEVICE_MIRRORING_ADVANCED_TAB_CONTROL = Flag.create(
     DEVICE_MIRRORING, "advanced.tab.control", "Enable closing/opening of Running Devices tabs",
     "Support closing/opening of Running Devices tabs",

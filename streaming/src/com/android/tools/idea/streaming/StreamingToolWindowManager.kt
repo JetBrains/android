@@ -917,17 +917,18 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
   }
 
   val deviceSerialNumber = serialNumber
-  if (isLocalEmulator(deviceSerialNumber) || properties.isVirtual == true) {
+  if (isLocalEmulator(deviceSerialNumber)) {
     if (!StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
       return false
     }
-    if (isLocalEmulator(deviceSerialNumber)) {
-      val emulators = RunningEmulatorCatalog.getInstance().updateNow().suspendingGet()
-      val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber }
-      if (emulator == null || emulator.emulatorId.isEmbedded) {
-        return false
-      }
+    val emulators = RunningEmulatorCatalog.getInstance().updateNow().suspendingGet()
+    val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber }
+    if (emulator == null || emulator.emulatorId.isEmbedded) {
+      return false
     }
+  }
+  else if (properties.isVirtual == true && !StudioFlags.DEVICE_MIRRORING_REMOTE_EMULATORS.get()) {
+    return false
   }
 
   val apiLevel = properties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
