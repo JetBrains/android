@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.glance.preview
 
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotation
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -115,6 +117,13 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
     )
 
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
+    val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
+    if (
+      readAction {
+        psiFile.viewProvider.document?.charsSequence?.contains(GLANCE_PREVIEW_ANNOTATION_NAME)
+      } == false
+    )
+      return false
     return hasAnnotation(
       project,
       vFile,
