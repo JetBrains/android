@@ -868,7 +868,7 @@ class PTableImplTest {
         val left = JPanel().apply {
           preferredSize = Dimension(5 * (row + 4), 16)
           name = "row: $row, left"
-          ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) { width < preferredSize.width }
+          ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) { width < preferredSize.width && !isExpanded }
         }
         val right = JPanel().apply {
           preferredSize = Dimension(5 * (row + 4), 16)
@@ -922,6 +922,10 @@ class PTableImplTest {
         val bounds = pair.second
         assertThat(bounds.width).isEqualTo(10 * (row + 4) + JBUIScale.scale(EXPANSION_RIGHT_PADDING))
         assertThat(renderer.firstChild().firstChild().name).isEqualTo("row: $row, left")
+
+        // Check that the same cell is returned even when the cell is already expanded.
+        val cell2 = handler.getCellKeyForPoint(middleOf(row, column, left = true))
+        assertThat(cell2).isEqualTo(TableCell(row, column))
 
         // The right side is not:
         assertThat(handler.getCellKeyForPoint(middleOf(row, column, left = false))).isNull()

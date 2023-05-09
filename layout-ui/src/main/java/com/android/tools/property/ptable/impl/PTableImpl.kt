@@ -866,8 +866,14 @@ class PTableExpandableItemsHandler(table: PTableImpl) : TableExpandableItemsHand
     val component = renderer.getTableCellRendererComponent(myComponent, value, false, false, cell.row, cell.column)
     val bounds = myComponent.getCellRect(cell.row, cell.column, true)
     val componentUnderMouse = SwingUtilities.getDeepestComponentAt(component, point.x - bounds.x, point.y - bounds.y) ?: return null
-    val isVisuallyRestricted = ClientProperty.get(componentUnderMouse, KEY_IS_VISUALLY_RESTRICTED) ?: return null
-    return cell.takeIf { isVisuallyRestricted() }
+    val isVisuallyRestricted = ClientProperty.get(componentUnderMouse, KEY_IS_VISUALLY_RESTRICTED)
+    if (cell == expandedCell && isVisuallyRestricted != null) {
+      // Since an expanded cell will return false to "isVisuallyRestricted", we will maintain
+      // expanded cells when the mouse is over a component that has a visually restricted callback.
+      // This will avoid flickering in the expanded cells: b/281650931
+      return expandedCell
+    }
+    return cell.takeIf { isVisuallyRestricted != null && isVisuallyRestricted() }
   }
 
   /**
