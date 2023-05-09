@@ -28,6 +28,8 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp;
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
+import com.android.tools.idea.run.profiler.ProfilingMode;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
@@ -39,13 +41,16 @@ import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
 import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
+import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import java.nio.file.Path;
@@ -211,14 +216,39 @@ public class AndroidLaunchTasksProvider {
           myLaunchOptions.getAlwaysInstallWithPm(),
           installPathProvider));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        if (LiveEditService.usesCompose(myProject)) {
-          LiveEditApp app = new LiveEditApp(getApkPaths(device, myApkProvider), device.getVersion().getApiLevel());
-          tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(packageName, device, app)));
-        }
+        LiveEditApp app = new LiveEditApp(getApkPaths(device, myApkProvider), device.getVersion().getApiLevel());
+        tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(packageName, device, app, this::isLiveEditable)));
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }
     return ImmutableList.copyOf(tasks);
+  }
+
+  private boolean isLiveEditable() {
+    RunProfile runProfile = myEnv.getRunProfile();
+    // TODO(b/281742972): Move this to use ManifestInfo and remove direct work around profilers.
+    // Profiler has a hack in AGP that sets debuggability of the APK to false, and is not reflected in the AndroidModel.
+    // To properly catch this, we need to parse the APK for the debuggability flag, which is a much bigger change than we want for now.
+    AbstractProfilerExecutorGroup.AbstractProfilerSetting profilerSetting = AbstractProfilerExecutorGroup.Companion.getExecutorSetting(myEnv.getExecutor().getId());
+    if (!LiveEditService.usesCompose(myProject)) {
+      return false;
+    }
+
+    if (profilerSetting != null && profilerSetting.getProfilingMode() != ProfilingMode.DEBUGGABLE) {
+      return false;
+    }
+
+    if (!(runProfile instanceof AndroidRunConfigurationBase config)) {
+      return false;
+    }
+
+    Module module = config.getConfigurationModule().getModule();
+    if (module == null) {
+      return false;
+    }
+
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    return facet != null && LaunchUtils.canDebugApp(facet);
   }
 
   private static Set<Path> getApkPaths(@NotNull IDevice device, @NotNull ApkProvider apkProvider) throws ApkProvisionException {

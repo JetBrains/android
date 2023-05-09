@@ -35,6 +35,7 @@ import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.ExecutionManager
+import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.notification.BrowseNotificationAction
 import com.intellij.notification.NotificationGroupManager
@@ -209,8 +210,8 @@ class LiveEditService constructor(val project: Project,
   /**
    * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
    */
-  fun notifyAppDeploy(packageName: String, device: IDevice, app: LiveEditApp): Boolean {
-    return deployMonitor.notifyAppDeploy(packageName, device, app)
+  fun notifyAppDeploy(packageName: String, device: IDevice, app: LiveEditApp, isLiveEditable: () -> Boolean): Boolean {
+    return deployMonitor.notifyAppDeploy(packageName, device, app, isLiveEditable)
   }
 
   fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {
