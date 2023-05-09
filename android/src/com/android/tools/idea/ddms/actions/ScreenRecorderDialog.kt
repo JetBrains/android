@@ -77,8 +77,7 @@ internal class ScreenRecorderDialog(private val dialogTitle: String, private val
         return SwingUtilities.getAncestorOfClass(DialogWrapperDialog::class.java, component)
       }
     }
-    titlePanel.addMouseListener(moveListener)
-    titlePanel.addMouseMotionListener(moveListener)
+    moveListener.installTo(titlePanel)
     dialogPanel.add(titlePanel, BorderLayout.NORTH)
 
     val centerPanel = BorderLayoutPanel()
