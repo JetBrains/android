@@ -228,30 +228,35 @@ class ProjectSystemClassLoaderTest {
       "test.package.C" to VfsUtil.findFileByURL(URL("jar:file:$outputJarPath!/test/package/ClassC.class"))
     )
 
-    var cacheMissCount = 0
-    // Default maximum weight
-    val loader = ProjectSystemClassLoader {
-      classes[it]
+    run {
+      var cacheMissCount = 0
+      val jarManager = JarManager.forTesting(cacheMissCallback = { cacheMissCount++ })
+      // Default maximum weight
+      val loader = ProjectSystemClassLoader(jarManager = jarManager) {
+        classes[it]
+      }
+
+      assertEquals("contents1", String(loader.loadClass("A")!!))
+      assertEquals("contents2", String(loader.loadClass("B")!!))
+      assertEquals("contents3", String(loader.loadClass("test.package.C")!!))
+      // We only miss the cache on the first call. Following calls to loadClass rely on the cached value.
+      assertEquals(1, cacheMissCount)
     }
-    loader.jarManager.cacheMissCallback = { cacheMissCount++ }
 
-    assertEquals("contents1", String(loader.loadClass("A")!!))
-    assertEquals("contents2", String(loader.loadClass("B")!!))
-    assertEquals("contents3", String(loader.loadClass("test.package.C")!!))
-    // We only miss the cache on the first call. Following calls to loadClass rely on the cached value.
-    assertEquals(1, cacheMissCount)
+    run {
+      var cacheMissCount = 0
+      StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.override(1)
+      val jarManager = JarManager.forTesting(cacheMissCallback = { cacheMissCount++ })
+      // Default maximum weight
+      val tinyCacheLoader = ProjectSystemClassLoader(jarManager = jarManager) {
+        classes[it]
+      }
 
-    cacheMissCount = 0
-    StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.override(1)
-    val tinyCacheLoader = ProjectSystemClassLoader {
-      classes[it]
+      assertEquals("contents1", String(tinyCacheLoader.loadClass("A")!!))
+      assertEquals("contents2", String(tinyCacheLoader.loadClass("B")!!))
+      assertEquals("contents3", String(tinyCacheLoader.loadClass("test.package.C")!!))
+      // We miss the cache on every loadClass call, because the JAR is evicted from the cache for being bigger than its maximum weight.
+      assertEquals(3, cacheMissCount)
     }
-    tinyCacheLoader.jarManager.cacheMissCallback = { cacheMissCount++ }
-
-    assertEquals("contents1", String(tinyCacheLoader.loadClass("A")!!))
-    assertEquals("contents2", String(tinyCacheLoader.loadClass("B")!!))
-    assertEquals("contents3", String(tinyCacheLoader.loadClass("test.package.C")!!))
-    // We miss the cache on every loadClass call, because the JAR is evicted from the cache for being bigger than its maximum weight.
-    assertEquals(3, cacheMissCount)
   }
 }

@@ -21,6 +21,10 @@ iml_module(
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.uibuilder.visual.visuallint",
         },
+        "perfgateJarManager": {
+            "tags": ["perfgate"],
+            "test_filter": "com.android.tools.idea.rendering.PerfgateJarManagerTest",
+        },
         "non-perfgate": {
         },
     },
