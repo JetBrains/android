@@ -152,7 +152,7 @@ class AdbDeviceFileSystemTest {
 
     // Assert
     assertThat(result).isNotNull()
-    assertThat(result.name).isEqualTo("")
+    assertThat(result.name).isEqualTo("/")
   }
 
   @Test
@@ -179,17 +179,20 @@ class AdbDeviceFileSystemTest {
 
     // Assert
     assertThat(result).isNotNull()
-    assertThat(result.name).isEqualTo("")
+    assertThat(result.name).isEqualTo("/")
   }
 
   @Test
   fun test_FileSystem_GetEntry_Returns_Root(): Unit = runBlocking {
+    // Prepare
+    TestDevices.NEXUS_7_API23.addCommands(shellCommands)
+
     // Act
     val result = myFileSystem.getEntry("/")
 
     // Assert
     assertThat(result).isNotNull()
-    assertThat(result.name).isEqualTo("")
+    assertThat(result.name).isEqualTo("/")
   }
 
   @Test

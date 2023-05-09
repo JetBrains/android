@@ -358,12 +358,7 @@ class DeviceFileExplorerViewImpl(
         panel.showTree()
         val rootNode = DeviceFileEntryNode.fromNode(model.root)
         if (rootNode != null) {
-          tree.isRootVisible = false
           expandTreeNode(rootNode)
-        }
-        else {
-          // Show root, since it contains an error message (ErrorNode)
-          tree.isRootVisible = true
         }
       }
     }

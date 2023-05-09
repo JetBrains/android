@@ -43,7 +43,7 @@ public class AdbPathUtil {
    */
   @NotNull
   public static String getFileName(@NotNull String path) {
-    return PathUtilRt.getFileName(path);
+    return path.equals("/") ? path : PathUtilRt.getFileName(path);
   }
 
   /**

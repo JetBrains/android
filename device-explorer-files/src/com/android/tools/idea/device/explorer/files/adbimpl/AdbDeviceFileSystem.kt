@@ -80,7 +80,7 @@ class AdbDeviceFileSystem(
       )
 
   override suspend fun rootDirectory(): DeviceFileEntry {
-    return AdbDeviceDefaultFileEntry(this, adbFileListing.root, null)
+    return AdbDeviceDefaultFileEntry(this, adbFileListing.getRoot(), null)
   }
 
   override suspend fun getEntry(path: String): DeviceFileEntry {
