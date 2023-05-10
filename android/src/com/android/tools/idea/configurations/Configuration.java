@@ -96,7 +96,6 @@ import org.jetbrains.annotations.Nullable;
  * etc for use when rendering a layout.
  */
 public class Configuration implements Disposable, ModificationTracker {
-  public static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.

@@ -73,6 +73,7 @@ import org.jetbrains.annotations.TestOnly;
  * the saved configuration state for a given file.
  */
 public class ConfigurationManager implements Disposable {
+  private static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
   private static final Key<VirtualFile> CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY = Key.create(
     ConfigurationManager.class.getName() + "ProjectCanonicalKey"
@@ -294,12 +295,12 @@ public class ConfigurationManager implements Disposable {
     String avdName = avd.getName();
     Device.Builder builder = new Device.Builder(modelDevice);
     builder.setName(avd.getDisplayName());
-    builder.setId(Configuration.AVD_ID_PREFIX + avdName);
+    builder.setId(AVD_ID_PREFIX + avdName);
     return builder.build();
   }
 
   public static boolean isAvdDevice(@NotNull Device device) {
-    return device.getId().startsWith(Configuration.AVD_ID_PREFIX);
+    return device.getId().startsWith(AVD_ID_PREFIX);
   }
 
   /**
