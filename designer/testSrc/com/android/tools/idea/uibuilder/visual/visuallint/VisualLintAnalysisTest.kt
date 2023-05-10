@@ -127,8 +127,8 @@ class VisualLintAnalysisTest {
           assertEquals(
             "TextView has lines containing more than 120 characters in 2 preview configurations.<BR/>Material Design recommends " +
             "reducing the width of TextView or switching to a " +
-            "<A HREF=\"https://d.android.com/r/studio-ui/designer/material/responsive-layout-grid-breakpoints\">multi-column layout</A> " +
-            "for breakpoints >= 600dp.",
+            "<A HREF=\"https://m3.material.io/foundations/layout/applying-layout/window-size-classes#a9594611-a6d4-4dce-abcb-15e7dd431f8a\">" +
+            "multi-column layout</A> for breakpoints >= 600dp.",
             it.description)
           assertNotNull(it.hyperlinkListener)
           assertEquals(HighlightSeverity.WARNING, it.severity)
