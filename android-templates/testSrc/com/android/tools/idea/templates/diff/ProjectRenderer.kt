@@ -140,8 +140,7 @@ abstract class ProjectRenderer(private val template: Template) {
     }
 
     runWriteActionAndWait {
-      // TODO: enable the toml writing when Version Catalog becomes the default again
-      //writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
+      writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
       moduleRecipe.render(context, moduleRecipeExecutor)
       // Executor for the template needs to apply changes so that the toml file is visible in the executor
       //templateRecipeExecutor.applyChanges()
@@ -165,7 +164,6 @@ abstract class ProjectRenderer(private val template: Template) {
   abstract fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path)
 }
 
-@Suppress("unused")
 private fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecutor) {
   WriteCommandAction.writeCommandAction(project).run<IOException> {
     executor.copy(

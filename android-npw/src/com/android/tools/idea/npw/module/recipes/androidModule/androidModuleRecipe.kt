@@ -38,7 +38,7 @@ fun RecipeExecutor.generateAndroidModule(
   bytecodeLevel: BytecodeLevel,
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
-  useVersionCatalog: Boolean = false
+  useVersionCatalog: Boolean = true,
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
