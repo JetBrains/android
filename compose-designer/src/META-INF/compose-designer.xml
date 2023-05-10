@@ -206,6 +206,10 @@
     <viewHandlerProvider implementation="com.android.tools.idea.compose.preview.uibuilder.handler.ComposeViewHandlerProvider" />
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.troubleshooting">
+    <infoCollector implementation="com.android.tools.idea.compose.preview.ComposePreviewTroubleInfoCollector" />
+  </extensions>
+
   <actions>
     <action id="Android.Designer.ComposeIssueNotificationAction"
             icon="StudioIcons.Common.ERROR"
