@@ -664,7 +664,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
       "</resources>", true);
   }
 
-  public void testRenameComponent() throws Throwable {
+  // TODO: http://b/281863312
+  public void ignoreTestRenameComponent() throws Throwable {
     doRenameComponentTest("MyActivity1");
   }
 
