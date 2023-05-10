@@ -160,11 +160,7 @@ abstract class LintIdeSupport {
   open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project): Boolean = false
   open fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {}
   open fun resolveDynamicDependency(project: Project, dependency: Dependency): String? = null
-  @Deprecated(
-    "Use resolveDynamicDependency instead",
-    replaceWith = ReplaceWith("resolveDynamicDependency(project, Dependency.parse(gc.toString())")
-  )
-  open fun resolveDynamic(project: Project, gc: GradleCoordinate): String? = null
+
   // Analytics
   open fun canRequestFeedback(): Boolean = false
 

@@ -274,10 +274,6 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     return RepositoryUrlManager.get().resolveDependencyRichVersion(dependency, project, sdkHandler)
   }
 
-  @Deprecated("Use resolveDynamicDependency instead")
-  override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? =
-    resolveDynamicDependency(project, Dependency.parse(gc.toString()))
-
   override fun getPlatforms(): EnumSet<Platform> = Platform.ANDROID_SET
 
   // Analytics
