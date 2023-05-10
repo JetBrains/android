@@ -40,6 +40,7 @@ import com.google.gct.login.LoginState
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.serviceContainer.NonInjectable
@@ -82,7 +83,12 @@ constructor(
           .combine(loginState) { _, loggedIn -> loggedIn }
           .collect { loggedIn ->
             if (loggedIn) {
-              emit(client.listConnections())
+              val connections = client.listConnections()
+              if (connections is LoadingState.Ready) {
+                Logger.getInstance(VitalsConfigurationManager::class.java)
+                  .info("Accessible Android Vitals connections: ${connections.value}")
+              }
+              emit(connections)
             } else {
               emit(LoadingState.Unauthorized(null))
             }
