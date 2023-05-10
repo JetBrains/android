@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
@@ -48,8 +49,10 @@ private const val ANIMATE_PREFIX = "animate" // e.g. animateColor, animateFloat,
  */
 
 class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
-  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
-    if (session.file.androidFacet != null) {
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
+    if (suppressAndroidPlugin()) return PsiElementVisitor.EMPTY_VISITOR
+
+    return if (session.file.androidFacet != null) {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
@@ -73,6 +76,7 @@ class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
     else {
       PsiElementVisitor.EMPTY_VISITOR
     }
+  }
 }
 
 /**
@@ -81,8 +85,10 @@ class UpdateTransitionLabelInspection : AbstractKotlinInspection() {
  * the Animation Preview. Otherwise, a default name will be used (e.g. FloatProperty, ColorProperty).
  */
 class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
-  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor =
-    if (session.file.androidFacet != null) {
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
+    if (suppressAndroidPlugin()) return PsiElementVisitor.EMPTY_VISITOR
+
+    return if (session.file.androidFacet != null) {
       object : KtVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
@@ -116,6 +122,7 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
     else {
       PsiElementVisitor.EMPTY_VISITOR
     }
+  }
 }
 
 /**
