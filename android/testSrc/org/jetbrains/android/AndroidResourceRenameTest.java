@@ -384,6 +384,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     deleteManifest();
     myFixture.copyFileToProject(BASE_PATH + "MyApplication.java", "src/p1/p2/MyApplication.java");
     VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "AndroidManifest.xml");
+    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(f);
+    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     myFixture.configureFromExistingVirtualFile(f);
     moveClass("p1.p2.MyApplication", "p1");
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
@@ -727,6 +729,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage1.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
+    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
+    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     doRenameJavaPackage("p1.p2", "p3");
     myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage1_after.xml");
   }
@@ -736,6 +740,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage2.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
+    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
+    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     doRenameJavaPackage("p1.p2", "p3");
     myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage2_after.xml");
   }
@@ -745,6 +751,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage3.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
+    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
+    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     doRenameJavaPackage("p1", "p3");
     myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage3_after.xml");
   }
@@ -754,6 +762,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage4.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
+    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
+    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     doRenameJavaPackage("p1.p2", "p3");
     myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage4_after.xml");
   }
@@ -763,6 +773,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage5.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
+    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
+    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     doRenameJavaPackage("p1", "p3");
     myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage5_after.xml");
   }
@@ -854,6 +866,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
   private void doMovePackageTest(String packageName, String newPackageName) {
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
+    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
+    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     doMovePackage(packageName, newPackageName);
     myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
   }
@@ -862,6 +876,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     myFixture.configureFromExistingVirtualFile(manifestFile);
+    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
+    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     checkAndRename(newName);
     myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
   }
