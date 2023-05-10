@@ -161,7 +161,7 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
                                                                     val icon: Icon,
                                                                     val delegate: ToggleAction,
                                                                     val showDefaultGutterPopup: Boolean)
-    : ToggleAction(name, name, icon), DumbAware {
+    : ToggleAction(null, name, icon), DumbAware {
 
     override fun isSelected(e: AnActionEvent) = delegate.isSelected(e)
 
