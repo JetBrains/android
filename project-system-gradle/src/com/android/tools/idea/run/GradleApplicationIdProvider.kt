@@ -108,7 +108,7 @@ class GradleApplicationIdProvider private constructor(
     }
     if (applicationId == null) {
       val errorMessage = "Could not get applicationId for ${androidFacet.module.name}. Project type: $projectType"
-      logger.error(errorMessage, Throwable())
+      logger.warn(errorMessage, Throwable())
       throw ApkProvisionException(errorMessage)
     }
     return applicationId
