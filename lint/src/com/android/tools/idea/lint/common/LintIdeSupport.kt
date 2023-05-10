@@ -19,8 +19,8 @@ import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
@@ -153,7 +153,7 @@ abstract class LintIdeSupport {
   }
 
   // Gradle
-  open fun updateToLatest(module: Module, gc: GradleCoordinate) {}
+  open fun updateToLatestStable(module: Module, externalModule: ExternalModule) {}
   open fun recommendedAgpVersion(project: Project): AgpVersion? = null
   open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
   open fun updateAgpToLatest(project: Project) {}

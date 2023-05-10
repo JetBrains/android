@@ -116,7 +116,10 @@ public class AndroidLintIdeClient extends LintIdeClient {
     }
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
     Dependency dependency = Dependency.Companion.parse(coordinate.toString());
-    RemotePackage sdkPackage = SdkMavenRepository.findLatestRemoteVersion(dependency, sdkHandler, filter, logger);
+    com.android.ide.common.gradle.Module module = dependency.getModule();
+    if (module == null) return null;
+    RemotePackage sdkPackage =
+      SdkMavenRepository.findLatestRemoteVersion(module, dependency.getExplicitlyIncludesPreview(), sdkHandler, filter, logger);
     if (sdkPackage != null) {
       Component found = SdkMavenRepository.getComponentFromSdkPath(sdkPackage.getPath());
       if (found != null) {

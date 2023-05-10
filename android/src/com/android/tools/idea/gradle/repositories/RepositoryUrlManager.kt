@@ -186,24 +186,23 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
     dependency.explicitSingletonVersion?.let { return it.toString() }
     val filter = Predicate { version: Version -> dependency.version?.contains(version) ?: true } // TODO(xof): accepts?
-    val group = dependency.group ?: return null
-    val name = dependency.name
+    val module = dependency.module ?: return null
     val bestAvailableGoogleMavenRepo: GoogleMavenRepository
 
     // First check the Google maven repository, which has most versions.
     if (ApplicationManager.getApplication().isDispatchThread) {
       bestAvailableGoogleMavenRepo = cachedGoogleMavenRepository
-      refreshCacheInBackground(group, name)
+      refreshCacheInBackground(module.group, module.name)
     }
     else {
       bestAvailableGoogleMavenRepo = googleMavenRepository
     }
 
-    val stable = bestAvailableGoogleMavenRepo.findVersion(group, name, filter, false)
+    val stable = bestAvailableGoogleMavenRepo.findVersion(module.group, module.name, filter, false)
     if (stable != null) {
       return stable.toString()
     }
-    val version = bestAvailableGoogleMavenRepo.findVersion(group, name, filter, true)
+    val version = bestAvailableGoogleMavenRepo.findVersion(module.group, module.name, filter, true)
     if (version != null) {
       // Only had preview version; use that (for example, artifacts that haven't been released as stable yet).
       return version.toString()
@@ -212,7 +211,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     if (sdkLocation != null) {
       // If this coordinate points to an artifact in one of our repositories, mark it with a comment if they don't
       // have that repository available.
-      var libraryCoordinate = getLibraryRevision(group, name, filter, false,
+      var libraryCoordinate = getLibraryRevision(module.group, module.name, filter, false,
                                                  sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
         return libraryCoordinate
@@ -220,7 +219,8 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
       // If that didn't yield any matches, try again, this time allowing preview platforms.
       // This is necessary if the artifact prefix includes enough of a version where there are only preview matches.
-      libraryCoordinate = getLibraryRevision(group, name, filter, true, sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
+      libraryCoordinate = getLibraryRevision(module.group, module.name, filter, true,
+                                             sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
         return libraryCoordinate
       }
@@ -234,7 +234,8 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
     // Maybe it's available for download as an SDK component.
     val progress = StudioLoggerProgressIndicator(javaClass)
-    val sdkPackage = SdkMavenRepository.findLatestRemoteVersion(dependency, sdkHandler, filter, progress)
+    val allowPreview = dependency.explicitlyIncludesPreview
+    val sdkPackage = SdkMavenRepository.findLatestRemoteVersion(module, allowPreview, sdkHandler, filter, progress)
     if (sdkPackage != null) {
       val found = SdkMavenRepository.getComponentFromSdkPath(sdkPackage.path)
       if (found != null) {
@@ -245,7 +246,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     // Perform network lookup to resolve current best version, if possible.
     project ?: return null
     val client: LintClient = LintIdeSupport.get().createClient(project)
-    return getLatestVersionFromRemoteRepo(client, dependency, filter, dependency.explicitlyIncludesPreview)?.toString()
+    return getLatestVersionFromRemoteRepo(client, dependency, filter, allowPreview)?.toString()
   }
 
   private fun refreshCacheInBackground(groupId: String, artifactId: String) {

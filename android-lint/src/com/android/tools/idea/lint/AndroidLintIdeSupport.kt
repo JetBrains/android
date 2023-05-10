@@ -17,6 +17,7 @@ package com.android.tools.idea.lint
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.SdkMavenRepository
@@ -218,13 +219,12 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   // Gradle
-  override fun updateToLatest(module: Module, gc: GradleCoordinate) {
+  override fun updateToLatestStable(module: Module, externalModule: ExternalModule) {
     // Based on UpgradeConstraintLayoutFix
     StudioSdkUtil.reloadRemoteSdkWithModalProgress()
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progress = StudioLoggerProgressIndicator(AndroidLintIdeSupport::class.java)
-    val dependency = Dependency.Companion.parse(gc.toString())
-    val p = SdkMavenRepository.findLatestVersion(dependency, sdkHandler, null, progress)
+    val p = SdkMavenRepository.findLatestVersion(externalModule, false, sdkHandler, null, progress)
     if (p != null) {
       val latest = SdkMavenRepository.getComponentFromSdkPath(p.path)
       if (latest != null) { // should always be the case unless the version suffix is somehow wrong
