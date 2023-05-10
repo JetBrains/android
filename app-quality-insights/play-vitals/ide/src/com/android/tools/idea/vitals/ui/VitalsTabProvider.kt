@@ -72,7 +72,6 @@ class VitalsTabProvider : AppInsightsTabProvider {
   override fun getConfigurationManager(project: Project) =
     project.service<VitalsConfigurationManager>()
 
-  // TODO(b/274775776): implement 0 state screen
   private fun placeholderContent(): JPanel =
     object : JPanel() {
       private val text =
@@ -81,7 +80,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
           }
           .also {
             it.appendLine(
-              "Initializing Android Vitals",
+              "Waiting for initial sync...",
               SimpleTextAttributes.GRAYED_ATTRIBUTES,
               null
             )
@@ -94,7 +93,6 @@ class VitalsTabProvider : AppInsightsTabProvider {
       }
     }
 
-  // TODO(b/274775776): revisit this 0 state screen
   @Suppress("DialogTitleCapitalization")
   private fun loggedOutErrorStateComponent(): JPanel {
     val loggedOutText =
@@ -123,9 +121,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
             "More Info",
             SimpleTextAttributes.LINK_ATTRIBUTES
           ) {
-            BrowserUtil.browse(
-              " https://d.android.com/r/studio-ui/app-quality-insights/crashlytics/help "
-            )
+            BrowserUtil.browse("https://d.android.com/r/studio-ui/debug/aqi-android-vitals")
           }
         }
 
