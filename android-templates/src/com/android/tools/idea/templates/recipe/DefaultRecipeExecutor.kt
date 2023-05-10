@@ -95,7 +95,7 @@ import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
  */
 class DefaultRecipeExecutor(
   private val context: RenderingContext,
-  private val useVersionCatalog: Boolean = true) : RecipeExecutor {
+  private val useVersionCatalog: Boolean = false) : RecipeExecutor {
   private val project: Project get() = context.project
   private val referencesExecutor: FindReferencesRecipeExecutor = FindReferencesRecipeExecutor(context)
   private val io: RecipeIO = if (context.dryRun) DryRunRecipeIO() else RecipeIO()

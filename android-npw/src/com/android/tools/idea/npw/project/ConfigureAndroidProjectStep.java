@@ -175,6 +175,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS_VERSION_CATALOG);
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
     } else {
       myBuildConfigurationLanguageLabel.setVisible(false);
@@ -243,6 +244,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       BuildConfigurationLanguageForNewProject selected = (BuildConfigurationLanguageForNewProject) myBuildConfigurationLanguageCombo.getSelectedItem();
       myProjectModel.getUseGradleKts()
         .set(selected.getUseKts());
+      myProjectModel.getUseVersionCatalog()
+        .set(selected.getUseVersionCatalog());
     }
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();

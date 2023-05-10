@@ -26,7 +26,7 @@ fun RecipeExecutor.generateTvModule(
   data: ModuleTemplateData,
   appTitle: String,
   useKts: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean = false
 ) {
   generateCommonModule(
     data, appTitle, useKts,

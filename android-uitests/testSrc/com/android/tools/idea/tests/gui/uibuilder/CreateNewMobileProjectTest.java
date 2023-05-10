@@ -72,13 +72,45 @@ public class CreateNewMobileProjectTest {
       .contains("@Composable");
 
     assertThat(guiTest.getProjectFileText("app/build.gradle.kts"))
-      .contains("implementation(libs.material3");
+      .contains("implementation(\"androidx.compose.material3:material3\")");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
     String androidManifestContents = ideFrame.getEditor()
       .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
+    assertThat(androidManifestContents).contains("\".MainActivity\"");
+  }
+
+  /**
+   * Verify creating a new project from default template.
+   * This follows the same steps as the {@link #createNewMobileProject()} except for the
+   * Build configuration language being KTS + version catalogs.
+   */
+  @RunIn(TestGroup.SANITY_BAZEL)
+  @Test
+  public void createNewMobileProjectWithVersionCatalog() {
+    IdeFrameFixture ideFrame = newProject("Test Application")
+      .withDefaultComposeActivity()
+      .withBuildConfigurationLanguage(BuildConfigurationLanguageForNewProject.KTS_VERSION_CATALOG)
+      .create(guiTest);
+    assertThat(ideFrame.getModuleNames()).containsExactly("Test_Application", "Test_Application.app", "Test_Application.app.main",
+                                                          "Test_Application.app.unitTest", "Test_Application.app.androidTest");
+
+    IdeFrameFixture ideFrameFixture = guiTest
+      .ideFrame();
+    assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
+    assertThat(ideFrameFixture.getEditor().getCurrentFileContents())
+      .contains("@Composable");
+
+    assertThat(guiTest.getProjectFileText("app/build.gradle.kts"))
+      .contains("implementation(libs.material3");
+
+    // Make sure that the activity registration uses the relative syntax
+    // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
+    String androidManifestContents = ideFrame.getEditor()
+                                             .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+                                             .getCurrentFileContents();
     assertThat(androidManifestContents).contains("\".MainActivity\"");
   }
 
@@ -103,7 +135,7 @@ public class CreateNewMobileProjectTest {
       .contains("@Composable");
 
     assertThat(guiTest.getProjectFileText("app/build.gradle"))
-      .contains("implementation libs.material3");
+      .contains("implementation 'androidx.compose.material3:material3'");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)

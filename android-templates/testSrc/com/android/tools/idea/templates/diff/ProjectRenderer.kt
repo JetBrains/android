@@ -107,29 +107,13 @@ abstract class ProjectRenderer(private val template: Template) {
       // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
       FormFactor.Mobile -> { data: TemplateData ->
         this.generateAndroidModule(
-          data = data as ModuleTemplateData, appTitle = appTitle, useKts = false, bytecodeLevel = BytecodeLevel.L8, useVersionCatalog = true)
+          data as ModuleTemplateData, appTitle, false, BytecodeLevel.L8)
       }
 
-      FormFactor.Wear -> { data: TemplateData ->
-        this.generateWearModule(
-          data = data as ModuleTemplateData, appTitle = appTitle, useKts = false, useVersionCatalog = true)
-      }
-
-      FormFactor.Tv -> { data: TemplateData ->
-        this.generateTvModule(
-          data = data as ModuleTemplateData, appTitle = appTitle, useKts = false, useVersionCatalog = true)
-      }
-
-      FormFactor.Automotive -> { data: TemplateData ->
-        this.generateAutomotiveModule(
-          data = data as ModuleTemplateData, appTitle = appTitle,
-          useKts = false, useVersionCatalog = true)
-      }
-
-      FormFactor.Generic -> { data: TemplateData ->
-        this.generatePureLibrary(
-          moduleData = data as ModuleTemplateData, className = "LibraryTemplate", useGradleKts = false, useVersionCatalog = true)
-      }
+      FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
+      FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
+      FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
+      FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false) }
     }
 
     val context = RenderingContext(
@@ -156,7 +140,8 @@ abstract class ProjectRenderer(private val template: Template) {
     }
 
     runWriteActionAndWait {
-      writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
+      // TODO: enable the toml writing when Version Catalog becomes the default again
+      //writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
       moduleRecipe.render(context, moduleRecipeExecutor)
       // Executor for the template needs to apply changes so that the toml file is visible in the executor
       //templateRecipeExecutor.applyChanges()
@@ -180,6 +165,7 @@ abstract class ProjectRenderer(private val template: Template) {
   abstract fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path)
 }
 
+@Suppress("unused")
 private fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecutor) {
   WriteCommandAction.writeCommandAction(project).run<IOException> {
     executor.copy(

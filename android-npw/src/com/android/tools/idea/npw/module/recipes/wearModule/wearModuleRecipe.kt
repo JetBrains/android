@@ -25,7 +25,7 @@ fun RecipeExecutor.generateWearModule(
   data: ModuleTemplateData,
   appTitle: String?,
   useKts: Boolean,
-  useVersionCatalog: Boolean
+  useVersionCatalog: Boolean = false
 ) {
   val usesFeatureBlock = """<uses-feature android:name="android.hardware.type.watch" />"""
   generateCommonModule(
