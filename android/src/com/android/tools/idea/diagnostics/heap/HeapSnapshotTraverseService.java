@@ -151,7 +151,7 @@ public final class HeapSnapshotTraverseService {
         return;
       }
 
-      HeapSnapshotStatistics statistics = Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)
+      HeapSnapshotStatistics statistics = (Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS) || SystemInfo.isWindows)
                                           ? new HeapSnapshotStatistics(
         new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(), /*collectHistograms=*/
                                true, /*collectDisposerTreeInfo=*/true))
