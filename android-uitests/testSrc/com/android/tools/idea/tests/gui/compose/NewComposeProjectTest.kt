@@ -49,10 +49,10 @@ class NewComposeProjectTest {
     //WizardUtils.createNewProject(guiTest, "Empty Views Activity", null)
     WizardUtils.createNewProject(guiTest, selectMobileTab, "Empty Activity")
     guiTest.getProjectFileText("app/build.gradle.kts").run {
-      assertThat(this).contains("implementation(\"androidx.compose.ui:ui\")")
-      assertThat(this).contains("implementation(\"androidx.compose.material3:material3\")")
-      assertThat(this).contains("implementation(\"androidx.compose.ui:ui-tooling-preview\")")
-      assertThat(this).contains("debugImplementation(\"androidx.compose.ui:ui-tooling\")")
+      assertThat(this).contains("implementation(libs.ui)")
+      assertThat(this).contains("implementation(libs.material3)")
+      assertThat(this).contains("implementation(libs.ui.tooling.preview)")
+      assertThat(this).contains("debugImplementation(libs.ui.tooling)")
     }
     guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.kt").run {
       assertThat(this).contains("@Composable")
