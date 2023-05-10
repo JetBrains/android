@@ -17,18 +17,18 @@ package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
-import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.codeInsight.lookup.impl.LookupCellRenderer
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.codeStyle.MinusculeMatcher
 import com.intellij.psi.codeStyle.NameUtil
-import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_PLAIN
 import com.intellij.ui.components.JBList
 import com.intellij.ui.speedSearch.FilteringListModel
 import com.intellij.ui.speedSearch.SpeedSearchUtil
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import java.awt.Component
 import java.awt.Dimension
@@ -328,7 +328,7 @@ interface LookupUI {
  */
 class DefaultLookupUI(private val component: Component) : LookupUI {
   private val popup = JPopupMenu().apply { isFocusable = false }
-  private val renderer = LookupCellRenderer()
+  private val renderer = MyLookupCellRenderer()
   private val list = JBList<String>()
 
   override var clickAction: () -> Unit = {}
@@ -373,7 +373,7 @@ class DefaultLookupUI(private val component: Component) : LookupUI {
     list.isFocusable = false
     list.cellRenderer = renderer
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
-    list.background = renderer.backgroundColor
+    list.background = UIUtil.getTableBackground()
     list.accessibleContext.accessibleName = "Code Completion"
     list.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(event: MouseEvent) {
@@ -420,32 +420,38 @@ class DefaultLookupUI(private val component: Component) : LookupUI {
   /**
    * A [ListCellRenderer] which is able to display which characters match the current search criteria.
    */
-  class LookupCellRenderer : ColoredListCellRenderer<String>() {
-    private val selectedFocusedBackgroundColor = JBColor(0x0052a4, 0x0052a4)
-    private val selectedNonFocusedBackgroundColor = JBColor(0x6e8ea2, 0x55585a)
-    private val selectedForegroundColor = JBColor(0xffffff, 0xffffff)
-    private val filterForegroundColor = JBColor(0xb000b0, 0xd17ad6)
-    private val filterAttributes = SimpleTextAttributes(STYLE_PLAIN, filterForegroundColor)
-    private val selectedAttributes = SimpleTextAttributes(STYLE_PLAIN, selectedForegroundColor)
+  class MyLookupCellRenderer : SimpleColoredComponent(), ListCellRenderer<String> {
+    private val foregroundAttributes = SimpleTextAttributes(STYLE_PLAIN, UIUtil.getLabelForeground())
+    private val matchedAttributes = SimpleTextAttributes(STYLE_PLAIN, LookupCellRenderer.MATCHED_FOREGROUND_COLOR)
 
-    val backgroundColor = JBColor(0xebf4fe, 0x313435)
     var semiFocused = false
     var matcher: Matcher? = null
 
-    override fun customizeCellRenderer(list: JList<out String>, value: String, index: Int, selected: Boolean, hasFocus: Boolean) {
+    /**
+     * A [ListCellRenderer] which is able to display which characters match the current search criteria.
+     */
+    override fun getListCellRendererComponent(
+      list: JList<out String>,
+      value: String,
+      index: Int,
+      selected: Boolean,
+      unused: Boolean
+    ): Component {
+      clear()
+      font = list.font
       background = when {
-        selected && semiFocused -> selectedFocusedBackgroundColor
-        selected -> selectedNonFocusedBackgroundColor
-        else -> backgroundColor
+        selected && semiFocused -> LookupCellRenderer.SELECTED_BACKGROUND_COLOR
+        selected -> LookupCellRenderer.SELECTED_NON_FOCUSED_BACKGROUND_COLOR
+        else -> LookupCellRenderer.BACKGROUND_COLOR
       }
-      val foregroundAttributes = if (selected) selectedAttributes else SimpleTextAttributes.REGULAR_ATTRIBUTES
       val ranges = matcher?.matchingFragments(value)
       if (ranges != null) {
-        SpeedSearchUtil.appendColoredFragments(this, value, ranges, foregroundAttributes, filterAttributes)
+        SpeedSearchUtil.appendColoredFragments(this, value, ranges, foregroundAttributes, matchedAttributes)
       }
       else {
         append(value, foregroundAttributes)
       }
+      return this
     }
   }
 }
