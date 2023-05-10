@@ -30,8 +30,9 @@ import javax.swing.BoxLayout
 import javax.swing.JCheckBox
 import javax.swing.JPanel
 
-
-private const val STUDIO_RELEASE_NOTES_URL = "https://d.android.com/r/studio-ui/preview-release-notes"
+// TODO(b/280438553) replace with redirect URL
+private const val STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL =
+  "https://developer.android.com/studio/preview/features?utm_source=android-studio#embedded-layout-inspector"
 
 /**
  * Class used to provide a [Configurable] to show in Android Studio settings panel.
@@ -73,7 +74,7 @@ class LayoutInspectorConfigurable : SearchableConfigurable {
     embeddedLayoutInspectorSettingPanel.add(enableEmbeddedLayoutInspectorCheckBox)
     embeddedLayoutInspectorSettingPanel.add(Box.createRigidArea(Dimension(20, 0)))
     embeddedLayoutInspectorSettingPanel.add(ActionLink(LayoutInspectorBundle.message("learn.more")) {
-      BrowserUtil.browse(STUDIO_RELEASE_NOTES_URL)
+      BrowserUtil.browse(STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL)
     })
 
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()) {
