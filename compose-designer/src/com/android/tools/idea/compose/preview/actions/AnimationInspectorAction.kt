@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -42,12 +43,13 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
     e.presentation.apply {
-      isEnabled = true
+      val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
+      isEnabled = !isLiteModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = getPreviewElement()?.hasAnimations == true
       description =
-        if (isEnabled) message("action.animation.inspector.description")
-        else message("action.animation.inspector.unavailable.title")
+        if (isLiteModeEnabled) message("action.animation.inspector.lite.mode.description")
+        else message("action.animation.inspector.description")
     }
   }
 

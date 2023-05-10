@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -40,7 +41,12 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    e.presentation.isEnabledAndVisible = true
+    val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
+    e.presentation.isVisible = true
+    e.presentation.isEnabled = !isLiteModeEnabled
+    e.presentation.description =
+      if (isLiteModeEnabled) message("action.interactive.lite.mode.description")
+      else message("action.interactive.description")
   }
 
   override fun actionPerformed(e: AnActionEvent) {

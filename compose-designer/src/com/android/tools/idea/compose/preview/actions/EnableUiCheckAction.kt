@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -36,7 +37,13 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    e.presentation.isEnabledAndVisible = StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()
+    val isUiCheckModeEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()
+    val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
+    e.presentation.isVisible = isUiCheckModeEnabled
+    e.presentation.isEnabled = isUiCheckModeEnabled && !isLiteModeEnabled
+    e.presentation.description =
+      if (isLiteModeEnabled) message("action.uicheck.lite.mode.description")
+      else message("action.uicheck.description")
   }
 
   override fun actionPerformed(e: AnActionEvent) {
