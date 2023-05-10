@@ -295,7 +295,12 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
-    test_jvm_flags = ["-Djdk.attach.allowAttachSelf=true"],
+    test_jvm_flags = [
+        # TODO: http://b/281902830
+        # TODO: http://b/281905227
+        "-Didea.leak.check.enabled=false",
+        "-Djdk.attach.allowAttachSelf=true",
+    ],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = [
