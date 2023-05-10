@@ -40,8 +40,7 @@ public final class DeployTargetContextTest {
   public void initContext() {
     myContext = new DeployTargetContext(Arrays.asList(
       myDeviceAndSnapshotComboBoxTargetProvider,
-      myCloudTestMatrixTargetProvider,
-      new CloudDebuggingTargetProvider()));
+      myCloudTestMatrixTargetProvider));
   }
 
   @Test
