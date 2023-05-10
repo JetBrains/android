@@ -302,6 +302,9 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       wrapLogic.unwrapComponent()
       tabComponents.displayView.remove(layoutInspectorRenderer)
       layoutInspector.inspectorModel.selectionListeners.remove(selectionChangedListener)
+
+      tabComponents.tabContentPanelContainer.revalidate()
+      tabComponents.tabContentPanelContainer.repaint()
     }
 
     private val selectionChangedListener: (old: ViewNode?, new: ViewNode?, origin: SelectionOrigin) -> Unit = { _, _, _ ->
