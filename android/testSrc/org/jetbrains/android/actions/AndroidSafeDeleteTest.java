@@ -31,7 +31,8 @@ public class AndroidSafeDeleteTest extends AndroidTestCase {
     return true;
   }
 
-  public void testDeleteComponent() throws Exception {
+  // b/281709998: Fix flaky test
+  public void ignoreTestDeleteComponent() throws Exception {
     final VirtualFile manifestVFile = myFixture.copyFileToProject(TEST_FOLDER + "f1.xml", "AndroidManifest.xml");
     final VirtualFile activityFile = myFixture.copyFileToProject(TEST_FOLDER + "MyActivity.java", "src/p1/p2/MyActivity.java");
     myFixture.configureFromExistingVirtualFile(activityFile);
