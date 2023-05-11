@@ -866,6 +866,11 @@ public final class StudioFlags {
     "If APP_INSPECTION_USE_DEV_JAR is enabled use this location to load the inspector jar in releases.",
     ""
   );
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EXTRA_LOGGING = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.extra.logging", "Add extra logging for problem detection",
+    "When this flag is enabled, LayoutInspector will add extra logging for detection of various problems.",
+    false);
   //endregion
 
   //region Embedded Emulator

@@ -17,6 +17,8 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import java.awt.Polygon
 import java.awt.Shape
 
@@ -70,3 +72,19 @@ private fun convertCompositeIndexList(reference: List<Int>): IntArray {
   }
   return IntArray(reference.size) { index -> reference[index] }
 }
+
+fun GetComposablesResponse.countNodes(): Array<Any?> {
+  val result = Counts(0, 0)
+  rootsList.forEach { root -> root.nodesList.forEach { it.countNodes(result) } }
+  return arrayOf(result.nodes, result.systemNodes)
+}
+
+private fun ComposableNode.countNodes(counts: Counts) {
+  counts.nodes++
+  if (flags.and(ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0) {
+    counts.systemNodes++
+  }
+  childrenList.forEach { it.countNodes(counts) }
+}
+
+private data class Counts(var nodes: Int, var systemNodes: Int)
