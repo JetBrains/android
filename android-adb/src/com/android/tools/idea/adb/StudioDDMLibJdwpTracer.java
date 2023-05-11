@@ -35,8 +35,13 @@ public class StudioDDMLibJdwpTracer implements DDMLibJdwpTracer {
     }
 
     @Override
-    public void onPacket(@NonNull ByteBuffer packet) {
-      tracer.addPacket(packet);
+    public void onUpstreamPacket(@NonNull ByteBuffer packet) {
+      tracer.addUpstreamPacket(packet);
+    }
+
+    @Override
+    public void onDownstreamPacket(@NonNull ByteBuffer packet) {
+      tracer.addDownstreamPacket(packet);
     }
 
     @Override
