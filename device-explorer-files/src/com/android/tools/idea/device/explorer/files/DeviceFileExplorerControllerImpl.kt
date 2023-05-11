@@ -1226,7 +1226,6 @@ class DeviceFileExplorerControllerImpl(
         node.add(ErrorNode(message))
         node.allowsChildren = true
         treeModel.nodeStructureChanged(node)
-        throw t
       } finally {
         stopLoadChildren(node)
         loadingNodesAlarms.cancelRequest(showLoadingNode)
