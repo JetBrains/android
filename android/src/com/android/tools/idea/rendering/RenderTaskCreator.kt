@@ -47,7 +47,6 @@ fun createRenderTaskFuture(
   val configuration =
     Configuration.create(
       ConfigurationManager.getOrCreateInstance(facet.module),
-      null,
       FolderConfiguration.createDefault()
     )
   configure(configuration)

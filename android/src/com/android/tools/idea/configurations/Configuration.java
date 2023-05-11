@@ -259,10 +259,8 @@ public class Configuration implements Disposable, ModificationTracker {
    * @return a new configuration
    */
   @NotNull
-  public static Configuration create(@NotNull ConfigurationManager manager,
-                                     @Nullable VirtualFile file,
-                                     @NotNull FolderConfiguration editedConfig) {
-    return new Configuration(manager, file, editedConfig);
+  public static Configuration create(@NotNull ConfigurationManager manager, @NotNull FolderConfiguration editedConfig) {
+    return new Configuration(manager, null, editedConfig);
   }
 
   /**
@@ -285,7 +283,7 @@ public class Configuration implements Disposable, ModificationTracker {
 
   @NotNull
   public static Configuration create(@NotNull ConfigurationManager manager,
-                                     @Nullable VirtualFile file,
+                                     @NotNull VirtualFile file,
                                      @Nullable ConfigurationFileState fileState,
                                      @NotNull FolderConfiguration editedConfig) {
     Configuration configuration = new Configuration(manager, file, editedConfig);

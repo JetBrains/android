@@ -131,8 +131,7 @@ class ComposePreviewElementConfigurationTest {
   fun `test specified device sizes`() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     configManager.defaultDevice
-    val configuration =
-      Configuration.create(configManager, null, FolderConfiguration.createDefault())
+    val configuration = Configuration.create(configManager, FolderConfiguration.createDefault())
 
     SingleComposePreviewElementInstance(
         "NoSize",
@@ -194,8 +193,7 @@ class ComposePreviewElementConfigurationTest {
   @Test
   fun `setting a device might set the theme as well`() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    val configuration =
-      Configuration.create(configManager, null, FolderConfiguration.createDefault())
+    val configuration = Configuration.create(configManager, FolderConfiguration.createDefault())
 
     SingleComposePreviewElementInstance(
         "WearOs",
@@ -247,7 +245,7 @@ class ComposePreviewElementConfigurationTest {
   @Test
   fun testApiLevel() {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
         PreviewConfiguration.cleanAndGet(30, null, null, null, null, null, null, null, null)
       previewConfiguration.applyConfigurationForTest(
@@ -262,7 +260,7 @@ class ComposePreviewElementConfigurationTest {
 
   private fun assertWallpaperUpdate(expectedWallpaperPath: String?, wallpaperParameterValue: Int?) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
         PreviewConfiguration.cleanAndGet(
           null,
@@ -287,7 +285,7 @@ class ComposePreviewElementConfigurationTest {
 
   private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+    Configuration.create(configManager, FolderConfiguration.createDefault()).also {
       val previewConfiguration =
         PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, deviceSpec)
       previewConfiguration.applyConfigurationForTest(

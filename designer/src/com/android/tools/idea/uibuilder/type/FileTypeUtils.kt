@@ -58,7 +58,7 @@ fun VirtualFile.getConfiguration(configurationManager: ConfigurationManager): Co
  */
 fun ConfigurationManager.getPreviewConfig(): Configuration {
   val configurationManager = this
-  val config = Configuration.create(configurationManager, null, FolderConfiguration())
+  val config = Configuration.create(configurationManager, FolderConfiguration())
 
   val cached = deviceAndStateCached
   if (cached != null) {

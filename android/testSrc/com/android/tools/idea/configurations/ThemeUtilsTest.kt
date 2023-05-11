@@ -33,7 +33,7 @@ class ThemeUtilsTest : AndroidTestCase() {
     assertNotNull(manager)
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule))
 
-    val configuration = Configuration.create(manager, null, FolderConfiguration())
+    val configuration = Configuration.create(manager, FolderConfiguration())
     assertNotNull(configuration)
 
     val recentlyUsedThemes1 = getRecentlyUsedThemes(project)

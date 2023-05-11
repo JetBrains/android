@@ -90,7 +90,6 @@ public class ThemeResolverTest extends AndroidTestCase {
   public void testEmptyModuleResources() throws IOException {
     WriteAction.run(() -> myFixture.getTempDirFixture().getFile("res").delete(this));
     Configuration configuration = Configuration.create(ConfigurationManager.getOrCreateInstance(myModule),
-                                                       null,
                                                        FolderConfiguration.createDefault());
     new ThemeResolver(configuration);
   }

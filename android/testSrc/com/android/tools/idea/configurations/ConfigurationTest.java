@@ -54,7 +54,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
-    Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
+    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
     assertNotNull(configuration);
 
     configuration.startBulkEditing();
@@ -127,7 +127,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertNotNull(manager);
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
-    Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
+    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
     assertNotNull(configuration);
 
     ConfigurationListener listener = flags -> {
@@ -266,7 +266,7 @@ public class ConfigurationTest extends AndroidTestCase {
     }
     FolderConfiguration folderConfig = new FolderConfiguration();
     folderConfig.setVersionQualifier(new VersionQualifier(11));
-    Configuration configuration = Configuration.create(manager, null, folderConfig);
+    Configuration configuration = Configuration.create(manager, folderConfig);
     assertNotNull(configuration);
     IAndroidTarget target = configuration.getTarget();
     assertNotNull(target);
@@ -275,7 +275,7 @@ public class ConfigurationTest extends AndroidTestCase {
 
   public void testRtlFromLocale() {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
+    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
 
     LayoutDirectionQualifier layoutDirectionQualifier = configuration.getFullConfig().getLayoutDirectionQualifier();
     assertNotNull(layoutDirectionQualifier);
@@ -294,7 +294,7 @@ public class ConfigurationTest extends AndroidTestCase {
 
   public void testSetUiModeAsFlag() {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
-    Configuration configuration = Configuration.create(manager, null, new FolderConfiguration());
+    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
     int[] modificationFlags = {0};
     configuration.addListener((flags) -> {
       modificationFlags[0] |= flags;

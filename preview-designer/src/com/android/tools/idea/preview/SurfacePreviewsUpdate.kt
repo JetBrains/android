@@ -189,7 +189,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         val now = System.currentTimeMillis()
         debugLogger?.log("No models to reuse were found. New model $now.")
         val file = previewElementModelAdapter.createLightVirtualFile(fileContents, psiFile.virtualFile, now)
-        val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
+        val configuration = Configuration.create(configurationManager, FolderConfiguration.createDefault())
         withContext(AndroidDispatchers.workerThread) {
           val newModel = NlModel.builder(facet, file, configuration)
             .withParentDisposable(parentDisposable)

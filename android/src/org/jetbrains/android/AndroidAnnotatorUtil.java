@@ -287,7 +287,7 @@ public class AndroidAnnotatorUtil {
     if (!(file instanceof XmlFile)) {
       nearestConfigurationFile = IdeResourcesUtil.pickAnyLayoutFile(facet);
       if (nearestConfigurationFile == null) {
-        return Configuration.create(configurationManager, null, FolderConfiguration.createDefault());
+        return Configuration.create(configurationManager, FolderConfiguration.createDefault());
       }
     }
     else {
