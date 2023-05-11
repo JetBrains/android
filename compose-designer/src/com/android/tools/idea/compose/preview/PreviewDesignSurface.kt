@@ -37,6 +37,7 @@ import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutM
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
@@ -153,6 +154,7 @@ private fun createPreviewDesignSurfaceBuilder(
         .also {
           it.setListenResourceChange(false) // don't re-render on resource changes
           it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+          it.setRenderingTopic(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW)
         }
     }
     .setDelegateDataProvider(dataProvider)
