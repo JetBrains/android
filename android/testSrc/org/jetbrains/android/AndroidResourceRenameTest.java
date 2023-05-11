@@ -25,30 +25,22 @@ import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiPackage;
-import com.intellij.psi.impl.JavaPsiFacadeEx;
-import com.intellij.psi.impl.PsiManagerImpl;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.actions.RenameElementAction;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
-import com.intellij.refactoring.move.moveFilesOrDirectories.JavaMoveFilesOrDirectoriesHandler;
 import com.intellij.refactoring.rename.RenameHandler;
 import com.intellij.refactoring.rename.RenameProcessor;
-import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.testFramework.MapDataContext;
 import com.intellij.testFramework.TestActionEvent;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
@@ -423,21 +415,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + expectedFile, true);
   }
 
-  protected void renameElementWithTextOccurrences(final String newName) {
-    Editor editor = myFixture.getEditor();
-    PsiFile file = myFixture.getFile();
-    Editor completionEditor = InjectedLanguageUtil.getEditorForInjectedLanguageNoCommit(editor, file);
-    PsiElement element = TargetElementUtil.findTargetElement(completionEditor, TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
-                                                                               TargetElementUtil.ELEMENT_NAME_ACCEPTED);
-    assert element != null;
-    final PsiElement substitution = RenamePsiElementProcessor.forElement(element).substituteElementToRename(element, editor);
-    new RenameProcessor(myFixture.getProject(), substitution, newName, false, true).run();
-  }
-
   /**
    * This will do a refactor and update all code AND non-code (such as text/comments) references.
-   *
-   * @see #moveClassNoTextReferences(String, String)
    */
   private void moveClass(final String className, final String newPackageName) {
     PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.projectScope(getProject()));
@@ -449,31 +428,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
 
     new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{aClass}, new SingleSourceRootMoveDestination(
       PackageWrapper.create(JavaDirectoryService.getInstance().getPackage(dirs[0])), dirs[0]), true, true, null).run();
-  }
-
-  /**
-   * Where as {@link #moveClass(String, String)} will move a class and update all references, including text references
-   * This method will ONLY update code references when moving a class
-   *
-   * @see #moveClass(String, String)
-   */
-  private void moveClassNoTextReferences(String className, String newPackageName) {
-    JavaPsiFacadeEx myJavaFacade = JavaPsiFacadeEx.getInstanceEx(getProject());
-    final PsiElement element = myJavaFacade.findClass(className, GlobalSearchScope.projectScope(getProject()));
-    assertNotNull("Class " + className + " not found", element);
-
-    PsiManagerImpl myPsiManager = (PsiManagerImpl)PsiManager.getInstance(getProject());
-    PsiPackage aPackage = JavaPsiFacade.getInstance(myPsiManager.getProject()).findPackage(newPackageName);
-    assertNotNull("Package " + newPackageName + " not found", aPackage);
-    final PsiDirectory[] dirs = aPackage.getDirectories();
-    assertEquals(1, dirs.length);
-
-    final JavaMoveFilesOrDirectoriesHandler handler = new JavaMoveFilesOrDirectoriesHandler();
-    PsiElement[] elements = new PsiElement[]{element};
-    assertTrue(handler.canMove(elements, dirs[0]));
-    handler.doMove(getProject(), elements, dirs[0], null);
-    PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
-    FileDocumentManager.getInstance().saveAllDocuments();
   }
 
   public void testXmlReferenceToValueResource() throws Throwable {
