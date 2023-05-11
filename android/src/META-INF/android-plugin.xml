@@ -729,6 +729,8 @@
 
     <daemon.highlightInfoFilter implementation="com.android.tools.idea.sdk.SdkHighlightFilter"/>
 
+    <writingAccessProvider implementation="com.android.tools.idea.sdk.SdkWritingAccessProvider"/>
+
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">
