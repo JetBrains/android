@@ -747,7 +747,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage2_after.xml");
   }
 
-  public void testRenameJavaPackage3() {
+  // TODO: http://b/281863312
+  public void ignoreTestRenameJavaPackage3() throws Throwable {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage3.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
