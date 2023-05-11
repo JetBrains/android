@@ -22,6 +22,9 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.intellij.codeInsight.daemon.LineMarkerInfo;
+import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor;
+import com.intellij.codeInsight.daemon.LineMarkerSettings;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
@@ -51,9 +54,15 @@ public abstract class AndroidResourceExternalAnnotatorBase
 
   private static final Logger LOG = Logger.getInstance(AndroidResourceExternalAnnotatorBase.class);
 
+  private final LineMarkerProvider lineMarkerProvider = new LineMarkerProvider();
+
   @Nullable
   @Override
   public final FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor, boolean hasErrors) {
+    if (!LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider)) {
+      return null;
+    }
+
     return collectInformation(file, editor);
   }
 
@@ -270,6 +279,25 @@ public abstract class AndroidResourceExternalAnnotatorBase
       public Color getColor() {
         return myColor;
       }
+    }
+  }
+
+  /**
+   * Provider used to enable/disable Android resource gutter icons.
+   *
+   * <p>This provider doesn't directly provide any of the resource gutter icons; that's done by subclasses of
+   * {@link AndroidResourceExternalAnnotatorBase}. But since those are {@link ExternalAnnotator}s, they don't show up in Gutter icon
+   * settings. This provider does show up in settings, and the other annotators check its value to determine if they should be enabled.
+   */
+  public static class LineMarkerProvider extends LineMarkerProviderDescriptor {
+    @Override
+    public String getName() {
+      return "Resource preview";
+    }
+
+    @Override
+    public LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
+      return null;
     }
   }
 }

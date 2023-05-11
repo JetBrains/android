@@ -30,8 +30,12 @@ import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
 import com.android.tools.idea.util.FileExtensions;
 import com.google.common.collect.ImmutableList;
+import com.intellij.codeInsight.daemon.GutterIconDescriptor;
+import com.intellij.codeInsight.daemon.LineMarkerSettings;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.LineMarkerSettingsImpl;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.util.IconLoader;
@@ -353,6 +357,33 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
     HighlightInfo highlightInfo =
       findHighlightInfoWithGutterRenderer("src/p1/p2/DrawableTest.java", "R.drawable.ic_launcher", PsiReferenceExpression.class);
     checkHighlightInfoImage(highlightInfo, "annotator/ic_launcher.png");
+  }
+
+  public void testSettingDisablesIcon() throws IOException {
+    myFixture.addClass("package p1.p2;\n" +
+                       "\n" +
+                       "public class DrawableTest {\n" +
+                       "    public void test() {\n" +
+                       "        int drawable = R.drawable.ic_launcher;\n" +
+                       "    }\n" +
+                       "}\n");
+
+    GutterIconDescriptor gutterIconDescriptor = new AndroidResourceExternalAnnotatorBase.LineMarkerProvider();
+    LineMarkerSettingsImpl settings = (LineMarkerSettingsImpl)ApplicationManager.getApplication().getService(LineMarkerSettings.class);
+    try {
+      settings.setEnabled(gutterIconDescriptor, false);
+
+      assertThrows(NoSuchElementException.class, () -> {
+        findHighlightInfoWithGutterRenderer("src/p1/p2/DrawableTest.java", "R.drawable.ic_launcher", PsiReferenceExpression.class);
+      });
+
+      settings.setEnabled(gutterIconDescriptor, true);
+
+      // Now that it's enabled, nothing should be thrown.
+      findHighlightInfoWithGutterRenderer("src/p1/p2/DrawableTest.java", "R.drawable.ic_launcher", PsiReferenceExpression.class);
+    } finally {
+      settings.resetEnabled(gutterIconDescriptor);
+    }
   }
 
   @NotNull
