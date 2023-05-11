@@ -180,6 +180,14 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  fun testResetWithMissingModule() {
+    runConfiguration.componentLaunchOptions.componentName = "com.example.MyIconComplication"
+    runConfiguration.setModule(null)
+    configurationConfigurable.reset()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+  }
+
+  @Test
   fun testPMFlags() {
     runConfiguration.deployOptions.pmInstallFlags = ""
     val textField = TreeWalker(editor).descendants().filterIsInstance<JBTextField>()[0]

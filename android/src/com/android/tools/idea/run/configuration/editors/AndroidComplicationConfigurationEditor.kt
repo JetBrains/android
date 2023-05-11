@@ -105,9 +105,10 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
 
   @WorkerThread
   private fun getSupportedTypes(componentName: String?): List<Complication.ComplicationType> {
-    if (componentName == null) {
+    val module = moduleSelector.module
+    if (componentName == null || module == null) {
       return emptyList()
     }
-    return parseRawComplicationTypes(getComplicationTypesFromManifest(moduleSelector.module!!, componentName) ?: emptyList())
+    return parseRawComplicationTypes(getComplicationTypesFromManifest(module, componentName))
   }
 }
