@@ -116,6 +116,7 @@ import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnresolvedKmpAndroidModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
@@ -130,6 +131,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
+import org.gradle.api.attributes.java.TargetJvmEnvironment
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -487,6 +489,16 @@ internal fun modelCacheV2Impl(
     artifact: ArtifactRef
   ): LibraryReference {
 
+    fun kmpAndroidUnresolved(): LibraryReference {
+      return internedModels.getOrCreate(
+        IdeUnresolvedKmpAndroidModuleLibraryImpl(
+          buildId = buildId.asString,
+          projectPath = projectPath,
+          lintJar = lintJar?.path?.let(::File),
+        )
+      )
+    }
+
     fun resolved(artifact: AndroidArtifactRef): LibraryReference {
       return internedModels.getOrCreate(
         IdePreResolvedModuleLibraryImpl(
@@ -513,6 +525,7 @@ internal fun modelCacheV2Impl(
 
     return when (artifact) {
       is AndroidArtifactRef -> resolved(artifact)
+      is KmpAndroidArtifactRef -> kmpAndroidUnresolved()
       is NonAndroidAndroidArtifactRef -> unresolved(artifact.artifactFile)
     }
   }
@@ -601,18 +614,20 @@ internal fun modelCacheV2Impl(
        * Also, unfortunately, the artifact file returned in this case is not known to the IDE.
        *
        * Temporarily, detect Android components by presence of a build type or a product flavor.
-       *
-       * TODO(b/242847891): This will likely break with new KMP Android targets, which do not have build types.
-       *                    An alternative solution could be to fetch locations of all artifact files of Android modules
-       *                    and match them with `artifactFile` when it is not null.
        */
       fun ProjectInfo.isAndroidComponent(): Boolean = buildType != null || productFlavors.isNotEmpty()
+
+      fun ProjectInfo.isKmpAndroidComponent(): Boolean =
+        attributes["org.jetbrains.kotlin.platform.type"] == "jvm" &&
+        attributes[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
 
       for (identifier in libraries) {
         val projectInfo = identifier.library.projectInfo!!
         // TODO(b/203750717): Model this explicitly in the tooling model.
         val artifact =
-          if (projectInfo.isAndroidComponent()) {
+          if (projectInfo.isKmpAndroidComponent()) {
+            KmpAndroidArtifactRef
+          } else if (projectInfo.isAndroidComponent()) {
             val androidModule: AndroidModule =
               androidProjectPathResolver.resolve(buildNameToBuildId(projectInfo.buildId), projectInfo.projectPath)
                 ?: error("Cannot find an Android module: ${projectInfo.projectPath} (${projectInfo.buildId})")
@@ -1611,5 +1626,6 @@ internal fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssu
 }
 
 private sealed class ArtifactRef
+private object KmpAndroidArtifactRef : ArtifactRef()
 private data class AndroidArtifactRef(val variantName: String, val isTestFixture: Boolean) : ArtifactRef()
 private data class NonAndroidAndroidArtifactRef(val artifactFile: File) : ArtifactRef()

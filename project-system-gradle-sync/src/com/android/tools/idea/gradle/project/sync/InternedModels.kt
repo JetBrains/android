@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
@@ -110,6 +111,10 @@ class InternedModels(private val buildRootDirectory: File?) {
    * Interns [moduleLibrary].
    */
   fun getOrCreate(moduleLibrary: IdeUnresolvedModuleLibraryImpl): LibraryReference {
+    return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
+  }
+
+  fun getOrCreate(moduleLibrary: IdeUnresolvedKmpAndroidModuleLibrary): LibraryReference {
     return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
   }
 

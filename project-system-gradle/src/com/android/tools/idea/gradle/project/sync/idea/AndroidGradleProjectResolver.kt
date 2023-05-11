@@ -550,7 +550,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     return ResolvedLibraryTableBuilder(
       { key: Any? -> myGradlePathByModuleId[key] },
       { key: Any? -> myModuleDataByGradlePath[key] },
-      { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) }
+      { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) },
+      { "androidMain" } // TODO(b/269755640): Get this from the kmp resolvers
     ).buildResolvedLibraryTable(ideLibraryTable)
   }
 

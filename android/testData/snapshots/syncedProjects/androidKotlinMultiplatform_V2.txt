@@ -44,7 +44,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : typeoneModeoneDebug
+            SelectedBuildVariant          : typeoneModetwoDebug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -73,29 +73,29 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:assembleTypeoneModeoneDebugUnitTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:assembleTypeoneModeoneDebugUnitTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugAndroidTestSources, :androidLib:compileTypeoneModeoneDebugSources, :androidLib:compileTypeoneModeoneDebugUnitTestSources
-                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:assembleTypeoneModetwoDebugUnitTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:assembleTypeoneModetwoDebugUnitTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugAndroidTestSources, :androidLib:compileTypeoneModetwoDebugSources, :androidLib:compileTypeoneModetwoDebugUnitTestSources
+                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugAndroidTestSources, :androidLib:compileTypeoneModeoneDebugSources
-                SOURCE_GEN                    : :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugAndroidTestSources, :androidLib:compileTypeoneModetwoDebugSources
+                SOURCE_GEN                    : :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugUnitTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugUnitTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugUnitTestSources
-                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugUnitTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugUnitTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugUnitTestSources
+                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugSources
-                SOURCE_GEN                    : :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugSources
+                SOURCE_GEN                    : :androidLib:generateTypeoneModetwoDebugSources
     MODULE                        : Kotlin_Multiplatform.androidLib.androidTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : Kotlin_Multiplatform.androidLib
@@ -107,7 +107,7 @@ PROJECT                       : Kotlin Multiplatform
         LinkedProjectPath             : <PROJECT>/androidLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModeoneDebugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModetwoDebugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -117,7 +117,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : typeoneModeoneDebug
+            SelectedBuildVariant          : typeoneModetwoDebug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -126,11 +126,11 @@ PROJECT                       : Kotlin Multiplatform
             - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTestTypeone/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTestModeone/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTestModetwo/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/build/generated/res/resValues/androidTest/typeoneModeone/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -139,17 +139,17 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebugAndroidTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/res/resValues/androidTest/typeoneModeone/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestModeone [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestModetwo [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebugAndroidTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
             Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/build/generated/res/resValues/androidTest/typeoneModeone/debug [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTest/baselineProfiles [-]
@@ -165,13 +165,13 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestDebug/shaders [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModeone/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModeone/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModeone/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModeone/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModeone/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModeone/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModeone/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModetwo/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModetwo/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModetwo/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModetwo/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModetwo/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestModetwo/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestModetwo/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeone/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeone/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeone/java [-]
@@ -179,20 +179,20 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeone/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeone/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeone/shaders [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModeone/shaders [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModeoneDebug/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwo/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/androidTestTypeoneModetwoDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -202,29 +202,29 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:assembleTypeoneModeoneDebugUnitTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:assembleTypeoneModeoneDebugUnitTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugAndroidTestSources, :androidLib:compileTypeoneModeoneDebugSources, :androidLib:compileTypeoneModeoneDebugUnitTestSources
-                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:assembleTypeoneModetwoDebugUnitTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:assembleTypeoneModetwoDebugUnitTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugAndroidTestSources, :androidLib:compileTypeoneModetwoDebugSources, :androidLib:compileTypeoneModetwoDebugUnitTestSources
+                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugAndroidTestSources, :androidLib:compileTypeoneModeoneDebugSources
-                SOURCE_GEN                    : :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugAndroidTestSources, :androidLib:compileTypeoneModetwoDebugSources
+                SOURCE_GEN                    : :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugUnitTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugUnitTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugUnitTestSources
-                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugUnitTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugUnitTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugUnitTestSources
+                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugSources
-                SOURCE_GEN                    : :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugSources
+                SOURCE_GEN                    : :androidLib:generateTypeoneModetwoDebugSources
     MODULE                        : Kotlin_Multiplatform.androidLib.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : Kotlin_Multiplatform.androidLib
@@ -236,7 +236,7 @@ PROJECT                       : Kotlin Multiplatform
         LinkedProjectPath             : <PROJECT>/androidLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModeoneDebug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/androidLib/Kotlin_Multiplatform.androidLib.main.iml [-]
@@ -244,7 +244,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : typeoneModeoneDebug
+            SelectedBuildVariant          : typeoneModetwoDebug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -252,11 +252,11 @@ PROJECT                       : Kotlin Multiplatform
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/typeone/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/modeone/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/typeoneModeone/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/modetwo/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/typeoneModetwo/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/typeoneModeoneDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModeone/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
             - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -266,19 +266,19 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebug/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModeone/debug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/main
             JavaSource                    : file://<PROJECT>/androidLib/src/main/java
             JavaResource                  : file://<PROJECT>/androidLib/src/main/resources
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/modeone [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/modetwo [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModeoneDebug [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebug/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModetwo [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/typeoneModetwoDebug [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
             Generated                     : true
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModeone/debug [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/debug/baselineProfiles [-]
@@ -292,13 +292,13 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/main/res [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/main/shaders [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modeone/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modeone/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modeone/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modeone/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modeone/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modeone/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modeone/shaders [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modetwo/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modetwo/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modetwo/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modetwo/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modetwo/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/modetwo/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/modetwo/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeone/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeone/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeone/java [-]
@@ -306,54 +306,54 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeone/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeone/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeone/shaders [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModeone/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModeone/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModeone/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModeone/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModeone/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModeone/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModeone/shaders [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModeoneDebug/assets [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModeoneDebug/baselineProfiles [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModeoneDebug/java [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModeoneDebug/kotlin [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModeoneDebug/res [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModeoneDebug/resources [-]
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModeoneDebug/shaders [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwo/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwo/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwo/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwo/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwo/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwo/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwo/shaders [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/assets [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/java [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/res [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/resources [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/androidLib/src/typeoneModetwoDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         Classes
-            -                             : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModeoneDebug/classes
-            -                             : jar://<PROJECT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModeoneDebug/R.jar!/
-            -                             : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModeone/debug
+            -                             : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/classes
+            -                             : jar://<PROJECT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebug/R.jar!/
+            -                             : file://<PROJECT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:assembleTypeoneModeoneDebugUnitTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:assembleTypeoneModeoneDebugUnitTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugAndroidTestSources, :androidLib:compileTypeoneModeoneDebugSources, :androidLib:compileTypeoneModeoneDebugUnitTestSources
-                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:assembleTypeoneModetwoDebugUnitTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:assembleTypeoneModetwoDebugUnitTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugAndroidTestSources, :androidLib:compileTypeoneModetwoDebugSources, :androidLib:compileTypeoneModetwoDebugUnitTestSources
+                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugAndroidTestSources, :androidLib:compileTypeoneModeoneDebugSources
-                SOURCE_GEN                    : :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugAndroidTestSources, :androidLib:compileTypeoneModetwoDebugSources
+                SOURCE_GEN                    : :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugUnitTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugUnitTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugUnitTestSources
-                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugUnitTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugUnitTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugUnitTestSources
+                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugSources
-                SOURCE_GEN                    : :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugSources
+                SOURCE_GEN                    : :androidLib:generateTypeoneModetwoDebugSources
     MODULE                        : Kotlin_Multiplatform.androidLib.unitTest
         LINKED_ANDROID_MODULE_GROUP
             holder                        : Kotlin_Multiplatform.androidLib
@@ -365,7 +365,7 @@ PROJECT                       : Kotlin Multiplatform
         LinkedProjectPath             : <PROJECT>/androidLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModeoneDebugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/androidLib/build/intermediates/javac/typeoneModetwoDebugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -375,7 +375,7 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Android
             TypeId                        : android
             ExternalSource                : GRADLE
-            SelectedBuildVariant          : typeoneModeoneDebug
+            SelectedBuildVariant          : typeoneModetwoDebug
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
@@ -391,14 +391,14 @@ PROJECT                       : Kotlin Multiplatform
             ProguardLogsFolderRelativePath          : /proguard_logs
             UseCustomManifestPackage      : false
             - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testModeone [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testModetwo [-]
         CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testTypeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testTypeoneModeone [-]
-        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testTypeoneModeoneDebug [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebugUnitTest/out [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testTypeoneModetwo [-]
+        CONENT_ENTRY                  : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/test/baselineProfiles [-]
@@ -414,13 +414,13 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testDebug/shaders [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModeone/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModeone/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModeone/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModeone/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModeone/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModeone/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModeone/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModetwo/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModetwo/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModetwo/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModetwo/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModetwo/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testModetwo/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testModetwo/shaders [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeone/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeone/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeone/java [-]
@@ -428,19 +428,19 @@ PROJECT                       : Kotlin Multiplatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeone/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeone/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeone/shaders [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModeone/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModeone/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModeone/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModeone/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModeone/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModeone/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModeone/shaders [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModeoneDebug/assets [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModeoneDebug/baselineProfiles [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModeoneDebug/java [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModeoneDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModeoneDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModeoneDebug/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwo/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwo/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwo/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwo/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwo/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwo/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwo/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/assets [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/baselineProfiles [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/androidLib/src/testTypeoneModetwoDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -450,29 +450,29 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
-                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:assembleTypeoneModeoneDebugUnitTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:assembleTypeoneModeoneDebugUnitTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugAndroidTestSources, :androidLib:compileTypeoneModeoneDebugSources, :androidLib:compileTypeoneModeoneDebugUnitTestSources
-                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:assembleTypeoneModetwoDebugUnitTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:assembleTypeoneModetwoDebugUnitTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugAndroidTestSources, :androidLib:compileTypeoneModetwoDebugSources, :androidLib:compileTypeoneModetwoDebugUnitTestSources
+                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : Android tests
-                CLEAN                         : :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugAndroidTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugAndroidTestSources, :androidLib:compileTypeoneModeoneDebugSources
-                SOURCE_GEN                    : :androidLib:generateTypeoneModeoneDebugAndroidTestSources, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugAndroidTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugAndroidTestSources, :androidLib:compileTypeoneModetwoDebugSources
+                SOURCE_GEN                    : :androidLib:generateTypeoneModetwoDebugAndroidTestSources, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : Unit tests
-                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugUnitTest
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:assembleTypeoneModeoneDebugUnitTest, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugUnitTestSources
-                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugUnitTest
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:assembleTypeoneModetwoDebugUnitTest, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugUnitTestSources
+                SOURCE_GEN                    : :androidLib:createMockableJar, :androidLib:generateTypeoneModetwoDebugSources
             TEST_COMPILE_MODE             : None
-                CLEAN                         : :androidLib:generateTypeoneModeoneDebugSources
-                ASSEMBLE                      : :androidLib:assembleTypeoneModeoneDebug
-                REBUILD                       : :androidLib:assembleTypeoneModeoneDebug, :androidLib:clean
-                COMPILE_JAVA                  : :androidLib:compileTypeoneModeoneDebugSources
-                SOURCE_GEN                    : :androidLib:generateTypeoneModeoneDebugSources
+                CLEAN                         : :androidLib:generateTypeoneModetwoDebugSources
+                ASSEMBLE                      : :androidLib:assembleTypeoneModetwoDebug
+                REBUILD                       : :androidLib:assembleTypeoneModetwoDebug, :androidLib:clean
+                COMPILE_JAVA                  : :androidLib:compileTypeoneModetwoDebugSources
+                SOURCE_GEN                    : :androidLib:generateTypeoneModetwoDebugSources
     MODULE                        : Kotlin_Multiplatform.app
         LINKED_ANDROID_MODULE_GROUP
             holder                        : Kotlin_Multiplatform.app
@@ -618,7 +618,23 @@ PROJECT                       : Kotlin Multiplatform
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.app.main
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
             Scope                         : Test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -717,6 +733,14 @@ PROJECT                       : Kotlin Multiplatform
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
             -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
@@ -841,7 +865,23 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
+        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.app.main
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
@@ -2191,6 +2231,8 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : jar://<M2>/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar!/
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
@@ -2201,34 +2243,34 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
-            CLEAN                         : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModeoneDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModeoneDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModeoneDebug, <PROJECT>::androidLib:assembleTypeoneModeoneDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModeoneDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModeoneDebug, <PROJECT>::androidLib:assembleTypeoneModeoneDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModeoneDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpFirstLib:testClasses, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpJvmOnly:testClasses, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:clean, <PROJECT>::kmpSecondLib:testClasses
-            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModeoneDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModeoneDebugSources, <PROJECT>::androidLib:compileTypeoneModeoneDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpFirstLib:testClasses, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpJvmOnly:testClasses, <PROJECT>::kmpSecondLib:compileJava, <PROJECT>::kmpSecondLib:testClasses
-            SOURCE_GEN                    : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModeoneDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModeoneDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
+            CLEAN                         : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
+            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest, :app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpFirstLib:testClasses, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpJvmOnly:testClasses, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:clean, <PROJECT>::kmpSecondLib:testClasses
+            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugUnitTestSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpFirstLib:testClasses, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpJvmOnly:testClasses, <PROJECT>::kmpSecondLib:compileJava, <PROJECT>::kmpSecondLib:testClasses
+            SOURCE_GEN                    : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
-            CLEAN                         : <PROJECT>::androidLib:generateTypeoneModeoneDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModeoneDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModeoneDebug, <PROJECT>::androidLib:assembleTypeoneModeoneDebugAndroidTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModeoneDebug, <PROJECT>::androidLib:assembleTypeoneModeoneDebugAndroidTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:clean
-            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModeoneDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModeoneDebugSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpSecondLib:compileJava
-            SOURCE_GEN                    : <PROJECT>::androidLib:generateTypeoneModeoneDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModeoneDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
+            CLEAN                         : <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
+            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugAndroidTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:clean
+            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:compileTypeoneModetwoDebugSources, <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpSecondLib:compileJava
+            SOURCE_GEN                    : <PROJECT>::androidLib:generateTypeoneModetwoDebugAndroidTestSources, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
-            CLEAN                         : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModeoneDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModeoneDebug, <PROJECT>::androidLib:assembleTypeoneModeoneDebugUnitTest, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest
-            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModeoneDebug, <PROJECT>::androidLib:assembleTypeoneModeoneDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpFirstLib:testClasses, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpJvmOnly:testClasses, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:clean, <PROJECT>::kmpSecondLib:testClasses
-            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModeoneDebugUnitTestSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpFirstLib:testClasses, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpJvmOnly:testClasses, <PROJECT>::kmpSecondLib:compileJava, <PROJECT>::kmpSecondLib:testClasses
-            SOURCE_GEN                    : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModeoneDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
+            CLEAN                         : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
+            ASSEMBLE                      : :app:assembleDebug, :app:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:assembleTypeoneModetwoDebugUnitTest, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpFirstLib:testClasses, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpJvmOnly:testClasses, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:clean, <PROJECT>::kmpSecondLib:testClasses
+            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugUnitTestSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpFirstLib:testClasses, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpJvmOnly:testClasses, <PROJECT>::kmpSecondLib:compileJava, <PROJECT>::kmpSecondLib:testClasses
+            SOURCE_GEN                    : <PROJECT>::androidLib:createMockableJar, <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
-            CLEAN                         : <PROJECT>::androidLib:generateTypeoneModeoneDebugSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::androidLib:assembleTypeoneModeoneDebug, <PROJECT>::app:assembleDebug
-            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModeoneDebug, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:clean
-            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModeoneDebugSources, <PROJECT>::app:compileDebugSources, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpSecondLib:compileJava
-            SOURCE_GEN                    : <PROJECT>::androidLib:generateTypeoneModeoneDebugSources, <PROJECT>::app:generateDebugSources
+            CLEAN                         : <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:generateDebugSources
+            ASSEMBLE                      : :app:assembleDebug
+            REBUILD                       : <PROJECT>::androidLib:assembleTypeoneModetwoDebug, <PROJECT>::androidLib:clean, <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::kmpFirstLib:assemble, <PROJECT>::kmpFirstLib:clean, <PROJECT>::kmpJvmOnly:assemble, <PROJECT>::kmpJvmOnly:clean, <PROJECT>::kmpSecondLib:assemble, <PROJECT>::kmpSecondLib:clean
+            COMPILE_JAVA                  : <PROJECT>::androidLib:compileTypeoneModetwoDebugSources, <PROJECT>::app:compileDebugSources, <PROJECT>::kmpFirstLib:compileJava, <PROJECT>::kmpJvmOnly:compileJava, <PROJECT>::kmpSecondLib:compileJava
+            SOURCE_GEN                    : <PROJECT>::androidLib:generateTypeoneModetwoDebugSources, <PROJECT>::app:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug

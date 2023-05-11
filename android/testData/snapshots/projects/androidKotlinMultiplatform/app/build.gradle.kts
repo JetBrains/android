@@ -15,7 +15,7 @@ android {
 }
 
 dependencies {
-    //implementation(project(":kmpFirstLib"))
+    implementation(project(":kmpFirstLib"))
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.google.truth:truth:0.44")
 }

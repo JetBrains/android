@@ -21,14 +21,17 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedJavaLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedUnknownLibrary
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
+import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.intellij.openapi.diagnostic.Logger
@@ -45,14 +48,17 @@ import java.io.File
 class ResolvedLibraryTableBuilder(
   private val getGradlePathBy: (moduleId: String) -> GradleProjectPath?,
   private val getModuleDataNode: (GradleProjectPath) -> DataNode<out ModuleData>?,
-  private val resolveArtifact: (File) -> List<GradleSourceSetProjectPath>?
+  private val resolveArtifact: (File) -> List<GradleSourceSetProjectPath>?,
+  private val resolveKmpAndroidMainSourceSet: (GradleProjectPath) -> String?,
 ) {
   fun buildResolvedLibraryTable(
     ideLibraryTable: IdeUnresolvedLibraryTable,
   ): IdeResolvedLibraryTable {
     return ideLibraryTable.resolve(
       artifactResolver = { resolveArtifact(it) },
-      moduleDependencyExpander = ::resolveAdditionalKmpSourceSets
+      moduleDependencyExpander = ::resolveAdditionalKmpSourceSets,
+      kmpAndroidMainSourceSetResolver = resolveKmpAndroidMainSourceSet,
+      logger = logger
     )
   }
 
@@ -81,7 +87,9 @@ class ResolvedLibraryTableBuilder(
 
 private fun IdeUnresolvedLibraryTable.resolve(
   artifactResolver: (File) -> List<GradleSourceSetProjectPath>?,
-  moduleDependencyExpander: (GradleSourceSetProjectPath) -> List<GradleSourceSetProjectPath>
+  moduleDependencyExpander: (GradleSourceSetProjectPath) -> List<GradleSourceSetProjectPath>,
+  kmpAndroidMainSourceSetResolver: (GradleProjectPath) -> String?,
+  logger: Logger
 ): IdeResolvedLibraryTable {
 
   fun resolve(preResolved: IdePreResolvedModuleLibrary): List<IdeModuleLibrary> {
@@ -101,6 +109,28 @@ private fun IdeUnresolvedLibraryTable.resolve(
         sourceSet = it.sourceSet
       )
     }
+  }
+
+  fun resolve(unresolved: IdeUnresolvedKmpAndroidModuleLibrary): List<IdeModuleLibrary> {
+    val mainSourceSet = kmpAndroidMainSourceSetResolver(
+      GradleHolderProjectPath(
+        unresolved.buildId,
+        unresolved.projectPath
+      )
+    ) ?: run {
+      logger.error("Unable to find the main android sourceSet for the kotlin multiplatform module ${unresolved.projectPath}.")
+      return emptyList()
+    }
+
+    return resolve(
+      IdePreResolvedModuleLibraryImpl(
+        buildId = unresolved.buildId,
+        projectPath = unresolved.projectPath,
+        variant = mainSourceSet,
+        lintJar = unresolved.lintJar,
+        sourceSet = IdeModuleSourceSetImpl(mainSourceSet, true)
+      )
+    )
   }
 
   fun resolve(unresolved: IdeUnresolvedModuleLibrary): List<IdeLibrary> {
@@ -144,6 +174,7 @@ private fun IdeUnresolvedLibraryTable.resolve(
       when (it) {
         is IdeUnresolvedModuleLibrary -> resolve(it)
         is IdePreResolvedModuleLibrary -> resolve(it)
+        is IdeUnresolvedKmpAndroidModuleLibrary -> resolve(it)
         is IdeUnresolvedUnknownLibrary -> listOf(it)
         is IdeUnresolvedAndroidLibrary -> listOf(it)
         is IdeUnresolvedJavaLibrary -> listOf(it)

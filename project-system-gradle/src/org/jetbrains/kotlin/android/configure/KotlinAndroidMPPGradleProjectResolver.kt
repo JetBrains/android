@@ -293,18 +293,18 @@ private fun IdeModuleWellKnownSourceSet.getRootKotlinSourceSet(compilation: Kotl
 }
 
 private fun IdeModuleWellKnownSourceSet.androidCompilationNameSuffix() = when (this) {
-  IdeModuleWellKnownSourceSet.MAIN -> ""
-  IdeModuleWellKnownSourceSet.ANDROID_TEST -> "AndroidTest"
-  IdeModuleWellKnownSourceSet.UNIT_TEST -> "UnitTest"
-  IdeModuleWellKnownSourceSet.TEST_FIXTURES -> "TestFixtures"
+  MAIN -> ""
+  ANDROID_TEST -> "AndroidTest"
+  UNIT_TEST -> "UnitTest"
+  TEST_FIXTURES -> "TestFixtures"
 }
 
 // TODO(b/246924347): Add an integration test for KMP v2 source layout.
 private fun IdeModuleWellKnownSourceSet.kmpSourceSetSuffix() = when (this) {
-  IdeModuleWellKnownSourceSet.MAIN -> setOf("main")
-  IdeModuleWellKnownSourceSet.ANDROID_TEST -> setOf("androidTest", "instrumentedTest")
-  IdeModuleWellKnownSourceSet.UNIT_TEST -> setOf("test", "unitTest")
-  IdeModuleWellKnownSourceSet.TEST_FIXTURES -> setOf("testFixtures")
+  MAIN -> setOf("main")
+  ANDROID_TEST -> setOf("androidTest", "instrumentedTest")
+  UNIT_TEST -> setOf("test", "unitTest")
+  TEST_FIXTURES -> setOf("testFixtures")
 }
 
 private fun KotlinMPPGradleModel.androidTargets() =

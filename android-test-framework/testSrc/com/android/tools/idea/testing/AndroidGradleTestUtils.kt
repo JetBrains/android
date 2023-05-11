@@ -1522,7 +1522,8 @@ private fun setupTestProjectFromAndroidModelCore(
   val resolvedTable = ResolvedLibraryTableBuilder(
     getGradlePathBy = idToPath::get,
     getModuleDataNode = pathToNode::get,
-    resolveArtifact = { null }
+    resolveArtifact = { null },
+    resolveKmpAndroidMainSourceSet = { null }
   ).buildResolvedLibraryTable(unresolvedTable)
   val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(resolvedTable)
   projectDataNode.createChild(

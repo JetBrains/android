@@ -93,46 +93,46 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typeone/shaders
                 BaselineProfileDirectories:
                     ./androidLib/src/typeone/baselineProfiles
-            modeone
+            modetwo
                 Manifest:
-                    ./androidLib/src/modeone/AndroidManifest.xml
+                    ./androidLib/src/modetwo/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/modeone/assets
+                    ./androidLib/src/modetwo/assets
                 JavaDirectories:
-                    ./androidLib/src/modeone/java
+                    ./androidLib/src/modetwo/java
                 KotlinDirectories:
-                    ./androidLib/src/modeone/java
-                    ./androidLib/src/modeone/kotlin
+                    ./androidLib/src/modetwo/java
+                    ./androidLib/src/modetwo/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/modeone/jniLibs
+                    ./androidLib/src/modetwo/jniLibs
                 ResDirectories:
-                    ./androidLib/src/modeone/res
+                    ./androidLib/src/modetwo/res
                 ResourcesDirectories:
-                    ./androidLib/src/modeone/resources
+                    ./androidLib/src/modetwo/resources
                 ShadersDirectories:
-                    ./androidLib/src/modeone/shaders
+                    ./androidLib/src/modetwo/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/modeone/baselineProfiles
-            typeoneModeone
+                    ./androidLib/src/modetwo/baselineProfiles
+            typeoneModetwo
                 Manifest:
-                    ./androidLib/src/typeoneModeone/AndroidManifest.xml
+                    ./androidLib/src/typeoneModetwo/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/typeoneModeone/assets
+                    ./androidLib/src/typeoneModetwo/assets
                 JavaDirectories:
-                    ./androidLib/src/typeoneModeone/java
+                    ./androidLib/src/typeoneModetwo/java
                 KotlinDirectories:
-                    ./androidLib/src/typeoneModeone/java
-                    ./androidLib/src/typeoneModeone/kotlin
+                    ./androidLib/src/typeoneModetwo/java
+                    ./androidLib/src/typeoneModetwo/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/typeoneModeone/jniLibs
+                    ./androidLib/src/typeoneModetwo/jniLibs
                 ResDirectories:
-                    ./androidLib/src/typeoneModeone/res
+                    ./androidLib/src/typeoneModetwo/res
                 ResourcesDirectories:
-                    ./androidLib/src/typeoneModeone/resources
+                    ./androidLib/src/typeoneModetwo/resources
                 ShadersDirectories:
-                    ./androidLib/src/typeoneModeone/shaders
+                    ./androidLib/src/typeoneModetwo/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/typeoneModeone/baselineProfiles
+                    ./androidLib/src/typeoneModetwo/baselineProfiles
             debug
                 Manifest:
                     ./androidLib/src/debug/AndroidManifest.xml
@@ -153,26 +153,26 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/debug/shaders
                 BaselineProfileDirectories:
                     ./androidLib/src/debug/baselineProfiles
-            typeoneModeoneDebug
+            typeoneModetwoDebug
                 Manifest:
-                    ./androidLib/src/typeoneModeoneDebug/AndroidManifest.xml
+                    ./androidLib/src/typeoneModetwoDebug/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/assets
+                    ./androidLib/src/typeoneModetwoDebug/assets
                 JavaDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/java
+                    ./androidLib/src/typeoneModetwoDebug/java
                 KotlinDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/java
-                    ./androidLib/src/typeoneModeoneDebug/kotlin
+                    ./androidLib/src/typeoneModetwoDebug/java
+                    ./androidLib/src/typeoneModetwoDebug/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/jniLibs
+                    ./androidLib/src/typeoneModetwoDebug/jniLibs
                 ResDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/res
+                    ./androidLib/src/typeoneModetwoDebug/res
                 ResourcesDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/resources
+                    ./androidLib/src/typeoneModetwoDebug/resources
                 ShadersDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/shaders
+                    ./androidLib/src/typeoneModetwoDebug/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/baselineProfiles
+                    ./androidLib/src/typeoneModetwoDebug/baselineProfiles
         All:
             main
                 Manifest:
@@ -294,46 +294,46 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/typeone/shaders
                 BaselineProfileDirectories:
                     ./androidLib/src/typeone/baselineProfiles
-            typeoneModeone
+            typeoneModetwo
                 Manifest:
-                    ./androidLib/src/typeoneModeone/AndroidManifest.xml
+                    ./androidLib/src/typeoneModetwo/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/typeoneModeone/assets
+                    ./androidLib/src/typeoneModetwo/assets
                 JavaDirectories:
-                    ./androidLib/src/typeoneModeone/java
+                    ./androidLib/src/typeoneModetwo/java
                 KotlinDirectories:
-                    ./androidLib/src/typeoneModeone/java
-                    ./androidLib/src/typeoneModeone/kotlin
+                    ./androidLib/src/typeoneModetwo/java
+                    ./androidLib/src/typeoneModetwo/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/typeoneModeone/jniLibs
+                    ./androidLib/src/typeoneModetwo/jniLibs
                 ResDirectories:
-                    ./androidLib/src/typeoneModeone/res
+                    ./androidLib/src/typeoneModetwo/res
                 ResourcesDirectories:
-                    ./androidLib/src/typeoneModeone/resources
+                    ./androidLib/src/typeoneModetwo/resources
                 ShadersDirectories:
-                    ./androidLib/src/typeoneModeone/shaders
+                    ./androidLib/src/typeoneModetwo/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/typeoneModeone/baselineProfiles
-            typeoneModeoneDebug
+                    ./androidLib/src/typeoneModetwo/baselineProfiles
+            typeoneModetwoDebug
                 Manifest:
-                    ./androidLib/src/typeoneModeoneDebug/AndroidManifest.xml
+                    ./androidLib/src/typeoneModetwoDebug/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/assets
+                    ./androidLib/src/typeoneModetwoDebug/assets
                 JavaDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/java
+                    ./androidLib/src/typeoneModetwoDebug/java
                 KotlinDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/java
-                    ./androidLib/src/typeoneModeoneDebug/kotlin
+                    ./androidLib/src/typeoneModetwoDebug/java
+                    ./androidLib/src/typeoneModetwoDebug/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/jniLibs
+                    ./androidLib/src/typeoneModetwoDebug/jniLibs
                 ResDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/res
+                    ./androidLib/src/typeoneModetwoDebug/res
                 ResourcesDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/resources
+                    ./androidLib/src/typeoneModetwoDebug/resources
                 ShadersDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/shaders
+                    ./androidLib/src/typeoneModetwoDebug/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/typeoneModeoneDebug/baselineProfiles
+                    ./androidLib/src/typeoneModetwoDebug/baselineProfiles
             typetwo
                 Manifest:
                     ./androidLib/src/typetwo/AndroidManifest.xml
@@ -395,46 +395,46 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/testTypeone/shaders
                 BaselineProfileDirectories:
                     ./androidLib/src/testTypeone/baselineProfiles
-            testModeone
+            testModetwo
                 Manifest:
-                    ./androidLib/src/testModeone/AndroidManifest.xml
+                    ./androidLib/src/testModetwo/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/testModeone/assets
+                    ./androidLib/src/testModetwo/assets
                 JavaDirectories:
-                    ./androidLib/src/testModeone/java
+                    ./androidLib/src/testModetwo/java
                 KotlinDirectories:
-                    ./androidLib/src/testModeone/java
-                    ./androidLib/src/testModeone/kotlin
+                    ./androidLib/src/testModetwo/java
+                    ./androidLib/src/testModetwo/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/testModeone/jniLibs
+                    ./androidLib/src/testModetwo/jniLibs
                 ResDirectories:
-                    ./androidLib/src/testModeone/res
+                    ./androidLib/src/testModetwo/res
                 ResourcesDirectories:
-                    ./androidLib/src/testModeone/resources
+                    ./androidLib/src/testModetwo/resources
                 ShadersDirectories:
-                    ./androidLib/src/testModeone/shaders
+                    ./androidLib/src/testModetwo/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/testModeone/baselineProfiles
-            testTypeoneModeone
+                    ./androidLib/src/testModetwo/baselineProfiles
+            testTypeoneModetwo
                 Manifest:
-                    ./androidLib/src/testTypeoneModeone/AndroidManifest.xml
+                    ./androidLib/src/testTypeoneModetwo/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/testTypeoneModeone/assets
+                    ./androidLib/src/testTypeoneModetwo/assets
                 JavaDirectories:
-                    ./androidLib/src/testTypeoneModeone/java
+                    ./androidLib/src/testTypeoneModetwo/java
                 KotlinDirectories:
-                    ./androidLib/src/testTypeoneModeone/java
-                    ./androidLib/src/testTypeoneModeone/kotlin
+                    ./androidLib/src/testTypeoneModetwo/java
+                    ./androidLib/src/testTypeoneModetwo/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/testTypeoneModeone/jniLibs
+                    ./androidLib/src/testTypeoneModetwo/jniLibs
                 ResDirectories:
-                    ./androidLib/src/testTypeoneModeone/res
+                    ./androidLib/src/testTypeoneModetwo/res
                 ResourcesDirectories:
-                    ./androidLib/src/testTypeoneModeone/resources
+                    ./androidLib/src/testTypeoneModetwo/resources
                 ShadersDirectories:
-                    ./androidLib/src/testTypeoneModeone/shaders
+                    ./androidLib/src/testTypeoneModetwo/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/testTypeoneModeone/baselineProfiles
+                    ./androidLib/src/testTypeoneModetwo/baselineProfiles
             testDebug
                 Manifest:
                     ./androidLib/src/testDebug/AndroidManifest.xml
@@ -455,24 +455,24 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/testDebug/shaders
                 BaselineProfileDirectories:
                     ./androidLib/src/testDebug/baselineProfiles
-            testTypeoneModeoneDebug
+            testTypeoneModetwoDebug
                 Manifest:
-                    ./androidLib/src/testTypeoneModeoneDebug/AndroidManifest.xml
+                    ./androidLib/src/testTypeoneModetwoDebug/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/testTypeoneModeoneDebug/assets
+                    ./androidLib/src/testTypeoneModetwoDebug/assets
                 JavaDirectories:
-                    ./androidLib/src/testTypeoneModeoneDebug/java
+                    ./androidLib/src/testTypeoneModetwoDebug/java
                 KotlinDirectories:
-                    ./androidLib/src/testTypeoneModeoneDebug/java
-                    ./androidLib/src/testTypeoneModeoneDebug/kotlin
+                    ./androidLib/src/testTypeoneModetwoDebug/java
+                    ./androidLib/src/testTypeoneModetwoDebug/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/testTypeoneModeoneDebug/jniLibs
+                    ./androidLib/src/testTypeoneModetwoDebug/jniLibs
                 ResourcesDirectories:
-                    ./androidLib/src/testTypeoneModeoneDebug/resources
+                    ./androidLib/src/testTypeoneModetwoDebug/resources
                 ShadersDirectories:
-                    ./androidLib/src/testTypeoneModeoneDebug/shaders
+                    ./androidLib/src/testTypeoneModetwoDebug/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/testTypeoneModeoneDebug/baselineProfiles
+                    ./androidLib/src/testTypeoneModetwoDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -514,46 +514,46 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/androidTestTypeone/shaders
                 BaselineProfileDirectories:
                     ./androidLib/src/androidTestTypeone/baselineProfiles
-            androidTestModeone
+            androidTestModetwo
                 Manifest:
-                    ./androidLib/src/androidTestModeone/AndroidManifest.xml
+                    ./androidLib/src/androidTestModetwo/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/androidTestModeone/assets
+                    ./androidLib/src/androidTestModetwo/assets
                 JavaDirectories:
-                    ./androidLib/src/androidTestModeone/java
+                    ./androidLib/src/androidTestModetwo/java
                 KotlinDirectories:
-                    ./androidLib/src/androidTestModeone/java
-                    ./androidLib/src/androidTestModeone/kotlin
+                    ./androidLib/src/androidTestModetwo/java
+                    ./androidLib/src/androidTestModetwo/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/androidTestModeone/jniLibs
+                    ./androidLib/src/androidTestModetwo/jniLibs
                 ResDirectories:
-                    ./androidLib/src/androidTestModeone/res
+                    ./androidLib/src/androidTestModetwo/res
                 ResourcesDirectories:
-                    ./androidLib/src/androidTestModeone/resources
+                    ./androidLib/src/androidTestModetwo/resources
                 ShadersDirectories:
-                    ./androidLib/src/androidTestModeone/shaders
+                    ./androidLib/src/androidTestModetwo/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/androidTestModeone/baselineProfiles
-            androidTestTypeoneModeone
+                    ./androidLib/src/androidTestModetwo/baselineProfiles
+            androidTestTypeoneModetwo
                 Manifest:
-                    ./androidLib/src/androidTestTypeoneModeone/AndroidManifest.xml
+                    ./androidLib/src/androidTestTypeoneModetwo/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/androidTestTypeoneModeone/assets
+                    ./androidLib/src/androidTestTypeoneModetwo/assets
                 JavaDirectories:
-                    ./androidLib/src/androidTestTypeoneModeone/java
+                    ./androidLib/src/androidTestTypeoneModetwo/java
                 KotlinDirectories:
-                    ./androidLib/src/androidTestTypeoneModeone/java
-                    ./androidLib/src/androidTestTypeoneModeone/kotlin
+                    ./androidLib/src/androidTestTypeoneModetwo/java
+                    ./androidLib/src/androidTestTypeoneModetwo/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/androidTestTypeoneModeone/jniLibs
+                    ./androidLib/src/androidTestTypeoneModetwo/jniLibs
                 ResDirectories:
-                    ./androidLib/src/androidTestTypeoneModeone/res
+                    ./androidLib/src/androidTestTypeoneModetwo/res
                 ResourcesDirectories:
-                    ./androidLib/src/androidTestTypeoneModeone/resources
+                    ./androidLib/src/androidTestTypeoneModetwo/resources
                 ShadersDirectories:
-                    ./androidLib/src/androidTestTypeoneModeone/shaders
+                    ./androidLib/src/androidTestTypeoneModetwo/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/androidTestTypeoneModeone/baselineProfiles
+                    ./androidLib/src/androidTestTypeoneModetwo/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./androidLib/src/androidTestDebug/AndroidManifest.xml
@@ -574,26 +574,26 @@ MODULE: Kotlin_Multiplatform.androidLib
                     ./androidLib/src/androidTestDebug/shaders
                 BaselineProfileDirectories:
                     ./androidLib/src/androidTestDebug/baselineProfiles
-            androidTestTypeoneModeoneDebug
+            androidTestTypeoneModetwoDebug
                 Manifest:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/AndroidManifest.xml
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/AndroidManifest.xml
                 AssetsDirectories:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/assets
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/assets
                 JavaDirectories:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/java
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/java
                 KotlinDirectories:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/java
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/kotlin
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/java
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/kotlin
                 JniLibsDirectories:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/jniLibs
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/jniLibs
                 ResDirectories:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/res
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/res
                 ResourcesDirectories:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/resources
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/resources
                 ShadersDirectories:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/shaders
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/shaders
                 BaselineProfileDirectories:
-                    ./androidLib/src/androidTestTypeoneModeoneDebug/baselineProfiles
+                    ./androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -604,35 +604,35 @@ MODULE: Kotlin_Multiplatform.androidLib
                 ManifestFileUrls:
                     file://./androidLib/src/main/AndroidManifest.xml
                     file://./androidLib/src/typeone/AndroidManifest.xml
-                    file://./androidLib/src/modeone/AndroidManifest.xml
-                    file://./androidLib/src/typeoneModeone/AndroidManifest.xml
+                    file://./androidLib/src/modetwo/AndroidManifest.xml
+                    file://./androidLib/src/typeoneModetwo/AndroidManifest.xml
                     file://./androidLib/src/debug/AndroidManifest.xml
-                    file://./androidLib/src/typeoneModeoneDebug/AndroidManifest.xml
+                    file://./androidLib/src/typeoneModetwoDebug/AndroidManifest.xml
                 ManifestFiles:
                     file://./androidLib/src/main/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./androidLib/src/main
                     file://./androidLib/src/typeone
-                    file://./androidLib/src/modeone
-                    file://./androidLib/src/typeoneModeone
+                    file://./androidLib/src/modetwo
+                    file://./androidLib/src/typeoneModetwo
                     file://./androidLib/src/debug
-                    file://./androidLib/src/typeoneModeoneDebug
+                    file://./androidLib/src/typeoneModetwoDebug
                 ManifestDirectories:
                     file://./androidLib/src/main
                 AssetsDirectoryUrls:
                     file://./androidLib/src/main/assets
                     file://./androidLib/src/typeone/assets
-                    file://./androidLib/src/modeone/assets
-                    file://./androidLib/src/typeoneModeone/assets
+                    file://./androidLib/src/modetwo/assets
+                    file://./androidLib/src/typeoneModetwo/assets
                     file://./androidLib/src/debug/assets
-                    file://./androidLib/src/typeoneModeoneDebug/assets
+                    file://./androidLib/src/typeoneModetwoDebug/assets
                 JavaDirectoryUrls:
                     file://./androidLib/src/main/java
                     file://./androidLib/src/typeone/java
-                    file://./androidLib/src/modeone/java
-                    file://./androidLib/src/typeoneModeone/java
+                    file://./androidLib/src/modetwo/java
+                    file://./androidLib/src/typeoneModetwo/java
                     file://./androidLib/src/debug/java
-                    file://./androidLib/src/typeoneModeoneDebug/java
+                    file://./androidLib/src/typeoneModetwoDebug/java
                 JavaDirectories:
                     file://./androidLib/src/main/java
                 KotlinDirectoryUrls:
@@ -640,189 +640,189 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/main/kotlin
                     file://./androidLib/src/typeone/java
                     file://./androidLib/src/typeone/kotlin
-                    file://./androidLib/src/modeone/java
-                    file://./androidLib/src/modeone/kotlin
-                    file://./androidLib/src/typeoneModeone/java
-                    file://./androidLib/src/typeoneModeone/kotlin
+                    file://./androidLib/src/modetwo/java
+                    file://./androidLib/src/modetwo/kotlin
+                    file://./androidLib/src/typeoneModetwo/java
+                    file://./androidLib/src/typeoneModetwo/kotlin
                     file://./androidLib/src/debug/java
                     file://./androidLib/src/debug/kotlin
-                    file://./androidLib/src/typeoneModeoneDebug/java
-                    file://./androidLib/src/typeoneModeoneDebug/kotlin
+                    file://./androidLib/src/typeoneModetwoDebug/java
+                    file://./androidLib/src/typeoneModetwoDebug/kotlin
                 KotlinDirectories:
                     file://./androidLib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./androidLib/src/main/jniLibs
                     file://./androidLib/src/typeone/jniLibs
-                    file://./androidLib/src/modeone/jniLibs
-                    file://./androidLib/src/typeoneModeone/jniLibs
+                    file://./androidLib/src/modetwo/jniLibs
+                    file://./androidLib/src/typeoneModetwo/jniLibs
                     file://./androidLib/src/debug/jniLibs
-                    file://./androidLib/src/typeoneModeoneDebug/jniLibs
+                    file://./androidLib/src/typeoneModetwoDebug/jniLibs
                 ResDirectoryUrls:
                     file://./androidLib/src/main/res
                     file://./androidLib/src/typeone/res
-                    file://./androidLib/src/modeone/res
-                    file://./androidLib/src/typeoneModeone/res
+                    file://./androidLib/src/modetwo/res
+                    file://./androidLib/src/typeoneModetwo/res
                     file://./androidLib/src/debug/res
-                    file://./androidLib/src/typeoneModeoneDebug/res
+                    file://./androidLib/src/typeoneModetwoDebug/res
                 ResourcesDirectoryUrls:
                     file://./androidLib/src/main/resources
                     file://./androidLib/src/typeone/resources
-                    file://./androidLib/src/modeone/resources
-                    file://./androidLib/src/typeoneModeone/resources
+                    file://./androidLib/src/modetwo/resources
+                    file://./androidLib/src/typeoneModetwo/resources
                     file://./androidLib/src/debug/resources
-                    file://./androidLib/src/typeoneModeoneDebug/resources
+                    file://./androidLib/src/typeoneModetwoDebug/resources
                 ResourcesDirectories:
                     file://./androidLib/src/main/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/main/shaders
                     file://./androidLib/src/typeone/shaders
-                    file://./androidLib/src/modeone/shaders
-                    file://./androidLib/src/typeoneModeone/shaders
+                    file://./androidLib/src/modetwo/shaders
+                    file://./androidLib/src/typeoneModetwo/shaders
                     file://./androidLib/src/debug/shaders
-                    file://./androidLib/src/typeoneModeoneDebug/shaders
+                    file://./androidLib/src/typeoneModetwoDebug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./androidLib/src/test/AndroidManifest.xml
                     file://./androidLib/src/testTypeone/AndroidManifest.xml
-                    file://./androidLib/src/testModeone/AndroidManifest.xml
-                    file://./androidLib/src/testTypeoneModeone/AndroidManifest.xml
+                    file://./androidLib/src/testModetwo/AndroidManifest.xml
+                    file://./androidLib/src/testTypeoneModetwo/AndroidManifest.xml
                     file://./androidLib/src/testDebug/AndroidManifest.xml
-                    file://./androidLib/src/testTypeoneModeoneDebug/AndroidManifest.xml
+                    file://./androidLib/src/testTypeoneModetwoDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./androidLib/src/test
                     file://./androidLib/src/testTypeone
-                    file://./androidLib/src/testModeone
-                    file://./androidLib/src/testTypeoneModeone
+                    file://./androidLib/src/testModetwo
+                    file://./androidLib/src/testTypeoneModetwo
                     file://./androidLib/src/testDebug
-                    file://./androidLib/src/testTypeoneModeoneDebug
+                    file://./androidLib/src/testTypeoneModetwoDebug
                 AssetsDirectoryUrls:
                     file://./androidLib/src/test/assets
                     file://./androidLib/src/testTypeone/assets
-                    file://./androidLib/src/testModeone/assets
-                    file://./androidLib/src/testTypeoneModeone/assets
+                    file://./androidLib/src/testModetwo/assets
+                    file://./androidLib/src/testTypeoneModetwo/assets
                     file://./androidLib/src/testDebug/assets
-                    file://./androidLib/src/testTypeoneModeoneDebug/assets
+                    file://./androidLib/src/testTypeoneModetwoDebug/assets
                 JavaDirectoryUrls:
                     file://./androidLib/src/test/java
                     file://./androidLib/src/testTypeone/java
-                    file://./androidLib/src/testModeone/java
-                    file://./androidLib/src/testTypeoneModeone/java
+                    file://./androidLib/src/testModetwo/java
+                    file://./androidLib/src/testTypeoneModetwo/java
                     file://./androidLib/src/testDebug/java
-                    file://./androidLib/src/testTypeoneModeoneDebug/java
+                    file://./androidLib/src/testTypeoneModetwoDebug/java
                 KotlinDirectoryUrls:
                     file://./androidLib/src/test/java
                     file://./androidLib/src/test/kotlin
                     file://./androidLib/src/testTypeone/java
                     file://./androidLib/src/testTypeone/kotlin
-                    file://./androidLib/src/testModeone/java
-                    file://./androidLib/src/testModeone/kotlin
-                    file://./androidLib/src/testTypeoneModeone/java
-                    file://./androidLib/src/testTypeoneModeone/kotlin
+                    file://./androidLib/src/testModetwo/java
+                    file://./androidLib/src/testModetwo/kotlin
+                    file://./androidLib/src/testTypeoneModetwo/java
+                    file://./androidLib/src/testTypeoneModetwo/kotlin
                     file://./androidLib/src/testDebug/java
                     file://./androidLib/src/testDebug/kotlin
-                    file://./androidLib/src/testTypeoneModeoneDebug/java
-                    file://./androidLib/src/testTypeoneModeoneDebug/kotlin
+                    file://./androidLib/src/testTypeoneModetwoDebug/java
+                    file://./androidLib/src/testTypeoneModetwoDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./androidLib/src/test/jniLibs
                     file://./androidLib/src/testTypeone/jniLibs
-                    file://./androidLib/src/testModeone/jniLibs
-                    file://./androidLib/src/testTypeoneModeone/jniLibs
+                    file://./androidLib/src/testModetwo/jniLibs
+                    file://./androidLib/src/testTypeoneModetwo/jniLibs
                     file://./androidLib/src/testDebug/jniLibs
-                    file://./androidLib/src/testTypeoneModeoneDebug/jniLibs
+                    file://./androidLib/src/testTypeoneModetwoDebug/jniLibs
                 ResDirectoryUrls:
                     file://./androidLib/src/test/res
                     file://./androidLib/src/testTypeone/res
-                    file://./androidLib/src/testModeone/res
-                    file://./androidLib/src/testTypeoneModeone/res
+                    file://./androidLib/src/testModetwo/res
+                    file://./androidLib/src/testTypeoneModetwo/res
                     file://./androidLib/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./androidLib/src/test/resources
                     file://./androidLib/src/testTypeone/resources
-                    file://./androidLib/src/testModeone/resources
-                    file://./androidLib/src/testTypeoneModeone/resources
+                    file://./androidLib/src/testModetwo/resources
+                    file://./androidLib/src/testTypeoneModetwo/resources
                     file://./androidLib/src/testDebug/resources
-                    file://./androidLib/src/testTypeoneModeoneDebug/resources
+                    file://./androidLib/src/testTypeoneModetwoDebug/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/test/shaders
                     file://./androidLib/src/testTypeone/shaders
-                    file://./androidLib/src/testModeone/shaders
-                    file://./androidLib/src/testTypeoneModeone/shaders
+                    file://./androidLib/src/testModetwo/shaders
+                    file://./androidLib/src/testTypeoneModetwo/shaders
                     file://./androidLib/src/testDebug/shaders
-                    file://./androidLib/src/testTypeoneModeoneDebug/shaders
+                    file://./androidLib/src/testTypeoneModetwoDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./androidLib/src/androidTest/AndroidManifest.xml
                     file://./androidLib/src/androidTestTypeone/AndroidManifest.xml
-                    file://./androidLib/src/androidTestModeone/AndroidManifest.xml
-                    file://./androidLib/src/androidTestTypeoneModeone/AndroidManifest.xml
+                    file://./androidLib/src/androidTestModetwo/AndroidManifest.xml
+                    file://./androidLib/src/androidTestTypeoneModetwo/AndroidManifest.xml
                     file://./androidLib/src/androidTestDebug/AndroidManifest.xml
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/AndroidManifest.xml
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./androidLib/src/androidTest
                     file://./androidLib/src/androidTestTypeone
-                    file://./androidLib/src/androidTestModeone
-                    file://./androidLib/src/androidTestTypeoneModeone
+                    file://./androidLib/src/androidTestModetwo
+                    file://./androidLib/src/androidTestTypeoneModetwo
                     file://./androidLib/src/androidTestDebug
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug
                 AssetsDirectoryUrls:
                     file://./androidLib/src/androidTest/assets
                     file://./androidLib/src/androidTestTypeone/assets
-                    file://./androidLib/src/androidTestModeone/assets
-                    file://./androidLib/src/androidTestTypeoneModeone/assets
+                    file://./androidLib/src/androidTestModetwo/assets
+                    file://./androidLib/src/androidTestTypeoneModetwo/assets
                     file://./androidLib/src/androidTestDebug/assets
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/assets
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/assets
                 JavaDirectoryUrls:
                     file://./androidLib/src/androidTest/java
                     file://./androidLib/src/androidTestTypeone/java
-                    file://./androidLib/src/androidTestModeone/java
-                    file://./androidLib/src/androidTestTypeoneModeone/java
+                    file://./androidLib/src/androidTestModetwo/java
+                    file://./androidLib/src/androidTestTypeoneModetwo/java
                     file://./androidLib/src/androidTestDebug/java
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/java
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/java
                 KotlinDirectoryUrls:
                     file://./androidLib/src/androidTest/java
                     file://./androidLib/src/androidTest/kotlin
                     file://./androidLib/src/androidTestTypeone/java
                     file://./androidLib/src/androidTestTypeone/kotlin
-                    file://./androidLib/src/androidTestModeone/java
-                    file://./androidLib/src/androidTestModeone/kotlin
-                    file://./androidLib/src/androidTestTypeoneModeone/java
-                    file://./androidLib/src/androidTestTypeoneModeone/kotlin
+                    file://./androidLib/src/androidTestModetwo/java
+                    file://./androidLib/src/androidTestModetwo/kotlin
+                    file://./androidLib/src/androidTestTypeoneModetwo/java
+                    file://./androidLib/src/androidTestTypeoneModetwo/kotlin
                     file://./androidLib/src/androidTestDebug/java
                     file://./androidLib/src/androidTestDebug/kotlin
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/java
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/kotlin
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/java
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./androidLib/src/androidTest/jniLibs
                     file://./androidLib/src/androidTestTypeone/jniLibs
-                    file://./androidLib/src/androidTestModeone/jniLibs
-                    file://./androidLib/src/androidTestTypeoneModeone/jniLibs
+                    file://./androidLib/src/androidTestModetwo/jniLibs
+                    file://./androidLib/src/androidTestTypeoneModetwo/jniLibs
                     file://./androidLib/src/androidTestDebug/jniLibs
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/jniLibs
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/jniLibs
                 ResDirectoryUrls:
                     file://./androidLib/src/androidTest/res
                     file://./androidLib/src/androidTestTypeone/res
-                    file://./androidLib/src/androidTestModeone/res
-                    file://./androidLib/src/androidTestTypeoneModeone/res
+                    file://./androidLib/src/androidTestModetwo/res
+                    file://./androidLib/src/androidTestTypeoneModetwo/res
                     file://./androidLib/src/androidTestDebug/res
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/res
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/res
                 ResourcesDirectoryUrls:
                     file://./androidLib/src/androidTest/resources
                     file://./androidLib/src/androidTestTypeone/resources
-                    file://./androidLib/src/androidTestModeone/resources
-                    file://./androidLib/src/androidTestTypeoneModeone/resources
+                    file://./androidLib/src/androidTestModetwo/resources
+                    file://./androidLib/src/androidTestTypeoneModetwo/resources
                     file://./androidLib/src/androidTestDebug/resources
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/resources
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/androidTest/shaders
                     file://./androidLib/src/androidTestTypeone/shaders
-                    file://./androidLib/src/androidTestModeone/shaders
-                    file://./androidLib/src/androidTestTypeoneModeone/shaders
+                    file://./androidLib/src/androidTestModetwo/shaders
+                    file://./androidLib/src/androidTestTypeoneModetwo/shaders
                     file://./androidLib/src/androidTestDebug/shaders
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/shaders
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/shaders
         TestFixturesSources:
             TestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -830,21 +830,21 @@ MODULE: Kotlin_Multiplatform.androidLib
             GeneratedSources (IDEA)
                 ScopeType: MAIN
                 JavaDirectoryUrls:
-                    file://./androidLib/build/generated/ap_generated_sources/typeoneModeoneDebug/out
+                    file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out
                 ResDirectoryUrls:
-                    file://./androidLib/build/generated/res/resValues/typeoneModeone/debug
+                    file://./androidLib/build/generated/res/resValues/typeoneModetwo/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
-                    file://./androidLib/build/generated/ap_generated_sources/typeoneModeoneDebugUnitTest/out
+                    file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out
         GeneratedAndroidTestSources:
             GeneratedAndroidTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
-                    file://./androidLib/build/generated/ap_generated_sources/typeoneModeoneDebugAndroidTest/out
+                    file://./androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./androidLib/build/generated/res/resValues/androidTest/typeoneModeone/debug
+                    file://./androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -985,48 +985,48 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/typeone/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/typeone/shaders
-            typeoneModeone (IDEA)
+            typeoneModetwo (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
-                    file://./androidLib/src/typeoneModeone/AndroidManifest.xml
+                    file://./androidLib/src/typeoneModetwo/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone
+                    file://./androidLib/src/typeoneModetwo
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/assets
+                    file://./androidLib/src/typeoneModetwo/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/java
+                    file://./androidLib/src/typeoneModetwo/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/java
-                    file://./androidLib/src/typeoneModeone/kotlin
+                    file://./androidLib/src/typeoneModetwo/java
+                    file://./androidLib/src/typeoneModetwo/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/jniLibs
+                    file://./androidLib/src/typeoneModetwo/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/res
+                    file://./androidLib/src/typeoneModetwo/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/resources
+                    file://./androidLib/src/typeoneModetwo/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/shaders
-            typeoneModeoneDebug (IDEA)
+                    file://./androidLib/src/typeoneModetwo/shaders
+            typeoneModetwoDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/AndroidManifest.xml
+                    file://./androidLib/src/typeoneModetwoDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug
+                    file://./androidLib/src/typeoneModetwoDebug
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/assets
+                    file://./androidLib/src/typeoneModetwoDebug/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/java
+                    file://./androidLib/src/typeoneModetwoDebug/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/java
-                    file://./androidLib/src/typeoneModeoneDebug/kotlin
+                    file://./androidLib/src/typeoneModetwoDebug/java
+                    file://./androidLib/src/typeoneModetwoDebug/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/jniLibs
+                    file://./androidLib/src/typeoneModetwoDebug/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/res
+                    file://./androidLib/src/typeoneModetwoDebug/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/resources
+                    file://./androidLib/src/typeoneModetwoDebug/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/shaders
+                    file://./androidLib/src/typeoneModetwoDebug/shaders
             typetwo (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1101,48 +1101,48 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/typeone/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/typeone/shaders
-            modeone (IDEA)
+            modetwo (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
-                    file://./androidLib/src/modeone/AndroidManifest.xml
+                    file://./androidLib/src/modetwo/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/modeone
+                    file://./androidLib/src/modetwo
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/modeone/assets
+                    file://./androidLib/src/modetwo/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/modeone/java
+                    file://./androidLib/src/modetwo/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/modeone/java
-                    file://./androidLib/src/modeone/kotlin
+                    file://./androidLib/src/modetwo/java
+                    file://./androidLib/src/modetwo/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/modeone/jniLibs
+                    file://./androidLib/src/modetwo/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/modeone/res
+                    file://./androidLib/src/modetwo/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/modeone/resources
+                    file://./androidLib/src/modetwo/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/modeone/shaders
-            typeoneModeone (IDEA)
+                    file://./androidLib/src/modetwo/shaders
+            typeoneModetwo (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
-                    file://./androidLib/src/typeoneModeone/AndroidManifest.xml
+                    file://./androidLib/src/typeoneModetwo/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone
+                    file://./androidLib/src/typeoneModetwo
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/assets
+                    file://./androidLib/src/typeoneModetwo/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/java
+                    file://./androidLib/src/typeoneModetwo/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/java
-                    file://./androidLib/src/typeoneModeone/kotlin
+                    file://./androidLib/src/typeoneModetwo/java
+                    file://./androidLib/src/typeoneModetwo/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/jniLibs
+                    file://./androidLib/src/typeoneModetwo/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/res
+                    file://./androidLib/src/typeoneModetwo/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/resources
+                    file://./androidLib/src/typeoneModetwo/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/typeoneModeone/shaders
+                    file://./androidLib/src/typeoneModetwo/shaders
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -1164,27 +1164,27 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/debug/shaders
-            typeoneModeoneDebug (IDEA)
+            typeoneModetwoDebug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/AndroidManifest.xml
+                    file://./androidLib/src/typeoneModetwoDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug
+                    file://./androidLib/src/typeoneModetwoDebug
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/assets
+                    file://./androidLib/src/typeoneModetwoDebug/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/java
+                    file://./androidLib/src/typeoneModetwoDebug/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/java
-                    file://./androidLib/src/typeoneModeoneDebug/kotlin
+                    file://./androidLib/src/typeoneModetwoDebug/java
+                    file://./androidLib/src/typeoneModetwoDebug/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/jniLibs
+                    file://./androidLib/src/typeoneModetwoDebug/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/res
+                    file://./androidLib/src/typeoneModetwoDebug/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/resources
+                    file://./androidLib/src/typeoneModetwoDebug/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/typeoneModeoneDebug/shaders
+                    file://./androidLib/src/typeoneModetwoDebug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -1228,48 +1228,48 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/testTypeone/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/testTypeone/shaders
-            testModeone (IDEA)
+            testModetwo (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
-                    file://./androidLib/src/testModeone/AndroidManifest.xml
+                    file://./androidLib/src/testModetwo/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/testModeone
+                    file://./androidLib/src/testModetwo
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/testModeone/assets
+                    file://./androidLib/src/testModetwo/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/testModeone/java
+                    file://./androidLib/src/testModetwo/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/testModeone/java
-                    file://./androidLib/src/testModeone/kotlin
+                    file://./androidLib/src/testModetwo/java
+                    file://./androidLib/src/testModetwo/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/testModeone/jniLibs
+                    file://./androidLib/src/testModetwo/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/testModeone/res
+                    file://./androidLib/src/testModetwo/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/testModeone/resources
+                    file://./androidLib/src/testModetwo/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/testModeone/shaders
-            testTypeoneModeone (IDEA)
+                    file://./androidLib/src/testModetwo/shaders
+            testTypeoneModetwo (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
-                    file://./androidLib/src/testTypeoneModeone/AndroidManifest.xml
+                    file://./androidLib/src/testTypeoneModetwo/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeone
+                    file://./androidLib/src/testTypeoneModetwo
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeone/assets
+                    file://./androidLib/src/testTypeoneModetwo/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeone/java
+                    file://./androidLib/src/testTypeoneModetwo/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeone/java
-                    file://./androidLib/src/testTypeoneModeone/kotlin
+                    file://./androidLib/src/testTypeoneModetwo/java
+                    file://./androidLib/src/testTypeoneModetwo/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeone/jniLibs
+                    file://./androidLib/src/testTypeoneModetwo/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeone/res
+                    file://./androidLib/src/testTypeoneModetwo/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeone/resources
+                    file://./androidLib/src/testTypeoneModetwo/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeone/shaders
+                    file://./androidLib/src/testTypeoneModetwo/shaders
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -1291,25 +1291,25 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/testDebug/shaders
-            testTypeoneModeoneDebug (IDEA)
+            testTypeoneModetwoDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
-                    file://./androidLib/src/testTypeoneModeoneDebug/AndroidManifest.xml
+                    file://./androidLib/src/testTypeoneModetwoDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeoneDebug
+                    file://./androidLib/src/testTypeoneModetwoDebug
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeoneDebug/assets
+                    file://./androidLib/src/testTypeoneModetwoDebug/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeoneDebug/java
+                    file://./androidLib/src/testTypeoneModetwoDebug/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeoneDebug/java
-                    file://./androidLib/src/testTypeoneModeoneDebug/kotlin
+                    file://./androidLib/src/testTypeoneModetwoDebug/java
+                    file://./androidLib/src/testTypeoneModetwoDebug/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeoneDebug/jniLibs
+                    file://./androidLib/src/testTypeoneModetwoDebug/jniLibs
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeoneDebug/resources
+                    file://./androidLib/src/testTypeoneModetwoDebug/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/testTypeoneModeoneDebug/shaders
+                    file://./androidLib/src/testTypeoneModetwoDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -1353,48 +1353,48 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/androidTestTypeone/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/androidTestTypeone/shaders
-            androidTestModeone (IDEA)
+            androidTestModetwo (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
-                    file://./androidLib/src/androidTestModeone/AndroidManifest.xml
+                    file://./androidLib/src/androidTestModetwo/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/androidTestModeone
+                    file://./androidLib/src/androidTestModetwo
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/androidTestModeone/assets
+                    file://./androidLib/src/androidTestModetwo/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/androidTestModeone/java
+                    file://./androidLib/src/androidTestModetwo/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/androidTestModeone/java
-                    file://./androidLib/src/androidTestModeone/kotlin
+                    file://./androidLib/src/androidTestModetwo/java
+                    file://./androidLib/src/androidTestModetwo/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/androidTestModeone/jniLibs
+                    file://./androidLib/src/androidTestModetwo/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/androidTestModeone/res
+                    file://./androidLib/src/androidTestModetwo/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/androidTestModeone/resources
+                    file://./androidLib/src/androidTestModetwo/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/androidTestModeone/shaders
-            androidTestTypeoneModeone (IDEA)
+                    file://./androidLib/src/androidTestModetwo/shaders
+            androidTestTypeoneModetwo (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone/AndroidManifest.xml
+                    file://./androidLib/src/androidTestTypeoneModetwo/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone
+                    file://./androidLib/src/androidTestTypeoneModetwo
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone/assets
+                    file://./androidLib/src/androidTestTypeoneModetwo/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone/java
+                    file://./androidLib/src/androidTestTypeoneModetwo/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone/java
-                    file://./androidLib/src/androidTestTypeoneModeone/kotlin
+                    file://./androidLib/src/androidTestTypeoneModetwo/java
+                    file://./androidLib/src/androidTestTypeoneModetwo/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone/jniLibs
+                    file://./androidLib/src/androidTestTypeoneModetwo/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone/res
+                    file://./androidLib/src/androidTestTypeoneModetwo/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone/resources
+                    file://./androidLib/src/androidTestTypeoneModetwo/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeone/shaders
+                    file://./androidLib/src/androidTestTypeoneModetwo/shaders
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -1416,27 +1416,27 @@ MODULE: Kotlin_Multiplatform.androidLib
                     file://./androidLib/src/androidTestDebug/resources
                 ShadersDirectoryUrls:
                     file://./androidLib/src/androidTestDebug/shaders
-            androidTestTypeoneModeoneDebug (IDEA)
+            androidTestTypeoneModetwoDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/AndroidManifest.xml
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug
                 AssetsDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/assets
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/assets
                 JavaDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/java
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/java
                 KotlinDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/java
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/kotlin
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/java
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/kotlin
                 JniLibsDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/jniLibs
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/jniLibs
                 ResDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/res
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/res
                 ResourcesDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/resources
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/resources
                 ShadersDirectoryUrls:
-                    file://./androidLib/src/androidTestTypeoneModeoneDebug/shaders
+                    file://./androidLib/src/androidTestTypeoneModetwoDebug/shaders
         CurrentTestFixturesSourceProviders:
 MODULE: Kotlin_Multiplatform.app
     by Facet:

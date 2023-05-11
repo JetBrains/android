@@ -23,6 +23,82 @@ MODULE                        : Kotlin_Multiplatform
         TEST_COMPILE_MODE             : Unit tests
         TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+    - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+        artifactAddress               : org.jetbrains:annotations:13.0@jar
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::androidLib@typeoneModetwoDebug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/androidLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :androidLib
+        sourceSet                     : MAIN
+        variant                       : typeoneModetwoDebug
+    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpSecondLib@androidMain/androidMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpSecondLib
+        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpSecondLib@androidMain/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpSecondLib
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpJvmOnly/jvmMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :kmpJvmOnly
+        sourceSet                     : jvmMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+    - library                     : <ROOT>::kmpJvmOnly/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :kmpJvmOnly
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+    - library                     : <ROOT>::kmpJvmOnly/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :kmpJvmOnly
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
     - library                     : junit:junit:4.13.2 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
         artifactAddress               : junit:junit:4.13.2@jar
@@ -67,12 +143,58 @@ LIBRARY_TABLE
         projectPath                   : :app
         sourceSet                     : MAIN
         variant                       : debug
-    - library                     : <ROOT>::androidLib@typeoneModeoneDebug (IdeModuleLibraryImpl)
+    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/androidLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :androidLib
-        sourceSet                     : MAIN
-        variant                       : typeoneModeoneDebug
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpSecondLib@androidMain/androidMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpSecondLib
+        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpSecondLib@androidMain/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpSecondLib
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+        variant                       : androidMain
+    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :kmpFirstLib
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
+        variant                       : androidMain
 MODULE                        : Kotlin_Multiplatform
     externalProject               : Kotlin Multiplatform (DefaultExternalProject)
         path                          : : [-]
@@ -1442,9 +1564,9 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 AssembleTaskName              : assembleTypetwoModetwoRelease
     IdeVariants
         IdeVariant
-            Name                          : typeoneModeoneDebug
+            Name                          : typeoneModetwoDebug
             BuildType                     : debug
-            DisplayName                   : typeone-modeone-debug
+            DisplayName                   : typeone-modetwo-debug
             InstantAppCompatible          : false
             MinSdkVersion
                 ApiLevel                      : 21
@@ -1454,86 +1576,86 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 ApiString                     : <SDK_VERSION>
             VersionNameSuffix             :
             ProductFlavors                : typeone
-            ProductFlavors                : modeone
+            ProductFlavors                : modetwo
             MainArtifact
                 Name                          : MAIN
-                CompileTaskName               : compileTypeoneModeoneDebugSources
-                AssembleTaskName              : assembleTypeoneModeoneDebug
+                CompileTaskName               : compileTypeoneModetwoDebugSources
+                AssembleTaskName              : assembleTypeoneModetwoDebug
                 IsTestArtifact                : false
-                IdeSetupTaskNames             : generateTypeoneModeoneDebugSources
-                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebug/out [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModeoneDebug/R.jar [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModeoneDebug/classes [-]
+                IdeSetupTaskNames             : generateTypeoneModetwoDebugSources
+                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebug/out [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_r_class_jar/typeoneModetwoDebug/R.jar [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebug/classes [-]
                 VariantSourceProvider
-                    Name                          : typeoneModeoneDebug
-                    Manifest                      : <ROOT>/androidLib/src/typeoneModeoneDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/androidLib/src/typeoneModeoneDebug/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/typeoneModeoneDebug/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/typeoneModeoneDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/androidLib/src/typeoneModeoneDebug/resources [-]
-                    ResDirectories                : <ROOT>/androidLib/src/typeoneModeoneDebug/res [-]
-                    AssetsDirectories             : <ROOT>/androidLib/src/typeoneModeoneDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModeoneDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/typeoneModeoneDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModeoneDebug/baselineProfiles [-]
+                    Name                          : typeoneModetwoDebug
+                    Manifest                      : <ROOT>/androidLib/src/typeoneModetwoDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/androidLib/src/typeoneModetwoDebug/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/typeoneModetwoDebug/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/typeoneModetwoDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/androidLib/src/typeoneModetwoDebug/resources [-]
+                    ResDirectories                : <ROOT>/androidLib/src/typeoneModetwoDebug/res [-]
+                    AssetsDirectories             : <ROOT>/androidLib/src/typeoneModetwoDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModetwoDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/androidLib/src/typeoneModetwoDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
-                    Name                          : typeoneModeone
-                    Manifest                      : <ROOT>/androidLib/src/typeoneModeone/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/androidLib/src/typeoneModeone/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/typeoneModeone/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/typeoneModeone/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/androidLib/src/typeoneModeone/resources [-]
-                    ResDirectories                : <ROOT>/androidLib/src/typeoneModeone/res [-]
-                    AssetsDirectories             : <ROOT>/androidLib/src/typeoneModeone/assets [-]
-                    JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/typeoneModeone/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModeone/baselineProfiles [-]
+                    Name                          : typeoneModetwo
+                    Manifest                      : <ROOT>/androidLib/src/typeoneModetwo/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/androidLib/src/typeoneModetwo/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/typeoneModetwo/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/typeoneModetwo/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/androidLib/src/typeoneModetwo/resources [-]
+                    ResDirectories                : <ROOT>/androidLib/src/typeoneModetwo/res [-]
+                    AssetsDirectories             : <ROOT>/androidLib/src/typeoneModetwo/assets [-]
+                    JniLibsDirectories            : <ROOT>/androidLib/src/typeoneModetwo/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/androidLib/src/typeoneModetwo/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/androidLib/src/typeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
-                    AssembleTaskName              : assembleTypeoneModeoneDebug
-                GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModeone/debug [-]
+                    AssembleTaskName              : assembleTypeoneModetwoDebug
+                GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
                     Type                          : BASIC
-                    TaskName                      : createTypeoneModeoneDebugVariantModel
-                    File                          : <ROOT>/androidLib/build/intermediates/variant_model/typeoneModeoneDebug/variant_model.json [-]
+                    TaskName                      : createTypeoneModetwoDebugVariantModel
+                    File                          : <ROOT>/androidLib/build/intermediates/variant_model/typeoneModetwoDebug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
-                CompileTaskName               : compileTypeoneModeoneDebugAndroidTestSources
-                AssembleTaskName              : assembleTypeoneModeoneDebugAndroidTest
+                CompileTaskName               : compileTypeoneModetwoDebugAndroidTestSources
+                AssembleTaskName              : assembleTypeoneModetwoDebugAndroidTest
                 IsTestArtifact                : true
-                IdeSetupTaskNames             : generateTypeoneModeoneDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/typeoneModeoneDebugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModeoneDebugAndroidTest/classes [-]
+                IdeSetupTaskNames             : generateTypeoneModetwoDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/typeoneModetwoDebugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebugAndroidTest/classes [-]
                 VariantSourceProvider
-                    Name                          : androidTestTypeoneModeoneDebug
-                    Manifest                      : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/resources [-]
-                    ResDirectories                : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/res [-]
-                    AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModeoneDebug/baselineProfiles [-]
+                    Name                          : androidTestTypeoneModetwoDebug
+                    Manifest                      : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/resources [-]
+                    ResDirectories                : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/res [-]
+                    AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
-                    Name                          : androidTestTypeoneModeone
-                    Manifest                      : <ROOT>/androidLib/src/androidTestTypeoneModeone/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/androidLib/src/androidTestTypeoneModeone/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModeone/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModeone/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/androidLib/src/androidTestTypeoneModeone/resources [-]
-                    ResDirectories                : <ROOT>/androidLib/src/androidTestTypeoneModeone/res [-]
-                    AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModeone/assets [-]
-                    JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModeone/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModeone/baselineProfiles [-]
+                    Name                          : androidTestTypeoneModetwo
+                    Manifest                      : <ROOT>/androidLib/src/androidTestTypeoneModetwo/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/androidLib/src/androidTestTypeoneModetwo/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwo/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwo/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/androidLib/src/androidTestTypeoneModetwo/resources [-]
+                    ResDirectories                : <ROOT>/androidLib/src/androidTestTypeoneModetwo/res [-]
+                    AssetsDirectories             : <ROOT>/androidLib/src/androidTestTypeoneModetwo/assets [-]
+                    JniLibsDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwo/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/androidLib/src/androidTestTypeoneModetwo/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/androidLib/src/androidTestTypeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:androidLib-MAIN
@@ -1544,45 +1666,45 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 IsSigned                      : true
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
-                    AssembleTaskName              : assembleTypeoneModeoneDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/androidLib/build/intermediates/apk_ide_redirect_file/typeoneModeoneDebugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/androidTest/typeoneModeone/debug [-]
+                    AssembleTaskName              : assembleTypeoneModetwoDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/androidLib/build/intermediates/apk_ide_redirect_file/typeoneModetwoDebugAndroidTest/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/androidTest/typeoneModetwo/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
             UnitTestArtifact
                 Name                          : UNIT_TEST
-                CompileTaskName               : compileTypeoneModeoneDebugUnitTestSources
-                AssembleTaskName              : assembleTypeoneModeoneDebugUnitTest
+                CompileTaskName               : compileTypeoneModetwoDebugUnitTestSources
+                AssembleTaskName              : assembleTypeoneModetwoDebugUnitTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
-                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModeoneDebugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/typeoneModeoneDebugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModeoneDebugUnitTest/classes [-]
+                GeneratedSourceFolders        : <ROOT>/androidLib/build/generated/ap_generated_sources/typeoneModetwoDebugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/typeoneModetwoDebugUnitTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/androidLib/build/intermediates/javac/typeoneModetwoDebugUnitTest/classes [-]
                 VariantSourceProvider
-                    Name                          : testTypeoneModeoneDebug
-                    Manifest                      : <ROOT>/androidLib/src/testTypeoneModeoneDebug/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/androidLib/src/testTypeoneModeoneDebug/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/testTypeoneModeoneDebug/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/testTypeoneModeoneDebug/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/androidLib/src/testTypeoneModeoneDebug/resources [-]
-                    AssetsDirectories             : <ROOT>/androidLib/src/testTypeoneModeoneDebug/assets [-]
-                    JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModeoneDebug/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeoneModeoneDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModeoneDebug/baselineProfiles [-]
+                    Name                          : testTypeoneModetwoDebug
+                    Manifest                      : <ROOT>/androidLib/src/testTypeoneModetwoDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/androidLib/src/testTypeoneModetwoDebug/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/testTypeoneModetwoDebug/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/testTypeoneModetwoDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/androidLib/src/testTypeoneModetwoDebug/resources [-]
+                    AssetsDirectories             : <ROOT>/androidLib/src/testTypeoneModetwoDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModetwoDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeoneModetwoDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModetwoDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
-                    Name                          : testTypeoneModeone
-                    Manifest                      : <ROOT>/androidLib/src/testTypeoneModeone/AndroidManifest.xml [-]
-                    JavaDirectories               : <ROOT>/androidLib/src/testTypeoneModeone/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/testTypeoneModeone/java [-]
-                    KotlinDirectories             : <ROOT>/androidLib/src/testTypeoneModeone/kotlin [-]
-                    ResourcesDirectories          : <ROOT>/androidLib/src/testTypeoneModeone/resources [-]
-                    ResDirectories                : <ROOT>/androidLib/src/testTypeoneModeone/res [-]
-                    AssetsDirectories             : <ROOT>/androidLib/src/testTypeoneModeone/assets [-]
-                    JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModeone/jniLibs [-]
-                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeoneModeone/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModeone/baselineProfiles [-]
+                    Name                          : testTypeoneModetwo
+                    Manifest                      : <ROOT>/androidLib/src/testTypeoneModetwo/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/androidLib/src/testTypeoneModetwo/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/testTypeoneModetwo/java [-]
+                    KotlinDirectories             : <ROOT>/androidLib/src/testTypeoneModetwo/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/androidLib/src/testTypeoneModetwo/resources [-]
+                    ResDirectories                : <ROOT>/androidLib/src/testTypeoneModetwo/res [-]
+                    AssetsDirectories             : <ROOT>/androidLib/src/testTypeoneModetwo/assets [-]
+                    JniLibsDirectories            : <ROOT>/androidLib/src/testTypeoneModetwo/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/androidLib/src/testTypeoneModetwo/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/androidLib/src/testTypeoneModetwo/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:androidLib-MAIN
@@ -1858,7 +1980,53 @@ MODULE                        : Kotlin_Multiplatform.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
                     compileClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:kmpFirstLib-androidMain
+                        module                        : <ROOT>-:kmpFirstLib-commonMain
+                            module                        : <ROOT>-:androidLib-MAIN
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:androidLib-MAIN
                     runtimeClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:kmpFirstLib-androidMain
+                        module                        : <ROOT>-:kmpFirstLib-commonMain
+                            module                        : <ROOT>-:androidLib-MAIN
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            module                        : <ROOT>-:kmpSecondLib-androidMain
+                            module                        : <ROOT>-:kmpSecondLib-commonMain
+                            module                        : <ROOT>-:kmpJvmOnly-jvmMain
+                            module                        : <ROOT>-:kmpJvmOnly-commonMain
+                            module                        : <ROOT>-:kmpJvmOnly-commonMain
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:androidLib-MAIN
+                        module                        : <ROOT>-:kmpSecondLib-androidMain
+                        module                        : <ROOT>-:kmpSecondLib-commonMain
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:kmpJvmOnly-jvmMain
+                        module                        : <ROOT>-:kmpJvmOnly-commonMain
+                        module                        : <ROOT>-:kmpJvmOnly-commonMain
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                 ApplicationId                 : com.example.app
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1887,8 +2055,30 @@ MODULE                        : Kotlin_Multiplatform.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
                     compileClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:kmpFirstLib-androidMain
+                        module                        : <ROOT>-:kmpFirstLib-commonMain
+                            module                        : <ROOT>-:androidLib-MAIN
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:androidLib-MAIN
                     runtimeClasspath
+                ProvidedDependencies
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                    - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : com.example.app.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1912,6 +2102,16 @@ MODULE                        : Kotlin_Multiplatform.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
                     compileClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : junit:junit:4.13.2@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1940,7 +2140,23 @@ MODULE                        : Kotlin_Multiplatform.app
                         javaLibrary                   : com.googlecode.java-diff-utils:diffutils:1.3.0@jar
                         javaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3@jar
                         module                        : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:kmpFirstLib-androidMain
+                        module                        : <ROOT>-:kmpFirstLib-commonMain
+                            module                        : <ROOT>-:androidLib-MAIN
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:androidLib-MAIN
                     runtimeClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        javaLibrary                   : org.jetbrains:annotations:13.0@jar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : junit:junit:4.13.2@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
@@ -1969,6 +2185,28 @@ MODULE                        : Kotlin_Multiplatform.app
                         javaLibrary                   : com.googlecode.java-diff-utils:diffutils:1.3.0@jar
                         javaLibrary                   : com.google.auto.value:auto-value-annotations:1.6.3@jar
                         module                        : <ROOT>-:app-MAIN
+                            module                        : <ROOT>-:kmpFirstLib-androidMain
+                            module                        : <ROOT>-:kmpFirstLib-commonMain
+                        module                        : <ROOT>-:kmpFirstLib-androidMain
+                        module                        : <ROOT>-:kmpFirstLib-commonMain
+                            module                        : <ROOT>-:androidLib-MAIN
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            module                        : <ROOT>-:kmpSecondLib-androidMain
+                            module                        : <ROOT>-:kmpSecondLib-commonMain
+                            module                        : <ROOT>-:kmpJvmOnly-jvmMain
+                            module                        : <ROOT>-:kmpJvmOnly-commonMain
+                            module                        : <ROOT>-:kmpJvmOnly-commonMain
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:androidLib-MAIN
+                        module                        : <ROOT>-:kmpSecondLib-androidMain
+                        module                        : <ROOT>-:kmpSecondLib-commonMain
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                        module                        : <ROOT>-:kmpJvmOnly-jvmMain
+                        module                        : <ROOT>-:kmpJvmOnly-commonMain
+                        module                        : <ROOT>-:kmpJvmOnly-commonMain
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : Kotlin_Multiplatform.app.androidTest
