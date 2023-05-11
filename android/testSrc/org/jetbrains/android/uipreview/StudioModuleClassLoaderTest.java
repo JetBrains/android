@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.projectsystem.ProjectSystemBuildUtil.PROJECT_SYSTEM_BUILD_TOPIC;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
@@ -24,6 +25,8 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
+import com.android.tools.idea.projectsystem.ProjectBuildTracker;
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration;
@@ -48,6 +51,7 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.SourceFolder;
@@ -92,7 +96,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
    * Generates an empty R class file with one static field ID = "FileID"
    */
   @SuppressWarnings("SameParameterValue")
-  private static void generateRClass(@NotNull String pkg, @NotNull File outputFile) throws IOException {
+  private static void generateRClass(@NotNull Project project, @NotNull String pkg, @NotNull File outputFile) throws IOException {
     File tmpDir = Files.createTempDirectory("source").toFile();
     File tmpClass = new File(tmpDir, "R.java");
     FileUtil.writeToFile(tmpClass,
@@ -101,9 +105,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
                          "      public static final String ID = \"FileID\";" +
                          "}");
 
-    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
-    javac.run(null, System.out, System.err, tmpClass.getAbsolutePath());
-
+    buildFile(project, tmpClass.getAbsolutePath());
     FileUtil.copy(new File(tmpDir, "R.class"), outputFile);
   }
 
@@ -116,7 +118,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     assertTrue(FileUtil.createDirectory(outputDir));
     CompilerProjectExtension.getInstance(getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
 
-    generateRClass("test", new File(outputDir, "R.class"));
+    generateRClass(getProject(), "test", new File(outputDir, "R.class"));
 
     ApplicationManager.getApplication().runReadAction(() -> {
       ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(module), this);
@@ -157,7 +159,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     assertTrue(FileUtil.createDirectory(outputDir));
     Objects.requireNonNull(CompilerProjectExtension.getInstance(getProject())).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
 
-    generateRClass("test", new File(outputDir, "R.class"));
+    generateRClass(getProject(), "test", new File(outputDir, "R.class"));
 
     StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
     ResourceNamespace namespace = Objects.requireNonNull(repositoryManager).getNamespace();
@@ -210,8 +212,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
       (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule,
                                                                 Objects.requireNonNull(VfsUtil.findFileByIoFile(srcDir.toFile(), true))));
 
-    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
-    javac.run(null, null, null, aClassSrc.toString());
+    buildFile(getProject(), aClassSrc.toString());
 
     StudioModuleClassLoader loader =
       (StudioModuleClassLoader)StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
@@ -276,8 +277,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     Path packageDir = Files.createDirectories(moduleCompileOutputPath.resolve("p1/p2"));
     Path rSrcFile = Files.createFile(packageDir.resolve("R.java"));
     FileUtil.writeToFile(rSrcFile.toFile(), "package com.google.example; public class R { }");
-    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
-    javac.run(null, System.out, System.err, rSrcFile.toString());
+    buildFile(getProject(), rSrcFile.toString());
 
     // Now, the class should be found, regardless of final IDs being used or not.
     assertNotNull(loader.loadClass("p1.p2.R"));
@@ -420,5 +420,15 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
         "symbolFile",
         it -> it
       ));
+  }
+
+  /**
+   * Builds the given file using javac.
+   */
+  private static void buildFile(@NotNull Project project, @NotNull String javaFilePath) {
+    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+    javac.run(null, System.out, System.err, javaFilePath);
+    project.getMessageBus().syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildCompleted(new ProjectSystemBuildManager.BuildResult(
+      ProjectSystemBuildManager.BuildMode.COMPILE, ProjectSystemBuildManager.BuildStatus.SUCCESS, System.currentTimeMillis()));
   }
 }

@@ -205,6 +205,14 @@ public final class StudioFlags {
     "Files larger than the cache limit will cause a file miss and the file will need to be read again.",
     20_000_000L
   );
+
+  public static final Flag<Long> GRADLE_CLASS_FINDER_CACHE_LIMIT = Flag.create(
+    DESIGN_TOOLS,
+    "gradle.class.finder.cache.max.size",
+    "Configure the max size of the cache used by GradleClassFileFinder",
+    "Allow configuring the maximum number of file references to be kept.",
+    150L
+  );
   //endregion
 
   //region Layout Editor

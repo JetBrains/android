@@ -129,8 +129,8 @@ class GradleModuleSystem(
       null -> AndroidModuleSystem.Type.TYPE_NON_ANDROID
     }
 
-  override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder(module)
-  private val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder(module, true)
+  override val moduleClassFileFinder: ClassFileFinder = GradleClassFileFinder.create(module, false)
+  private val androidTestsClassFileFinder: ClassFileFinder = GradleClassFileFinder.create(module, true)
 
   private val dependencyCompatibility = GradleDependencyCompatibilityAnalyzer(this, projectBuildModelHandler)
 
