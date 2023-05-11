@@ -346,7 +346,7 @@ internal class PreviewAnnotationCheckTest {
         import androidx.compose.ui.tooling.preview.Preview
         import $COMPOSABLE_ANNOTATION_FQ_NAME
 
-        @Preview(device = "name:Nexus 10")
+        @Preview(device = "name:Pixel Tablet")
         @Composable
         fun myFun() {}
 """

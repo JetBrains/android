@@ -72,20 +72,20 @@ internal class DeviceSpecCompletionContributorTest {
 
   @Test
   fun providedDeviceInId() {
-    fixture.completeDeviceSpec("id:Nexus 7$caret")
+    fixture.completeDeviceSpec("id:pixel_7$caret")
 
     assertEquals(2, fixture.lookupElementStrings!!.size)
-    assertEquals("Nexus 7", fixture.lookupElementStrings!![0])
-    assertEquals("Nexus 7 2013", fixture.lookupElementStrings!![1])
+    assertEquals("pixel_7", fixture.lookupElementStrings!![0])
+    assertEquals("pixel_7_pro", fixture.lookupElementStrings!![1])
   }
 
   @Test
   fun providedDeviceInParent() {
-    fixture.completeDeviceSpec("spec:parent=Nexus 7$caret")
+    fixture.completeDeviceSpec("spec:parent=pixel_7$caret")
 
     assertEquals(2, fixture.lookupElementStrings!!.size)
-    assertEquals("Nexus 7", fixture.lookupElementStrings!![0])
-    assertEquals("Nexus 7 2013", fixture.lookupElementStrings!![1])
+    assertEquals("pixel_7", fixture.lookupElementStrings!![0])
+    assertEquals("pixel_7_pro", fixture.lookupElementStrings!![1])
   }
 
   @Test
