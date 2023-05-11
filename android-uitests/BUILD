@@ -1480,7 +1480,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.LocalApkProjTest"],
     tags = COMMON_TAGS + [
-        "no-remote",
         "no_windows",
         "qa_smoke",
         "requires-fakeroot",
@@ -1497,7 +1496,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.APKDebuggingProjTest"],
     tags = COMMON_TAGS + [
-        "no-remote",
         "no_windows",
         "qa_smoke",
         "requires-fakeroot",
@@ -2653,7 +2651,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsEditingTest"],
     tags = COMMON_TAGS + [
-        "no-remote",
         "no_windows",
         "qa_fast",
         "qa_fast_unreliable",  # b/111997969
