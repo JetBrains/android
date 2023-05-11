@@ -17,6 +17,7 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.annotations.Nullable;
+import com.android.tools.idea.diagnostics.StudioCrashDetails;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReport;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
@@ -28,7 +29,6 @@ import com.intellij.diagnostic.ReportMessages;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.idea.IdeaLogger;
-import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.CommonDataKeys;

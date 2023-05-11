@@ -16,8 +16,8 @@
 @file:JvmName("StudioCrash")
 package com.android.tools.idea.rendering
 
-import com.intellij.internal.statistic.analytics.StudioCrashDetails
-import com.intellij.internal.statistic.analytics.StudioCrashDetection
+import com.android.tools.idea.diagnostics.StudioCrashDetails
+import com.android.tools.idea.diagnostics.StudioCrashDetection
 
 private fun isCrashCausedByLayoutlib(crash: StudioCrashDetails): Boolean {
   return crash.isJvmCrash &&

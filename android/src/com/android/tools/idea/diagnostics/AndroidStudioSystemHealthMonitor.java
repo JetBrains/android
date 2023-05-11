@@ -78,8 +78,6 @@ import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.AppMode;
-import com.intellij.internal.statistic.analytics.StudioCrashDetails;
-import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
 import com.intellij.notification.BrowseNotificationAction;
 import com.intellij.notification.Notification;
@@ -88,13 +86,14 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationFullContent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.Service;
@@ -108,9 +107,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.startup.StartupManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
@@ -129,12 +130,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -237,6 +240,15 @@ public final class AndroidStudioSystemHealthMonitor {
 
   public boolean hasPendingHeapReport() throws IOException {
     return myReportsDatabase.getReports().stream().anyMatch(r -> r instanceof UnanalyzedHeapReport);
+  }
+
+  private final List<Runnable> myOomListeners = new LinkedList<>();
+  private final Executor myOomListenersExecutor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("OutOfMemory-notifier", 1);
+
+  public void registerOutOfMemoryErrorListener(Runnable runnable, Disposable parentDisposable) {
+    myOomListeners.add(runnable);
+    Disposer.register(parentDisposable, () -> myOomListeners.remove(runnable));
   }
 
   public static @NotNull AndroidStudioSystemHealthMonitor getInstance() {
@@ -497,8 +509,8 @@ public final class AndroidStudioSystemHealthMonitor {
     sendInitialIDEModes();
 
     StudioCrashDetection.start();
-    StudioCrashDetection.updateRecordedVersionNumber(ApplicationInfo.getInstance().getStrictVersion());
     startActivityMonitoring();
+    startSystemHealthDataCollection();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());
     RecordingManager.getInstance().init(this::tryAppendReportToDatabase);
 
@@ -533,6 +545,10 @@ public final class AndroidStudioSystemHealthMonitor {
       }
     });
     ThreadSamplingReport.startCollectingThreadSamplingReports(this::tryAppendReportToDatabase);
+  }
+
+  private void startSystemHealthDataCollection() {
+    SystemHealthDataCollection.getInstance().start();
   }
 
   /**
@@ -645,6 +661,10 @@ public final class AndroidStudioSystemHealthMonitor {
 
   private boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind kind) {
     Throwable t = event.getThrowable();
+
+    if (t instanceof OutOfMemoryError) {
+      myOomListenersExecutor.execute(() -> myOomListeners.forEach(Runnable::run));
+    }
 
     if (myExceptionDataCollection.requiresConfirmation(t)) {
       UploadFields fields = myExceptionDataCollection.getExceptionUploadFields(event.getThrowable(), false, true);
