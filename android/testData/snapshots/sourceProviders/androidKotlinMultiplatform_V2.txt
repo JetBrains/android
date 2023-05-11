@@ -2035,7 +2035,7 @@ Build configuration files:
     file://./app/build.gradle.kts : Module :app [2000008]
     file://./kmpFirstLib/build.gradle.kts : Module :kmpFirstLib [2000014]
     file://./kmpJvmOnly/build.gradle.kts : Module :kmpJvmOnly [2000019]
-    file://./kmpSecondLib/build.gradle.kts : Module :kmpSecondLib [2000027]
+    file://./kmpSecondLib/build.gradle.kts : Module :kmpSecondLib [2000025]
     file://./settings.gradle : Project Settings [3000000]
     file://./gradle.properties : Project Properties [3000000]
     file://./gradle/wrapper/gradle-wrapper.properties : Gradle Version [3000000]
