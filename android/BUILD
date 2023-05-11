@@ -296,7 +296,6 @@ iml_module(
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
     test_jvm_flags = [
-        # TODO: http://b/281902830
         # TODO: http://b/281905227
         "-Didea.leak.check.enabled=false",
         "-Djdk.attach.allowAttachSelf=true",
