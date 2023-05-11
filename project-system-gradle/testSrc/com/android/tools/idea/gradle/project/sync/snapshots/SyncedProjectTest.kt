@@ -65,6 +65,9 @@ abstract class SyncedProjectTest(
   }
 
   @Test
+  fun testAndroidKotlinMultiplatform() = testProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
+
+  @Test
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
 
   @Test

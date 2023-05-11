@@ -134,6 +134,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
         TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE,
         skipV1toV2Comparison = true
       ),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.ANDROID_KOTLIN_MULTIPLATFORM, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR_WITH_FILTERING),
       // Skip V1 and V2 comparison for namespace project. The support for namespace in V2 is stricter since ag/16005984.

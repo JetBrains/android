@@ -59,6 +59,10 @@ enum class TestProject(
   // TODO(b/279759255): disabled while https://youtrack.jetbrains.com/issue/IDEA-310919 is active
   // COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),
+  ANDROID_KOTLIN_MULTIPLATFORM(
+    TestProjectToSnapshotPaths.ANDROID_KOTLIN_MULTIPLATFORM,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+  ),
   SIMPLE_APPLICATION(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
   SIMPLE_APPLICATION_NO_PARALLEL_SYNC(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
