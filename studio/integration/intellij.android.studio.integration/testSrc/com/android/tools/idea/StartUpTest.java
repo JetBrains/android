@@ -111,7 +111,6 @@ public class StartUpTest {
         "Performance Testing",
         "Plugin DevKit",
         "Properties",
-        "Settings Sync",
         "Shell Script",
         "Smali Support",
         "Studio Bot",
