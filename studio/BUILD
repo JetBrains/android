@@ -898,7 +898,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-keymap-visualStudio",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-markdown",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-maven-server",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-settingsSync",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-github",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-hg",
