@@ -62,7 +62,7 @@ internal class TestProjectFixtureRuleImpl(
         aggregateAndThrowIfAny {
           usingIdeaTestFixture(tempDirFixture) {
             val tempDirPath = File(tempDirFixture.tempDirPath)
-            val fixtureName = fixtureName ?: "p"
+            val fixtureName = fixtureName ?: description.shortDisplayName
             usingIdeaTestFixture(projectBuilder.fixture) {
               withSdksHandled(testRootDisposable) {
                 val preparedProject = testProject.prepareTestProject(

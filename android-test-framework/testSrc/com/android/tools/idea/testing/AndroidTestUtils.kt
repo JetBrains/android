@@ -55,6 +55,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler
 import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.junit.Assert.assertTrue
+import org.junit.runner.Description
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -269,3 +270,10 @@ fun CodeInsightTestFixture.addFileToProjectAndInvalidate(relativePath: String, f
 @Suppress("UnstableApiUsage")
 val ProjectRule.disposable: Disposable
   get() = project.earlyDisposable
+
+/** A shorter version of [Description.getDisplayName], suitable as a file name. */
+val Description.shortDisplayName: String get() {
+  val className = testClass.simpleName
+  val methodName = methodName?.substringBefore('[') // Truncate parameterized tests.
+  return if (methodName != null) "${className}.${methodName}" else className
+}

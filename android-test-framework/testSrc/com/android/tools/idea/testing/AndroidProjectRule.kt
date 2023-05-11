@@ -142,7 +142,7 @@ interface AndroidProjectRule : TestRule {
     fun onDisk(fixtureName: String? = null): Typed<JavaCodeInsightTestFixture, Nothing> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
       val fixtureRule =
-        FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = false, fixtureName = fixtureName ?: "p")
+        FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = false, fixtureName = fixtureName)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
       return chain(
         testEnvironmentRule,
@@ -158,7 +158,7 @@ interface AndroidProjectRule : TestRule {
     @JvmStatic
     fun withSdk(): Typed<JavaCodeInsightTestFixture, Nothing> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = true)
-      val fixtureRule = FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = true, fixtureName = "p")
+      val fixtureRule = FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = true)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
       return chain(
         testEnvironmentRule,
@@ -204,7 +204,7 @@ interface AndroidProjectRule : TestRule {
 
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = false)
       val fixtureRule =
-        FixtureRuleImpl(::createFixture, withAndroidSdk = false, initAndroid = false, fixtureName = "p")
+        FixtureRuleImpl(::createFixture, withAndroidSdk = false, initAndroid = false)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
       return chain(
         testEnvironmentRule,
@@ -470,7 +470,8 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
   }
 
   private fun doBeforeActions(description: Description) {
-    _fixture = fixtureFactory(fixtureName ?: description.displayName)
+    val projectName = fixtureName ?: description.shortDisplayName
+    _fixture = fixtureFactory(projectName)
 
     fixture.setUp()
     // Initialize an Android manifest
