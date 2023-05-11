@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
-import static com.android.SdkConstants.ATTR_CONTEXT;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ACTIVITY;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ADAPTIVE_SHAPE;
 import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
@@ -32,7 +30,6 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI
 import static com.android.tools.idea.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -47,11 +44,8 @@ import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.ide.common.resources.configuration.UiModeQualifier;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.Density;
-import com.android.resources.FolderTypeRelationship;
 import com.android.resources.LayoutDirection;
 import com.android.resources.NightMode;
-import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
@@ -59,34 +53,23 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.AdaptiveIconShape;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
-import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.ResourceUtils;
 import com.android.tools.layoutlib.LayoutlibContext;
 import com.android.tools.layoutlib.LayoutlibFactory;
-import com.android.tools.res.ResourceRepositoryManager;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,16 +94,6 @@ public class Configuration implements Disposable, ModificationTracker {
   private static final int UI_MODE_NIGHT_MASK = 0x00000030;
   private static final int UI_MODE_NIGHT_YES = 0x00000020;
   private static final int UI_MODE_NIGHT_NO = 0x00000010;
-
-  /**
-   * The associated file.
-   * TODO(b/141988340): consider to remove this field from Configuration class.
-   */
-  @Nullable final VirtualFile myFile;
-
-  /** The PSI File associated with myFile. */
-  @Nullable private PsiFile myPsiFile;
-
   /**
    * The {@link FolderConfiguration} representing the state of the UI controls
    */
@@ -233,9 +206,8 @@ public class Configuration implements Disposable, ModificationTracker {
   /**
    * Creates a new {@linkplain Configuration}
    */
-  protected Configuration(@NotNull ConfigurationManager manager, @Nullable VirtualFile file, @NotNull FolderConfiguration editedConfig) {
+  protected Configuration(@NotNull ConfigurationManager manager, @NotNull FolderConfiguration editedConfig) {
     myManager = manager;
-    myFile = file;
     myEditedConfig = editedConfig;
 
     if (isLocaleSpecificLayout()) {
@@ -259,93 +231,44 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @NotNull
   public static Configuration create(@NotNull ConfigurationManager manager, @NotNull FolderConfiguration editedConfig) {
-    return new Configuration(manager, null, editedConfig);
+    return new Configuration(manager, editedConfig);
   }
 
-  /**
-   * Creates a configuration suitable for the given file.
-   *
-   * @param base the base configuration to base the file configuration off of
-   * @param file the file to look up a configuration for
-   * @return a suitable configuration
-   */
-  @NotNull
-  public static Configuration create(@NotNull Configuration base, @NotNull VirtualFile file) {
-    // TODO: Figure out whether we need this, or if it should be replaced by a call to ConfigurationManager#createSimilar()
-    Configuration configuration = copyWithNewFile(base, file);
-    ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
-    configuration.getEditedConfig().set(FolderConfiguration.getConfigForFolder(file.getParent().getName()));
-    matcher.adaptConfigSelection(true /*needBestMatch*/);
-
-    return configuration;
-  }
-
-  @NotNull
-  public static Configuration create(@NotNull ConfigurationManager manager,
-                                     @NotNull VirtualFile file,
-                                     @Nullable ConfigurationFileState fileState,
-                                     @NotNull FolderConfiguration editedConfig) {
-    Configuration configuration = new Configuration(manager, file, editedConfig);
-
-    configuration.startBulkEditing();
-    if (fileState != null) {
-      fileState.loadState(configuration);
-    }
-    configuration.finishBulkEditing();
-
-    return configuration;
-  }
-
-  /**
-   * Creates a new {@linkplain Configuration} that is a copy from a different configuration and its associated file
-   * is the given one.
-   *
-   * @param original the original to copy from
-   * @param newFile  the file of returned {@link Configuration}.
-   * @return a new configuration copied from the original
-   */
-  @NotNull
-  private static Configuration copyWithNewFile(@NotNull Configuration original, @Nullable VirtualFile newFile) {
-    FolderConfiguration copiedConfig = new FolderConfiguration();
-    copiedConfig.set(original.getEditedConfig());
-    Configuration copy = new Configuration(original.myManager, newFile, copiedConfig);
-    copy.myFullConfig.set(original.myFullConfig);
-    copy.myFolderConfigDirty = original.myFolderConfigDirty;
-    copy.myProjectStateVersion = original.myProjectStateVersion;
-    copy.myTarget = original.myTarget; // avoid getTarget() since it fetches project state
-    copy.myLocale = original.myLocale;  // avoid getLocale() since it fetches project state
-    copy.myTheme = original.getTheme();
-    copy.mySpecificDevice = original.mySpecificDevice;
-    copy.myDevice = original.myDevice; // avoid getDevice() since it fetches project state
-    copy.myStateName = original.myStateName;
-    copy.myState = original.myState;
-    copy.myActivity = original.getActivity();
-    copy.myUiMode = original.getUiMode();
-    copy.myNightMode = original.getNightMode();
-    copy.myDisplayName = original.getDisplayName();
-    copy.myFontScale = original.myFontScale;
-    copy.myUiModeFlagValue = original.myUiModeFlagValue;
-    copy.myAdaptiveShape = original.myAdaptiveShape;
-    copy.myUseThemedIcon = original.myUseThemedIcon;
-    copy.myWallpaperPath = original.myWallpaperPath;
-
-    return copy;
+  protected void copyFrom(@NotNull Configuration from) {
+    myFullConfig.set(from.myFullConfig);
+    myFolderConfigDirty = from.myFolderConfigDirty;
+    myProjectStateVersion = from.myProjectStateVersion;
+    myTarget = from.myTarget; // avoid getTarget() since it fetches project state
+    myLocale = from.myLocale;  // avoid getLocale() since it fetches project state
+    myTheme = from.getTheme();
+    mySpecificDevice = from.mySpecificDevice;
+    myDevice = from.myDevice; // avoid getDevice() since it fetches project state
+    myStateName = from.myStateName;
+    myState = from.myState;
+    myActivity = from.getActivity();
+    myUiMode = from.getUiMode();
+    myNightMode = from.getNightMode();
+    myDisplayName = from.getDisplayName();
+    myFontScale = from.myFontScale;
+    myUiModeFlagValue = from.myUiModeFlagValue;
+    myAdaptiveShape = from.myAdaptiveShape;
+    myUseThemedIcon = from.myUseThemedIcon;
+    myWallpaperPath = from.myWallpaperPath;
   }
 
   @Override
   public Configuration clone() {
-    return copyWithNewFile(this, this.myFile);
+    Configuration copy = new Configuration(this.myManager, FolderConfiguration.copyOf(this.getEditedConfig()));
+    copy.copyFrom(this);
+    return copy;
   }
 
-  public void save() {
-    ConfigurationStateManager stateManager = myManager.getConfigModule().getConfigurationStateManager();
-
-    if (myFile != null) {
-      ConfigurationFileState fileState = new ConfigurationFileState();
-      fileState.saveState(this);
-      stateManager.setConfigurationState(myFile, fileState);
-    }
+  @Nullable
+  protected String getStateName() {
+    return myStateName;
   }
+
+  public void save() { }
 
   /**
    * Returns the associated {@link ConfigurationManager}
@@ -364,7 +287,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @Nullable
   public VirtualFile getFile() {
-    return myFile;
+    return null;
   }
 
   /**
@@ -372,10 +295,12 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @Nullable
   public PsiFile getPsiFile() {
-    if (myPsiFile == null && myFile != null) {
-      myPsiFile = AndroidPsiUtils.getPsiFileSafely(myManager.getProject(), myFile);
-    }
-    return myPsiFile;
+    return null;
+  }
+
+  @Nullable
+  protected String calculateActivity() {
+    return null;
   }
 
   /**
@@ -384,27 +309,11 @@ public class Configuration implements Disposable, ModificationTracker {
    * @return the activity
    */
   @Nullable
-  public String getActivity() {
+  public final String getActivity() {
     if (myActivity == NO_ACTIVITY) {
       return null;
-    } else if (myActivity == null && myFile != null) {
-      myActivity = ApplicationManager.getApplication().runReadAction((Computable<String>)() -> {
-        if (myPsiFile == null) {
-          myPsiFile = PsiManager.getInstance(myManager.getProject()).findFile(myFile);
-        }
-        if (myPsiFile instanceof XmlFile) {
-          XmlFile xmlFile = (XmlFile)myPsiFile;
-          XmlTag rootTag = xmlFile.getRootTag();
-          if (rootTag != null) {
-            XmlAttribute attribute = rootTag.getAttribute(ATTR_CONTEXT, TOOLS_URI);
-            if (attribute != null) {
-              return attribute.getValue();
-            }
-          }
-
-        }
-        return null;
-      });
+    } else if (myActivity == null) {
+      myActivity = calculateActivity();
       if (myActivity == null) {
         myActivity = NO_ACTIVITY;
         return null;
@@ -483,59 +392,7 @@ public class Configuration implements Disposable, ModificationTracker {
 
   @Slow
   @Nullable
-  private Device computeBestDevice() {
-    for (Device device : myManager.getRecentDevices(DeviceUtils.getAvdDevices(this))) {
-      String stateName = myStateName;
-      if (stateName == null) {
-        stateName = device.getDefaultState().getName();
-      }
-      State selectedState = ConfigurationFileState.getState(device, stateName);
-      Module module = getModule();
-      FolderConfiguration currentConfig = getFolderConfig(myManager.getConfigModule(), selectedState, getLocale(), getTarget());
-      if (currentConfig != null) {
-        if (myEditedConfig.isMatchFor(currentConfig)) {
-          ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
-          if (repositoryManager != null && myFile != null) {
-            ResourceFolderType folderType = ResourceFilesUtil.getFolderType(myFile);
-            if (folderType != null) {
-              if (ResourceFolderType.VALUES.equals(folderType)) {
-                // If it's a file in the values folder, ResourceRepository.getMatchingFiles won't work.
-                // We get instead all the available folders and check that there is one compatible.
-                LocalResourceManager resourceManager = LocalResourceManager.getInstance(module);
-                if (resourceManager != null) {
-                  for (PsiFile resourceFile : resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.VALUES)) {
-                    if (!myFile.equals(resourceFile.getVirtualFile())) continue;
-                    PsiDirectory parent = AndroidPsiUtils.getPsiDirectorySafely(resourceFile);
-                    if (parent != null) {
-                      FolderConfiguration folderConfiguration = FolderConfiguration.getConfigForFolder(parent.getName());
-                      if (currentConfig.isMatchFor(folderConfiguration)) {
-                        return device;
-                      }
-                    }
-                  }
-                }
-              } else {
-                List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
-                if (!types.isEmpty()) {
-                  ResourceType type = types.get(0);
-                  ResourceRepository resources = repositoryManager.getAppResources();
-                  List<VirtualFile> matches =
-                      ConfigurationMatcher.getMatchingFiles(resources, myFile, ResourceNamespace.TODO(), type, currentConfig);
-                  if (matches.contains(myFile)) {
-                    return device;
-                  }
-                }
-              }
-            } else if ("Kotlin".equals(myFile.getFileType().getName())) {
-              return device;
-            } else if (myFile.equals(myManager.getProject().getProjectFile())) {
-              return device;              // Takes care of correct device selection for Theme Editor.
-            }
-          }
-        }
-      }
-    }
-
+  protected Device computeBestDevice() {
     return myManager.getDefaultDevice();
   }
 

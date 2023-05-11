@@ -332,4 +332,44 @@ public class ConfigurationTest extends AndroidTestCase {
     assertEquals(CFG_UI_MODE | CFG_NIGHT_MODE, modificationFlags[0]);
     modificationFlags[0] = 0;
   }
+
+  public void testConfigurationClone() {
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = Configuration.create(manager, new FolderConfiguration());
+    configuration.setActivity("Activity");
+    configuration.setDisplayName("DisplayName");
+
+    Configuration clone = configuration.clone();
+
+    configuration.setActivity("Activity2");
+    configuration.setDisplayName("DisplayName2");
+
+    assertEquals("Activity2", configuration.getActivity());
+    assertEquals("DisplayName2", configuration.getDisplayName());
+
+    assertEquals("Activity", clone.getActivity());
+    assertEquals("DisplayName", clone.getDisplayName());
+  }
+
+  public void testConfigurationForFileClone() {
+    VirtualFile file1 = myFixture.copyFileToProject(TEST_FILE, "res/layout/layout1.xml");
+
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    Configuration configuration = manager.getConfiguration(file1);
+    configuration.setActivity("Activity");
+    configuration.setDisplayName("DisplayName");
+
+    Configuration clone = configuration.clone();
+
+    configuration.setActivity("Activity2");
+    configuration.setDisplayName("DisplayName2");
+
+    assertEquals("Activity2", configuration.getActivity());
+    assertEquals("DisplayName2", configuration.getDisplayName());
+    assertEquals(file1, configuration.getFile());
+
+    assertEquals("Activity", clone.getActivity());
+    assertEquals("DisplayName", clone.getDisplayName());
+    assertEquals(file1, clone.getFile());
+  }
 }

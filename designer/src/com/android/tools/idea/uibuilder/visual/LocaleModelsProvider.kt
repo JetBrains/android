@@ -19,6 +19,7 @@ import com.android.ide.common.resources.Locale
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
@@ -67,7 +68,7 @@ object LocaleModelsProvider: VisualizationModelsProvider {
 
     // The layout file used when there is no particular layout for device's locale.
     val defaultFile = ConfigurationMatcher.getBetterMatch(currentFileConfig, null, null, Locale.ANY, null) ?: currentFile
-    val defaultLocaleConfig = Configuration.create(currentFileConfig, defaultFile).apply { locale = Locale.ANY}
+    val defaultLocaleConfig = ConfigurationForFile.create(currentFileConfig, defaultFile).apply { locale = Locale.ANY}
 
     run {
       val firstModel = NlModel.builder(facet, defaultFile, defaultLocaleConfig)
@@ -86,7 +87,7 @@ object LocaleModelsProvider: VisualizationModelsProvider {
 
     for (locale in locales) {
       val betterFile = ConfigurationMatcher.getBetterMatch(defaultLocaleConfig, null, null, locale, null) ?: defaultFile
-      val config = Configuration.create(defaultLocaleConfig, betterFile)
+      val config = ConfigurationForFile.create(defaultLocaleConfig, betterFile)
       config.locale = locale
       val label = Locale.getLocaleLabel(locale, false)
       val model = NlModel.builder(facet, betterFile, config)

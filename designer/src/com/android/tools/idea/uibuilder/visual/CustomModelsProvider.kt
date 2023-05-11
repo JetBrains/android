@@ -24,6 +24,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.ide.common.resources.Locale
+import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
@@ -166,7 +167,7 @@ private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: Con
     state.orientation = orientation
   }
 
-  val newConfig = Configuration.create(defaultConfig, defaultConfig.file!!)
+  val newConfig = ConfigurationForFile.create(defaultConfig, defaultConfig.file!!)
   newConfig.setEffectiveDevice(device, state)
   newConfig.target = target
   newConfig.locale = if (localeString != null) Locale.create(localeString!!) else configurationManager.locale

@@ -196,7 +196,7 @@ public class ConfigurationManager implements Disposable {
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = Configuration.create(this, file, fileState, config);
+    Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
     if (stateManager.getProjectState().getDeviceIds().isEmpty()) {
       matcher.findAndSetCompatibleConfig(false);
@@ -229,7 +229,7 @@ public class ConfigurationManager implements Disposable {
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = Configuration.create(this, file, fileState, config);
+    Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
     Configuration baseConfig = myCache.get(file);
     if (baseConfig != null) {
       configuration.setEffectiveDevice(baseConfig.getDevice(), baseConfig.getDeviceState());

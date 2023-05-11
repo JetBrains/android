@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -61,7 +62,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     val models = mutableListOf<NlModel>()
 
     for ((scale, displayName) in SCALE_TO_DISPLAY_NAME_PAIRS) {
-      val fontConfig = Configuration.create(defaultConfig, virtualFile)
+      val fontConfig = ConfigurationForFile.create(defaultConfig, virtualFile)
       fontConfig.fontScale = scale
       val fontModel = NlModel.builder(facet, virtualFile, fontConfig)
         .withParentDisposable(parentDisposable)

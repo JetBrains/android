@@ -38,7 +38,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     val file = runInEdtAndGet { myFixture.addFileToProject("res/layout/layout.xml", "") }
     val manager = createSpiedConfigurationManager()
 
-    val config = Configuration(manager, file.virtualFile, FolderConfiguration())
+    val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
     val menuAction = TargetMenuAction { config }
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
 
@@ -61,7 +61,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     val file = runInEdtAndGet { myFixture.addFileToProject("res/layout/layout.xml", "") }
     val manager = createSpiedConfigurationManager()
 
-    val config = Configuration(manager, file.virtualFile, FolderConfiguration())
+    val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
     val menuAction = TargetMenuAction { config }
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
 
@@ -80,7 +80,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     val file = runInEdtAndGet { myFixture.addFileToProject("res/layout/layout.xml", "") }
     val manager = createSpiedConfigurationManager()
 
-    val config = Configuration(manager, file.virtualFile, FolderConfiguration())
+    val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
     val menuAction = TargetMenuAction { config }
 
     manager.stateManager.projectState.isPickTarget = true
