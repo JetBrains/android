@@ -616,7 +616,7 @@ internal class ManageSnapshotsDialog(
       }
 
       if (incompatibleSnapshotsCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.DELETE_AUTOMATICALLY) {
-        deleteIncompatibleSnapshots(snapshots)
+        snapshots.deleteIncompatibleSnapshots()
       }
     }
 
@@ -624,15 +624,15 @@ internal class ManageSnapshotsDialog(
       snapshotTableModel.update(snapshots, bootSnapshot)
       if (incompatibleSnapshotsCount != 0 && snapshotAutoDeletionPolicy == SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING &&
           confirmIncompatibleSnapshotsDeletion(incompatibleSnapshotsCount, incompatibleSnapshotsSize)) {
-        deleteIncompatibleSnapshots(snapshots)
-        snapshotTableModel.update(snapshots, bootSnapshot)
+        val cleanedSnapshots = ArrayList(snapshots).also { it.deleteIncompatibleSnapshots() }
+        snapshotTableModel.update(cleanedSnapshots, bootSnapshot)
       }
     }
   }
 
-  private fun deleteIncompatibleSnapshots(snapshots: MutableList<SnapshotInfo>) {
-    val foldersToDelete = snapshots.filter { !it.isCompatible }.map { it.snapshotFolder }
-    snapshots.removeIf { !it.isCompatible }
+  private fun MutableList<SnapshotInfo>.deleteIncompatibleSnapshots() {
+    val foldersToDelete = filter { !it.isCompatible }.map { it.snapshotFolder }
+    removeIf { !it.isCompatible }
     deleteSnapshotFolders(foldersToDelete)
   }
 
@@ -851,7 +851,7 @@ internal class ManageSnapshotsDialog(
         invokeLaterIfDialogIsShowing {
           val index = indexOf(snapshot)
           if (index >= 0) {
-            snapshotTable.repaint()
+            fireTableCellUpdated(index, nameColumnIndex)
           }
         }
         return@Callable icon
