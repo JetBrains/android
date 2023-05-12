@@ -88,6 +88,7 @@ enum class ConfigurationParameterName(val propertyName: String, val needCustomCo
   MAX_TEST_RERUNS("maxTestReruns"),
   FAIL_FAST("failFast"),
   NUM_UNIFORM_SHARDS("numUniformShards"),
+  TARGETED_SHARD_DURATION_MINUTES("targetedShardDurationMinutes"),
   CLOUD_STORAGE_BUCKET("cloudStorageBucket"),
   RESULTS_HISTORY_NAME("resultsHistoryName"),
   DIRECTORIES_TO_PULL("directoriesToPull"),
@@ -117,7 +118,9 @@ enum class GmdConfigurationInterfaceInfo(val interfaceName: String,
 
   FTL_EXECUTION("com.google.firebase.testlab.gradle.Execution", persistentListOf(ConfigurationParameterName.TIMEOUT_MINUTES,
                                                                                  ConfigurationParameterName.MAX_TEST_RERUNS,
-                                                                                 ConfigurationParameterName.FAIL_FAST), "execution"),
+                                                                                 ConfigurationParameterName.FAIL_FAST,
+                                                                                 ConfigurationParameterName.TARGETED_SHARD_DURATION_MINUTES),
+                "execution"),
 
   FTL_RESULTS("com.google.firebase.testlab.gradle.Results", persistentListOf(ConfigurationParameterName.CLOUD_STORAGE_BUCKET,
                                                                              ConfigurationParameterName.RESULTS_HISTORY_NAME,
