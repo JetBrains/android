@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.tasks
+package com.android.tools.idea.execution.common.adb.shell.tasks
 
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
@@ -23,44 +23,24 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.AndroidExecutionException
-import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask.Companion.PACKAGE_NOT_FOUND
-import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask.Companion.SANDBOX_IS_DISABLED
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.intellij.execution.Executor
-import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.ui.ConsoleView
-import com.intellij.openapi.progress.ProgressIndicator
 import kotlinx.coroutines.runBlocking
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import kotlin.test.fail
 
-class SandboxSdkLaunchTaskTest {
+class SandboxSdkLaunchTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 
   private val device = mock<IDevice>()
-  private val executor = mock<Executor>()
-  private val printer = mock<ConsoleView>()
-  private val handler = mock<ProcessHandler>()
-  private val indicator = mock<ProgressIndicator>()
-  private val env = mock<ExecutionEnvironment>()
-
-  @Before
-  fun setUp() {
-    whenever(env.project).thenReturn(projectRule.project)
-    whenever(env.executor).thenReturn(executor)
-  }
 
   @Test
   fun successful() = runBlocking(AndroidDispatchers.workerThread) {
     val packageID = "testPackageID"
-    val sandboxTask = SandboxSdkLaunchTask(packageID)
-    sandboxTask.run(LaunchContext(env, device, printer, handler, indicator))
+    launchSandboxSdk(device, packageID)
     Mockito.verify(device).executeShellCommand(MockitoKt.eq("cmd sdk_sandbox start $packageID"), any())
   }
 
@@ -74,8 +54,7 @@ class SandboxSdkLaunchTaskTest {
     }
 
     try {
-      val sandboxTask = SandboxSdkLaunchTask("testPackageID")
-      sandboxTask.run(LaunchContext(env, device, printer, handler, indicator))
+      launchSandboxSdk(device, "testPackageID")
       fail("Run should fail")
     } catch (e: AndroidExecutionException) {
       Truth.assertThat(e.errorId).isEqualTo(SANDBOX_IS_DISABLED)
@@ -95,8 +74,7 @@ class SandboxSdkLaunchTaskTest {
     }
 
     try {
-      val sandboxTask = SandboxSdkLaunchTask(packageName)
-      sandboxTask.run(LaunchContext(env, device, printer, handler, indicator))
+      launchSandboxSdk(device, packageName)
       fail("Run should fail")
     } catch (e: AndroidExecutionException) {
       Truth.assertThat(e.errorId).isEqualTo(PACKAGE_NOT_FOUND)

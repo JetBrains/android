@@ -27,6 +27,7 @@ import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
+import com.android.tools.idea.execution.common.adb.shell.tasks.launchSandboxSdk
 import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
@@ -44,7 +45,6 @@ import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.RunInstantApp
-import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.run.util.SwapInfo
@@ -247,7 +247,7 @@ class LaunchTaskRunner(
       }
 
       if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
-        SandboxSdkLaunchTask(packageName).run(launchContext)
+        launchSandboxSdk(device, packageName)
       }
 
       getLaunchTask(packageName, device, isDebug = true)?.run(launchContext)
