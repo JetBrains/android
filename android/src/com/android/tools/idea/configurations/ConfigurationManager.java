@@ -367,7 +367,7 @@ public class ConfigurationManager implements Disposable {
     Logger log = Logger.getInstance(ConfigurationManager.class);
     ResourceUrl themeUrl = ResourceUrl.parseStyleParentReference(themeStyle);
     if (themeUrl == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to parse theme %s", themeUrl));
+      if (log.isDebugEnabled()) log.debug(String.format("Unable to parse theme %s", themeStyle));
       return themeStyle;
     }
 
