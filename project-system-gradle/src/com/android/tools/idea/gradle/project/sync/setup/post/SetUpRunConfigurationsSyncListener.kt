@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.project.AndroidRunConfigurations
-import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -41,8 +40,6 @@ class SetUpRunConfigurationsSyncListener : GradleSyncListenerWithRoot {
 }
 
 private fun setUpRunConfigurations(project: Project) {
-  project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
-    AndroidRunConfigurations.instance.createRunConfiguration(it)
-  }
+  AndroidRunConfigurations.instance.createRunConfigurations(project)
 }
 

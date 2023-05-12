@@ -115,7 +115,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -1186,9 +1185,7 @@ class AppInspectionInspectorClientTest {
 
   private fun setUpRunConfiguration(enableInspectionWithoutRestart: Boolean = false) {
     addManifest(projectRule.fixture)
-    AndroidRunConfigurations.instance.createRunConfiguration(
-      AndroidFacet.getInstance(projectRule.module)!!
-    )
+    AndroidRunConfigurations.instance.createRunConfigurations(projectRule.project)
     if (enableInspectionWithoutRestart) {
       val runManager = RunManager.getInstance(inspectorRule.project)
       val config =

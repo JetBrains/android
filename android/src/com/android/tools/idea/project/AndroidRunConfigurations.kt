@@ -19,6 +19,7 @@ import com.android.AndroidProjectTypes
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -28,11 +29,20 @@ import com.android.tools.idea.run.util.LaunchUtils
 import com.intellij.execution.RunManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 
 class AndroidRunConfigurations {
+  @Slow
+  @WorkerThread
+  fun createRunConfigurations(project: Project) {
+    project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
+      createRunConfiguration(it)
+    }
+  }
+
   @Slow
   @WorkerThread
   fun createRunConfiguration(facet: AndroidFacet) {
