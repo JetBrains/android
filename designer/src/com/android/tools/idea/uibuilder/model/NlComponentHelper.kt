@@ -356,30 +356,6 @@ fun NlComponent.getMostSpecificClass(classNames: Set<String>): String? {
 }
 
 /**
- * Return the [ViewHandler] for the current [NlComponent].
- */
-@Deprecated("This call may be @Slow", replaceWith = ReplaceWith("NlComponent.getViewHandler(Runnable)"))
-val NlComponent.viewHandler: ViewHandler?
-  get() = getViewHandler {}
-
-/**
- * Return the [ViewGroupHandler] for the current [NlComponent] or <code>null</code> if
- */
-@Deprecated("This call may be @Slow", replaceWith = ReplaceWith("NlComponent.getViewGroupHandler(Runnable)"))
-val NlComponent.viewGroupHandler: ViewGroupHandler?
-  get() = getViewGroupHandler {}
-
-/**
- * Return the [ViewGroupHandler] for the nearest layout starting with the current [NlComponent].
- *
- * If the current [NlComponent] is a ViewGroup then return the view handler for the current [NlComponent].
- * Otherwise a view handler for a parent component is returned (if such a view handler exists).
- */
-@Deprecated("This call may be @Slow", replaceWith = ReplaceWith("NlComponent.getLayoutHandler(Runnable)"))
-val NlComponent.layoutHandler: ViewGroupHandler?
-  get() = getLayoutHandler {}
-
-/**
  * Return the [ViewHandler] for the current [NlComponent] or <code>null</code> if the project is disposed or
  * a handler is not know at this time.
  * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is

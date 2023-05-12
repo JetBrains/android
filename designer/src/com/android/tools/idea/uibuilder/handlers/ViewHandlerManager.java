@@ -48,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidSlowOperations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -110,42 +109,15 @@ public class ViewHandlerManager implements Disposable {
    * Gets the {@link ViewHandler} associated with the given component, if any
    *
    * @param component the component to find a handler for
-   * @return the corresponding view handler, or null if not found
-   * @deprecated Use {@link #getHandler(NlComponent, Runnable)} instead.
-   */
-  @Deprecated
-  @Nullable
-  public ViewHandler getHandler(@NotNull NlComponent component) {
-    return getHandler(component, null);
-  }
-
-  /**
-   * Gets the {@link ViewHandler} associated with the given component, if any
-   *
-   * @param component the component to find a handler for
    * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
    *                       performed on a background thread and <code>null</code> is returned.
    *                       This callback is called if the background finds a handler.
-   *                       If <code>null</code> is specified the lookup will performed immediately.
-   *                       TODO(b/233342415) Fix all call sites to use a callback.
    * @return the corresponding view handler, or null if not found or an index lookup was delayed
    */
   @Nullable
-  public ViewHandler getHandler(@NotNull NlComponent component, @Nullable Runnable handlerUpdated) {
+  public ViewHandler getHandler(@NotNull NlComponent component, @NotNull Runnable handlerUpdated) {
     ViewHandler handler = getHandlerOrDefault(component, handlerUpdated);
     return handler != NONE && handler != TEMP ? handler : null;
-  }
-
-  /**
-   * Gets the {@link ViewHandler} associated with a given component.
-   *
-   * If there is no custom handler found returns an instance of {@link ViewHandler}.
-   * @deprecated Use {@link #getHandlerOrDefault(NlComponent, Runnable)} instead.
-   */
-  @Deprecated
-  @NotNull
-  public ViewHandler getHandlerOrDefault(@NotNull NlComponent component) {
-    return getHandlerOrDefault(component, null);
   }
 
   /**
@@ -155,12 +127,10 @@ public class ViewHandlerManager implements Disposable {
    * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
    *                       performed on a background thread and {@link #TEMP} is returned.
    *                       This callback is called if the background finds a handler.
-   *                       If <code>null</code> is specified the lookup will performed immediately.
-   *                       TODO(b/233342415) Fix all call sites to use a callback.
    * If there is no custom handler found returns an instance of {@link ViewHandler} ({@link #TEMP} if an index lookup was delayed).
    */
   @NotNull
-  public ViewHandler getHandlerOrDefault(@NotNull NlComponent component, @Nullable Runnable handlerUpdated) {
+  public ViewHandler getHandlerOrDefault(@NotNull NlComponent component, @NotNull Runnable handlerUpdated) {
     String tag = component.getTagName();
 
     switch (tag) {
@@ -192,41 +162,15 @@ public class ViewHandlerManager implements Disposable {
    * Gets the {@link ViewHandler} associated with the given XML tag, if any
    *
    * @param viewTag the tag to look up
-   * @return the corresponding view handler, or null if not found
-   * @deprecated Use {@link #getHandler(String, Runnable)} instead.
-   */
-  @Deprecated
-  @Nullable
-  public ViewHandler getHandler(@NotNull String viewTag) {
-    return getHandler(viewTag, null);
-  }
-
-  /**
-   * Gets the {@link ViewHandler} associated with the given XML tag, if any
-   *
-   * @param viewTag the tag to look up
    * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
    *                       performed on a background thread and <code>null</code> is returned.
    *                       This callback is called if the background finds a handler.
-   *                       If <code>null</code> is specified the lookup will performed immediately.
-   *                       TODO(b/233342415) Fix all call sites to use a callback.
    * @return the corresponding view handler, or null if not found or an index lookup was delayed
    */
   @Nullable
-  public ViewHandler getHandler(@NotNull String viewTag, @Nullable Runnable handlerUpdated) {
+  public ViewHandler getHandler(@NotNull String viewTag, @NotNull Runnable handlerUpdated) {
     ViewHandler handler = getHandlerOrDefault(viewTag, handlerUpdated);
     return handler != NONE && handler != TEMP ? handler : null;
-  }
-
-  /**
-   * Gets the {@link ViewHandler} associated with the given XML tag.
-   * If there is no custom handler found returns an instance of {@link ViewHandler}.
-   * @deprecated Use {@link #getHandlerOrDefault(String, Runnable)} instead.
-   */
-  @Deprecated
-  @NotNull
-  public ViewHandler getHandlerOrDefault(@NotNull String viewTag) {
-    return getHandlerOrDefault(viewTag, null);
   }
 
   /**
@@ -236,14 +180,12 @@ public class ViewHandlerManager implements Disposable {
    * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
    *                       performed on a background thread and {@link #TEMP} is returned.
    *                       This callback is called if the background finds a handler.
-   *                       If <code>null</code> is specified the lookup will performed immediately.
-   *                       TODO(b/233342415) Fix all call sites to use a callback.
    * If there is no custom handler found returns an instance of {@link ViewHandler} ({@link #TEMP} if an index lookup was delayed).
    */
   @NotNull
-  public ViewHandler getHandlerOrDefault(@NotNull String viewTag, @Nullable Runnable handlerUpdated) {
+  public ViewHandler getHandlerOrDefault(@NotNull String viewTag, @NotNull Runnable handlerUpdated) {
     ViewHandler handler = myHandlers.get(viewTag);
-    if (handler == null || (handler == TEMP && (handlerUpdated == null || handlerUpdated == SUPER_CLASS_LOOKUP))) {
+    if (handler == null || (handler == TEMP && handlerUpdated == SUPER_CLASS_LOOKUP)) {
       if (viewTag.indexOf('.') != -1) {
         String tag = NlComponentHelper.INSTANCE.viewClassToTag(viewTag);
         if (!tag.equals(viewTag)) {
@@ -273,29 +215,14 @@ public class ViewHandlerManager implements Disposable {
   /**
    * Finds the nearest layout/view group handler for the given component.
    *
-   * @param component the component to search from
-   * @param strict    if true, only consider parents of the component, not the component itself
-   * @deprecated Use {@link #findLayoutHandler(NlComponent, boolean, Runnable)} instead.
-   */
-  @Deprecated
-  @Nullable
-  public ViewGroupHandler findLayoutHandler(@NotNull NlComponent component, boolean strict) {
-    return findLayoutHandler(component, strict, null);
-  }
-
-  /**
-   * Finds the nearest layout/view group handler for the given component.
-   *
    * @param component      the component to search from
    * @param strict         if true, only consider parents of the component, not the component itself
    * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
    *                       performed on a background thread and <code>null</code> is returned.
    *                       This callback is called if the background finds a handler.
-   *                       If <code>null</code> is specified the lookup will performed immediately.
-   *                       TODO(b/233342415) Fix all call sites to use a callback.
    */
   @Nullable
-  public ViewGroupHandler findLayoutHandler(@NotNull NlComponent component, boolean strict, @Nullable Runnable handlerUpdated) {
+  public ViewGroupHandler findLayoutHandler(@NotNull NlComponent component, boolean strict, @NotNull Runnable handlerUpdated) {
     NlComponent curr = component;
     if (strict) {
       curr = curr.getParent();
@@ -313,7 +240,7 @@ public class ViewHandlerManager implements Disposable {
   }
 
   @NotNull
-  private ViewHandler createHandler(@NotNull String viewTag, @Nullable Runnable handlerUpdated) {
+  private ViewHandler createHandler(@NotNull String viewTag, @NotNull Runnable handlerUpdated) {
     // Check if there are any built-in handlers. Do not bother with reflection in these cases.
     ViewHandler builtInHandler = BuiltinViewHandlerProvider.INSTANCE.findHandler(viewTag);
     if (builtInHandler != null) {
@@ -351,7 +278,7 @@ public class ViewHandlerManager implements Disposable {
 
     // We were not able to find built-in or extension defined handlers. We also could not get them via reflection. The last step is
     // to try searching in the users source code and try to use that one.
-    if (handlerUpdated == null || handlerUpdated == SUPER_CLASS_LOOKUP || !ApplicationManager.getApplication().isDispatchThread()) {
+    if (handlerUpdated == SUPER_CLASS_LOOKUP || !ApplicationManager.getApplication().isDispatchThread()) {
       return createViaIndexLookup(viewTag, null);
     }
 
@@ -374,12 +301,10 @@ public class ViewHandlerManager implements Disposable {
       }
 
       try {
-        PsiClass[] viewClasses = AndroidSlowOperations.allowSlowOperationsInIdea(() -> findClassesForViewTag(myProject, viewTag));
+        PsiClass[] viewClasses = findClassesForViewTag(myProject, viewTag);
         if (viewClasses.length > 0) {
           String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
-          PsiClass[] handlerClasses = AndroidSlowOperations.allowSlowOperationsInIdea(
-            () -> JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject))
-          );
+          PsiClass[] handlerClasses = JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject));
 
           if (handlerClasses.length == 0) {
             // No view handler found for this class; look up the custom view and get the handler for its
