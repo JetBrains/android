@@ -17,6 +17,8 @@ package com.android.tools.idea.execution.common.debug.utils
 
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -25,7 +27,9 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
@@ -40,6 +44,12 @@ class FacetFinderTest {
   val projectRule = AndroidProjectRule
     .withAndroidModels(
       JavaModuleModelBuilder.rootModuleBuilder,
+      AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder(
+        //projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, // TODO(b/262868739): Avoid logging errors
+        applicationIdFor = { "todo_library_project_should_not_have_application_id" }, // TODO(b/262868739): Remove once project type library is set
+        mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
+        testApplicationId = { "libTestApplicationId" }
+      )),
       AndroidModuleModelBuilder(
         ":app",
         "debug",
@@ -48,10 +58,6 @@ class FacetFinderTest {
         ).withAndroidModuleDependencyList {
           mutableListOf(AndroidModuleDependency (":lib", "debug"))
         }),
-      AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder(
-        mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
-        testApplicationId = { "libTestApplicationId" }
-      )),
     )
 
   val project
@@ -85,6 +91,38 @@ class FacetFinderTest {
     </manifest>
   """.trimIndent()
 
+  private val appDebugManifest = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+        <application android:allowBackup="true"
+            android:label="@string/app_name"
+            android:supportsRtl="true">
+            <activity android:name=".MainActivityDebug"
+                      android:process="globalFromAppDebug"
+                      android:exported="false">
+            </activity>
+        </application>
+    </manifest>
+  """.trimIndent()
+
+  private val appAndroidTestManifest = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+        <application android:allowBackup="true"
+            android:label="@string/app_name"
+            android:supportsRtl="true">
+            <activity android:name=".MainActivity7"
+                      android:process=":localFromAppAndroidTest"
+                      android:exported="false">
+            </activity>
+            <activity android:name=".MainActivity8"
+                      android:process="globalFromAppAndroidTest"
+                      android:exported="false">
+            </activity>
+        </application>
+    </manifest>
+  """.trimIndent()
+
   private val libManifest = """
     <?xml version="1.0" encoding="utf-8"?>
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -104,14 +142,59 @@ class FacetFinderTest {
     </manifest>
   """.trimIndent()
 
-  private fun writeManifestFileContents(facet: AndroidFacet, manifest: String) {
+  private val libAndroidTestManifest = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+        <application android:allowBackup="true"
+            android:label="@string/app_name"
+            android:supportsRtl="true">
+            <activity android:name=".MainActivity9"
+                      android:process=":localFromLibAndroidTest"
+                      android:exported="false">
+            </activity>
+            <activity android:name=".MainActivity10"
+                      android:process="globalFromLibAndroidTest"
+                      android:exported="false">
+            </activity>
+        </application>
+    </manifest>
+  """.trimIndent()
+
+  private val libDebugAndroidTestManifest = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+        <application android:allowBackup="true"
+            android:label="@string/app_name"
+            android:supportsRtl="true">
+            <activity android:name=".MainActivity12"
+                      android:process="globalFromLibDebugAndroidTest"
+                      android:exported="false">
+            </activity>
+        </application>
+    </manifest>
+  """.trimIndent()
+
+  private fun writeManifestFileContents(module: Module?, manifest: String, sourceSetName: String? = null) {
+    val facet = AndroidFacet.getInstance(module!!)!!
     val sourceProviderManager = SourceProviderManager.getInstance(facet)
+    val sourceProviders = when {
+      module.isMainModule() -> sourceProviderManager.currentSourceProviders
+      module.isAndroidTestModule() -> sourceProviderManager.currentAndroidTestSourceProviders
+      else -> throw IllegalArgumentException("expected module to be main or androidTest")
+    }
+    val sourceProvider =
+      if (sourceSetName == null) {
+        sourceProviders.first()
+      }
+      else sourceProviders.firstOrNull { it.name == sourceSetName}
+           ?: throw IllegalStateException("Unknown source provider $sourceSetName, known names: [${sourceProviders.joinToString(", ") { it.name } }}]")
     runWriteActionAndWait {
-      var manifestFile: VirtualFile? = sourceProviderManager.mainManifestFile
-      if (manifestFile == null) {
-        val manifestUrl: String = sourceProviderManager.mainIdeaSourceProvider.manifestFileUrls.first()
-        val manifestDirectory: VirtualFile = sourceProviderManager.mainIdeaSourceProvider.manifestDirectories.first()
-        manifestFile = manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl)!!)
+      val manifestFile: VirtualFile = sourceProvider.manifestFiles.singleOrNull() ?: let {
+        val manifestUrl: String = sourceProvider.manifestFileUrls.first()
+        val manifestDirectory: VirtualFile = sourceProvider.manifestDirectories.firstOrNull() ?: let {
+          VfsUtil.createDirectories(VfsUtilCore.urlToPath(sourceProvider.manifestDirectoryUrls.first()))!!
+        }
+        manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl)!!)
       }
       manifestFile.setBinaryContent(manifest.toByteArray())
     }
@@ -122,9 +205,14 @@ class FacetFinderTest {
     appFacet = project.getAndroidFacets().find { it.module.name.contains("app") }!!
     libFacet = project.getAndroidFacets().find { it.module.name.contains("lib") }!!
 
-    writeManifestFileContents(appFacet, appManifest)
-    writeManifestFileContents(libFacet, libManifest)
+    writeManifestFileContents(appFacet.mainModule, appManifest)
+    writeManifestFileContents(appFacet.mainModule, appDebugManifest, sourceSetName = "debug")
+    writeManifestFileContents(appFacet.androidTestModule, appAndroidTestManifest)
+    writeManifestFileContents(libFacet.mainModule, libManifest)
+    writeManifestFileContents(libFacet.androidTestModule, libAndroidTestManifest)
+    writeManifestFileContents(libFacet.androidTestModule, libDebugAndroidTestManifest, sourceSetName = "androidTestDebug")
   }
+
 
   @Test
   fun testNotFound() {
@@ -157,9 +245,27 @@ class FacetFinderTest {
   }
 
   @Test
+  fun testGlobalProcessFromAppAndroidTestModule() {
+    val result = FacetFinder.findFacetForProcess(project, "globalfromappandroidtest")
+    assertEquals(null, result) // TODO(b/262868739): Should be appFacet.androidTestModule
+  }
+
+  @Test
   fun testGlobalProcessFromLibModule() {
     val result = FacetFinder.findFacetForProcess(project, "globalfromlib")
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    assertEquals(libFacet.mainModule.androidFacet, result) // TODO(b/262868739): Currently brittle to module iteration order - should be appFacet.mainModule
+  }
+
+  @Test
+  fun testGlobalProcessFromLibModuleAndroidTest() {
+    val result = FacetFinder.findFacetForProcess(project, "globalfromlibandroidtest")
+    assertEquals(null, result) // TODO(b/262868739): Should be libFacet.androidTestModule
+  }
+
+  @Test
+  fun testGlobalProcessFromLibModuleAndroidTestDebug() {
+    val result = FacetFinder.findFacetForProcess(project, "globalfromlibdebugandroidtest")
+    assertEquals(null, result) // TODO(b/262868739): Should be libFacet.androidTestModule
   }
 
   @Test
