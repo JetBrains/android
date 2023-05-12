@@ -298,17 +298,6 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Creates a new {@linkplain Configuration} that is a copy from a different configuration.
-   *
-   * @param original the original to copy from
-   * @return a new configuration copied from the original
-   */
-  @NotNull
-  public static Configuration copy(@NotNull Configuration original) {
-    return copyWithNewFile(original, original.myFile);
-  }
-
-  /**
    * Creates a new {@linkplain Configuration} that is a copy from a different configuration and its associated file
    * is the given one.
    *
@@ -346,7 +335,7 @@ public class Configuration implements Disposable, ModificationTracker {
 
   @Override
   public Configuration clone() {
-    return copy(this);
+    return copyWithNewFile(this, this.myFile);
   }
 
   public void save() {
