@@ -211,6 +211,9 @@ void Controller::Run() {
 }
 
 void Controller::ProcessMessage(const ControlMessage& message) {
+  if (message.type() != MotionEventMessage::TYPE) { // Exclude
+    Log::D("Controller::ProcessMessage %d", message.type());
+  }
   switch (message.type()) {
     case MotionEventMessage::TYPE:
       ProcessMotionEvent((const MotionEventMessage&) message);
@@ -259,10 +262,11 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 }
 
 void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
+  int32_t action = message.action();
+  Log::V("Controller::ProcessMotionEvent action:%d", action);
   int64_t now = UptimeMillis();
   MotionEvent event(jni_);
   event.display_id = message.display_id();
-  int32_t action = message.action();
   event.action = action;
   event.event_time_millis = now;
   if (action == AMOTION_EVENT_ACTION_SCROLL) {
@@ -445,6 +449,7 @@ int32_t Controller::TakeChangedDeviceState() {
 }
 
 void Controller::SendDeviceStateNotification(int32_t device_state) {
+  Log::D("Controller::SendDeviceStateNotification(%d)", device_state);
   DeviceStateNotification notification(device_state);
   notification.Serialize(output_stream_);
   output_stream_.Flush();
