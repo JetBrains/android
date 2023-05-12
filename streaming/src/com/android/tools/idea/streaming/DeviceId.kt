@@ -22,13 +22,22 @@ import com.android.tools.idea.streaming.emulator.EmulatorId
  */
 sealed class DeviceId(val serialNumber: String) : Comparable<DeviceId> {
 
-  data class EmulatorDeviceId(val emulatorId: EmulatorId) : DeviceId(emulatorId.serialNumber)
+  data class EmulatorDeviceId(val emulatorId: EmulatorId) : DeviceId(emulatorId.serialNumber) {
+
+    override fun toString(): String {
+      return emulatorId.toString()
+    }
+  }
 
   class PhysicalDeviceId(serialNumber: String) : DeviceId(serialNumber) {
 
     override fun equals(other: Any?): Boolean = this === other || other is PhysicalDeviceId && other.serialNumber == serialNumber
 
     override fun hashCode(): Int = serialNumber.hashCode()
+
+    override fun toString(): String {
+      return serialNumber
+    }
   }
 
   /**
