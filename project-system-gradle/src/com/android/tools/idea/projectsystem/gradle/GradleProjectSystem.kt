@@ -77,6 +77,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.PersistentSet
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.collections.immutable.toPersistentSet
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.nio.file.Path
@@ -243,27 +248,36 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
    * [packageToModule] stores mapping information from package name to [Module]s that have that package name.
    */
   internal class GradleProjectCensus(
-    val packageToModule: Map<String, Collection<Module>>,
+    val packageToModule: Map<String, Set<Module>>,
     val namespacesWithPrefixes: Set<String>,
-    val applicationIdToModule: Map<String, Collection<Module>>
+    val applicationIdToModule: Map<String, Set<Module>>
   )
+
+  private class LazyComparator<T>(private val delegateProvider: Lazy<Comparator<T>>): Comparator<T> {
+    override fun compare(o1: T, o2: T): Int = delegateProvider.value.compare(o1, o2)
+  }
 
   private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
     return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
-      val packageToModule = mutableMapOf<String, MutableList<Module>>()
-      val applicationIdsToModule = mutableMapOf<String, MutableList<Module>>()
+      val packageToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
+      val applicationIdsToModule = persistentMapOf<String, PersistentSet<Module>>().builder()
+      // It's generally expected that an application ID will map to a single module.
+      // So the data structure is optimised for that case
+      fun PersistentMap.Builder<String, PersistentSet<Module>>.put(key: String, value: Module) {
+        put(key, get(key)?.add(value) ?: persistentSetOf(value))
+      }
 
       for (androidFacet in project.getAndroidFacets()) {
         val model = GradleAndroidModel.get(androidFacet) ?: continue
         val mainModule = androidFacet.mainModule
         val androidTestModule = androidFacet.androidTestModule
         model.androidProject.namespace?.let { namespace ->
-          packageToModule.getOrPut(namespace) { mutableListOf() }.add(mainModule)
+          packageToModule.put(namespace, mainModule)
 
         }
         if (androidTestModule != null) {
           model.androidProject.testNamespace?.let { namespace ->
-              packageToModule.getOrPut(namespace) { mutableListOf() }.add(androidTestModule)
+              packageToModule.put(namespace, androidTestModule)
           }
         }
         // Collect application IDs into sets as they might be duplicated
@@ -274,15 +288,25 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
           variant.testApplicationId?.let { testApplicationIds.add(it) }
         }
         for (applicationId in mainApplicationIds) {
-          applicationIdsToModule.getOrPut(applicationId) { mutableListOf() }.add(mainModule)
+          applicationIdsToModule.put(applicationId, mainModule)
         }
         if (androidTestModule != null) {
           for (applicationId in testApplicationIds) {
-            applicationIdsToModule.getOrPut(applicationId) { mutableListOf() }.add(androidTestModule)
+            applicationIdsToModule.put(applicationId, androidTestModule)
           }
         }
       }
-      val namespacesWithPrefixes = HashSet<String>()
+      // Only sort if there are multiple values, and only realise the comparator if it is needed
+      var comparator: Comparator<Module>? = null
+      fun getComparator() = comparator ?: ModuleManager.getInstance(project).moduleDependencyComparator().also { comparator = it }
+      for (entry in applicationIdsToModule) {
+        if (entry.value.size > 1) entry.setValue(entry.value.sortedWith(getComparator()).toPersistentSet())
+      }
+      for (entry in packageToModule) {
+        if (entry.value.size > 1) entry.setValue(entry.value.sortedWith(getComparator()).toPersistentSet())
+      }
+
+      val namespacesWithPrefixes = persistentSetOf<String>().builder()
       for (namespace in packageToModule.keys) {
         var packageName = namespace
         while (true) {
@@ -292,7 +316,12 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
         }
       }
       return@CachedValueProvider CachedValueProvider.Result(
-        GradleProjectCensus(packageToModule, namespacesWithPrefixes, applicationIdsToModule), ProjectSyncModificationTracker.getInstance(project)
+        GradleProjectCensus(
+          packageToModule = packageToModule.build(),
+          namespacesWithPrefixes = namespacesWithPrefixes.build(),
+          applicationIdToModule = applicationIdsToModule.build(),
+        ),
+        ProjectSyncModificationTracker.getInstance(project)
       )
     })
   }
@@ -307,9 +336,14 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     return census.namespacesWithPrefixes.contains(packageName)
   }
 
-  override fun getKnownApplicationIds(project: Project): Set<String> {
+  override fun getKnownApplicationIds(): Set<String> {
     val census = getGradleProjectCensus(project)
     return census.applicationIdToModule.keys
+  }
+
+  override fun findModulesWithApplicationId(applicationId: String): Collection<Module> {
+    val census = getGradleProjectCensus(project)
+    return census.applicationIdToModule[applicationId] ?: emptyList()
   }
 
   /**

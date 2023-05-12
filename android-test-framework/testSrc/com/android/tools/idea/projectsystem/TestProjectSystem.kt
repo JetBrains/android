@@ -338,6 +338,14 @@ class TestProjectSystem @JvmOverloads constructor(
   override fun isNamespaceOrParentPackage(packageName: String): Boolean {
     return false
   }
+
+  override fun getKnownApplicationIds(): Set<String> {
+    return emptySet()
+  }
+
+  override fun findModulesWithApplicationId(applicationId: String): Collection<Module> {
+    return emptyList()
+  }
 }
 
 class TestProjectSystemBuildManager(

@@ -1326,7 +1326,10 @@ fun setupTestProjectFromAndroidModel(
     override fun getBuildConfigurationSourceProvider(): BuildConfigurationSourceProvider? =
       gradleProjectSystem.getBuildConfigurationSourceProvider()
 
-    override fun getKnownApplicationIds(project: Project): Set<String> = gradleProjectSystem.getKnownApplicationIds(project)
+    override fun getKnownApplicationIds(): Set<String> = gradleProjectSystem.getKnownApplicationIds()
+
+    override fun findModulesWithApplicationId(applicationId: String): Collection<Module> =
+      gradleProjectSystem.findModulesWithApplicationId(applicationId)
 
     override fun supportsProfilingMode(): Boolean = gradleProjectSystem.supportsProfilingMode()
 

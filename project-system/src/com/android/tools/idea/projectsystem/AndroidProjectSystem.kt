@@ -148,10 +148,27 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    */
   fun isNamespaceOrParentPackage(packageName: String): Boolean
 
+  @Deprecated("Replaced by method without the project parameter", replaceWith = ReplaceWith("getKnownApplicationIds()"))
+  fun getKnownApplicationIds(project: Project): Set<String> = getKnownApplicationIds()
+
   /**
    * @return all the application IDs of artifacts this project module is known to produce.
    */
-  fun getKnownApplicationIds(project: Project): Set<String> = emptySet()
+  fun getKnownApplicationIds(): Set<String>
+
+  /**
+   * Finds modules by application ID.
+   *
+   * The application ID might be from a different variant than the currently selected variant,
+   * e.g. if an app is set up to have release variant application id com.example.myapp,
+   * but the debug variant application id is com.example.myapp.debug, this method will
+   * return the app main module for both of those application IDs, irrespective of which
+   * is the currently active variant in the IDE.
+   *
+   * @return Candidate modules to use for attachment configuration.
+   *         The collection may be empty if no suitable module exists.
+   */
+  fun findModulesWithApplicationId(applicationId: String): Collection<Module>
 
   /**
    * @return true if the project's build system supports building the app with a profiling mode flag (profileable, debuggable, etc.).

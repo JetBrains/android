@@ -45,18 +45,22 @@ import com.android.tools.idea.run.NonGradleApkProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.util.androidFacet
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
@@ -191,4 +195,20 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     }
     return false
   }
+
+  private val AndroidFacet.applicationId: String?
+    get() = if (properties.USE_CUSTOM_MANIFEST_PACKAGE) {
+      properties.CUSTOM_MANIFEST_PACKAGE
+    } else {
+      getModuleSystem().getPackageName()?.takeIf { it.isNotEmpty() }
+    }
+
+  override fun getKnownApplicationIds(): Set<String> =
+    ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence().mapNotNull { it.applicationId }.toImmutableSet()
+
+  override fun findModulesWithApplicationId(applicationId: String): Collection<Module> =
+    ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence()
+      .filter { applicationId == it.applicationId }
+      .map { it.module }
+      .toImmutableList()
 }
