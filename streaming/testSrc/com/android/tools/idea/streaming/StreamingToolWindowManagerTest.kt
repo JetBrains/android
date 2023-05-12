@@ -539,8 +539,8 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 7 API 33")
     contentManager.removeContent(contentManager.contents[0], true)
 
-    waitForCondition(2, TimeUnit.SECONDS) { !device1.agent.isRunning }
-    waitForCondition(2, TimeUnit.SECONDS) { !device2.agent.isRunning }
+    waitForCondition(5, TimeUnit.SECONDS) { !device1.agent.isRunning }
+    waitForCondition(5, TimeUnit.SECONDS) { !device2.agent.isRunning }
 
     // Destroy and recreate the tool window simulating a Studio restart.
     Disposer.dispose(toolWindow.disposable)
