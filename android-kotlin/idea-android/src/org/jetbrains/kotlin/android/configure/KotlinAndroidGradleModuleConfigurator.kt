@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
 import org.jetbrains.kotlin.idea.configuration.buildSystemType
 import org.jetbrains.kotlin.idea.framework.ui.ConfigureDialogWithModulesAndVersion
 import org.jetbrains.kotlin.idea.gradle.KotlinIdeaGradleBundle
+import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.ChangedFiles
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.projectConfiguration.hasJreSpecificRuntime
 import org.jetbrains.kotlin.idea.util.application.executeCommand
@@ -145,9 +146,11 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return false
     }
 
-    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion): Boolean {
+    override fun addElementsToFiles(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion,
+                                    addVersion: Boolean, useJDK1_6forTests: Boolean) : ChangedFiles {
         val version = originalVersion.rawVersion // TODO(b/244338901): Migrate to IdeKotlinVersion.
-        val module = ModuleUtil.findModuleForPsiElement(file) ?: return false
+        val changedFiles = HashSet<PsiFile>()
+        val module = ModuleUtil.findModuleForPsiElement(file) ?: return changedFiles
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
@@ -182,8 +185,8 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             if (kotlinPluginAdded) {
                 moduleBuildModel.repositories().takeIf { it.psiElement != null }?.addRepositoryFor(version)
                 projectBuildModel.applyChanges()
+                changedFiles.add(file)
             }
-            return kotlinPluginAdded
         }
         else {
             if (file.project.isAndroidx()) {
@@ -219,8 +222,9 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
               ?.takeIf { it.psiElement != null }?.addRepositoryFor(version)
 
             projectBuildModel.applyChanges()
-            return true
+            changedFiles.add(file)
         }
+        return changedFiles
     }
 
     override fun getStdlibArtifactName(sdk: Sdk?, version: IdeKotlinVersion): String {
