@@ -1458,6 +1458,13 @@ public final class StudioFlags {
     "Enable unified device manager",
     "Enable new Device Manager UI with unified device list",
     false);
+
+  public static final Flag<Boolean> DUAL_DEVICE_MANAGER_ENABLED = Flag.create(
+    DEVICE_MANAGER,
+    "dual.device.manager.enabled",
+    "Enable unified device manager alongside existing device manager",
+    "Continue showing original Device Manager even with unified device manager enabled",
+    false);
   // endregion
 
   //region DDMLIB

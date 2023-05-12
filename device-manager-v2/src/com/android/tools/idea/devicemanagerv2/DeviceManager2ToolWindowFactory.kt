@@ -28,6 +28,13 @@ internal class DeviceManager2ToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun isApplicable(project: Project): Boolean =
     isAndroidEnvironment(project) && StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()
 
+  override fun init(toolWindow: ToolWindow) {
+    toolWindow.stripeTitle = when {
+      StudioFlags.DUAL_DEVICE_MANAGER_ENABLED.get() -> "Unified Device Manager"
+      else -> "Device Manager"
+    }
+  }
+
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val content =
       ContentFactory.getInstance().createContent(DeviceManagerPanel(project), null, false)
