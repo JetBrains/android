@@ -42,8 +42,6 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
   public String getFlags(@NotNull IDevice device) {
     List<String> flags = Lists.newLinkedList();
     if (myWaitForDebugger) {
-      flags.add("-D");
-
       // Request Android app VM to start and then suspend all its threads
       if (suspendEnabled() && suspendSupported(device)) {
         flags.add("--suspend");

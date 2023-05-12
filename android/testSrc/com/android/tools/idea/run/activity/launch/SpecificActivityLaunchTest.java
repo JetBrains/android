@@ -30,61 +30,30 @@ import com.android.ddmlib.IShellOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.android.tools.deployer.model.App;
-import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
-import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.editor.NoApksProvider;
-import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.EdtRule;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
 public class SpecificActivityLaunchTest {
-
-  @Mock StartActivityFlagsProvider startActivityFlagsProvider;
-  @Mock ProfilerState profilerState;
-
   @Rule
   public EdtRule edt = new EdtRule();
-
   @Rule
   public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
 
-  @Before
-  public void before() {
-    MockitoAnnotations.initMocks(this);
-  }
-
-  @Test
-  public void testGetLaunchTask() {
-    SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
-    ApkProvider apkProvider = new NoApksProvider();
-    LaunchTask launchTask =
-      state.getLaunchTask("applicationId", getAndroidFacet(myProjectRule.getModule()), startActivityFlagsProvider, profilerState,
-                          apkProvider);
-    assertNotNull(launchTask);
-  }
-
   @Test
   public void testGetActivity() {
-
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
     SpecificActivityLocator activityLocator = state.getActivityLocator(getAndroidFacet(myProjectRule.getModule()));
     assertNotNull(activityLocator);
@@ -102,7 +71,6 @@ public class SpecificActivityLaunchTest {
   public void testCheckConfiguration() {
     SpecificActivityLocator specificActivityLocator = mock(SpecificActivityLocator.class);
     initMocks(this);
-
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State() {
       @NotNull
       @Override
@@ -121,13 +89,8 @@ public class SpecificActivityLaunchTest {
     IDevice device = Mockito.mock(IDevice.class);
     App app =
       createApp(device, "com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
-    ApkProvider provider = new ApkProvider() {
-      @Override
-      public @NotNull Collection<ApkInfo> getApks(@NotNull IDevice device) throws ApkProvisionException {
-        return null;
-      }
-    };
-    state.launch(device, app, provider, false, "", new EmptyTestConsoleView());
+
+    state.launch(device, app, new NoApksProvider(), false, "", new EmptyTestConsoleView());
     Mockito.verify(device).executeShellCommand(
       eq("am start -n com.example.app/com.example.app.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
       any(IShellOutputReceiver.class),

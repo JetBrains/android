@@ -1,7 +1,6 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.tasks.ActivityLaunchTask;
 import com.intellij.execution.Executor;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import org.jetbrains.annotations.NotNull;

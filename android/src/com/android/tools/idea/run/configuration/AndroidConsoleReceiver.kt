@@ -23,10 +23,15 @@ import com.intellij.openapi.progress.ProgressIndicatorProvider
 open class AndroidConsoleReceiver(private val isCancelledCheck: () -> Boolean,
                                   private val consoleView: ConsoleView
 ) : MultiLineReceiver() {
+  val output = mutableListOf<String>()
+
   override fun isCancelled() = isCancelledCheck()
 
-  override fun processNewLines(lines: Array<String>) = lines.forEach {
-    consoleView.print(it + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
+  override fun processNewLines(lines: Array<String>) {
+    lines.forEach {
+      consoleView.print(it + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
+    }
+    output.addAll(lines)
   }
 }
 

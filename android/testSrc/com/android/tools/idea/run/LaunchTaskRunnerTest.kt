@@ -27,6 +27,7 @@ import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveEditServiceImpl
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
@@ -97,7 +98,7 @@ class LaunchTaskRunnerTest {
     val latch = CountDownLatch(1)
     deviceState.setActivityManager { args, _ ->
       val command = args.joinToString(" ")
-      if (command == "start -n \"google.simpleapplication/google.simpleapplication.MyActivity\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER") {
+      if (command == "start -n google.simpleapplication/google.simpleapplication.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER") {
         deviceState.startClient(1234, 1235, APPLICATION_ID, false)
         latch.countDown()
       }
@@ -153,7 +154,7 @@ class LaunchTaskRunnerTest {
     var startInvocation = 0
     deviceState.setActivityManager { args, output ->
       val command = args.joinToString(" ")
-      if (command == "start -n \"google.simpleapplication/google.simpleapplication.MyActivity\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D") {
+      if (command == "start -n google.simpleapplication/google.simpleapplication.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D") {
         deviceState.startClient(1234, 1235, APPLICATION_ID, true)
         startInvocation++
       }

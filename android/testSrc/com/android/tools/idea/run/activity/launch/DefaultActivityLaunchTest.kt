@@ -18,6 +18,7 @@ package com.android.tools.idea.run.activity.launch
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
@@ -111,7 +112,7 @@ Projects:
   fun testLaunchWithNoApks() {
     val emptyApkProvider = TestApksProvider(emptyList())
 
-    val exception = assertFailsWith<ActivityLocator.ActivityLocatorException> {
+    val exception = assertFailsWith<AndroidExecutionException> {
       state.launch(device, app, emptyApkProvider, false, "", EmptyTestConsoleView())
     }
 

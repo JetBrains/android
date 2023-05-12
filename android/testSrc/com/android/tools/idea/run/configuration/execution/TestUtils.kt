@@ -33,11 +33,8 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 
 
-internal fun createApp(
-  device: IDevice,
-  appId: String,
-  servicesName: List<String> = emptyList(),
-  activitiesName: List<String> = emptyList()
+fun createApp(
+  device: IDevice, appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
 ): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
@@ -46,9 +43,7 @@ internal fun createApp(
 }
 
 private fun createManifestServiceInfo(
-  serviceName: String,
-  appId: String,
-  attrs: Map<String, String> = emptyMap()
+  serviceName: String, appId: String, attrs: Map<String, String> = emptyMap()
 ): ManifestServiceInfo {
   val node = XmlNode()
   node.attributes()["name"] = serviceName
@@ -59,9 +54,7 @@ private fun createManifestServiceInfo(
 }
 
 private fun createManifestActivityInfo(
-  activityName: String,
-  appId: String,
-  attrs: Map<String, String> = emptyMap()
+  activityName: String, appId: String, attrs: Map<String, String> = emptyMap()
 ): ManifestActivityInfo {
   val node = XmlNode()
   node.attributes()["name"] = activityName
@@ -88,29 +81,21 @@ internal class TestApplicationInstaller : ApplicationDeployer {
   }
 
   override fun applyChangesDeploy(
-    device: IDevice,
-    app: ApkInfo,
-    deployOptions: DeployOptions,
-    indicator: ProgressIndicator
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
   ): Deployer.Result {
     TODO("Not yet implemented")
   }
 
   override fun applyCodeChangesDeploy(
-    device: IDevice,
-    app: ApkInfo,
-    deployOptions: DeployOptions,
-    indicator: ProgressIndicator
+    device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
   ): Deployer.Result {
     TODO("Not yet implemented")
   }
 }
 
-internal fun CodeInsightTestFixture.addWearDependenciesToProject() {
-  // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
+internal fun CodeInsightTestFixture.addWearDependenciesToProject() { // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
   addFileToProject(
-    "src/android/support/wearable/watchface/WatchFaceService.kt",
-    """
+    "src/android/support/wearable/watchface/WatchFaceService.kt", """
       package android.support.wearable.watchface
 
       open class WatchFaceService
@@ -118,8 +103,7 @@ internal fun CodeInsightTestFixture.addWearDependenciesToProject() {
   )
 
   addFileToProject(
-    "src/androidx/wear/tiles/TileService.kt",
-    """
+    "src/androidx/wear/tiles/TileService.kt", """
       package androidx.wear.tiles
 
       open class TileService
@@ -127,8 +111,7 @@ internal fun CodeInsightTestFixture.addWearDependenciesToProject() {
   )
 
   addFileToProject(
-    "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt",
-    """
+    "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt", """
       package androidx.wear.watchface.complications.datasource
 
       open class ComplicationDataSourceService

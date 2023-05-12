@@ -157,6 +157,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
+        "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
     ],
 )
 

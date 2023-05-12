@@ -18,6 +18,7 @@ package com.android.tools.idea.run
 import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
@@ -28,16 +29,15 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.run.activity.DefaultStartActivityFlagsProvider
 import com.android.tools.idea.run.activity.InstantAppStartActivityFlagsProvider
-import com.android.tools.idea.run.activity.launch.ActivityLaunchOptionState
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch
+import com.android.tools.idea.run.activity.launch.LaunchOptionState
 import com.android.tools.idea.run.activity.launch.NoLaunch
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.android.tools.idea.run.editor.ApplicationRunParameters
 import com.android.tools.idea.run.editor.DeployTargetProvider
-import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.stats.RunStats
 import com.google.common.base.Predicate
 import com.google.common.collect.ImmutableList
@@ -54,6 +54,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.junit.RefactoringListeners
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConfigurationModuleSelector
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -80,7 +81,7 @@ import javax.swing.Icon
  */
 open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFactory?) :
   AndroidRunConfigurationBase(project, factory, false), RefactoringListenerProvider, RunnerIconProvider, AppRunConfiguration {
-  private val myLaunchOptionStates: MutableMap<String, ActivityLaunchOptionState> = Maps.newHashMap()
+  private val myLaunchOptionStates: MutableMap<String, LaunchOptionState> = Maps.newHashMap()
 
   // Deploy options
   @JvmField
@@ -144,22 +145,17 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
   }
 
   fun getLaunchOptions(): LaunchOptions {
-    return LaunchOptions.builder()
-      .setDeploy(DEPLOY)
-      .setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
-      .setClearAppStorage(CLEAR_APP_STORAGE)
-      .build()
+    return LaunchOptions.builder().setDeploy(DEPLOY).setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
+      .setClearAppStorage(CLEAR_APP_STORAGE).build()
   }
 
   var disabledDynamicFeatures: List<String>
     get() = if (StringUtil.isEmpty(DYNAMIC_FEATURES_DISABLED_LIST)) {
       ImmutableList.of()
     } else StringUtil.split(
-      DYNAMIC_FEATURES_DISABLED_LIST,
-      FEATURE_LIST_SEPARATOR
+      DYNAMIC_FEATURES_DISABLED_LIST, FEATURE_LIST_SEPARATOR
     )
-    set(features) {
-      // Remove duplicates and sort to ensure deterministic behavior, as the value
+    set(features) { // Remove duplicates and sort to ensure deterministic behavior, as the value
       // is stored on disk (run configuration parameters).
       val sortedFeatures = features.stream().distinct().sorted().collect(Collectors.toList())
       DYNAMIC_FEATURES_DISABLED_LIST = StringUtil.join(sortedFeatures, FEATURE_LIST_SEPARATOR)
@@ -167,8 +163,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
 
   override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration?> {
     return AndroidRunConfigurationEditor(
-      project,
-      Predicate { module: Module? ->
+      project, Predicate { module: Module? ->
         if (module == null) return@Predicate false
         val facet = AndroidFacet.getInstance(module) ?: return@Predicate false
         val moduleSystem = facet.getModuleSystem()
@@ -178,15 +173,11 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
           AndroidModuleSystem.Type.TYPE_NON_ANDROID -> return@Predicate false
           AndroidModuleSystem.Type.TYPE_LIBRARY, AndroidModuleSystem.Type.TYPE_TEST -> return@Predicate false // Supported via AndroidTestRunConfiguration.
         }
-      },
-      this,
-      true,
-      false
+      }, this, true, false
     ) { moduleSelector: ConfigurationModuleSelector -> ApplicationRunParameters(project, moduleSelector) }
   }
 
-  override fun getRefactoringElementListener(element: PsiElement): RefactoringElementListener? {
-    // TODO: This is a bit of a hack: Currently, refactoring only affects the specific activity launch, so we directly peek into it and
+  override fun getRefactoringElementListener(element: PsiElement): RefactoringElementListener? { // TODO: This is a bit of a hack: Currently, refactoring only affects the specific activity launch, so we directly peek into it and
     // change its state. The correct way of implementing this would be to delegate to all of the LaunchOptions and put the results into
     // a RefactoringElementListenerComposite
     val state = (getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY) as SpecificActivityLaunch.State)
@@ -206,14 +197,15 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
   }
 
   @Throws(ExecutionException::class)
-  open fun getApplicationLaunchTask(
-    packageName: String,
+  open fun launch(
+    app: App,
+    device: IDevice,
     facet: AndroidFacet,
     contributorsAmStartOptions: String,
-    waitForDebugger: Boolean,
+    isDebug: Boolean,
     apkProvider: ApkProvider,
-    device: IDevice
-  ): AppLaunchTask? {
+    consoleView: ConsoleView
+  ) {
     val state = getLaunchOptionState(MODE)
     var extraFlags = ACTIVITY_EXTRA_FLAGS
     if (contributorsAmStartOptions.isNotEmpty()) {
@@ -227,13 +219,10 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     val startActivityFlagsProvider = if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
       InstantAppStartActivityFlagsProvider()
     } else {
-      DefaultStartActivityFlagsProvider(
-        project,
-        waitForDebugger,
-        extraFlags
-      )
+      DefaultStartActivityFlagsProvider(project, isDebug, extraFlags)
     }
-    return state.getLaunchTask(packageName, facet, startActivityFlagsProvider, profilerState, apkProvider)
+
+    return state.launch(device, app, apkProvider, isDebug, startActivityFlagsProvider.getFlags(device), consoleView)
   }
 
   /**
@@ -278,7 +267,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     return StringUtil.equals((state as SpecificActivityLaunch.State).ACTIVITY_CLASS, activityName)
   }
 
-  fun getLaunchOptionState(launchOptionId: String): ActivityLaunchOptionState {
+  fun getLaunchOptionState(launchOptionId: String): LaunchOptionState {
     return myLaunchOptionStates[launchOptionId]!!
   }
 
@@ -314,8 +303,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     return runExecutorIcon
   }
 
-  private fun updateRunExecutorIconAsync() {
-    // Customize the executor icon for the DeviceAndSnapshotComboBoxAction: show "restart" icon instead of "run" icon if the app is already
+  private fun updateRunExecutorIconAsync() { // Customize the executor icon for the DeviceAndSnapshotComboBoxAction: show "restart" icon instead of "run" icon if the app is already
     // running (even if it is started not from the IDE)
     val project = this.project
     val executionTarget = ExecutionTargetManager.getInstance(project).activeTarget
@@ -333,12 +321,12 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
       return
     }
     executionTarget.isApplicationRunningAsync(applicationId).transform(AppExecutorUtil.getAppExecutorService()) { isRunning ->
-      runExecutorIcon = if (isRunning) {
-        // Use the system's restart icon for the default run executor if application running on selected target.
-        AllIcons.Actions.Restart
-      } else {
-        null
-      }
+      runExecutorIcon =
+        if (isRunning) { // Use the system's restart icon for the default run executor if application running on selected target.
+          AllIcons.Actions.Restart
+        } else {
+          null
+        }
     }
   }
 
@@ -349,8 +337,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
   }
 
   override val appId: String?
-    get() = try {
-      // Provider could be null if module set to null.
+    get() = try { // Provider could be null if module set to null.
       applicationIdProvider?.packageName
     } catch (e: ApkProvisionException) {
       Logger.getInstance(AndroidRunConfiguration::class.java).error(e)
@@ -371,8 +358,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     const val LAUNCH_DEEP_LINK = "launch_deep_link"
 
     @JvmField
-    val LAUNCH_OPTIONS =
-      listOf(NoLaunch.INSTANCE, DefaultActivityLaunch.INSTANCE, SpecificActivityLaunch.INSTANCE, DeepLinkLaunch.INSTANCE)
+    val LAUNCH_OPTIONS = listOf(NoLaunch.INSTANCE, DefaultActivityLaunch.INSTANCE, SpecificActivityLaunch.INSTANCE, DeepLinkLaunch.INSTANCE)
 
     @NonNls
     private val FEATURE_LIST_SEPARATOR = ","

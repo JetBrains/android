@@ -17,29 +17,28 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.run.ApkProvider
+import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
+import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.editor.NoApksProvider
-import com.android.tools.idea.run.tasks.ActivityLaunchTask
-import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
-import com.intellij.execution.configurations.ConfigurationFactory
-import com.intellij.execution.ui.ConsoleView
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.JDOMUtil
 import org.jdom.Element
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.facet.AndroidFacet
+import org.mockito.Mockito.anyLong
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class ComposePreviewRunConfigurationTest : AndroidTestCase() {
 
-  private lateinit var runConfiguration: TestComposePreviewRunConfiguration
+  private lateinit var runConfiguration: ComposePreviewRunConfiguration
 
   override fun setUp() {
     super.setUp()
     val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
-    runConfiguration = TestComposePreviewRunConfiguration(project, runConfigurationFactory)
+    runConfiguration = ComposePreviewRunConfiguration(project, runConfigurationFactory)
   }
 
   fun testAmStartOptionsWithComposableMethod() {
@@ -50,39 +49,49 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     val device = mock(IDevice::class.java)
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.S_V2))
     val noApksProvider = NoApksProvider()
-    val task =
-      runConfiguration.getApplicationLaunchTask(
+    runConfiguration.launch(
+      createApp(
+        device,
         "com.example.myapp",
-        myFacet,
-        "",
-        false,
-        noApksProvider,
-        device
-      ) as ActivityLaunchTask
-    assertEquals(
-      "am start -n \"com.example.myapp/androidx.compose.ui.tooling.PreviewActivity\" " +
-        "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
-        "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
-        " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
-        " --ei parameterProviderIndex 3",
-      task.getStartActivityCommand(mock(IDevice::class.java), mock(ConsoleView::class.java))
+        emptyList<String>(),
+        listOf("androidx.compose.ui.tooling.PreviewActivity"),
+      ),
+      device,
+      myFacet,
+      "",
+      false,
+      noApksProvider,
+      EmptyTestConsoleView(),
     )
+    verify(device)
+      .executeShellCommand(
+        eq(
+          "am start -n com.example.myapp/androidx.compose.ui.tooling.PreviewActivity " +
+            "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
+            "--es composable com.mycomposeapp.SomeClass.SomeComposable" +
+            " --es parameterProviderClassName com.mycomposeapp.ProviderClass" +
+            " --ei parameterProviderIndex 3",
+        ),
+        any(),
+        anyLong(),
+        any(),
+      )
   }
 
   fun testTriggerSourceType() {
     assertEquals(
       ComposeDeployEvent.ComposeDeployEventType.UNKNOWN_EVENT_TYPE,
-      runConfiguration.triggerSource.eventType
+      runConfiguration.triggerSource.eventType,
     )
     runConfiguration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.GUTTER
     assertEquals(
       ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_GUTTER,
-      runConfiguration.triggerSource.eventType
+      runConfiguration.triggerSource.eventType,
     )
     runConfiguration.triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
     assertEquals(
       ComposeDeployEvent.ComposeDeployEventType.DEPLOY_FROM_TOOLBAR,
-      runConfiguration.triggerSource.eventType
+      runConfiguration.triggerSource.eventType,
     )
   }
 
@@ -112,33 +121,8 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     val config = JDOMUtil.write(testElement)
     assertTrue(
       config.contains(
-        "<compose-preview-run-configuration composable-fqn=\"com.example.MyClassKt.ExampleComposable\" />"
-      )
+        "<compose-preview-run-configuration composable-fqn=\"com.example.MyClassKt.ExampleComposable\" />",
+      ),
     )
-  }
-
-  private class TestComposePreviewRunConfiguration(
-    project: Project,
-    factory: ConfigurationFactory
-  ) : ComposePreviewRunConfiguration(project, factory) {
-
-    // Relax visibility to call the super method (which has protected visibility) in this test
-    public override fun getApplicationLaunchTask(
-      packageName: String,
-      facet: AndroidFacet,
-      contributorsAmStartOptions: String,
-      waitForDebugger: Boolean,
-      apkProvider: ApkProvider,
-      device: IDevice
-    ): AppLaunchTask? {
-      return super.getApplicationLaunchTask(
-        packageName,
-        facet,
-        contributorsAmStartOptions,
-        waitForDebugger,
-        apkProvider,
-        device
-      )
-    }
   }
 }

@@ -15,21 +15,28 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
 import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 import static junit.framework.TestCase.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.deployer.model.App;
 import com.android.tools.idea.run.editor.NoApksProvider;
-import com.android.tools.idea.run.tasks.ActivityLaunchTask;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,13 +46,11 @@ public class AndroidRunConfigurationTest {
   @Rule
   public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
   private AndroidRunConfiguration myRunConfiguration;
-  private IDevice myDevice;
 
   @Before
   public void setUp() throws Exception {
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
     myRunConfiguration = new AndroidRunConfiguration(myProjectRule.getProject(), configurationFactory);
-    myDevice = Mockito.mock(IDevice.class);
   }
 
   /**
@@ -62,50 +67,92 @@ public class AndroidRunConfigurationTest {
   }
 
   @Test
-  public void testContributorsAmStartOptionsIsInlinedWithAmStartCommand() throws ExecutionException {
-    myRunConfiguration.setLaunchActivity("MyActivity");
+  public void testContributorsAmStartOptionsIsInlinedWithAmStartCommand() throws Exception {
+    myRunConfiguration.setLaunchActivity("com.example.mypackage.MyActivity");
 
     ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
-    ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask("com.example.mypackage",
-                                                                                              getAndroidFacet(myProjectRule.getModule()),
-                                                                                              "--start-profiling",
-                                                                                              false,
-                                                                                              new NoApksProvider(),
-                                                                                              device);
 
-    assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
-                 "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
-                 "--start-profiling", task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
+    final App app =
+      createApp(device, "com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
+    myRunConfiguration.launch(app,
+                              device,
+                              getAndroidFacet(myProjectRule.getModule()),
+                              "--start-profiler file",
+                              false,
+                              new NoApksProvider(),
+                              consolePrinter
+    );
+    verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
+                                          "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --start-profiler file"),
+                                       any(), anyLong(), any());
   }
 
   @Test
-  public void testEmptyContributorsAmStartOptions() throws ExecutionException {
-    myRunConfiguration.setLaunchActivity("MyActivity");
+  public void testEmptyContributorsAmStartOptions() throws Exception {
+    myRunConfiguration.setLaunchActivity("com.example.mypackage.MyActivity");
 
     ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
-    ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask("com.example.mypackage",
-                                                                                              getAndroidFacet(myProjectRule.getModule()),
-                                                                                              "",
-                                                                                              false,
-                                                                                              new NoApksProvider(),
-                                                                                              device);
-    assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
-                 "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER",
-                 task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
+    final App app =
+      createApp(device, "com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
+    myRunConfiguration.launch(app,
+                              device,
+                              getAndroidFacet(myProjectRule.getModule()),
+                              "",
+                              false,
+                              new NoApksProvider(),
+                              consolePrinter
+    );
+    verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
+                 "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
+                 any(), anyLong(), any());
 
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU));
-    task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask("com.example.mypackage",
-                                                                           getAndroidFacet(myProjectRule.getModule()),
-                                                                           "",
-                                                                           false,
-                                                                           new NoApksProvider(),
-                                                                           device);
-    assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
-                 "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon",
-                 task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
+    myRunConfiguration.launch(app,
+                              device,
+                              getAndroidFacet(myProjectRule.getModule()),
+                              "",
+                              false,
+                              new NoApksProvider(),
+                              consolePrinter
+    );
+    verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
+                                          "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon"),
+                                       any(), anyLong(), any());
+  }
+
+
+  @Test
+  public void testDeepLinkLaunch() throws Exception {
+
+   testDeepLink("example://host/path", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path'");
+   testDeepLink("example://host/path", "-D", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path' -D");
+   testDeepLink("https://example.com/example?foo=bar&baz=duck", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'https://example.com/example?foo=bar&baz=duck'");
+   testDeepLink("text'with'single'quotes", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'text'\\''with'\\''single'\\''quotes'");
+   testDeepLink("example://host/path", "", "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'example://host/path'");
+
+  }
+
+  private void testDeepLink(String link, String extraFlags, String expectedCommand) throws Exception {
+    ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
+    IDevice device = Mockito.mock(IDevice.class);
+    when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
+    final App app =
+      createApp(device, "com.example.mypackage", Collections.emptyList(), Collections.singletonList("com.example.mypackage.MyActivity"));
+
+    myRunConfiguration.setLaunchUrl(link);
+
+    myRunConfiguration.launch(app,
+                              device,
+                              getAndroidFacet(myProjectRule.getModule()),
+                              extraFlags,
+                              false,
+                              new NoApksProvider(),
+                              consolePrinter
+    );
+    verify(device).executeShellCommand(eq(expectedCommand), any(), anyLong(), any());
   }
 }

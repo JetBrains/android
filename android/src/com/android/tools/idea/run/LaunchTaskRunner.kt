@@ -19,6 +19,7 @@ import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
+import com.android.tools.deployer.model.App
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.editors.literals.LiveEditService
@@ -41,7 +42,6 @@ import com.android.tools.idea.run.configuration.execution.createRunContentDescri
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
-import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.RunInstantApp
@@ -53,7 +53,6 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.filters.TextConsoleBuilderFactory
-import com.intellij.execution.process.NopProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
@@ -121,18 +120,24 @@ class LaunchTaskRunner(
       devices.map { device ->
         async {
           LOG.info("Launching on device ${device.name}")
-          val launchContext = LaunchContext(env, device, console, processHandler, indicator)
 
           //Deploy
           if (configuration.DEPLOY) {
             val apks = apkInfosSafe(device)
-            apks.map {
+            val deployResults = apks.map {
               deploy { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) }
             }
-            notifyLiveEditService(device, packageName)
-          }
 
-          getLaunchTask(packageName, device, isDebug = false)?.run(launchContext)
+            notifyLiveEditService(device, packageName)
+
+            if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
+              launchSandboxSdk(device, packageName)
+            }
+
+            val mainApp = deployResults.find { it.app.appId == packageName }
+              ?: throw RuntimeException("No app installed matching packageName provided by ApplicationIdProvider")
+            launch(mainApp.app, device, console, isDebug = false)
+          }
         }
       }.awaitAll()
     }
@@ -215,7 +220,6 @@ class LaunchTaskRunner(
       waitPreviousProcessTermination(devices, packageName, indicator)
     }
 
-    val processHandler = NopProcessHandler()
     val console = createConsole()
     val device = devices.single()
 
@@ -234,23 +238,24 @@ class LaunchTaskRunner(
     } else {
       indicator.text = "Launching on devices"
       LOG.info("Launching on device ${device.name}")
-      val launchContext = LaunchContext(env, device, console, processHandler, indicator)
 
       //Deploy
       if (configuration.DEPLOY) {
         val apks = apkInfosSafe(device)
-        apks.map {
+        val deployResults = apks.map {
           deploy { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) }
         }
 
         notifyLiveEditService(device, packageName)
-      }
 
-      if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
-        launchSandboxSdk(device, packageName)
-      }
+        if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
+          launchSandboxSdk(device, packageName)
+        }
 
-      getLaunchTask(packageName, device, isDebug = true)?.run(launchContext)
+        val mainApp = deployResults.find { it.app.appId == packageName }
+          ?: throw RuntimeException("No app installed matching packageName provided by ApplicationIdProvider")
+        launch(mainApp.app, device, console, isDebug = true)
+      }
     }
 
     indicator.text = "Connecting debugger"
@@ -309,7 +314,9 @@ class LaunchTaskRunner(
 
         if (deployResults.any { it.needsRestart }) {
           KillAndRestartAppLaunchTask(packageName).run(launchContext)
-          getLaunchTask(packageName, device, isDebug = false)?.run(launchContext)
+          val mainApp = deployResults.find { it.app.appId == packageName }
+            ?: throw RuntimeException("No app installed matching packageName provided by ApplicationIdProvider")
+          launch(mainApp.app, device, console, isDebug = false)
         }
       }
     }.awaitAll()
@@ -383,7 +390,9 @@ class LaunchTaskRunner(
 
         if (deployResults.any { it.needsRestart }) {
           KillAndRestartAppLaunchTask(packageName).run(launchContext)
-          getLaunchTask(packageName, device, isDebug = false)?.run(launchContext)
+          val mainApp = deployResults.find { it.app.appId == packageName }
+            ?: throw RuntimeException("No app installed matching packageName provided by ApplicationIdProvider")
+          launch(mainApp.app, device, console, isDebug = false)
         }
       }
     }.awaitAll()
@@ -468,15 +477,19 @@ class LaunchTaskRunner(
   }
 
   @Throws(ExecutionException::class)
-  fun getLaunchTask(packageName: String, device: IDevice, isDebug: Boolean): AppLaunchTask? {
+  fun launch(app: App, device: IDevice, consoleView: ConsoleView, isDebug: Boolean) {
     val amStartOptions = StringBuilder()
+
     for (taskContributor in AndroidLaunchTaskContributor.EP_NAME.extensionList) {
-      val amOptions = taskContributor.getAmStartOptions(packageName, configuration, device, env.executor)
+      val amOptions = taskContributor.getAmStartOptions(app.appId, configuration, device, env.executor)
       amStartOptions.append(if (amStartOptions.isEmpty()) "" else " ").append(amOptions)
     }
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
-
-    return configuration.getApplicationLaunchTask(packageName, facet, amStartOptions.toString(), isDebug, apkProvider, device)
+    try {
+      configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView)
+    } catch (e: DeployerException) {
+      throw AndroidExecutionException(e.id, e.message)
+    }
   }
 }
 
