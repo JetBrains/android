@@ -61,7 +61,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
     val tagName = getTagName(properties) ?: return
     if (tagName in TAG_EXCEPTIONS) return
     val firstComponent = getFirstComponent(properties) ?: return
-    val handler = viewHandlerManager.getHandler(firstComponent) ?: return
+    val handler = viewHandlerManager.getHandler(firstComponent) {} ?: return
 
     val attributes = handler.inspectorProperties
     val custom = setupCustomPanel(tagName, properties)
@@ -115,7 +115,7 @@ class ViewInspectorBuilder(project: Project, private val editorProvider: EditorP
   }
 
   private fun createCustomPanel(tagName: String): CustomPanel {
-    val handler = viewHandlerManager.getHandler(tagName)
+    val handler = viewHandlerManager.getHandler(tagName) {}
     val panel = handler?.customPanel ?: SampleCustomPanel.INSTANCE
     cachedCustomPanels[tagName] = panel
     return panel

@@ -24,7 +24,7 @@ import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewAction
 import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.InspectorBuilder
@@ -58,7 +58,7 @@ class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) : I
     val group = DefaultActionGroup("PropertyPanelActions", false)
 
     val primary = selectedComponents[0]
-    val parentActions = primary.parent?.viewHandler?.getPropertyActions(selectedComponents) ?: emptyList()
+    val parentActions = primary.parent?.getViewHandler {}?.getPropertyActions(selectedComponents) ?: emptyList()
     if (parentActions.isNotEmpty()) {
       for (action in parentActions) {
         group.add(convertToAnAction(action, surface, selectedComponents))
@@ -66,7 +66,7 @@ class ComponentActionsInspectorBuilder(private val model: NlPropertiesModel) : I
     }
 
     if (selectedComponents.size == 1) {
-      val childrenActions = selectedComponents[0].viewHandler?.getPropertyActions(selectedComponents) ?: emptyList()
+      val childrenActions = selectedComponents[0].getViewHandler {}?.getPropertyActions(selectedComponents) ?: emptyList()
       if (childrenActions.isNotEmpty()) {
         if (parentActions.isNotEmpty()) {
           // Both parent and children actions are not empty
@@ -108,7 +108,7 @@ private class ViewActionWrapper(private val viewAction: ViewAction,
     }
     val primary = nlComponents[0]
     val scene = surface.scene ?: return
-    val handler = primary.viewHandler ?: return
+    val handler = primary.getViewHandler {} ?: return
     viewAction.perform(ViewEditorImpl(primary.model, scene), handler, primary, nlComponents, e.modifiers)
   }
 }

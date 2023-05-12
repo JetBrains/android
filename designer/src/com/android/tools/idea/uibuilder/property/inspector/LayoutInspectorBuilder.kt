@@ -24,14 +24,14 @@ import com.android.SdkConstants.TOOLS_NS_NAME_PREFIX
 import com.android.SdkConstants.TOOLS_URI
 import com.android.SdkConstants.VIEW_MERGE
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.InspectorBuilder
-import com.android.tools.property.panel.api.InspectorPanel
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.api.CustomPanel
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import javax.swing.JPanel
@@ -90,7 +90,7 @@ class LayoutInspectorBuilder(project: Project,
 
   private fun addAttributesFromViewHandler(properties: PropertiesTable<NlPropertyItem>, attributes: MutableList<String>) {
     val parent = getParentComponent(properties) ?: return
-    val handler = viewHandlerManager.getHandler(parent) ?: return
+    val handler = viewHandlerManager.getHandler(parent) {} ?: return
     attributes.addAll(handler.layoutInspectorProperties)
   }
 
@@ -118,7 +118,7 @@ class LayoutInspectorBuilder(project: Project,
   }
 
   private fun createCustomPanel(parent: NlComponent, customPanelKey: String): CustomPanel {
-    val handler = viewHandlerManager.getHandler(parent)
+    val handler = viewHandlerManager.getHandler(parent) {}
     val panel = handler?.layoutCustomPanel ?: SampleCustomPanel.INSTANCE
     cachedCustomPanels[customPanelKey] = panel
     return panel

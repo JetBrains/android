@@ -28,9 +28,10 @@ import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.ATTR_TYPEFACE
 import com.android.resources.ResourceType
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
@@ -41,7 +42,6 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import org.jetbrains.android.dom.AndroidDomUtil
-import com.android.tools.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.util.IdentityHashMap
 
@@ -116,7 +116,7 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
     }
     var values: Map<String, String>? = null
     for (component in attrComponents) {
-      val handler = component.viewHandler ?: return null
+      val handler = component.getViewHandler {} ?: return null
       val overrides = handler.getEnumPropertyValues(component).getOrDefault(name, null) ?: return null
       if (values == null) {
         values = overrides
