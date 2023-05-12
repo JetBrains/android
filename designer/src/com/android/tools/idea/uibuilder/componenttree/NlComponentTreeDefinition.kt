@@ -41,10 +41,10 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.model.ensureLiveId
+import com.android.tools.idea.uibuilder.model.getViewGroupHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.isGroup
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
-import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.structure.BackNavigationComponent
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
@@ -143,7 +143,7 @@ private class ComponentTreePanel(
   init {
     componentTree = ComponentTreeBuilder()
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
-      .withNodeType(NlComponentNodeType())
+      .withNodeType(NlComponentNodeType { repaint() })
       .withNodeType(NlComponentReferenceNodeType())
       .withAutoScroll()
       .withDataProvider { dataId -> getData(dataId) }
@@ -218,7 +218,7 @@ private class ComponentTreePanel(
   }
 
   private fun activateComponent(component: Any) = when (component) {
-    is NlComponent -> component.viewHandler?.onActivateInComponentTree(component)
+    is NlComponent -> component.getViewHandler {}?.onActivateInComponentTree(component)
     is NlComponentReference -> findComponent(component.id, model)?.let { surface?.selectionModel?.setSelection(listOf(it)) }
     else -> error("unexpected node type: ${component.javaClass.name}")
   }
@@ -277,7 +277,7 @@ private class ComponentTreePanel(
     override fun deleteElement(dataContext: DataContext) {
       val references  = componentTree.selectionModel.currentSelection.filterIsInstance(NlComponentReference::class.java)
       references.forEach {
-        it.parent.viewGroupHandler?.removeReference(it.parent, it.id)
+        it.parent.getViewGroupHandler {}?.removeReference(it.parent, it.id)
       }
     }
   }
@@ -299,20 +299,20 @@ private class ComponentTreePanel(
   /**
    * The [NodeType] used for [NlComponent]s in the [NlModel] of the design surface.
    */
-  private inner class NlComponentNodeType : ViewNodeType<NlComponent>() {
+  private inner class NlComponentNodeType(private val update: Runnable) : ViewNodeType<NlComponent>() {
     override val clazz: Class<NlComponent> = NlComponent::class.java
 
     override fun idOf(node: NlComponent): String? = stripIdPrefix(node.id).ifEmpty { null }
 
-    override fun tagNameOf(node: NlComponent): String = node.viewHandler?.getTitle(node)?.nullize() ?: node.tagName
+    override fun tagNameOf(node: NlComponent): String = node.getViewHandler(update)?.getTitle(node)?.nullize() ?: node.tagName
 
-    override fun textValueOf(node: NlComponent): String? = node.viewHandler?.getTitleAttributes(node)
+    override fun textValueOf(node: NlComponent): String? = node.getViewHandler(update)?.getTitleAttributes(node)
 
-    override fun iconOf(node: NlComponent): Icon = node.viewHandler?.getIcon(node) ?: loadBuiltinIcon(getSimpleTagName(node))
+    override fun iconOf(node: NlComponent): Icon = node.getViewHandler(update)?.getIcon(node) ?: loadBuiltinIcon(getSimpleTagName(node))
 
     override fun parentOf(node: NlComponent): NlComponent? = node.parent
 
-    override fun childrenOf(node: NlComponent): List<*> = node.viewGroupHandler?.getComponentTreeChildren(node) ?: node.children
+    override fun childrenOf(node: NlComponent): List<*> = node.getViewGroupHandler(update)?.getComponentTreeChildren(node) ?: node.children
 
     override fun toSearchString(node: NlComponent): String = "${idOf(node)} - ${tagNameOf(node)} - ${textValueOf(node)}"
 
@@ -341,7 +341,7 @@ private class ComponentTreePanel(
       // - components to be dragged into a group component
       // - references or components to be dragged into a reference holder component (components will be saved as references)
       return (components.isNotEmpty() && node.isGroup() && model.canAddComponents(components, node, null)) ||
-             node.viewGroupHandler?.holdsReferences() == true
+             node.getViewGroupHandler {}?.holdsReferences() == true
     }
 
     override fun insert(node: NlComponent, data: Transferable, before: Any?, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
@@ -356,7 +356,7 @@ private class ComponentTreePanel(
       when {
         node.isGroup() && refs.isEmpty() && model.canAddComponents(components, node, before as? NlComponent) ->
           model.addComponents(components, node, before as? NlComponent, insertType, null)
-        node.viewGroupHandler?.holdsReferences() == true ->
+        node.getViewGroupHandler {}?.holdsReferences() == true ->
           updateReferences(node, components, refs, before as? NlComponentReference, insertType)
         else -> return false
       }
@@ -374,7 +374,7 @@ private class ComponentTreePanel(
     ) {
       // First add the reference to the constraint helpers reference list:
       val ids = references + components.map { it.ensureLiveId() }
-      node.viewGroupHandler?.addReferences(node, ids, before?.id)
+      node.getViewGroupHandler {}?.addReferences(node, ids, before?.id)
 
       // Then add/move the referenced component to the corresponding constraint layout:
       val layout = node.parent ?: return
