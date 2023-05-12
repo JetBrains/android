@@ -142,7 +142,8 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         return false
     }
 
-    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion): Boolean {
+    override fun addElementsToFile(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion,
+                                   addVersion: Boolean): Boolean {
         val module = ModuleUtil.findModuleForPsiElement(file) ?: return false
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
