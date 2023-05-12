@@ -115,7 +115,7 @@ class NlTreeCellRenderer(
     val leftOffset = getLeftOffset(tree, path)
 
     val facet = value.model.facet
-    val handler = if (!facet.isDisposed) ViewHandlerManager.get(facet).getHandler(value) else null
+    val handler = if (!facet.isDisposed) ViewHandlerManager.get(facet).getHandler(value) {} else null
 
     primaryLabel.icon = handler?.getIcon(value)?.let {
       if (selected && treeFocused && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it

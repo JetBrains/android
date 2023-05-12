@@ -59,7 +59,7 @@ public final class TreeSearchUtil {
 
   @NotNull
   private static StructurePaneComponentHandler getViewHandler(@NotNull NlComponent component) {
-    StructurePaneComponentHandler handler = NlComponentHelperKt.getViewHandler(component);
+    StructurePaneComponentHandler handler = NlComponentHelperKt.getViewHandler(component, () -> {});
     return handler == null ? ViewHandlerManager.NONE : handler;
   }
 }

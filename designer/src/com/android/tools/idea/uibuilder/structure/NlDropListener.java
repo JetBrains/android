@@ -30,7 +30,6 @@ import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -196,10 +195,9 @@ public class NlDropListener extends DropTargetAdapter {
     }
     else {
       // Not a viewgroup, but let's give a chance to the handler to do something with the drop event
-      ViewHandler handler = NlComponentHelperKt.getViewHandler(myDragReceiver);
-      if (handler instanceof ViewGroupHandler) {
-        ViewGroupHandler groupHandler = (ViewGroupHandler)handler;
-        groupHandler.performDrop(model, event, myDragReceiver, myDragged, myNextDragSibling, insertType);
+      ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(myDragReceiver, () -> {});
+      if (handler != null) {
+        handler.performDrop(model, event, myDragReceiver, myDragged, myNextDragSibling, insertType);
       }
     }
   }
