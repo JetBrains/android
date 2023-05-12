@@ -31,8 +31,6 @@ import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
-import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
-import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.ProjectApplicationIdsListener
 import com.android.tools.idea.logcat.actions.AskStudioBotAction
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CopyMessageTextAction
@@ -47,6 +45,7 @@ import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PauseLogcatAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.RestartLogcatAction
+import com.android.tools.idea.logcat.actions.SaveLogcatAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
@@ -89,6 +88,8 @@ import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
 import com.android.tools.idea.logcat.util.trackVisibility
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.ProjectApplicationIdsListener
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
@@ -587,6 +588,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(ClearLogcatAction())
       add(PauseLogcatAction())
       add(RestartLogcatAction())
+      add(SaveLogcatAction())
       add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))

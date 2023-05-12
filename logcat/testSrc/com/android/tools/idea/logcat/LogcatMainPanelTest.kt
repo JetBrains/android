@@ -190,6 +190,7 @@ class LogcatMainPanelTest {
       "Clear Logcat",
       "Pause Logcat",
       "Restart Logcat",
+      "Save Logcat to a File",
       "Scroll to the End (clicking on a particular line stops scrolling and keeps that line visible)",
       "Previous Occurrence",
       "Next Occurrence",
