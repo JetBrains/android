@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.intellij.ui.ExperimentalUI.isNewUI;
-
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
@@ -24,13 +22,13 @@ import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
@@ -43,8 +41,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
@@ -55,6 +51,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -93,7 +90,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String DESKTOP = "Desktop";
   private static final List<String> CATEGORY_ORDER = ImmutableList.of(PHONE_TYPE, TABLET_TYPE, WEAR, DESKTOP, TV, AUTOMOTIVE);
 
-  private Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
+  private final Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
   private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
 
   private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
@@ -106,8 +103,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private JButton myRefreshButton;
   private JPanel myPanel;
   private SearchTextField mySearchTextField;
-  private List<DeviceDefinitionSelectionListener> myListeners = new ArrayList<>();
-  private List<DeviceCategorySelectionListener> myCategoryListeners = new ArrayList<>();
+  private final List<DeviceDefinitionSelectionListener> myListeners = new ArrayList<>();
+  private final List<DeviceCategorySelectionListener> myCategoryListeners = new ArrayList<>();
   private List<Device> myDevices;
   private Device myDefaultDevice;
 
@@ -115,89 +112,93 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     super(new BorderLayout());
     // List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
     // the cell value in that column for a given row item.
-    ColumnInfo[] columnInfos = new ColumnInfo[]{new DeviceColumnInfo("Name") {
-      @NonNull
-      @Override
-      public String valueOf(Device device) {
-        return device.getDisplayName();
-      }
+    ColumnInfo[] columns = {
+      new DeviceColumnInfo("Name") {
+        @NonNull
+        @Override
+        public String valueOf(Device device) {
+          return device.getDisplayName();
+        }
 
-      @NonNull
-      @Override
-      public String getPreferredStringValue() {
-        // Long string so that preferred column width is set appropriately
-        return "4.65\" 720 (Galaxy Nexus)";
-      }
+        @NonNull
+        @Override
+        public String getPreferredStringValue() {
+          // Long string so that preferred column width is set appropriately
+          return "4.65\" 720 (Galaxy Nexus)";
+        }
 
-      @NonNull
-      @Override
-      public Comparator<Device> getComparator() {
-        return new NameComparator();
-      }
-    }, new PlayStoreColumnInfo("Play Store") {
-    }, new DeviceColumnInfo("Size") {
+        @NonNull
+        @Override
+        public Comparator<Device> getComparator() {
+          return new NameComparator();
+        }
+      },
+      new PlayStoreColumnInfo(),
+      new DeviceColumnInfo("Size") {
+        @NonNull
+        @Override
+        public String valueOf(Device device) {
+          return getDiagonalSize(device);
+        }
 
-      @NonNull
-      @Override
-      public String valueOf(Device device) {
-        return getDiagonalSize(device);
-      }
-      @NonNull
-      @Override
-      public Comparator<Device> getComparator() {
-        return (o1, o2) -> {
-          if (o1 == null) {
-            return -1;
-          }
-          else if (o2 == null) {
-            return 1;
-          }
-          else {
-            return Double.compare(o1.getDefaultHardware().getScreen().getDiagonalLength(),
-                                  o2.getDefaultHardware().getScreen().getDiagonalLength());
-          }
-        };
-      }
-    }, new DeviceColumnInfo("Resolution") {
-      @NonNull
-      @Override
-      public String valueOf(Device device) {
-        return getDimensionString(device);
-      }
-
-      @NonNull
-      @Override
-      public Comparator<Device> getComparator() {
-        return (o1, o2) -> {
-          if (o1 == null) {
-            return -1;
-          }
-          else if (o2 == null) {
-            return 1;
-          }
-          else {
-            Dimension d1 = o1.getScreenSize(o1.getDefaultState().getOrientation());
-            Dimension d2 = o2.getScreenSize(o2.getDefaultState().getOrientation());
-            if (d1 == null) {
+        @NonNull
+        @Override
+        public Comparator<Device> getComparator() {
+          return (o1, o2) -> {
+            if (o1 == null) {
               return -1;
             }
-            else if (d2 == null) {
+            else if (o2 == null) {
               return 1;
             }
             else {
-              return Integer.compare(d1.width * d1.height, d2.width * d2.height);
+              return Double.compare(o1.getDefaultHardware().getScreen().getDiagonalLength(),
+                                    o2.getDefaultHardware().getScreen().getDiagonalLength());
             }
-          }
-        };
-      }
-    }, new DeviceColumnInfo("Density") {
-      @NonNull
-      @Override
-      public String valueOf(Device device) {
-        return getDensityString(device);
-      }
-    }};
-    myModel.setColumnInfos(columnInfos);
+          };
+        }
+      },
+      new DeviceColumnInfo("Resolution") {
+        @NonNull
+        @Override
+        public String valueOf(Device device) {
+          return getDimensionString(device);
+        }
+
+        @NonNull
+        @Override
+        public Comparator<Device> getComparator() {
+          return (o1, o2) -> {
+            if (o1 == null) {
+              return -1;
+            }
+            else if (o2 == null) {
+              return 1;
+            }
+            else {
+              Dimension d1 = o1.getScreenSize(o1.getDefaultState().getOrientation());
+              Dimension d2 = o2.getScreenSize(o2.getDefaultState().getOrientation());
+              if (d1 == null) {
+                return -1;
+              }
+              else if (d2 == null) {
+                return 1;
+              }
+              else {
+                return Integer.compare(d1.width * d1.height, d2.width * d2.height);
+              }
+            }
+          };
+        }
+      },
+      new DeviceColumnInfo("Density") {
+        @NonNull
+        @Override
+        public String valueOf(Device device) {
+          return getDensityString(device);
+        }
+      }};
+    myModel.setColumnInfos(columns);
     myModel.setSortable(true);
     refreshDeviceProfiles();
     setDefaultDevices();
@@ -207,27 +208,23 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTable.setRowSelectionAllowed(true);
 
-    myRefreshButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        refreshDeviceProfiles();
-      }
-    });
+    myRefreshButton.addActionListener(event -> refreshDeviceProfiles());
     myTable.getSelectionModel().addListSelectionListener(this);
     // The singular column that serves as the header for our category list
-    ColumnInfo[] categoryInfo = new ColumnInfo[]{new ColumnInfo<String, String>("Category") {
-      @Nullable
-      @Override
-      public String valueOf(String category) {
-        return category;
-      }
+    ColumnInfo[] categoryInfo = {
+      new ColumnInfo<String, String>("Category") {
+        @Nullable
+        @Override
+        public String valueOf(String category) {
+          return category;
+        }
 
-      @NonNull
-      @Override
-      public TableCellRenderer getRenderer(String s) {
-        return myRenderer;
-      }
-    }};
+        @NonNull
+        @Override
+        public TableCellRenderer getRenderer(String s) {
+          return myRenderer;
+        }
+      }};
     myCategoryModel.setColumnInfos(categoryInfo);
     myCategoryList.setModelAndUpdateColumns(myCategoryModel);
     myCategoryList.getSelectionModel().addListSelectionListener(this);
@@ -306,7 +303,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   public void valueChanged(ListSelectionEvent e) {
     if (e.getSource().equals(myCategoryList.getSelectionModel())) {
       setCategory(myCategoryList.getSelectedObject());
-    } else if (e.getSource().equals(myTable.getSelectionModel())){
+    }
+    else if (e.getSource().equals(myTable.getSelectionModel())) {
       onSelectionSet(myTable.getSelectedObject());
     }
   }
@@ -317,10 +315,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   public void addCategoryListener(@NotNull DeviceCategorySelectionListener listener) {
     myCategoryListeners.add(listener);
-  }
-
-  public void removeSelectionListener(@NotNull DeviceDefinitionSelectionListener listener) {
-    myListeners.remove(listener);
   }
 
   @Override
@@ -423,15 +417,20 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   public static String getCategory(@NotNull Device d) {
     if (HardwareConfigHelper.isAutomotive(d)) {
       return AUTOMOTIVE;
-    } else if (HardwareConfigHelper.isDesktop(d)) {
+    }
+    else if (HardwareConfigHelper.isDesktop(d)) {
       return DESKTOP;
-    } else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
+    }
+    else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
       return TV;
-    } else if (HardwareConfigHelper.isWear(d)) {
+    }
+    else if (HardwareConfigHelper.isWear(d)) {
       return WEAR;
-    } else if (isTablet(d)) {
+    }
+    else if (isTablet(d)) {
       return TABLET_TYPE;
-    } else {
+    }
+    else {
       return PHONE_TYPE;
     }
   }
@@ -512,14 +511,19 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         setCategory(myCategoryList.getRow(0));
       }
       return;
-    } else if (!myCategoryModel.getItem(myCategoryModel.getRowCount() - 1).equals(SEARCH_RESULTS)) {
+    }
+    else if (!myCategoryModel.getItem(myCategoryModel.getRowCount() - 1).equals(SEARCH_RESULTS)) {
       myCategoryModel.addRow(SEARCH_RESULTS);
       myCategoryList.setSelection(ImmutableSet.of(SEARCH_RESULTS));
     }
 
-    List<Device> items = Lists.newArrayList(Iterables.filter(myDevices,
-                                                             (input) -> input.getDisplayName().toLowerCase(Locale.getDefault())
-                                                               .contains(searchString.toLowerCase(Locale.getDefault()))));
+    var locale = Locale.getDefault();
+    var lowercaseSearchString = searchString.toLowerCase(locale);
+
+    var items = myDevices.stream()
+      .filter(device -> device.getDisplayName().toLowerCase(locale).contains(lowercaseSearchString))
+      .collect(Collectors.toList());
+
     myModel.setItems(items);
     notifyCategoryListeners(null, items);
   }
@@ -545,47 +549,26 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   /**
    * Renders a simple text field.
    */
-  private final TableCellRenderer myRenderer = new TableCellRenderer() {
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-      JBLabel label = new JBLabel((String)value);
-      label.setBorder(myBorder);
-      if (table.getSelectedRow() == row) {
-        label.setBackground(table.getSelectionBackground());
-        label.setForeground(table.getSelectionForeground());
-        label.setOpaque(true);
-      }
-      return label;
+  private final TableCellRenderer myRenderer = (table, value, isSelected, hasFocus, row, column) -> {
+    JBLabel label = new JBLabel((String)value);
+    label.setBorder(myBorder);
+    if (table.getSelectedRow() == row) {
+      label.setBackground(table.getSelectionBackground());
+      label.setForeground(table.getSelectionForeground());
+      label.setOpaque(true);
     }
+    return label;
   };
 
   private abstract class DeviceColumnInfo extends ColumnInfo<Device, String> {
-    private final int myWidth;
-
     @Nullable
     @Override
     public Comparator<Device> getComparator() {
-      return (o1, o2) -> {
-          if (o1 == null || valueOf(o1) == null) {
-            return -1;
-          }
-          else if (o2 == null || valueOf(o2) == null) {
-            return 1;
-          }
-          else {
-            //noinspection ConstantConditions
-            return valueOf(o1).compareTo(valueOf(o2));
-          }
-      };
+      return Comparator.comparing(this::valueOf);
     }
 
-    DeviceColumnInfo(@NotNull String name, int width) {
+    DeviceColumnInfo(@NotNull String name) {
       super(name);
-      myWidth = width;
-    }
-
-    DeviceColumnInfo(String name) {
-      this(name, -1);
     }
 
     @Nullable
@@ -593,20 +576,20 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     public TableCellRenderer getRenderer(Device device) {
       return myRenderer;
     }
-
-    @Override
-    public int getWidth(JTable table) {
-      return myWidth;
-    }
   }
 
   private static class PlayStoreColumnInfo extends ColumnInfo<Device, Icon> {
 
-    public static final Icon highlightedPlayStoreIcon = ColoredIconGenerator.INSTANCE.generateWhiteIcon(StudioIcons.Avd.DEVICE_PLAY_STORE);
+    public static final Icon highlightedPlayStoreIcon = ColoredIconGenerator.generateWhiteIcon(StudioIcons.Avd.DEVICE_PLAY_STORE);
 
     private static final TableCellRenderer ourIconRenderer = new DefaultTableCellRenderer() {
       @Override
-      public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+      public Component getTableCellRendererComponent(JTable table,
+                                                     Object value,
+                                                     boolean isSelected,
+                                                     boolean hasFocus,
+                                                     int row,
+                                                     int column) {
         Icon theIcon = (Icon)value;
         JBLabel label = new JBLabel(theIcon);
         if (theIcon != null) {
@@ -617,15 +600,15 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
           label.setForeground(table.getSelectionForeground());
           label.setOpaque(true);
           if (theIcon != null) {
-            label.setIcon(isNewUI() ? StudioIcons.Avd.DEVICE_PLAY_STORE : highlightedPlayStoreIcon);
+            label.setIcon(ExperimentalUI.isNewUI() ? StudioIcons.Avd.DEVICE_PLAY_STORE : highlightedPlayStoreIcon);
           }
         }
         return label;
       }
     };
 
-    PlayStoreColumnInfo(String name) {
-      super(name);
+    PlayStoreColumnInfo() {
+      super("Play Store");
     }
 
     @NotNull
