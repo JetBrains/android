@@ -19,7 +19,7 @@ import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 
 class ScaleTypeViewActionTest: SceneTest() {
@@ -30,7 +30,7 @@ class ScaleTypeViewActionTest: SceneTest() {
       val action = ScaleTypeViewAction(SdkConstants.ANDROID_URI, SdkConstants.ATTR_SCALE_TYPE, type)
       val editor = ViewEditorImpl(myModel, myScene)
 
-      action.perform(editor, imageView.viewHandler!!, imageView, mutableListOf(imageView), 0)
+      action.perform(editor, imageView.getViewHandler {}!!, imageView, mutableListOf(imageView), 0)
 
       assertEquals(type.attributeValue, imageView.getAndroidAttribute(SdkConstants.ATTR_SCALE_TYPE))
     }

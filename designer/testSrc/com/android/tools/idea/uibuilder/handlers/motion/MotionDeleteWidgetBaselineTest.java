@@ -72,7 +72,7 @@ public class MotionDeleteWidgetBaselineTest extends SceneTest {
   public void testDelete() {
     SceneComponent layout = myScene.getSceneComponent("root");
     NlComponent layoutComponent = layout.getNlComponent();
-    ViewGroupHandler handler = (ViewGroupHandler)NlComponentHelperKt.getViewHandler(layoutComponent);
+    ViewGroupHandler handler = (ViewGroupHandler)NlComponentHelperKt.getViewHandler(layoutComponent, () -> {});
     ArrayList<NlComponent> deleted = new ArrayList<>();
     deleted.add(myScene.getSceneComponent("button2").getNlComponent());
     handler.deleteChildren(layoutComponent, deleted);

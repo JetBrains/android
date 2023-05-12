@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
-import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP
-import com.android.SdkConstants.CLASS_VIEW
 import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW
+import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
 import com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER
 import com.android.AndroidXConstants.RECYCLER_VIEW
 import com.android.SdkConstants
 import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
@@ -34,7 +34,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.getSelectedIds
-import com.android.tools.idea.uibuilder.model.layoutHandler
+import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito
 
@@ -49,14 +49,14 @@ class ConstraintLayoutHandlerTest: SceneTest() {
                           .height("1000dp"))
       .build()
 
-    val handler = nlModel.find("root")!!.layoutHandler!!
+    val handler = nlModel.find("root")!!.getLayoutHandler {}!!
     assertNoException<IllegalArgumentException>(IllegalArgumentException::class.java) {
         handler.clearAttributes(listOf())
       }
   }
 
   fun testClearConstraintAttributes() {
-    val handler = myModel.find("root")!!.layoutHandler!!
+    val handler = myModel.find("root")!!.getLayoutHandler {}!!
     val button1 = myModel.find("button1")!!
     val text1 = myModel.find("text1")!!
     val barrier1 = myModel.find("barrier1")!!
@@ -185,7 +185,7 @@ class ConstraintLayoutHandlerTest: SceneTest() {
     val button = model.find("button")!!
     val button2 = model.find("button2")!!
 
-    val handler = model.find("root")!!.layoutHandler!!
+    val handler = model.find("root")!!.getLayoutHandler {}!!
     handler.clearAttributes(listOf(button, button2))
 
     screen.get("@id/button")

@@ -87,7 +87,7 @@ class NlPaletteModelTest {
     )
     assertThat(added).isFalse()
     assertThat(getProjectGroup(palette)).isNull()
-    val handler = ViewHandlerManager.get(facet!!).getHandler(SdkConstants.LINEAR_LAYOUT)
+    val handler = ViewHandlerManager.get(facet!!).getHandler(SdkConstants.LINEAR_LAYOUT) {}
     assertThat(handler).isInstanceOf(LinearLayoutHandler::class.java)
   }
 
@@ -130,7 +130,7 @@ class NlPaletteModelTest {
     assertThat(item2.title).isEqualTo(CUSTOM_VIEW_GROUP)
     assertThat(item2.gradleCoordinateId).isEmpty()
     assertThat(item2.xml.trim()).isEqualTo(expectedViewGroupXml)
-    val handler = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS)
+    val handler = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     assertThat(handler).isNotNull()
     assertThat(handler!!.getTitle(CUSTOM_VIEW_CLASS)).isEqualTo(CUSTOM_VIEW)
     assertThat(handler.getIcon(CUSTOM_VIEW_CLASS)).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
@@ -151,13 +151,13 @@ class NlPaletteModelTest {
       CUSTOM_VIEW_CLASS, CUSTOM_VIEW_CLASS, getXml(CUSTOM_VIEW_CLASS),
       getPreviewXml(CUSTOM_VIEW_CLASS), "", "family", ImmutableList.of("family", "size"), emptyList()
     )
-    val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS)
+    val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     val added2 = model!!.addAdditionalComponent(
       LayoutFileType, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
       CUSTOM_VIEW_CLASS, CUSTOM_VIEW_CLASS, getXml(CUSTOM_VIEW_CLASS),
       getPreviewXml(CUSTOM_VIEW_CLASS), "", "family", ImmutableList.of("family", "size"), emptyList()
     )
-    val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS)
+    val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     assertThat(added1).isTrue()
     assertThat(added2).isTrue()
     assertThat(handler1).isSameAs(handler2)
@@ -173,13 +173,13 @@ class NlPaletteModelTest {
       CUSTOM_VIEW_GROUP_CLASS, CUSTOM_VIEW_GROUP_CLASS, getXml(CUSTOM_VIEW_GROUP_CLASS),
       getPreviewXml(CUSTOM_VIEW_GROUP_CLASS), "", "family", ImmutableList.of("family", "size"), emptyList()
     )
-    val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS)
+    val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS) {}
     val added2 = model!!.addAdditionalComponent(
       LayoutFileType, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
       CUSTOM_VIEW_GROUP_CLASS, CUSTOM_VIEW_GROUP_CLASS, getXml(CUSTOM_VIEW_GROUP_CLASS),
       getPreviewXml(CUSTOM_VIEW_GROUP_CLASS), "", "family", ImmutableList.of("family", "size"), emptyList()
     )
-    val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS)
+    val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS) {}
     assertThat(added1).isTrue()
     assertThat(added2).isTrue()
     assertThat(handler1).isSameAs(handler2)
@@ -255,7 +255,7 @@ class NlPaletteModelTest {
 
   private fun registerFakeBaseViewHandler() {
     val manager = ViewHandlerManager.get(facet!!)
-    val handler = manager.getHandler(SdkConstants.VIEW)
+    val handler = manager.getHandler(SdkConstants.VIEW) {}
     assertThat(handler).isNotNull()
     manager.registerHandler("com.example.FakeView", handler!!)
   }

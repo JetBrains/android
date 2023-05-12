@@ -423,7 +423,7 @@ public class SceneMouseInteraction {
 
     NlComponent nlComponent = component.getNlComponent();
     ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
-    ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
+    ViewHandler viewHandler = handlerManager.getHandler(nlComponent, () -> {});
     return handlerManager.getToolbarActions(viewHandler);
   }
 
@@ -434,7 +434,7 @@ public class SceneMouseInteraction {
 
     NlComponent nlComponent = component.getNlComponent();
     ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
-    ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
+    ViewHandler viewHandler = handlerManager.getHandler(nlComponent, () -> {});
     return handlerManager.getPopupMenuActions(component, viewHandler);
   }
 
@@ -464,7 +464,7 @@ public class SceneMouseInteraction {
     ViewEditor viewEditor = new ViewEditorImpl(nlComponent.getModel(), myScene);
 
     ViewHandlerManager handlerManager = ViewHandlerManager.get(nlComponent.getModel().getProject());
-    ViewHandler viewHandler = handlerManager.getHandler(nlComponent);
+    ViewHandler viewHandler = handlerManager.getHandler(nlComponent, () -> {});
 
     viewAction.perform(viewEditor, viewHandler, nlComponent, myScene.getSelection(), myModifiersEx);
   }

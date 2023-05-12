@@ -17,8 +17,8 @@ package com.android.tools.idea.common.scene.target
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
-import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
@@ -26,7 +26,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.layoutHandler
+import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Cursor
 import java.awt.event.InputEvent
@@ -348,7 +348,7 @@ class CommonDragTargetTest : SceneTest() {
   private fun setAutoConnection(view: SceneView, component: SceneComponent, on: Boolean) {
     if (ToggleAutoConnectAction.isAutoconnectOn() != on) {
       ToggleAutoConnectAction().perform(ViewEditorImpl(view),
-                                        component.nlComponent.layoutHandler!!,
+                                        component.nlComponent.getLayoutHandler {}!!,
                                         component.parent!!.nlComponent,
                                         listOf(),
                                         0)
