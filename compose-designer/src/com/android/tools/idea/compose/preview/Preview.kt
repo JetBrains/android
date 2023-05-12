@@ -65,7 +65,6 @@ import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
-import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.setupBuildListener
@@ -1261,12 +1260,10 @@ class ComposePreviewRepresentation(
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
     val showingPreviewElements =
-      surface.updatePreviewsAndRefresh(
+      composeWorkBench.updatePreviewsAndRefresh(
         !quickRefresh,
         previewElementProvider,
-        log,
         psiFile,
-        this,
         progressIndicator,
         this::onAfterRender,
         previewElementModelAdapter,

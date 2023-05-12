@@ -23,6 +23,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
@@ -31,7 +32,10 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.requestBuild
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
@@ -39,6 +43,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -111,6 +116,39 @@ interface ComposePreviewView {
    * [onLayoutlibReEnable] will be called.
    */
   fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit)
+
+  /**
+   * Updates the list of previews to be rendered in this [ComposePreviewView], requests a refresh
+   * and returns the list of [ComposePreviewElement] being rendered.
+   *
+   * By default, refreshes all the previews on the [mainSurface]. Implementors of this interface can
+   * override this method to add extra logic if rendering a different set of previews and/or if
+   * rendering them in a different component.
+   */
+  suspend fun updatePreviewsAndRefresh(
+    reinflate: Boolean,
+    previewElementProvider: PreviewFilters,
+    psiFile: PsiFile,
+    progressIndicator: ProgressIndicator,
+    onRenderCompleted: () -> Unit,
+    previewElementModelAdapter: ComposePreviewElementModelAdapter,
+    modelUpdater: NlModel.NlModelUpdaterInterface,
+    configureLayoutlibSceneManager:
+      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
+  ): List<ComposePreviewElement> {
+    return mainSurface.updatePreviewsAndRefresh(
+      reinflate,
+      previewElementProvider,
+      Logger.getInstance(ComposePreviewView::class.java),
+      psiFile,
+      mainSurface,
+      progressIndicator,
+      onRenderCompleted,
+      previewElementModelAdapter,
+      modelUpdater,
+      configureLayoutlibSceneManager
+    )
+  }
 }
 
 fun interface ComposePreviewViewProvider {
