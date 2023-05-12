@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -47,6 +48,8 @@ class ToggleDeviceNightModeAction : AnAction() {
       configuration.nightMode = newNightMode
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   companion object {
     @JvmStatic

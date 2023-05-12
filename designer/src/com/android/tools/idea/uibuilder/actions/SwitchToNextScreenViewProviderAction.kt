@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -51,4 +52,6 @@ class SwitchToNextScreenViewProviderAction : AnAction() {
       surface.setScreenViewProvider(it, true)
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 }

@@ -24,6 +24,7 @@ import com.android.tools.idea.configurations.DeviceMenuAction
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -55,6 +56,8 @@ abstract class SwitchDeviceAction: AnAction() {
     val config = surface.configurations.firstOrNull() ?: return
     switchDevice(surface, config)
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   abstract fun switchDevice(surface: DesignSurface<*>, config: Configuration)
 }

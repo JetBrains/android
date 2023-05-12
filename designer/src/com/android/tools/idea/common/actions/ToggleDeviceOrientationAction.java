@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -68,5 +69,10 @@ public class ToggleDeviceOrientationAction extends AnAction {
           configuration.setDeviceState(flip);
         }
       });
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 }
