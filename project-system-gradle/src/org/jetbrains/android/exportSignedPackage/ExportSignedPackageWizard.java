@@ -255,8 +255,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   protected void updateStep() {
     int step = getCurrentStep();
     final ExportSignedPackageWizardStep currentStep = mySteps.get(step);
-    //noinspection removal
-    getFinishButton().setEnabled(currentStep.canFinish());
 
     super.updateStep();
 
