@@ -725,20 +725,20 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   public void updateTargets() {
+    Runnable updateAgain = this::updateTargets;
     SceneComponent root = getScene().getRoot();
     if (root != null) {
-      updateTargetProviders(root);
+      updateTargetProviders(root, updateAgain);
       root.updateTargets();
     }
   }
 
-  private static void updateTargetProviders(@NotNull SceneComponent component) {
-    ViewHandler handler = SlowOperations.allowSlowOperations(
-      () -> NlComponentHelperKt.getViewHandler(component.getNlComponent()));
+  private static void updateTargetProviders(@NotNull SceneComponent component, @NotNull Runnable whenUpdated) {
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component.getNlComponent(), whenUpdated);
     component.setTargetProvider(handler);
 
     for (SceneComponent child : component.getChildren()) {
-      updateTargetProviders(child);
+      updateTargetProviders(child, whenUpdated);
     }
   }
 
