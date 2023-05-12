@@ -200,7 +200,7 @@ class JetifierWarningDetailsView(
       else -> { }
     }
     installResultsTableActions(this)
-    ListSpeedSearch.installOn(this)
+    ListSpeedSearch(this)
   }
 
   private val tableHeader = SimpleColoredComponent().apply {

@@ -45,7 +45,7 @@ class ProductFlavorsPanel extends JPanel {
     myProductFlavorsList.setSelectionChangeListener(myEventDispatcher::selectionChanged);
     myProductFlavorsList.setItemsSelected(true);
 
-    ListSpeedSearch.installOn(myProductFlavorsList);
+    new ListSpeedSearch(myProductFlavorsList);
 
     JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myProductFlavorsList);
     scrollPane.setBorder(IdeBorderFactory.createBorder(RIGHT | BOTTOM));

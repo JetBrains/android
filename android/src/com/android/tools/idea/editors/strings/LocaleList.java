@@ -34,6 +34,6 @@ final class LocaleList extends JBList<Locale> {
     setFixedCellHeight(20);
     setName("localeList");
 
-    ListSpeedSearch.installOn(this, object -> Locale.getLocaleLabel(object, false));
+    new ListSpeedSearch<>(this, object -> Locale.getLocaleLabel(object, false));
   }
 }
