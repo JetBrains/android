@@ -22,5 +22,5 @@ import com.intellij.troubleshooting.TroubleInfoCollector
 /** [TroubleInfoCollector] to collect information related to Compose Preview. */
 class ComposePreviewTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project) =
-    "Compose Preview essentials mode enabled: ${ComposePreviewLiteModeManager.isLiteModeEnabled}"
+    "Compose Preview Essentials Mode enabled: ${ComposePreviewLiteModeManager.isLiteModeEnabled}"
 }
