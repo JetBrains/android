@@ -16,36 +16,67 @@
 package com.android.tools.idea.project
 
 import com.android.AndroidProjectTypes
+import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.TargetSelectionMode
 import com.android.tools.idea.run.activity.DefaultActivityLocator
+import com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer
+import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer
+import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
+import com.android.tools.idea.run.configuration.AndroidWearConfiguration
 import com.android.tools.idea.run.util.LaunchUtils
+import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.RunManager
+import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.search.ProjectScope
 import com.intellij.util.PathUtil
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+
+private val wearConfigurationProducers = listOf(
+  AndroidTileRunConfigurationProducer(),
+  AndroidComplicationRunConfigurationProducer(),
+  AndroidWatchFaceRunConfigurationProducer()
+)
 
 class AndroidRunConfigurations {
   @Slow
   @WorkerThread
   fun createRunConfigurations(project: Project) {
+    createAndroidRunConfigurations(project)
+    // create the Android run configurations first as we limit the number of wear configurations
+    // based on the existing number of configurations.
+    createWearConfigurations(project)
+  }
+
+  @Slow
+  @WorkerThread
+  private fun createAndroidRunConfigurations(project: Project) {
     project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
-      createRunConfiguration(it)
+      createAndroidRunConfiguration(it)
     }
   }
 
   @Slow
   @WorkerThread
-  fun createRunConfiguration(facet: AndroidFacet) {
+  private fun createAndroidRunConfiguration(facet: AndroidFacet) {
     // Android run configuration should always be created with the main module
     val module = facet.mainModule
     val configurationFactory = AndroidRunConfigurationType.getInstance().factory
@@ -60,10 +91,39 @@ class AndroidRunConfigurations {
       // Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter
       return
     }
-    ApplicationManager.getApplication().invokeAndWait { addRunConfiguration(facet) }
+    ApplicationManager.getApplication().invokeAndWait { addAndroidRunConfiguration(facet) }
   }
 
-  private fun addRunConfiguration(facet: AndroidFacet) {
+  @Slow
+  @WorkerThread
+  private fun createWearConfigurations(project: Project) {
+    if (!StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.get()) {
+      return
+    }
+    val runManager = RunManager.getInstance(project)
+    val maxAllowedRunConfigurations = StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS.get()
+    val existingRunConfigurationCount = runManager.allConfigurationsList.size
+    if (existingRunConfigurationCount >= maxAllowedRunConfigurations) {
+      // We don't want to breach the maximum number of allowed run configurations
+      return
+    }
+
+    val wearRunConfigurationsToAdd = mutableListOf<RunnerAndConfigurationSettings>()
+    project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
+      // wear run configurations require a holder module
+      wearRunConfigurationsToAdd += createWearConfigurations(it.holderModule)
+      if (existingRunConfigurationCount + wearRunConfigurationsToAdd.size > maxAllowedRunConfigurations) {
+        // We don't want to breach the maximum number of allowed run configurations
+        return
+      }
+    }
+
+    wearRunConfigurationsToAdd.forEach {
+      RunManager.getInstance(project).addConfiguration(it)
+    }
+  }
+
+  private fun addAndroidRunConfiguration(facet: AndroidFacet) {
     val module = facet.mainModule
     val runManager = RunManager.getInstance(module.project)
     val projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.project.name, true, false)
@@ -91,6 +151,65 @@ class AndroidRunConfigurations {
     val manifest = Manifest.getMainManifest(facet) ?: return false
     return runReadAction { DefaultActivityLocator.hasDefaultLauncherActivity(manifest) }
   }
+
+  @Slow
+  @WorkerThread
+  private fun createWearConfigurations(module: Module): List<RunnerAndConfigurationSettings> {
+    val wearComponents = extractWearComponentsFromManifest(module)
+    val wearComponentsUsedInRunConfigurations = wearComponentsUsedInRunConfigurations(module.project)
+    return wearComponents
+      .filter { it.name !in wearComponentsUsedInRunConfigurations }
+      .map { createWearConfiguration(module, it) }
+  }
+
+  private fun createWearConfiguration(module: Module, component: WearComponent): RunnerAndConfigurationSettings {
+    val runManager = RunManager.getInstance(module.project)
+    val configurationAndSettings = runManager.createConfiguration(configurationName(module, component), component.configurationFactory)
+    val configuration = configurationAndSettings.configuration as AndroidWearConfiguration
+    configuration.configurationModule.module = module
+    configuration.componentLaunchOptions.componentName = component.name
+    return configurationAndSettings
+  }
+
+  private fun configurationName(module: Module, component: WearComponent): String {
+    val presentableComponentName = JavaExecutionUtil.getPresentableClassName(component.name)
+    val projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.project.name, true, false)
+    return "${module.name.removePrefix("$projectNameInExternalSystemStyle.")}.$presentableComponentName"
+  }
+
+  @Slow
+  @WorkerThread
+  private fun extractWearComponentsFromManifest(module: Module): List<WearComponent> {
+    val project = module.project
+    val facade = JavaPsiFacade.getInstance(project)
+    val projectAllScope = ProjectScope.getAllScope(project)
+    val manifest = MergedManifestManager.getMergedManifest(module).get()
+    return DumbService.getInstance(project).runReadActionInSmartMode(Computable {
+      val servicePsiClasses = manifest.services.mapNotNull {
+        val serviceName = it.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)
+        facade.findClass(serviceName, projectAllScope)
+      }
+      servicePsiClasses.mapNotNull { psiClass ->
+        val qualifiedName = psiClass.qualifiedName ?: return@mapNotNull null
+        val configurationFactory = wearConfigurationFactory(psiClass) ?: return@mapNotNull null
+        WearComponent(qualifiedName, configurationFactory)
+      }
+    })
+  }
+
+  private fun wearConfigurationFactory(psiClass: PsiClass): ConfigurationFactory? {
+    return wearConfigurationProducers.find { it.isValidService(psiClass) }?.configurationFactory
+  }
+
+  private fun wearComponentsUsedInRunConfigurations(project: Project): Set<String> {
+    return RunManager.getInstance(project)
+      .allConfigurationsList
+      .filterIsInstance<AndroidWearConfiguration>()
+      .mapNotNull { it.componentLaunchOptions.componentName }
+      .toSet()
+  }
+
+  private data class WearComponent(val name: String, val configurationFactory: ConfigurationFactory)
 
   companion object {
     @JvmStatic
