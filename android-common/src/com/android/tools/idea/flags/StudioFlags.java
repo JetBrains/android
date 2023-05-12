@@ -1732,6 +1732,19 @@ public final class StudioFlags {
   private static final FlagGroup EXPERIMENTAL_UI = new FlagGroup(FLAGS, "experimentalui", "Experimental UI");
   public static final Flag<Boolean> EXPERIMENTAL_UI_SURVEY_ENABLED =
     Flag.create(EXPERIMENTAL_UI, "enabled", "Enable Experimental UI Survey", "Enable the experimental UI survey.", true);
-  // endregion STUDIO_BOT
+  // endregion EXPERIMENTAL_UI
+
+  // region WEAR_RUN_CONFIGS_AUTOCREATE
+  private static final FlagGroup WEAR_RUN_CONFIGS_AUTOCREATE =
+    new FlagGroup(FLAGS, "wear.runconfigs.autocreate", "Autocreate Wear Run Configs");
+  public static final Flag<Boolean> WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED =
+    Flag.create(WEAR_RUN_CONFIGS_AUTOCREATE, "enabled", "Enable Autocreate Wear Run Configs",
+                "When enabled, Wear run configurations will be automatically created.", false);
+  public static final Flag<Integer> WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS =
+    Flag.create(WEAR_RUN_CONFIGS_AUTOCREATE, "max.total.runconfigs", "Maximum total run configurations",
+                "Maximum total number of all types of run configurations that can be reached after autocreating Wear Run Configs. Wear Run Configurations will not be created if this limit is breached.",
+                10);
+  // endregion WEAR_RUN_CONFIGS_AUTOCREATE
+
   private StudioFlags() { }
 }
