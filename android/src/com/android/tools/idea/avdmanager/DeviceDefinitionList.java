@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
@@ -114,20 +113,20 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     // the cell value in that column for a given row item.
     ColumnInfo[] columns = {
       new DeviceColumnInfo("Name") {
-        @NonNull
+        @NotNull
         @Override
         public String valueOf(Device device) {
           return device.getDisplayName();
         }
 
-        @NonNull
+        @NotNull
         @Override
         public String getPreferredStringValue() {
           // Long string so that preferred column width is set appropriately
           return "4.65\" 720 (Galaxy Nexus)";
         }
 
-        @NonNull
+        @NotNull
         @Override
         public Comparator<Device> getComparator() {
           return new NameComparator();
@@ -135,13 +134,13 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       },
       new PlayStoreColumnInfo(),
       new DeviceColumnInfo("Size") {
-        @NonNull
+        @NotNull
         @Override
         public String valueOf(Device device) {
           return getDiagonalSize(device);
         }
 
-        @NonNull
+        @NotNull
         @Override
         public Comparator<Device> getComparator() {
           return (o1, o2) -> {
@@ -159,13 +158,13 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         }
       },
       new DeviceColumnInfo("Resolution") {
-        @NonNull
+        @NotNull
         @Override
         public String valueOf(Device device) {
           return getDimensionString(device);
         }
 
-        @NonNull
+        @NotNull
         @Override
         public Comparator<Device> getComparator() {
           return (o1, o2) -> {
@@ -192,7 +191,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         }
       },
       new DeviceColumnInfo("Density") {
-        @NonNull
+        @NotNull
         @Override
         public String valueOf(Device device) {
           return getDensityString(device);
@@ -219,7 +218,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
           return category;
         }
 
-        @NonNull
+        @NotNull
         @Override
         public TableCellRenderer getRenderer(String s) {
           return myRenderer;
@@ -624,7 +623,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
     @Nullable
     @Override
-    public Icon valueOf(@NonNull Device device) {
+    public Icon valueOf(@NotNull Device device) {
       return (device.hasPlayStore() ? StudioIcons.Avd.DEVICE_PLAY_STORE : null);
     }
 
