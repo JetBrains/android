@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb;
 
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
+import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.android.adblib.AdbSession;
 import com.android.adblib.CoroutineScopeCache;
@@ -60,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link AdbService} is the main entry point to initializing and obtaining the {@link AndroidDebugBridge}.
@@ -73,6 +75,9 @@ import org.jetbrains.annotations.Nullable;
  */
 @Service
 public final class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener, AndroidDebugBridge.IDebugBridgeChangeListener {
+  @TestOnly
+  public static boolean disabled = false;
+
   private static final Logger LOG = Logger.getInstance(AdbService.class);
   /**
    * The default timeout used by many calls to ddmlib. This includes executing a command,
@@ -92,7 +97,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * or maybe expose 2 timeouts: one for short lived operations, and one for operations that
    * can take a long time.
    */
-  public static final int ADB_DEFAULT_TIMEOUT_MILLIS = (int)TimeUnit.MINUTES.toMillis(50);
+  private static final int ADB_DEFAULT_TIMEOUT_MILLIS = (int)TimeUnit.MINUTES.toMillis(50);
 
   /**
    * Default timeout to use when calling {@link #terminateDdmlib()}. This ensures
@@ -229,6 +234,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * @param adb The full path to the ADB command.
    */
   public @NotNull ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
+    if (disabled) {
+      return immediateFuture(null);
+    }
     return mySequentialExecutor.submit(() -> myImplementation.getAndroidDebugBridge(adb));
   }
 
@@ -264,6 +272,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * @throws TimeoutException when termination did not complete in {@link #ADB_TERMINATE_TIMEOUT_MILLIS} milliseconds
    */
   public void terminateDdmlib() throws TimeoutException {
+    if (disabled) {
+      return;
+    }
     try {
       mySequentialExecutor.submit(myImplementation::terminate).get(ADB_TERMINATE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
     }
@@ -311,6 +322,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    */
   @Override
   public void optionsChanged() {
+    if (disabled) {
+      return;
+    }
     mySequentialExecutor.execute(myImplementation::optionsChanged);
   }
 
@@ -337,6 +351,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
       @Override
       public void projectClosed(@NotNull Project project) {
+        if (disabled) {
+          return;
+        }
         // Ideally, android projects counts should be used here.
         // However, such logic would introduce circular dependency(relying AndroidFacet.ID in intellij.android.core).
         // So, we only check if all projects are closed. If yes, terminate adb.
@@ -411,7 +428,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
      * @param adb file location of ADB
      */
     @WorkerThread
-    public @Nullable AndroidDebugBridge getAndroidDebugBridge(@NotNull File adb) {
+    private @Nullable AndroidDebugBridge getAndroidDebugBridge(@NotNull File adb) {
       AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
       if (bridge == null || !bridge.isConnected()) {
         try {
