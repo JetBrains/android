@@ -36,12 +36,22 @@ public final class ScreenDiagram extends JPanel {
   private static final Font FIGURE_FONT = JBFont.create(new Font("DroidSans", Font.PLAIN, 10));
 
   private static final Color GRAY = new JBColor(Gray._192, Gray._96);
-  private final int width;
-  private final int height;
+  private int width;
+  private int height;
+
+  public ScreenDiagram() {
+    this(0, 0);
+  }
 
   public ScreenDiagram(int width, int height) {
+    setDimensions(width, height);
+  }
+
+  public void setDimensions(int width, int height) {
     this.width = width;
     this.height = height;
+    setVisible(width > 0 && height > 0);
+    repaint();
   }
 
   @Override
