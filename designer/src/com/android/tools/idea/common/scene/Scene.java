@@ -1254,7 +1254,7 @@ public class Scene implements SelectionListener, Disposable {
       return;
     }
     NlComponent nlComponent = component.getNlComponent();
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(nlComponent);
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(nlComponent, () -> {});
     if (handler != null) {
       builder.addAll(handler.getPlaceholders(component, draggedComponents));
     }

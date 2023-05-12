@@ -32,7 +32,7 @@ import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.handlers.IncludeHandler
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.property.support.PICK_A_RESOURCE
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
@@ -119,7 +119,7 @@ class NlATFIncludeIssue(
   override val fixes: Stream<Fix>
     get() {
       val goto = Fix("Open the layout", "Open the include layout.") {
-        include.viewHandler?.let { handler ->
+        include.getViewHandler {}?.let { handler ->
           if (handler is IncludeHandler) {
             IncludeHandler.openIncludedLayout(include)
           }

@@ -64,7 +64,7 @@ class NlDesignSurfaceActionHandler @JvmOverloads constructor(
   override fun canHandleChildren(component: NlComponent,
                                  pasted: MutableList<NlComponent>): Boolean {
     val handlerManager = ViewHandlerManager.get(component.model.project)
-    val handler = handlerManager.getHandler(component)
+    val handler = handlerManager.getHandler(component) {}
     return handler is ViewGroupHandler
   }
 }

@@ -89,7 +89,7 @@ public final class NlWriteCommandActionUtil {
 
   private static void cleanUpAttributes(@NotNull NlComponent component) {
     Project project = component.getModel().getProject();
-    ViewGroupHandler handler = ViewHandlerManager.get(project).findLayoutHandler(component, true);
+    ViewGroupHandler handler = ViewHandlerManager.get(project).findLayoutHandler(component, true, () -> {});
 
     if (handler == null) {
       return;

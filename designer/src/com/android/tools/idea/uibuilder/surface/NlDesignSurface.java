@@ -689,7 +689,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component, () -> {});
 
     if (handler != null) {
       handler.onActivateInDesignSurface(component, x, y);

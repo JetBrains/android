@@ -23,7 +23,7 @@ import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandlerBase
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.graphics.NlConstants
-import com.android.tools.idea.uibuilder.model.layoutHandler
+import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction
 import com.android.tools.idea.uibuilder.surface.interaction.MarqueeInteraction
 import org.intellij.lang.annotations.JdkConstants
@@ -61,9 +61,9 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>): Interact
       val primary = screenView.selectionModel.primary
       val parent = primary?.parent
       if (parent != null) {
-        val handler = parent.layoutHandler
+        val handler = parent.getLayoutHandler {}
         if (handler != null) {
-          interaction = handler!!.createInteraction(screenView, mouseX, mouseY, primary)
+          interaction = handler.createInteraction(screenView, mouseX, mouseY, primary)
         }
       }
     }
@@ -71,9 +71,9 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>): Interact
     if (interaction == null) {
       // Check if we have a ViewGroupHandler that might want
       // to handle the entire interaction
-      val viewGroupHandler = component?.layoutHandler
+      val viewGroupHandler = component?.getLayoutHandler {}
       if (viewGroupHandler != null) {
-        interaction = viewGroupHandler!!.createInteraction(screenView, mouseX, mouseY, component!!)
+        interaction = viewGroupHandler.createInteraction(screenView, mouseX, mouseY, component!!)
       }
     }
 

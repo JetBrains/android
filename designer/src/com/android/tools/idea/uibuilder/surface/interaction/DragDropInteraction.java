@@ -381,7 +381,7 @@ public class DragDropInteraction extends Interaction {
             myDoesAcceptDropAtLastPosition = false;
             break;
           }
-          ViewHandler viewHandler = viewHandlerManager.getHandler(component);
+          ViewHandler viewHandler = viewHandlerManager.getHandler(component, () -> {});
           if (viewHandler != null && !viewHandler.acceptsParent(myDragReceiver.getNlComponent(), component)) {
             error = String.format(
               "<%1$s> does not accept <%2$s> as a parent", component.getTagName(), myDragReceiver.getNlComponent().getTagName());
@@ -470,10 +470,9 @@ public class DragDropInteraction extends Interaction {
 
     ViewHandlerManager handlerManager = ViewHandlerManager.get(sceneView.getSceneManager().getModel().getFacet());
     while (component != null) {
-      Object handler = handlerManager.getHandler(component.getNlComponent());
-
-      if (handler instanceof ViewGroupHandler && acceptsDrop(component, (ViewGroupHandler)handler, x, y)) {
-        myCachedHandler = (ViewGroupHandler)handlerManager.getHandler(component.getNlComponent());
+      ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component.getNlComponent(), () -> {});
+      if (handler != null && acceptsDrop(component, handler, x, y)) {
+        myCachedHandler = handler;
         myDragReceiver = component; // HACK: This method should not side-effect set this; instead the method should compute it!
         return myCachedHandler;
       }
@@ -509,7 +508,7 @@ public class DragDropInteraction extends Interaction {
       child -> parentHandler.acceptsChild(parent, child, Coordinates.getAndroidX(view, x), Coordinates.getAndroidY(view, y));
 
     Predicate<NlComponent> acceptsParent = child -> {
-      ViewHandler childHandler = manager.getHandler(child);
+      ViewHandler childHandler = manager.getHandler(child, () -> {});
       return childHandler != null && childHandler.acceptsParent(parent.getNlComponent(), child);
     };
 

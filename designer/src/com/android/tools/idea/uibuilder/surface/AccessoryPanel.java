@@ -182,7 +182,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
       removeCurrentPanel();
       return;
     }
-    ViewHandler handler = ViewHandlerManager.get(surface.getProject()).getHandler(parent);
+    ViewHandler handler = ViewHandlerManager.get(surface.getProject()).getHandler(parent, () -> {});
     if (handler instanceof ViewGroupHandler) {
       ViewGroupHandler viewGroupHandler = (ViewGroupHandler) handler;
       if (!viewGroupHandler.needsAccessoryPanel(myType)) {

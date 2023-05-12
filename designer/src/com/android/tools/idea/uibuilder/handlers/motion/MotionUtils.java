@@ -314,7 +314,7 @@ public class MotionUtils {
   public static @Nullable NlComponent getMotionLayoutAncestor(@NotNull NlComponent component) {
     NlComponent motionLayout = component;
     while (!NlComponentHelperKt.isOrHasSuperclass(motionLayout, AndroidXConstants.MOTION_LAYOUT)) {
-      ViewHandler handler = NlComponentHelperKt.getViewHandler(motionLayout);
+      ViewHandler handler = NlComponentHelperKt.getViewHandler(motionLayout, () -> {});
       if (handler instanceof MotionLayoutHandler) {
         return motionLayout;
       }

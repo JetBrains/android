@@ -25,7 +25,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 import com.android.tools.idea.common.scene.target.Target
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Color
 import java.util.*
@@ -95,7 +95,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
   }
 
   private fun updateInteractionState(interactionState : CoordinatorLayoutHandler.InteractionState) {
-    val handler = myComponent.parent?.nlComponent?.viewHandler ?: return
+    val handler = myComponent.parent?.nlComponent?.getViewHandler {} ?: return
     if (handler is CoordinatorLayoutHandler) {
       handler.interactionState = interactionState
       myComponent.parent?.updateTargets()

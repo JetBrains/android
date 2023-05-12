@@ -153,7 +153,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     // Attempt to set fill-properties on newly added views such that for example,
     // in a vertical layout, a text field defaults to filling horizontally, but not
     // vertically.
-    ViewHandler viewHandler = NlComponentHelperKt.getViewHandler(newChild);
+    ViewHandler viewHandler = NlComponentHelperKt.getViewHandler(newChild, () -> {});
     if (viewHandler != null) {
       boolean vertical = isVertical(layout);
       FillPolicy fill = viewHandler.getFillPolicy();

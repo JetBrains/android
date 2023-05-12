@@ -349,7 +349,7 @@ public class NlPaletteModel implements Disposable {
     }
 
     ViewHandlerManager manager = ViewHandlerManager.get(myModule.getProject());
-    handler = manager.getHandlerOrDefault(tagName);
+    handler = manager.getHandlerOrDefault(tagName, () -> {});
 
     if (handler instanceof ConstraintHelperHandler) {
       return null; // temporary hack

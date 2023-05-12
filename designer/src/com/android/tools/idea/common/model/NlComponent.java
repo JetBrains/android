@@ -706,7 +706,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   @NotNull
   private String assignId(@NotNull Set<String> ids) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(this);
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(this, () -> {});
     String baseName = handler != null ? handler.generateBaseId(this) : getTagName();
     return assignId(baseName, ids);
   }
