@@ -539,8 +539,8 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 7 API 33")
     contentManager.removeContent(contentManager.contents[0], true)
 
-    waitForCondition(5, TimeUnit.SECONDS) { !device1.agent.isRunning }
-    waitForCondition(5, TimeUnit.SECONDS) { !device2.agent.isRunning }
+    waitForCondition(2, TimeUnit.SECONDS) { !device1.agent.isRunning }
+    waitForCondition(2, TimeUnit.SECONDS) { !device2.agent.isRunning }
 
     // Destroy and recreate the tool window simulating a Studio restart.
     Disposer.dispose(toolWindow.disposable)
@@ -560,7 +560,7 @@ class StreamingToolWindowManagerTest {
     waitForCondition(2, TimeUnit.SECONDS) {
       newTabAction.actionPerformed(testEvent)
       popup = popupRule.fakePopupFactory.getNextPopup()
-      popup.items.size > 1
+      popup.items.size >= 3
     }
     assertThat(popup.actions.toString()).isEqualTo(
         "[Separator (Connected Physical Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
