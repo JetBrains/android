@@ -487,7 +487,7 @@ studio_plugin(
     name = "com.google.gct.directaccess",
     directory = "directaccess",
     libs = [
-        "//tools/adt/idea/.idea/libraries:adb_proxy_proto",
+        "//tools/base/adb-proxy:adb_proxy_proto",
         "//tools/vendor/google/directaccess-client:directaccess_client_proto",
     ],
     modules = {
