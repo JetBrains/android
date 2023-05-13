@@ -19,11 +19,8 @@ import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
-import com.intellij.psi.TokenType
-import com.intellij.psi.util.elementType
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
@@ -38,7 +35,6 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
-import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
@@ -52,11 +48,10 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
-import org.jetbrains.kotlin.types.isPrimitiveNumberUntil
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-private fun handleCompilerErrors(e: Throwable) {
+private fun handleCompilerErrors(e: Throwable): Nothing {
   // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
   // internal IDE code for handling read/write actions to function as expected.
   if (e is ProcessCanceledException) {
@@ -70,7 +65,7 @@ private fun handleCompilerErrors(e: Throwable) {
   // Given that the IDE already provide enough information about compilation errors, there is no
   // real need to surface any compilation exception. We will just print the true cause for the
   // exception for our own debugging purpose only.
-  var cause = e;
+  var cause = e
   while (cause.cause != null) {
     cause = cause.cause!!
 
@@ -124,7 +119,7 @@ interface CompileScope {
   fun analyze(input: List<KtFile>, resolution: ResolutionFacade): AnalysisResult
 
   /**
-   * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
+   * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by
    * the extension point to generate code for @composable functions.
    */
   fun backendCodeGen(project: Project,
@@ -214,7 +209,7 @@ private object CompileScopeImpl : CompileScope {
       // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
       compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
 
-      // We don't support INVOKE_DYNAMIC in the interpeter at the moment.
+      // We don't support INVOKE_DYNAMIC in the interpreter at the moment.
       compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
       compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
     }
@@ -224,7 +219,7 @@ private object CompileScopeImpl : CompileScope {
                                                          analysisResult.moduleDescriptor,
                                                          analysisResult.bindingContext,
                                                          input,
-                                                         compilerConfiguration);
+                                                         compilerConfiguration)
 
     if (useComposeIR) {
       generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
@@ -241,7 +236,7 @@ private object CompileScopeImpl : CompileScope {
       ))
     }
 
-    val generationState = generationStateBuilder.build();
+    val generationState = generationStateBuilder.build()
     inlineClassRequest?.forEach {
       it.fetchByteCodeFromBuildIfNeeded()
       it.fillInlineCache(generationState.inlineCache)
@@ -260,7 +255,7 @@ private object CompileScopeImpl : CompileScope {
 /**
  * Executes the given [callable] in the context of a [CompileScope] that allows running the different compilation
  * phases.
- * Only one caller of this method will have access to the [CompileScope] at at time.
+ * Only one caller of this method will have access to the [CompileScope] at the moment.
  */
 fun <T> runWithCompileLock(callable: CompileScope.() -> T) = CompileScopeImpl.compileLock.withLock {
   CompileScopeImpl.callable()
