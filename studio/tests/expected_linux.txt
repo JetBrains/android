@@ -2013,7 +2013,6 @@ android-studio/plugins/android/lib/explainer.jar
 android-studio/plugins/android/lib/ffmpeg-5.1.2-1.5.8-linux-x86_64.jar
 android-studio/plugins/android/lib/ffmpeg-5.1.2-1.5.8.jar
 android-studio/plugins/android/lib/ffmpeg-platform-5.1.2-1.5.8.jar
-android-studio/plugins/android/lib/firebase_java_proto.jar
 android-studio/plugins/android/lib/flatbuffers-java-1.12.0.jar
 android-studio/plugins/android/lib/foundation-desktop-1.3.1.jar
 android-studio/plugins/android/lib/foundation-layout-desktop-1.3.1.jar
@@ -2716,6 +2715,7 @@ android-studio/plugins/firebase-testing/lib/google-api-services-toolresults-v1be
 android-studio/plugins/firebase-testing/lib/jsch-0.1.55.jar
 android-studio/plugins/firebase-testing/lib/tightvnc.jar
 android-studio/plugins/firebase/lib/firebase.jar
+android-studio/plugins/firebase/lib/firebase_java_proto.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/gmd-code-completion/lib/gmd-code-completion.jar

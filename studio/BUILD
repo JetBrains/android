@@ -54,7 +54,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
-        "//tools/adt/idea/.idea/libraries:firebase_java_proto",
         "//tools/adt/idea/.idea/libraries:google-api-client",
         "//tools/adt/idea/.idea/libraries:google-baksmali",
         "//tools/adt/idea/.idea/libraries:google-dexlib2",
@@ -468,6 +467,7 @@ studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     libs = [
+        "//tools/vendor/google/firebase:firebase_java_proto",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [
