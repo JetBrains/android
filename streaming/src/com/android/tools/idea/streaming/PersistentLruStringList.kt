@@ -82,4 +82,8 @@ internal class PersistentLruStringList(
   private fun updatePersistentValue() {
     properties.setList(persistenceKey, values)
   }
+
+  override fun toString(): String {
+    return values.toString()
+  }
 }
