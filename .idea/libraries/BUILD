@@ -109,13 +109,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "aia-proto",
-    jars = ["//tools/base/sdk-common/aia-manifest-jar-generator:proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "sqlite",
     jars = ["//prebuilts/tools/common/m2:sqlite_files"],
     visibility = ["//visibility:public"],
