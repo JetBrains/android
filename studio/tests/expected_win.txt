@@ -2078,7 +2078,6 @@ android-studio/plugins/tasks/lib/tasks-core.jar
 android-studio/plugins/terminal/zsh/.zshenv
 android-studio/plugins/terminal/zsh/hooks.zsh
 android-studio/plugins/terminal/fish/init.fish
-android-studio/plugins/terminal/bash/jediterm-bash.in
 android-studio/plugins/terminal/pwsh/pwsh.ps1
 android-studio/plugins/terminal/lib/terminal.jar
 android-studio/plugins/test-recorder/lib/swt.jar
