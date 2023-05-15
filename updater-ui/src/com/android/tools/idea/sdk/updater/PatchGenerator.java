@@ -109,7 +109,7 @@ public class PatchGenerator {
         patchZip.getParentFile().mkdirs();
       }
       patchZip.createNewFile();
-      PatchFileCreator.create(spec, patchZip, ui);
+      PatchFileCreator.create(spec, patchZip, ui, null);
 
       // The expected format is for the patch to be inside the package zip.
       try (FileSystem destFs =
