@@ -80,7 +80,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
                                                   SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.ANY.toString(),
-                                                  configurationManager.computePreferredTheme(defaultConfig),
+                                                  defaultConfig.computePreferredTheme(),
                                                   UiMode.NORMAL,
                                                   NightMode.NOTNIGHT)
     modelsProvider.addCustomConfigurationAttributes(attributes)
@@ -115,7 +115,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
                                                   SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.create("en").toString(),
-                                                  configurationManager.computePreferredTheme(defaultConfig),
+                                                  defaultConfig.computePreferredTheme(),
                                                   UiMode.NORMAL,
                                                   NightMode.NOTNIGHT)
     modelsProvider.addCustomConfigurationAttributes(attributes)
@@ -143,7 +143,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
                                                   SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
                                                   ScreenOrientation.LANDSCAPE,
                                                   Locale.ANY.toString(),
-                                                  configurationManager.computePreferredTheme(defaultConfig),
+                                                  defaultConfig.computePreferredTheme(),
                                                   UiMode.NORMAL,
                                                   NightMode.NOTNIGHT)
     modelsProvider.addCustomConfigurationAttributes(attributes)

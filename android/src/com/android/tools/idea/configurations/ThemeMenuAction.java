@@ -176,8 +176,7 @@ public class ThemeMenuAction extends DropDownAction {
     if (configuration == null) {
       return null;
     }
-    ConfigurationManager configurationManager = configuration.getConfigurationManager();
-    String theme = configurationManager.computePreferredTheme(configuration);
+    String theme = configuration.computePreferredTheme();
     return convertToNonResourcePrefixName(theme);
   }
 

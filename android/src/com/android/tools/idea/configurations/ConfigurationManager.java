@@ -21,26 +21,17 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TA
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Bridge;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.Locale;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -55,7 +46,6 @@ import java.util.Map;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.AndroidTargetData;
-import java.util.Objects;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -347,92 +337,6 @@ public class ConfigurationManager implements Disposable {
       return layoutlibVersion <= Bridge.API_CURRENT;
     }
     return false;
-  }
-
-  private static final ResourceReference postSplashAttrReference = ResourceReference.attr(
-    ResourceNamespace.RES_AUTO, "postSplashScreenTheme"
-  );
-
-  /**
-   * Finds the post splash theme if there is any. Themes used in splash screens can have a post splash theme declared.
-   * When a splash screen theme is used in the manifest, the tools should probably not use that one unless the user has explicely selected
-   * it. For "preferred theme" computation purposes, we try to find the post splash screen theme.
-   * See <a href="https://developer.android.com/reference/kotlin/androidx/core/splashscreen/SplashScreen">splash screen documentation.</a>
-   * @param configuration the configuration to use to resolve the post splash theme.
-   * @param themeStyle the default theme found in the manifest.
-   * @return the post activity splash screen if any or {@code themeStyle} otherwise.
-   */
-  @NotNull
-  private String findPostSplashTheme(@NotNull Configuration configuration, @NotNull String themeStyle) {
-    Logger log = Logger.getInstance(ConfigurationManager.class);
-    ResourceUrl themeUrl = ResourceUrl.parseStyleParentReference(themeStyle);
-    if (themeUrl == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to parse theme %s", themeStyle));
-      return themeStyle;
-    }
-
-    ResourceNamespace namespace = ResourceNamespace.fromNamespacePrefix(
-      themeUrl.namespace, ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER
-    );
-    ResourceReference reference = themeUrl.resolve(
-      namespace != null ? namespace : ResourceNamespace.RES_AUTO,
-      ResourceNamespace.Resolver.EMPTY_RESOLVER
-    );
-    if (reference == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve reference for theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    ResourceResolverCache resolverCache = getResolverCache();
-    ResourceResolver resourceResolver = resolverCache.getResourceResolver(configuration.getTarget(), themeUrl.toString(), configuration.getFullConfig());
-
-    StyleResourceValue theme = resourceResolver.getStyle(reference);
-    if (theme == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    StyleItemResourceValue value = resourceResolver.findItemInStyle(theme, postSplashAttrReference);
-    ResourceValue resolvedValue = resourceResolver.resolveResValue(value);
-
-    String postSplashTheme = resolvedValue != null ? resolvedValue.getResourceUrl().toString() : null;
-    String resolveTheme = Objects.requireNonNullElse(postSplashTheme, themeStyle);
-
-    if (log.isDebugEnabled()) log.debug(String.format("Post splash resolved=%s, original theme=%s", postSplashTheme, themeUrl));
-
-    return resolveTheme;
-  }
-
-  /**
-   * Try to get activity theme from manifest. If no theme is found, We fall back to the app theme. If that isn't found,
-    * we use the default system theme.
-   */
-  @NotNull
-  public String computePreferredTheme(@NotNull Configuration configuration) {
-    // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
-    String activityName = configuration.getActivity();
-    ThemeInfoProvider themeInfo = myConfigurationModule.getThemeInfoProvider();
-    if (activityName != null) {
-      String activityFqcn = activityName;
-      if (activityName.startsWith(".")) {
-        String packageName = ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
-        activityFqcn = packageName + activityName;
-      }
-
-      String theme = themeInfo.getThemeNameForActivity(activityFqcn);
-      if (theme != null) {
-        return findPostSplashTheme(configuration, theme);
-      }
-    }
-
-    // Returns an app theme if possible
-    return findPostSplashTheme(configuration, Objects.requireNonNullElseGet(
-      themeInfo.getAppThemeName(),
-      () ->
-        // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
-        // theme is specified in the manifest).
-        themeInfo.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice())
-    ));
   }
 
   @NotNull

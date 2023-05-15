@@ -284,7 +284,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     try {
       ResourceResolver resolver = myConfiguration.getResourceResolver();
       if (resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
-        String theme = myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration);
+        String theme = myConfiguration.computePreferredTheme();
         if (myThemeUpdateComputation.get() != computationToken) {
           return; // A new update has already been scheduled.
         }
