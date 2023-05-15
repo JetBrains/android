@@ -1161,7 +1161,7 @@ class ComposePreviewRepresentation(
     val isRefreshing =
       (refreshCallsCount.get() > 0 ||
         DumbService.isDumb(project) ||
-        UIUtil.invokeAndWaitIfNeeded(Computable { projectBuildStatusManager.isBuilding }))
+        projectBuildStatusManager.isBuilding)
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the
     // preview

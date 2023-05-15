@@ -38,11 +38,13 @@ private class TestBuildResultListener(val buildManager: ProjectSystemBuildManage
   val completedBuilds = mutableListOf<ProjectSystemBuildManager.BuildResult>()
 
   override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+    @Suppress("DEPRECATION")
     assertTrue(buildManager.isBuilding)
     beforeBuildCompletedResult = result
   }
 
   override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+    @Suppress("DEPRECATION")
     assertFalse(buildManager.isBuilding)
     assertEquals("beforeBuildCompleted must be called before buildCompleted with the same result",
                  beforeBuildCompletedResult, result)
@@ -167,6 +169,7 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     assertEquals("[CLEAN] SUCCESS", listener.completedBuildsDebugString())
   }
 
+  @Suppress("DEPRECATION") // For isBuilding usages
   fun testIsBuilding_withoutListeners() {
     assertFalse(buildManager.isBuilding)
 

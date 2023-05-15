@@ -156,7 +156,7 @@ private class ProjectBuildStatusManagerImpl(
   private val areResourcesOutOfDateFlow = MutableStateFlow(false)
   override val statusFlow = MutableStateFlow<ProjectStatus>(ProjectStatus.NotReady)
 
-  @get:UiThread
+  @Suppress("DEPRECATION")
   override val isBuilding: Boolean
     get() =
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().isBuilding ||

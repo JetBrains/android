@@ -43,14 +43,14 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
   /**
    * The counter is only supposed to be called on UI thread therefore it does not require any lock/synchronization.
    */
-  private var buildCount = 0
+  private var buildCount = AtomicInteger(0)
 
   init {
     GradleBuildState.subscribe(project, this, this)
   }
 
   override fun buildStarted(context: BuildContext) {
-    buildCount++
+    buildCount.incrementAndGet()
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
       .buildStarted(context.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN)
   }
@@ -61,7 +61,9 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
       status.toProjectSystemBuildStatus(),
       System.currentTimeMillis())
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).beforeBuildCompleted(result)
-    buildCount = maxOf(buildCount - 1, 0)
+    buildCount.updateAndGet {
+      maxOf(it - 1, 0)
+    }
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildCompleted(result)
   }
 
@@ -72,7 +74,7 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
     project.messageBus.connect(parentDisposable).subscribe(PROJECT_SYSTEM_BUILD_TOPIC, buildListener)
 
   val isBuilding: Boolean
-    get() = buildCount > 0
+    get() = buildCount.get() > 0
 }
 
 class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildManager {
@@ -105,10 +107,8 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
   /**
    * To ensure the accuracy this should be called on the UI thread to be naturally serialized with BuildListener callbacks.
    */
-  @get:UiThread
   override val isBuilding: Boolean
     get() {
-      ApplicationManager.getApplication().assertIsDispatchThread()
       return project.getService(GradleProjectSystemBuildPublisher::class.java).isBuilding
     }
 
