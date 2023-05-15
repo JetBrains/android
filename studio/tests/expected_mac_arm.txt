@@ -2106,9 +2106,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-linux-
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-arm64-0.7.55.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-macos-x64-0.7.55.jar
 Android Studio Preview.app/Contents/plugins/android/lib/skiko-awt-runtime-windows-x64-0.7.55.jar
-Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.3.jar
+Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.3.jar
+Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sqlite_inspector_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/studio-grpc.jar
