@@ -109,36 +109,36 @@ class GradleProjectPathIntegrationTest {
             .lib.androidTest ==> :lib/ANDROID_TEST
             .lib.main ==> :lib/MAIN
             .lib.unitTest ==> :lib/UNIT_TEST
-            TestCompositeLib1 ==> [TestCompositeLib1]:
-            TestCompositeLib1.app ==> [TestCompositeLib1]:app
-            TestCompositeLib1.app.androidTest ==> [TestCompositeLib1]:app/ANDROID_TEST
-            TestCompositeLib1.app.main ==> [TestCompositeLib1]:app/MAIN
-            TestCompositeLib1.app.unitTest ==> [TestCompositeLib1]:app/UNIT_TEST
-            TestCompositeLib1.lib ==> [TestCompositeLib1]:lib
-            TestCompositeLib1.lib.androidTest ==> [TestCompositeLib1]:lib/ANDROID_TEST
-            TestCompositeLib1.lib.main ==> [TestCompositeLib1]:lib/MAIN
-            TestCompositeLib1.lib.unitTest ==> [TestCompositeLib1]:lib/UNIT_TEST
-            TestCompositeLib3 ==> [TestCompositeLib3]:
-            TestCompositeLib3.app ==> [TestCompositeLib3]:app
-            TestCompositeLib3.app.androidTest ==> [TestCompositeLib3]:app/ANDROID_TEST
-            TestCompositeLib3.app.main ==> [TestCompositeLib3]:app/MAIN
-            TestCompositeLib3.app.unitTest ==> [TestCompositeLib3]:app/UNIT_TEST
-            TestCompositeLib3.lib ==> [TestCompositeLib3]:lib
-            TestCompositeLib3.lib.androidTest ==> [TestCompositeLib3]:lib/ANDROID_TEST
-            TestCompositeLib3.lib.main ==> [TestCompositeLib3]:lib/MAIN
-            TestCompositeLib3.lib.unitTest ==> [TestCompositeLib3]:lib/UNIT_TEST
-            com.test.compositeNest3.compositeNest ==> [TestCompositeLib3/TestCompositeLibNested_3]:
-            com.test.compositeNest3.compositeNest.main ==> [TestCompositeLib3/TestCompositeLibNested_3]:/MAIN
-            com.test.compositeNest3.compositeNest.test ==> [TestCompositeLib3/TestCompositeLibNested_3]:/test
-            composite2 ==> [TestCompositeLib2]:
-            composite2.main ==> [TestCompositeLib2]:/MAIN
-            composite2.test ==> [TestCompositeLib2]:/test
-            composite4 ==> [TestCompositeLib4]:
-            composite4.main ==> [TestCompositeLib4]:/MAIN
-            composite4.test ==> [TestCompositeLib4]:/test
-            compositeNest ==> [TestCompositeLib1/TestCompositeLibNested_1]:
-            compositeNest.main ==> [TestCompositeLib1/TestCompositeLibNested_1]:/MAIN
-            compositeNest.test ==> [TestCompositeLib1/TestCompositeLibNested_1]:/test
+            TestCompositeLib1 ==> :includedLib1
+            TestCompositeLib1.app ==> :includedLib1:app
+            TestCompositeLib1.app.androidTest ==> :includedLib1:app/ANDROID_TEST
+            TestCompositeLib1.app.main ==> :includedLib1:app/MAIN
+            TestCompositeLib1.app.unitTest ==> :includedLib1:app/UNIT_TEST
+            TestCompositeLib1.lib ==> :includedLib1:lib
+            TestCompositeLib1.lib.androidTest ==> :includedLib1:lib/ANDROID_TEST
+            TestCompositeLib1.lib.main ==> :includedLib1:lib/MAIN
+            TestCompositeLib1.lib.unitTest ==> :includedLib1:lib/UNIT_TEST
+            TestCompositeLib3 ==> :TestCompositeLib3
+            TestCompositeLib3.app ==> :TestCompositeLib3:app
+            TestCompositeLib3.app.androidTest ==> :TestCompositeLib3:app/ANDROID_TEST
+            TestCompositeLib3.app.main ==> :TestCompositeLib3:app/MAIN
+            TestCompositeLib3.app.unitTest ==> :TestCompositeLib3:app/UNIT_TEST
+            TestCompositeLib3.lib ==> :TestCompositeLib3:lib
+            TestCompositeLib3.lib.androidTest ==> :TestCompositeLib3:lib/ANDROID_TEST
+            TestCompositeLib3.lib.main ==> :TestCompositeLib3:lib/MAIN
+            TestCompositeLib3.lib.unitTest ==> :TestCompositeLib3:lib/UNIT_TEST
+            com.test.compositeNest3.compositeNest ==> :TestCompositeLib3:TestCompositeLibNested_3
+            com.test.compositeNest3.compositeNest.main ==> :TestCompositeLib3:TestCompositeLibNested_3/MAIN
+            com.test.compositeNest3.compositeNest.test ==> :TestCompositeLib3:TestCompositeLibNested_3/test
+            composite2 ==> :TestCompositeLib2
+            composite2.main ==> :TestCompositeLib2/MAIN
+            composite2.test ==> :TestCompositeLib2/test
+            composite4 ==> :TestCompositeLib4
+            composite4.main ==> :TestCompositeLib4/MAIN
+            composite4.test ==> :TestCompositeLib4/test
+            compositeNest ==> :includedLib1:TestCompositeLibNested_1
+            compositeNest.main ==> :includedLib1:TestCompositeLibNested_1/MAIN
+            compositeNest.test ==> :includedLib1:TestCompositeLibNested_1/test
         """.trimIndent()
       )
       assertThatProjectPathsCanBeResolved(project)
@@ -160,10 +160,10 @@ class GradleProjectPathIntegrationTest {
             TestCompositeLib3 ==> :TestCompositeLib3
             TestCompositeLib3.app ==> :TestCompositeLib3:app
             TestCompositeLib3.lib ==> :TestCompositeLib3:lib
-            com.test.compositeNest3.compositeNest ==> :TestCompositeLibNested_3
+            com.test.compositeNest3.compositeNest ==> :TestCompositeLib3:TestCompositeLibNested_3
             composite2 ==> :TestCompositeLib2
             composite4 ==> :TestCompositeLib4
-            compositeNest ==> :TestCompositeLibNested_1
+            compositeNest ==> :includedLib1:TestCompositeLibNested_1
         """.trimIndent()
       )
       assertThatProjectPathsCanBeResolved(project)

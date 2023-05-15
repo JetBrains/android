@@ -69,12 +69,12 @@ fun GradleProjectPath.toSourceSetPath(sourceSet: IdeModuleSourceSet): GradleSour
 }
 
 internal fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
-  val buildRootFolder = File(GradleRunnerUtil.resolveProjectPath(this) ?: return null)
+  val buildRootFolder = File(ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return null)
   // The external system projectId is:
-  // <projectName-uniqualized-by-Gradle> for the root module of a main or only build in a composite build
+  // :<projectName-uniqualized-by-Gradle> for the root module of a main or only build in a composite build
   // :gradle:path for a non-root module of a main or only build in a composite build
-  // <projectName-uniqualized-by-Gradle> for the root module of an included build
-  // <projectName-uniqualized-by-Gradle>:gradle:path for a non-root module of an included build
+  // :<projectName-uniqualized-by-Gradle> for the root module of an included build
+  // :<projectName-uniqualized-by-Gradle>:gradle:path for a non-root module of an included build
   // NOTE: The project name uniqualization is performed by Gradle and may be version dependent. It should not be assumed to match
   //       any Gradle project name or any Gradle included build name.
 
