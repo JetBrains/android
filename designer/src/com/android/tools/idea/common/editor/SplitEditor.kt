@@ -38,6 +38,7 @@ import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
+import com.intellij.ui.ExperimentalUI
 import com.intellij.util.containers.orNull
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -161,7 +162,7 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
                                                                     val icon: Icon,
                                                                     val delegate: ToggleAction,
                                                                     val showDefaultGutterPopup: Boolean)
-    : ToggleAction(null, name, icon), DumbAware {
+    : ToggleAction(if (ExperimentalUI.isNewUI()) null else name, name, icon), DumbAware {
 
     override fun isSelected(e: AnActionEvent) = delegate.isSelected(e)
 
