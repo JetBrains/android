@@ -102,6 +102,10 @@
               text="Soft-Wrap"
               description="Toggle soft wrap of Logcat messages"/>
     </group>
+
+    <!-- A public action group where 3rd party plugins can add pupup actions -->
+    <group id="Logcat.PopupActions"/>
+
   </actions>
 
 </idea-plugin>
