@@ -236,6 +236,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon POSTURE_FLIPPED = load("studio/icons/emulator/menu/posture-flipped.svg", 1026968812, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_HALF_FOLDED = load("studio/icons/emulator/menu/posture-half-folded.svg", 1108886978, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_OPEN = load("studio/icons/emulator/menu/posture-open.svg", -1533173349, 2);
+      /** 16x16 */ public static final @NotNull Icon POSTURE_REAR_DISPLAY = load("studio/icons/emulator/menu/posture-rear-display.svg", 1764460680, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_TENT = load("studio/icons/emulator/menu/posture-tent.svg", -44634926, 2);
     }
 
