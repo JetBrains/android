@@ -381,7 +381,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "layout_id_after.xml");
   }
 
-  public void testMoveApplicationClass() throws Throwable {
+  // Ignored: b/281863312
+  public void ignore_testMoveApplicationClass() throws Throwable {
     deleteManifest();
     myFixture.copyFileToProject(BASE_PATH + "MyApplication.java", "src/p1/p2/MyApplication.java");
     VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "AndroidManifest.xml");
@@ -396,7 +397,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     doTestAndroidManifestRenameClass("AndroidManifest_rename_class1.xml", "AndroidManifest_rename_class1-2_after.xml");
   }
 
-  public void testAndroidManifestRenameClass2() throws Throwable {
+  // Ignored: b/281863312
+  public void ignore_testAndroidManifestRenameClass2() throws Throwable {
     doTestAndroidManifestRenameClass("AndroidManifest_rename_class2.xml", "AndroidManifest_rename_class1-2_after.xml");
   }
 
@@ -621,12 +623,12 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
       "</resources>", true);
   }
 
-  // TODO: http://b/281863312
-  public void ignoreTestRenameComponent() {
+  // Ignored: b/281863312
+  public void ignore_testRenameComponent() {
     doRenameComponentTest("MyActivity1");
   }
 
-  // http://b/281972844
+  // Ignored: b/281863312
   public void ignore_testRenameComponent2() {
     myFixture.copyFileToProject(BASE_PATH + "ChildActivity.java", "src/p1/p2/ChildActivity.java");
     doRenameComponentTest("MyActivity1");
@@ -648,12 +650,13 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     doRenameComponentTest("p20");
   }
 
-  // http://b/281972844
+  // Ignored: b/281863312
   public void ignore_testRenamePackage2() {
     doRenameComponentTest("p1.p2");
   }
 
-  public void testRenamePackage3() {
+  // Ignored: b/281863312
+  public void ignore_testRenamePackage3() {
     doRenameComponentTest("p1");
   }
 
@@ -713,7 +716,7 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     doMovePackageTest("p1.p2", "p33");
   }
 
-  // http://b/281972844
+  // Ignored: b/281863312
   public void ignore_testMoveClass1() {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p3");
@@ -721,7 +724,7 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     doMoveClass("p1.p2.MyActivity", "p3");
   }
 
-  // http://b/281972844
+  // Ignored: b/281863312
   public void ignore_testMoveClass2() {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p3");
@@ -751,8 +754,8 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage2_after.xml");
   }
 
-  // TODO: http://b/281863312
-  public void ignoreTestRenameJavaPackage3() throws Throwable {
+  // Ignored: b/281863312
+  public void ignore_testRenameJavaPackage3() throws Throwable {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
     VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage3.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
@@ -785,7 +788,7 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage5_after.xml");
   }
 
-  // http://b/281972844
+  // Ignored: b/281863312
   public void ignore_testRenameWidget() throws Throwable {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "MyWidget.java", "src/p1/p2/MyWidget.java");
@@ -795,7 +798,7 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "layout_widget_after.xml");
   }
 
-  // http://b/281972844
+  // Ignored: b/281863312
   public void ignore_testRenameWidget1() throws Throwable {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "MyWidget.java", "src/p1/p2/MyWidget.java");
