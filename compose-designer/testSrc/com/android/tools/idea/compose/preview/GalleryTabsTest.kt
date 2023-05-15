@@ -19,6 +19,7 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import java.awt.BorderLayout
 import java.awt.Component
@@ -26,6 +27,7 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JPanel
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -80,6 +82,54 @@ class GalleryTabsTest {
 
       FakeUi(tabs).apply { updateToolbars() }
       assertEquals(2, findAllActionButtons(tabs).size)
+    }
+  }
+
+  @Test
+  fun `toolbar is not updated`() {
+    invokeAndWaitIfNeeded {
+      val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+      val tabs = GalleryTabs(rootComponent, keys) {}
+      val ui = FakeUi(tabs).apply { updateToolbars() }
+      val toolbar = findToolbar(tabs)
+      // Set exactly same keys
+      tabs.updateKeys(keys)
+      ui.updateToolbars()
+      val updatedToolbar = findToolbar(tabs)
+      // Toolbar was not updated, it's same as before.
+      assertEquals(toolbar, updatedToolbar)
+    }
+  }
+
+  @Test
+  fun `toolbar is updated with new key`() {
+    invokeAndWaitIfNeeded {
+      val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+      val tabs = GalleryTabs(rootComponent, keys) {}
+      val ui = FakeUi(tabs).apply { updateToolbars() }
+      val toolbar = findToolbar(tabs)
+      // Set new set of keys.
+      tabs.updateKeys(keys + TestKey("New Tab"))
+      ui.updateToolbars()
+      val updatedToolbar = findToolbar(tabs)
+      // New toolbar was created.
+      assertNotEquals(toolbar, updatedToolbar)
+    }
+  }
+
+  @Test
+  fun `toolbar is updated with removed key`() {
+    invokeAndWaitIfNeeded {
+      val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+      val tabs = GalleryTabs(rootComponent, keys + TestKey("Key to remove")) {}
+      val ui = FakeUi(tabs).apply { updateToolbars() }
+      val toolbar = findToolbar(tabs)
+      // Set updated set of keys
+      tabs.updateKeys(keys)
+      ui.updateToolbars()
+      val updatedToolbar = findToolbar(tabs)
+      // New toolbar was created.
+      assertNotEquals(toolbar, updatedToolbar)
     }
   }
 
@@ -145,4 +195,11 @@ class GalleryTabsTest {
       .filter { it is ActionButtonWithText }
       .collect(Collectors.toList())
       .map { it as ActionButtonWithText }
+
+  private fun findToolbar(parent: Component): ActionToolbarImpl =
+    TreeWalker(parent)
+      .descendantStream()
+      .filter { it is ActionToolbarImpl }
+      .collect(Collectors.toList())
+      .first() as ActionToolbarImpl
 }

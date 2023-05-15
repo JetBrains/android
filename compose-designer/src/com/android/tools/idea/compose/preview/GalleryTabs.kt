@@ -90,21 +90,39 @@ class GalleryTabs<Key : TitledKey>(
     updateKeys(keys)
   }
 
-  /** Update all available [Key]s. */
+  /**
+   * If [GalleryTabs] needs update, [previousToolbar] will be removed and new toolbar will be
+   * created and added with available [labelActions].
+   */
+  private var needsUpdate = false
+
+  /**
+   * Update all available [Key]s. Toolbar is recreated if there are any changes in [keys]. It also
+   * insures that if there are no changes in [keys] toolbar will not be updated.
+   */
   fun updateKeys(keys: Set<Key>) {
     // Remove all keys what don's exist anymore.
     val keysToRemove = labelActions.filterKeys { !keys.contains(it) }.keys
-    keysToRemove.forEach { labelActions.remove(it) }
+    keysToRemove.forEach {
+      labelActions.remove(it)
+      needsUpdate = true
+    }
     // Add new added keys.
-    keys.forEach { labelActions.computeIfAbsent(it) { key -> TabLabelAction(key) } }
-    // Remove previous toolbar if exists.
-    previousToolbar?.let { remove(it) }
-    // Create new toolbar.
-    val toolbar = createToolbar(labelActions.values.toList())
-    add(toolbar, BorderLayout.CENTER)
-    previousToolbar = toolbar
-    // If selectedKey was removed, select first key.
-    selectedKey = if (keys.contains(selectedKey)) selectedKey else keys.firstOrNull()
+    keys.forEach {
+      labelActions.computeIfAbsent(it) { key -> TabLabelAction(key).also { needsUpdate = true } }
+    }
+    // Only update toolbar if there are any changes.
+    if (needsUpdate) {
+      needsUpdate = false
+      // Remove previous toolbar if exists.
+      previousToolbar?.let { remove(it) }
+      // Create new toolbar.
+      val toolbar = createToolbar(labelActions.values.toList())
+      add(toolbar, BorderLayout.CENTER)
+      previousToolbar = toolbar
+      // If selectedKey was removed, select first key.
+      selectedKey = if (keys.contains(selectedKey)) selectedKey else keys.firstOrNull()
+    }
   }
 
   private var previousToolbar: JComponent? = null
