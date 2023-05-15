@@ -834,10 +834,13 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setCollapsedInitially(false)
       .build();
 
+    PowerProfilerDisplayMode displayMode =
+      getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode();
     systemTraceData.getPowerRailCounters().forEach(
       (trackName, trackData) -> {
-        PowerRailTrackModel trackModel = new PowerRailTrackModel(trackData, myTrackGroupTimeline.getViewRange());
-        PowerRailTooltip tooltip = new PowerRailTooltip(myTrackGroupTimeline, trackName, trackModel.getPowerRailCounterSeries());
+        PowerRailTrackModel trackModel = new PowerRailTrackModel(trackData, myTrackGroupTimeline.getViewRange(), displayMode);
+        PowerRailTooltip tooltip = new PowerRailTooltip(myTrackGroupTimeline, trackName, trackModel.getPrimaryPowerRailCounterSeries(),
+                                                        trackModel.getSecondaryPowerRailCounterSeries(), displayMode);
 
         power.addTrackModel(
           TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.ANDROID_POWER_RAIL, trackName).setDefaultTooltipModel(tooltip)

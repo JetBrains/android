@@ -19,26 +19,53 @@ import com.android.tools.adtui.model.LineChartModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.profilers.cpu.LazyDataSeries
 import java.util.function.Supplier
 
 /**
  * Track model for Power counter in CPU capture stage.
  */
-class PowerRailTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) : LineChartModel() {
-  val maxValue = dataSeries.asSequence().map { it.value }.maxOrNull() ?: 0
-  val minValue = dataSeries.asSequence().map { it.value }.minOrNull() ?: 0
+class PowerRailTrackModel(dataSeries: PowerCounterData,
+                          viewRange: Range,
+                          displayMode: PowerProfilerDisplayMode) : LineChartModel() {
+  /**
+   * [primaryCounterValues] represents the data to be displayed in the track, as well as in
+   * the tooltip, while [secondaryCounterValues] serves as supplementary data, and will only be
+   * displayed in the tooltip.
+   */
+  private val primaryCounterValues: List<SeriesData<Long>>
+  private val secondaryCounterValues: List<SeriesData<Long>>
+
+  init {
+    // Note: The else conditions cover the PowerProfilerDisplayMode.HIDE case, but
+    // the HIDE mode will not even be displayed, so this selection does not matter.
+    val primaryValues = if (displayMode == PowerProfilerDisplayMode.CUMULATIVE) dataSeries.cumulativeData else dataSeries.deltaData
+    val secondaryValues = if (displayMode == PowerProfilerDisplayMode.CUMULATIVE) dataSeries.deltaData else dataSeries.cumulativeData
+
+    primaryCounterValues = primaryValues
+    secondaryCounterValues = secondaryValues
+  }
+
+  val maxValue = primaryCounterValues.maxOfOrNull { it.value } ?: 0
+  val minValue = primaryCounterValues.minOfOrNull { it.value } ?: 0
 
   // Instead of using the min value as the bottom of the range and thus not show the lowest value,
   // we can bring the range down by a value relative to the range of data. Experimentally, 1/4 of
   // the range works well to represent the data, but this is likely going to change.
   val baselineNormalizer = (maxValue - minValue) / 4
 
-  val powerRailCounterSeries = RangedContinuousSeries("Power Rails", viewRange,
-                                                      Range(minValue.toDouble() - baselineNormalizer, maxValue.toDouble()),
-                                                      LazyDataSeries(Supplier { dataSeries }))
+  val primaryPowerRailCounterSeries = RangedContinuousSeries("Power Rails", viewRange,
+                                                             Range(minValue.toDouble() - baselineNormalizer, maxValue.toDouble()),
+                                                             LazyDataSeries(Supplier { primaryCounterValues }))
+  val secondaryPowerRailCounterSeries = RangedContinuousSeries("Power Rails", viewRange,
+                                                               Range(minValue.toDouble() - baselineNormalizer, maxValue.toDouble()),
+                                                               LazyDataSeries(Supplier { secondaryCounterValues }))
+
   init {
-    add(powerRailCounterSeries)
+    // Only add the primary counter series to the line chart model as
+    // it will be the only one displayed.
+    add(primaryPowerRailCounterSeries)
   }
 
   companion object {

@@ -103,8 +103,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
       if (initialViewRange.isEmpty()) {
         initialViewRange.set(model.getCaptureStartTimestampUs().toDouble(), model.getCaptureEndTimestampUs().toDouble())
       }
-      return builder.build(traceId, userSelectedProcess, initialViewRange,
-                           ideProfilerServices.featureConfig.systemTracePowerProfilerDisplayMode)
+      return builder.build(traceId, userSelectedProcess, initialViewRange)
     }
   }
 }

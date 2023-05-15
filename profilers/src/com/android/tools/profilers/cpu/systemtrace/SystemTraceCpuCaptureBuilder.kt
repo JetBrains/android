@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
@@ -41,8 +40,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
 
   fun build(traceId: Long,
             mainProcessId: Int,
-            initialViewRange: Range,
-            systemTracePowerProfilerDisplayMode: PowerProfilerDisplayMode): SystemTraceCpuCapture {
+            initialViewRange: Range): SystemTraceCpuCapture {
 
     val mainProcess = model.getProcessById(mainProcessId) ?: throw IllegalArgumentException(
       "A process with the id $mainProcessId was not found while parsing the capture.")
@@ -52,7 +50,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val cpuState = buildCpuStateData(mainProcess)
     val cpuCounters = buildCpuCountersData()
     val memoryCounters = buildMainProcessMemoryCountersData(mainProcess)
-    val powerRailCounters = buildPowerRailCountersData(systemTracePowerProfilerDisplayMode)
+    val powerRailCounters = buildPowerRailCountersData()
     val batteryDrainCounters = buildBatteryDrainCountersData()
     val blastBufferQueueCounter = buildBlastBufferQueueCounterData(mainProcess)
 
@@ -232,16 +230,15 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
       .toSortedMap()
   }
 
-  private fun buildPowerRailCountersData(systemTracePowerProfilerDisplayMode: PowerProfilerDisplayMode): Map<String, List<SeriesData<Long>>> {
+  private fun buildPowerRailCountersData(): Map<String, PowerCounterData> {
     val filteredPoweredRails = model.getPowerRails().filter { isPowerRailShown(it.name) }
     val aggregatedPowerRails = aggregateCounters(filteredPoweredRails, powerRailGroupMap, normalizeStartTime = true)
+    val deltaPowerRails = convertSeriesDataToDeltaSeries(aggregatedPowerRails)
 
-    val resultingCounters = when (systemTracePowerProfilerDisplayMode) {
-      PowerProfilerDisplayMode.DELTA -> convertSeriesDataToDeltaSeries(aggregatedPowerRails)
-      else -> aggregatedPowerRails
-    }
-
-    return resultingCounters
+    return aggregatedPowerRails
+      .keys
+      .filter { deltaPowerRails.contains(it) }
+      .associateWith { PowerCounterData(deltaPowerRails[it]!!, aggregatedPowerRails[it]!!) }
   }
 
   private fun buildBatteryDrainCountersData(): Map<String, List<SeriesData<Long>>> {

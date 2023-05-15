@@ -87,8 +87,7 @@ public class AtraceParser implements TraceParser {
     }
 
     SystemTraceCpuCaptureBuilder builder = new SystemTraceCpuCaptureBuilder(model);
-    return builder.build(traceId, selectedProcess, new Range(model.getCaptureStartTimestampUs(), model.getCaptureEndTimestampUs()),
-                         PowerProfilerDisplayMode.HIDE);
+    return builder.build(traceId, selectedProcess, new Range(model.getCaptureStartTimestampUs(), model.getCaptureEndTimestampUs()));
   }
 
   /**
