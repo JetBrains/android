@@ -112,12 +112,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     ValidatorPanel(this, createMainPanel()).apply {
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
-
-      val isAndroidX = BoolValueProperty(true)
-      registerValidator(model.androidSdkInfo, ApiVersionValidator(this, formFactor) {
-        isAndroidX.set(model.project.isAndroidx())
-        isAndroidX.get()
-        }, isAndroidX)
+      registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
 
       val minKtsAgpVersion = AgpVersion.parse(KTS_AGP_MIN_VERSION)
       registerValidator(agpVersion, createValidator { version ->
