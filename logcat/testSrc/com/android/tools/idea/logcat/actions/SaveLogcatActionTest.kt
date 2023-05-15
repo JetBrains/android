@@ -135,14 +135,14 @@ class SaveLogcatActionTest {
     assertThat(fakeFileChooserFactory.files).hasSize(1)
     assertThat(fakeFileChooserFactory.files[0].name).endsWith("Google-Pixel-Android-10")
     assertThat(FileEditorManager.getInstance(project).openFiles[0].name).isEqualTo(fakeFileChooserFactory.files[0].name)
-    val data = LogcatFileIo.readLogcat(fakeFileChooserFactory.files[0])
-    assertThat(data?.logcatMessages).containsExactly(
+    val data = LogcatFileIo.readLogcat(fakeFileChooserFactory.files[0].toPath())
+    assertThat(data.logcatMessages).containsExactly(
       logcatMessage(message = "message1"),
       logcatMessage(message = "message2")
     ).inOrder()
-    assertThat(data?.metadata?.device).isEqualTo(device)
-    assertThat(data?.metadata?.filter).isEqualTo("filter")
-    assertThat(data?.metadata?.projectApplicationIds).containsExactly("appId1", "appId2")
+    assertThat(data.metadata?.device).isEqualTo(device)
+    assertThat(data.metadata?.filter).isEqualTo("filter")
+    assertThat(data.metadata?.projectApplicationIds).containsExactly("appId1", "appId2")
   }
 
   private fun createEvent(

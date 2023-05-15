@@ -25,7 +25,6 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.flow.Flow
 import java.awt.Font
 import java.awt.LayoutManager
 import java.awt.event.ComponentAdapter
@@ -47,7 +46,7 @@ internal class LogcatHeaderPanel(
   filterMatchCase: Boolean,
   initialDevice: Device?,
 ) : JPanel() {
-  private val deviceComboBox = DeviceComboBox(project, initialDevice)
+  val deviceComboBox = DeviceComboBox(project, initialDevice)
   private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter, filterMatchCase)
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
 
@@ -80,8 +79,6 @@ internal class LogcatHeaderPanel(
     }
   }
 
-  fun trackSelectedDevice(): Flow<Device> = deviceComboBox.trackSelectedDevice()
-
   var filter: String
     get() = filterTextField.text
     set(value) {
@@ -89,8 +86,6 @@ internal class LogcatHeaderPanel(
     }
 
   val filterMatchCase: Boolean get() = filterTextField.matchCase
-
-  fun getSelectedDevice(): Device? = deviceComboBox.selectedItem as? Device
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)

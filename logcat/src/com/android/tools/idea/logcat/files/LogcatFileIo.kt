@@ -17,14 +17,18 @@ package com.android.tools.idea.logcat.files
 
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.files.LogcatFileData.Metadata
+import com.android.tools.idea.logcat.files.LogcatFileIo.LogcatFileType.JSON
+import com.android.tools.idea.logcat.files.LogcatFileIo.LogcatFileType.UNKNOWN
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.util.LOGGER
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonSyntaxException
 import java.io.File
 import java.io.FileWriter
-import java.io.IOException
+import java.nio.file.Path
+import kotlin.io.path.bufferedReader
+import kotlin.io.path.reader
 
+
+private const val MAX_LOGCAT_ENTRY = 4000
 
 private val gson = GsonBuilder()
   .setPrettyPrinting()
@@ -32,6 +36,11 @@ private val gson = GsonBuilder()
 
 /** Contains functions to read and write a Logcat file */
 internal object LogcatFileIo {
+  private enum class LogcatFileType {
+    JSON,
+    UNKNOWN,
+  }
+
   fun writeLogcat(
     file: File,
     logcatMessages: List<LogcatMessage>,
@@ -45,28 +54,29 @@ internal object LogcatFileIo {
     }
   }
 
-  fun readLogcat(file: File): LogcatFileData? {
-    val contents = try {
-      file.readText()
+  fun readLogcat(path: Path): LogcatFileData {
+    return when (getLogcatFileType(path)) {
+      JSON -> readJsonFile(path)
+      UNKNOWN -> throw IllegalArgumentException("File '$path' is not a valid Logcat file")
     }
-    catch (e: IOException) {
-      LOGGER.info("Failed to load Logcat file '$file'", e)
-      return null
+  }
+
+  private fun readJsonFile(path: Path): LogcatFileData {
+    return path.reader().use {
+      gson.fromJson(it, LogcatFileData::class.java)
     }
-    if (contents.isEmpty()) {
-      LOGGER.info("Logcat file '$file' is empty")
-      return null
-    }
-    if (contents.startsWith("{")) {
-      return try {
-        gson.fromJson(contents, LogcatFileData::class.java)
+  }
+
+  private fun getLogcatFileType(path: Path): LogcatFileType {
+    path.bufferedReader().use { reader ->
+      reader.mark(MAX_LOGCAT_ENTRY)
+      val chars = CharArray(MAX_LOGCAT_ENTRY)
+      reader.read(chars)
+      val head = String(chars)
+      if (head.startsWith('{')) {
+        return JSON
       }
-      catch (e: JsonSyntaxException) {
-        LOGGER.info("Failed to parse Logcat file '$file'", e)
-        null
-      }
+      return UNKNOWN
     }
-    LOGGER.info("Unknown Logcat file format found in '$file'")
-    return null
   }
 }

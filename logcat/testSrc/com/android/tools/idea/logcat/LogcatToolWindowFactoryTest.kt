@@ -161,10 +161,10 @@ class LogcatToolWindowFactoryTest {
     val content = toolWindow.contentManager.contents.first()
     val logcatMainPanel: LogcatMainPanel = TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
     waitForCondition {
-      logcatMainPanel.headerPanel.getSelectedDevice() != null
+      logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice() != null
     }
     assertThat(content.tabName).isEqualTo("com.test (device1)")
-    assertThat(logcatMainPanel.headerPanel.getSelectedDevice()?.deviceId).isEqualTo("device1")
+    assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice()?.deviceId).isEqualTo("device1")
     assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:com.test")
   }
 

@@ -16,10 +16,23 @@
 package com.android.tools.idea.logcat.devices
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.file.createInMemoryFileSystem
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.ImportItem
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserDialog
+import com.intellij.openapi.fileChooser.FileChooserFactory
+import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.ui.CollectionComboBoxModel
@@ -32,6 +45,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.spy
+import java.awt.Component
+import java.nio.file.Path
+import kotlin.io.path.name
+import kotlin.io.path.writeText
 
 /**
  * Tests for [DeviceComboBox]
@@ -40,12 +57,13 @@ import org.mockito.Mockito.spy
 class DeviceComboBoxTest {
   private val projectRule = ProjectRule()
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
+  private val fakeFileChooserFactory = FakeFileChooserFactory()
 
   @get:Rule
   val rule = RuleChain(
     projectRule,
     ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
-  )
+    ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory))
 
   private val selectionEvents = mutableListOf<Any?>()
 
@@ -57,17 +75,17 @@ class DeviceComboBoxTest {
   fun noDevice_noSelection(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
 
-    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+    val selectedItems = async { deviceComboBox.trackSelected().toList() }
     deviceTracker.close()
 
-    assertThat(selectedDevices.await()).isEmpty()
+    assertThat(selectedItems.await()).isEmpty()
     assertThat(selectionEvents).isEmpty()
   }
 
   @Test
   fun noInitialDevice_selectsFirstDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+    val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
     deviceTracker.use {
       it.sendEvents(
@@ -77,18 +95,19 @@ class DeviceComboBoxTest {
       advanceUntilIdle()
     }
 
-    assertThat(selectionEvents).containsExactly(device1)
-    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(selectionEvents).containsExactly(DeviceItem(device1))
+    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
     assertThat(deviceComboBox.getItems()).containsExactly(
-      device1,
-      device2,
-    )
+      DeviceItem(device1),
+      DeviceItem(device2),
+      ImportItem,
+    ).inOrder()
   }
 
   @Test
   fun withInitialDevice_selectsInitialDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(initialDevice = device2, selectionEvents = selectionEvents)
-    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+    val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
     deviceTracker.use {
       it.sendEvents(
@@ -98,18 +117,19 @@ class DeviceComboBoxTest {
       advanceUntilIdle()
     }
 
-    assertThat(selectionEvents).containsExactly(device2)
-    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(selectionEvents).containsExactly(DeviceItem(device2))
+    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
     assertThat(deviceComboBox.getItems()).containsExactly(
-      device1,
-      device2,
-    )
+      DeviceItem(device1),
+      DeviceItem(device2),
+      ImportItem,
+    ).inOrder()
   }
 
   @Test
   fun selectedDeviceStateChanges_selectsDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+    val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
     deviceTracker.use {
       it.sendEvents(
@@ -120,19 +140,20 @@ class DeviceComboBoxTest {
     }
 
     assertThat(selectionEvents).containsExactly(
-      device2.online(),
-      device2.offline(),
+      DeviceItem(device2.online()),
+      DeviceItem(device2.offline()),
     )
-    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
     assertThat(deviceComboBox.getItems()).containsExactly(
-      device2.offline(),
-    )
+      DeviceItem(device2.offline()),
+      ImportItem,
+    ).inOrder()
   }
 
   @Test
   fun unselectedDeviceStateChanges_doesNotSelect(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+    val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
     deviceTracker.use {
       it.sendEvents(
@@ -143,18 +164,19 @@ class DeviceComboBoxTest {
       advanceUntilIdle()
     }
 
-    assertThat(selectionEvents).containsExactly(device1)
-    assertThat(selectedDevices.await()).isEqualTo(selectionEvents)
+    assertThat(selectionEvents).containsExactly(DeviceItem(device1))
+    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
     assertThat(deviceComboBox.getItems()).containsExactly(
-      device1,
-      device2.offline(),
-    )
+      DeviceItem(device1),
+      DeviceItem(device2.offline()),
+      ImportItem,
+    ).inOrder()
   }
 
   @Test
   fun userSelection_sendsToFlow(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
+    val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
     deviceTracker.use {
       it.sendEvents(
@@ -162,18 +184,21 @@ class DeviceComboBoxTest {
         Added(device2),
       )
       advanceUntilIdle()
-      deviceComboBox.selectedItem = device2
+      deviceComboBox.selectedItem = DeviceItem(device2)
       advanceUntilIdle()
     }
 
-    assertThat(selectedDevices.await()).containsExactly(device1, device2)
+    assertThat(selectedItems.await()).containsExactly(
+      DeviceItem(device1),
+      DeviceItem(device2),
+    )
   }
 
   @Test
   fun renderer_physicalDevice_offline() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(deviceComboBox.getRenderedText(device1.offline()))
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(device1.offline())))
       .isEqualTo("Google Pixel 2 Android 11, API 30 [OFFLINE]")
   }
 
@@ -181,7 +206,7 @@ class DeviceComboBoxTest {
   fun renderer_physicalDevice_online() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(deviceComboBox.getRenderedText(device1.online()))
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(device1.online())))
       .isEqualTo("Google Pixel 2 (device1) Android 11, API 30")
   }
 
@@ -189,7 +214,7 @@ class DeviceComboBoxTest {
   fun renderer_emulator_offline() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(deviceComboBox.getRenderedText(emulator.offline()))
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.offline())))
       .isEqualTo("AVD Android 11, API 30 [OFFLINE]")
   }
 
@@ -197,9 +222,28 @@ class DeviceComboBoxTest {
   fun renderer_emulator_online() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(deviceComboBox.getRenderedText(emulator.online()))
+    assertThat(deviceComboBox.getRenderedText(DeviceItem(emulator.online())))
       .isEqualTo("AVD (emulator-5555) Android 11, API 30")
   }
+
+  @Test
+  fun browseItem(): Unit = runTest(dispatchTimeoutMs = 5_000) {
+    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
+    val selectedItems = async { deviceComboBox.trackSelected().toList() }
+    advanceUntilIdle()
+
+    deviceComboBox.selectedItem = ImportItem
+    advanceUntilIdle()
+    deviceTracker.close()
+
+    assertThat(selectionEvents).containsExactly(FileItem(fakeFileChooserFactory.virtualFile.toNioPath()))
+    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
+    assertThat(deviceComboBox.getItems()).containsExactly(
+      FileItem(fakeFileChooserFactory.virtualFile.toNioPath()),
+      ImportItem,
+    ).inOrder()
+  }
+
 
   private fun deviceComboBox(
     initialDevice: Device? = null,
@@ -214,14 +258,35 @@ class DeviceComboBoxTest {
       }
     }
   }
+
+  private class FakeFileChooserFactory : FileChooserFactoryImpl() {
+    private val fileSystem = createInMemoryFileSystem()
+    private val path = this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply {
+      writeText("")
+    }
+    val virtualFile = object : LightVirtualFile(path.name) {
+      override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
+    }
+
+    override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
+      return object : FileChooserDialog {
+        @Deprecated("Deprecated in Java", ReplaceWith("NA"))
+        override fun choose(toSelect: VirtualFile?, project: Project?) = TODO("Not yet implemented")
+
+        override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> {
+          return arrayOf(virtualFile)
+        }
+      }
+    }
+  }
 }
 
 private fun Device.offline() = copy(isOnline = false)
 
 private fun Device.online() = copy(isOnline = true)
 
-private fun DeviceComboBox.getRenderedText(device: Device) =
-  renderer.getListCellRendererComponent(JBList(), device, 0, false, false).toString()
+private fun DeviceComboBox.getRenderedText(item: DeviceComboItem) =
+  renderer.getListCellRendererComponent(JBList(), item, 0, false, false).toString()
 
-private fun DeviceComboBox.getItems(): List<Device> =
-  (model as CollectionComboBoxModel<Device>).items
+private fun DeviceComboBox.getItems(): List<DeviceComboItem> =
+  (model as CollectionComboBoxModel<DeviceComboItem>).items
