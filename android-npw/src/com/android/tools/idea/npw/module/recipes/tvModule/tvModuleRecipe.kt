@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.module.recipes.tvModule
 
 import com.android.tools.idea.npw.module.recipes.IconsGenerationStyle
-import com.android.tools.idea.npw.module.recipes.basicThemesXml
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -36,9 +35,7 @@ fun RecipeExecutor.generateTvModule(
       theme = "@style/${data.themesData.main.name}"
     ),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
-    themesXml = basicThemesXml("@style/Theme.Leanback", data.themesData.main.name), colorsXml = null,
+    themesXml = "<resources></resources>", colorsXml = null,
     useVersionCatalog = useVersionCatalog
   )
-
-  addDependency("com.android.support:leanback-v17:+")
 }
