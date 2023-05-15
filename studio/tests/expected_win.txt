@@ -549,7 +549,6 @@ android-studio/license/bouncycastle-1.48-NOTICE
 android-studio/license/commons-compress-NOTICE
 android-studio/license/commons-io-2.4.jar-NOTICE
 android-studio/license/dev01_license.txt
-android-studio/license/dexlib2-2.0.8-NOTICE
 android-studio/license/fest-NOTICE
 android-studio/license/ffmpeg-LICENSE.md
 android-studio/license/ffmpeg-LICENSE.openh264

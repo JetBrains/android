@@ -488,7 +488,6 @@ Android Studio Preview.app/Contents/license/bouncycastle-1.48-NOTICE
 Android Studio Preview.app/Contents/license/commons-compress-NOTICE
 Android Studio Preview.app/Contents/license/commons-io-2.4.jar-NOTICE
 Android Studio Preview.app/Contents/license/dev01_license.txt
-Android Studio Preview.app/Contents/license/dexlib2-2.0.8-NOTICE
 Android Studio Preview.app/Contents/license/fest-NOTICE
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.md
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.openh264
