@@ -444,6 +444,9 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideBaseArtifact.classesFolder.map { it.path.toPrintablePath() }.sorted().forEach {
         prop("ClassesFolder") { it }
       }
+      ideBaseArtifact.generatedClassPaths.map { it.value.toPrintablePath() }.sorted().forEach {
+        prop("GeneratedClassPaths") { it }
+      }
       ideBaseArtifact.variantSourceProvider?.let {
         head("VariantSourceProvider")
         nest { dump(it) }

@@ -127,7 +127,8 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
       ProjectStructureSnapshotTestDef(TestProject.PRIVACY_SANDBOX_SDK),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
-      ProjectStructureSnapshotTestDef(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, compatibleWith = setOf(AGP_CURRENT))
+      ProjectStructureSnapshotTestDef(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, compatibleWith = setOf(AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
     )
   }
 }

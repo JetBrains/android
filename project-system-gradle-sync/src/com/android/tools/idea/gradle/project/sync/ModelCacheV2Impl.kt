@@ -986,7 +986,9 @@ internal fun modelCacheV2Impl(
         artifact.privacySandboxSdkInfo?.let { IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile) }
       else
         null,
-      desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles)
+      desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles),
+      generatedClassPaths = if (agpVersion.isAtLeast(8, 2, 0, "alpha", 7, false))
+        artifact.generatedClassPaths else emptyMap()
     )
   }
 
@@ -1058,7 +1060,9 @@ internal fun modelCacheV2Impl(
       runtimeClasspathCore = throwingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = artifact.mockablePlatformJar,
-      isTestArtifact = name == IdeArtifactName.UNIT_TEST
+      isTestArtifact = name == IdeArtifactName.UNIT_TEST,
+      generatedClassPaths = if (agpVersion.isAtLeast(8, 2, 0, "alpha", 7, false))
+        artifact.generatedClassPaths else emptyMap()
     )
   }
 

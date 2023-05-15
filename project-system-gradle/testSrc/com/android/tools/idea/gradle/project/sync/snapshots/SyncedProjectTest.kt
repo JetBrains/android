@@ -267,6 +267,9 @@ abstract class SyncedProjectTest(
   @Test
   fun testIndependentLibraryOnlyRuntime() = testProject(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME)
 
+  @Test
+  fun testBuildConfigAsBytecodeEnabled() = testProject(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
+
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()
   }

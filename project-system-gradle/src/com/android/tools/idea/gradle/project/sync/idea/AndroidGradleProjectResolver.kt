@@ -406,6 +406,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
       // Setup testData nodes for testing sources used by Gradle test runners.
       createAndSetupTestDataNode(moduleNode, androidModel)
+
+      addGeneratedClassesToLibraryDependencies(variant, moduleNode)
     }
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel)
 
@@ -432,6 +434,19 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val taskNamePrefix = if (gradlePath == ":") gradlePath else "$gradlePath:"
     val testData = TestData(GradleConstants.SYSTEM_ID, testTaskName, taskNamePrefix + testTaskName, sourceFolders)
     moduleDataNode.createChild(ProjectKeys.TEST, testData)
+  }
+
+  private fun addGeneratedClassesToLibraryDependencies(
+    variant: IdeVariantCore,
+    moduleNode: DataNode<ModuleData>)
+  {
+    variant.mainArtifact.generatedClassPaths.forEach {
+      addToNewOrExistingLibraryData(
+        moduleNode.findSourceSetDataForArtifact(variant.mainArtifact),
+        it.key,
+        setOf(it.value),
+        false)
+    }
   }
 
   private fun createAndSetupGradleSourceSetDataNode(

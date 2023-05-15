@@ -47,7 +47,8 @@ data class IdeAndroidArtifactCoreImpl(
   override val codeShrinker: CodeShrinker?,
   override val modelSyncFiles: Collection<IdeModelSyncFileImpl>,
   override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
-  override val desugaredMethodsFiles: Collection<File>
+  override val desugaredMethodsFiles: Collection<File>,
+  override val generatedClassPaths: Map<String, File>
 ) : IdeAndroidArtifactCore
 
 data class IdeAndroidArtifactImpl(

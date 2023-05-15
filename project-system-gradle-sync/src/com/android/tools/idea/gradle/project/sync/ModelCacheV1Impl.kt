@@ -839,7 +839,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       isTestArtifact = artifact.name == AndroidProject.ARTIFACT_ANDROID_TEST,
       modelSyncFiles = listOf(),
       privacySandboxSdkInfo = null,
-      desugaredMethodsFiles = emptyList()
+      desugaredMethodsFiles = emptyList(),
+      generatedClassPaths = emptyMap()
     )
     return IdeModelWithPostProcessor(
       androidArtifactCoreImpl,
@@ -872,7 +873,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       runtimeClasspathCore = throwingIdeDependencies(),
       unresolvedDependencies = emptyList(),
       mockablePlatformJar = copyNewProperty(artifact::getMockablePlatformJar),
-      isTestArtifact = artifact.name == AndroidProject.ARTIFACT_UNIT_TEST
+      isTestArtifact = artifact.name == AndroidProject.ARTIFACT_UNIT_TEST,
+      generatedClassPaths = emptyMap()
     )
     return IdeModelWithPostProcessor(
       javaArtifactCoreImpl,

@@ -393,6 +393,18 @@ enum class TestProject(
       }
     }
   ),
+  BUILD_CONFIG_AS_BYTECODE_ENABLED(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "buildConfigAsBytecodeEnabled",
+    patch = { projectRoot ->
+      projectRoot.resolve("gradle.properties").appendText("android.enableBuildConfigAsBytecode=true")
+      projectRoot.resolve("app/build.gradle").appendText(
+        """
+          android.buildFeatures.buildConfig true
+        """.trimIndent()
+      )
+    }
+  )
   ;
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
