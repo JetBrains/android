@@ -30,17 +30,18 @@ import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
+import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassObjectAccessExpression
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.util.parentOfType
@@ -48,7 +49,6 @@ import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ProcessingContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.asJava.elements.KtLightPsiArrayInitializerMemberValue
 
 /**
  * For references found inside XML attributes assigned to data binding expression.
@@ -136,8 +136,8 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
           val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.bindingAdapter) ?: return@forEach
           val annotationValue = annotation.findAttributeValue("value") ?: return@forEach
           var attributeNameLiterals: Array<PsiElement> = annotationValue.children
-          if (annotationValue is KtLightPsiArrayInitializerMemberValue) {
-            attributeNameLiterals = annotationValue.getInitializers().map { it as PsiElement }.toTypedArray()
+          if (annotationValue is PsiArrayInitializerMemberValue) {
+            attributeNameLiterals = annotationValue.initializers.map { it as PsiElement }.toTypedArray()
           }
           val parameters = (annotatedMethod as PsiMethod).parameterList.parameters
           if (parameters.size == attributeNameLiterals.size + 1 && parameters[0].type.isAssignableFrom(viewType)) {
@@ -285,7 +285,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
               var methodName = (methodAttribute as? PsiLiteralExpression)?.value as? String ?: continue
               // If method isn't provided, the attribute name is used to find its name, either prefixing with "is" or "get".
               if (methodName.isEmpty()) {
-                val methodPrefix = if (attributeType.isAssignableFrom(PsiPrimitiveType.BOOLEAN)) "is" else "get"
+                val methodPrefix = if (attributeType.isAssignableFrom(PsiTypes.booleanType())) "is" else "get"
                 methodName = methodPrefix + attribute.name.substringAfter(":").usLocaleCapitalize()
               }
               for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {
