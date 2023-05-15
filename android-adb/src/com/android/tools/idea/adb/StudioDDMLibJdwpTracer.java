@@ -45,6 +45,11 @@ public class StudioDDMLibJdwpTracer implements DDMLibJdwpTracer {
     }
 
     @Override
+    public void setName(@NonNull String name) {
+      tracer.setName(name);
+    }
+
+    @Override
     public void close() {
       tracer.close();
     }
