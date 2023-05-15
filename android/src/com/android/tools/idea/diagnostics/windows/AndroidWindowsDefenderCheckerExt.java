@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.diagnostics.windows;
 
-import com.android.tools.sdk.AndroidSdkData;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.diagnostic.WindowsDefenderChecker;
 import com.intellij.openapi.project.Project;
+import java.io.File;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -40,12 +39,9 @@ public class AndroidWindowsDefenderCheckerExt implements WindowsDefenderChecker.
     // 1) the location cannot be customized by the user and
     // 2) the location is not write heavy (mostly read operations)
     //paths.add(Paths.get(homeDir, ".android"));
-    AndroidSdkData sdkData = AndroidSdkUtils.getProjectSdkData(project);
-    if (sdkData == null) {
-      sdkData = AndroidSdkUtils.getFirstAndroidModuleSdkData(project);
-    }
-    if (sdkData != null) {
-      paths.add(Paths.get(sdkData.getLocation().toString()));
+    File sdkPath = IdeSdks.getInstance().getAndroidSdkPath();
+    if  (sdkPath != null) {
+      paths.add(sdkPath.toPath());
     }
     return paths;
   }
