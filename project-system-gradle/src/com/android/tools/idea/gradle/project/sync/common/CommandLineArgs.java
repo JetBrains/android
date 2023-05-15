@@ -26,6 +26,7 @@ import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWi
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
+import static com.android.tools.idea.gradle.util.GradleInvocationParams.addAndroidStudioPluginVersion;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
 import com.android.tools.idea.IdeInfo;
@@ -91,6 +92,7 @@ public class CommandLineArgs {
     // Sent to plugin starting with Studio 3.0
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_ONLY_VERSIONED, MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD));
 
+    addAndroidStudioPluginVersion(args);
     // Skip download of source and javadoc jars during Gradle sync, this flag only has effect on AGP 3.5.
     //noinspection deprecation AGP 3.6 and above do not download sources at all.
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));

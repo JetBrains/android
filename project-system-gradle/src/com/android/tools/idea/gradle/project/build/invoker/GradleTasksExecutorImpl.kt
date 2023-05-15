@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.addAndroidStudioPluginVersion
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.SelectSdkDialog
 import com.android.tools.idea.ui.GuiTestingService
@@ -247,6 +248,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             commandLineArguments.add(GradleBuilds.PARALLEL_BUILD_OPTION)
           }
           commandLineArguments.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true))
+          addAndroidStudioPluginVersion(commandLineArguments)
           if (enableBuildAttribution) {
             val attributionFileDir = getAgpAttributionFileDir(myRequest.data)
             commandLineArguments.add(
