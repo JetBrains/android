@@ -67,7 +67,7 @@ import org.jetbrains.annotations.TestOnly;
  * The {@linkplain ConfigurationManager} is also responsible for storing and retrieving
  * the saved configuration state for a given file.
  */
-public class ConfigurationManager implements Disposable {
+public class ConfigurationManager implements Disposable, ConfigurationSettings {
   private static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
   private static final Key<VirtualFile> CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY = Key.create(
@@ -184,7 +184,7 @@ public class ConfigurationManager implements Disposable {
   @Slow
   @NotNull
   private Configuration create(@NotNull VirtualFile file) {
-    ConfigurationStateManager stateManager = getStateManager();
+    ConfigurationStateManager stateManager = myConfigurationModule.getConfigurationStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
     assert file.getParent() != null : file;
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
@@ -218,7 +218,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public Configuration createSimilar(@NotNull VirtualFile file, @NotNull VirtualFile baseFile) {
-    ConfigurationStateManager stateManager = getStateManager();
+    ConfigurationStateManager stateManager = myConfigurationModule.getConfigurationStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(baseFile);
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
@@ -237,15 +237,9 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
-   * Returns the associated persistence manager
-   */
-  public ConfigurationStateManager getStateManager() {
-    return myConfigurationModule.getConfigurationStateManager();
-  }
-
-  /**
    * Returns the list of available devices for the current platform and any custom user devices, if any
    */
+  @Override
   @Slow
   @NotNull
   public ImmutableList<Device> getDevices() {
@@ -263,6 +257,7 @@ public class ConfigurationManager implements Disposable {
     return builder.build();
   }
 
+  @Override
   @Nullable
   public Device getDeviceById(@NotNull String id) {
     return getDeviceById(id, getDevices());
@@ -277,6 +272,7 @@ public class ConfigurationManager implements Disposable {
       .orElse(null);
   }
 
+  @Override
   @Nullable
   public Device createDeviceForAvd(@NotNull AvdInfo avd) {
     AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
@@ -303,6 +299,7 @@ public class ConfigurationManager implements Disposable {
    * Note that this may include non-rendering targets, so for layout rendering contexts,
    * check individual members by calling {@link #isLayoutLibTarget(IAndroidTarget)} first.
    */
+  @Override
   @NotNull
   public IAndroidTarget[] getTargets() {
     AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
@@ -319,6 +316,7 @@ public class ConfigurationManager implements Disposable {
     return target.isPlatform() && target.hasRenderingLibrary();
   }
 
+  @Override
   @Nullable
   public IAndroidTarget getHighestApiTarget() {
     // Note: The target list is already sorted in ascending API order.
@@ -344,16 +342,19 @@ public class ConfigurationManager implements Disposable {
     return false;
   }
 
+  @Override
   @NotNull
   public final Module getModule() {
     return myModule;
   }
 
+  @Override
   @NotNull
   public Project getProject() {
     return myConfigurationModule.getProject();
   }
 
+  @Override
   @NotNull
   public final ConfigurationModelModule getConfigModule() {
     return myConfigurationModule;
@@ -364,6 +365,7 @@ public class ConfigurationManager implements Disposable {
     myModule.putUserData(KEY, null);
   }
 
+  @Override
   @Nullable
   public Device getDefaultDevice() {
     if (myDefaultDevice == null) {
@@ -399,6 +401,7 @@ public class ConfigurationManager implements Disposable {
     return getHighestApiTarget();
   }
 
+  @Override
   @NotNull
   public ImmutableList<Locale> getLocalesInProject() {
     ResourceRepositoryManager repositoryManager = myConfigurationModule.getResourceRepositoryManager();
@@ -406,16 +409,18 @@ public class ConfigurationManager implements Disposable {
     return repositoryManager.getLocalesInProject();
   }
 
+  @Override
   @Nullable
   public IAndroidTarget getProjectTarget() {
     AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     return platform != null ? platform.getTarget() : null;
   }
 
+  @Override
   @NotNull
   public Locale getLocale() {
     if (myLocale == null) {
-      String localeString = getStateManager().getProjectState().getLocale();
+      String localeString = myConfigurationModule.getConfigurationStateManager().getProjectState().getLocale();
       if (localeString != null) {
         myLocale = ConfigurationProjectState.fromLocaleString(localeString);
       }
@@ -427,11 +432,12 @@ public class ConfigurationManager implements Disposable {
     return myLocale;
   }
 
+  @Override
   public void setLocale(@NotNull Locale locale) {
     if (!locale.equals(myLocale)) {
       myLocale = locale;
       myStateVersion++;
-      getStateManager().getProjectState().setLocale(ConfigurationProjectState.toLocaleString(locale));
+      myConfigurationModule.getConfigurationStateManager().getProjectState().setLocale(ConfigurationProjectState.toLocaleString(locale));
       for (Configuration configuration : myCache.values()) {
         configuration.updated(CFG_LOCALE);
       }
@@ -441,9 +447,11 @@ public class ConfigurationManager implements Disposable {
   /**
    * Returns the most recently used devices, in MRU order
    */
+  @Override
+  @NotNull
   public List<Device> getRecentDevices() {
     List<Device> avdDevices = getAvdDevices();
-    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
+    List<String> deviceIds = myConfigurationModule.getConfigurationStateManager().getProjectState().getDeviceIds();
     if (deviceIds.isEmpty()) {
       return Collections.emptyList();
     }
@@ -469,10 +477,11 @@ public class ConfigurationManager implements Disposable {
     return devices;
   }
 
+  @Override
   public void selectDevice(@NotNull Device device) {
     // Manually move the given device to the front of the eligibility queue
     String id = device.getId();
-    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
+    List<String> deviceIds = myConfigurationModule.getConfigurationStateManager().getProjectState().getDeviceIds();
     deviceIds.remove(id);
     deviceIds.add(0, id);
 
@@ -503,10 +512,11 @@ public class ConfigurationManager implements Disposable {
     }
   }
 
+  @Override
   @Nullable
   public IAndroidTarget getTarget() {
     if (myTarget == null) {
-      ConfigurationProjectState projectState = getStateManager().getProjectState();
+      ConfigurationProjectState projectState = myConfigurationModule.getConfigurationStateManager().getProjectState();
       if (projectState.isPickTarget()) {
         myTarget = getDefaultTarget();
       }
@@ -526,6 +536,7 @@ public class ConfigurationManager implements Disposable {
   /**
    * Returns the best render target to use for the given minimum API level
    */
+  @Override
   @Nullable
   public IAndroidTarget getTarget(int min) {
     IAndroidTarget target = getTarget();
@@ -544,6 +555,7 @@ public class ConfigurationManager implements Disposable {
     return null;
   }
 
+  @Override
   public void setTarget(@Nullable IAndroidTarget target) {
     if (target != myTarget) {
       if (myTarget != null) {
@@ -560,7 +572,7 @@ public class ConfigurationManager implements Disposable {
 
       myTarget = target;
       if (target != null) {
-        getStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
+        myConfigurationModule.getConfigurationStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
         myStateVersion++;
         for (Configuration configuration : myCache.values()) {
           configuration.updated(CFG_TARGET);
@@ -569,10 +581,12 @@ public class ConfigurationManager implements Disposable {
     }
   }
 
+  @Override
   public int getStateVersion() {
     return myStateVersion;
   }
 
+  @Override
   @NotNull
   public ResourceResolverCache getResolverCache() {
     if (myResolverCache == null) {
@@ -583,6 +597,7 @@ public class ConfigurationManager implements Disposable {
   }
 
   /** Return the avd devices. */
+  @Override
   @NotNull
   public List<Device> getAvdDevices() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);

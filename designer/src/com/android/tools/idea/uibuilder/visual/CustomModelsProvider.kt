@@ -154,10 +154,10 @@ class CustomModelsProvider(val customId: String,
 }
 
 private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: Configuration): NamedConfiguration? {
-  val configurationManager = defaultConfig.configurationManager
+  val settings = defaultConfig.settings
   val id = deviceId ?: return null
-  val device = configurationManager.getDeviceById(id)
-  val target = configurationManager.targets.firstOrNull { it.version.apiLevel == apiLevel } ?: return null
+  val device = settings.getDeviceById(id)
+  val target = settings.targets.firstOrNull { it.version.apiLevel == apiLevel } ?: return null
   val state = device?.defaultState?.deepCopy()
   state?.let {
     // The state name is used for finding better match of orientation, and it should be the same as ScreenOrientation.shortDisplayValue.
@@ -170,7 +170,7 @@ private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: Con
   val newConfig = ConfigurationForFile.create(defaultConfig, defaultConfig.file!!)
   newConfig.setEffectiveDevice(device, state)
   newConfig.target = target
-  newConfig.locale = if (localeString != null) Locale.create(localeString!!) else configurationManager.locale
+  newConfig.locale = if (localeString != null) Locale.create(localeString!!) else settings.locale
   newConfig.setTheme(theme)
   newConfig.nightMode = nightMode ?: defaultConfig.nightMode
   newConfig.uiMode = uiMode ?: defaultConfig.uiMode

@@ -83,7 +83,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     val config = ConfigurationForFile(file.virtualFile, manager, FolderConfiguration())
     val menuAction = TargetMenuAction { config }
 
-    manager.stateManager.projectState.isPickTarget = true
+    manager.configModule.configurationStateManager.projectState.isPickTarget = true
 
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     menuAction.getChildren(null).let { children ->

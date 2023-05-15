@@ -33,7 +33,7 @@ import com.android.tools.idea.compose.pickers.preview.property.Orientation
 import com.android.tools.idea.compose.pickers.preview.property.Shape
 import com.android.tools.idea.compose.pickers.preview.property.toMutableConfig
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.ConfigurationSettings
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -152,7 +152,7 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
 }
 
 /** Returns the [Device] used when there's no device specified by the user. */
-internal fun ConfigurationManager.getDefaultPreviewDevice(): Device? =
+internal fun ConfigurationSettings.getDefaultPreviewDevice(): Device? =
   devices.find { device -> device.id == DEFAULT_DEVICE_ID } ?: defaultDevice
 
 /**

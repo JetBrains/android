@@ -32,8 +32,8 @@ fun verifyAdaptiveShapeReflected(sourceConfig: Configuration, modelsToVerify: Co
                         Configuration::setAdaptiveShape, Configuration::getAdaptiveShape)
 }
 fun verifyDeviceReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
-  val manager = sourceConfig.configurationManager
-  verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, manager.devices,
+  val settings = sourceConfig.settings
+  verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, settings.devices,
                         { device -> this.setDevice(device, false) }, { this.device })
 }
 
@@ -81,16 +81,16 @@ fun verifyThemeReflected(sourceConfig: Configuration, modelsToVerify: Collection
 }
 
 fun verifyTargetReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
-  val manager = sourceConfig.configurationManager
-  verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, manager.targets.toList(),
+  val settings = sourceConfig.settings
+  verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, settings.targets.toList(),
                         Configuration::setTarget, { this.target?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) } }) {
     a, b -> if (a is CompatibilityRenderTarget && b is CompatibilityRenderTarget) { a.hashString() == b.hashString() } else a == b
   }
 }
 
 fun verifyLocaleReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
-  val manager = sourceConfig.configurationManager
-  verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, manager.localesInProject,
+  val settings = sourceConfig.settings
+  verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, settings.localesInProject,
                         Configuration::setLocale, Configuration::getLocale)
 }
 

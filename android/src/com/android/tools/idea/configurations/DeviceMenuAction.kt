@@ -210,7 +210,7 @@ class DeviceMenuAction(private val renderContext: ConfigurationHolder,
   }
 
   private fun addAvdDeviceSection() {
-    val devices = renderContext.configuration!!.configurationManager.avdDevices
+    val devices = renderContext.configuration!!.settings.avdDevices
     if (devices.isNotEmpty()) {
       add(DeviceCategory("Virtual Device", "Android Virtual Devices", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES))
       val current = renderContext.configuration?.device
@@ -274,7 +274,7 @@ class DeviceMenuAction(private val renderContext: ConfigurationHolder,
         groupedDevices.get(DeviceGroup.WEAR),
         groupedDevices.get(DeviceGroup.TV),
         groupedDevices.get(DeviceGroup.AUTOMOTIVE),
-        config.configurationManager.avdDevices,
+        config.settings.avdDevices,
         groupedDevices.get(DeviceGroup.GENERIC),
       ).map { it ?: emptyList() }.flatten()
     }
@@ -323,7 +323,7 @@ class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHo
 
     if (dialog.showAndGet()) {
       optionsModel.createdAvd
-        .map(config.configurationManager::createDeviceForAvd)
+        .map(config.settings::createDeviceForAvd)
         .ifPresent { device -> config.setDevice(device, true) }
     }
   }
@@ -456,7 +456,7 @@ open class SetDeviceAction(renderContext: ConfigurationHolder,
     // portrait orientation on a Nexus 4 (its default), and you switch to a Nexus 10, we jump to landscape orientation
     // (its default) unless of course there is a different layout that is the best fit for that device.
     val prevDevice = configuration.cachedDevice
-    val projectState = configuration.configurationManager.stateManager.projectState
+    val projectState = configuration.settings.configModule.configurationStateManager.projectState
     val lastSelectedNonWearStateName = projectState.nonWearDeviceLastSelectedStateName
     val newDefaultStateName: String = device.defaultState.name
     val wantedState: State? = lastSelectedNonWearStateName?.let { getMatchingState(device, it) }
@@ -467,7 +467,7 @@ open class SetDeviceAction(renderContext: ConfigurationHolder,
       wantedStateName = newDefaultStateName
     }
     if (commit) {
-      configuration.configurationManager.selectDevice(device)
+      configuration.settings.selectDevice(device)
     }
     configuration.setDevice(device, true)
     configuration.deviceState = getMatchingState(device, wantedStateName)
@@ -538,7 +538,7 @@ private class SetWearDeviceAction(renderContext: ConfigurationHolder,
       configuration.setDeviceStateName(newState)
     }
     if (commit) {
-      configuration.configurationManager.selectDevice(device)
+      configuration.settings.selectDevice(device)
     }
     configuration.setDevice(device, true)
     deviceChangeListener.onDeviceChanged(prevDevice, device)
@@ -589,7 +589,7 @@ private class SetAvdAction(renderContext: ConfigurationHolder,
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
     if (commit) {
-      configuration.configurationManager.selectDevice(avdDevice)
+      configuration.settings.selectDevice(avdDevice)
     }
     // TODO: force set orientation for virtual wear os device
     configuration.setDevice(avdDevice, false)

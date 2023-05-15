@@ -106,7 +106,6 @@ public class ConfigurationFileState {
 
   public void loadState(@NotNull Configuration configuration) {
     configuration.startBulkEditing();
-    ConfigurationManager manager = configuration.getConfigurationManager();
 
     configuration.setDeviceStateName(myDeviceState);
 

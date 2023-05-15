@@ -165,7 +165,7 @@ public class ResourceNotificationManager {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
         return new ResourceVersion(repository.getModificationCount(), fileStamp, configuration.getModificationCount(),
-                                   configuration.getConfigurationManager().getStateVersion(), myModificationCount);
+                                   configuration.getSettings().getStateVersion(), myModificationCount);
 
       }
       else {

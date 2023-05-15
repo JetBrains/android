@@ -74,7 +74,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -112,7 +111,7 @@ public class Configuration implements Disposable, ModificationTracker {
 
   /** The associated {@link ConfigurationManager} */
   @NotNull
-  protected final ConfigurationManager myManager;
+  protected final ConfigurationSettings mySettings;
 
   /**
    * The {@link FolderConfiguration} being edited.
@@ -216,8 +215,8 @@ public class Configuration implements Disposable, ModificationTracker {
   /**
    * Creates a new {@linkplain Configuration}
    */
-  protected Configuration(@NotNull ConfigurationManager manager, @NotNull FolderConfiguration editedConfig) {
-    myManager = manager;
+  protected Configuration(@NotNull ConfigurationSettings settings, @NotNull FolderConfiguration editedConfig) {
+    mySettings = settings;
     myEditedConfig = editedConfig;
 
     if (isLocaleSpecificLayout()) {
@@ -268,7 +267,7 @@ public class Configuration implements Disposable, ModificationTracker {
 
   @Override
   public Configuration clone() {
-    Configuration copy = new Configuration(this.myManager, FolderConfiguration.copyOf(this.getEditedConfig()));
+    Configuration copy = new Configuration(this.mySettings, FolderConfiguration.copyOf(this.getEditedConfig()));
     copy.copyFrom(this);
     return copy;
   }
@@ -286,8 +285,8 @@ public class Configuration implements Disposable, ModificationTracker {
    * @return the manager
    */
   @NotNull
-  public ConfigurationManager getConfigurationManager() {
-    return myManager;
+  public ConfigurationSettings getSettings() {
+    return mySettings;
   }
 
   /**
@@ -395,7 +394,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @Slow
   @Nullable
   protected Device computeBestDevice() {
-    return myManager.getDefaultDevice();
+    return mySettings.getDefaultDevice();
   }
 
   /**
@@ -421,7 +420,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @NotNull
   public Locale getLocale() {
     if (myLocale == null) {
-      return myManager.getLocale();
+      return mySettings.getLocale();
     }
     return myLocale;
   }
@@ -468,17 +467,17 @@ public class Configuration implements Disposable, ModificationTracker {
   @Nullable
   public IAndroidTarget getTarget() {
     if (myTarget == null) {
-      IAndroidTarget target = myManager.getTarget();
+      IAndroidTarget target = mySettings.getTarget();
 
       // If the project-wide render target isn't a match for the version qualifier in this layout
       // (for example, the render target is at API 11, and layout is in a -v14 folder) then pick
       // a target which matches.
       VersionQualifier version = myEditedConfig.getVersionQualifier();
       if (target != null && version != null && version.getVersion() > target.getVersion().getFeatureLevel()) {
-        target = myManager.getTarget(version.getVersion());
+        target = mySettings.getTarget(version.getVersion());
       }
 
-      return getTargetForRendering(target, myManager.getConfigModule());
+      return getTargetForRendering(target, mySettings.getConfigModule());
     }
 
     return myTarget;
@@ -545,7 +544,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @NotNull
   public FolderConfiguration getFullConfig() {
-    if ((myFolderConfigDirty & MASK_FOLDERCONFIG) != 0 || myProjectStateVersion != myManager.getStateVersion()) {
+    if ((myFolderConfigDirty & MASK_FOLDERCONFIG) != 0 || myProjectStateVersion != mySettings.getStateVersion()) {
       syncFolderConfig();
     }
 
@@ -745,7 +744,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public void setTarget(@Nullable IAndroidTarget target) {
     if (myTarget != target) {
-      myTarget = getTargetForRendering(target, myManager.getConfigModule());
+      myTarget = getTargetForRendering(target, mySettings.getConfigModule());
       updated(CFG_TARGET);
     }
   }
@@ -945,7 +944,7 @@ public class Configuration implements Disposable, ModificationTracker {
     if (deviceState == null) {
       deviceState = device.getDefaultState();
     }
-    FolderConfiguration config = getFolderConfig(myManager.getConfigModule(), deviceState, getLocale(), getTarget());
+    FolderConfiguration config = getFolderConfig(mySettings.getConfigModule(), deviceState, getLocale(), getTarget());
 
     // replace the config with the one from the device
     myFullConfig.set(config);
@@ -960,7 +959,7 @@ public class Configuration implements Disposable, ModificationTracker {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
     } else {
-      ConfigurationModelModule configModule = myManager.getConfigModule();
+      ConfigurationModelModule configModule = mySettings.getConfigModule();
       LayoutLibrary layoutLib = getLayoutLibrary(getTarget(), configModule.getAndroidPlatform(), configModule.getLayoutlibContext());
       if (layoutLib != null) {
         if (layoutLib.isRtl(locale.toLocaleId())) {
@@ -987,7 +986,7 @@ public class Configuration implements Disposable, ModificationTracker {
     }
 
     myFolderConfigDirty = 0;
-    myProjectStateVersion = myManager.getStateVersion();
+    myProjectStateVersion = mySettings.getStateVersion();
   }
 
   /** Returns the screen size required for this configuration */
@@ -1168,7 +1167,7 @@ public class Configuration implements Disposable, ModificationTracker {
   public @NotNull ResourceResolver getResourceResolver() {
     String theme = getTheme();
     Device device = getDevice();
-    ResourceResolverCache resolverCache = myManager.getResolverCache();
+    ResourceResolverCache resolverCache = mySettings.getResolverCache();
     if (device != null && CUSTOM_DEVICE_ID.equals(device.getId())) {
       // Remove the old custom device configuration only if it's different from the new one
       resolverCache.replaceCustomConfig(theme, getFullConfig());
@@ -1186,7 +1185,7 @@ public class Configuration implements Disposable, ModificationTracker {
   public ResourceRepository getFrameworkResources() {
     IAndroidTarget target = getTarget();
     if (target != null) {
-      return myManager.getResolverCache().getFrameworkResources(getFullConfig(), target);
+      return mySettings.getResolverCache().getFrameworkResources(getFullConfig(), target);
     }
 
     return null;
@@ -1211,12 +1210,12 @@ public class Configuration implements Disposable, ModificationTracker {
 
   @NotNull
   public Module getModule() {
-    return myManager.getModule();
+    return mySettings.getModule();
   }
 
   @NotNull
   public ConfigurationModelModule getConfigModule() {
-    return myManager.getConfigModule();
+    return mySettings.getConfigModule();
   }
 
   @Override
@@ -1266,11 +1265,11 @@ public class Configuration implements Disposable, ModificationTracker {
   public String computePreferredTheme() {
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
     String activityName = getActivity();
-    ThemeInfoProvider themeInfo = myManager.getConfigModule().getThemeInfoProvider();
+    ThemeInfoProvider themeInfo = mySettings.getConfigModule().getThemeInfoProvider();
     if (activityName != null) {
       String activityFqcn = activityName;
       if (activityName.startsWith(".")) {
-        String packageName = myManager.getConfigModule().getResourcePackage();
+        String packageName = mySettings.getConfigModule().getResourcePackage();
         activityFqcn = packageName + activityName;
       }
 
@@ -1319,7 +1318,7 @@ public class Configuration implements Disposable, ModificationTracker {
       return themeStyle;
     }
 
-    ResourceResolverCache resolverCache = myManager.getResolverCache();
+    ResourceResolverCache resolverCache = mySettings.getResolverCache();
     ResourceResolver resourceResolver = resolverCache.getResourceResolver(getTarget(), themeUrl.toString(), getFullConfig());
 
     StyleResourceValue theme = resourceResolver.getStyle(reference);

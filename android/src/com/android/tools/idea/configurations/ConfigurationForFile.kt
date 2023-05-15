@@ -35,7 +35,7 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager
 
 class ConfigurationForFile(
   private val file: VirtualFile,
-  manager: ConfigurationManager,
+  manager: ConfigurationSettings,
   editedConfig: FolderConfiguration
 ) : Configuration(manager, editedConfig) {
   private var psiFile: PsiFile? = null
@@ -46,7 +46,7 @@ class ConfigurationForFile(
     return ApplicationManager.getApplication().runReadAction(
         Computable {
           if (psiFile == null) {
-            psiFile = PsiManager.getInstance(myManager.project).findFile(file);
+            psiFile = PsiManager.getInstance(mySettings.project).findFile(file);
           }
           val psiXmlFile = psiFile as? XmlFile
           psiXmlFile?.rootTag?.getAttribute(SdkConstants.ATTR_CONTEXT, SdkConstants.TOOLS_URI)?.value
@@ -54,13 +54,13 @@ class ConfigurationForFile(
   }
 
   override fun computeBestDevice(): Device? {
-    for (device in myManager.getRecentDevices()) {
+    for (device in mySettings.recentDevices) {
       val finalStateName = stateName ?: device.defaultState.name
       val selectedState: State = ConfigurationFileState.getState(device, finalStateName)!!
       val module = module
-      val currentConfig = getFolderConfig(myManager.configModule, selectedState, locale, target) ?: continue
+      val currentConfig = getFolderConfig(mySettings.configModule, selectedState, locale, target) ?: continue
       if (!myEditedConfig.isMatchFor(currentConfig)) continue
-      val repositoryManager = myManager.configModule.resourceRepositoryManager ?: continue
+      val repositoryManager = mySettings.configModule.resourceRepositoryManager ?: continue
       val folderType: ResourceFolderType? = getFolderType(file)
       if (folderType != null) {
         if (ResourceFolderType.VALUES == folderType) {
@@ -95,7 +95,7 @@ class ConfigurationForFile(
       else if ("Kotlin" == file.fileType.name) {
         return device
       }
-      else if (file == myManager.project.projectFile) {
+      else if (file == mySettings.project.projectFile) {
         return device // Takes care of correct device selection for Theme Editor.
       }
     }
@@ -104,16 +104,16 @@ class ConfigurationForFile(
   }
 
   override fun save() {
-    val stateManager = myManager.configModule.configurationStateManager
+    val stateManager = mySettings.configModule.configurationStateManager
     val fileState = ConfigurationFileState()
     fileState.saveState(this)
     stateManager.setConfigurationState(file, fileState)
   }
 
   override fun clone(): Configuration {
-    val copy = ConfigurationForFile(file, myManager, FolderConfiguration.copyOf(editedConfig))
+    val copy = ConfigurationForFile(file, mySettings, FolderConfiguration.copyOf(editedConfig))
     copy.copyFrom(this)
-    return ConfigurationForFile(file, myManager, FolderConfiguration.copyOf(editedConfig)).also { it.copyFrom(this) }
+    return ConfigurationForFile(file, mySettings, FolderConfiguration.copyOf(editedConfig)).also { it.copyFrom(this) }
   }
 
   companion object {
@@ -139,7 +139,7 @@ class ConfigurationForFile(
     @JvmStatic
     fun create(base: Configuration, file: VirtualFile): Configuration {
       // TODO: Figure out whether we need this, or if it should be replaced by a call to ConfigurationManager#createSimilar()
-      val configuration = ConfigurationForFile(file, base.myManager, FolderConfiguration.copyOf(base.editedConfig))
+      val configuration = ConfigurationForFile(file, base.mySettings, FolderConfiguration.copyOf(base.editedConfig))
       configuration.copyFrom(base)
 
       configuration.editedConfig.set(FolderConfiguration.getConfigForFolder(file.parent.name))

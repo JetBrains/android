@@ -92,8 +92,8 @@ public class ResourceResolverCacheTest extends AndroidTestCase {
     assertNotSame(resolver1b, configuration1.getResourceResolver());
     assertEquals("FooBar", configuration1.getResourceResolver().findResValue("@string/cancel", false).getValue());
 
-    ResourceResolverCache cache = configuration1.getConfigurationManager().getResolverCache();
-    assertSame(cache, configuration2.getConfigurationManager().getResolverCache());
+    ResourceResolverCache cache = configuration1.getSettings().getResolverCache();
+    assertSame(cache, configuration2.getSettings().getResolverCache());
   }
 
   public void testCustomConfiguration() {

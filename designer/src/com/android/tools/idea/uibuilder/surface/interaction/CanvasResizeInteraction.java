@@ -34,7 +34,7 @@ import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.configurations.ConfigurationSettings;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.surface.DeviceSizeList;
@@ -138,22 +138,22 @@ public class CanvasResizeInteraction extends Interaction {
     myOriginalDeviceState = configuration.getDeviceState();
 
     double currentDpi = configuration.getDensity().getDpiValue();
-    ConfigurationManager configManager = configuration.getConfigurationManager();
+    ConfigurationSettings configSettings = configuration.getSettings();
 
     boolean addSmallScreen = false;
     List<Device> devicesToShow;
     if (HardwareConfigHelper.isWear(myOriginalDevice)) {
-      devicesToShow = configManager.getDevices().stream().filter(
+      devicesToShow = configSettings.getDevices().stream().filter(
         d -> HardwareConfigHelper.isWear(d) && !Configuration.CUSTOM_DEVICE_ID.equals(d.getId())).collect(Collectors.toList());
     }
     else if (HardwareConfigHelper.isTv(myOriginalDevice)) {
       // There are only two devices and they have the same dip sizes, so just use one of them
-      devicesToShow = Collections.singletonList(configManager.getDeviceById("tv_1080p"));
+      devicesToShow = Collections.singletonList(configSettings.getDeviceById("tv_1080p"));
     }
     else {
       devicesToShow = Lists.newArrayListWithExpectedSize(DEVICES_TO_SHOW.length);
       for (String id : DEVICES_TO_SHOW) {
-        devicesToShow.add(configManager.getDeviceById(id));
+        devicesToShow.add(configSettings.getDeviceById(id));
       }
       addSmallScreen = true;
     }

@@ -130,7 +130,8 @@ public class OrientationMenuAction extends DropDownAction {
       configuration.setDeviceState(myState);
       if (!HardwareConfigHelper.isWear(configuration.getDevice())) {
         // Save the last orientation if device is not a wear device.
-        ConfigurationProjectState projectState = configuration.getConfigurationManager().getStateManager().getProjectState();
+        ConfigurationProjectState projectState =
+          configuration.getSettings().getConfigModule().getConfigurationStateManager().getProjectState();
         projectState.setNonWearDeviceLastSelectedStateName(myState.getName(), myState.isDefaultState());
       }
     }

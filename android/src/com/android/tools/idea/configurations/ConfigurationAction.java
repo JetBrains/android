@@ -91,7 +91,7 @@ public abstract class ConfigurationAction extends AnAction implements Configurat
           if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
             // Switch files, and leave this configuration alone.
             pickedBetterMatch(matchingFiles.get(0), file);
-            ConfigurationManager configurationManager = configuration.getConfigurationManager();
+            ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(configuration.getModule());
             updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);
             return;
           }

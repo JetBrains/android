@@ -161,7 +161,7 @@ class DeviceMenuActionTest {
   private fun testActions(expected: String) {
     val configuration = Mockito.mock(Configuration::class.java)
     val configurationModelModule: ConfigurationModelModule = StudioConfigurationModelModule(projectRule.projectRule.module)
-    whenever(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
+    whenever(configuration.settings).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     whenever(configuration.configModule).thenReturn(configurationModelModule)
     val holder = ConfigurationHolder { configuration }
     val menuAction = DeviceMenuAction(holder, object : DeviceChangeListener {

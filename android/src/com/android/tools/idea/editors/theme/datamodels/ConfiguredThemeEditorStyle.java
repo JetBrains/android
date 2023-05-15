@@ -30,7 +30,7 @@ public class ConfiguredThemeEditorStyle extends ThemeEditorStyle {
 
   public ConfiguredThemeEditorStyle(@NotNull Configuration configuration,
                                     @NotNull StyleResourceValue styleResourceValue) {
-    super(configuration.getConfigurationManager(), styleResourceValue.asReference());
+    super(configuration.getSettings(), styleResourceValue.asReference());
     myStyleResourceValue = StyleResourceValueImpl.copyOf(styleResourceValue);
   }
 

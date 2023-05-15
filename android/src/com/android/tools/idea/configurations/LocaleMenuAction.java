@@ -237,7 +237,7 @@ public class LocaleMenuAction extends DropDownAction {
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         // Also set the project-wide locale, since locales (and rendering targets) are project wide
-        configuration.getConfigurationManager().setLocale(myLocale);
+        configuration.getSettings().setLocale(myLocale);
       }
     }
   }

@@ -53,7 +53,7 @@ abstract class GlancePreviewElementModelAdapter<T : MethodPreviewElement, M : Da
   }
 
   override fun applyToConfiguration(previewElement: T, configuration: Configuration) {
-    configuration.target = configuration.configurationManager.highestApiTarget
+    configuration.target = configuration.settings.highestApiTarget
   }
 
   override fun modelToElement(model: M): T? =

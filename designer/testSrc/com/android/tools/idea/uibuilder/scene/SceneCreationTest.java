@@ -157,7 +157,7 @@ public class SceneCreationTest extends SceneTest {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
     Configuration config = model.getConfiguration();
-    config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
+    config.setDevice(config.getSettings().getDeviceById("Nexus 6P"), false);
 
     SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
     manager.setIgnoreRenderRequests(true);
@@ -172,7 +172,7 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawWidth());
     assertEquals(pxToDp(40, dpiFactor), sceneTextView.getDrawHeight());
 
-    config.setDevice(config.getConfigurationManager().getDeviceById("Nexus S"), false);
+    config.setDevice(config.getSettings().getDeviceById("Nexus S"), false);
     dpiFactor = 240 / 160f;
 
     // Allow 1dp difference for rounding

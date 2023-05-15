@@ -32,7 +32,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AvdManagerUtils
 import kotlin.math.hypot
 import kotlin.math.roundToInt
 
@@ -70,7 +69,7 @@ enum class DeviceGroup {
  * @return map of sorted devices
  */
 fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Device>> = DEVICE_CACHES.getOrPut(configuration) {
-  return groupDevices(configuration.configurationManager.devices)
+  return groupDevices(configuration.settings.devices)
 }
 
 /**

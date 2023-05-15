@@ -190,9 +190,7 @@ private fun PreviewConfiguration.applyTo(
   renderConfiguration.startBulkEditing()
   if (apiLevel != UNDEFINED_API_LEVEL) {
     val newTarget =
-      renderConfiguration.configurationManager.targets.firstOrNull {
-        it.version.apiLevel == apiLevel
-      }
+      renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }
     highestApiTarget(renderConfiguration)?.let {
       updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, newTarget))
     }
@@ -261,9 +259,9 @@ private fun ComposePreviewElement.getCustomDeviceSize(): Dimension? =
 fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
   configuration.applyTo(
     renderConfiguration,
-    { it.configurationManager.highestApiTarget },
-    { it.configurationManager.devices },
-    { it.configurationManager.getDefaultPreviewDevice() },
+    { it.settings.highestApiTarget },
+    { it.settings.devices },
+    { it.settings.getDefaultPreviewDevice() },
     getCustomDeviceSize()
   )
 }
