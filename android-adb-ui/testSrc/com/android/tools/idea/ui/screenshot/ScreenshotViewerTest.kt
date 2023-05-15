@@ -219,12 +219,22 @@ class ScreenshotViewerTest {
 
   @Test
   fun testPlayCompatibleScreenshotIsAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).contains("Play Store Compatible")
+  }
+
+  @Test
+  fun testPlayCompatibleScreenshotIsNotAvailableWhenScreenshotIsNot1to1Ratio() {
+    val screenshotImage = ScreenshotImage(createImage(384, 500), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.optionsAsString()).doesNotContain("Play Store Compatible")
   }
 
   @Test
@@ -265,66 +275,6 @@ class ScreenshotViewerTest {
   }
 
   @Test
-  fun testPlayCompatibleScreenshotAddsVerticalPaddingToFit1to1Ratio() {
-    val screenshotImage = ScreenshotImage(createImage(500, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
-    val ui = FakeUi(viewer.rootPane)
-
-    val clipComboBox = ui.getComponent<JComboBox<*>>()
-
-    clipComboBox.selectFirstMatch("Play Store Compatible")
-    EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
-    assertThat(processedImage.width).isEqualTo(500)
-    assertThat(processedImage.height).isEqualTo(500)
-    // the image should have a padding and not be stretched
-    val expectedPadding = (screenshotImage.width - screenshotImage.height) / 2
-    assertThat(processedImage.getRGB(processedImage.width / 2, expectedPadding - 1)).isEqualTo(Color.BLACK.rgb)
-    assertThat(processedImage.getRGB(processedImage.width / 2, expectedPadding + screenshotImage.height + 1)).isEqualTo(Color.BLACK.rgb)
-    assertThat(processedImage.getRGB(processedImage.width / 2, processedImage.height / 2)).isEqualTo(Color.RED.rgb)
-  }
-
-  @Test
-  fun testPlayCompatibleScreenshotAddsHorizontalPaddingToFit1to1Ratio() {
-    val screenshotImage = ScreenshotImage(createImage(384, 500), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
-    val ui = FakeUi(viewer.rootPane)
-
-    val clipComboBox = ui.getComponent<JComboBox<*>>()
-
-    clipComboBox.selectFirstMatch("Play Store Compatible")
-    EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
-    assertThat(processedImage.width).isEqualTo(500)
-    assertThat(processedImage.height).isEqualTo(500)
-    // the image should have a padding and not be stretched
-    val expectedPadding = (screenshotImage.height - screenshotImage.width) / 2
-    assertThat(processedImage.getRGB(expectedPadding - 1, processedImage.height / 2)).isEqualTo(Color.BLACK.rgb)
-    assertThat(processedImage.getRGB(expectedPadding + screenshotImage.width + 1, processedImage.height / 2)).isEqualTo(Color.BLACK.rgb)
-    assertThat(processedImage.getRGB(processedImage.width / 2, processedImage.height / 2)).isEqualTo(Color.RED.rgb)
-  }
-
-  @Test
-  fun testPlayCompatibleScreenshotAddsPaddingToMeetMinimumSizeRequirement() {
-    val screenshotImage = ScreenshotImage(createImage(ScreenshotViewer.MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS - 10,
-                                                      ScreenshotViewer.MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS - 10), 0,
-                                          DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
-    val ui = FakeUi(viewer.rootPane)
-
-    val clipComboBox = ui.getComponent<JComboBox<*>>()
-
-    clipComboBox.selectFirstMatch("Play Store Compatible")
-    EDT.dispatchAllInvocationEvents()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
-    assertThat(processedImage.width).isEqualTo(ScreenshotViewer.MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS)
-    assertThat(processedImage.height).isEqualTo(ScreenshotViewer.MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS)
-  }
-
-  @Test
   fun testComboBoxDefaultsToDisplayShapeIfAvailable() {
     val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
@@ -336,7 +286,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToPlayStoreCompatibleIfDisplayShapeIsNotAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH_SQUARE)
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH_SQUARE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -346,7 +296,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToRectangularIfPlayStoreCompatibleAndDisplayShapeAreNotAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
+    val screenshotImage = ScreenshotImage(createImage(360, 360), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 

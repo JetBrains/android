@@ -59,7 +59,6 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -108,9 +107,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_SAVE_PATH_KEY = "ScreenshotViewer.SavePath";
 
   private static final String HELP_PREFIX = "org.jetbrains.android.";
-
-  // The minimum size is for both the width and the height as the screenshot ratio needs to be 1:1
-  public static final int MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS = 384;
 
   private final @NotNull SimpleDateFormat myTimestampFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ROOT);
 
@@ -260,7 +256,14 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     if (canClipDeviceMask) {
       decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
     }
-    boolean isPlayCompatibleWearScreenshot = StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get() && screenshotImage.isWear();
+    int width = screenshotImage.getWidth();
+    int height = screenshotImage.getHeight();
+    boolean isOneToOneRatio = width == height;
+    // DAC specifies a 384x384 minimum size requirement but that requirement is actually not enforced.
+    // The image ratio is enforced, however.
+    boolean isPlayCompatibleWearScreenshot = StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get()
+                                             && screenshotImage.isWear()
+                                             && isOneToOneRatio;
     if (isPlayCompatibleWearScreenshot) {
       decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
     }
@@ -403,19 +406,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       //noinspection UseJBColor - we want the actual color Black, JBColor will be grey in dark modes.
       backgroundColor = Color.BLACK;
     }
-
-    int width = sourceImage.getImage().getWidth();
-    int height = sourceImage.getImage().getHeight();
-    boolean isOneToOneRatio = width == height;
-    boolean isPlayCompatible = isOneToOneRatio && width >= MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS;
-    if (selectedDecoration.equals(DecorationOption.PLAY_COMPATIBLE) && !isPlayCompatible) {
-      // fix the dimensions to be compatible with the play store requirements
-      int outputSize = Math.max(Math.max(width, height), MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS);
-      return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor, new Dimension(outputSize, outputSize));
-    }
-    else {
-      return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor);
-    }
+    return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor);
   }
 
   @VisibleForTesting
