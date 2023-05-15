@@ -194,6 +194,8 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
+    if lib == "studio_plugin_rust.xml":
+      continue  # Special case: the Rust plugin is built separately.
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 
