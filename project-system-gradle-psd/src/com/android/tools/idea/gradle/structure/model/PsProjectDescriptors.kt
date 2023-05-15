@@ -76,7 +76,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
             pluginManagement().plugins().plugins().filter { it.isAgp() }.ifNotEmpty { map { it.version() } }
           }
         when {
-          models == null -> null
+          models == null -> null.also { LOG.warn("Android Gradle Plugin Version not found") }
           models.isEmpty() -> error("AGP version parsed property implementation inconsistency")
           else ->
             object : ResolvedPropertyModel by models[0] {
@@ -85,18 +85,6 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
               }
             }
         }
-      },
-      parsedPropertyInitializer = {
-        projectBuildModel!!
-          .buildscript()
-          .dependencies()
-          .let { dependencies ->
-            dependencies.addArtifact("classpath", "$AGP_GROUP_ID_NAME:0.0")
-            dependencies.all()
-              .mapNotNull { it as? ArtifactDependencyModel }
-              .single { it.isAgp() }
-              .version()
-          }
       },
       getter = { asString() },
       setter = { setValue(it) },

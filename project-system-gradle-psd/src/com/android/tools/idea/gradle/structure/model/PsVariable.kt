@@ -44,7 +44,6 @@ import com.android.tools.idea.gradle.structure.model.meta.setParsedValue
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
-import com.intellij.openapi.diagnostic.Logger
 
 /**
  * Model for handling Gradle properties in the Project Structure Dialog
@@ -271,5 +270,4 @@ private fun <T : Any> Collection<KnownValues<out T>>.combineKnownValues() =
     }
     .toList()
 
-private val LOG = Logger.getInstance(PsVariable::class.java)
 private val FAKE_PROPERTY: Nothing? = null
