@@ -752,6 +752,10 @@ public final class StudioFlags {
     Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
                 "Display banners in Gradle-related tools when Version Catalogs are in use", false);
 
+  public static final Flag<Boolean> DECLARATIVE_PLUGIN_STUDIO_SUPPORT =
+    Flag.create(GRADLE_IDE, "declarative.plugin.studio.support", "Studio support for AGP declarative plugin",
+                "Enable support for gradle.build.toml in PSD and Assistants", false);
+
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = Flag.create(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 
