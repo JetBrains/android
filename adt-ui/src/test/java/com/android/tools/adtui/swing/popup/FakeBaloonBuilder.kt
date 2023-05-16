@@ -124,13 +124,9 @@ class FakeBalloon(
     }
   }
 
-  override fun revalidate() {
-    error("Not yet implemented")
-  }
+  override fun revalidate() = Unit
 
-  override fun revalidate(tracker: PositionTracker<Balloon>) {
-    error("Not yet implemented")
-  }
+  override fun revalidate(tracker: PositionTracker<Balloon>) = Unit
 
   override fun show(tracker: PositionTracker<Balloon>?, preferredPosition: Balloon.Position?) {
     this.target = target
