@@ -400,7 +400,6 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   override fun disposeUIResources() {
     if (!myUiInitialized) return
     try {
-
       myUiState.proportion = mySplitter!!.proportion
       (mySelectedConfigurable as? MasterDetailsComponent)?.saveSideProportion()
       myConfigurables.keys.forEach(Consumer<Configurable> { it.disposeUIResources() })
@@ -412,6 +411,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     finally {
       myConfigurables.clear()
       myUiInitialized = false
+      mySplitter = null
+      mySidePanel = null
+      myToolbarComponent = null
+      myErrorsComponent = null
+      myToFocus = null
     }
   }
 
