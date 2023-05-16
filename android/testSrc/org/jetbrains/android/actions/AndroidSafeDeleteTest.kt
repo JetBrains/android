@@ -13,57 +13,103 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package org.jetbrains.android.actions
 
-package org.jetbrains.android.actions;
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.refactoring.BaseRefactoringProcessor.ConflictsInTestsException
+import com.intellij.refactoring.safeDelete.SafeDeleteHandler
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import kotlin.test.assertFailsWith
 
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.refactoring.BaseRefactoringProcessor;
-import com.intellij.refactoring.safeDelete.SafeDeleteHandler;
-import org.jetbrains.android.AndroidTestCase;
+@RunWith(JUnit4::class)
+class AndroidSafeDeleteTest {
+  @get:Rule
+  var androidProjectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
 
-public class AndroidSafeDeleteTest extends AndroidTestCase {
-  private static final String TEST_FOLDER = "/createComponent/";
+  private val myFixture by lazy { androidProjectRule.fixture as JavaCodeInsightTestFixture }
+  private val myProject by lazy { androidProjectRule.project }
 
-  @Override
-  protected boolean providesCustomManifest() {
-    return true;
+  @Test
+  fun deleteComponent() {
+    myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=xml
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="p1.p2">
+          <application android:icon="@drawable/icon">
+              <activity android:name="MyActivity"/>
+          </application>
+      </manifest>
+      """.trimIndent()
+    )
+
+    val activityPsiFile = myFixture.addFileToProject(
+      "src/p1/p2/MyActivity.java",
+      //language=Java
+      """
+      package p1.p2;
+      public class MyActivity extends android.app.Activity {}
+      """.trimIndent()
+    )
+
+    val activityClass = runReadAction {
+      myFixture.javaFacade.findClass("p1.p2.MyActivity", GlobalSearchScope.fileScope(activityPsiFile))
+    }
+    assertThat(activityClass).isNotNull()
+
+    ApplicationManager.getApplication().invokeAndWait {
+      assertFailsWith<ConflictsInTestsException>(
+        message = "class <b><code>p1.p2.MyActivity</code></b> has 1 usage that is not safe to delete.") {
+        SafeDeleteHandler.invoke(myProject, arrayOf(activityClass), myFixture.module, true, null)
+      }
+    }
   }
 
-  // b/281709998: Fix flaky test
-  public void ignoreTestDeleteComponent() throws Exception {
-    final VirtualFile manifestVFile = myFixture.copyFileToProject(TEST_FOLDER + "f1.xml", "AndroidManifest.xml");
-    final VirtualFile activityFile = myFixture.copyFileToProject(TEST_FOLDER + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    myFixture.configureFromExistingVirtualFile(activityFile);
+  @Test
+  fun deleteResourceFile() {
+    myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=xml
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="p1.p2">
+          <application android:icon="@drawable/icon">
+          </application>
+      </manifest>
+      """.trimIndent()
+    )
 
-    // We don't technically need the PsiFile representing the manifest, but fetching it ensures the file has been processed.
-    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestVFile);
-    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
+    myFixture.addFileToProject(
+      "src/p1/p2/DeleteResourceFile.java",
+      //language=Java
+      """
+      package p1.p2;
+      public class DeleteResourceFile {
+        public void f() {
+          int n = R.drawable.my_resource_file;
+        }
+      }
+      """.trimIndent()
+    )
 
-    final PsiClass activityClass = myFixture.getJavaFacade().findClass("p1.p2.MyActivity", GlobalSearchScope.everythingScope(getProject()));
+    val resFile = myFixture.addFileToProject("res/drawable/my_resource_file.xml", "<root></root>")
 
-    assertThrows(
-      BaseRefactoringProcessor.ConflictsInTestsException.class,
-      "class <b><code>p1.p2.MyActivity</code></b> has 1 usage that is not safe to delete.",
-      () -> {
-        SafeDeleteHandler.invoke(getProject(), new PsiElement[] { activityClass }, myModule, true, null);
-      });
-  }
-
-  public void testDeleteResourceFile() throws Exception {
-    createManifest();
-    final String testName = getTestName(false);
-    myFixture.copyFileToProject(TEST_FOLDER + testName + ".java", "src/p1/p2/" + testName + ".java");
-    final VirtualFile resVFile = myFixture.copyFileToProject(TEST_FOLDER + testName + ".xml", "res/drawable/my_resource_file.xml");
-
-    final PsiFile resFile = PsiManager.getInstance(getProject()).findFile(resVFile);
-
-    assertThrows(
-      BaseRefactoringProcessor.ConflictsInTestsException.class,
-      "field <b><code>drawable.my_resource_file</code></b> has 1 usage that is not safe to delete.",
-      () -> {
-        SafeDeleteHandler.invoke(getProject(), new PsiElement[] { resFile }, myModule, true, null);
-      });
+    ApplicationManager.getApplication().invokeAndWait {
+      assertFailsWith<ConflictsInTestsException>(
+        message = "field <b><code>drawable.my_resource_file</code></b> has 1 usage that is not safe to delete.") {
+        SafeDeleteHandler.invoke(myProject, arrayOf(resFile), myFixture.module, true, null)
+      }
+    }
   }
 }
