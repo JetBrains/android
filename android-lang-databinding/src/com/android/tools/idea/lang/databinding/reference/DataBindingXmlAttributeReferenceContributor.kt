@@ -34,7 +34,7 @@ import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassObjectAccessExpression
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiLiteralExpression
+import com.intellij.psi.PsiLiteral
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceContributor
@@ -179,13 +179,13 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
           // We do not handle conflict @BindingMethod annotations within the same @BindingMethods annotation.
           bindingMethodAnnotations.firstOrNull { annotation ->
             val attributeValue = (annotation as? PsiAnnotation)?.findAttributeValue("attribute") ?: return@firstOrNull false
-            val value = (attributeValue as? PsiLiteralExpression)?.value as? String ?: return@firstOrNull false
+            val value = (attributeValue as? PsiLiteral)?.value as? String ?: return@firstOrNull false
             isAttributeNameMatched(value)
           }?.let { bindingMethodAnnotation ->
             val typeValue = (bindingMethodAnnotation as PsiAnnotation).findAttributeValue("type") ?: return@forEach
             val type = (typeValue as? PsiClassObjectAccessExpression)?.operand?.type ?: return@forEach
             if (type.isAssignableFrom(viewType)) {
-              val methodValue = bindingMethodAnnotation.findAttributeValue("method") as? PsiLiteralExpression ?: return@forEach
+              val methodValue = bindingMethodAnnotation.findAttributeValue("method") as? PsiLiteral ?: return@forEach
               val methodName = methodValue.value as? String ?: return@forEach
               for (method in PsiModelClass(type, mode).findMethods(methodName, MemberAccess.ALL_MEMBERS)) {
                 val parameters = method.psiMethod.parameterList.parameters
@@ -233,7 +233,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
         inverseBindingAdapterAnnotation, moduleScope, PsiMethod::class.java)
         .forEach { annotatedMethod ->
           val annotation = AnnotationUtil.findAnnotation(annotatedMethod, mode.inverseBindingAdapter) ?: return@forEach
-          val annotationAttributeName = (annotation.findAttributeValue("attribute") as? PsiLiteralExpression)
+          val annotationAttributeName = (annotation.findAttributeValue("attribute") as? PsiLiteral)
                                           ?.value as? String ?: return@forEach
           if (isAttributeNameMatched(annotationAttributeName) && annotatedMethod.parameterList.parametersCount == 1) {
             val annotationViewParameter = annotatedMethod.parameterList.parameters[0]
@@ -274,7 +274,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                                                 ?: return@forEach
           for (annotation in inverseBindingMethodAnnotations) {
             val attributeValue = (annotation as? PsiAnnotation)?.findAttributeValue("attribute") ?: continue
-            val annotationAttributeName = (attributeValue as? PsiLiteralExpression)?.value as? String ?: continue
+            val annotationAttributeName = (attributeValue as? PsiLiteral)?.value as? String ?: continue
             if (!isAttributeNameMatched(annotationAttributeName)) {
               continue
             }
@@ -282,7 +282,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
                        ?: continue
             if (type.isAssignableFrom(viewType)) {
               val methodAttribute = annotation.findAttributeValue("method") ?: continue
-              var methodName = (methodAttribute as? PsiLiteralExpression)?.value as? String ?: continue
+              var methodName = (methodAttribute as? PsiLiteral)?.value as? String ?: continue
               // If method isn't provided, the attribute name is used to find its name, either prefixing with "is" or "get".
               if (methodName.isEmpty()) {
                 val methodPrefix = if (attributeType.isAssignableFrom(PsiTypes.booleanType())) "is" else "get"
