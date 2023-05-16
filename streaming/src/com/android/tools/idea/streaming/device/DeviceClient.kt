@@ -343,10 +343,7 @@ internal class DeviceClient(
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
                   " com.android.tools.screensharing.Main --socket=$socketName" +
                   "$maxSizeArg$orientationArg$flagsArg$maxBitRateArg$logLevelArg$codecArg"
-    // Use a coroutine scope that not linked to the lifecycle of the client to make sure that
-    // the agent has a chance to terminate gracefully when the client is disposed rather than
-    // be killed by adb.
-    CoroutineScope(Dispatchers.Unconfined).launch {
+    clientScope.launch {
       val log = Logger.getInstance("ScreenSharingAgent $deviceName")
       val agentStartTime = System.currentTimeMillis()
       val errors = OutputAccumulator(MAX_TOTAL_AGENT_MESSAGE_LENGTH, MAX_ERROR_MESSAGE_AGE_MILLIS)
