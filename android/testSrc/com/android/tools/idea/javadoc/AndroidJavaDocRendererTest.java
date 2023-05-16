@@ -18,33 +18,69 @@ package com.android.tools.idea.javadoc;
 import static com.android.tools.idea.testing.SnaphotComparisonTestHelpersKt.normalizeHtmlForTests;
 import static com.android.tools.idea.testing.SnapshotComparisonTestUtilsKt.assertIsEqualToSnapshot;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
+import com.android.SdkConstants;
+import com.android.testutils.TestUtils;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.EdtAndroidProjectRule;
 import com.android.tools.idea.testing.SnapshotComparisonTest;
 import com.android.tools.lint.client.api.LintClient;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.Consumer;
-import org.jetbrains.android.AndroidTestCase;
+import com.intellij.testFramework.RunsInEdt;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
+import java.io.IOException;
+import java.util.function.Consumer;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-public class AndroidJavaDocRendererTest extends AndroidTestCase implements SnapshotComparisonTest {
+@RunWith(JUnit4.class)
+@RunsInEdt
+public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
   static {
     LintClient.setClientName(LintClient.CLIENT_STUDIO);
   }
 
+  @Rule
+  public TestName name = new TestName();
+  @Rule
+  public EdtAndroidProjectRule projectRule = new EdtAndroidProjectRule(AndroidProjectRule.withSdk());
+  private Project myProject;
+  private Module myModule;
+  private CodeInsightTestFixture myFixture;
+
+  @Before
+  public void setUp() {
+    myProject = projectRule.getProject();
+    myModule = projectRule.getProjectRule().getModule();
+    myFixture = projectRule.getFixture();
+    myFixture.setTestDataPath(TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/android/testData").toString());
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+  }
+
   public void checkStrings(String fileName, String targetPath) {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings.xml", "res/values/strings.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml",
-                                "res/values-zh-rTW/strings.xml");
+    myFixture.copyFileToProject("javadoc/strings/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject("javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
+    myFixture.copyFileToProject("javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
     checkDoc(fileName, targetPath);
   }
 
   private void checkDoc(String fileName, String targetName) {
     checkDoc(fileName, targetName, doc -> {
-      String normalizedDoc = normalizeHtmlForTests(getProject(), doc != null ? doc : "");
+      String normalizedDoc = normalizeHtmlForTests(myProject, doc != null ? doc : "");
       assertIsEqualToSnapshot(this, normalizedDoc, "");
     });
   }
@@ -55,21 +91,22 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
    * the actual documentation returned and will be responsible for asserting expected values.
    */
   private void checkDoc(String fileName, String targetName, Consumer<String> javadocConsumer) {
-    VirtualFile f = myFixture.copyFileToProject(getTestDataPath() + fileName, targetName);
+    VirtualFile f = myFixture.copyFileToProject(fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
     assert originalElement != null;
     PsiElement docTargetElement =
-      DocumentationManager.getInstance(getProject()).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
+      DocumentationManager.getInstance(myProject).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
     String doc = provider.generateDoc(docTargetElement, originalElement);
-    javadocConsumer.consume(doc);
+    javadocConsumer.accept(doc);
   }
 
-  public void testBrokenCustomDrawableJava() {
+  @Test
+  public void brokenCustomDrawableJava() {
     // Layout lib cannot render the custom drawable here, so it should show an error.
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/customDrawable.xml", "res/drawable/ic_launcher.xml");
+    myFixture.copyFileToProject("javadoc/drawables/customDrawable.xml", "res/drawable/ic_launcher.xml");
     checkDoc("/javadoc/drawables/Activity1.java",
              "src/p1/p2/Activity.java", actualDoc -> {
         assertThat(actualDoc).contains("Couldn't render");
@@ -77,9 +114,10 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
       });
   }
 
-  public void testWebPDrawableJava() {
+  @Test
+  public void webPDrawableJava() {
     // WebP images need to be rendered by layoutlib, so should show the rendered PNG.
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.webp", "res/drawable/ic_launcher.webp");
+    myFixture.copyFileToProject("javadoc/drawables/ic_launcher.webp", "res/drawable/ic_launcher.webp");
     checkDoc("/javadoc/drawables/Activity1.java",
              "src/p1/p2/Activity.java", actualDoc -> {
         assertThat(actualDoc).contains("render.png");
@@ -87,11 +125,13 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
       });
   }
 
-  public void testString1Java() {
+  @Test
+  public void string1Java() {
     checkString1("/javadoc/strings/Activity1.java", "src/p1/p2/Activity.java");
   }
 
-  public void testString1Kotlin() {
+  @Test
+  public void string1Kotlin() {
     checkString1("/javadoc/strings/Activity1.kt", "src/p1/p2/Activity.kt");
   }
 
@@ -99,11 +139,13 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
     checkStrings(sourcePath, targetPath);
   }
 
-  public void testString2Java() {
+  @Test
+  public void string2Java() {
     checkString2("/javadoc/strings/Activity2.java", "src/p1/p2/Activity.java");
   }
 
-  public void testString2Kotlin() {
+  @Test
+  public void string2Kotlin() {
     checkString2("/javadoc/strings/Activity2.kt", "src/p1/p2/Activity.kt");
   }
 
@@ -118,11 +160,13 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
    * There is no custom documentation for the inner R class, so the default Java platform documentation for a Java
    * static final field is used.
    */
-  public void testString3Java() {
+  @Test
+  public void string3Java() {
     checkString3("/javadoc/strings/Activity3.java", "src/p1/p2/Activity.java");
   }
 
-  public void testString3Kotlin() {
+  @Test
+  public void string3Kotlin() {
     checkString3("/javadoc/strings/Activity3.kt", "src/p1/p2/Activity.kt");
   }
 
@@ -132,241 +176,296 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase implements Snaps
 b/243077207 */
   }
 
-  public void testDimensionsJava() {
+  @Test
+  public void dimensionsJava() {
     checkDimensions("/javadoc/dimens/Activity1.java", "src/p1/p2/Activity.java");
   }
 
-  public void testDimensionsKotlin() {
+  @Test
+  public void dimensionsKotlin() {
     checkDimensions("/javadoc/dimens/Activity1.kt", "src/p1/p2/Activity.kt");
   }
 
   public void checkDimensions(String sourcePath, String targetPath) {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens.xml", "res/values/dimens.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens-sw720dp.xml", "res/values-sw720dp/dimens.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/dimens/dimens-land.xml", "res/values-land/dimens.xml");
+    myFixture.copyFileToProject("javadoc/dimens/dimens.xml", "res/values/dimens.xml");
+    myFixture.copyFileToProject("javadoc/dimens/dimens-sw720dp.xml", "res/values-sw720dp/dimens.xml");
+    myFixture.copyFileToProject("javadoc/dimens/dimens-land.xml", "res/values-land/dimens.xml");
     checkDoc(sourcePath, targetPath);
   }
 
-  public void testDrawablesJava() {
+  @Test
+  public void drawablesJava() {
     checkDrawables("/javadoc/drawables/Activity1.java", "src/p1/p2/Activity.java");
   }
 
-  public void testDrawablesKotlin() {
+  @Test
+  public void drawablesKotlin() {
     checkDrawables("/javadoc/drawables/Activity1.kt", "src/p1/p2/Activity.kt");
   }
 
   public void checkDrawables(String sourcePath, String targetPath) {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+    myFixture.copyFileToProject("javadoc/drawables/ic_launcher.png",
                                 "res/drawable/ic_launcher.png").getPath();
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+    myFixture.copyFileToProject("javadoc/drawables/ic_launcher.png",
                                 "res/drawable-hdpi/ic_launcher.png").getPath();
 
     checkDoc(sourcePath, targetPath);
   }
 
-  public void testStateListDrawablesJava() {
+  @Test
+  public void stateListDrawablesJava() {
     checkStateListDrawables("/javadoc/drawables/Activity2.java", "src/p1/p2/Activity.java");
   }
 
-  public void testStateListDrawablesKotlin() {
+  @Test
+  public void stateListDrawablesKotlin() {
     checkStateListDrawables("/javadoc/drawables/Activity2.kt", "src/p1/p2/Activity.kt");
   }
 
   public void checkStateListDrawables(String sourcePath, String targetPath) {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/selector.xml", "res/drawable/selector.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+    myFixture.copyFileToProject("javadoc/drawables/selector.xml", "res/drawable/selector.xml");
+    myFixture.copyFileToProject("javadoc/drawables/ic_launcher.png",
                                 "res/drawable/button.png").getPath();
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+    myFixture.copyFileToProject("javadoc/drawables/ic_launcher.png",
                                 "res/drawable/button_active.png").getPath();
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
+    myFixture.copyFileToProject("javadoc/drawables/ic_launcher.png",
                                 "res/drawable/button_disabled.png").getPath();
     checkDoc(sourcePath, targetPath);
   }
 
-  public void testMipmapJava() {
+  @Test
+  public void mipmapJava() {
     checkMipmaps("/javadoc/mipmaps/Activity1.java", "src/p1/p2/Activity.java");
   }
 
-  public void testMipmapKotlin() {
+  @Test
+  public void mipmapKotlin() {
     checkMipmaps("/javadoc/mipmaps/Activity1.kt", "src/p1/p2/Activity.kt");
   }
 
   public void checkMipmaps(String sourcePath, String targetPath) {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
-                                "res/mipmap/ic_launcher.png").getPath();
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/mipmaps/ic_launcher.png",
-                                "res/mipmap-hdpi/ic_launcher.png").getPath();
+    myFixture.copyFileToProject("javadoc/mipmaps/ic_launcher.png", "res/mipmap/ic_launcher.png");
+    myFixture.copyFileToProject("javadoc/mipmaps/ic_launcher.png", "res/mipmap-hdpi/ic_launcher.png");
 
     checkDoc(sourcePath, targetPath);
   }
 
-  public void testArraysJava() {
+  @Test
+  public void arraysJava() {
     checkArrays("/javadoc/arrays/Activity1.java", "src/p1/p2/Activity.java");
   }
 
-  public void testArraysKotlin() {
+  @Test
+  public void arraysKotlin() {
     checkArrays("/javadoc/arrays/Activity1.kt", "src/p1/p2/Activity.kt");
   }
 
   public void checkArrays(String sourcePath, String targetPath) {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/arrays/arrays.xml", "res/values/arrays.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/arrays/arrays-no.xml", "res/values-no/arrays.xml");
+    myFixture.copyFileToProject("javadoc/arrays/arrays.xml", "res/values/arrays.xml");
+    myFixture.copyFileToProject("javadoc/arrays/arrays-no.xml", "res/values-no/arrays.xml");
     checkDoc(sourcePath, targetPath);
   }
 
-  public void testXmlString1() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings.xml", "res/values/strings.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
+  @Test
+  public void xmlString1() {
+    myFixture.copyFileToProject("javadoc/strings/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject("javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
+    myFixture.copyFileToProject("javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
     checkDoc("/javadoc/strings/layout1.xml", "res/layout/layout1.xml");
   }
 
-  public void testAttributeValueDoc() {
+  @Test
+  public void attributeValueDoc() {
     checkDoc("/javadoc/layout/layout.xml", "res/layout/layout.xml");
   }
 
-  public void testAttributeEnumDoc() {
+  @Test
+  public void attributeEnumDoc() {
     checkDoc("/javadoc/styles/styles2.xml", "res/styles.xml");
   }
 
-  public void testAttributeEnumValueDoc() {
+  @Test
+  public void attributeEnumValueDoc() {
     checkDoc("/javadoc/styles/styles3.xml", "res/styles.xml");
   }
 
-  public void testXmlString2() {
+  @Test
+  public void xmlString2() {
     // Like testXmlString1, but the caret is at the right edge of an attribute value so the document provider has
     // to go to the previous XML token to obtain the resource url
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings.xml", "res/values/strings.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
+    myFixture.copyFileToProject("javadoc/strings/strings.xml", "res/values/strings.xml");
+    myFixture.copyFileToProject("javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
+    myFixture.copyFileToProject("javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
     checkDoc("/javadoc/strings/layout2.xml", "res/layout/layout2.xml");
   }
 
-  public void testSystemAttributes() {
+  @Test
+  public void systemAttributes() {
     checkDoc("/javadoc/attrs/layout1.xml", "res/layout/layout.xml");
   }
 
-  public void testLocalAttributes1() {
+  @Test
+  public void localAttributes1() {
     doTestLocalAttributes("/javadoc/attrs/layout2.xml");
   }
 
-  public void testLocalAttributes2() {
+  @Test
+  public void localAttributes2() {
     doTestLocalAttributes("/javadoc/attrs/layout3.xml");
   }
 
-  public void testLocalAttributes3() {
+  @Test
+  public void localAttributes3() {
     doTestLocalAttributes("/javadoc/attrs/layout4.xml");
   }
 
-  public void testLocalAttributes4() {
+  @Test
+  public void localAttributes4() {
     doTestLocalAttributes("/javadoc/attrs/layout5.xml");
   }
 
-  public void testLocalAttributes5() {
+  @Test
+  public void localAttributes5() {
     doTestLocalAttributes("/javadoc/attrs/layout6.xml");
   }
 
-  public void testLocalEnumAttributes1() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+  @Test
+  public void localEnumAttributes1() {
+    myFixture.copyFileToProject( "javadoc/attrs/attrs.xml", "res/values/attrs.xml");
     checkDoc("/javadoc/styles/styles4.xml", "res/styles.xml");
   }
 
-  public void testLocalEnumAttributes2() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+  @Test
+  public void localEnumAttributes2() {
+    myFixture.copyFileToProject("javadoc/attrs/attrs.xml", "res/values/attrs.xml");
     checkDoc("/javadoc/styles/styles5.xml", "res/styles.xml");
   }
 
   private void doTestLocalAttributes(String file) {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/attrs.xml", "res/values/attrs.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
+    myFixture.copyFileToProject("javadoc/attrs/attrs.xml", "res/values/attrs.xml");
+    myFixture.copyFileToProject("javadoc/attrs/MyView1.java", "src/p1/p2/MyView1.java");
+    myFixture.copyFileToProject("javadoc/attrs/MyView2.java", "src/p1/p2/MyView2.java");
+    myFixture.copyFileToProject("javadoc/attrs/MyView3.java", "src/p1/p2/MyView3.java");
     checkDoc(file, "res/layout/layout.xml");
   }
 
-  public void testManifestAttributes() throws Exception {
-    deleteManifest();
+  @Test
+  public void manifestAttributes() {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertThat(facet).isNotNull();
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      VirtualFile manifest = AndroidRootUtil.getPrimaryManifestFile(facet);
+      if (manifest != null) {
+        try {
+          manifest.delete(this);
+        }
+        catch (IOException e) {
+          fail("Could not delete default manifest");
+        }
+      }
+    });
     checkDoc("/javadoc/attrs/manifest.xml", "AndroidManifest.xml");
   }
 
-  public void testFrameworkColors2() {
+  @Test
+  public void frameworkColors2() {
     checkDoc("/javadoc/colors/layout2.xml", "res/layout/layout.xml");
   }
 
-  public void testAlphaColor() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/values2.xml", "res/values/values2.xml");
+  @Test
+  public void alphaColor() {
+    myFixture.copyFileToProject("javadoc/colors/values2.xml", "res/values/values2.xml");
     checkDoc("/javadoc/colors/layout3.xml", "res/layout/layout.xml");
   }
 
-  public void testColorsAndResolution() {
+  @Test
+  public void colorsAndResolution() {
     // This test checks
     //  - invoking XML documentation from an XML text node
     //  - a long chain of resource resolutions
     //  - evaluating colors, including XML color state lists
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/colors/third.xml", "res/color/third.xml");
+    myFixture.copyFileToProject("javadoc/colors/third.xml", "res/color/third.xml");
     checkDoc("/javadoc/colors/values.xml", "res/values/values.xml");
   }
 
-  public void testStyle() {
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/AndroidManifest.xml", "AndroidManifest.xml");
-    myFixture.copyFileToProject(getTestDataPath() + "/javadoc/styles/styles.xml", "res/values/styles.xml");
+  @Test
+  public void style() {
+    myFixture.copyFileToProject("javadoc/styles/AndroidManifest.xml", "AndroidManifest.xml");
+    myFixture.copyFileToProject("javadoc/styles/styles.xml", "res/values/styles.xml");
     checkDoc("/javadoc/styles/layout.xml", "res/layout/layout.xml");
   }
 
-  public void testFrameworkStyleResolution() {
+  @Test
+  public void frameworkStyleResolution() {
     // Checks that references in framework styles are always understood to point to framework resources,
     // even if the android: prefix is not explicitly written.
-    checkDoc("/javadoc/styles/styles.xml", "res/values/styles.xml", actualDoc -> {
-      boolean isContained = actualDoc.contains("@android:style/Theme.Holo<BR/>");
-      assertTrue("\nExpected: " + "@android:style/Theme.Holo<BR/>" + "\nContained By: " + actualDoc, isContained);
-    });
+    checkDoc("/javadoc/styles/styles.xml", "res/values/styles.xml", actualDoc ->
+      assertThat(actualDoc).contains("@android:style/Theme.Holo<BR/>"));
   }
 
-  public void testStyleName() {
+  @Test
+  public void styleName() {
     checkDoc("/javadoc/styles/styles_attribute_documentation.xml", "res/values/styles.xml");
   }
 
-  public void testInjectExternalDocumentation() {
-    assertEquals("firstsecond", AndroidJavaDocRenderer.injectExternalDocumentation("first", "second"));
-    assertEquals("<html a=\"b\"><body b=\"c\">firstsecond</body></html>",
-                 AndroidJavaDocRenderer.injectExternalDocumentation("<html a=\"b\"><body b=\"c\">first</body></html>", "second"));
-    assertEquals("<HTML a=\"b\"><BODY b=\"c\">firstsecond</BODY></HTML>",
-                 AndroidJavaDocRenderer.injectExternalDocumentation("<HTML a=\"b\"><BODY b=\"c\">first</BODY></HTML>", "second"));
-    assertEquals("firstsecond",
-                 AndroidJavaDocRenderer.injectExternalDocumentation("first", "<html a=\"b\"><body b=\"c\">second</body></html>"));
-    assertEquals("firstsecond",
-                 AndroidJavaDocRenderer.injectExternalDocumentation("first", "<HTML a=\"b\"><BODY b=\"c\">second</BODY></HTML>"));
-    assertEquals("<html a=\"b\">firstsecond</html>",
-                 AndroidJavaDocRenderer.injectExternalDocumentation("<html a=\"b\">first</html>", "<html b=\"c\">second</html>"));
-    assertEquals("<BODY a=\"b\">firstsecond</BODY>",
-                 AndroidJavaDocRenderer.injectExternalDocumentation("<BODY a=\"b\">first</BODY>", "<BODY b=\"c\">second</BODY>"));
+  @Test
+  public void injectExternalDocumentation() {
+    assertThat(AndroidJavaDocRenderer.injectExternalDocumentation("first", "second")).isEqualTo("firstsecond");
+    assertThat(
+      AndroidJavaDocRenderer.injectExternalDocumentation("<html a=\"b\"><body b=\"c\">first</body></html>", "second"))
+      .isEqualTo("<html a=\"b\"><body b=\"c\">firstsecond</body></html>");
+    assertThat(
+      AndroidJavaDocRenderer.injectExternalDocumentation("<HTML a=\"b\"><BODY b=\"c\">first</BODY></HTML>", "second"))
+      .isEqualTo("<HTML a=\"b\"><BODY b=\"c\">firstsecond</BODY></HTML>");
+    assertThat(
+      AndroidJavaDocRenderer.injectExternalDocumentation("first", "<html a=\"b\"><body b=\"c\">second</body></html>"))
+      .isEqualTo("firstsecond");
+    assertThat(
+      AndroidJavaDocRenderer.injectExternalDocumentation("first", "<HTML a=\"b\"><BODY b=\"c\">second</BODY></HTML>"))
+      .isEqualTo("firstsecond");
+    assertThat(
+      AndroidJavaDocRenderer.injectExternalDocumentation("<html a=\"b\">first</html>", "<html b=\"c\">second</html>"))
+      .isEqualTo("<html a=\"b\">firstsecond</html>");
+    assertThat(
+      AndroidJavaDocRenderer.injectExternalDocumentation("<BODY a=\"b\">first</BODY>", "<BODY b=\"c\">second</BODY>"))
+      .isEqualTo("<BODY a=\"b\">firstsecond</BODY>");
 
     // insert style with head
-    assertEquals("<head>head<style>s2</style></head><body>firstsecond</body>",
-                 AndroidJavaDocRenderer.injectExternalDocumentation("<head>head</head><body>first</body>", "<style>s2</style>second"));
+    assertThat(
+      AndroidJavaDocRenderer.injectExternalDocumentation("<head>head</head><body>first</body>", "<style>s2</style>second"))
+      .isEqualTo("<head>head<style>s2</style></head><body>firstsecond</body>");
     // insert style without head
-    assertEquals("<head><style>s2</style></head><body>firstsecond</body>",
-                 AndroidJavaDocRenderer.injectExternalDocumentation("<body>first</body>", "<style>s2</style>second"));
+    assertThat(
+      AndroidJavaDocRenderer.injectExternalDocumentation("<body>first</body>", "<style>s2</style>second"))
+      .isEqualTo("<head><style>s2</style></head><body>firstsecond</body>");
   }
 
-  public void testLintIssueId() {
+  @Test
+  public void lintIssueId() {
     checkDoc("/javadoc/lint/lint_issue_id.xml", "lint.xml");
   }
 
   /**
    * Regression test for http://b/151964515
    */
-  public void testInheritanceLoop() {
+  @Test
+  public void inheritanceLoop() {
     // A layout is needed for the ResourceResolver to be able to automatically pick a default configuration (it will find a layout at
     // random). The layout is not related to the test.
-    myFixture.copyFileToProject("/javadoc/layout/layout.xml", "res/layout/layout.xml");
+    myFixture.copyFileToProject("javadoc/layout/layout.xml", "res/layout/layout.xml");
     checkDoc("/javadoc/styles/styles_loop.xml", "res/values/styles.xml",
-             doc -> assertTrue(doc.startsWith("<html><body><BR/>@style/TextAppearance<BR/><BR/><hr><B>TextAppearance</B>")));
+             doc -> assertThat(doc).startsWith("<html><body><BR/>@style/TextAppearance<BR/><BR/><hr><B>TextAppearance</B>"));
   }
 
   @NotNull
   @Override
   public String getSnapshotDirectoryWorkspaceRelativePath() {
     return "tools/adt/idea/android/testData/javadoc/snapshots";
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return name.getMethodName();
   }
 }
