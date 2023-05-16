@@ -156,6 +156,7 @@ XPStyle on
 BrandingText " " # Branding footer disabled
 ShowInstDetails hide
 ShowUninstDetails hide
+ManifestDPIAware true
 
 # Right-click installer .exe -> Properties -> Details
 VIProductVersion ${VERSION}.0.0
