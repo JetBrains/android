@@ -18,9 +18,11 @@ package com.android.tools.idea.whatsnew.assistant;
 import static com.android.tools.idea.assistant.AssistantToolWindowService.TOOL_WINDOW_TITLE;
 
 import com.android.tools.idea.assistant.AssistantBundleCreator;
+import com.android.tools.idea.assistant.AssistantToolWindowService;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.WhatsNewAction;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -33,6 +35,7 @@ import com.intellij.openapi.project.ProjectCloseListener;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.util.messages.SimpleMessageBusConnection;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,9 +114,12 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
       myProject = project;
       isOpen = true; // Start off as opened, so we don't fire an extra opened event
 
+      Disposable disposable = project.getService(AssistantToolWindowService.class);
+      SimpleMessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect(disposable);
+
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
       // noinspection UnstableApiUsage
-      ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
+      connection.subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
         @Override
         public void projectClosed(@NotNull Project project) {
           if (!project.equals(myProject)) {

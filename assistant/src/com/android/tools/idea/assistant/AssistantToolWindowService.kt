@@ -16,6 +16,7 @@
 package com.android.tools.idea.assistant
 
 import com.android.tools.idea.assistant.AssistantToolWindowService.Companion.TOOL_WINDOW_TITLE
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
@@ -29,7 +30,7 @@ import icons.StudioIcons
  *
  * Note the registration of the tool window is done programmatically (not via extension point).
  */
-interface AssistantToolWindowService {
+interface AssistantToolWindowService : Disposable {
   /** Opens the assistant window and populate it with the tutorial indicated by [bundleId]. */
   fun openAssistant(bundleId: String, defaultTutorialCardId: String? = null)
 
@@ -43,6 +44,8 @@ private class AssistantToolWindowServiceImpl(private val project: Project) :
 
   private val assistSidePanel: AssistSidePanel by lazy { AssistSidePanel(project) }
 
+  override fun dispose() {}
+
   override fun openAssistant(bundleId: String, defaultTutorialCardId: String?) {
     val toolWindowManager = ToolWindowManager.getInstance(project)
     var toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE)
@@ -54,7 +57,7 @@ private class AssistantToolWindowServiceImpl(private val project: Project) :
           TOOL_WINDOW_TITLE,
           false,
           ToolWindowAnchor.RIGHT,
-          project,
+          this,
           true
         )
       toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ASSISTANT)
