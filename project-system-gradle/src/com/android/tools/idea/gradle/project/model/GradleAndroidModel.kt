@@ -42,6 +42,7 @@ import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.model.TestOptions
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
+import com.android.utils.usLocaleCapitalize
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -108,6 +109,11 @@ class GradleAndroidModel(
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariant.mainArtifact
       else -> selectedVariant.androidTestArtifact
     }
+  }
+
+  // TODO(b/284152933): Get this directly from the build model
+  fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
+    return ":connected${selectedVariantName.usLocaleCapitalize()}AndroidTest"
   }
 
   val selectedMainCompileDependencies: IdeDependencies get() = this.mainArtifact.compileClasspath

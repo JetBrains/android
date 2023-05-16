@@ -85,6 +85,7 @@ class GradleConnectedAndroidTestInvokerTest {
   @Before
   fun setup() {
     whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
+    whenever(mockAndroidModuleModel.getGradleConnectedTestTaskNameForSelectedVariant()).thenCallRealMethod()
     whenever(mockModuleData.id).thenReturn(":app")
     whenever(mockModuleData.getProperty(eq("gradleIdentityPath"))).thenReturn(":app")
     whenever(mockBuildToolWindow.isAvailable).thenReturn(true)

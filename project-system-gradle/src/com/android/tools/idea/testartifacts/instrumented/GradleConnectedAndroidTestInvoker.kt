@@ -344,8 +344,7 @@ class GradleConnectedAndroidTestInvoker(
 
   private fun getTaskNames(gradleAndroidModel: GradleAndroidModel): List<String> {
     return listOf(
-      "${moduleData.gradleIdentityPath.trimEnd(':')}" +
-      ":connected${gradleAndroidModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
+      "${moduleData.gradleIdentityPath.trimEnd(':')}" + gradleAndroidModel.getGradleConnectedTestTaskNameForSelectedVariant()
     )
   }
 
