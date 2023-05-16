@@ -170,6 +170,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   /**
+   * This is a marker that test case is not yet ready for declarative
+   */
+  protected void skipDeclarativeTemporary() {
+    assumeFalse("Test is not yet support Declarative build", isDeclarative());
+  }
+
+  /**
    * @param name the name of an extra property
    *
    * @return the String that corresponds to looking up the extra property {@code name} in the language of this test case
@@ -320,6 +327,9 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull VirtualFile destination)
     throws IOException {
     final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
+
+    if(!testFile.exists()) skipDeclarativeTemporary(); // skip test if no file and in declarative mode
+
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
     saveFileUnderWrite(destination, loadText(virtualTestFile));

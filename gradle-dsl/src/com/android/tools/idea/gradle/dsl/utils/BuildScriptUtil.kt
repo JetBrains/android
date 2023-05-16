@@ -21,9 +21,14 @@
  */
 package com.android.tools.idea.gradle.dsl.utils
 
+import com.android.tools.idea.flags.StudioFlags
 import java.io.File
 
 internal fun findGradleBuildFile(dirPath: File) : File {
+  if(StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) {
+    val declarativeBuildFile = File(dirPath, FN_DECLARATIVE_BUILD_GRADLE)
+    if (declarativeBuildFile.isFile) return declarativeBuildFile
+  }
   val groovyBuildFile = File(dirPath, FN_BUILD_GRADLE)
   if (groovyBuildFile.isFile) return groovyBuildFile
   val kotlinBuildFile = File(dirPath, FN_BUILD_GRADLE_KTS)

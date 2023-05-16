@@ -186,6 +186,16 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testEmptyNameTable() {
+    val toml = """
+      []
+      module = "junit:junit"
+      version = "4.13"
+    """.trimIndent()
+    val expected = mapOf<String, Any>()
+    doTest(toml, expected)
+  }
+
   fun testImplicitTable2() {
     val toml = """
       [table1.table2]

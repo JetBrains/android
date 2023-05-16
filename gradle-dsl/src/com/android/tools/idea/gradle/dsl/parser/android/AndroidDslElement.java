@@ -131,9 +131,29 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"testNamespace", exactly(1), TEST_NAMESPACE, SET},
   }).collect(toModelMap());
 
+  // TODO waiting for API review
+  private static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"aidlPackagedList", property, AIDL_PACKAGED_LIST, VAR},
+    {"assetPacks", property, ASSET_PACKS, VAR},
+    {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
+    {"compileSdk", property, COMPILE_SDK_VERSION, VAR},
+    {"compileSdkPreview", property, COMPILE_SDK_VERSION, VAR},
+    {"compileSdkVersion", property, COMPILE_SDK_VERSION, VAR},
+    {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
+    {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
+    {"flavorDimensions", property, FLAVOR_DIMENSIONS, VAR},
+    {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
+    {"namespace", property, NAMESPACE, VAR},
+    {"ndkVersion", property, NDK_VERSION, VAR},
+    {"publishNonDefault", property, PUBLISH_NON_DEFAULT, VAR},
+    {"resourcePrefix", property, RESOURCE_PREFIX, VAR},
+    {"targetProjectPath", property, TARGET_PROJECT_PATH, VAR},
+    {"testNamespace", property, TEST_NAMESPACE, VAR},
+  }).collect(toModelMap());
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   public AndroidDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

@@ -110,7 +110,11 @@ public class PluginNameTransform extends PropertyTransform {
       return (GradleDslSimpleExpression)element;
     }
     else if (element instanceof GradleDslExpressionMap) {
-      return ((GradleDslExpressionMap)element).getPropertyElement(PLUGIN, GradleDslSimpleExpression.class);
+      GradleDslSimpleExpression result = ((GradleDslExpressionMap)element).getPropertyElement(PLUGIN, GradleDslSimpleExpression.class);
+      if(result == null){
+        return ((GradleDslExpressionMap)element).getPropertyElement(ID, GradleDslSimpleExpression.class);
+      }
+      return result;
     }
     else if (element instanceof GradleDslInfixExpression) {
       GradleDslSimpleExpression idElement = ((GradleDslInfixExpression)element).getPropertyElement(ID, GradleDslSimpleExpression.class);

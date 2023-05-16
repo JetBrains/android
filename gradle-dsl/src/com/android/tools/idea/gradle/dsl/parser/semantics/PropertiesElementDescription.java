@@ -34,4 +34,8 @@ public class PropertiesElementDescription<T extends GradlePropertiesDslElement> 
     this.clazz = clazz;
     this.constructor = constructor;
   }
+
+  public PropertiesElementDescription<T> copyWithName(@NotNull String name) {
+    return new PropertiesElementDescription(name, clazz, constructor);
+  }
 }
