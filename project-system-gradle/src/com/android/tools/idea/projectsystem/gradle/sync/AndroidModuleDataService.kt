@@ -302,6 +302,7 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAnd
     IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_FEATURE
     IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
     IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidProjectTypes.PROJECT_TYPE_TEST
   }
 

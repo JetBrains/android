@@ -124,6 +124,7 @@ class GradleModuleSystem(
       IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidModuleSystem.Type.TYPE_FEATURE
       IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidModuleSystem.Type.TYPE_INSTANTAPP
       IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidModuleSystem.Type.TYPE_LIBRARY
+      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> AndroidModuleSystem.Type.TYPE_LIBRARY
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidModuleSystem.Type.TYPE_TEST
       null -> AndroidModuleSystem.Type.TYPE_NON_ANDROID
     }
@@ -344,6 +345,7 @@ class GradleModuleSystem(
             IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> androidModel.applicationId
             IdeAndroidProjectType.PROJECT_TYPE_TEST -> androidModel.applicationId
             IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> getPackageName()
+            IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> getPackageName()
           }
         )
     )

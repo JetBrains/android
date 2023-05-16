@@ -123,6 +123,7 @@ class GradleTaskFinderWorker private constructor(
 
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> emptyList()
+      IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> emptyList()
       IdeAndroidProjectType.PROJECT_TYPE_ATOM -> emptyList()
       IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> emptyList() // Builds everything needed.
       IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> emptyList() // Is treated like a library module.

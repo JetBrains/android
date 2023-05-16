@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_AT
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_FEATURE
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType.PROJECT_TYPE_TEST
 import com.android.tools.idea.gradle.model.IdeBasicVariant
@@ -94,6 +95,7 @@ class GradleApplicationIdProvider private constructor(
     val projectType = androidModel.androidProject.projectType
     val applicationId = when (projectType) {
       PROJECT_TYPE_LIBRARY -> testPackageName
+      PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> testPackageName
       PROJECT_TYPE_TEST ->
         getTestProjectTargetApplicationIdProvider(
           variant ?: throw ApkProvisionException("Cannot resolve test only project target")

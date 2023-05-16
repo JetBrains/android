@@ -885,6 +885,8 @@ class LintModelFactory : LintModelModuleLoader {
         IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> LintModelModuleType.DYNAMIC_FEATURE
         IdeAndroidProjectType.PROJECT_TYPE_ATOM ->
           throw IllegalArgumentException("The value $type is not a valid project type ID")
+        IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM ->
+          throw IllegalArgumentException("$type is not yet supported")
       }
     }
 
