@@ -17,7 +17,7 @@ package org.jetbrains.android.refactoring;
 
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.AgpVersion;
-import com.android.tools.idea.gradle.adtimport.GradleImport;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -63,12 +63,12 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +
                  "android {\n" +
-                 "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "    compileSdkVersion " + SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "\n" +
                  "    namespace \"com.example.google.migrate2appcompat\"\n" +
                  "    defaultConfig {\n" +
                  "        applicationId \"com.example.google.migrate2appcompat\"\n" +
                  "        minSdkVersion 23\n" +
-                 "        targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "        targetSdkVersion " + SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "\n" +
                  "    }\n" +
                  "    buildTypes {\n" +
                  "        release {\n" +
@@ -85,18 +85,20 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     assertEquals("apply plugin: 'com.android.library'\n" +
                  "\n" +
                  "android {\n" +
-                 "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "    compileSdkVersion " +
+                 SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "\n" +
                  "    namespace \"com.example.appandmodules.mylibarybase\"\n" +
                  "    defaultConfig {\n" +
                  "        minSdkVersion 23\n" +
-                 "        targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
+                 "        targetSdkVersion " +
+                 SdkVersionInfo.HIGHEST_KNOWN_STABLE_API + "\n" +
                  "        versionCode 1\n" +
                  "        versionName \"1.0\"\n" +
                  "    }\n" +
                  "}\n" +
                  "dependencies {\n" +
                  "    api project(':library-debug')\n" +
-                 "    " + configName + " '" + getAppCompatGradleCoordinate() + "'\n" + // Unclear why the indentation does not work on added dependencies?
+                 "    " + configName + " '" + getAppCompatGradleCoordinate() + "'\n" +// Unclear why the indentation does not work on added dependencies?
                  "}\n",
                  getTextForFile("mylibrarybase/build.gradle"));
 
@@ -299,7 +301,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
   }
 
   private static String getAppCompatGradleCoordinate() {
-    Predicate<Version> filter = v -> Objects.equals(v.getMajor(), Math.min(28, GradleImport.CURRENT_COMPILE_VERSION));
+    Predicate<Version> filter = v -> Objects.equals(v.getMajor(), Math.min(28, SdkVersionInfo.HIGHEST_KNOWN_STABLE_API));
     return RepositoryUrlManager.get().getArtifactComponentIdentifier(GoogleMavenArtifactId.APP_COMPAT_V7, filter, false);
   }
 }

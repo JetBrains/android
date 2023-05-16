@@ -31,7 +31,5 @@ public final class AdtImportInitializer implements ActionConfigurationCustomizer
     Logger.getInstance(AdtImportInitializer.class).assertTrue(IdeInfo.getInstance().isAndroidStudio(), "Customization only needed in AndroidStudio");
     Actions.replaceAction(actionManager, "ImportProject",
                           new AndroidImportProjectAction("Import Project...", null, null));
-    Actions.replaceAction(actionManager, "WelcomeScreen.ImportProject",
-                          new AndroidImportProjectAction("Import Project (Gradle, Eclipse ADT, etc.)", null, Import));
   }
 }

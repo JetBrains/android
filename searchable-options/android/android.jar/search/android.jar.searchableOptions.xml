@@ -339,12 +339,6 @@
     <option name="image" path="ActionManager" hit="Image Asset" />
     <option name="import" path="ActionManager" hit="Import Module..." />
     <option name="module" path="ActionManager" hit="Import Module..." />
-    <option name="adt" path="ActionManager" hit="Import Project (Gradle, Eclipse ADT, etc.)" />
-    <option name="eclipse" path="ActionManager" hit="Import Project (Gradle, Eclipse ADT, etc.)" />
-    <option name="etc" path="ActionManager" hit="Import Project (Gradle, Eclipse ADT, etc.)" />
-    <option name="gradle" path="ActionManager" hit="Import Project (Gradle, Eclipse ADT, etc.)" />
-    <option name="import" path="ActionManager" hit="Import Project (Gradle, Eclipse ADT, etc.)" />
-    <option name="project" path="ActionManager" hit="Import Project (Gradle, Eclipse ADT, etc.)" />
     <option name="import" path="ActionManager" hit="Import Project..." />
     <option name="project" path="ActionManager" hit="Import Project..." />
     <option name="file" path="ActionManager" hit="Import Tests from File..." />

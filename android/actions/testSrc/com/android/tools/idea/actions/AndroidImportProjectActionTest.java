@@ -16,7 +16,6 @@
 package com.android.tools.idea.actions;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.gradle.adtimport.GradleImport;
 import com.android.tools.idea.gradle.adtimport.actions.AndroidImportProjectAction;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.util.io.FileUtil;
@@ -53,17 +52,6 @@ public class AndroidImportProjectActionTest extends PlatformTestCase {
   public void testFindImportTargetWithDirectoryAndGradleSettingsFile() throws IOException {
     VirtualFile file = createChildFile(SdkConstants.FN_SETTINGS_GRADLE);
     assertEquals(file, AndroidImportProjectAction.findImportTarget(myProjectRootDir));
-  }
-
-  public void testFindImportTargetWithDirectoryAndEclipseFiles() throws IOException {
-    createChildFile(GradleImport.ECLIPSE_DOT_CLASSPATH);
-    VirtualFile file = createChildFile(GradleImport.ECLIPSE_DOT_PROJECT);
-    assertEquals(file, AndroidImportProjectAction.findImportTarget(myProjectRootDir));
-  }
-
-  public void testFindImportTargetWithEclipseProjectFile() throws IOException {
-    VirtualFile file = createChildFile(GradleImport.ECLIPSE_DOT_PROJECT);
-    assertEquals(file, AndroidImportProjectAction.findImportTarget(file));
   }
 
   @NotNull
