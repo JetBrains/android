@@ -256,13 +256,11 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   private SystemImageTestList mSysImagesArmeabiV7a;
   private SystemImageTestList mSysImagesArm64;
 
-  private Device myBigPhone;
   private Device myFoldable;
   private Device myRollable;
   private Device myResizable;
   private Device myGapiPhoneDevice;
   private Device myPlayStorePhoneDevice;
-  private Device mySmallTablet;
   private Device myWearDevice;
   private Device myAutomotiveDevice;
   private Device myFreeform;
@@ -314,11 +312,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     // Get a Wear device
     myWearDevice = devMgr.getDevice("wearos_square", "Google");
 
-    // Get a big phone, a bigger foldable, and a small tablet
-    myBigPhone = devMgr.getDevice("pixel_3_xl", "Google");
     myFoldable = devMgr.getDevice("7.6in Foldable", "Generic");
     myRollable = devMgr.getDevice("7.4in Rollable", "Generic");
-    mySmallTablet = devMgr.getDevice("Nexus 7", "Google");
     myResizable = devMgr.getDevice("resizable", "Generic");
 
     // Get an Automotive device
@@ -546,14 +541,6 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     }
   }
 
-  public void testPhoneVsTablet() {
-    assertFalse(DeviceDefinitionList.isTablet(myBigPhone));
-    assertFalse(DeviceDefinitionList.isTablet(myFoldable));
-    assertFalse(DeviceDefinitionList.isTablet(myRollable));
-    assertTrue(DeviceDefinitionList.isTablet(mySmallTablet));
-    assertTrue(DeviceDefinitionList.isTablet(myFreeform));
-  }
-
   public void testImageChosenForDevice() {
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myFoldable));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.wear29ImageDescription, myFoldable));
@@ -574,17 +561,5 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     assertFalse(systemImageMatchesDevice(mSysImagesX86.tv30ImageDescription, my4KTV));
     assertTrue(systemImageMatchesDevice(mSysImagesX86.tv31ImageDescription, my4KTV));
     assertFalse(systemImageMatchesDevice(mSysImagesX86.automotivePsImageDescription, myPlayStorePhoneDevice));
-  }
-
-  public void testDeviceType() {
-    assertEquals("Phone", DeviceDefinitionList.getCategory(myBigPhone));
-    assertEquals("Phone", DeviceDefinitionList.getCategory(myFoldable));
-    assertEquals("Phone", DeviceDefinitionList.getCategory(myRollable));
-    assertEquals("Phone", DeviceDefinitionList.getCategory(myGapiPhoneDevice));
-    assertEquals("Phone", DeviceDefinitionList.getCategory(myPlayStorePhoneDevice));
-    assertEquals("Tablet", DeviceDefinitionList.getCategory(mySmallTablet));
-    assertEquals("Wear OS", DeviceDefinitionList.getCategory(myWearDevice));
-    assertEquals("Automotive", DeviceDefinitionList.getCategory(myAutomotiveDevice));
-    assertEquals("Tablet", DeviceDefinitionList.getCategory(myFreeform));
   }
 }

@@ -15,13 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -72,22 +68,7 @@ import org.jetbrains.annotations.Nullable;
  * Lists the available device definitions by category
  */
 public class DeviceDefinitionList extends JPanel implements ListSelectionListener, DocumentListener, DeviceUiAction.DeviceProvider {
-
   private static final String SEARCH_RESULTS = "Search Results";
-  private static final String PHONE_TYPE = "Phone";
-  private static final String TABLET_TYPE = "Tablet";
-
-  private static final String DEFAULT_PHONE = "Pixel 2";
-  private static final String DEFAULT_TABLET = "Pixel C";
-  private static final String DEFAULT_WEAR = "Wear OS Square";
-  private static final String DEFAULT_TV = "Television (1080p)";
-  private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
-  private static final String DEFAULT_DESKTOP = "Medium Desktop";
-  private static final String TV = "TV";
-  private static final String WEAR = "Wear OS";
-  private static final String AUTOMOTIVE = "Automotive";
-  private static final String DESKTOP = "Desktop";
-  private static final List<String> CATEGORY_ORDER = ImmutableList.of(PHONE_TYPE, TABLET_TYPE, WEAR, DESKTOP, TV, AUTOMOTIVE);
 
   private final Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
   private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
@@ -253,25 +234,30 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void setDefaultDevices() {
-    myDefaultDevice = updateDefaultDevice(PHONE_TYPE, DEFAULT_PHONE);
-    updateDefaultDevice(TABLET_TYPE, DEFAULT_TABLET);
-    updateDefaultDevice(TV, DEFAULT_TV);
-    updateDefaultDevice(WEAR, DEFAULT_WEAR);
-    updateDefaultDevice(AUTOMOTIVE, DEFAULT_AUTOMOTIVE);
-    updateDefaultDevice(DESKTOP, DEFAULT_DESKTOP);
+    putDefaultDefinition(Category.PHONE);
+    myDefaultDevice = myDefaultCategoryDeviceMap.get(Category.PHONE.getName());
+
+    putDefaultDefinition(Category.TABLET);
+    putDefaultDefinition(Category.WEAR_OS);
+    putDefaultDefinition(Category.DESKTOP);
+    putDefaultDefinition(Category.TV);
+    putDefaultDefinition(Category.AUTOMOTIVE);
   }
 
-  private Device updateDefaultDevice(String type, String deviceDisplayName) {
-    List<Device> devices = myDeviceCategoryMap.get(type);
-    if (devices != null) {
-      for (Device d : devices) {
-        if (d.getDisplayName().equals(deviceDisplayName)) {
-          myDefaultCategoryDeviceMap.put(type, d);
-          return d;
-        }
-      }
+  private void putDefaultDefinition(@NotNull Category category) {
+    var categoryName = category.getName();
+    var definitions = myDeviceCategoryMap.get(categoryName);
+
+    if (definitions == null) {
+      return;
     }
-    return null;
+
+    var definitionName = category.getDefaultDefinitionName();
+
+    definitions.stream()
+      .filter(definition -> definition.getDisplayName().equals(definitionName))
+      .findFirst()
+      .ifPresent(definition -> myDefaultCategoryDeviceMap.put(categoryName, definition));
   }
 
   @NotNull
@@ -338,7 +324,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     }
     onSelectionSet(device);
     if (device != null) {
-      String category = getCategory(device);
+      var category = Category.valueOfDefinition(device).getName();
       for (Device listItem : myModel.getItems()) {
         if (listItem.getId().equals(device.getId())) {
           myTable.setSelection(ImmutableSet.of(listItem));
@@ -354,7 +340,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    */
   private void onSelectionSet(@Nullable Device selectedObject) {
     if (selectedObject != null) {
-      myDefaultCategoryDeviceMap.put(getCategory(selectedObject), selectedObject);
+      myDefaultCategoryDeviceMap.put(Category.valueOfDefinition(selectedObject).getName(), selectedObject);
     }
     for (DeviceDefinitionSelectionListener listener : myListeners) {
       listener.onDeviceSelectionChanged(selectedObject);
@@ -391,61 +377,17 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       if (d.getIsDeprecated()) {
         continue;
       }
-      String category = getCategory(d);
+      var category = Category.valueOfDefinition(d).getName();
       if (!myDeviceCategoryMap.containsKey(category)) {
         myDeviceCategoryMap.put(category, new ArrayList<>(1));
       }
       myDeviceCategoryMap.get(category).add(d);
     }
-    ArrayList<String> categories = Lists.newArrayList(myDeviceCategoryMap.keySet());
-    categories.sort(Comparator.comparing(category -> {
-      int index = CATEGORY_ORDER.indexOf(category);
-      return index >= 0 ? index : Integer.MAX_VALUE;
-    }));
+    var categories = new ArrayList<>(myDeviceCategoryMap.keySet());
+    categories.sort(Comparator.comparing(Category::valueOfName));
     Collection<String> selection = myCategoryList.getSelection();
     myCategoryModel.setItems(categories);
     myCategoryList.setSelection(selection);
-  }
-
-  /**
-   * @return the category of the specified device. One of:
-   * Automotive TV, Wear, Tablet, and Phone, or Other if the category
-   * cannot be determined.
-   */
-  @VisibleForTesting
-  public static String getCategory(@NotNull Device d) {
-    if (HardwareConfigHelper.isAutomotive(d)) {
-      return AUTOMOTIVE;
-    }
-    else if (HardwareConfigHelper.isDesktop(d)) {
-      return DESKTOP;
-    }
-    else if (HardwareConfigHelper.isTv(d) || hasTvSizedScreen(d)) {
-      return TV;
-    }
-    else if (HardwareConfigHelper.isWear(d)) {
-      return WEAR;
-    }
-    else if (isTablet(d)) {
-      return TABLET_TYPE;
-    }
-    else {
-      return PHONE_TYPE;
-    }
-  }
-
-  /*
-   * A mobile device is considered a tablet if its screen is at least
-   * {@link #MINIMUM_TABLET_SIZE} and the screen is not foldable.
-   */
-  @VisibleForTesting
-  public static boolean isTablet(@NotNull Device d) {
-    return (d.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TABLET_SIZE
-            && !d.getDefaultHardware().getScreen().isFoldable());
-  }
-
-  private static boolean hasTvSizedScreen(@NotNull Device d) {
-    return d.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TV_SIZE;
   }
 
   /**
