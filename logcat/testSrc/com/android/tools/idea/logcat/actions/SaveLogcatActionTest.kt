@@ -136,7 +136,7 @@ class SaveLogcatActionTest {
     assertThat(fakeFileChooserFactory.files).hasSize(1)
     assertThat(fakeFileChooserFactory.files[0].name).contains("_Google-Pixel-Android-10_")
     assertThat(FileEditorManager.getInstance(project).openFiles[0].name).isEqualTo(fakeFileChooserFactory.files[0].name)
-    val data = LogcatFileIo.readLogcat(fakeFileChooserFactory.files[0].toPath())
+    val data = LogcatFileIo().readLogcat(fakeFileChooserFactory.files[0].toPath())
     assertThat(data.logcatMessages).containsExactly(
       logcatMessage(message = "message1"),
       logcatMessage(message = "message2")

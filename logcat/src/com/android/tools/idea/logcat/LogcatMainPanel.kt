@@ -410,7 +410,7 @@ internal class LogcatMainPanel @TestOnly constructor(
           logcatServiceChannel.send(StopLogcat)
           val data = withContext(Dispatchers.IO) {
             try {
-              LogcatFileIo.readLogcat(item.path)
+              LogcatFileIo().readLogcat(item.path)
             }
             catch (e: Exception) {
               LOGGER.warn("Failed to load Logcat from file ${item.path}", e)

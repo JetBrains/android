@@ -22,6 +22,7 @@ import com.android.tools.idea.logcat.files.LogcatFileIo.LogcatFileType.UNKNOWN
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.gson.GsonBuilder
 import java.nio.file.Path
+import java.time.ZoneId
 import kotlin.io.path.bufferedReader
 import kotlin.io.path.reader
 import kotlin.io.path.writer
@@ -34,10 +35,15 @@ private val gson = GsonBuilder()
   .create()
 
 /** Contains functions to read and write a Logcat file */
-internal object LogcatFileIo {
-  private enum class LogcatFileType {
-    JSON,
-    UNKNOWN,
+internal class LogcatFileIo(
+  private val zoneId: ZoneId = ZoneId.systemDefault(),
+  ) {
+  @Suppress("unused") // Used via `values()`
+  private enum class LogcatFileType(val headerRegex: Regex) {
+    JSON("^\\{".toRegex()),
+    THREADTIME(LogcatFileParser.THREADTIME_REGEX),
+    FIREBASE(LogcatFileParser.FIREBASE_REGEX),
+    UNKNOWN(".*".toRegex()),
   }
 
   fun writeLogcat(
@@ -54,9 +60,10 @@ internal object LogcatFileIo {
   }
 
   fun readLogcat(path: Path): LogcatFileData {
-    return when (getLogcatFileType(path)) {
+    return when (val type = getLogcatFileType(path)) {
       JSON -> readJsonFile(path)
       UNKNOWN -> throw IllegalArgumentException("File '$path' is not a valid Logcat file")
+      else -> LogcatFileData(null, LogcatFileParser(type.headerRegex, zoneId = zoneId).parseLogcatFile(path))
     }
   }
 
@@ -68,14 +75,11 @@ internal object LogcatFileIo {
 
   private fun getLogcatFileType(path: Path): LogcatFileType {
     path.bufferedReader().use { reader ->
-      reader.mark(MAX_LOGCAT_ENTRY)
       val chars = CharArray(MAX_LOGCAT_ENTRY)
       reader.read(chars)
-      val head = String(chars)
-      if (head.startsWith('{')) {
-        return JSON
-      }
-      return UNKNOWN
+      val lines = String(chars).split("\n")
+      val line = lines.first { !it.startsWith(LogcatFileParser.SYSTEM_LOG_PREFIX) }
+      return LogcatFileType.values().first { it.headerRegex.containsMatchIn(line) }
     }
   }
 }
