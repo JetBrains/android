@@ -192,7 +192,9 @@ public class Emulator implements AutoCloseable {
   public enum SystemImage {
     API_29("system_image_android-29_default_x86_64"),
     API_30("system_image_android-30_default_x86_64"),
-    API_31("system_image_android-31_default_x86_64");
+    API_31("system_image_android-31_default_x86_64"),
+    API_32("system_image_android-32_default_x86_64"),
+    API_33("system_image_android-33_default_x86_64");
     /** Path to the image for this emulator {@link SystemImage}. */
     @NotNull
     public final String path;
