@@ -211,7 +211,7 @@ public class AndroidClassMembersImplicitUsagesProvider implements ImplicitUsageP
       }
       if (parameterCount > 2) {
         type = parameters[2].getType();
-        if (!PsiType.INT.equals(type)) {
+        if (!PsiTypes.intType().equals(type)) {
           return false;
         }
       }

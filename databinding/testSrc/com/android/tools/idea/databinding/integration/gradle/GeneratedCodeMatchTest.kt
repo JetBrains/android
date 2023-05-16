@@ -37,6 +37,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -78,15 +79,15 @@ private object ClassDescriber {
     PsiModifier.STATIC to Opcodes.ACC_STATIC)
 
   private val BASIC_ASM_TYPES: Map<PsiType, String> = mapOf(
-    PsiType.VOID to "V",
-    PsiType.BOOLEAN to "Z",
-    PsiType.CHAR to "C",
-    PsiType.BYTE to "B",
-    PsiType.SHORT to "S",
-    PsiType.INT to "I",
-    PsiType.FLOAT to "F",
-    PsiType.LONG to "J",
-    PsiType.DOUBLE to "d")
+    PsiTypes.voidType() to "V",
+    PsiTypes.booleanType() to "Z",
+    PsiTypes.charType() to "C",
+    PsiTypes.byteType() to "B",
+    PsiTypes.shortType() to "S",
+    PsiTypes.intType() to "I",
+    PsiTypes.floatType() to "F",
+    PsiTypes.longType() to "J",
+    PsiTypes.doubleType() to "d")
 
   private fun PsiType.toAsm(): String {
     return BASIC_ASM_TYPES[this] ?: if (this is PsiArrayType) {

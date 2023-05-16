@@ -38,6 +38,7 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.PsiVariable
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
@@ -537,10 +538,10 @@ val PsiElement?.isAssistedFactoryMethod: Boolean
   get() =
     (this is PsiMethod &&
       containingClass.isDaggerAssistedFactory &&
-      this.returnType?.unboxed != PsiType.VOID) ||
+      this.returnType?.unboxed != PsiTypes.voidType()) ||
       (this is KtNamedFunction &&
         containingClass().isDaggerAssistedFactory &&
-        this.psiType?.unboxed != PsiType.VOID)
+        this.psiType?.unboxed != PsiTypes.voidType())
 
 /**
  * True if PsiElement is Dagger consumer i.e @Inject-annotated field or param of Dagger provider,

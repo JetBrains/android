@@ -19,7 +19,7 @@ import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.lang.databinding.model.PsiModelClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import org.jetbrains.android.dom.resources.ResourceValue
 
@@ -34,7 +34,7 @@ internal class PsiResourceReference(element: PsiElement, resolveTo: PsiElement, 
                       // A plurals resource, e.g. @plurals/dog -> "dog" or "dogs", can be queried for the
                       // underlying String value (e.g. "@plurals/dog(2)") or for the plurals resource ID
                       // directly (e.g. "@plurals/dog").
-                      "plurals" -> if (element.children.isEmpty()) PsiType.INT else parseType("java.lang.String")
+                      "plurals" -> if (element.children.isEmpty()) PsiTypes.intType() else parseType("java.lang.String")
                       "anim" -> parseType("android.view.animation.Animation")
                       "animator" -> parseType("android.animation.Animator")
                       "colorStateList" -> parseType("android.content.res.ColorStateList")
@@ -43,10 +43,10 @@ internal class PsiResourceReference(element: PsiElement, resolveTo: PsiElement, 
                       "transition" -> parseType("android.transition.Transition")
                       "typedArray" -> parseType("android.content.res.TypedArray")
                       "interpolator" -> parseType("android.view.animation.Interpolator")
-                      "bool" -> PsiType.BOOLEAN
-                      "color", "dimenOffset", "dimenSize", "id", "integer", "layout" -> PsiType.INT
-                      "dimen", "fraction" -> PsiType.FLOAT
-                      "intArray" -> PsiType.INT.createArrayType()
+                      "bool" -> PsiTypes.booleanType()
+                      "color", "dimenOffset", "dimenSize", "id", "integer", "layout" -> PsiTypes.intType()
+                      "dimen", "fraction" -> PsiTypes.floatType()
+                      "intArray" -> PsiTypes.intType().createArrayType()
                       "string" -> parseType("java.lang.String")
                       "stringArray" -> parseType("java.lang.String")?.createArrayType()
                       "text" -> parseType("java.lang.CharSequence")

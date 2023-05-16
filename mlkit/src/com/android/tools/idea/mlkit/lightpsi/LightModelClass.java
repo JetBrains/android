@@ -41,6 +41,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.impl.light.LightMethodBuilder;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
@@ -175,7 +176,7 @@ public class LightModelClass extends AndroidLightClassBase {
   private PsiMethod buildCloseMethod() {
     LightMethodBuilder closeMethod = new NullabilityLightMethodBuilder(getManager(), "close")
       .addModifier(PsiModifier.PUBLIC)
-      .setMethodReturnType(PsiType.VOID)
+      .setMethodReturnType(PsiTypes.voidType())
       .setContainingClass(this);
     closeMethod.setNavigationElement(this);
 

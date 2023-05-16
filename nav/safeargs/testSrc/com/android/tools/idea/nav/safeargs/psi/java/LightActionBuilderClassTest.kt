@@ -21,7 +21,7 @@ import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnTy
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth
-import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -218,7 +218,7 @@ class LightActionBuilderClassTest {
       Truth.assertThat(constructors.size).isEqualTo(1)
       constructors[0].checkSignaturesAndReturnType(
         name = "ActionFragment1ToFragment2",
-        returnType = PsiType.NULL.name,
+        returnType = PsiTypes.nullType().presentableText,
         parameters = listOf(
           Parameter("overriddenArg", "String"),
           Parameter("arg", "String")

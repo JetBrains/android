@@ -20,6 +20,7 @@ import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypeVisitor
+import com.intellij.psi.PsiTypes
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
@@ -60,7 +61,7 @@ class TraceSignatureConverterTest {
 
   @Test
   fun convertsPrimitiveToString() {
-    val str = TraceSignatureConverter.convertToString(PsiType.BYTE)
+    val str = TraceSignatureConverter.convertToString(PsiTypes.byteType())
     assertThat(str).isEqualTo("B")
   }
 
@@ -91,22 +92,22 @@ class TraceSignatureConverterTest {
 
   @Test
   fun convertsVoidToString() {
-    val str = TraceSignatureConverter.convertToString(PsiType.VOID)
+    val str = TraceSignatureConverter.convertToString(PsiTypes.voidType())
     assertThat(str).isEqualTo("V")
   }
 
   @Test
   fun convertsEmptyMethodToString() {
-    val str = TraceSignatureConverter.getTraceSignature(PsiType.INT, emptyArray())
+    val str = TraceSignatureConverter.getTraceSignature(PsiTypes.intType(), emptyArray())
     assertThat(str).isEqualTo("()I")
   }
 
   @Test
   fun convertsMethodToString() {
-    val str = TraceSignatureConverter.getTraceSignature(PsiType.INT, arrayOf(
+    val str = TraceSignatureConverter.getTraceSignature(PsiTypes.intType(), arrayOf(
       createPsiTypeForGeneric("java.util.List<String>", "java.util.List"),
       createPsiTypeForGeneric("java.util.ArrayList<T>", "java.util.ArrayList"),
-      PsiType.BOOLEAN,
+      PsiTypes.booleanType(),
       PsiArrayType(PsiArrayType(createPsiTypeFor("java.lang.Integer")))
     ))
 
@@ -115,7 +116,7 @@ class TraceSignatureConverterTest {
 
   @Test
   fun convertsMethodWithNoReturnValueToString() {
-    val str = TraceSignatureConverter.getTraceSignature(null, arrayOf(PsiType.BOOLEAN))
+    val str = TraceSignatureConverter.getTraceSignature(null, arrayOf(PsiTypes.booleanType()))
     assertThat(str).isEqualTo("(Z)")
   }
 }

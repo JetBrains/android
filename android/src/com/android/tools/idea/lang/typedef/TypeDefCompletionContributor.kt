@@ -32,6 +32,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -127,7 +128,7 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
    * find that it was not a `@StringDef`.
    */
   private fun PsiParameter.isPotentialTypeDefType() =
-    type == PsiType.INT || type == PsiType.LONG || (type as? PsiClassType)?.name == "String"
+    type == PsiTypes.intType()  || type == PsiTypes.longType() || (type as? PsiClassType)?.name == "String"
 
   private fun KtFunction.getArgumentTypeDef(argName: String?, argIndex: Int): TypeDef? = when (argName) {
     null -> valueParameters.getOrNull(argIndex)

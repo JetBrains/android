@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import com.android.tools.idea.mlkit.APIVersion;
 import com.android.tools.idea.psi.light.DeprecatableLightMethodBuilder;
 import com.android.tools.mlkit.MlNames;
 import com.android.tools.mlkit.TensorGroupInfo;
@@ -29,12 +28,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.CommonClassNames;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
@@ -143,14 +142,14 @@ public class LightModelGroupClass extends AndroidLightClassBase {
       return PsiType.getTypeByName(CommonClassNames.JAVA_LANG_STRING, project, scope);
     }
     else if (tensorInfo.getDataType() == TensorInfo.DataType.FLOAT32) {
-      return PsiType.FLOAT;
+      return PsiTypes.floatType();
     }
     else if (tensorInfo.getDataType() == TensorInfo.DataType.UINT8) {
-      return PsiType.INT;
+      return PsiTypes.intType();
     }
     else {
       Logger.getInstance(LightModelGroupClass.class).warn("Can't find desired data type, fallback to int.");
-      return PsiType.INT;
+      return PsiTypes.intType();
     }
   }
 }
