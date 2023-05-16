@@ -531,13 +531,17 @@ class StreamingToolWindowManagerTest {
 
     val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-    contentManager.removeContent(contentManager.contents[0], true)
+    var content = contentManager.contents[0]
+    assertThat(content.displayName).isEqualTo("Pixel 4 API 30")
+    waitForCondition(2, TimeUnit.SECONDS) { (content.component as? DeviceToolWindowPanel)?.deviceClient?.videoDecoder != null }
+    contentManager.removeContent(content, true)
 
     val device2 = agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 7 API 33")
-    contentManager.removeContent(contentManager.contents[0], true)
+    content = contentManager.contents[0]
+    assertThat(content.displayName).isEqualTo("Pixel 7 API 33")
+    waitForCondition(2, TimeUnit.SECONDS) { (content.component as? DeviceToolWindowPanel)?.deviceClient?.videoDecoder != null }
+    contentManager.removeContent(content, true)
 
     waitForCondition(2, TimeUnit.SECONDS) { !device1.agent.isRunning }
     waitForCondition(2, TimeUnit.SECONDS) { !device2.agent.isRunning }
