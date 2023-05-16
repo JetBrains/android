@@ -52,7 +52,7 @@ data class IssuesChanged(
       )
     }
 
-    state.toIssueRequest()?.let { request ->
+    state.toIssueRequest(clock)?.let { request ->
       tracker.logCrashesFetched(
         state.connections.selected!!.appId,
         state.mode,

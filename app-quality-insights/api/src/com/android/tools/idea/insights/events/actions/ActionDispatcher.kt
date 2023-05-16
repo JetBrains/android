@@ -256,7 +256,7 @@ class ActionDispatcher(
     state: AppInsightsState,
     action: Action.FetchDetails
   ): CancellationToken {
-    val issueRequest = state.toIssueRequest() ?: return CancellationToken.noop(Action.NONE)
+    val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
       .launch {
         if (state.mode == ConnectionMode.OFFLINE) {
@@ -282,7 +282,7 @@ class ActionDispatcher(
     reason: FetchSource,
     action: Action.Single
   ): CancellationToken {
-    val issueRequest = state.toIssueRequest() ?: return CancellationToken.noop(Action.NONE)
+    val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     val connectionMode = if (reason == FetchSource.REFRESH) ConnectionMode.ONLINE else state.mode
     return scope
       .launch {

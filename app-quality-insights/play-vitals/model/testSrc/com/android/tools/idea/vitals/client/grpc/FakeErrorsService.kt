@@ -16,6 +16,7 @@
 package com.android.tools.idea.vitals.client.grpc
 
 import com.android.tools.idea.io.grpc.stub.StreamObserver
+import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.play.developer.reporting.AggregationPeriod
@@ -30,8 +31,9 @@ import com.google.play.developer.reporting.SearchErrorIssuesResponse
 import com.google.play.developer.reporting.SearchErrorReportsRequest
 import com.google.play.developer.reporting.SearchErrorReportsResponse
 import com.google.play.developer.reporting.VitalsErrorsServiceGrpc
-import java.time.Instant
+import java.time.Clock
 import java.time.ZoneId
+import kotlinx.coroutines.channels.SendChannel
 
 const val MOST_AFFECTED_OS = "Android 13"
 
@@ -186,6 +188,31 @@ private val SAMPLE_VERSIONS =
       }
     }
   }
+  rows {
+    aggregation_period: FULL_RANGE
+    start_time {
+      year: 2023
+      month: 5
+      day: 3
+      time_zone {
+        id: "America/Los_Angeles"
+      }
+    }
+    dimensions {
+      dimension: "reportType"
+      string_value: "CRASH"
+    }
+    dimensions {
+      dimension: "versionCode"
+      string_value: "6"
+    }
+    metrics {
+      metric: "___METRIC_TYPE___"
+      decimal_value {
+        value: "10"
+      }
+    }
+  }
 """
     .trimIndent()
 
@@ -194,12 +221,15 @@ private const val METRIC_TYPE = "___METRIC_TYPE___"
 /** A bare-bones test service for faking [VitalsErrorsServiceGrpc]. */
 class FakeErrorsService(
   private val connection: VitalsConnection,
-  private val database: FakeVitalsDatabase
+  private val database: FakeVitalsDatabase,
+  private val clock: Clock,
+  private val requestChannel: SendChannel<GeneratedMessageV3>? = null
 ) : VitalsErrorsServiceGrpc.VitalsErrorsServiceImplBase() {
   override fun searchErrorReports(
     request: SearchErrorReportsRequest,
     responseObserver: StreamObserver<SearchErrorReportsResponse>
   ) {
+    requestChannel?.trySend(request)
     val regex = Regex(".*errorIssueId = (\\w+).*")
     val errorIssueId = regex.matchEntire(request.filter)!!.groupValues[1]
     responseObserver.onNext(
@@ -220,6 +250,7 @@ class FakeErrorsService(
     request: SearchErrorIssuesRequest,
     responseObserver: StreamObserver<SearchErrorIssuesResponse>
   ) {
+    requestChannel?.trySend(request)
     responseObserver.onNext(
       SearchErrorIssuesResponse.newBuilder()
         .apply { addAllErrorIssues(database.getIssues()) }
@@ -232,6 +263,7 @@ class FakeErrorsService(
     request: GetErrorCountMetricSetRequest,
     responseObserver: StreamObserver<ErrorCountMetricSet>
   ) {
+    requestChannel?.trySend(request)
     responseObserver.onNext(
       ErrorCountMetricSet.newBuilder()
         .apply {
@@ -243,7 +275,7 @@ class FakeErrorsService(
                   FreshnessInfo.Freshness.newBuilder()
                     .apply {
                       aggregationPeriod = AggregationPeriod.FULL_RANGE
-                      latestEndTime = Instant.now().toProtoDateTime(ZoneId.of("UTC"))
+                      latestEndTime = clock.instant().toProtoDateTime(ZoneId.of("UTC"))
                     }
                     .build()
                 )
@@ -259,12 +291,13 @@ class FakeErrorsService(
     request: QueryErrorCountMetricSetRequest,
     responseObserver: StreamObserver<QueryErrorCountMetricSetResponse>
   ) {
+    requestChannel?.trySend(request)
     val responseText =
-      if (request.dimensionsList.contains("apiLevel")) {
+      if (request.dimensionsList.contains(API_LEVEL)) {
         SAMPLE_OS_LEVEL_DISTRIBUTION
-      } else if (request.dimensionsList.contains("versionCode")) {
+      } else if (request.dimensionsList.contains(VERSION_CODE)) {
         SAMPLE_VERSIONS
-      } else if (request.dimensionsList.contains("deviceModel")) {
+      } else if (request.dimensionsList.contains(DEVICE_MODEL)) {
         SAMPLE_DEVICE_DISTRIBUTION
       } else ""
     val metricType = request.getMetrics(0)

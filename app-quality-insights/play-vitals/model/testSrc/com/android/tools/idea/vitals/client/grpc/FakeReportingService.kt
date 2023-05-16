@@ -16,27 +16,57 @@
 package com.android.tools.idea.vitals.client.grpc
 
 import com.android.tools.idea.io.grpc.stub.StreamObserver
+import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.play.developer.reporting.App
 import com.google.play.developer.reporting.FetchReleaseFilterOptionsRequest
+import com.google.play.developer.reporting.Release
 import com.google.play.developer.reporting.ReleaseFilterOptions
 import com.google.play.developer.reporting.ReportingServiceGrpc.ReportingServiceImplBase
 import com.google.play.developer.reporting.SearchAccessibleAppsRequest
 import com.google.play.developer.reporting.SearchAccessibleAppsResponse
+import com.google.play.developer.reporting.Track
+import kotlinx.coroutines.channels.SendChannel
 
-class FakeReportingService(private val connection: VitalsConnection) : ReportingServiceImplBase() {
+class FakeReportingService(
+  private val connection: VitalsConnection,
+  private val requestChannel: SendChannel<GeneratedMessageV3>? = null
+) : ReportingServiceImplBase() {
   override fun fetchReleaseFilterOptions(
-    request: FetchReleaseFilterOptionsRequest?,
+    request: FetchReleaseFilterOptionsRequest,
     responseObserver: StreamObserver<ReleaseFilterOptions>
   ) {
-    responseObserver.onNext(ReleaseFilterOptions.getDefaultInstance())
+    requestChannel?.trySend(request)
+    responseObserver.onNext(
+      ReleaseFilterOptions.newBuilder()
+        .apply {
+          addTracks(
+            Track.newBuilder()
+              .apply {
+                displayName = "testing"
+                type = "Open testing"
+                addServingReleases(
+                  Release.newBuilder()
+                    .apply {
+                      displayName = "first"
+                      addVersionCodes(5)
+                    }
+                    .build()
+                )
+              }
+              .build()
+          )
+        }
+        .build()
+    )
     responseObserver.onCompleted()
   }
 
   override fun searchAccessibleApps(
-    request: SearchAccessibleAppsRequest?,
+    request: SearchAccessibleAppsRequest,
     responseObserver: StreamObserver<SearchAccessibleAppsResponse>
   ) {
+    requestChannel?.trySend(request)
     responseObserver.onNext(
       SearchAccessibleAppsResponse.newBuilder()
         .apply {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals.client.grpc
 
+import com.android.testutils.time.FakeClock
 import com.android.tools.idea.io.grpc.Server
 import com.android.tools.idea.io.grpc.ServerBuilder
 import com.android.tools.idea.testing.NamedExternalResource
@@ -28,11 +29,12 @@ class VitalsGrpcServerRule(
 ) : NamedExternalResource() {
   lateinit var server: Server
   val database = FakeVitalsDatabase(connection)
+  val clock = FakeClock()
 
   override fun before(description: Description) {
     server =
       ServerBuilder.forPort(0)
-        .addService(FakeErrorsService(connection, database))
+        .addService(FakeErrorsService(connection, database, clock))
         .addService(FakeReportingService(connection))
         .directExecutor()
         .build()

@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.vitals.client
 
+import com.android.testutils.time.FakeClock
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.DataPoint
+import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.FAKE_50_DAYS_AGO
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeTimeProvider
@@ -24,16 +27,28 @@ import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.PlayTrack
 import com.android.tools.idea.insights.SignalType
+import com.android.tools.idea.insights.StatsGroup
+import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
+import com.android.tools.idea.vitals.TEST_ISSUE1
+import com.android.tools.idea.vitals.TEST_ISSUE2
+import com.android.tools.idea.vitals.client.grpc.FakeErrorsService
+import com.android.tools.idea.vitals.client.grpc.FakeReportingService
+import com.android.tools.idea.vitals.client.grpc.FakeVitalsDatabase
 import com.android.tools.idea.vitals.client.grpc.TestVitalsGrpcClient
+import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
+import com.android.tools.idea.vitals.client.grpc.createIssueRequest
 import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
 import com.android.tools.idea.vitals.datamodel.Freshness
@@ -42,6 +57,9 @@ import com.android.tools.idea.vitals.datamodel.TimeGranularity
 import com.google.common.truth.Truth.assertThat
 import com.google.play.developer.reporting.DateTime
 import com.intellij.testFramework.DisposableRule
+import com.studiogrpc.testutils.ForwardingInterceptor
+import com.studiogrpc.testutils.GrpcConnectionRule
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -49,6 +67,23 @@ import org.junit.Test
 class VitalsClientTest {
 
   @get:Rule val disposableRule = DisposableRule()
+
+  private val database = FakeVitalsDatabase(TEST_CONNECTION_1)
+  private val clock = FakeClock()
+
+  @get:Rule
+  val grpcConnectionRule =
+    GrpcConnectionRule(
+      listOf(
+        FakeErrorsService(TEST_CONNECTION_1, database, FakeClock()),
+        FakeReportingService(TEST_CONNECTION_1)
+      )
+    )
+
+  init {
+    database.addIssue(TEST_ISSUE1)
+    database.addIssue(TEST_ISSUE2)
+  }
 
   @Test
   fun checkAggregationUtils() {
@@ -76,7 +111,7 @@ class VitalsClientTest {
     val grpcClient = TestVitalsGrpcClient() // return empty result for every API call.
     val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
 
-    cache.populateIssues(TEST_CONNECTION_1, listOf(ISSUE1))
+    cache.populateIssues(TEST_CONNECTION_1, listOf(TEST_ISSUE1))
 
     assertThat(
         client.listTopOpenIssues(
@@ -96,8 +131,9 @@ class VitalsClientTest {
         LoadingState.Ready(
           IssueResponse(
             listOf(
-              ISSUE1.copy(
-                issueDetails = ISSUE1.issueDetails.copy(impactedDevicesCount = 0L, eventsCount = 0L)
+              TEST_ISSUE1.copy(
+                issueDetails =
+                  TEST_ISSUE1.issueDetails.copy(impactedDevicesCount = 0L, eventsCount = 0L)
               )
             ),
             emptyList(),
@@ -184,4 +220,98 @@ class VitalsClientTest {
         )
       )
   }
+
+  @Test
+  fun `list top open issues returns correct issues, events, versions, oses, and devices`() =
+    runBlocking<Unit> {
+      val client =
+        VitalsClient(
+          disposableRule.disposable,
+          AppInsightsCacheImpl(),
+          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor)
+        )
+
+      val result = client.listTopOpenIssues(createIssueRequest(clock = clock))
+
+      assertThat(result).isInstanceOf(LoadingState.Ready::class.java)
+      val value = (result as LoadingState.Ready).value
+
+      assertThat(value.issues.map { it.issueDetails })
+        .containsExactly(TEST_ISSUE1.issueDetails, TEST_ISSUE2.issueDetails)
+
+      // The fake errors service does not reverse engineer the stack trace exactly,
+      // so we cannot use == to compare the sample event here.
+      val events = value.issues.map { it.sampleEvent.toString() }
+      assertThat(events[0])
+        .contains(
+          "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)"
+        )
+      assertThat(events[1])
+        .contains(
+          "com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)"
+        )
+
+      assertThat(value.devices)
+        .containsExactly(
+          WithCount(3, Device("samsung", "samsung/a32", "samsung a32 (Galaxy A32)")),
+          WithCount(2, Device("samsung", "samsung/greatlte", "samsung greatlte (Galaxy Note8)"))
+        )
+
+      assertThat(value.operatingSystems)
+        .containsExactly(
+          WithCount(3, OperatingSystemInfo("33", "Android 13")),
+          WithCount(2, OperatingSystemInfo("28", "Android 9"))
+        )
+
+      assertThat(value.versions)
+        .containsExactly(
+          WithCount(10, Version("6", "6", "6")),
+          WithCount(5, Version("5", "5", "5", setOf(PlayTrack.OPEN_TESTING)))
+        )
+    }
+
+  @Test
+  fun `get device and os distribution stats`() =
+    runBlocking<Unit> {
+      val client =
+        VitalsClient(
+          disposableRule.disposable,
+          AppInsightsCacheImpl(),
+          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor)
+        )
+      val result = client.getIssueDetails(TEST_ISSUE1.id, createIssueRequest(clock = clock))
+
+      assertThat(result).isInstanceOf(LoadingState.Ready::class.java)
+      val value = (result as LoadingState.Ready).value
+
+      val deviceStats = value!!.deviceStats
+      assertThat(deviceStats.topValue).isEqualTo("samsung/a32")
+      assertThat(deviceStats.groups).hasSize(1)
+      assertThat(deviceStats.groups.single().groupName).isEqualTo("samsung")
+      assertThat(deviceStats.groups.single().percentage).isEqualTo(100.0)
+      assertThat(deviceStats.groups.single().breakdown)
+        .containsExactly(DataPoint("a32", 60.0), DataPoint("greatlte", 40.0))
+
+      val osStats = value.osStats
+      assertThat(osStats.topValue).isEqualTo("Android 13")
+      assertThat(osStats.groups)
+        .containsExactly(
+          StatsGroup("Android 13", 60.0, emptyList()),
+          StatsGroup("Android 9", 40.0, emptyList())
+        )
+    }
+
+  @Test
+  fun `list connections returns correct apps`() =
+    runBlocking<Unit> {
+      val client =
+        VitalsClient(
+          disposableRule.disposable,
+          AppInsightsCacheImpl(),
+          VitalsGrpcClientImpl(grpcConnectionRule.channel, ForwardingInterceptor)
+        )
+      val result = client.listConnections()
+      assertThat((result as LoadingState.Ready).value)
+        .containsExactly(AppConnection(TEST_CONNECTION_1.appId, TEST_CONNECTION_1.displayName))
+    }
 }
