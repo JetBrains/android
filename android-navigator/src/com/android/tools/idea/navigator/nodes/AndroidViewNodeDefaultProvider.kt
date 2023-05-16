@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes
 
 import com.android.tools.idea.apk.ApkFacet
+import com.android.tools.idea.hasKotlinFacet
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.navigator.AndroidViewNodes
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode
@@ -25,6 +26,7 @@ import com.android.tools.idea.navigator.nodes.android.AndroidSourceTypeNode
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.projectsystem.getAllLinkedModules
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.ViewSettings
@@ -36,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
 import org.jetbrains.android.facet.BUILT_IN_TYPES
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
 
 class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
   override fun getModuleNodes(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? {
@@ -62,7 +65,8 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
     val project = facet.module.project
     val androidModel = AndroidModel.get(facet)
     val providers = SourceProviders.getInstance(facet)
-    val sourcesByType = getSourcesBySourceType(providers, androidModel)
+    val kotlinEnabled = module.getAllLinkedModules().any { it.hasKotlinFacet() }
+    val sourcesByType = getSourcesBySourceType(providers, androidModel, kotlinEnabled)
     for (sourceType in sourcesByType.keySet()) {
       when {
         sourceType == AndroidSourceType.CPP -> {
@@ -107,7 +111,8 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
 
 private fun getSourcesBySourceType(
   providers: SourceProviders,
-  androidModel: AndroidModel?
+  androidModel: AndroidModel?,
+  kotlinEnabled: Boolean
 ): HashMultimap<AndroidSourceType, VirtualFile> {
   val sourcesByType = HashMultimap.create<AndroidSourceType, VirtualFile>()
 
@@ -143,6 +148,14 @@ private fun getSourcesBySourceType(
       sourcesByType.putAll(customType, getSources(customType, providers))
     }
   }
+
+  if (!kotlinEnabled) {
+    // When kotlin is not actually applied to the project, common sources should just go to java type.
+    val commonSources = sourcesByType.get(AndroidSourceType.KOTLIN_AND_JAVA) ?: emptySet()
+    sourcesByType.putAll(AndroidSourceType.JAVA, commonSources)
+    sourcesByType.removeAll(AndroidSourceType.KOTLIN_AND_JAVA)
+  }
+
   return sourcesByType
 }
 

@@ -58,14 +58,30 @@ sealed class AndroidSourceType(
     JAVA_NAME,
     AllIcons.Modules.SourceRoot,
   ) {
-    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.javaDirectories)
+    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> {
+      val kotlinDirectories = provider.kotlinDirectories.toSet()
+      return copyOf(provider.javaDirectories).filterNot { kotlinDirectories.contains(it) }
+    }
   }
 
   object KOTLIN : AndroidSourceType(
     "kotlin",
     AllIcons.Modules.SourceRoot,
   ) {
-    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.kotlinDirectories)
+    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> {
+      val javaDirectories = provider.javaDirectories.toSet()
+      return copyOf(provider.kotlinDirectories).filterNot { javaDirectories.contains(it) }
+    }
+  }
+
+  object KOTLIN_AND_JAVA : AndroidSourceType(
+    "kotlin+java",
+    AllIcons.Modules.SourceRoot,
+  ) {
+    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> {
+      val javaDirectories = provider.javaDirectories.toSet()
+      return copyOf(provider.kotlinDirectories).filter { javaDirectories.contains(it) }
+    }
   }
 
   /** Generated java source folders, e.g. R, BuildConfig, and etc.  */
@@ -200,6 +216,7 @@ val BUILT_IN_TYPES: List<AndroidSourceType> =
     AndroidSourceType.MANIFEST,
     AndroidSourceType.JAVA,
     AndroidSourceType.KOTLIN,
+    AndroidSourceType.KOTLIN_AND_JAVA,
     AndroidSourceType.GENERATED_JAVA,
     AndroidSourceType.CPP,
     AndroidSourceType.AIDL,
