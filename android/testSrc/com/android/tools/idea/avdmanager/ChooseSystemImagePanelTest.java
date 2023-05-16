@@ -26,13 +26,14 @@ import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.OTHER;
-import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.PERFORMANT;
+import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationForDevice;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassificationFromParts;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemImageMatchesDevice;
 
 import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -58,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
@@ -75,7 +77,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     sysimgDetails.setAbi(abi);
     sysimgDetails.setVendor(vendor);
     sysimgDetails.setApiLevel(apiLevel);
-    pkg.setTypeDetails((TypeDetails) sysimgDetails);
+    pkg.setTypeDetails((TypeDetails)sysimgDetails);
     InMemoryFileSystems.recordExistingFile(pkg.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
     return pkg;
@@ -84,7 +86,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   /**
    * Generates a list of system images with a given abi to test with.
    */
-  private class SystemImageTestList {
+  private static final class SystemImageTestList {
     // Google API image
     String gapiPath = "system-images;android-23;google_apis;";
     // Google API 29 image
@@ -114,20 +116,20 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     // TV 31 image
     String tv31Path = "system-images;android-31;android-tv;";
 
-    FakePackage.FakeLocalPackage pkgGapi;
-    FakePackage.FakeLocalPackage pkgGapi29;
-    FakePackage.FakeLocalPackage pkgGapi30;
-    FakePackage.FakeLocalPackage pkgGapi31;
-    FakePackage.FakeLocalPackage pkgGapi32;
-    FakePackage.FakeLocalPackage pkgGapi33;
-    FakePackage.FakeLocalPackage pkgPs;
-    FakePackage.FakeLocalPackage pkgWear;
-    FakePackage.FakeLocalPackage pkgWear29;
-    FakePackage.FakeLocalPackage pkgCnWear;
+    final FakePackage.FakeLocalPackage pkgGapi;
+    final FakePackage.FakeLocalPackage pkgGapi29;
+    final FakePackage.FakeLocalPackage pkgGapi30;
+    final FakePackage.FakeLocalPackage pkgGapi31;
+    final FakePackage.FakeLocalPackage pkgGapi32;
+    final FakePackage.FakeLocalPackage pkgGapi33;
+    final FakePackage.FakeLocalPackage pkgPs;
+    final FakePackage.FakeLocalPackage pkgWear;
+    final FakePackage.FakeLocalPackage pkgWear29;
+    final FakePackage.FakeLocalPackage pkgCnWear;
     FakePackage.FakeLocalPackage pkgAutomotive;
-    FakePackage.FakeLocalPackage pkgAutomotivePs;
-    FakePackage.FakeLocalPackage pkgTv30;
-    FakePackage.FakeLocalPackage pkgTv31;
+    final FakePackage.FakeLocalPackage pkgAutomotivePs;
+    final FakePackage.FakeLocalPackage pkgTv30;
+    final FakePackage.FakeLocalPackage pkgTv31;
 
     SystemImageDescription gapiImageDescription;
     SystemImageDescription gapi29ImageDescription;
@@ -194,42 +196,28 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     }
 
     ImmutableList<FakePackage.FakeLocalPackage> getPackageInfoList() {
-      return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgGapi31, pkgGapi32, pkgGapi33, pkgPs, pkgWear, pkgWear29, pkgCnWear, pkgAutomotive,
-                              pkgAutomotivePs, pkgTv30, pkgTv31);
+      return ImmutableList.of(pkgGapi, pkgGapi29, pkgGapi30, pkgGapi31, pkgGapi32, pkgGapi33, pkgPs, pkgWear, pkgWear29, pkgCnWear,
+                              pkgAutomotive, pkgAutomotivePs, pkgTv30, pkgTv31);
     }
 
     void generateSystemImageDescriptions(AndroidSdkHandler sdkHandler) {
       FakeProgressIndicator progress = new FakeProgressIndicator();
       SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
-      ISystemImage gapiImage = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(gapiPath, progress).getLocation());
-      ISystemImage gapi29Image = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(gapi29Path, progress).getLocation());
-      ISystemImage gapi30Image = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(gapi30Path, progress).getLocation());
-      ISystemImage gapi31Image = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(gapi31Path, progress).getLocation());
-      ISystemImage gapi32Image = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(gapi32Path, progress).getLocation());
-      ISystemImage gapi33Image = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(gapi33Path, progress).getLocation());
-      ISystemImage playStoreImage = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(psPath, progress).getLocation());
-      ISystemImage wearImage = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(wearPath, progress).getLocation());
-      ISystemImage wear29Image = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(wear29Path, progress).getLocation());
-      ISystemImage wearCnImage = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(wearCnPath, progress).getLocation());
-      ISystemImage automotiveImage = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(automotivePath, progress).getLocation());
-      ISystemImage automotivePsImage = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(automotivePsPath, progress).getLocation());
-      ISystemImage tv30Image = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(tv30Path, progress).getLocation());
-      ISystemImage tv31Image = systemImageManager.getImageAt(
-        sdkHandler.getLocalPackage(tv31Path, progress).getLocation());
+      var gapiImage = getImageAt(systemImageManager, sdkHandler, gapiPath, progress);
+      var gapi29Image = getImageAt(systemImageManager, sdkHandler, gapi29Path, progress);
+      var gapi30Image = getImageAt(systemImageManager, sdkHandler, gapi30Path, progress);
+      var gapi31Image = getImageAt(systemImageManager, sdkHandler, gapi31Path, progress);
+      var gapi32Image = getImageAt(systemImageManager, sdkHandler, gapi32Path, progress);
+      var gapi33Image = getImageAt(systemImageManager, sdkHandler, gapi33Path, progress);
+      var playStoreImage = getImageAt(systemImageManager, sdkHandler, psPath, progress);
+      var wearImage = getImageAt(systemImageManager, sdkHandler, wearPath, progress);
+      var wear29Image = getImageAt(systemImageManager, sdkHandler, wear29Path, progress);
+      var wearCnImage = getImageAt(systemImageManager, sdkHandler, wearCnPath, progress);
+      var automotiveImage = getImageAt(systemImageManager, sdkHandler, automotivePath, progress);
+      var automotivePsImage = getImageAt(systemImageManager, sdkHandler, automotivePsPath, progress);
+      var tv30Image = getImageAt(systemImageManager, sdkHandler, tv30Path, progress);
+      var tv31Image = getImageAt(systemImageManager, sdkHandler, tv31Path, progress);
 
       gapiImageDescription = new SystemImageDescription(gapiImage);
       gapi29ImageDescription = new SystemImageDescription(gapi29Image);
@@ -246,13 +234,27 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       tv30ImageDescription = new SystemImageDescription(tv30Image);
       tv31ImageDescription = new SystemImageDescription(tv31Image);
     }
+
+    @NotNull
+    private static ISystemImage getImageAt(@NotNull SystemImageManager manager,
+                                           @NotNull AndroidSdkHandler handler,
+                                           @NotNull String path,
+                                           @NotNull ProgressIndicator indicator) {
+      var localPackage = handler.getLocalPackage(path, indicator);
+      assert localPackage != null;
+
+      var image = manager.getImageAt(localPackage.getLocation());
+      assert image != null;
+
+      return image;
+    }
   }
 
-  private SystemImageTestList mSysImgsX86_64;
-  private SystemImageTestList mSysImgsX86;
-  private SystemImageTestList mSysImgsArm;
-  private SystemImageTestList mSysImgsArmv7a;
-  private SystemImageTestList mSysImgsArm64;
+  private SystemImageTestList mSysImagesX86_64;
+  private SystemImageTestList mSysImagesX86;
+  private SystemImageTestList mSysImagesArm;
+  private SystemImageTestList mSysImagesArmeabiV7a;
+  private SystemImageTestList mSysImagesArm64;
 
   private Device myBigPhone;
   private Device myFoldable;
@@ -271,39 +273,43 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     super.setUp();
     RepositoryPackages packages = new RepositoryPackages();
 
-    mSysImgsArm = new SystemImageTestList("armeabi", mSdkRoot);
-    mSysImgsArmv7a = new SystemImageTestList("armeabi-v7a", mSdkRoot);
-    mSysImgsArm64 = new SystemImageTestList("arm64-v8a", mSdkRoot);
-    mSysImgsX86 = new SystemImageTestList("x86", mSdkRoot);
-    mSysImgsX86_64 = new SystemImageTestList("x86_64", mSdkRoot);
+    mSysImagesArm = new SystemImageTestList("armeabi", mSdkRoot);
+    mSysImagesArmeabiV7a = new SystemImageTestList("armeabi-v7a", mSdkRoot);
+    mSysImagesArm64 = new SystemImageTestList("arm64-v8a", mSdkRoot);
+    mSysImagesX86 = new SystemImageTestList("x86", mSdkRoot);
+    mSysImagesX86_64 = new SystemImageTestList("x86_64", mSdkRoot);
 
-    Collection<LocalPackage> pkgs = new ArrayList<>();
-    pkgs.addAll(mSysImgsArm.getPackageInfoList());
-    pkgs.addAll(mSysImgsArmv7a.getPackageInfoList());
-    pkgs.addAll(mSysImgsArm64.getPackageInfoList());
-    pkgs.addAll(mSysImgsX86.getPackageInfoList());
-    pkgs.addAll(mSysImgsX86_64.getPackageInfoList());
-    packages.setLocalPkgInfos(pkgs);
+    Collection<LocalPackage> localPackages = new ArrayList<>();
+    localPackages.addAll(mSysImagesArm.getPackageInfoList());
+    localPackages.addAll(mSysImagesArmeabiV7a.getPackageInfoList());
+    localPackages.addAll(mSysImagesArm64.getPackageInfoList());
+    localPackages.addAll(mSysImagesX86.getPackageInfoList());
+    localPackages.addAll(mSysImagesX86_64.getPackageInfoList());
+    packages.setLocalPkgInfos(localPackages);
 
     RepoManager mgr = new FakeRepoManager(mSdkRoot, packages);
 
     AndroidSdkHandler sdkHandler =
       new AndroidSdkHandler(mSdkRoot, mAvdRoot, mgr);
 
-    mSysImgsArm.generateSystemImageDescriptions(sdkHandler);
-    mSysImgsArmv7a.generateSystemImageDescriptions(sdkHandler);
-    mSysImgsArm64.generateSystemImageDescriptions(sdkHandler);
-    mSysImgsX86.generateSystemImageDescriptions(sdkHandler);
-    mSysImgsX86_64.generateSystemImageDescriptions(sdkHandler);
+    mSysImagesArm.generateSystemImageDescriptions(sdkHandler);
+    mSysImagesArmeabiV7a.generateSystemImageDescriptions(sdkHandler);
+    mSysImagesArm64.generateSystemImageDescriptions(sdkHandler);
+    mSysImagesX86.generateSystemImageDescriptions(sdkHandler);
+    mSysImagesX86_64.generateSystemImageDescriptions(sdkHandler);
 
     // Make a phone device that does not support Google Play
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
-    Device.Builder devBuilder = new Device.Builder(devMgr.getDevice("Nexus 5", "Google"));
+
+    var device = devMgr.getDevice("Nexus 5", "Google");
+    assert device != null;
+
+    var devBuilder = new Device.Builder(device);
     devBuilder.setPlayStore(false);
     myGapiPhoneDevice = devBuilder.build();
 
     // Get a phone device that supports Google Play
-    myPlayStorePhoneDevice = devMgr.getDevice("Nexus 5", "Google");
+    myPlayStorePhoneDevice = device;
 
     // Get a Wear device
     myWearDevice = devMgr.getDevice("wearos_square", "Google");
@@ -386,49 +392,69 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
   public void testWarningTextOnX86HostsWithNonX86Images() {
     // Should not get any warning if x86 image on any host os.
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesX86.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesX86.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.X86));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesX86.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.X86_64));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesX86.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.ARM));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsX86.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesX86.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.X86_ON_ARM));
 
     // Should get a warning if non-x86 image on x86 host.
-    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
-                                                                    ProductDetails.CpuArchitecture.X86).isEmpty());
-    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
-                                                                    ProductDetails.CpuArchitecture.X86_64).isEmpty());
-    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
-                                                                    ProductDetails.CpuArchitecture.X86).isEmpty());
-    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
-                                                                    ProductDetails.CpuArchitecture.X86_64).isEmpty());
-    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
-                                                                    ProductDetails.CpuArchitecture.X86).isEmpty());
-    assertFalse(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
-                                                                    ProductDetails.CpuArchitecture.X86_64).isEmpty());
+    var text =
+      HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm64.gapiImageDescription, ProductDetails.CpuArchitecture.X86);
+    assert text != null;
+
+    assertFalse(text.isEmpty());
+
+    text = HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm64.gapiImageDescription, ProductDetails.CpuArchitecture.X86_64);
+    assert text != null;
+
+    assertFalse(text.isEmpty());
+
+    text = HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm.gapiImageDescription, ProductDetails.CpuArchitecture.X86);
+    assert text != null;
+
+    assertFalse(text.isEmpty());
+
+    text = HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm.gapiImageDescription, ProductDetails.CpuArchitecture.X86_64);
+    assert text != null;
+
+    assertFalse(text.isEmpty());
+
+    text =
+      HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArmeabiV7a.gapiImageDescription, ProductDetails.CpuArchitecture.X86);
+    assert text != null;
+
+    assertFalse(text.isEmpty());
+
+    text =
+      HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArmeabiV7a.gapiImageDescription, ProductDetails.CpuArchitecture.X86_64);
+    assert text != null;
+
+    assertFalse(text.isEmpty());
 
     // Shouldn't get warning if non-x86 image on non-x86 host.
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm64.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.X86_ON_ARM));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm64.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.ARM));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm64.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm64.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.X86_ON_ARM));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.ARM));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArm.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArm.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArmeabiV7a.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.X86_ON_ARM));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArmeabiV7a.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.ARM));
-    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImgsArmv7a.gapiImageDescription,
+    assertNull(HaxmAlert.getWarningTextForX86HostsUsingNonX86Image(mSysImagesArmeabiV7a.gapiImageDescription,
                                                                    ProductDetails.CpuArchitecture.UNKNOWN_CPU_ARCHITECTURE));
   }
 
@@ -436,83 +462,87 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     List<Boolean> isArmHostParams = ImmutableList.of(false, true);
     for (boolean isArmHostOs : isArmHostParams) {
       assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
-                   getClassificationForDevice(mSysImgsX86.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
-                   getClassificationForDevice(mSysImgsX86.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
-                   getClassificationForDevice(mSysImgsX86.gapi31ImageDescription, myGapiPhoneDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86.gapi31ImageDescription, myGapiPhoneDevice, isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
-                   getClassificationForDevice(mSysImgsX86_64.gapi30ImageDescription, myGapiPhoneDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86_64.gapi30ImageDescription, myGapiPhoneDevice, isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
-                   getClassificationForDevice(mSysImgsX86_64.gapi31ImageDescription, myGapiPhoneDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86_64.gapi31ImageDescription, myGapiPhoneDevice, isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
-                   getClassificationForDevice(mSysImgsX86_64.gapi31ImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86_64.gapi31ImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       // Note: Play Store image is not allowed with a non-Play-Store device
       assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
-                   getClassificationForDevice(mSysImgsX86.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
 
       assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
-                   getClassificationForDevice(mSysImgsX86.wearImageDescription, myWearDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86.wearImageDescription, myWearDevice, isArmHostOs));
       assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
-                   getClassificationForDevice(mSysImgsX86.wearCnImageDescription, myWearDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86.wearCnImageDescription, myWearDevice, isArmHostOs));
 
       // Note: myAutomotiveDevice is Play-Store device
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
-                   getClassificationForDevice(mSysImgsX86.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
       assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
-                   getClassificationForDevice(mSysImgsX86.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
+                   getClassificationForDevice(mSysImagesX86.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
 
   public void testClassificationForDevice_arm64() {
     List<Boolean> isArmHostParams = ImmutableList.of(false, true);
-    for (boolean p : isArmHostParams) {
-      boolean isArmHostOs = p;
-      assertEquals((isArmHostOs ? RECOMMENDED : OTHER), getClassificationForDevice(mSysImgsArm64.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm64.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+    for (boolean isArmHostOs : isArmHostParams) {
+      assertEquals((isArmHostOs ? RECOMMENDED : OTHER),
+                   getClassificationForDevice(mSysImagesArm64.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm64.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       // Note: Play Store image is not allowed with a non-Play-Store device
-      assertEquals((isArmHostOs ? RECOMMENDED : OTHER), getClassificationForDevice(mSysImgsArm64.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+      assertEquals((isArmHostOs ? RECOMMENDED : OTHER),
+                   getClassificationForDevice(mSysImagesArm64.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
 
-      assertEquals((isArmHostOs ? RECOMMENDED : OTHER), getClassificationForDevice(mSysImgsArm64.wearImageDescription, myWearDevice, isArmHostOs));
-      assertEquals((isArmHostOs ? RECOMMENDED : OTHER), getClassificationForDevice(mSysImgsArm64.wearCnImageDescription, myWearDevice, isArmHostOs));
+      assertEquals((isArmHostOs ? RECOMMENDED : OTHER),
+                   getClassificationForDevice(mSysImagesArm64.wearImageDescription, myWearDevice, isArmHostOs));
+      assertEquals((isArmHostOs ? RECOMMENDED : OTHER),
+                   getClassificationForDevice(mSysImagesArm64.wearCnImageDescription, myWearDevice, isArmHostOs));
 
       // Note: myAutomotiveDevice is Play-Store device
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm64.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
-      assertEquals((isArmHostOs ? RECOMMENDED : OTHER), getClassificationForDevice(mSysImgsArm64.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm64.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals((isArmHostOs ? RECOMMENDED : OTHER),
+                   getClassificationForDevice(mSysImagesArm64.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
 
   public void testClassificationForDevice_arm() {
     List<Boolean> isArmHostParams = ImmutableList.of(false, true);
     for (boolean isArmHostOs : isArmHostParams) {
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       // Note: Play Store image is not allowed with a non-Play-Store device
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
 
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.wearImageDescription, myWearDevice, isArmHostOs));
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.wearCnImageDescription, myWearDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm.wearImageDescription, myWearDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm.wearCnImageDescription, myWearDevice, isArmHostOs));
 
       // Note: myAutomotiveDevice is Play-Store device
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArm.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArm.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
 
-  public void testClassificationForDevice_armv7a() {
+  public void testClassificationForDevice_armeabiV7a() {
     List<Boolean> isArmHostParams = ImmutableList.of(false, true);
     for (boolean isArmHostOs : isArmHostParams) {
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArmeabiV7a.gapiImageDescription, myGapiPhoneDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArmeabiV7a.gapiImageDescription, myPlayStorePhoneDevice, isArmHostOs));
       // Note: Play Store image is not allowed with a non-Play-Store device
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArmeabiV7a.psImageDescription, myPlayStorePhoneDevice, isArmHostOs));
 
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.wearImageDescription, myWearDevice, isArmHostOs));
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.wearCnImageDescription, myWearDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArmeabiV7a.wearImageDescription, myWearDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArmeabiV7a.wearCnImageDescription, myWearDevice, isArmHostOs));
 
       // Note: myAutomotiveDevice is Play-Store device
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
-      assertEquals(OTHER, getClassificationForDevice(mSysImgsArmv7a.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArmeabiV7a.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(OTHER, getClassificationForDevice(mSysImagesArmeabiV7a.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
 
@@ -525,25 +555,25 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
   }
 
   public void testImageChosenForDevice() {
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.wearImageDescription, myFoldable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.wear29ImageDescription, myFoldable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.gapiImageDescription, myFoldable));
-    assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi30ImageDescription, myFoldable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.wearImageDescription, myResizable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.gapi32ImageDescription, myResizable));
-    assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi33ImageDescription, myResizable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.wearImageDescription, myRollable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.wear29ImageDescription, myRollable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.gapiImageDescription, myRollable));
-    assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi30ImageDescription, myRollable));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.wearImageDescription, myFreeform));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.wear29ImageDescription, myFreeform));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.gapiImageDescription, myFreeform));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.gapi29ImageDescription, myFreeform));
-    assertTrue(systemImageMatchesDevice(mSysImgsX86.gapi30ImageDescription, myFreeform));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.tv30ImageDescription, my4KTV));
-    assertTrue(systemImageMatchesDevice(mSysImgsX86.tv31ImageDescription, my4KTV));
-    assertFalse(systemImageMatchesDevice(mSysImgsX86.automotivePsImageDescription, myPlayStorePhoneDevice));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myFoldable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.wear29ImageDescription, myFoldable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myFoldable));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi30ImageDescription, myFoldable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myResizable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.gapi32ImageDescription, myResizable));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi33ImageDescription, myResizable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myRollable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.wear29ImageDescription, myRollable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myRollable));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi30ImageDescription, myRollable));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.wearImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.wear29ImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.gapiImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.gapi29ImageDescription, myFreeform));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.gapi30ImageDescription, myFreeform));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.tv30ImageDescription, my4KTV));
+    assertTrue(systemImageMatchesDevice(mSysImagesX86.tv31ImageDescription, my4KTV));
+    assertFalse(systemImageMatchesDevice(mSysImagesX86.automotivePsImageDescription, myPlayStorePhoneDevice));
   }
 
   public void testDeviceType() {
