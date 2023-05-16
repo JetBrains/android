@@ -72,6 +72,7 @@ import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.interpolate
 import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
@@ -232,7 +233,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         }
         catch (ignore: NoSuchFileException) {
         }
-        grpcServer.shutdown()
+        grpcServer.shutdownNow()
+        try {
+          grpcServer.awaitTermination()
+        }
+        catch (e: InterruptedException) {
+          thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
+        }
         startTime = 0
       }
     }
@@ -245,6 +252,12 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     synchronized(lifeCycleLock) {
       if (startTime != 0L) {
         grpcServer.shutdownNow()
+        try {
+          grpcServer.awaitTermination()
+        }
+        catch (e: InterruptedException) {
+          thisLogger().error("Interrupted while waiting for the emulator gRPC server to terminate")
+        }
         startTime = 0
       }
     }
