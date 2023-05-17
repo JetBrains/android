@@ -59,6 +59,7 @@ import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.indicatorRunBlockingCancellable
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -182,15 +183,14 @@ class LaunchTaskRunner(
     }
   }
 
-  private suspend fun waitPreviousProcessTermination(
-    devices: List<IDevice>, applicationId: String, indicator: ProgressIndicator
-  ) = coroutineScope {
-    indicator.text = "Terminating the app"
-    val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
-    if (results.any { !it }) {
-      throw ExecutionException("Couldn't terminate previous instance of app")
+  private suspend fun waitPreviousProcessTermination(devices: List<IDevice>, applicationId: String, indicator: ProgressIndicator) =
+    coroutineScope {
+      indicator.text = "Terminating the app"
+      val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
+      if (results.any { !it }) {
+        throw ExecutionException("Couldn't terminate previous instance of app")
+      }
     }
-  }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val packageName = applicationIdProvider.packageName
@@ -283,6 +283,7 @@ class LaunchTaskRunner(
     fillStats(RunStats.from(env), packageName)
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
+    printLaunchTaskStartedMessage(console)
 
     val launchTasksProvider = AndroidLaunchTasksProvider(env, facet, apkProvider)
 
@@ -336,8 +337,78 @@ class LaunchTaskRunner(
     return console
   }
 
-  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
-    return applyChanges(indicator)
+  override fun applyCodeChanges(indicator: ProgressIndicator) = runBlockingCancellable {
+    val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+
+    /**
+     * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
+     *
+     * Every time user does AC or ACC we are obligated to create a new RunContentDescriptor. So we create, but don't show it in UI by setting [RunContentDescriptor.isHiddenContent] to false.
+     * Multiple [RunContentDescriptor] -> multiple [ProcessHandler]. But it's the same instance of [ProcessHandler].
+     */
+    val processHandlers = settings.getProcessHandlersForDevices(project, devices).distinct()
+
+    /**
+     * Searching for first not hidden [RunContentDescriptor].
+     */
+    val existingRunContentDescriptor = processHandlers.mapNotNull {
+      withContext(uiThread) {
+        RunContentManager.getInstance(project).findContentDescriptor(env.executor, it)?.takeIf { !it.isHiddenContent }
+      }
+    }.firstOrNull()
+
+    val packageName = applicationIdProvider.packageName
+    val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(project, packageName).apply {
+      devices.forEach { addTargetDevice(it) }
+    }
+    fillStats(RunStats.from(env), packageName)
+
+    val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
+    printLaunchTaskStartedMessage(console)
+
+    val launchTasksProvider = AndroidLaunchTasksProvider(env, facet, apkProvider)
+
+    indicator.text = "Launching on devices"
+    devices.map { device ->
+      async {
+        LOG.info("Launching on device ${device.name}")
+        val launchContext = LaunchContext(env, device, console, processHandler, indicator)
+
+        //Deploy
+        if (configuration.DEPLOY) {
+          val deployTask = launchTasksProvider.getDeployTask(device)
+          runLaunchTasks(listOf(deployTask), launchContext)
+          notifyLiveEditService(device, packageName)
+        }
+
+        if (launchContext.killBeforeLaunch) {
+          KillAndRestartAppLaunchTask(packageName).run(launchContext)
+          getLaunchTask(packageName, device, isDebug = false)?.run(launchContext)
+        }
+      }
+    }.awaitAll()
+
+    withContext(uiThread) {
+      val attachedContent = existingRunContentDescriptor?.attachedContent
+      if (attachedContent == null) {
+        createRunContentDescriptor(processHandler, console, env)
+      } else {
+        object : RunContentDescriptor(
+          existingRunContentDescriptor.executionConsole,
+          existingRunContentDescriptor.processHandler,
+          existingRunContentDescriptor.component,
+          existingRunContentDescriptor.displayName,
+          existingRunContentDescriptor.icon,
+          null as Runnable?,
+          existingRunContentDescriptor.restartActions
+        ) {
+          override fun isHiddenContent() = true
+        }.apply<RunContentDescriptor> {
+          setAttachedContent(attachedContent) // Same as [RunContentBuilder.showRunContent]
+          Disposer.register(project, this)
+        }
+      }
+    }
   }
 
   private fun runLaunchTasks(launchTasks: List<LaunchTask>, launchContext: LaunchContext) {
