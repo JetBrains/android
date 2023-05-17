@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.modes
+package com.android.tools.idea.modes.essentials
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.Service
-import com.intellij.util.messages.Topic
+import com.intellij.openapi.util.registry.RegistryManager
 
-@Service
-class EssentialModeMessenger {
+object EssentialsMode {
+  @JvmStatic
+  fun isEnabled(): Boolean {
+    return RegistryManager.getInstance().`is`("ide.essentials.mode");
+  }
 
-  val TOPIC : Topic<Listener> = Topic(Listener::class.java, Topic.BroadcastDirection.TO_CHILDREN)
-
-  fun sendMessage() = ApplicationManager.getApplication().getMessageBus().syncPublisher(TOPIC).essentialModeChanged()
-
-  fun interface Listener {
-    fun essentialModeChanged();
+  @JvmStatic
+  fun setEnabled(value: Boolean) {
+    RegistryManager.getInstance().get("ide.essentials.mode").setValue(value)
   }
 }

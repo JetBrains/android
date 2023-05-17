@@ -35,6 +35,7 @@ import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
+import com.android.tools.idea.modes.essentials.EssentialsModeToggleAction;
 import com.android.tools.idea.serverflags.ServerFlagService;
 import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
 import com.google.common.base.Charsets;
@@ -147,7 +148,6 @@ import java.util.stream.Collectors;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import org.HdrHistogram.SingleWriterRecorder;
-import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -558,7 +558,7 @@ public final class AndroidStudioSystemHealthMonitor {
    */
   private void sendInitialIDEModes() {
     // Essential Highlighting
-    String essentialAction = metricsNameForClass(AndroidPlugin.StudioToggleEssentialHighlightingAction.class);
+    String essentialAction = metricsNameForClass(EssentialsModeToggleAction.class);
     UIActionStats.Builder essentialMode = getInitialUIStateAction();
     essentialMode.setActionClassName(essentialAction);
     essentialMode.setTogglingOn(EssentialHighlightingMode.Companion.isEnabled());

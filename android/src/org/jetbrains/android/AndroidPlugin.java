@@ -1,17 +1,15 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
-import com.android.flags.Flag;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.modes.EssentialModeMessenger;
+import com.android.tools.idea.modes.essentials.EssentialsModeToggleAction;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.actions.ToggleEssentialHighlightingAction;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -21,7 +19,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -92,7 +89,7 @@ public final class AndroidPlugin {
    * For Android Studio make it non-internal and controlled by server side flag.
    */
   private static void overrideEssentialHighlightingAction(ActionManager actionManager) {
-    ToggleAction studioAction = new StudioToggleEssentialHighlightingAction(StudioFlags.ESSENTIAL_HIGHLIGHTING_ACTION_VISIBLE);
+    ToggleAction studioAction = new EssentialsModeToggleAction(StudioFlags.ESSENTIALS_MODE_VISIBLE, StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE);
     if (actionManager.getAction("ToggleEssentialHighlighting") != null) {
       Actions.replaceAction(actionManager, "ToggleEssentialHighlighting", studioAction);
     } else {
@@ -101,37 +98,4 @@ public final class AndroidPlugin {
     }
   }
 
-  public static class StudioToggleEssentialHighlightingAction extends ToggleAction {
-    private final ToggleEssentialHighlightingAction delegate = new ToggleEssentialHighlightingAction();
-    private final Flag<Boolean> enabled;
-
-    private final EssentialModeMessenger applicationService =
-      ApplicationManager.getApplication().getService(EssentialModeMessenger.class);
-    private StudioToggleEssentialHighlightingAction(Flag<Boolean> enabled) {
-      super("Essential Highlighting");
-      this.enabled = enabled;
-    }
-
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-      applicationService.sendMessage();
-      delegate.actionPerformed(e);
-    }
-
-    @Override
-    public boolean isSelected(@NotNull AnActionEvent e) {
-      return delegate.isSelected(e);
-    }
-
-    @Override
-    public void setSelected(@NotNull AnActionEvent e, boolean state) {
-      delegate.setSelected(e, state);
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent e) {
-      delegate.update(e);
-      e.getPresentation().setVisible(enabled.get());
-    }
-  }
 }

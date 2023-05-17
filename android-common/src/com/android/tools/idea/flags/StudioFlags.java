@@ -1096,12 +1096,21 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> ESSENTIAL_HIGHLIGHTING_ACTION_VISIBLE = Flag.create(
-    EDITOR, "essential.highlighting.action.visible",
-    "Show Essential Highlighting action",
+  public static final FlagGroup ESSENTIALS_MODE = new FlagGroup(FLAGS, "essentialsmode", "Essentials Mode");
+
+
+  public static final Flag<Boolean> ESSENTIALS_MODE_VISIBLE = Flag.create(
+    ESSENTIALS_MODE, "essentials.mode.action.visible",
+    "Show Essentials Mode visible in File drop down menu",
     "If enabled, makes Essential Highlighting action visible",
     true
   );
+  public static final Flag<Boolean> ESSENTIALS_HIGHLIGHTING_MODE = Flag.create(
+    ESSENTIALS_MODE, "essential.highlighting.in.essentials.mode",
+    "Essential Highlighting mode on in Essentials mode",
+   "When enabled turns on Essential Highlighting mode when in Essentials Mode. Essential Highlighting mode enables " +
+   "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
+   true);
 
   //endregion
 

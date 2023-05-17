@@ -354,7 +354,11 @@
 
     <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
                         serviceImplementation="com.android.tools.idea.run.JpsAndroidArtifactResolver"/>
-    <applicationService serviceImplementation="com.android.tools.idea.modes.EssentialModeMessenger"/>
+
+    <registryKey key="ide.essentials.mode"
+                 description="Essentials Mode is a lighter-weight version of the editor, which turns some features off until receiving an explicit SaveAll command"
+                 defaultValue="false"
+                 restartRequired="false"/>
 
     <fileType name="Android 9-Patch"
               implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"

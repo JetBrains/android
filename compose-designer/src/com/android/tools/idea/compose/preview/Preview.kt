@@ -57,7 +57,7 @@ import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
-import com.android.tools.idea.modes.EssentialModeMessenger
+import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -366,12 +366,12 @@ class ComposePreviewRepresentation(
           if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
         }
       )
-    val essentialsModeMessengingService = service<EssentialModeMessenger>()
+    val essentialsModeMessagingService = service<EssentialsModeMessenger>()
     project.messageBus
       .connect(this as Disposable)
       .subscribe(
-        essentialsModeMessengingService.TOPIC,
-        EssentialModeMessenger.Listener {
+        essentialsModeMessagingService.TOPIC,
+        EssentialsModeMessenger.Listener {
           updateFpsForCurrentMode()
           // When getting out of Essential Highlighting mode, request a refresh
           if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
