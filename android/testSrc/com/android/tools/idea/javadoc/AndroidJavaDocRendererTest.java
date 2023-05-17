@@ -18,7 +18,6 @@ package com.android.tools.idea.javadoc;
 import static com.android.tools.idea.testing.SnaphotComparisonTestHelpersKt.normalizeHtmlForTests;
 import static com.android.tools.idea.testing.SnapshotComparisonTestUtilsKt.assertIsEqualToSnapshot;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
@@ -28,16 +27,12 @@ import com.android.tools.idea.testing.SnapshotComparisonTest;
 import com.android.tools.lint.client.api.LintClient;
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
-import java.io.IOException;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -344,19 +339,6 @@ b/243077207 */
 
   @Test
   public void manifestAttributes() {
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertThat(facet).isNotNull();
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      VirtualFile manifest = AndroidRootUtil.getPrimaryManifestFile(facet);
-      if (manifest != null) {
-        try {
-          manifest.delete(this);
-        }
-        catch (IOException e) {
-          fail("Could not delete default manifest");
-        }
-      }
-    });
     checkDoc("/javadoc/attrs/manifest.xml", "AndroidManifest.xml");
   }
 
