@@ -21,9 +21,6 @@ import org.junit.runner.RunWith;
 
 @SuppressWarnings("JUnitTestClassNamingConvention")
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  ConnectionAssistantTestSuite.class
-})
 public class ConnectionAssistantTestSuite extends IdeaTestSuiteBase {
 
   static {

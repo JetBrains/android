@@ -16,16 +16,10 @@
 package com.android.tools.nativeSymbolizer;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.testutils.TestUtils;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.intellij.openapi.util.SystemInfo;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(NativeSymbolizerTestSuite.class)  // a suite mustn't contain itself
 public class NativeSymbolizerTestSuite extends IdeaTestSuiteBase {
 
 }

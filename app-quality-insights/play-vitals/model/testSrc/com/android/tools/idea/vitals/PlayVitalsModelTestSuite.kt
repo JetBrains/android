@@ -19,6 +19,4 @@ import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
-@RunWith(JarTestSuiteRunner::class)
-@JarTestSuiteRunner.ExcludeClasses(PlayVitalsModelTestSuite::class)
-class PlayVitalsModelTestSuite : IdeaTestSuiteBase()
+@RunWith(JarTestSuiteRunner::class) class PlayVitalsModelTestSuite : IdeaTestSuiteBase()

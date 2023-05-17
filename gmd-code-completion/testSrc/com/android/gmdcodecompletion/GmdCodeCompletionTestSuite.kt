@@ -21,5 +21,4 @@ import org.junit.runner.RunWith
 
 // This class is necessary to run Idea test framework
 @RunWith(JarTestSuiteRunner::class)
-@JarTestSuiteRunner.ExcludeClasses(GmdCodeCompletionTestSuite::class) // a suite must not contain itself
 class GmdCodeCompletionTestSuite : IdeaTestSuiteBase()

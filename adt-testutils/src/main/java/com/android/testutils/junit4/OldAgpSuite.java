@@ -61,7 +61,7 @@ public final class OldAgpSuite extends Suite {
     List<Class<?>> testClasses = TestGroup.builder()
       .includeJUnit3()
       .build()
-      .scanTestClasses(TEST_JAR_PATH);
+      .scanTestClasses(suiteClass, TEST_JAR_PATH);
 
     testClasses = excludeTests(testClasses, suiteClass);
 

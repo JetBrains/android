@@ -24,9 +24,6 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  GradleProjectSystemStructureTestSuite.class
-})
 public class GradleProjectSystemStructureTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 

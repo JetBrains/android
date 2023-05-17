@@ -20,7 +20,6 @@ import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({NavEditorTestSuite.class})
 public class NavEditorTestSuite extends IdeaTestSuiteBase {
   static {
     linkIntoOfflineMavenRepo("tools/adt/idea/nav/editor/test_deps.manifest");

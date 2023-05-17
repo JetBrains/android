@@ -21,7 +21,6 @@ import org.junit.runner.RunWith;
 
 @SuppressWarnings({"JUnitTestCaseWithNoTests", "NewClassNamingConvention"})
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(MlModelBindingTestSuite.class)  // a suite mustn't contain itself
 public class MlModelBindingTestSuite extends IdeaTestSuiteBase {
   static {
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");

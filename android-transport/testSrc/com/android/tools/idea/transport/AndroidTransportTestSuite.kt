@@ -16,10 +16,8 @@
 package com.android.tools.idea.transport
 
 import com.android.testutils.JarTestSuiteRunner
-import com.android.testutils.JarTestSuiteRunner.ExcludeClasses
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
-@ExcludeClasses(AndroidTransportTestSuite::class)
 class AndroidTransportTestSuite : IdeaTestSuiteBase()

@@ -21,9 +21,6 @@ import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  TemplateTestSuite.class,  // a suite mustn't contain itself
-})
 public class TemplateTestSuite extends IdeaTestSuiteBase {
   public static final String DATA_BINDING_RUNTIME_ZIP = "tools/data-binding/data_binding_runtime.zip";
 
