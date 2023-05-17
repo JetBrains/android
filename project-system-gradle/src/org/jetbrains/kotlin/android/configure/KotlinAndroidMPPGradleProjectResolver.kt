@@ -329,18 +329,19 @@ private fun KotlinMPPGradleModel.mergeSourceSets(sourceSetsToRemove: Set<String>
   kotlin.runCatching {
     val validAndroidSourceSetNames = validAndroidSourceSets.map { it.name }.toSet()
     androidTargets().flatMap { it.androidCompilations() }.forEach { androidCompilation ->
-      val compilationMainSourceSet = androidCompilation.allSourceSets.single {
-        it.name in validAndroidSourceSetNames
-      }
       val compilationRemovedSourceSets = androidCompilation.allSourceSets.filter { it.name in sourceSetsToRemove }.toSet()
+      androidCompilation.allSourceSets
+        .filter { it.name in validAndroidSourceSetNames }
+        .forEach { compilationSourceSet ->
+          compilationSourceSet.sourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.sourceDirs })
+          compilationSourceSet.resourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.resourceDirs })
+        }
       androidCompilation.allSourceSets.takeUnless { it.isEmpty() }
         ?.castTo<MutableSet<KotlinSourceSet>>()
         ?.removeAll(compilationRemovedSourceSets)
       androidCompilation.declaredSourceSets.takeUnless { it.isEmpty() }
         ?.castTo<MutableSet<KotlinSourceSet>>()
         ?.removeAll(compilationRemovedSourceSets)
-      compilationMainSourceSet.sourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.sourceDirs })
-      compilationMainSourceSet.resourceDirs.castTo<MutableSet<File>>().addAll(compilationRemovedSourceSets.flatMap { it.resourceDirs })
     }
 
     val mutableSourceSetsByName = sourceSetsByName as? MutableMap<String, KotlinSourceSet> ?: return

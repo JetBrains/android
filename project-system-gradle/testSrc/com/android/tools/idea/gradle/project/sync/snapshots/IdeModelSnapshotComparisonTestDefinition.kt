@@ -134,6 +134,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
         TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE,
         skipV1toV2Comparison = true
       ),
+      IdeModelSnapshotComparisonTestDefinition(
+        TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION,
+        skipV1toV2Comparison = true
+      ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.ANDROID_KOTLIN_MULTIPLATFORM, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR_WITH_FILTERING),

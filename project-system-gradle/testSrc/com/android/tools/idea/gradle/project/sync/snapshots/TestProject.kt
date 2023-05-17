@@ -264,6 +264,26 @@ enum class TestProject(
       )
     }
   ),
+  KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "multiple_source_set_per_android_compilation",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { projectRoot ->
+      patchMppProject(projectRoot, enableHierarchicalSupport = false, convertAppToKmp = true)
+      projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
+        "android()",
+        """
+          android()
+            sourceSets {
+              androidTest
+              androidAndroidTest {
+                dependsOn(androidTest)
+              }
+            }
+        """.trimIndent()
+      )
+    }
+  ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_SWITCH_VARIANT(
     TestProjectToSnapshotPaths.MULTI_FLAVOR,
