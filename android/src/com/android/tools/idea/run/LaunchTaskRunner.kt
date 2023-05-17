@@ -104,10 +104,32 @@ class LaunchTaskRunner(
       LaunchUtils.initiateDismissKeyguard(it)
     }
 
+    printLaunchTaskStartedMessage(console)
+
     if (shouldDeployAsInstant()) {
       deployAsInstantApp(devices, console)
     } else {
-      doRun(devices, processHandler, indicator, console, false)
+      val launchTasksProvider =
+        AndroidLaunchTasksProvider(configuration, env, facet, packageName, apkProvider, configuration.getLaunchOptions(), false)
+
+      indicator.text = "Launching on devices"
+      devices.map { device ->
+        async {
+          LOG.info("Launching on device ${device.name}")
+          val launchContext = LaunchContext(env, device, console, processHandler, indicator)
+
+          //Deploy
+          if (configuration.DEPLOY) {
+            val deployTask = launchTasksProvider.getDeployTask(device)
+            runLaunchTasks(listOf(deployTask), launchContext)
+            notifyLiveEditService(device, packageName)
+          }
+
+          val launchTasks = launchTasksProvider.getLaunchTasks(device)
+          runLaunchTasks(launchTasks, launchContext) // Notify listeners of the deployment.
+          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
+        }
+      }.awaitAll()
     }
 
     devices.forEach { device ->
@@ -144,38 +166,6 @@ class LaunchTaskRunner(
 
   private fun shouldDeployAsInstant(): Boolean {
     return facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP || configuration.DEPLOY_AS_INSTANT
-  }
-
-  private suspend fun doRun(
-    devices: List<IDevice>, processHandler: ProcessHandler, indicator: ProgressIndicator, console: ConsoleView, isDebug: Boolean
-  ) = coroutineScope {
-    val packageName = applicationIdProvider.packageName
-    val launchTasksProvider = AndroidLaunchTasksProvider(
-      configuration, env, facet, packageName, apkProvider, configuration.getLaunchOptions(), isDebug
-    )
-
-    printLaunchTaskStartedMessage(console)
-
-
-    // A list of devices that we have launched application successfully.
-    indicator.text = "Launching on devices"
-    devices.map { device ->
-      async {
-        LOG.info("Launching on device ${device.name}")
-        val launchContext = LaunchContext(env, device, console, processHandler, indicator)
-
-        //Deploy
-        if (configuration.DEPLOY) {
-          val deployTask = launchTasksProvider.getDeployTask(device)
-          runLaunchTasks(listOf(deployTask), launchContext)
-          notifyLiveEditService(device, packageName)
-        }
-
-        val launchTasks = launchTasksProvider.getLaunchTasks(device)
-        runLaunchTasks(launchTasks, launchContext)
-        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
-      }
-    }.awaitAll()
   }
 
   private fun notifyLiveEditService(device: IDevice, packageName: String) {
@@ -229,10 +219,28 @@ class LaunchTaskRunner(
     }
     LaunchUtils.initiateDismissKeyguard(device)
 
+    printLaunchTaskStartedMessage(console)
+
     if (shouldDeployAsInstant()) {
       deployAsInstantApp(devices, console)
     } else {
-      doRun(devices, processHandler, indicator, console, true)
+      val launchTasksProvider =
+        AndroidLaunchTasksProvider(configuration, env, facet, packageName, apkProvider, configuration.getLaunchOptions(), true)
+
+      indicator.text = "Launching on device"
+      LOG.info("Launching on device ${device.name}")
+      val launchContext = LaunchContext(env, device, console, processHandler, indicator)
+
+      //Deploy
+      if (configuration.DEPLOY) {
+        val deployTask = launchTasksProvider.getDeployTask(device)
+        runLaunchTasks(listOf(deployTask), launchContext)
+        notifyLiveEditService(device, packageName)
+      }
+
+      val launchTasks = launchTasksProvider.getLaunchTasks(device)
+      runLaunchTasks(launchTasks, launchContext) // Notify listeners of the deployment.
+      project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
     }
 
     indicator.text = "Connecting debugger"
@@ -274,7 +282,30 @@ class LaunchTaskRunner(
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
 
-    doRun(devices, processHandler, indicator, console, false)
+    val launchTasksProvider =
+      AndroidLaunchTasksProvider(configuration, env, facet, packageName, apkProvider, configuration.getLaunchOptions(), false)
+
+    printLaunchTaskStartedMessage(console)
+
+    // A list of devices that we have launched application successfully.
+    indicator.text = "Launching on devices"
+    devices.map { device ->
+      async {
+        LOG.info("Launching on device ${device.name}")
+        val launchContext = LaunchContext(env, device, console, processHandler, indicator)
+
+        //Deploy
+        if (configuration.DEPLOY) {
+          val deployTask = launchTasksProvider.getDeployTask(device)
+          runLaunchTasks(listOf(deployTask), launchContext)
+          notifyLiveEditService(device, packageName)
+        }
+
+        val launchTasks = launchTasksProvider.getLaunchTasks(device)
+        runLaunchTasks(launchTasks, launchContext) // Notify listeners of the deployment.
+        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
+      }
+    }.awaitAll()
 
     withContext(uiThread) {
       val attachedContent = existingRunContentDescriptor?.attachedContent
