@@ -28,7 +28,6 @@ iml_module(
 iml_module(
     name = "intellij.android.preview-designer.tests",
     iml_files = ["intellij.android.preview-designer.tests.iml"],
-    resources = ["testSrc/META-INF"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.preview.PreviewDesignerTestSuite",
     test_friends = ["//tools/adt/idea/preview-designer:intellij.android.preview-designer"],

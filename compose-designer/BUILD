@@ -44,7 +44,6 @@ iml_module(
 iml_module(
     name = "intellij.android.compose-designer.tests",
     iml_files = ["intellij.android.compose-designer.tests.iml"],
-    resources = ["testSrc/META-INF"],
     split_test_targets = {
         "gradle.fast": {
             "tags": ["cpu:3"],
