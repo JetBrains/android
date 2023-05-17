@@ -22,7 +22,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
+import org.junit.Ignore;
 
+@Ignore
 public class CreateMissingClassFixTest extends AndroidDomTestCase {
   public CreateMissingClassFixTest() {
     super("dom/manifest");

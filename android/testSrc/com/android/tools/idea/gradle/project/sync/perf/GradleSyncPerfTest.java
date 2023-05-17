@@ -49,10 +49,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+import org.junit.Ignore;
 
 /**
  * Tests to collect performance data for Gradle Sync
  */
+@Ignore // Sync performance test only runs on perf buildbot
 public class GradleSyncPerfTest extends AndroidGradleTestCase {
   private TestUsageTracker myUsageTracker;
   private VirtualTimeScheduler myScheduler;

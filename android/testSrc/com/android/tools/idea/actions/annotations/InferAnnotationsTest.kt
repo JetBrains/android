@@ -35,6 +35,7 @@ import com.intellij.usageView.UsageInfo
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.junit.Ignore
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -50,6 +51,10 @@ private const val INFER_PATH = "/infer/"
 //            0
 //        ) (a resource of any type) in a call"
 //   --> This looks like it should be a drawable or a styleable; double check this
+
+// Require resources with spaces (HTML File template)
+// https://github.com/bazelbuild/bazel/issues/374
+@Ignore
 class InferAnnotationsTest : JavaCodeInsightTestCase() {
   override fun setUp() {
     INFER_ANNOTATIONS_REFACTORING_ENABLED.override(true)
