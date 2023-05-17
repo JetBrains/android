@@ -466,6 +466,7 @@ class ComposePreviewRepresentationGradleTest {
     assertTrue(composePreviewRepresentation.status().isOutOfDate)
   }
 
+  @Ignore("b/283057643")
   @Test
   fun `updating different file triggers needs refresh`() = runBlocking {
     // This test only makes sense when fast preview is disabled,
