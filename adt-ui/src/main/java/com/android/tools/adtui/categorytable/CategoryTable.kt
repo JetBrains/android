@@ -203,6 +203,9 @@ class CategoryTable<T : Any>(
   fun addToScrollPane(scrollPane: JScrollPane) {
     scrollPane.setColumnHeaderView(header)
     scrollPane.setViewportView(this)
+    // This is required for the JBScrollPane to allocate space for the vertical scrollbar.
+    // See "vsbRequiresSpace" in JBScrollPane.Layout.layoutContainer.
+    scrollPane.verticalScrollBar.isOpaque = true
   }
 
   private fun mouseClickedOnHeader(e: MouseEvent) {

@@ -32,6 +32,7 @@ import javax.swing.SortOrder
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class CategoryTableTest {
   @get:Rule val edtRule = EdtRule()
   @get:Rule val disposableRule = DisposableRule()
@@ -195,7 +196,6 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun selection() {
     // Set some distinct colors
     val colors =
@@ -236,7 +236,6 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun collapsedRows() {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
@@ -270,7 +269,6 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun rowDataContext() {
     TestApplicationManager.getInstance()
     HeadlessDataManager.fallbackToProductionDataManager(disposableRule.disposable)
@@ -290,7 +288,6 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun hiddenRows() {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
@@ -318,7 +315,6 @@ class CategoryTableTest {
   }
 
   @Test
-  @RunsInEdt
   fun hiddenCollapsedRows() {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
@@ -348,5 +344,23 @@ class CategoryTableTest {
 
     assertThat(table.rowComponents[1].isVisible).isFalse()
     assertThat(table.rowComponents[2].isVisible).isTrue()
+  }
+
+  @Test
+  fun scrollbarLayout() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane)
+    CategoryTableDemo.devices.forEach { table.addRow(it) }
+
+    scrollPane.setBounds(0, 0, 800, 400)
+    assertThat(scrollPane.verticalScrollBar.isVisible).isFalse()
+    val widthWithoutScrollbar = table.width
+
+    scrollPane.setBounds(0, 0, 800, 100)
+    fakeUi.layout()
+    assertThat(scrollPane.verticalScrollBar.isVisible).isTrue()
+    assertThat(scrollPane.verticalScrollBar.width).isGreaterThan(0)
+    assertThat(table.width).isEqualTo(widthWithoutScrollbar - scrollPane.verticalScrollBar.width)
   }
 }
