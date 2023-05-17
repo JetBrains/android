@@ -35,6 +35,7 @@ import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -115,31 +116,24 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
 
   @Test
   public void string1Java() {
-    checkString1("/javadoc/strings/Activity1.java", "src/p1/p2/Activity.java");
+    checkStrings("/javadoc/strings/Activity1.java", "src/p1/p2/Activity.java");
   }
 
   @Test
   public void string1Kotlin() {
-    checkString1("/javadoc/strings/Activity1.kt", "src/p1/p2/Activity.kt");
-  }
-
-  public void checkString1(String sourcePath, String targetPath) {
-    checkStrings(sourcePath, targetPath);
+    checkStrings("/javadoc/strings/Activity1.kt", "src/p1/p2/Activity.kt");
   }
 
   @Test
   public void string2Java() {
-    checkString2("/javadoc/strings/Activity2.java", "src/p1/p2/Activity.java");
+    // Use FlagManagerTest#checkEncoding to get Unicode encoding
+    checkStrings("/javadoc/strings/Activity2.java", "src/p1/p2/Activity.java");
   }
 
   @Test
   public void string2Kotlin() {
-    checkString2("/javadoc/strings/Activity2.kt", "src/p1/p2/Activity.kt");
-  }
-
-  public void checkString2(String sourcePath, String targetPath) {
     // Use FlagManagerTest#checkEncoding to get Unicode encoding
-    checkStrings(sourcePath, targetPath);
+    checkStrings("/javadoc/strings/Activity2.kt", "src/p1/p2/Activity.kt");
   }
 
   /**
@@ -148,20 +142,16 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
    * There is no custom documentation for the inner R class, so the default Java platform documentation for a Java
    * static final field is used.
    */
+  @Ignore // b/243077207
   @Test
   public void string3Java() {
-    checkString3("/javadoc/strings/Activity3.java", "src/p1/p2/Activity.java");
+    checkStrings("/javadoc/strings/Activity3.java", "src/p1/p2/Activity.java");
   }
 
+  @Ignore // b/243077207
   @Test
   public void string3Kotlin() {
-    checkString3("/javadoc/strings/Activity3.kt", "src/p1/p2/Activity.kt");
-  }
-
-  public void checkString3(String sourcePath, String targetPath) {
-/* b/243077207
-    checkStrings(sourcePath, targetPath);
-b/243077207 */
+    checkStrings("/javadoc/strings/Activity3.kt", "src/p1/p2/Activity.kt");
   }
 
   @Test
