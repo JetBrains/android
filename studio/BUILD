@@ -513,7 +513,7 @@ studio_plugin(
     libs = [
         "//prebuilts/tools/common/m2:JSch",
         "//tools/adt/idea/.idea/libraries:tightvnc",
-        "//prebuilts/tools/common/m2:google_api_services_testing",
+        "//tools/studio/google/cloud/testing/firebase-testing:google_api_services_testing",
     ],
     modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
     visibility = ["//visibility:public"],
