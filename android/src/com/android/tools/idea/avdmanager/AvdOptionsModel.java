@@ -69,6 +69,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -140,7 +141,7 @@ public final class AvdOptionsModel extends WizardModel {
   private ObservableObject<Storage> myOriginalSdCard;
 
   private AvdDeviceData myAvdDeviceData;
-  private AvdInfo myCreatedAvd;
+  private @Nullable AvdInfo myCreatedAvd;
 
   public void setAsCopy() {
     // Copying this AVD. Adjust its name.
@@ -849,8 +850,8 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   @NotNull
-  public AvdInfo getCreatedAvd() {
-    return myCreatedAvd;
+  public Optional<AvdInfo> getCreatedAvd() {
+    return Optional.ofNullable(myCreatedAvd);
   }
 
   @Nullable

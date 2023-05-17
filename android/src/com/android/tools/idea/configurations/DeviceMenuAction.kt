@@ -322,9 +322,9 @@ class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHo
     val dialog = AvdWizardUtils.createAvdWizard(null, project, optionsModel)
 
     if (dialog.showAndGet()) {
-      // Select the new created AVD device.
-      val avdDevice = config.configurationManager.createDeviceForAvd(optionsModel.createdAvd)
-      config.setDevice(avdDevice, true)
+      optionsModel.createdAvd
+        .map(config.configurationManager::createDeviceForAvd)
+        .ifPresent { device -> config.setDevice(device, true) }
     }
   }
 }
