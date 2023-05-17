@@ -21,11 +21,10 @@ import com.android.tools.idea.logcat.files.LogcatFileIo.LogcatFileType.JSON
 import com.android.tools.idea.logcat.files.LogcatFileIo.LogcatFileType.UNKNOWN
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.gson.GsonBuilder
-import java.io.File
-import java.io.FileWriter
 import java.nio.file.Path
 import kotlin.io.path.bufferedReader
 import kotlin.io.path.reader
+import kotlin.io.path.writer
 
 
 private const val MAX_LOGCAT_ENTRY = 4000
@@ -42,14 +41,14 @@ internal object LogcatFileIo {
   }
 
   fun writeLogcat(
-    file: File,
+    path: Path,
     logcatMessages: List<LogcatMessage>,
     device: Device,
     filter: String,
     projectApplicationIds: Set<String>
   ) {
     val data = LogcatFileData(Metadata(device, filter, projectApplicationIds), logcatMessages)
-    FileWriter(file).use {
+    path.writer().use {
       gson.toJson(data, it)
     }
   }

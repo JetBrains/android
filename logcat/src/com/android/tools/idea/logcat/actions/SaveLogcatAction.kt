@@ -65,7 +65,7 @@ internal class SaveLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.s
     val projectApplicationIds = project.getService(ProjectApplicationIdsProvider::class.java)?.getPackageNames() ?: emptySet()
 
     AndroidCoroutineScope(logcatPresenter, AndroidDispatchers.diskIoThread).launch {
-      LogcatFileIo.writeLogcat(file, logcatMessages, device, filter, projectApplicationIds)
+      LogcatFileIo.writeLogcat(file.toPath(), logcatMessages, device, filter, projectApplicationIds)
       val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
       if (virtualFile == null) {
         LOGGER.warn("Failed to save Logcat file: $file")
