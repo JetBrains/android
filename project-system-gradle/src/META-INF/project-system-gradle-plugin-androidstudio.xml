@@ -45,6 +45,10 @@
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
     </action>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
+    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty">
+      <add-to-group group-id="BuildMenu" anchor="first"/>
+      <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
+    </action>
     <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
     </action>

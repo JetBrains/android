@@ -33,9 +33,6 @@
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <actions>
-    <action id="RefreshLinkedCppProjects" class="com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction">
-      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="RebuildGradleProject"/>
-    </action>
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
       <keyboard-shortcut keymap="$default" first-keystroke="control shift o" />
@@ -127,9 +124,6 @@
       <add-to-group group-id="HelpDiagnosticTools" anchor="last"/>
     </group>
 
-    <action id="Android.GenerateSignedApk" class="org.jetbrains.android.actions.GenerateSignedApkAction">
-      <add-to-group group-id="BuildMenu" anchor="last"/>
-    </action>
     <action id="Android.AnalyzeApk" class="com.android.tools.idea.apk.viewer.AnalyzeApkAction">
       <add-to-group group-id="BuildMenu" relative-to-action="Android.GenerateSignedApk" anchor="after"/>
     </action>
