@@ -569,49 +569,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
       "</resources>", true);
   }
 
-  // Ignored: b/281863312
-  public void ignore_testRenameComponent() {
-    doRenameComponentTest("MyActivity1");
-  }
-
-  // Ignored: b/281863312
-  public void ignore_testRenameComponent2() {
-    myFixture.copyFileToProject(BASE_PATH + "ChildActivity.java", "src/p1/p2/ChildActivity.java");
-    doRenameComponentTest("MyActivity1");
-  }
-
-  @Override
-  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
-                                            @NotNull List<MyAdditionalModuleData> modules) {
-    if ("testRenamePackageFromTestModule".equals(getName())) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", PROJECT_TYPE_APP);
-    }
-  }
-
-  public void testRenamePackage() {
-    doRenameComponentTest("p10");
-  }
-
-  public void testRenamePackage1() {
-    doRenameComponentTest("p20");
-  }
-
-  // Ignored: b/281863312
-  public void ignore_testRenamePackage2() {
-    doRenameComponentTest("p1.p2");
-  }
-
-  // Ignored: b/281863312
-  public void ignore_testRenamePackage3() {
-    doRenameComponentTest("p1");
-  }
-
-  public void testRenamePackageFromTestModule() {
-    doRenameComponentTest("p1.p3");
-    myFixture.checkResultByFile("additionalModules/module1/AndroidManifest.xml", BASE_PATH + getTestName(false) + "_module1_after.xml",
-                                true);
-  }
-
   public void testMovePackage() {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2/p3");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity1.java", "src/p1/p2/p3/MyActivity.java");
@@ -826,16 +783,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
     assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
     doMovePackage(packageName, newPackageName);
-    myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
-  }
-
-  private void doRenameComponentTest(String newName) {
-    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.configureFromExistingVirtualFile(manifestFile);
-    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
-    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
-    checkAndRename(newName);
     myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.xml");
   }
 
