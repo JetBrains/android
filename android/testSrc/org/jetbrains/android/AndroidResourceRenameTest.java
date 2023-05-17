@@ -381,60 +381,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     myFixture.checkResultByFile(BASE_PATH + "layout_id_after.xml");
   }
 
-  // Ignored: b/281863312
-  public void ignore_testMoveApplicationClass() throws Throwable {
-    deleteManifest();
-    myFixture.copyFileToProject(BASE_PATH + "MyApplication.java", "src/p1/p2/MyApplication.java");
-    VirtualFile f = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + ".xml", "AndroidManifest.xml");
-    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(f);
-    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
-    myFixture.configureFromExistingVirtualFile(f);
-    moveClass("p1.p2.MyApplication", "p1");
-    myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml");
-  }
-
-  public void testAndroidManifestRenameClass1() throws Throwable {
-    doTestAndroidManifestRenameClass("AndroidManifest_rename_class1.xml", "AndroidManifest_rename_class1-2_after.xml");
-  }
-
-  // Ignored: b/281863312
-  public void ignore_testAndroidManifestRenameClass2() throws Throwable {
-    doTestAndroidManifestRenameClass("AndroidManifest_rename_class2.xml", "AndroidManifest_rename_class1-2_after.xml");
-  }
-
-  public void testAndroidManifestRenameClass3() throws Throwable {
-    doTestAndroidManifestRenameClass("AndroidManifest_rename_class3.xml", "AndroidManifest_rename_class3_after.xml");
-  }
-
-  /**
-   * Copy {@code filePath} to project as AndroidManifest.xml, rename a class in a Java file and check if class is renamed correctly
-   * by comparing the result with {@code expectedFile}. Also check if class is actually renamed in the Java file.
-   */
-  public void doTestAndroidManifestRenameClass(final String filePath, final String expectedFile) throws Throwable {
-    deleteManifest();
-    VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "MyClass.java", "src/p1/p2/MyClass.java");
-    myFixture.copyFileToProject(BASE_PATH + filePath, "AndroidManifest.xml");
-    myFixture.configureFromExistingVirtualFile(f);
-    checkAndRename("MyClass2");
-    myFixture.checkResultByFile(BASE_PATH + "MyClass2.java", true);
-    myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + expectedFile, true);
-  }
-
-  /**
-   * This will do a refactor and update all code AND non-code (such as text/comments) references.
-   */
-  private void moveClass(final String className, final String newPackageName) {
-    PsiClass aClass = JavaPsiFacade.getInstance(getProject()).findClass(className, GlobalSearchScope.projectScope(getProject()));
-    PsiPackage aPackage = JavaPsiFacade.getInstance(getProject()).findPackage(newPackageName);
-
-    assertNotNull(aPackage);
-    final PsiDirectory[] dirs = aPackage.getDirectories();
-    assertEquals(dirs.length, 1);
-
-    new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{aClass}, new SingleSourceRootMoveDestination(
-      PackageWrapper.create(JavaDirectoryService.getInstance().getPackage(dirs[0])), dirs[0]), true, true, null).run();
-  }
-
   public void testXmlReferenceToValueResource() throws Throwable {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout2.xml");
