@@ -28,6 +28,7 @@ import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewImpl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.isAndroidEnvironment
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -59,7 +60,8 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
   private fun createDeviceMonitorController(project: Project): DeviceMonitorControllerImpl {
     val adbService = project.getService(AdbDeviceService::class.java)
     val processService = project.getService(DeviceProcessService::class.java)
-    val model = DeviceMonitorModel(processService)
+    val packageNameProvider = ProjectApplicationIdsProvider.getInstance(project)
+    val model = DeviceMonitorModel(processService, packageNameProvider)
     val view = DeviceMonitorViewImpl(model)
     return DeviceMonitorControllerImpl(project, model, view, adbService)
   }

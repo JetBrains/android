@@ -21,6 +21,8 @@ import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.openapi.Disposable
@@ -54,8 +56,8 @@ class DeviceMonitorControllerImpl(
     view.addListener(viewListener)
     deviceService.addListener(deviceServiceListener)
     view.setup()
+    view.trackModelChanges(uiThreadScope)
 
-    uiThreadScope.launch { view.trackPackageFilter() }
     uiThreadScope.launch {
       try {
         deviceService.start()
@@ -65,6 +67,15 @@ class DeviceMonitorControllerImpl(
         setupJob.completeExceptionally(t)
       }
     }
+
+    project.messageBus.connect(this).subscribe(
+      PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
+      ProjectApplicationIdsProvider.ProjectApplicationIdsListener {
+        uiThreadScope.launch {
+           model.projectApplicationIdListChanged()
+        }
+      }
+    )
   }
 
   override fun setActiveConnectedDevice(serialNumber: String?) {

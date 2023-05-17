@@ -21,6 +21,7 @@ import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,14 +29,29 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 @UiThread
-class DeviceMonitorModel(private val processService: DeviceProcessService) {
+class DeviceMonitorModel(
+  private val processService: DeviceProcessService,
+  private val packageNamesProvider: ProjectApplicationIdsProvider) {
   private var activeDevice: AdbDevice? = null
   private val activeDeviceMutex = Mutex()
   val tableModel = DeviceMonitorTableModel()
   val isPackageFilterActive = MutableStateFlow(false)
+  val isApplicationIdsEmpty = MutableStateFlow(true)
 
-  fun setPackageFilter(isActive: Boolean) {
-    isPackageFilterActive.value = isActive
+  suspend fun setPackageFilter(isActive: Boolean) {
+    if (isPackageFilterActive.value != isActive) {
+      isPackageFilterActive.value = isActive
+      refreshCurrentProcessList()
+    }
+  }
+
+  suspend fun projectApplicationIdListChanged() {
+    isApplicationIdsEmpty.value = packageNamesProvider.getPackageNames().isEmpty()
+    if (isApplicationIdsEmpty.value) {
+      isPackageFilterActive.value = false
+    } else if (isPackageFilterActive.value) {
+      refreshCurrentProcessList()
+    }
   }
 
   suspend fun activeDeviceChanged(device: IDevice?) {
@@ -98,10 +114,26 @@ class DeviceMonitorModel(private val processService: DeviceProcessService) {
   private suspend fun refreshCurrentDeviceProcessList() {
     activeDeviceMutex.withLock {
       activeDevice?.let {
-        val processList = processService.fetchProcessList(it)
+        val processList = filterProcessList(processService.fetchProcessList(it))
         thisLogger().debug("$it: Process list updated to ${processList.size} processes")
         tableModel.updateProcessRows(processList)
       }
     }
+  }
+
+  private fun filterProcessList(list: List<ProcessInfo>): List<ProcessInfo> {
+    if (!isPackageFilterActive.value) {
+      return list
+    }
+
+    val filteredList = mutableListOf<ProcessInfo>()
+    val projectPackages = packageNamesProvider.getPackageNames()
+    for (process in list) {
+      if (projectPackages.contains(process.packageName)) {
+        filteredList.add(process)
+      }
+    }
+
+    return filteredList
   }
 }

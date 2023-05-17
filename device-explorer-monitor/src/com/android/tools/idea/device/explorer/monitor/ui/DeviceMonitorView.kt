@@ -16,6 +16,7 @@
 package com.android.tools.idea.device.explorer.monitor.ui
 
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
+import kotlinx.coroutines.CoroutineScope
 import javax.swing.JComponent
 
 interface DeviceMonitorView {
@@ -23,5 +24,5 @@ interface DeviceMonitorView {
   fun setup()
   fun addListener(listener: DeviceMonitorViewListener)
   fun removeListener(listener: DeviceMonitorViewListener)
-  suspend fun trackPackageFilter()
+  fun trackModelChanges(coroutineScope: CoroutineScope)
 }

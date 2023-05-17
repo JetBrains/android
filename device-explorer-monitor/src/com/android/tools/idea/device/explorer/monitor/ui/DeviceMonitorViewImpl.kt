@@ -18,6 +18,7 @@ package com.android.tools.idea.device.explorer.monitor.ui
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
+import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder.Companion.EMPTY_TREE_TEXT
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.KillMenuItem
@@ -28,6 +29,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.table.JBTable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.util.function.Consumer
 import javax.swing.JComponent
@@ -48,6 +51,21 @@ class DeviceMonitorViewImpl(
     setUpTable()
     createTreePopupMenu()
     createToolbar()
+  }
+
+  override fun trackModelChanges(coroutineScope: CoroutineScope) {
+    coroutineScope.launch {
+      model.isPackageFilterActive.collect {
+        packageFilterMenuItem.isActionSelected = it
+        table.emptyText.text = if (it) "No results (Some processes hidden due to app ID filter)" else EMPTY_TREE_TEXT
+      }
+    }
+
+    coroutineScope.launch {
+      model.isApplicationIdsEmpty.collect {
+        packageFilterMenuItem.shouldBeEnabled = !it
+      }
+    }
   }
 
   override fun addListener(listener: DeviceMonitorViewListener) {
@@ -128,10 +146,4 @@ class DeviceMonitorViewImpl(
     IntArray(viewRows.size) { index ->
       table.convertRowIndexToModel(viewRows[index])
     }
-
-  override suspend fun trackPackageFilter() {
-    model.isPackageFilterActive.collect {
-      packageFilterMenuItem.isActionSelected = it
-    }
-  }
 }

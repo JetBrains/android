@@ -48,7 +48,7 @@ class ProcessListTableBuilder {
     val table = JBTable(tableModel).apply {
       showVerticalLines = false
       showHorizontalLines = false
-      emptyText.text = "No debuggable process on device"
+      emptyText.text = EMPTY_TREE_TEXT
       autoCreateColumnsFromModel = false
       autoCreateRowSorter = true
       setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION)
@@ -286,6 +286,7 @@ class ProcessListTableBuilder {
   }
 
   companion object {
+    const val EMPTY_TREE_TEXT = "No debuggable process on device"
     private val processIcon = StudioIcons.Shell.Filetree.ACTIVITY
     private const val NAME_COLUMN_INDEX = 0
     private const val PID_COLUMN_INDEX = 1

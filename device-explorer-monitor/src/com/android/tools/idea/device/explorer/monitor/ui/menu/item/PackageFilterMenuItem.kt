@@ -21,10 +21,15 @@ import javax.swing.Icon
 
 class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuItem(listener) {
   var isActionSelected = false
+  var shouldBeEnabled = false
 
   override fun getText(numOfNodes: Int): String {
     val selectionText = if (isActionSelected) "off" else "on"
-    return "Turn $selectionText package filter"
+    val buttonText = "Turn $selectionText package filter"
+    return if(!shouldBeEnabled)
+      "<html>$buttonText<br>Disabled due to no application IDs found</html>"
+    else
+      buttonText
   }
 
   override val icon: Icon
@@ -45,7 +50,7 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuIte
 
   override val isEnabled: Boolean
     get() {
-      return true
+      return shouldBeEnabled
     }
 
   override fun run() {

@@ -23,6 +23,7 @@ import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
+import kotlinx.coroutines.CoroutineScope
 import javax.swing.JComponent
 
 class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
@@ -44,8 +45,8 @@ class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
   override val panelComponent: JComponent
     get() = viewImpl.panelComponent
 
-  override suspend fun trackPackageFilter() {
-    viewImpl.trackPackageFilter()
+  override fun trackModelChanges(coroutineScope: CoroutineScope) {
+    viewImpl.trackModelChanges(coroutineScope)
   }
 
   fun killNodes() {
