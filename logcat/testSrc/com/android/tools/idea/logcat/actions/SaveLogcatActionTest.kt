@@ -10,8 +10,8 @@ import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.ProjectServiceRule
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
@@ -20,7 +20,6 @@ import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.DisposableRule
@@ -40,9 +39,10 @@ import java.nio.file.Path
 class SaveLogcatActionTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
+  private val temporaryDirectoryRule = TemporaryDirectoryRule()
   private val project get() = projectRule.project
   private val disposable get() = disposableRule.disposable
-  private val fakeFileChooserFactory = FakeFileChooserFactory(disposable)
+  private val fakeFileChooserFactory = FakeFileChooserFactory()
   private val fakeProjectApplicationIdsProvider by lazy { FakeProjectApplicationIdsProvider(project) }
   private val device = Device.createPhysical("device", true, "10", 30, "Google", "Pixel")
   private val fakeLogcatPresenter by lazy {
@@ -55,6 +55,7 @@ class SaveLogcatActionTest {
   val rule = RuleChain(
     projectRule,
     disposableRule,
+    temporaryDirectoryRule,
     ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory),
     ProjectServiceRule(projectRule, ProjectApplicationIdsProvider::class.java) { fakeProjectApplicationIdsProvider }
   )
@@ -133,7 +134,7 @@ class SaveLogcatActionTest {
     waitForCondition { FileEditorManager.getInstance(project).hasOpenFiles() }
 
     assertThat(fakeFileChooserFactory.files).hasSize(1)
-    assertThat(fakeFileChooserFactory.files[0].name).endsWith("Google-Pixel-Android-10")
+    assertThat(fakeFileChooserFactory.files[0].name).contains("_Google-Pixel-Android-10_")
     assertThat(FileEditorManager.getInstance(project).openFiles[0].name).isEqualTo(fakeFileChooserFactory.files[0].name)
     val data = LogcatFileIo.readLogcat(fakeFileChooserFactory.files[0].toPath())
     assertThat(data.logcatMessages).containsExactly(
@@ -154,12 +155,8 @@ class SaveLogcatActionTest {
       put(LOGCAT_PRESENTER_ACTION, logcatPresenter)
     })
 
-  private class FakeFileChooserFactory(disposable: Disposable) : FileChooserFactoryImpl() {
+  private inner class FakeFileChooserFactory : FileChooserFactoryImpl() {
     val files = mutableListOf<File>()
-
-    init {
-      Disposer.register(disposable) { files.forEach { it.deleteOnExit() } }
-    }
 
     override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
       return object : FileSaverDialog {
@@ -172,7 +169,7 @@ class SaveLogcatActionTest {
           if (filename == null) {
             fail("filename cannot be null")
           }
-          val file = FileUtil.createTempFile("", filename, true)
+          val file = temporaryDirectoryRule.newPath(filename).toFile()
           val virtualFileWrapper = VirtualFileWrapper(file)
           files.add(virtualFileWrapper.file)
           return virtualFileWrapper

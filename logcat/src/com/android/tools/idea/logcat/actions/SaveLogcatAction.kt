@@ -19,8 +19,8 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.files.LogcatFileIo
+import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
-import com.android.tools.idea.util.toIoFile
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -56,8 +56,7 @@ internal class SaveLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.s
       FileSaverDescriptor(LogcatBundle.message("logcat.save.log.dialog.title"), "", "logcat"),
       project)
     val filename = "${device.name.replace(' ', '-')}-Android-${device.release}"
-    val virtualFile = dialog.save(getSavePath(project), filename)?.virtualFile ?: return
-    val file = virtualFile.toIoFile()
+    val file = dialog.save(getSavePath(project), filename)?.file ?: return
     PropertiesComponent.getInstance(project).setValue(SAVE_PATH_KEY, file.parent)
 
     val logcatMessages = logcatPresenter.getBacklogMessages()
@@ -67,7 +66,11 @@ internal class SaveLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.s
 
     AndroidCoroutineScope(logcatPresenter, AndroidDispatchers.diskIoThread).launch {
       LogcatFileIo.writeLogcat(file, logcatMessages, device, filter, projectApplicationIds)
-      virtualFile.refresh(false, false)
+      val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
+      if (virtualFile == null) {
+        LOGGER.warn("Failed to save Logcat file: $file")
+        return@launch
+      }
       withContext(AndroidDispatchers.uiThread) {
         FileEditorManager.getInstance(project).openFile(virtualFile, true)
       }
