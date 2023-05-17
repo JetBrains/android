@@ -197,7 +197,7 @@ Parameter: height should have Float(dp/px) value.""",
   private fun annotateAndGetLintInfo(): HighlightInfo? =
     fixture
       .doHighlighting()
-      .filter { it.severity == HighlightSeverity.WARNING }
+      .filter { it.inspectionToolId != null && it.severity == HighlightSeverity.ERROR }
       .let {
         assert(it.size <= 1)
         it.firstOrNull()
