@@ -36,7 +36,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.io.IOException;
-import java.util.function.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -79,10 +78,9 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
   }
 
   private void checkDoc(String fileName, String targetName) {
-    checkDoc(fileName, targetName, doc -> {
-      String normalizedDoc = normalizeHtmlForTests(myProject, doc != null ? doc : "");
-      assertIsEqualToSnapshot(this, normalizedDoc, "");
-    });
+    String doc = generateDoc(fileName, targetName);
+    String normalizedDoc = normalizeHtmlForTests(myProject, doc != null ? doc : "");
+    assertIsEqualToSnapshot(this, normalizedDoc, "");
   }
 
   /**
@@ -90,7 +88,7 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
    * explicitly in the contents of {@code fileName}). {@code javadocConsumer} will be triggered with
    * the actual documentation returned and will be responsible for asserting expected values.
    */
-  private void checkDoc(String fileName, String targetName, Consumer<String> javadocConsumer) {
+  private String generateDoc(String fileName, String targetName) {
     VirtualFile f = myFixture.copyFileToProject(fileName, targetName);
     myFixture.configureFromExistingVirtualFile(f);
     PsiElement originalElement = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
@@ -99,30 +97,25 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
       DocumentationManager.getInstance(myProject).findTargetElement(myFixture.getEditor(), myFixture.getFile(), originalElement);
     assert docTargetElement != null;
     DocumentationProvider provider = DocumentationManager.getProviderFromElement(docTargetElement);
-    String doc = provider.generateDoc(docTargetElement, originalElement);
-    javadocConsumer.accept(doc);
+    return provider.generateDoc(docTargetElement, originalElement);
   }
 
   @Test
   public void brokenCustomDrawableJava() {
     // Layout lib cannot render the custom drawable here, so it should show an error.
     myFixture.copyFileToProject("javadoc/drawables/customDrawable.xml", "res/drawable/ic_launcher.xml");
-    checkDoc("/javadoc/drawables/Activity1.java",
-             "src/p1/p2/Activity.java", actualDoc -> {
-        assertThat(actualDoc).contains("Couldn't render");
-        assertThat(actualDoc).doesNotContain("render.png");
-      });
+    String doc = generateDoc("/javadoc/drawables/Activity1.java", "src/p1/p2/Activity.java");
+    assertThat(doc).contains("Couldn't render");
+    assertThat(doc).doesNotContain("render.png");
   }
 
   @Test
   public void webPDrawableJava() {
     // WebP images need to be rendered by layoutlib, so should show the rendered PNG.
     myFixture.copyFileToProject("javadoc/drawables/ic_launcher.webp", "res/drawable/ic_launcher.webp");
-    checkDoc("/javadoc/drawables/Activity1.java",
-             "src/p1/p2/Activity.java", actualDoc -> {
-        assertThat(actualDoc).contains("render.png");
-        assertThat(actualDoc).doesNotContain("Couldn't render");
-      });
+    String doc = generateDoc("/javadoc/drawables/Activity1.java", "src/p1/p2/Activity.java");
+    assertThat(doc).contains("render.png");
+    assertThat(doc).doesNotContain("Couldn't render");
   }
 
   @Test
@@ -399,8 +392,7 @@ b/243077207 */
   public void frameworkStyleResolution() {
     // Checks that references in framework styles are always understood to point to framework resources,
     // even if the android: prefix is not explicitly written.
-    checkDoc("/javadoc/styles/styles.xml", "res/values/styles.xml", actualDoc ->
-      assertThat(actualDoc).contains("@android:style/Theme.Holo<BR/>"));
+    assertThat(generateDoc("/javadoc/styles/styles.xml", "res/values/styles.xml")).contains("@android:style/Theme.Holo<BR/>");
   }
 
   @Test
@@ -453,8 +445,8 @@ b/243077207 */
     // A layout is needed for the ResourceResolver to be able to automatically pick a default configuration (it will find a layout at
     // random). The layout is not related to the test.
     myFixture.copyFileToProject("javadoc/layout/layout.xml", "res/layout/layout.xml");
-    checkDoc("/javadoc/styles/styles_loop.xml", "res/values/styles.xml",
-             doc -> assertThat(doc).startsWith("<html><body><BR/>@style/TextAppearance<BR/><BR/><hr><B>TextAppearance</B>"));
+    assertThat(generateDoc("/javadoc/styles/styles_loop.xml", "res/values/styles.xml"))
+      .startsWith("<html><body><BR/>@style/TextAppearance<BR/><BR/><hr><B>TextAppearance</B>");
   }
 
   @NotNull
