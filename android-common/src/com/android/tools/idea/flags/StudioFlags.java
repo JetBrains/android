@@ -200,9 +200,9 @@ public final class StudioFlags {
 
   //region Design Tools
   private static final FlagGroup DESIGN_TOOLS = new FlagGroup(FLAGS, "design.tools", "Design Tools");
-  public static final Flag<Boolean> DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT = Flag.create(
-    DESIGN_TOOLS, "power.save.support", "Enable previews support for PowerSave mode",
-    "If enabled, the the Layout Editor and Compose Preview will respect the Power Save mode and avoid auto-refresh, reduce FPS, etc.",
+  public static final Flag<Boolean> DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT = Flag.create(
+    DESIGN_TOOLS, "essentials.mode.support", "Enable previews support for Essentials mode",
+    "If enabled, the the Layout Editor and Compose Preview will respect the Essentials mode and avoid auto-refresh, reduce FPS, etc.",
     true);
 
   public static final Flag<Long> PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT = Flag.create(

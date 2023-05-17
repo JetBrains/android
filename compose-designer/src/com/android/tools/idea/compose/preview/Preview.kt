@@ -53,7 +53,7 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
+import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
@@ -80,7 +80,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.rendering.RenderService
 import com.intellij.ide.ActivityTracker
-import com.intellij.ide.PowerSaveMode
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -235,7 +234,7 @@ fun configureLayoutlibSceneManager(
     setShrinkRendering(!showDecorations)
     interactive = isInteractive
     isUsePrivateClassLoader = requestPrivateClassLoader
-    setQuality(if (PreviewPowerSaveManager.isInPowerSaveMode) 0.75f else 0.95f)
+    setQuality(if (PreviewEssentialsModeManager.isInEssentialsMode) 0.75f else 0.95f)
     setShowDecorations(showDecorations)
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene
     // Manager to not
@@ -383,18 +382,7 @@ class ComposePreviewRepresentation(
 
   init {
     val project = psiFile.project
-    /* b/277124475 */
-    project.messageBus
-      .connect(this as Disposable)
-      .subscribe(
-        PowerSaveMode.TOPIC,
-        PowerSaveMode.Listener {
-          updateFpsForCurrentMode()
 
-          // When getting out of power save mode, request a refresh
-          if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
-        }
-      )
     val essentialsModeMessagingService = service<EssentialsModeMessenger>()
     project.messageBus
       .connect(this as Disposable)
@@ -402,15 +390,15 @@ class ComposePreviewRepresentation(
         essentialsModeMessagingService.TOPIC,
         EssentialsModeMessenger.Listener {
           updateFpsForCurrentMode()
-          // When getting out of Essential Highlighting mode, request a refresh
-          if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
+          // When getting out of Essentials Mode, request a refresh
+          if (!PreviewEssentialsModeManager.isInEssentialsMode) requestRefresh()
         }
       )
   }
 
   private fun updateFpsForCurrentMode() {
     fpsLimit =
-      if (PreviewPowerSaveManager.isInPowerSaveMode) {
+      if (PreviewEssentialsModeManager.isInEssentialsMode) {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
       } else {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
@@ -967,7 +955,7 @@ class ComposePreviewRepresentation(
             }
 
             if (
-              !PreviewPowerSaveManager.isInPowerSaveMode &&
+              !PreviewEssentialsModeManager.isInEssentialsMode &&
                 interactiveMode.isStoppingOrDisabled() &&
                 !animationInspection.get() &&
                 !ComposePreviewLiteModeManager.isLiteModeEnabled
@@ -1021,7 +1009,7 @@ class ComposePreviewRepresentation(
   // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
-    if (PreviewPowerSaveManager.isInPowerSaveMode) return
+    if (PreviewEssentialsModeManager.isInEssentialsMode) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
     if (interactiveMode.isStartingOrReady()) return

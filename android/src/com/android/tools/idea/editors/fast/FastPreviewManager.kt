@@ -20,8 +20,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -308,7 +307,7 @@ class FastPreviewManager private constructor(
    * or fast preview is disabled.
    */
   val isAvailable: Boolean
-    get() = isEnabled && !PreviewPowerSaveManager.isInPowerSaveMode
+    get() = isEnabled && !PreviewEssentialsModeManager.isInEssentialsMode
 
   /**
    * Returns true while there is a compilation request running of this project.

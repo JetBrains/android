@@ -386,7 +386,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   @Test
   public void testStudioStatsProtoCreation() {
-    StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.override(true);
+    StudioFlags.DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT.override(true);
     PowerSaveMode.setEnabled(true);
     ComponentsSet componentsSet = new ComponentsSet();
 

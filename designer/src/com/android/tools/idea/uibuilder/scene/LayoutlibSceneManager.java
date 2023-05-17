@@ -53,7 +53,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
-import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
+import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
@@ -777,7 +777,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
-      if (PreviewPowerSaveManager.INSTANCE.isInPowerSaveMode() &&
+      if (PreviewEssentialsModeManager.INSTANCE.isInEssentialsMode() &&
           powerModeChangesNotTriggeringRefresh.contains(model.getLastChangeType())) {
         isOutOfDate.set(true);
         return;

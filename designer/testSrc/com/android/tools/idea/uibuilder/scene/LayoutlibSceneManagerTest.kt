@@ -22,10 +22,10 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
-import com.intellij.ide.PowerSaveMode
 
 class LayoutlibSceneManagerTest: SceneTest() {
 
@@ -62,8 +62,8 @@ class LayoutlibSceneManagerTest: SceneTest() {
   }
 
   fun testPowerSaveModeDoesNotRefreshOnResourcesChange() {
-    StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.override(true)
-    PowerSaveMode.setEnabled(true)
+    StudioFlags.DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT.override(true)
+    EssentialsMode.setEnabled(true)
     try {
       val nlSurface = myScene.designSurface as NlDesignSurface
       val sceneManager = nlSurface.sceneManager!!
@@ -76,8 +76,8 @@ class LayoutlibSceneManagerTest: SceneTest() {
       sceneManager.requestRenderAsync()
       assertFalse(sceneManager.isOutOfDate)
     } finally {
-      PowerSaveMode.setEnabled(false)
-      StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.clearOverride()
+      EssentialsMode.setEnabled(false)
+      StudioFlags.DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT.clearOverride()
     }
   }
 
