@@ -21,20 +21,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.AbstractVcs
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.changes.ContentRevision
+import com.intellij.openapi.vcs.history.VcsRevisionNumber
 
+/** A wrapper-like service for providing VCS related operations from AS bundled plugins. */
 interface VcsForAppInsights {
   val key: VCS_CATEGORY
 
   fun isApplicable(vcs: AbstractVcs): Boolean
 
-  fun createVcsContent(
-    vcsKey: VCS_CATEGORY,
-    localFilePath: FilePath,
-    revision: String,
-    project: Project
-  ): ContentRevision
+  fun createVcsContent(localFilePath: FilePath, revision: String, project: Project): ContentRevision
 
-  fun getShortRevisionFromString(vcsKey: VCS_CATEGORY, revision: String): String
+  fun createVcsRevision(revision: String): VcsRevisionNumber
 
   companion object {
     @JvmField

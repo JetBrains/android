@@ -18,12 +18,14 @@ package com.android.tools.idea.insights.vcs
 import com.android.tools.idea.insights.ABOVE_PROJECT_ROOT_PREFIX
 import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
 import com.android.tools.idea.insights.RepoInfo
+import com.android.tools.idea.insights.VCS_CATEGORY
 import com.intellij.dvcs.repo.Repository
 import com.intellij.dvcs.repo.VcsRepositoryManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.AbstractVcs
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
+import com.intellij.openapi.vcs.history.VcsRevisionNumber
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.vcsUtil.VcsUtil
 
@@ -44,3 +46,13 @@ internal fun RepoInfo.locateRepository(project: Project): Repository? {
 }
 
 internal fun VirtualFile.toVcsFilePath(): FilePath = VcsUtil.getFilePath(this)
+
+internal fun createRevisionNumber(vcsKey: VCS_CATEGORY, revision: String): VcsRevisionNumber? {
+  return VcsForAppInsights.getExtensionByKey(vcsKey)?.createVcsRevision(revision)
+}
+
+internal fun createShortRevisionString(vcsKey: VCS_CATEGORY, revision: String): String? {
+  val revisionNumber = createRevisionNumber(vcsKey, revision) ?: return null
+
+  return VcsUtil.getShortRevisionString(revisionNumber)
+}

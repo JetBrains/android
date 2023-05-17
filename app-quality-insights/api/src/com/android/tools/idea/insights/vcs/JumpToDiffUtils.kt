@@ -93,7 +93,7 @@ fun goToDiff(context: ContextDataForDiff, project: Project) {
         get() {
           val vcsContext =
             VcsForAppInsights.getExtensionByKey(context.vcsKey)
-              ?.createVcsContent(context.vcsKey, context.filePath, context.revision, project)
+              ?.createVcsContent(context.filePath, context.revision, project)
 
           return createChangesWithCurrentContentForFile(context.filePath, vcsContext)
         }
@@ -111,9 +111,7 @@ private fun createEditorTitleFromContext(
   vcsContext: ContextDataForDiff,
   project: Project
 ): DiffEditorTitleCustomizer {
-  val shortVcsRevisionNumber =
-    VcsForAppInsights.getExtensionByKey(vcsContext.vcsKey)
-      ?.getShortRevisionFromString(vcsContext.vcsKey, vcsContext.revision)
+  val shortVcsRevisionNumber = createShortRevisionString(vcsContext.vcsKey, vcsContext.revision)
 
   val displayText = "File from the affected commit: <hyperlink>$shortVcsRevisionNumber</hyperlink>"
 
