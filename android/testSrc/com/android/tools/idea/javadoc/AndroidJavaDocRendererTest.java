@@ -34,8 +34,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import org.jetbrains.annotations.NotNull;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -66,10 +68,14 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
   }
 
-  public void checkStrings(String fileName, String targetPath) {
+  private void copyStrings() {
     myFixture.copyFileToProject("javadoc/strings/strings.xml", "res/values/strings.xml");
     myFixture.copyFileToProject("javadoc/strings/strings-ta.xml", "res/values-ta/strings.xml");
     myFixture.copyFileToProject("javadoc/strings/strings-zh-rTW.xml", "res/values-zh-rTW/strings.xml");
+  }
+
+  private void checkStrings(String fileName, String targetPath) {
+    copyStrings();
     checkDoc(fileName, targetPath);
   }
 
@@ -140,18 +146,30 @@ public class AndroidJavaDocRendererTest implements SnapshotComparisonTest {
    * Testing R.stri<caret>ng.app_name
    * <p>
    * There is no custom documentation for the inner R class, so the default Java platform documentation for a Java
-   * static final field is used.
+   * static final field is used. Loosely test that the parts we expect to be there are present.
    */
-  @Ignore // b/243077207
   @Test
   public void string3Java() {
-    checkStrings("/javadoc/strings/Activity3.java", "src/p1/p2/Activity.java");
+    copyStrings();
+    String doc = generateDoc("/javadoc/strings/Activity3.java", "src/p1/p2/Activity.java");
+    Document html = Jsoup.parseBodyFragment(doc);
+    Elements links = html.getElementsByAttributeValue("href", "psi_element://p1.p2");
+    assertThat(links).hasSize(1);
+    assertThat(links.get(0).getElementsContainingOwnText("p1.p2")).hasSize(1);
+    assertThat(html.getElementsContainingOwnText("class")).hasSize(1);
+    assertThat(html.getElementsContainingOwnText("string")).hasSize(1);
   }
 
-  @Ignore // b/243077207
   @Test
   public void string3Kotlin() {
-    checkStrings("/javadoc/strings/Activity3.kt", "src/p1/p2/Activity.kt");
+    copyStrings();
+    String doc = generateDoc("/javadoc/strings/Activity3.kt", "src/p1/p2/Activity.kt");
+    Document html = Jsoup.parseBodyFragment(doc);
+    Elements links = html.getElementsByAttributeValue("href", "psi_element://p1.p2");
+    assertThat(links).hasSize(1);
+    assertThat(links.get(0).getElementsContainingOwnText("p1.p2")).hasSize(1);
+    assertThat(html.getElementsContainingOwnText("class")).hasSize(1);
+    assertThat(html.getElementsContainingOwnText("string")).hasSize(1);
   }
 
   @Test
