@@ -114,12 +114,15 @@ fun <T : Any> Project.dumpAndroidProjectView(
         treeStructure
           .getChildElements(element)
           .map { it as AbstractTreeNode<*> }
-          .apply { forEach { it.update() } }
+          .onEach { it.update() }
           .sortedWith(comparator)
           .forEach { dump(it, "    $prefix", newState) }
       }
 
-      dump(rootElement as AbstractTreeNode<*>, state = initialState)
+      val rootNode = rootElement as AbstractTreeNode<*>
+      // dump() updates only the child nodes; before calling it we need to update the root to ensure its presentation is available.
+      rootNode.update()
+      dump(rootNode, state = initialState)
     }
       // Trim the trailing line end since snapshots are loaded without it.
       .trimEnd()

@@ -88,7 +88,6 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
 
   companion object {
     val tests: List<AndroidProjectViewSnapshotComparisonTestDef> = listOf(
-/* b/280353179
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK),
@@ -123,7 +122,6 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       ),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.PSD_SAMPLE_GROOVY),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
-b/280353179 */
     )
   }
 }
