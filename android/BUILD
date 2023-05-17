@@ -145,9 +145,6 @@ iml_module(
         "apk": {
             "test_filter": "com.android.tools.idea.apk",
         },
-        "avdmanager": {
-            "test_filter": "com.android.tools.idea.avdmanager",
-        },
         "AndroidKotlinCompletionContributorTest": {
             "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
         },
