@@ -23,6 +23,7 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -41,6 +42,7 @@ import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler
 import com.intellij.testFramework.EditorTestUtil
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -263,3 +265,7 @@ fun CodeInsightTestFixture.addFileToProjectAndInvalidate(relativePath: String, f
   addFileToProject(relativePath, fileText).also {
     it.invalidateDocumentCache()
   }
+
+@Suppress("UnstableApiUsage")
+val ProjectRule.testRootDisposable: Disposable
+  get() = project.earlyDisposable
