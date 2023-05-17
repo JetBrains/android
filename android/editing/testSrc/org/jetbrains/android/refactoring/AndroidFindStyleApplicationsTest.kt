@@ -44,7 +44,7 @@ class AndroidFindStyleApplicationsTest {
 
   @Before
   fun setUp() {
-    myFixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/editing/testData").toString()
+    myFixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/editing/testData").toString()
   }
 
   @Test
