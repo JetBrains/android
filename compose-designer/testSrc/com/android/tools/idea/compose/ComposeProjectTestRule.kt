@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.compose
 
-import com.android.tools.idea.compose.preview.PreviewEntryPoint
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.testing.TestLoggerRule
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.registerExtension
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.junit.rules.RuleChain
@@ -37,16 +33,6 @@ import org.junit.runners.model.Statement
 private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule) :
   NamedExternalResource() {
   override fun before(description: Description) {
-    // Kotlin UnusedSymbolInspection caches the extensions during the initialization so,
-    // unfortunately we have to do this to ensure
-    // our entry point detector is registered early enough
-    ApplicationManager.getApplication()
-      .registerExtension(
-        ExtensionPointName<PreviewEntryPoint>("com.intellij.deadCode"),
-        PreviewEntryPoint(),
-        projectRule.fixture.testRootDisposable
-      )
-
     (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let { it.usesCompose = true }
     projectRule.fixture.stubComposableAnnotation()
     projectRule.fixture.stubPreviewAnnotation()

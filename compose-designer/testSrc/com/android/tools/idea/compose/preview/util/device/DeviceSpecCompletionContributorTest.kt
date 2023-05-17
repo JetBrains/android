@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
-import com.android.tools.idea.compose.annotator.registerLanguageExtensionPoint
-import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.caret
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionContributorEP
-import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
@@ -42,11 +39,6 @@ internal class DeviceSpecCompletionContributorTest {
   @Before
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-    fixture.registerLanguageExtensionPoint(
-      LanguageParserDefinitions.INSTANCE,
-      DeviceSpecParserDefinition(),
-      DeviceSpecLanguage
-    )
     val ep =
       ApplicationManager.getApplication()
         .extensionArea

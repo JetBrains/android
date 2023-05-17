@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
-import com.android.tools.idea.compose.annotator.registerLanguageExtensionPoint
-import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
-import com.intellij.lang.LanguageParserDefinitions
-import com.intellij.lang.injection.general.LanguageInjectionContributor
-import com.intellij.lang.injection.general.LanguageInjectionPerformer
 import com.intellij.testFramework.fixtures.InjectionTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -50,21 +44,6 @@ internal class DeviceSpecInjectorTest {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     fixture.stubPreviewAnnotation()
     fixture.stubComposableAnnotation()
-    fixture.registerLanguageExtensionPoint(
-      LanguageParserDefinitions.INSTANCE,
-      DeviceSpecParserDefinition(),
-      DeviceSpecLanguage
-    )
-    fixture.registerLanguageExtensionPoint(
-      LanguageInjectionContributor.INJECTOR_EXTENSION,
-      DeviceSpecInjectionContributor(),
-      KotlinLanguage.INSTANCE
-    )
-    fixture.registerLanguageExtensionPoint(
-      LanguageInjectionPerformer.INJECTOR_EXTENSION,
-      DeviceSpecInjectionPerformer(),
-      KotlinLanguage.INSTANCE
-    )
   }
 
   @After
