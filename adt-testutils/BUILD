@@ -12,6 +12,11 @@ iml_module(
     visibility = ["//visibility:public"],
     exports = ["//prebuilts/studio/intellij-sdk:studio-sdk-test-framework"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
+        "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
