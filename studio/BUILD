@@ -200,6 +200,7 @@ studio_plugin(
             "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
+            "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
             "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
             "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
@@ -418,6 +419,7 @@ studio_plugin(
         "design-tools.jar": [
             "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
             "//tools/adt/idea/design-plugin:intellij.android.design-plugin",
+            "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
             "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
             "//tools/adt/idea/glance-designer:intellij.android.glance-designer",

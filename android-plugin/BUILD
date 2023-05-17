@@ -3,7 +3,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.plugin",
-    srcs = ["src"],
     iml_files = ["intellij.android.plugin.iml"],
     test_class = "org.jetbrains.android.AndroidPluginTestSuite",
     test_srcs = ["testSrc"],
@@ -13,6 +12,7 @@ iml_module(
         "no_test_mac",  # b/174646037
     ],
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",

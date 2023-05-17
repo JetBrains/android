@@ -1,0 +1,4 @@
+This module simply holds the plugin.xml file of the Design plugin. This makes
+it possible to use the plugin.xml file in tests without pulling the entire
+Design plugin onto the classpath. This module should have no other sources,
+and no dependencies.
