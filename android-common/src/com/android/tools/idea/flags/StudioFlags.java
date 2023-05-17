@@ -1514,15 +1514,6 @@ public final class StudioFlags {
       "Enable FTL DirectAccess",
       false);
 
-  public static final Flag<Boolean> DIRECT_ACCESS_MULTIPLE_DEVICES =
-    Flag.create(
-      FIREBASE_TEST_LAB,
-      "direct.access.multiple.devices",
-      "Multiple devices",
-      "Enables running multiple devices from FTL",
-      false
-    );
-
   public static final Flag<String> DIRECT_ACCESS_PROJECT =
     Flag.create(
       FIREBASE_TEST_LAB,
@@ -1539,15 +1530,6 @@ public final class StudioFlags {
       "FTL Direct Access endpoint",
       "The URL for FTL Direct Access to connect to, in host:port form (with no protocol specified).",
       "testing.googleapis.com"
-    );
-
-  public static final Flag<String> DIRECT_ACCESS_DEVICE_FILTER =
-    Flag.create(
-      FIREBASE_TEST_LAB,
-      "direct.access.device.filter",
-      "FTL Direct Access enabled devices",
-      "The devices to show in FTL, in the format device1codename/apilevel,device2codename/apilevel,etc.",
-      "cheetah/33,oriole/32,b2q/31,q2q/31,f2q/30,OnePlus5T/28,TC77/27,redfin/30"
     );
   // endregion Firebase Test Lab
 
