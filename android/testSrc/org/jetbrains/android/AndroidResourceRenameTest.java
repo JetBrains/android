@@ -619,62 +619,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     doMovePackageTest("p1.p2", "p33");
   }
 
-  public void testRenameJavaPackage1() {
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
-    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage1.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.configureFromExistingVirtualFile(manifestFile);
-    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
-    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
-    doRenameJavaPackage("p1.p2", "p3");
-    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage1_after.xml");
-  }
-
-  public void testRenameJavaPackage2() {
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
-    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage2.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.configureFromExistingVirtualFile(manifestFile);
-    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
-    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
-    doRenameJavaPackage("p1.p2", "p3");
-    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage2_after.xml");
-  }
-
-  // Ignored: b/281863312
-  public void ignore_testRenameJavaPackage3() throws Throwable {
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
-    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage3.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.configureFromExistingVirtualFile(manifestFile);
-    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
-    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
-    doRenameJavaPackage("p1", "p3");
-    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage3_after.xml");
-  }
-
-  public void testRenameJavaPackage4() {
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
-    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage4.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.configureFromExistingVirtualFile(manifestFile);
-    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
-    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
-    doRenameJavaPackage("p1.p2", "p3");
-    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage4_after.xml");
-  }
-
-  public void testRenameJavaPackage5() {
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
-    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    VirtualFile manifestFile = myFixture.copyFileToProject(BASE_PATH + "RenameJavaPackage5.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.configureFromExistingVirtualFile(manifestFile);
-    final PsiFile manifestPsiFile = PsiManager.getInstance(getProject()).findFile(manifestFile);
-    assertNotNull("manifestPsiFile must not be null", manifestPsiFile);
-    doRenameJavaPackage("p1", "p3");
-    myFixture.checkResultByFile(BASE_PATH + "RenameJavaPackage5_after.xml");
-  }
-
   // Ignored: b/281863312
   public void ignore_testRenameWidget() throws Throwable {
     createManifest();
@@ -782,13 +726,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{aPackage},
                                        new SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage), dirs[0]),
                                        true, false, null).run();
-    FileDocumentManager.getInstance().saveAllDocuments();
-  }
-
-  private void doRenameJavaPackage(String packageName, String newPackageName) {
-    final PsiPackage aPackage = JavaPsiFacade.getInstance(getProject()).findPackage(packageName);
-    assertNotNull("Package " + packageName + " not found", aPackage);
-    new RenameProcessor(getProject(), aPackage, newPackageName, true, true).run();
     FileDocumentManager.getInstance().saveAllDocuments();
   }
 

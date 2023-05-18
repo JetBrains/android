@@ -22,22 +22,27 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.refactoring.PackageWrapper
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination
+import com.intellij.refactoring.rename.RenameProcessor
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestName
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+
+private const val BASE_PATH = "actions/moveActivity/"
 
 @RunWith(JUnit4::class)
 class AndroidMoveActivityTest {
   @get:Rule
   var androidProjectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+
+  @get:Rule
+  var name: TestName = TestName()
 
   private val myFixture by lazy {
     androidProjectRule.fixture.apply {
@@ -77,6 +82,52 @@ class AndroidMoveActivityTest {
       true)
   }
 
+  private fun doMoveActivityByRenamingPackageTest(packageName: String, newPackageName: String) {
+    // Create MyActivity
+    createActivity()
+
+    // Copy and open manifest file
+    val manifestFile = myFixture.copyFileToProject(BASE_PATH + name.methodName + ".xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
+    myFixture.configureFromExistingVirtualFile(manifestFile)
+
+    // Find the package to rename
+    val packageToRename = runReadAction { myFixture.javaFacade.findPackage(packageName) }
+    assertThat(packageToRename).isNotNull()
+
+    // Do the rename of the package
+    ApplicationManager.getApplication().invokeAndWait {
+      RenameProcessor(myProject, packageToRename!!, newPackageName, true, true).run()
+    }
+
+    // Verify that the manifest was updated as expected.
+    myFixture.checkResultByFile(BASE_PATH + name.methodName + "_after.xml")
+  }
+
+  @Test
+  fun moveActivityByRenamingPackage1() {
+    doMoveActivityByRenamingPackageTest("p1.p2", "p3")
+  }
+
+  @Test
+  fun moveActivityByRenamingPackage2() {
+    doMoveActivityByRenamingPackageTest("p1.p2", "p3")
+  }
+
+  @Test
+  fun moveActivityByRenamingPackage3() {
+    doMoveActivityByRenamingPackageTest("p1", "p3")
+  }
+
+  @Test
+  fun moveActivityByRenamingPackage4() {
+    doMoveActivityByRenamingPackageTest("p1.p2", "p3")
+  }
+
+  @Test
+  fun moveActivityByRenamingPackage5() {
+    doMoveActivityByRenamingPackageTest("p1", "p3")
+  }
+
   private fun createActivity() {
     myFixture.addFileToProject(
       "src/p1/p2/MyActivity.java",
@@ -103,10 +154,9 @@ class AndroidMoveActivityTest {
       class Foo {}
     """.trimIndent())
 
-    val facade = JavaPsiFacade.getInstance(myProject)
-    val psiClass = runReadAction { facade.findClass(className, GlobalSearchScope.projectScope(myProject)) }
+    val psiClass = runReadAction { myFixture.javaFacade.findClass(className, GlobalSearchScope.projectScope(myProject)) }
 
-    val newParentPackage = runReadAction { facade.findPackage(newParentPackageName) }
+    val newParentPackage = runReadAction { myFixture.javaFacade.findPackage(newParentPackageName) }
     assertThat(newParentPackage).isNotNull()
 
     val dirs = newParentPackage!!.directories
