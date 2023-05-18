@@ -25,60 +25,16 @@ import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.categorytable.TablePresentation
-import com.android.tools.adtui.categorytable.TablePresentationManager
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.AppUIUtil
-import com.intellij.ui.Gray
-import com.intellij.ui.JBColor
 import icons.StudioIcons
-import java.awt.Color
 import java.time.Instant
 import java.time.ZoneId
-import javax.swing.UIManager
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExternalResource
-import org.junit.rules.RuleChain
 
 @RunsInEdt
 class DeviceNamePanelTest {
-
-  private val themeManagerRule = ThemeManagerRule()
-
-  @get:Rule
-  val ruleChain =
-    RuleChain.outerRule(ApplicationRule()).around(themeManagerRule).around(EdtRule())!!
-
-  @Test
-  fun changeTheme() {
-    themeManagerRule.setDarkTheme(false)
-
-    val panel = DeviceNamePanel()
-    panel.updateTablePresentation(
-      TablePresentationManager(),
-      TablePresentation(foreground = JBColor.BLACK, background = JBColor.WHITE, false)
-    )
-
-    assertThat(panel.nameLabel.foreground).isEqualTo(JBColor.BLACK)
-    assertThat(panel.nameLabel.foreground.rgb and 0xFFFFFF).isEqualTo(0)
-    assertThat(panel.line2Label.foreground).isEqualTo(JBColor.BLACK.lighten())
-    assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF).isEqualTo(0x323232)
-
-    themeManagerRule.setDarkTheme(true)
-
-    // This assertion is the same, but JBColor.BLACK means something different now:
-    assertThat(panel.nameLabel.foreground).isEqualTo(JBColor.BLACK)
-    assertThat(panel.nameLabel.foreground.rgb and 0xFFFFFF).isEqualTo(0xBBBBBB)
-    assertThat(panel.line2Label.foreground).isEqualTo(JBColor.BLACK.lighten())
-    @Suppress("UseJBColor")
-    assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF)
-      .isEqualTo(Color(0xBBBBBB).darker().rgb and 0xFFFFFF)
-  }
 
   @Test
   fun stateTransitionText() {
@@ -163,35 +119,5 @@ class DeviceNamePanelTest {
     assertThat(panel.pairedLabel.baseIcon)
       .isEqualTo(StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED)
     assertThat(panel.pairedLabel.accessibleContext.accessibleDescription).contains("Pixel Watch")
-  }
-}
-
-/**
- * Rule for testing changes between light and dark themes. Actually changing the themes the way the
- * IDE does it is highly problematic in headless unit tests; this changes the relevant bits needed
- * for this class.
- */
-class ThemeManagerRule : ExternalResource() {
-
-  private val defaults = mutableMapOf<String, Any?>("Label.foreground" to Gray.xBB)
-
-  override fun before() {
-    swapDefaults()
-  }
-
-  override fun after() {
-    swapDefaults()
-  }
-
-  private fun swapDefaults() {
-    defaults.iterator().forEach { entry ->
-      val oldValue = UIManager.getDefaults().get(entry.key)
-      UIManager.getDefaults().put(entry.key, entry.value)
-      entry.setValue(oldValue)
-    }
-  }
-
-  fun setDarkTheme(dark: Boolean) {
-    AppUIUtil.updateForDarcula(dark)
   }
 }

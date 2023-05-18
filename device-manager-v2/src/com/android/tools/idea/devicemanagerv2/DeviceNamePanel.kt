@@ -19,16 +19,11 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.getReleaseNameAndDetails
 import com.android.tools.adtui.categorytable.IconLabel
-import com.android.tools.adtui.categorytable.TableComponent
-import com.android.tools.adtui.categorytable.TablePresentation
-import com.android.tools.adtui.categorytable.TablePresentationManager
 import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Color
 import java.time.ZoneId
@@ -43,10 +38,8 @@ import org.jetbrains.annotations.VisibleForTesting
  * A panel that renders the name of the device, along with its wear pairing status and a second line
  * to indicate more details, such as its Android version or an error state.
  */
-internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null), TableComponent {
-
-  internal val nameLabel = JBLabel()
-  internal val line2Label = JBLabel()
+internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
+  internal val twoLineLabel = TwoLineLabel()
   internal val pairedLabel = IconLabel(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN)
 
   init {
@@ -57,12 +50,7 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null), TableComponent 
       layout
         .createSequentialGroup()
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-          layout
-            .createParallelGroup()
-            .addComponent(nameLabel, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-            .addComponent(line2Label, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        )
+        .addComponent(twoLineLabel)
         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Int.MAX_VALUE)
         .addComponent(pairedLabel)
         .addGap(JBUI.scale(4))
@@ -74,8 +62,7 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null), TableComponent 
           layout
             .createSequentialGroup()
             .addContainerGap(GroupLayout.DEFAULT_SIZE, Int.MAX_VALUE)
-            .addComponent(nameLabel)
-            .addComponent(line2Label)
+            .addComponent(twoLineLabel)
             .addContainerGap(GroupLayout.DEFAULT_SIZE, Int.MAX_VALUE)
         )
         .addComponent(pairedLabel)
@@ -83,14 +70,12 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null), TableComponent 
     layout.setHorizontalGroup(horizontalGroup)
     layout.setVerticalGroup(verticalGroup)
 
-    line2Label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-
     this.layout = layout
   }
 
   fun update(deviceRowData: DeviceRowData) {
-    nameLabel.text = deviceRowData.name
-    line2Label.text = deviceRowData.toLine2Text()
+    twoLineLabel.line1Label.text = deviceRowData.name
+    twoLineLabel.line2Label.text = deviceRowData.toLine2Text()
     updatePairingState(deviceRowData.pairingStatus)
   }
 
@@ -141,18 +126,6 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null), TableComponent 
   private fun AndroidVersion.toLabelText(): String {
     val (name, details) = getReleaseNameAndDetails(includeCodeName = true)
     return name + (details?.let { " ($details)" } ?: "")
-  }
-
-  override fun updateTablePresentation(
-    manager: TablePresentationManager,
-    presentation: TablePresentation
-  ) {
-    manager.applyPresentation(nameLabel, presentation)
-    manager.applyPresentation(pairedLabel, presentation)
-    manager.applyPresentation(
-      line2Label,
-      presentation.copy(foreground = presentation.foreground.lighten())
-    )
   }
 }
 
