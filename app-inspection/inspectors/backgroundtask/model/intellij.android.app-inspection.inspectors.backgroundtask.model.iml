@@ -19,7 +19,9 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/221.0.19.0/backgroundtask_inspector_java_proto-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/221.0.19.0/backgroundtask_inspector_java_proto-221.0.19.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
@@ -29,7 +31,9 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/workmanager_inspector_proto/221.0.19.0/workmanager_inspector_proto-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/workmanager_inspector_proto/221.0.19.0/workmanager_inspector_proto-221.0.19.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />

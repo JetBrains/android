@@ -35,7 +35,9 @@
           <root url="jar://$MAVEN_REPOSITORY$/com/squareup/okio/okio/1.14.0/okio-1.14.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/squareup/okio/okio/1.14.0/okio-1.14.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
@@ -45,7 +47,9 @@
           <root url="jar://$MAVEN_REPOSITORY$/com/squareup/moshi/moshi/1.6.0/moshi-1.6.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/squareup/moshi/moshi/1.6.0/moshi-1.6.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
@@ -110,7 +114,9 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/221.0.19.0/libandroid-core-proto-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/221.0.19.0/libandroid-core-proto-221.0.19.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
@@ -126,7 +132,9 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/221.0.19.0/libstudio.android-test-plugin-host-retention-proto-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/221.0.19.0/libstudio.android-test-plugin-host-retention-proto-221.0.19.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.utp" />

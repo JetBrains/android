@@ -14,7 +14,9 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources/221.0.19.0/studio.android.sdktools.binary-resources-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources/221.0.19.0/studio.android.sdktools.binary-resources-221.0.19.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
@@ -24,7 +26,9 @@
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources_test/221.0.19.0/studio.android.sdktools.binary-resources_test-221.0.19.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.binary-resources_test/221.0.19.0/studio.android.sdktools.binary-resources_test-221.0.19.0-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>
