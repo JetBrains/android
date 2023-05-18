@@ -1514,15 +1514,6 @@ public final class StudioFlags {
       "Enable FTL DirectAccess",
       false);
 
-  public static final Flag<String> DIRECT_ACCESS_PROJECT =
-    Flag.create(
-      FIREBASE_TEST_LAB,
-      "direct.access.project",
-      "GCP Project for Direct Access authentication",
-      "The project to use for FTL Direct Access",
-      "ftl-direct-access-internal-eap"
-    );
-
   public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
     Flag.create(
       FIREBASE_TEST_LAB,
