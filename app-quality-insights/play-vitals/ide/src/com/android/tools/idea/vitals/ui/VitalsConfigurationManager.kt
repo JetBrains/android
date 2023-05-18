@@ -30,6 +30,7 @@ import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.client.AppConnection
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
+import com.android.tools.idea.insights.events.ExplicitRefresh
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
 import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
@@ -52,11 +53,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -127,6 +130,12 @@ constructor(
       .mapAvailableAppsToModel()
       .stateIn(scope, SharingStarted.Eagerly, AppInsightsModel.Uninitialized)
 
+  init {
+    scope.launch {
+      controller.eventFlow.filter { it is ExplicitRefresh }.collect { refreshConfiguration() }
+    }
+  }
+
   override fun refreshConfiguration() {
     refreshConfigurationFlow.tryEmit(Unit)
   }
@@ -137,6 +146,7 @@ constructor(
     .mapConnectionsToVariantConnectionsIfReady() = mapNotNull { result ->
     when (result) {
       is LoadingState.Ready -> {
+        offlineStatusManager.enterMode(ConnectionMode.ONLINE)
         val modules = project.getHolderModules().filter { it.isAndroidApp }
         val appIds =
           modules

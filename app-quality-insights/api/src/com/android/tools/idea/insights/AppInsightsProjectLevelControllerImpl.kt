@@ -115,7 +115,7 @@ class AppInsightsProjectLevelControllerImpl(
    * Represents a flow that is used by filter selectors and refresh to inject [ChangeEvent]s into
    * the main event flow(below).
    */
-  private val eventFlow: MutableSharedFlow<ChangeEvent> = MutableSharedFlow(extraBufferCapacity = 2)
+  val eventFlow: MutableSharedFlow<ChangeEvent> = MutableSharedFlow(extraBufferCapacity = 2)
 
   /**
    * A view of [AppInsightsIssue]s grouped by the filename they are associated to.
@@ -147,7 +147,7 @@ class AppInsightsProjectLevelControllerImpl(
     @Suppress("RequiredOptIn")
     state =
       merge(
-          eventFlow,
+          eventFlow.map { SafeFiltersAdapter(it) },
           appConnection.map { SafeFiltersAdapter(ConnectionsChanged(it, defaultFilters)) },
           offlineStatusManager.offlineStatus.map { it.toEvent() }
         )
@@ -259,7 +259,7 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   private suspend fun doEmit(event: ChangeEvent) {
-    eventFlow.emit(SafeFiltersAdapter(event))
+    eventFlow.emit(event)
   }
 
   override fun retrieveLineMatches(file: PsiFile): List<AppInsight> =

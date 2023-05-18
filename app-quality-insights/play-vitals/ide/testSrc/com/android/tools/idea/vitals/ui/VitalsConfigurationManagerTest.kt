@@ -162,4 +162,32 @@ class VitalsConfigurationManagerTest {
         it.connections.items == listOf(CONNECTION2) && it.mode == ConnectionMode.OFFLINE
       }
     }
+
+  @Test
+  fun `controller refresh causes manager to refresh app connections, and offline status is updated`() =
+    runBlocking<Unit> {
+      val client = mock<AppInsightsClient>()
+      `when`(client.listConnections()).thenReturn(LoadingState.NetworkFailure("error"))
+      val loggedInFlow = MutableStateFlow(true)
+
+      val configManager = VitalsConfigurationManager(projectRule.project, { client }, loggedInFlow)
+      Disposer.register(projectRule.testRootDisposable, configManager)
+
+      configManager.cache.populateConnections(listOf(CONNECTION2))
+
+      // Connection fails and causes offline mode.
+      configManager.refreshConfiguration()
+      val model = configManager.configuration.first { it is AppInsightsModel.Authenticated }
+      val controller = (model as AppInsightsModel.Authenticated).controller
+
+      controller.state.first { it.mode == ConnectionMode.OFFLINE }
+
+      // Simulate refresh is successfully performed.
+      `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
+      controller.refresh()
+      controller.state.first {
+        it.mode == ConnectionMode.ONLINE &&
+          it.connections.items.single().appId == APP_CONNECTION1.appId
+      }
+    }
 }
