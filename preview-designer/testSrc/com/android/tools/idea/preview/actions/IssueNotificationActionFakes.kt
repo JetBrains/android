@@ -99,4 +99,5 @@ fun createFakePopup(
   override fun hidePopup() = onHidePopup()
   override fun showPopup(disposableParent: Disposable, event: InputEvent) = onShowPopup()
   override fun isVisible(): Boolean = isPopupVisible
+  override fun dispose() {}
 }

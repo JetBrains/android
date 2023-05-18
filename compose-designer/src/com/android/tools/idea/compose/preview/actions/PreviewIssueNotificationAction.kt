@@ -41,6 +41,7 @@ import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -54,6 +55,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
@@ -170,13 +172,12 @@ fun defaultCreateInformationPopup(
         )
         .also { newPopup ->
           // Register the data provider of the popup to be the same as the one used in the toolbar.
-          // This allows for actions within the
-          // popup to query for things like the Editor even when the Editor is not directly related
-          // to the popup.
-          // We ensure that only EDT safe requests are passed to the dataContext and others are simply
-          // not returned. If, for example, a PSI request is made, the caller will make sure to, first
-          // grab the BGT_DATA_PROVIDER and then send the request. The BGT_DATA_PROVDER will respond
-          // to any requests since it's safe from the threading perspective.
+          // This allows for actions within the popup to query for things like the Editor even
+          // when the Editor is not directly related to the popup.
+          // We ensure that only EDT safe requests are passed to the dataContext and others are
+          // simply not returned. If, for example, a PSI request is made, the caller will make sure
+          // to first grab the BGT_DATA_PROVIDER and then send the request. The BGT_DATA_PROVIDER
+          // will respond to any requests since it's safe from the threading perspective.
           DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
             return@registerDataProvider when (dataId) {
               PlatformCoreDataKeys.BGT_DATA_PROVIDER.name ->
@@ -259,9 +260,15 @@ private fun DataContext.createTitleActionLink(
  * - Syntax errors
  */
 class PreviewIssueNotificationAction(
+  parentDisposable: Disposable,
   createInformationPopup: (Project, DataContext) -> InformationPopup? =
     ::defaultCreateInformationPopup
 ) : IssueNotificationAction(::getStatusInfo, createInformationPopup), RightAlignedToolbarAction {
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
   override fun margins(): Insets {
     return JBUI.insets(3)
   }
@@ -360,11 +367,11 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
  * [DefaultActionGroup] that shows the notification chip and the
  * [ForceCompileAndRefreshActionForNotification] button when applicable.
  */
-class ComposeNotificationGroup(surface: DesignSurface<*>) :
+class ComposeNotificationGroup(surface: DesignSurface<*>, parentDisposable: Disposable) :
   DefaultActionGroup(
     listOf(
       ComposeHideFilterAction(surface),
-      PreviewIssueNotificationAction(),
+      PreviewIssueNotificationAction(parentDisposable),
       ForceCompileAndRefreshActionForNotification.getInstance()
     )
   )

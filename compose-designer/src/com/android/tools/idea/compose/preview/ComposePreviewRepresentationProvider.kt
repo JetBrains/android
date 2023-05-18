@@ -79,7 +79,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
       )
     )
 
-  override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface)
+  override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface, this)
 }
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */

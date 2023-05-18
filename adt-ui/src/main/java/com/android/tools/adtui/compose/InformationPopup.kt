@@ -58,7 +58,7 @@ import javax.swing.Timer
  * Creates a popup that displays a title, a description, a list of actions as an overflow menu and a list of links at the bottom.
  * The list of actions or links can be empty.
  */
-interface InformationPopup {
+interface InformationPopup : Disposable {
 
   val popupComponent: JComponent
 
@@ -70,10 +70,10 @@ interface InformationPopup {
   fun hidePopup()
 
   /**
-   * Shows the popup from a parent view (like an action) from a given input event
+   * Shows the popup from a parent view (like an action) from a given input event.
    *
    * @param disposableParent the [Disposable] parent that triggers the popup
-   * @param event the given [InputEvent] to position the it
+   * @param event the given [InputEvent] to position the popup
    */
   fun showPopup(disposableParent: Disposable, event: InputEvent)
 
@@ -101,7 +101,7 @@ class InformationPopupImpl(
   description: String,
   additionalActions: List<AnAction>,
   links: Collection<AnActionLink>
-) : InformationPopup, Disposable {
+) : InformationPopup {
 
   /**
    * Keeps the popup open until the mouse reaches the popup area.
