@@ -1,8 +1,11 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants
+import com.android.testutils.TestUtils
 import com.android.tools.idea.res.addAarDependency
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.LineMarkerInfo
@@ -17,8 +20,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.kotlin.psi.KtClass
+import org.junit.Assert.fail
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.io.File
 import java.util.ArrayList
 import java.util.HashSet
@@ -30,13 +39,21 @@ import java.util.HashSet
  * declarations. It also tests the corresponding activities and fragments for layout and menu files. Also checks the LineMarkers are
  * present.
  */
-class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
+@RunWith(JUnit4::class)
+@RunsInEdt
+class AndroidGotoRelatedLineMarkerTest {
 
-  override fun providesCustomManifest(): Boolean {
-    return true
+  @get:Rule
+  var androidProjectRule = AndroidProjectRule.withSdk().onEdt()
+
+  private val myFixture by lazy {
+    androidProjectRule.fixture.apply {
+      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    }
   }
 
-  fun testJavaAnonymousInnerClassToNothing() {
+  @Test
+  fun javaAnonymousInnerClassToNothing() {
     myFixture.addFileToProject("res/layout/activity_main.xml", BASIC_LAYOUT).virtualFile
     val file = myFixture.addFileToProject(
       "src/p1/p2/Util.java",
@@ -63,7 +80,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckNoLineMarkers()
   }
 
-  fun testKotlinActivityToLayoutAndMenu() {
+  @Test
+  fun kotlinActivityToLayoutAndMenu() {
     createManifest()
     val layoutFile = myFixture.addFileToProject("res/layout/layout.xml", BASIC_LAYOUT).virtualFile
     val menuFile = myFixture.addFileToProject("res/menu/menu_main.xml", MENU).virtualFile
@@ -72,7 +90,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckLineMarkers(setOf(layoutFile, menuFile), PsiFile::class.java,"Related XML file")
   }
 
-  fun testKotlinActivityToLayoutAndManifestAndMenu() {
+  @Test
+  fun kotlinActivityToLayoutAndManifestAndMenu() {
     val manifestFile = myFixture.addFileToProject("AndroidManifest.xml", MANIFEST).virtualFile
     val layoutFile = myFixture.addFileToProject("res/layout/layout.xml", BASIC_LAYOUT).virtualFile
     val menuFile = myFixture.addFileToProject("res/menu/menu_main.xml", MENU).virtualFile
@@ -87,13 +106,14 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     assertThat(manifestElements.first().containingFile.virtualFile).isEqualTo(manifestFile)
   }
 
-  fun testActivityToLayout() {
+  @Test
+  fun activityToLayout() {
     createManifest()
     val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
     val layout1 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml")
     val layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml")
     val layout2 = arrayOfNulls<VirtualFile>(1)
-    addAarDependency(myModule, "myLibrary", "com.library") { dir ->
+    addAarDependency(myFixture.module, "myLibrary", "com.library") { dir ->
       val destination = File(dir, "res/layout/layout2.xml")
       FileUtil.copy(File(AndroidTestBase.getTestDataPath() + BASE_PATH + "layout1.xml"), destination)
       layout2[0] = findFileByIoFile(destination, true)
@@ -105,7 +125,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java, "Related XML file")
   }
 
-  fun testActivityToLayoutAndManifest() {
+  @Test
+  fun activityToLayoutAndManifest() {
     val layoutFile = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
     val manifestFile = myFixture.copyFileToProject(BASE_PATH + "Manifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
     val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java")
@@ -126,7 +147,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     assertThat(manifestDeclarationTarget!!.containingFile.virtualFile).isEqualTo(manifestFile)
   }
 
-  fun testActivityToAndManifest() {
+  @Test
+  fun activityToAndManifest() {
     val manifestFile = myFixture.copyFileToProject(BASE_PATH + "Manifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
     val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java")
 
@@ -138,7 +160,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     assertThat(element!!.containingFile.virtualFile).isEqualTo(manifestFile)
   }
 
-  fun testSimpleClassToLayout() {
+  @Test
+  fun simpleClassToLayout() {
     createManifest()
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
     val file = myFixture.copyFileToProject(BASE_PATH + "Class1.java", "src/p1/p2/Class1.java")
@@ -147,7 +170,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     assertThat(markerInfos).isEmpty()
   }
 
-  fun testFragmentToLayout() {
+  @Test
+  fun fragmentToLayout() {
     createManifest()
     val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
     val layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml")
@@ -157,7 +181,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java, "Related XML file")
   }
 
-  fun testMenuToActivity() {
+  @Test
+  fun menuToActivity() {
     createManifest()
     val menuFile = myFixture.addFileToProject("res/menu/menu_main.xml", MENU).virtualFile
     val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
@@ -165,7 +190,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckLineMarkers(setOf(activityFile), KtClass::class.java,"Related Kotlin class")
   }
 
-  fun testLayoutToJavaContext() {
+  @Test
+  fun layoutToJavaContext() {
     createManifest()
     val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
     myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml")
@@ -181,7 +207,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckLineMarkers(expectedTargetFiles, PsiClass::class.java, "Related Java class")
   }
 
-  fun testLayoutToKotlinContext() {
+  @Test
+  fun layoutToKotlinContext() {
     createManifest()
     val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
     val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.kt", "src/p1/p2/MyActivity.kt")
@@ -190,14 +217,16 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckLineMarkers(expectedTargetFiles, KtClass::class.java, "Related Kotlin class")
   }
 
-  fun testLayoutDoNothing() {
+  @Test
+  fun layoutDoNothing() {
     createManifest()
     val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
     assertThat(doGotoRelatedFile(layout)).isEmpty()
     doCheckNoLineMarkers()
   }
 
-  fun testNestedActivity() {
+  @Test
+  fun nestedActivity() {
     createManifest()
     val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
     val layout1 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml")
@@ -207,7 +236,8 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doTestGotoRelatedFile(activityFile, ImmutableSet.of(layout, layoutLand, layout1, layout2), PsiFile::class.java)
   }
 
-  fun testSpecifiedWithAttribute() {
+  @Test
+  fun specifiedWithAttribute() {
     createManifest()
     val layout = myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml")
     val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity4.java", "src/p1/p2/MyActivity.java")
@@ -333,5 +363,19 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
                 app:showAsAction="never" />
         </menu>
       """.trimIndent()
+  }
+
+  fun createManifest() {
+    myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      //language=xml
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="p1.p2">
+          <application android:icon="@drawable/icon">
+          </application>
+      </manifest>
+      """.trimIndent())
   }
 }
