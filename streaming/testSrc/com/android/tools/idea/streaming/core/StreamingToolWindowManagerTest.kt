@@ -113,7 +113,7 @@ class StreamingToolWindowManagerTest {
   private val deviceMirroringSettings: DeviceMirroringSettings by lazy { DeviceMirroringSettings.getInstance() }
 
   private val project get() = agentRule.project
-  private val testRootDisposable get() = agentRule.testRootDisposable
+  private val testRootDisposable get() = agentRule.disposable
   private val dataContext = DataContext {
     when(it) {
       CommonDataKeys.PROJECT.name -> project

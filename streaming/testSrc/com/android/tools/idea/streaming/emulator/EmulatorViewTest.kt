@@ -124,7 +124,7 @@ class EmulatorViewTest {
   private val filesOpened = mutableListOf<VirtualFile>()
 
   private val testRootDisposable
-    get() = emulatorViewRule.testRootDisposable
+    get() = emulatorViewRule.disposable
 
   @Before
   fun setUp() {
@@ -458,7 +458,7 @@ class EmulatorViewTest {
     // Check EmulatorShowFoldingControlsAction.
     val mockLafManager = mock<LafManager>()
     whenever(mockLafManager.currentLookAndFeel).thenReturn(DarculaLookAndFeelInfo())
-    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.disposable)
 
     emulatorViewRule.executeAction("android.emulator.folding.controls", view)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)

@@ -45,7 +45,7 @@ class EmulatorShowExtendedControlsActionTest {
   fun testShowExtendedControls() {
     val mockLafManager = mock<LafManager>()
     whenever(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("High contrast", "Ignored className"))
-    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.disposable)
 
     val view = emulatorViewRule.newEmulatorView()
     emulatorViewRule.executeAction("android.emulator.extended.controls", view)

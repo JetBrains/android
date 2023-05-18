@@ -32,6 +32,7 @@ import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsPage
 import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
 import com.android.tools.idea.testing.AndroidExecutorsRule
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -69,7 +70,8 @@ class EmptyStatePanelTest {
   @get:Rule
   val rule = RuleChain(projectRule, androidExecutorsRule, EdtRule())
 
-  private val testRootDisposable by lazy { @Suppress("UnstableApiUsage") projectRule.project.earlyDisposable }
+  private val testRootDisposable
+    get() = projectRule.disposable
   private val emptyStatePanel by lazy { createEmptyStatePanel() }
   private val ui by lazy { FakeUi(emptyStatePanel) }
   private val emulatorPackage = FakeLocalPackage(SdkConstants.FD_EMULATOR).apply { setRevision(Revision(31, 3, 10)) }

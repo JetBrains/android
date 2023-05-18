@@ -86,7 +86,7 @@ class DeviceToolWindowPanelTest {
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
   private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true) } // Fake window is necessary for the toolbars to be rendered.
   private val project get() = agentRule.project
-  private val testRootDisposable get() = agentRule.testRootDisposable
+  private val testRootDisposable get() = agentRule.disposable
   private val agent: FakeScreenSharingAgent get() = device.agent
 
   @Before

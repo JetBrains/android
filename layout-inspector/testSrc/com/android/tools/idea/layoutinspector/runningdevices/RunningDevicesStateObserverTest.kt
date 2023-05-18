@@ -52,7 +52,7 @@ class RunningDevicesStateObserverTest {
     displayViewRule.project.replaceService(
       ToolWindowManager::class.java,
       fakeToolWindowManager,
-      displayViewRule.testRootDisposable
+      displayViewRule.disposable
     )
   }
 

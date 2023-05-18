@@ -56,7 +56,7 @@ class EmulatorViewRule : TestRule {
     }
   }
 
-  val testRootDisposable: Disposable
+  val disposable: Disposable
     get() = projectRule.testRootDisposable
 
   val project: Project
@@ -70,7 +70,7 @@ class EmulatorViewRule : TestRule {
     fakeEmulator.start()
     val emulators = catalog.updateNow().get()
     val emulatorController = emulators.find { it.emulatorId.grpcPort == fakeEmulator.grpcPort }!!
-    val view = EmulatorView(testRootDisposable, emulatorController, PRIMARY_DISPLAY_ID, null, true)
+    val view = EmulatorView(disposable, emulatorController, PRIMARY_DISPLAY_ID, null, true)
     waitForCondition(5, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return view
   }

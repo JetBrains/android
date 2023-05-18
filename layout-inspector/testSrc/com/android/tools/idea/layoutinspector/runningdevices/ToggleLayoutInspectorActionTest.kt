@@ -66,7 +66,7 @@ class ToggleLayoutInspectorActionTest {
     displayViewRule.project.replaceService(
       ToolWindowManager::class.java,
       FakeToolWindowManager(displayViewRule.project, listOf(tab1)),
-      displayViewRule.testRootDisposable
+      displayViewRule.disposable
     )
 
     displayView = displayViewRule.newEmulatorView()
@@ -74,11 +74,11 @@ class ToggleLayoutInspectorActionTest {
     // replace CustomActionsSchema with mocked one
     val mockCustomActionSchema = mock<CustomActionsSchema>()
     whenever(mockCustomActionSchema.getCorrectedAction(any())).thenAnswer { getFakeAction() }
-    ApplicationManager.getApplication().replaceService(CustomActionsSchema::class.java, mockCustomActionSchema, displayViewRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(CustomActionsSchema::class.java, mockCustomActionSchema, displayViewRule.disposable)
 
     // replace LayoutInspectorManager with fake one
     fakeLayoutInspectorManager = FakeLayoutInspectorManager()
-    displayViewRule.project.replaceService(LayoutInspectorManager::class.java, fakeLayoutInspectorManager, displayViewRule.testRootDisposable)
+    displayViewRule.project.replaceService(LayoutInspectorManager::class.java, fakeLayoutInspectorManager, displayViewRule.disposable)
   }
 
   @Test

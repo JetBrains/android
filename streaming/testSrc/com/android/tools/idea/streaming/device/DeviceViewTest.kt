@@ -142,7 +142,7 @@ internal class DeviceViewTest {
   private lateinit var fakeUi: FakeUi
 
   private val testRootDisposable
-    get() = agentRule.testRootDisposable
+    get() = agentRule.disposable
   private val project
     get() = agentRule.project
   private val agent
