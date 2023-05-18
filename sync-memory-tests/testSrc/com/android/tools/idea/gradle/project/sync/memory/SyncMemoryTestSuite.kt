@@ -15,157 +15,80 @@
  */
 package com.android.tools.idea.gradle.project.sync.memory
 
+import com.android.tools.idea.gradle.project.sync.BenchmarkTestRule
 import org.junit.Rule
 import org.junit.Test
 
-class Benchmark50MemoryTest : MemoryBenchmarkTestSuite() {
-  @get:Rule
-  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
-    projectRule,
-    projectName = "50Modules",
-    memoryLimitMb = 400,
-    lightweightMode = false
-  )
+import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_100_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_500_NAME
+import com.android.tools.idea.gradle.project.sync.SUBSET_50_NAME
+import com.android.tools.idea.gradle.project.sync.createBenchmarkTestRule
 
-  init {
-    setUpProject("diff-50")
-  }
-
-  @Test
-  fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndMeasure()
-  }
+class Benchmark50MemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_50_NAME)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+}
+class Benchmark100MemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_100_NAME)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
 }
 
-class Benchmark100MemoryTest : MemoryBenchmarkTestSuite() {
-  @get:Rule
-  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
-    projectRule,
-    projectName = "100Modules",
-    memoryLimitMb = 600,
-    lightweightMode = false
-  )
-
-  init {
-    setUpProject("diff-100")
-  }
-
-  @Test
-  fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndMeasure()
-  }
+class Benchmark200MemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
 }
 
-class Benchmark200MemoryTest : MemoryBenchmarkTestSuite() {
-  @get:Rule
-  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
-    projectRule,
-    projectName = "200Modules",
-    memoryLimitMb = 1300,
+class Benchmark500MemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_500_NAME)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+}
+
+class Benchmark1000MemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_NAME)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+}
+
+class Benchmark2000MemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_2000_NAME)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+}
+
+class Benchmark4200MemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_4200_NAME)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+}
+
+class Benchmark200Repeated20TimesMemoryTest  {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(
     lightweightMode = false,
+    // Turn off measurements in repeated syncs before the measured one
+    disableInitialMeasurements = true
   )
-
-  init {
-    setUpProject("diff-200")
-  }
-
-  @Test
-  fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndMeasure()
-  }
-}
-
-class Benchmark200Repeated20TimesMemoryTest : MemoryBenchmarkTestSuite() {
-  @get:Rule
-  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
-    projectRule,
-    projectName = "200Modules",
-    memoryLimitMb = 1300,
-    lightweightMode = false,
-  )
-
-  init {
-    setUpProject("diff-200")
-  }
 
   @Test
   fun testSyncMemoryPost20Repeats() {
-    memoryUsageBenchmarkRule.repeatSyncAndMeasure(20)
+    benchmarkTestRule.openProject {
+      measureSyncMemoryUsageRule.repeatSyncAndMeasure(it, benchmarkTestRule.projectName, repeatCount = 20)
+    }
   }
 }
 
-class Benchmark500MemoryTest : MemoryBenchmarkTestSuite() {
-  @get:Rule
-  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
-    projectRule,
-    projectName = "500Modules",
-    memoryLimitMb = 3600,
-    lightweightMode = false
-  )
-
-  init {
-    setUpProject("diff-500")
-  }
-
-  @Test
-  fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndMeasure()
+private fun runTest(benchmarkTestRule: BenchmarkTestRule,
+                    measureSyncMemoryUsageRule: MeasureSyncMemoryUsageRule) {
+  benchmarkTestRule.openProject {
+    measureSyncMemoryUsageRule.recordMeasurements(benchmarkTestRule.projectName)
   }
 }
 
-class Benchmark1000MemoryTest : MemoryBenchmarkTestSuite() {
-  @get:Rule
-  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
-    projectRule,
-    projectName = "1000Modules",
-    memoryLimitMb = 9000,
-    lightweightMode = false
-  )
-
-  init {
-    setUpProject("diff-1000")
-  }
-
-  @Test
-  fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndMeasure()
-  }
-}
-
-class Benchmark2000MemoryTest : MemoryBenchmarkTestSuite() {
-  @get:Rule
-  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
-    projectRule,
-    projectName = "2000Modules",
-    memoryLimitMb = 20000,
-    lightweightMode = true
-  )
-
-  init {
-    setUpProject("diff-app")
-  }
-
-  @Test
-  fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndRecordMaxHeapOnly()
-  }
-}
-
-class BenchmarkXLMemoryTest : MemoryBenchmarkTestSuite() {
-  @get:Rule
-  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
-    projectRule,
-    projectName = "BenchmarkXL",
-    memoryLimitMb = 60000,
-    lightweightMode = true
-  )
-
-  init {
-    setUpProject() // no diff
-  }
-
-  @Test
-  fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndRecordMaxHeapOnly()
-  }
-}
