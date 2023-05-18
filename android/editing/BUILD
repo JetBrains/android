@@ -5,8 +5,12 @@ iml_module(
     name = "intellij.android.editing.tests",
     iml_files = ["intellij.android.editing.tests.iml"],
     test_class = "com.android.tools.idea.editing.EditingTestSuite",
-    test_data = ["//tools/adt/idea/android/editing/testData"],
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/editing/testData",
+    ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

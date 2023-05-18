@@ -569,48 +569,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
       "</resources>", true);
   }
 
-  // Ignored: b/281863312
-  public void ignore_testRenameWidget() throws Throwable {
-    createManifest();
-    myFixture.copyFileToProject(BASE_PATH + "MyWidget.java", "src/p1/p2/MyWidget.java");
-    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout_widget.xml", "res/layout/layout_widget.xml");
-    myFixture.configureFromExistingVirtualFile(file);
-    checkAndRename("MyWidget1");
-    myFixture.checkResultByFile(BASE_PATH + "layout_widget_after.xml");
-  }
-
-  // Ignored: b/281863312
-  public void ignore_testRenameWidget1() throws Throwable {
-    createManifest();
-    myFixture.copyFileToProject(BASE_PATH + "MyWidget.java", "src/p1/p2/MyWidget.java");
-    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout_widget.xml", "res/layout/layout_widget.xml");
-    myFixture.configureFromExistingVirtualFile(file);
-    checkAndRename("MyWidget1");
-    myFixture.checkResultByFile(BASE_PATH + "layout_widget_after.xml");
-  }
-
-  public void testRenameWidgetPackage1() throws Throwable {
-    createManifest();
-    myFixture.copyFileToProject(BASE_PATH + "MyWidget.java", "src/p1/p2/MyWidget.java");
-    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout_widget1.xml", "res/layout/layout_widget1.xml");
-    myFixture.configureFromExistingVirtualFile(file);
-    checkAndRename("newPackage");
-    myFixture.checkResultByFile(BASE_PATH + "layout_widget1_after.xml");
-  }
-
-  public void testMoveWidgetPackage1() throws Throwable {
-    createManifest();
-    myFixture.copyFileToProject(BASE_PATH + "Dummy.java", "src/p1/newp/Dummy.java");
-    myFixture.copyFileToProject(BASE_PATH + "MyWidget.java", "src/p1/p2/MyWidget.java");
-    myFixture.copyFileToProject(BASE_PATH + "MyPreference.java", "src/p1/p2/MyPreference.java");
-    final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "layout_widget2.xml", "res/layout/layout_widget2.xml");
-    myFixture.configureFromExistingVirtualFile(f);
-    myFixture.copyFileToProject(BASE_PATH + "custom_pref.xml", "res/xml/custom_pref.xml");
-    doMovePackage("p1.p2", "p1.newp");
-    myFixture.checkResultByFile("res/layout/layout_widget2.xml", BASE_PATH + "layout_widget2_after.xml", false);
-    myFixture.checkResultByFile("res/xml/custom_pref.xml", BASE_PATH + "custom_pref_after.xml", false);
-  }
-
   public void testRenameInlineIdDeclarations() throws Throwable {
     createManifest();
     VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "layout15.xml", "res/layout/layout15.xml");
@@ -653,21 +611,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
                           "  android:layout_height='@dimen/bar'>" +
                           "</LinearLayout>",
                           true);
-  }
-
-  private void doMovePackage(String packageName, String newPackageName) {
-    final JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
-    final PsiPackage aPackage = facade.findPackage(packageName);
-    final PsiPackage newParentPackage = facade.findPackage(newPackageName);
-
-    assertNotNull(newParentPackage);
-    final PsiDirectory[] dirs = newParentPackage.getDirectories();
-    assertEquals(dirs.length, 1);
-
-    new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{aPackage},
-                                       new SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage), dirs[0]),
-                                       true, false, null).run();
-    FileDocumentManager.getInstance().saveAllDocuments();
   }
 
   protected void checkAndRename(String newName) {
