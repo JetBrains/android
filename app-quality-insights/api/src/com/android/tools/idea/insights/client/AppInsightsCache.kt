@@ -33,6 +33,21 @@ import java.util.TreeSet
 /** Cache for App Insights data. */
 interface AppInsightsCache {
   /**
+   * Returns the most recently obtained connections.
+   *
+   * Used for Vitals only.
+   */
+  fun getRecentConnections(): List<Connection>
+
+  /**
+   * Sets the most recently obtained connections. Calling this has the side effect of evicting
+   * values associated with connections not in [connections].
+   *
+   * Used for Vitals only.
+   */
+  fun populateConnections(connections: List<Connection>)
+
+  /**
    * Returns the top reported [Issue]s stored in the cache. Returns null if no issues are cached for
    * this [FirebaseConnection].
    */
@@ -82,6 +97,13 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
 
   private val compositeIssuesCache: Cache<Connection, Cache<IssueId, CacheValue>> =
     createNew(MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE)
+
+  override fun getRecentConnections() = compositeIssuesCache.asMap().keys.toList()
+
+  override fun populateConnections(connections: List<Connection>) {
+    compositeIssuesCache.asMap().keys.retainAll(connections.toSet())
+    connections.forEach { getOrCreateIssuesCache(it) }
+  }
 
   // TODO(b/249297282): Fetch top issues for "default" filter in the background
   override fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>? {

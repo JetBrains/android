@@ -43,6 +43,7 @@ import org.junit.Test
 class AppInsightsCacheTest {
   private val now = Instant.now()
   private val connection = TestConnection("blah", "1234", "project12", "12")
+  private val connection2 = TestConnection("appId2", "1234", "project1", "1")
 
   private val testEvent =
     Event(
@@ -430,5 +431,15 @@ class AppInsightsCacheTest {
       .containsExactly(ISSUE2, ISSUE1)
       .inOrder()
     assertThat(cache.getIssues(connection, emptyList())).isEmpty()
+  }
+
+  @Test
+  fun `populate connections retains only current connections`() {
+    val cache = AppInsightsCacheImpl()
+    cache.populateIssues(connection, listOf(ISSUE1, ISSUE2))
+
+    cache.populateConnections(listOf(connection2))
+
+    assertThat(cache.getRecentConnections()).containsExactly(connection2)
   }
 }
