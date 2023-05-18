@@ -264,6 +264,7 @@ class DefaultModuleSystem(override val module: Module) :
     val applicationRClassConstantIds: Key<Boolean> = Key.create(::applicationRClassConstantIds.qualifiedName)
     val testRClassConstantIds: Key<Boolean> = Key.create(::testRClassConstantIds.qualifiedName)
     val useAndroidX: Key<Boolean> = Key.create(::useAndroidX.qualifiedName)
+    val enableVcsInfo: Key<Boolean> = Key.create(::enableVcsInfo.qualifiedName)
   }
 
   override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
@@ -298,6 +299,8 @@ class DefaultModuleSystem(override val module: Module) :
   override var testRClassConstantIds: Boolean by UserData(Keys.testRClassConstantIds, true)
 
   override var useAndroidX: Boolean by UserData(Keys.useAndroidX, false)
+
+  override val enableVcsInfo: Boolean by UserData(Keys.enableVcsInfo, false)
 }
 
 /**

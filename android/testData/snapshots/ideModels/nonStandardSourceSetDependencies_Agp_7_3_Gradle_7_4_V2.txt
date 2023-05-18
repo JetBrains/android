@@ -2536,6 +2536,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : me.monori.gradleprojectpathissue
         testApplicationId             : me.monori.gradleprojectpathissue.test
@@ -3837,6 +3838,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.a.test
     - basicVariant:               : release
@@ -5071,6 +5073,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : me.monori.feature.b.test
     - basicVariant:               : release
@@ -6515,6 +6518,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : test.test
     - basicVariant:               : release
@@ -6833,6 +6837,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
     - basicVariant:               : release

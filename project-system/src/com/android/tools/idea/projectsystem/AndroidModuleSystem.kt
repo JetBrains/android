@@ -365,6 +365,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean get() = false // TODO(270044829): fix tests to make this true by default
 
+  val enableVcsInfo: Boolean get() = false
+
   /** Whether [desugarLibraryConfigFiles] can be determined for this AGP version */
   val desugarLibraryConfigFilesKnown: Boolean get() = false
 

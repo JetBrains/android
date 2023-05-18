@@ -437,7 +437,8 @@ class GradleModuleSystem(
   }
 
   private data class AgpBuildGlobalFlags(
-    val useAndroidX: Boolean
+    val useAndroidX: Boolean,
+    val enableVcsInfo: Boolean
   )
 
   /**
@@ -477,6 +478,7 @@ class GradleModuleSystem(
         ?: return CachedValueProvider.Result(null, tracker)
       val agpBuildGlobalFlags = AgpBuildGlobalFlags(
         useAndroidX = gradleAndroidModel.androidProject.agpFlags.useAndroidX,
+        enableVcsInfo = gradleAndroidModel.androidProject.agpFlags.enableVcsInfo
       )
       return CachedValueProvider.Result(agpBuildGlobalFlags, tracker)
     }
@@ -538,6 +540,8 @@ class GradleModuleSystem(
    */
   override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
 
+  override val enableVcsInfo: Boolean get() = agpBuildGlobalFlags.enableVcsInfo
+
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
 
@@ -554,7 +558,8 @@ class GradleModuleSystem(
 
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
-      useAndroidX = true
+      useAndroidX = true,
+      enableVcsInfo = false
     )
     private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
   }

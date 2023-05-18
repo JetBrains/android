@@ -1731,6 +1731,7 @@ MODULE                        : project.ads-sdk-implementation
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.ads_sdk_implementation.test
     - basicVariant:               : release
@@ -2272,6 +2273,7 @@ MODULE                        : project.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.rubidumconsumer
         testApplicationId             : com.example.rubidumconsumer.test
@@ -3630,6 +3632,7 @@ MODULE                        : project.app-with-dynamic-feature
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.rubidumconsumer
         testApplicationId             : com.example.rubidumconsumer.test
@@ -5007,6 +5010,7 @@ MODULE                        : project.feature
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.feature.test
     - basicVariant:               : release

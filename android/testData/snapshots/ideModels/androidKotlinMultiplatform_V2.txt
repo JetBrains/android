@@ -1032,6 +1032,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : typeoneModeoneDebug
         testApplicationId             : com.example.androidlib.test
     - basicVariant:               : typeoneModetwoDebug
@@ -1627,6 +1628,7 @@ MODULE                        : Kotlin_Multiplatform.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.app
         testApplicationId             : com.example.app.test

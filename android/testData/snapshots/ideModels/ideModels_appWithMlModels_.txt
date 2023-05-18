@@ -185,6 +185,7 @@ MODULE                        : project.app
         TransitiveRClasses            : true
         UsesCompose                   : false
         MlModelBindingEnabled         : true
+        EnableVcsInfo                 : false
     VariantNames                  : debug
     VariantNames                  : release
     BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
