@@ -22,8 +22,8 @@ import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.StudioFeatureFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
-import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplicationMultipleRoots
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
+import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplicationMultipleRoots
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.Jdk
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74

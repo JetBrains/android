@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.config
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
-import com.android.tools.idea.testing.JdkConstants
 import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.roots.ProjectRootManager
@@ -55,16 +55,16 @@ class GradleConfigManagerTest: LightPlatformTestCase() {
   }
 
   fun `test Given valid project JDK and valid default JDK When initialize javaHome Then project JDK path was used`() {
-    setProjectJdk(JdkConstants.JDK_17_PATH)
+    setProjectJdk(JDK_EMBEDDED_PATH)
     GradleDefaultJdkPathStore.jdkPath = JDK_1_8_PATH
     GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
 
     val properties = GradleConfigProperties(temporaryFolder.root)
-    assertEquals(JdkConstants.JDK_17_PATH, properties.javaHome?.path)
+    assertEquals(JDK_EMBEDDED_PATH, properties.javaHome?.path)
   }
 
   fun `test Given invalid project JDK and valid default JDK When initialize javaHome Then default JDK path was used`() {
-    setProjectJdk(JdkConstants.JDK_INVALID_PATH)
+    setProjectJdk(JDK_INVALID_PATH)
     GradleDefaultJdkPathStore.jdkPath = JDK_1_8_PATH
     GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
 
@@ -73,8 +73,8 @@ class GradleConfigManagerTest: LightPlatformTestCase() {
   }
 
   fun `test Given invalid project JDK and invalid default JDK When initialize javaHome Then embedded JDK path was used`() {
-    setProjectJdk(JdkConstants.JDK_INVALID_PATH)
-    GradleDefaultJdkPathStore.jdkPath = JdkConstants.JDK_INVALID_PATH
+    setProjectJdk(JDK_INVALID_PATH)
+    GradleDefaultJdkPathStore.jdkPath = JDK_INVALID_PATH
     GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
 
     val properties = GradleConfigProperties(temporaryFolder.root)

@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.jdk.integration
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidEnvironmentVariableJavaHome
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidEnvironmentVariableStudioGradleJdk
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidGradleJvmTableEntryJavaHome
-import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidGradlePropertiesJavaHome
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidGradleLocalJavaHome
+import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.InvalidGradlePropertiesJavaHome
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.UndefinedEnvironmentVariableJavaHome
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.UndefinedEnvironmentVariableStudioGradleJdk
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause.UndefinedGradleJvmTableEntry

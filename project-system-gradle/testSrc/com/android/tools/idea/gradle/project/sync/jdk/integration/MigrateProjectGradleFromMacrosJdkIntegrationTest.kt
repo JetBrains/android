@@ -29,8 +29,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.JdkConstants.JDK_11
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
-import com.android.tools.idea.testing.JdkConstants.JDK_17
-import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
@@ -74,7 +72,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
   fun `Given not defined gradleJdk and projectJdk without table entry When sync project Then those were configured with Embedded Jdk`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
-        ideaProjectJdk = JDK_17
+        ideaProjectJdk = JDK_EMBEDDED
       )
     ) {
       syncWithAssertion(
@@ -88,10 +86,10 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
   fun `Given not defined gradleJdk and projectJdk with invalid table entry When sync project Then those were configured with Embedded Jdk`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
-        ideaProjectJdk = JDK_17
+        ideaProjectJdk = JDK_EMBEDDED
       ),
       environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_17, JDK_INVALID_PATH))
+        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_INVALID_PATH))
       )
     ) {
       syncWithAssertion(
@@ -105,16 +103,16 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
   fun `Given not defined gradleJdk and projectJdk with valid table entry When sync project Then gradleJdk was configured with projectJdk`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
-        ideaProjectJdk = JDK_17
+        ideaProjectJdk = JDK_EMBEDDED
       ),
       environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH))
+        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH))
       )
     ) {
       syncWithAssertion(
-        expectedGradleJdkName = JDK_17,
-        expectedProjectJdkName = JDK_17,
-        expectedProjectJdkPath = JDK_17_PATH
+        expectedGradleJdkName = JDK_EMBEDDED,
+        expectedProjectJdkName = JDK_EMBEDDED,
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 

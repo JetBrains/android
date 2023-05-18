@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk.integration
 
-import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
-import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplicationWithoutIdea
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.google.common.truth.Expect
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_LOCAL_JAVA_HOME

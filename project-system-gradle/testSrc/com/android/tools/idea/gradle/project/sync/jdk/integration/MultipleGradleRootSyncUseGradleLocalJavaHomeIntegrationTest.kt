@@ -29,8 +29,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.JdkConstants.JDK_11
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
-import com.android.tools.idea.testing.JdkConstants.JDK_17
-import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_INVALID_PATH
@@ -230,7 +228,7 @@ class MultipleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
         agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
         roots = listOf(
           GradleRoot("project_root1", USE_GRADLE_LOCAL_JAVA_HOME, JDK_11_PATH),
-          GradleRoot("project_root2", USE_GRADLE_LOCAL_JAVA_HOME, JDK_17_PATH),
+          GradleRoot("project_root2", USE_GRADLE_LOCAL_JAVA_HOME, JDK_EMBEDDED_PATH),
         )
       )
     ) {
@@ -243,12 +241,12 @@ class MultipleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
           ),
           "project_root2" to ExpectedGradleRoot(
             ideaGradleJdk = USE_GRADLE_LOCAL_JAVA_HOME,
-            gradleExecutionDaemonJdkPath = JDK_17_PATH,
-            gradleLocalJavaHome = JDK_17_PATH
+            gradleExecutionDaemonJdkPath = JDK_EMBEDDED_PATH,
+            gradleLocalJavaHome = JDK_EMBEDDED_PATH
           )
         ),
-        expectedProjectJdkName = JDK_17,
-        expectedProjectJdkPath = JDK_17_PATH
+        expectedProjectJdkName = JDK_EMBEDDED,
+        expectedProjectJdkPath = JDK_EMBEDDED_PATH
       )
     }
 

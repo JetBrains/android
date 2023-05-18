@@ -27,8 +27,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.JdkConstants.JDK_11
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
-import com.android.tools.idea.testing.JdkConstants.JDK_17
-import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED
+import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
 import com.google.common.truth.Expect
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -57,16 +57,16 @@ class SingleGradleRootSyncUseStudioGradleJdkIntegrationTest {
   fun `Given valid STUDIO_GRADLE_JDK env variable When import project Then sync used its path and the gradle jdk configuration doesn't change`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
-        ideaGradleJdk = JDK_17,
+        ideaGradleJdk = JDK_EMBEDDED,
         agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
       ),
       environment = TestEnvironment(
-        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH)),
+        jdkTable = listOf(Jdk(JDK_EMBEDDED, JDK_EMBEDDED_PATH)),
         environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to JDK_11_PATH)
       )
     ) {
       syncWithAssertion(
-        expectedGradleJdkName = JDK_17,
+        expectedGradleJdkName = JDK_EMBEDDED,
         expectedProjectJdkName = JDK_11,
         expectedProjectJdkPath = JDK_11_PATH
       )
