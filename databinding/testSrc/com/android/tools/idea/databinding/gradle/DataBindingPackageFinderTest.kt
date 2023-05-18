@@ -30,11 +30,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.kotlin.descriptors.resolveClassByFqName
-import org.jetbrains.kotlin.idea.caches.project.toDescriptor
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
-import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.name.FqName
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -75,10 +70,7 @@ class DataBindingPackageFinderTest {
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    val moduleDescriptor = facet.mainModule.toDescriptor()!!
-    val classDescriptor = moduleDescriptor.resolveClassByFqName(FqName("com.android.example.viewbinding.MainActivity"),
-                                                                NoLookupLocation.WHEN_FIND_BY_FQNAME)!!
-    val context = classDescriptor.findPsi()!!
+    val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
     assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context))
       .isInstanceOf(LightBindingClass::class.java)
