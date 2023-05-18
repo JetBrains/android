@@ -45,17 +45,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ApplyChangesAgentError;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.Executor;
-import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -72,7 +64,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractDeployTask implements LaunchTask {
+public abstract class AbstractDeployTask {
 
   public static final int MIN_API_VERSION = 26;
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
@@ -99,37 +91,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     mySubTaskDetails = new ArrayList<>();
   }
 
-  @Override
-  public int getDuration() {
-    return 20;
-  }
-
-  public List<Deployer.Result> run(IDevice device, ProgressIndicator indicator) throws DeployerException {
-    return doRun(device, indicator);
-  }
-
-  @Override
-  public void run(@NotNull LaunchContext launchContext) throws ExecutionException {
-    IDevice device = launchContext.getDevice();
-    Executor executor = launchContext.getEnv().getExecutor();
-
-    try {
-      launchContext.setLaunchApp(shouldTaskLaunchApp());
-      List<Deployer.Result> results = doRun(device, launchContext.getProgressIndicator());
-      if (results.stream().anyMatch(result -> result.needsRestart)) {
-        // TODO: fall back to using the suggested action, rather than blindly rerun
-        launchContext.setKillBeforeLaunch(true);
-        launchContext.setLaunchApp(true);
-      }
-    }
-    catch (DeployerException e) {
-      suggestResolveAction(executor, e);
-      //TODO: Remove wrapping when detach AbstractDeployTask from LaunchTask
-      throw new ExecutionException(e);
-    }
-  }
-
-  private List<Deployer.Result> doRun(@NotNull IDevice device, ProgressIndicator indicator) throws DeployerException {
+    public List<Deployer.Result> run(@NotNull IDevice device, ProgressIndicator indicator)
+            throws DeployerException {
     Canceller canceller = new Canceller() {
       @Override
       public boolean cancelled() {
@@ -204,9 +167,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return results;
   }
 
-  abstract protected String getFailureTitle();
-
-  abstract protected boolean shouldTaskLaunchApp();
+    protected abstract String getDescription();
 
   abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo, @NotNull Canceller canceller)
     throws DeployerException;
@@ -251,76 +212,22 @@ public abstract class AbstractDeployTask implements LaunchTask {
     }
   }
 
+    public abstract String getId();
+
   private void logAgentFailures(List<Deploy.AgentExceptionLog> agentExceptionLogs) {
     for (Deploy.AgentExceptionLog log : agentExceptionLogs) {
       UsageTracker.log(toStudioEvent(log));
     }
   }
 
-  @Override
   @NotNull
   public Collection<LaunchTaskDetail> getSubTaskDetails() {
     return mySubTaskDetails;
   }
 
-  public void suggestResolveAction(@NotNull Executor executor, @NotNull DeployerException e) {
-    LOG.warn(String.format("%s failed: %s %s", getDescription(), e.getMessage(), e.getDetails()));
-
-    StringBuilder bubbleError = new StringBuilder(getFailureTitle());
-    bubbleError.append("\n");
-    bubbleError.append(e.getMessage());
-
-    DeployerException.Error error = e.getError();
-    String callToAction = error.getCallToAction();
-    DeployerException.ResolutionAction resolutionAction = error.getResolution();
-    if (DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId()) && resolutionAction == DeployerException.ResolutionAction.APPLY_CHANGES) {
-      // Resolutions to Apply Changes in Debug mode needs to be remapped to Rerun.
-      callToAction = "Rerun";
-      resolutionAction = DeployerException.ResolutionAction.RUN_APP;
-    }
-
-    if (resolutionAction == DeployerException.ResolutionAction.NONE) {
-      NOTIFICATION_GROUP.createNotification(bubbleError.toString(), NotificationType.ERROR).notify(myProject);
-      return;
-    }
-
-    String actionId;
-
-    switch (resolutionAction) {
-      case APPLY_CHANGES:
-        // TODO: fix dependencies and use ApplyChangesAction.ID
-        actionId = "android.deploy.ApplyChanges";
-        break;
-      case RUN_APP:
-        actionId =
-          DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId()) ? IdeActions.ACTION_DEFAULT_DEBUGGER : IdeActions.ACTION_DEFAULT_RUNNER;
-        break;
-      case RETRY:
-        actionId = executor.getActionName();
-        break;
-      default:
-        throw new RuntimeException("Unknown resolution action");
-    }
-
-    AnAction action = ActionManager.getInstance().getAction(actionId);
-    Runnable actionRunnable = () -> ActionManager.getInstance().tryToExecute(action, null, null, null, true);
-
-    if (myRerunOnSwapFailure) {
-      bubbleError.append(String.format("\n%s will be done automatically</a>", callToAction));
-      NOTIFICATION_GROUP.createNotification(bubbleError.toString(), NotificationType.ERROR).notify(myProject);
-
-      ApplicationManager.getApplication().invokeLater(actionRunnable);
-    }
-    else {
-      NotificationAction notificationAction = NotificationAction.createSimpleExpiring(callToAction, actionRunnable);
-      NOTIFICATION_GROUP.createNotification(bubbleError.toString(), NotificationType.ERROR).addAction(notificationAction).notify(myProject);
-    }
-  }
-
   protected abstract String createSkippedApkInstallMessage(List<String> skippedApkList, boolean all);
 
   @NotNull
-  @Override
   public Collection<ApkInfo> getApkInfos() {
     return myPackages;
   }

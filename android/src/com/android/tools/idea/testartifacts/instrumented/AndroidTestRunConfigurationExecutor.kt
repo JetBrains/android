@@ -34,7 +34,6 @@ import com.android.tools.idea.run.configuration.execution.createRunContentDescri
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.DeployTask
-import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
@@ -160,7 +159,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
           project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
         }
         LaunchUtils.initiateDismissKeyguard(device)
-        getDeployTask(device).run(LaunchContext(env, device, console, processHandler, indicator))
+        getDeployTask(device).run(device, indicator)
         // Notify listeners of the deployment.
         project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
       }

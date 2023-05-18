@@ -19,6 +19,7 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -56,6 +57,7 @@ class NotificationRule private constructor(private val project: () -> Project, p
               notification.content,
               notification.type,
               notification.isImportant,
+              notification.actions
             ))
           }
         })
@@ -75,5 +77,6 @@ class NotificationRule private constructor(private val project: () -> Project, p
     val content: String? = null,
     val type: NotificationType,
     val important: Boolean? = false,
+    val actions: MutableList<AnAction>,
   )
 }

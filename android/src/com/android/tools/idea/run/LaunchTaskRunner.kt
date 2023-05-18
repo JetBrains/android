@@ -30,6 +30,7 @@ import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.execution.common.adb.shell.tasks.launchSandboxSdk
 import com.android.tools.idea.execution.common.clearAppStorage
+import com.android.tools.idea.execution.common.deploy.deployAndHandleError
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.shouldDebugSandboxSdk
@@ -125,10 +126,8 @@ class LaunchTaskRunner(
           //Deploy
           if (configuration.DEPLOY) {
             val apks = apkInfosSafe(device)
-            val deployResults = apks.map {
-              deploy { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) }
-            }
-
+            val deployResults =
+              deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
             notifyLiveEditService(device, packageName)
 
             if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
@@ -243,9 +242,8 @@ class LaunchTaskRunner(
       //Deploy
       if (configuration.DEPLOY) {
         val apks = apkInfosSafe(device)
-        val deployResults = apks.map {
-          deploy { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) }
-        }
+        val deployResults =
+          deployAndHandleError(env, { apks.map { applicationDeployer.fullDeploy(device, it, configuration.deployOptions, indicator) } })
 
         notifyLiveEditService(device, packageName)
 
@@ -307,10 +305,11 @@ class LaunchTaskRunner(
 
         //Deploy
         val apks = apkInfosSafe(device)
-
-        val deployResults = apks.map {
-          deploy { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, indicator) }
-        }
+        val deployResults = deployAndHandleError(
+          env,
+          { apks.map { applicationDeployer.applyChangesDeploy(device, it, configuration.deployOptions, indicator) } },
+          isApplyChangesFallbackToRun()
+        )
         notifyLiveEditService(device, packageName)
 
         if (deployResults.any { it.needsRestart }) {
@@ -384,9 +383,12 @@ class LaunchTaskRunner(
         LOG.info("Launching on device ${device.name}")
         val launchContext = LaunchContext(env, device, console, processHandler, indicator)
         val apks = apkInfosSafe(device)
-        val deployResults = apks.map {
-          deploy { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, indicator) }
-        }
+        val deployResults = deployAndHandleError(
+          env,
+          { apks.map { applicationDeployer.applyCodeChangesDeploy(device, it, configuration.deployOptions, indicator) } },
+          isApplyCodeChangesFallbackToRun()
+        )
+
         notifyLiveEditService(device, packageName)
 
         if (deployResults.any { it.needsRestart }) {
