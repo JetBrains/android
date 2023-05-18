@@ -137,12 +137,6 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
     if (myProject != null) {
       showGradleSettings(myProject);
     }
-    else {
-      showNewPsd(
-        new Place()
-          .putPath(ProjectStructureConfigurable.CATEGORY_NAME, "SDK Location")
-      );
-    }
   }
 
   @Override

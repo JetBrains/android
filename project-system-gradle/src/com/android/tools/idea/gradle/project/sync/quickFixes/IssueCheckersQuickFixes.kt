@@ -281,13 +281,13 @@ class OpenPluginBuildFileQuickFix : BuildIssueQuickFix {
   }
 }
 
-class OpenProjectStructureQuickfix : BuildIssueQuickFix {
-  override val id = "open.jdk.ndk.settings"
+class OpenGradleJdkSettingsQuickfix : BuildIssueQuickFix {
+  override val id = "open.gradle.jdk.settings"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)
     if (service is AndroidProjectSettingsService) {
-      service.openSdkSettings()
+      service.chooseJdkLocation()
     }
     return CompletableFuture.completedFuture<Any>(null)
   }

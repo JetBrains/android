@@ -20,14 +20,12 @@ import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink.showGradleSettings;
 import static com.android.tools.idea.gradle.structure.NdkProjectStructureUtilKt.supportsSideBySideNdk;
 import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -94,7 +92,6 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -110,7 +107,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Allows the user set global Android SDK and JDK locations that are used for Gradle-based Android projects.
+ * Allows the user set global Android SDK and NDK locations that are used for Android projects.
  */
 public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @NonNls private static final String SDKS_PLACE = "sdks.place";
@@ -118,8 +115,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   private static final String CHOOSE_VALID_SDK_DIRECTORY_ERR = "Please choose a valid Android SDK directory.";
   private static final String CHOOSE_VALID_NDK_DIRECTORY_ERR = "Please choose a valid Android NDK directory.";
-
-  private static final String JDK_MOVED_TEXT = "JDK location was moved to <hyperlink>Gradle Settings.</hyperlink>";
 
   private static final Logger LOG = Logger.getInstance(IdeSdksConfigurable.class);
 
@@ -137,7 +132,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   @SuppressWarnings("unused") private JPanel myNdkDownloadPanel;
   @SuppressWarnings("unused") private AsyncProcessIcon myNdkCheckProcessIcon;
   private ComboboxWithBrowseButton myNdkLocationComboBox;
-  private HyperlinkLabel myJdkMovedLabel;
 
   private DetailsComponent myDetailsComponent;
   private History myHistory;
@@ -189,8 +183,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     if (!supportsSideBySideNdk) {
       addHistoryUpdater("myNdkLocationComboBox", myNdkLocationComboBox.getComboBox(), historyUpdater);
     }
-
-    myJdkMovedLabel.setEnabled(myProject != null && !myProject.isDefault());
   }
 
   private void maybeLoadSdks(@Nullable Project project) {
@@ -246,7 +238,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       throw new ConfigurationException(errors.get(0).getDescription().toString());
     }
     ApplicationManager.getApplication().runWriteAction(() -> {
-      // Setting the Sdk path will trigger the project sync. Set the Ndk path and Jdk path before the Sdk path to get the changes to them
+      // Setting the Sdk path will trigger the project sync. Set the Ndk path before the Sdk path to get the changes to them
       // to take effect during the sync.
       saveAndroidNdkPath();
 
@@ -290,21 +282,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     createSdkLocationTextField();
     createNdkLocationComboBox();
     createNdkDownloadLink();
-    createJdkMovedLink();
-  }
-
-  private void createJdkMovedLink() {
-    myJdkMovedLabel = new HyperlinkLabel();
-    //noinspection UnstableApiUsage
-    myJdkMovedLabel.setTextWithHyperlink(JDK_MOVED_TEXT);
-    myJdkMovedLabel.addHyperlinkListener(new HyperlinkAdapter() {
-      @Override
-      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
-        if (myProject != null) {
-          showGradleSettings(myProject);
-        }
-      }
-    });
   }
 
   private void createNdkLocationComboBox() {
@@ -408,7 +385,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       return null;
     });
 
-    JTextField textField = new JTextField(10);
+    JTextField textField = new JTextField(67);
     mySdkLocationTextField = new TextFieldWithBrowseButton(textField, e -> {
       VirtualFile suggestedDir = null;
       File sdkLocation = getSdkLocation();
@@ -578,15 +555,6 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     return "";
   }
 
-  /**
-   * @return what the IDE is using as the home path for the JDK.
-   */
-  @NotNull
-  private static String getIdeJdkPath() {
-    Path javaHome =  IdeSdks.getInstance().getJdkPath();
-    return javaHome != null ? javaHome.toString() : "";
-  }
-
   @NotNull
   private File getSdkLocation() {
     String sdkLocation = mySdkLocationTextField.getText();
@@ -698,18 +666,12 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   }
 
   /**
-   * @return {@code true} if the configurable is needed: e.g. if we're missing a JDK or an Android SDK setting.
+   * @return {@code true} if the configurable is needed: e.g. if we're missing an Android SDK setting.
    */
   public static boolean isNeeded() {
-    String jdkPath = getIdeJdkPath();
     String sdkPath = getIdeAndroidSdkPath();
-
-    IdeSdks ideSdks = IdeSdks.getInstance();
-
-    boolean validJdk = ideSdks.isUsingEmbeddedJdk() || (!jdkPath.isEmpty() && checkForJdk(Paths.get(jdkPath)));
     boolean validSdk = !sdkPath.isEmpty() && AndroidSdkPath.isValid(new File(sdkPath));
-
-    return !validJdk || !validSdk;
+    return !validSdk;
   }
 
   @Override

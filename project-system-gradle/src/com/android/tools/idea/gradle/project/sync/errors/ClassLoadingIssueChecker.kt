@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.sdk.IdeSdks
@@ -81,7 +81,7 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
       buildIssueComposer.apply {
         addDescription("Possible causes for this unexpected error include:")
         addDescription(jdk7Hint)
-        addQuickFix("Open JDK Settings", OpenProjectStructureQuickfix())
+        addQuickFix("Open JDK Settings", OpenGradleJdkSettingsQuickfix())
       }
     }
     buildIssueComposer.apply {

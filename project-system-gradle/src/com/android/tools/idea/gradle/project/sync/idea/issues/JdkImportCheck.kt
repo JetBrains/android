@@ -159,16 +159,14 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
   }
 }
 
-public class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
+class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
   override val description: String = "Change Gradle JDK..."
-  override val id: String = "select.jdk.from.new.psd"
+  override val id: String = "select.jdk.from.gradle.settings"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)
     if (service is AndroidProjectSettingsService) {
       service.chooseJdkLocation()
-    } else {
-      service.chooseAndSetSdk()
     }
     return CompletableFuture.completedFuture(null)
   }
