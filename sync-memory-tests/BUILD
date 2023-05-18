@@ -8,13 +8,13 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.sync-memory-tests.iml"],
     split_test_targets = {
-        "Benchmark100": {
+        "Benchmark100Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark100MemoryTest",
         },
-        "Benchmark200": {
+        "Benchmark200Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200MemoryTest",
         },
-        "Benchmark200Repeated20Times": {
+        "Benchmark200Repeated20TimesMemory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
         },
         "Benchmark500": {
@@ -30,9 +30,15 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
         },
         "BenchmarkXL": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkXLMemoryTest",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark4200MemoryTest",
             "exec_properties": LARGE_MACHINE,
             "tags": ["manual"],
+        },
+        "Benchmark200Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
+        },
+        "Benchmark500Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
         },
     },
     test_data = [
