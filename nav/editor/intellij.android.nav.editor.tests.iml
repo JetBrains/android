@@ -30,7 +30,7 @@
     <orderEntry type="library" scope="TEST" name="CGLIB" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-jdk8" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />

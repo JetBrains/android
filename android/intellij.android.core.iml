@@ -148,7 +148,7 @@
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
-    <orderEntry type="library" name="kotlinx-coroutines-jdk8" level="project" />
+    <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="rd-core" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="NanoXML" level="project" />
