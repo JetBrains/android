@@ -35,7 +35,8 @@ public abstract class ActivityLaunchTask extends AppLaunchTask {
   static final String ACTIVITY_DOES_NOT_EXIST = "ACTIVITY_DOES_NOT_EXIST";
   @VisibleForTesting
   static final String UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY = "UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY";
-
+  private static final String ACTIVITY_DOES_NOT_EXIST_REGEX = "Activity class \\{[^}]*} does not exist";
+  private static final Pattern activityDoesNotExistPattern = Pattern.compile(ACTIVITY_DOES_NOT_EXIST_REGEX);
   @NotNull private final String myApplicationId;
   @NotNull private final StartActivityFlagsProvider myStartActivityFlagsProvider;
 
@@ -55,9 +56,6 @@ public abstract class ActivityLaunchTask extends AppLaunchTask {
   public int getDuration() {
     return LaunchTaskDurations.LAUNCH_ACTIVITY;
   }
-
-  private static final String ACTIVITY_DOES_NOT_EXIST_REGEX = "Activity class \\{[^}]*} does not exist";
-  private static final Pattern activityDoesNotExistPattern = Pattern.compile(ACTIVITY_DOES_NOT_EXIST_REGEX);
 
   @VisibleForTesting
   public String getStartActivityCommand(@NotNull IDevice device, @NotNull ConsoleView consoleView) throws ExecutionException {

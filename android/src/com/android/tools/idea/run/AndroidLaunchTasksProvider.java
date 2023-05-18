@@ -176,21 +176,11 @@ public class AndroidLaunchTasksProvider {
         tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(
           myRunConfig, myEnv.getExecutor(), packageName, device, app)));
         break;
-      default: throw new IllegalStateException("Unhandled Deploy Type");
+      default:
+        throw new IllegalStateException("Unhandled Deploy Type");
     }
     return ImmutableList.copyOf(tasks);
   }
-
-  private static Set<Path> getApkPaths(Iterable<? extends ApkInfo> apks) {
-    Set<Path> apksPaths = new HashSet<>();
-    for (ApkInfo apkInfo : apks) {
-      for (ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
-        apksPaths.add(apkFileUnit.getApkPath());
-      }
-    }
-    return apksPaths;
-  }
-
 
   private boolean isApplyCodeChangesFallbackToRun() {
     return DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN;
@@ -198,18 +188,6 @@ public class AndroidLaunchTasksProvider {
 
   private boolean isApplyChangesFallbackToRun() {
     return DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN;
-  }
-
-  @NotNull
-  private static ApkInfo filterDisabledFeatures(ApkInfo apkInfo, List<String> disabledFeatures) {
-    if (apkInfo.getFiles().size() > 1) {
-      List<ApkFileUnit> filtered = apkInfo.getFiles().stream()
-        .filter(feature -> DynamicAppUtils.isFeatureEnabled(disabledFeatures, feature))
-        .collect(Collectors.toList());
-      return new ApkInfo(filtered, apkInfo.getApplicationId());
-    } else {
-      return apkInfo;
-    }
   }
 
   private boolean shouldDeployAsInstant() {
@@ -253,45 +231,77 @@ public class AndroidLaunchTasksProvider {
       }
 
       return false;
-    } catch(ApkProvisionException e) {
+    }
+    catch (ApkProvisionException e) {
       return false;
     }
-  }
-
-  private enum DeployType {
-    RUN_INSTANT_APP{
-      @Override
-      public String asDisplayName() {
-        return "Instant App Launch";
-      }},
-    APPLY_CHANGES{
-      @Override
-      public String asDisplayName() {
-        return "Apply Changes";
-      }},
-    APPLY_CODE_CHANGES {
-      @Override
-      public String asDisplayName() {
-        return "Apply Code Changes";
-      }},
-    DEPLOY {
-      @Override
-      public String asDisplayName() {
-        return "Launch";
-      }},
-    ;
-    public abstract String asDisplayName();
   }
 
   private DeployType getDeployType() {
     if (shouldDeployAsInstant()) {
       return DeployType.RUN_INSTANT_APP;
-    } else if (shouldApplyChanges()) {
+    }
+    else if (shouldApplyChanges()) {
       return DeployType.APPLY_CHANGES;
-    } else if (shouldApplyCodeChanges()) {
+    }
+    else if (shouldApplyCodeChanges()) {
       return DeployType.APPLY_CODE_CHANGES;
-    } else {
+    }
+    else {
       return DeployType.DEPLOY;
     }
+  }
+
+  private static Set<Path> getApkPaths(Iterable<? extends ApkInfo> apks) {
+    Set<Path> apksPaths = new HashSet<>();
+    for (ApkInfo apkInfo : apks) {
+      for (ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
+        apksPaths.add(apkFileUnit.getApkPath());
+      }
+    }
+    return apksPaths;
+  }
+
+  @NotNull
+  private static ApkInfo filterDisabledFeatures(ApkInfo apkInfo, List<String> disabledFeatures) {
+    if (apkInfo.getFiles().size() > 1) {
+      List<ApkFileUnit> filtered = apkInfo.getFiles().stream()
+        .filter(feature -> DynamicAppUtils.isFeatureEnabled(disabledFeatures, feature))
+        .collect(Collectors.toList());
+      return new ApkInfo(filtered, apkInfo.getApplicationId());
+    }
+    else {
+      return apkInfo;
+    }
+  }
+
+  private enum DeployType {
+    RUN_INSTANT_APP {
+      @Override
+      public String asDisplayName() {
+        return "Instant App Launch";
+      }
+    },
+    APPLY_CHANGES {
+      @Override
+      public String asDisplayName() {
+        return "Apply Changes";
+      }
+    },
+    APPLY_CODE_CHANGES {
+      @Override
+      public String asDisplayName() {
+        return "Apply Code Changes";
+      }
+    },
+    DEPLOY {
+      @Override
+      public String asDisplayName() {
+        return "Launch";
+      }
+    },
+    ;
+
+    public abstract String asDisplayName();
   }
 }

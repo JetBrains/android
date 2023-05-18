@@ -17,10 +17,9 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public interface SplitApkDeployTaskContext {
   /**
@@ -43,9 +42,10 @@ public interface SplitApkDeployTaskContext {
 
   /**
    * Notification that the deployment has completed.
+   *
    * @param project the project
-   * @param device the target device
-   * @param status {@code true} if the deployment was successful
+   * @param device  the target device
+   * @param status  {@code true} if the deployment was successful
    */
   void notifyInstall(@NotNull Project project, @NotNull IDevice device, boolean status);
 }

@@ -21,8 +21,6 @@ package com.android.tools.idea.run.tasks;
  * launching an activity.
  */
 public class LaunchTaskDurations {
-  private LaunchTaskDurations() {}
-
   public static final int ASYNC_TASK = 1;
   public static final int LAUNCH_ACTIVITY = 2;
   public static final int CLEAR_APP_DATA = 2;
@@ -31,4 +29,6 @@ public class LaunchTaskDurations {
   public static final int DEPLOY_APK = 20;
   public static final int DEPLOY_INSTANT_APP = 20;
   public static final int UNINSTALL_IOT_APK = 20;
+
+  private LaunchTaskDurations() { }
 }

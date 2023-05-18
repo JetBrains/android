@@ -76,7 +76,7 @@ fun getBaseDebuggerTask(
   logger.info("Using debugger: " + debugger.id)
 
   val androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
-                             ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
+    ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
 
   return getBaseDebuggerTask(debugger, androidDebuggerState, executionEnvironment, facet, timeoutSeconds)
 }
@@ -92,15 +92,15 @@ fun <S : AndroidDebuggerState> getBaseDebuggerTask(
   val executionType = AndroidModel.get(facet)?.testExecutionOption ?: TestExecutionOption.HOST
 
   return if (executionEnvironment.runProfile is AndroidTestRunConfiguration &&
-             (TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR == executionType || TestExecutionOption.ANDROID_TEST_ORCHESTRATOR == executionType)) {
+    (TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR == executionType || TestExecutionOption.ANDROID_TEST_ORCHESTRATOR == executionType)
+  ) {
     ReattachingConnectDebuggerTask(
       debugger,
       androidDebuggerState,
       MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME[executionType]!!,
       timeoutSeconds
     )
-  }
-  else {
+  } else {
     DefaultConnectDebuggerTask(debugger, androidDebuggerState, timeoutSeconds)
   }
 }

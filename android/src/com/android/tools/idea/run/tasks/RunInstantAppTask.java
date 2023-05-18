@@ -110,38 +110,39 @@ public class RunInstantAppTask implements LaunchTask {
     };
 
 
-      IDevice device = launchContext.getDevice();
-      ExtendedSdk aiaSdk = mySdk.loadLibrary();
+    IDevice device = launchContext.getDevice();
+    ExtendedSdk aiaSdk = mySdk.loadLibrary();
 
-      ApkInfo apkInfo = myPackages.iterator().next();
-      List<ApkFileUnit> artifactFiles = apkInfo.getFiles();
+    ApkInfo apkInfo = myPackages.iterator().next();
+    List<ApkFileUnit> artifactFiles = apkInfo.getFiles();
 
-      StatusCode status;
-      if (isSingleZipFile(artifactFiles)) {
-        // This is a ZIP built by the feature plugin, containing all the app splits
-        status = aiaSdk.getRunHandler().runZip(
-          artifactFiles.get(0).getApkFile(),
-          url,
-          AndroidDebugBridge.getSocketAddress(),
-          device.getSerialNumber(),
-          null,
-          resultStream,
-          new NullProgressIndicator());
-      } else {
-        // This is a set of individual APKs, such as might be built from a bundle
-        status = aiaSdk.getRunHandler().runApks(
-          artifactFiles.stream()
-                       // Remove disabled APKs
-                       .filter((apkFileUnit) -> (DynamicAppUtils.isFeatureEnabled(myDisabledFeatures, apkFileUnit)))
-            .map(ApkFileUnit::getApkFile)
-            .collect(ImmutableList.toImmutableList()),
-          url,
-          AndroidDebugBridge.getSocketAddress(),
-          device.getSerialNumber(),
-          null,
-          resultStream,
-          new NullProgressIndicator());
-      }
+    StatusCode status;
+    if (isSingleZipFile(artifactFiles)) {
+      // This is a ZIP built by the feature plugin, containing all the app splits
+      status = aiaSdk.getRunHandler().runZip(
+        artifactFiles.get(0).getApkFile(),
+        url,
+        AndroidDebugBridge.getSocketAddress(),
+        device.getSerialNumber(),
+        null,
+        resultStream,
+        new NullProgressIndicator());
+    }
+    else {
+      // This is a set of individual APKs, such as might be built from a bundle
+      status = aiaSdk.getRunHandler().runApks(
+        artifactFiles.stream()
+          // Remove disabled APKs
+          .filter((apkFileUnit) -> (DynamicAppUtils.isFeatureEnabled(myDisabledFeatures, apkFileUnit)))
+          .map(ApkFileUnit::getApkFile)
+          .collect(ImmutableList.toImmutableList()),
+        url,
+        AndroidDebugBridge.getSocketAddress(),
+        device.getSerialNumber(),
+        null,
+        resultStream,
+        new NullProgressIndicator());
+    }
 
     if (status != StatusCode.SUCCESS) {
       throw new ExecutionException("Instant app deployment failed");
@@ -152,6 +153,21 @@ public class RunInstantAppTask implements LaunchTask {
   @Override
   public String getId() {
     return ID;
+  }
+
+  @TestOnly
+  @NotNull
+  public Collection<ApkInfo> getPackages() {
+    return myPackages;
+  }
+
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(RunInstantAppTask.class);
+  }
+
+  private static boolean isSingleZipFile(List<ApkFileUnit> artifactFiles) {
+    return artifactFiles.size() == 1 && StringUtil.toLowerCase(artifactFiles.get(0).getApkFile().getName()).endsWith(".zip");
   }
 
   public static class RunInstantAppException extends Exception {
@@ -165,24 +181,9 @@ public class RunInstantAppTask implements LaunchTask {
     }
   }
 
-  @NotNull
-  private static Logger getLogger() {
-    return Logger.getInstance(RunInstantAppTask.class);
-  }
-
-  private static boolean isSingleZipFile(List<ApkFileUnit> artifactFiles) {
-    return artifactFiles.size() == 1 && StringUtil.toLowerCase(artifactFiles.get(0).getApkFile().getName()).endsWith(".zip");
-  }
-
   private static class NullProgressIndicator implements ProgressIndicator {
     @Override
     public void setProgress(double v) {
     }
-  }
-
-  @TestOnly
-  @NotNull
-  public Collection<ApkInfo> getPackages() {
-    return myPackages;
   }
 }

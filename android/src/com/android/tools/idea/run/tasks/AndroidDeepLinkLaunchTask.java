@@ -91,5 +91,4 @@ public class AndroidDeepLinkLaunchTask extends AppLaunchTask {
   private static String singleQuoteShell(@NotNull String literal) {
     return "'" + literal.replace("'", "'\\''") + "'";
   }
-
 }

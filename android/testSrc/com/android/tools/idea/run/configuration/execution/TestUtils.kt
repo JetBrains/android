@@ -40,9 +40,11 @@ internal fun createApp(device: IDevice, appId: String, servicesName: List<String
   return App(appId, listOf(apk), device, NullLogger())
 }
 
-private fun createManifestServiceInfo(serviceName: String,
-                                      appId: String,
-                                      attrs: Map<String, String> = emptyMap()): ManifestServiceInfo {
+private fun createManifestServiceInfo(
+  serviceName: String,
+  appId: String,
+  attrs: Map<String, String> = emptyMap()
+): ManifestServiceInfo {
   val node = XmlNode()
   node.attributes()["name"] = serviceName
   for ((attr, value) in attrs) {
@@ -51,9 +53,11 @@ private fun createManifestServiceInfo(serviceName: String,
   return ManifestServiceInfo(node, appId)
 }
 
-private fun createManifestActivityInfo(activityName: String,
-                                       appId: String,
-                                       attrs: Map<String, String> = emptyMap()): ManifestActivityInfo {
+private fun createManifestActivityInfo(
+  activityName: String,
+  appId: String,
+  attrs: Map<String, String> = emptyMap()
+): ManifestActivityInfo {
   val node = XmlNode()
   node.attributes()["name"] = activityName
   for ((attr, value) in attrs) {
@@ -78,17 +82,21 @@ internal class TestApplicationInstaller : ApplicationDeployer {
     return Deployer.Result(false, false, false, appIdToApp[appId]!!)
   }
 
-  override fun applyChangesDeploy(device: IDevice,
-                                  app: ApkInfo,
-                                  deployOptions: DeployOptions,
-                                  indicator: ProgressIndicator): Deployer.Result {
+  override fun applyChangesDeploy(
+    device: IDevice,
+    app: ApkInfo,
+    deployOptions: DeployOptions,
+    indicator: ProgressIndicator
+  ): Deployer.Result {
     TODO("Not yet implemented")
   }
 
-  override fun applyCodeChangesDeploy(device: IDevice,
-                                      app: ApkInfo,
-                                      deployOptions: DeployOptions,
-                                      indicator: ProgressIndicator): Deployer.Result {
+  override fun applyCodeChangesDeploy(
+    device: IDevice,
+    app: ApkInfo,
+    deployOptions: DeployOptions,
+    indicator: ProgressIndicator
+  ): Deployer.Result {
     TODO("Not yet implemented")
   }
 }
@@ -101,7 +109,8 @@ internal fun CodeInsightTestFixture.addWearDependenciesToProject() {
       package android.support.wearable.watchface
 
       open class WatchFaceService
-      """.trimIndent())
+      """.trimIndent()
+  )
 
   addFileToProject(
     "src/androidx/wear/tiles/TileService.kt",
@@ -109,7 +118,8 @@ internal fun CodeInsightTestFixture.addWearDependenciesToProject() {
       package androidx.wear.tiles
 
       open class TileService
-      """.trimIndent())
+      """.trimIndent()
+  )
 
   addFileToProject(
     "src/androidx/wear/watchface/complications/datasource/ComplicationDataSourceService.kt",
@@ -117,7 +127,8 @@ internal fun CodeInsightTestFixture.addWearDependenciesToProject() {
       package androidx.wear.watchface.complications.datasource
 
       open class ComplicationDataSourceService
-      """.trimIndent())
+      """.trimIndent()
+  )
 }
 
 internal fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!

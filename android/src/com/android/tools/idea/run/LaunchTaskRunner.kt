@@ -113,14 +113,13 @@ class LaunchTaskRunner(
     createRunContentDescriptor(processHandler, console, env)
   }
 
-  private suspend fun doRun(devices: List<IDevice>,
-                            processHandler: ProcessHandler,
-                            indicator: ProgressIndicator,
-                            console: ConsoleView,
-                            isDebug: Boolean) = coroutineScope {
+  private suspend fun doRun(
+    devices: List<IDevice>, processHandler: ProcessHandler, indicator: ProgressIndicator, console: ConsoleView, isDebug: Boolean
+  ) = coroutineScope {
     val packageName = applicationIdProvider.packageName
-    val launchTasksProvider = AndroidLaunchTasksProvider(configuration, env, facet, packageName, apkProvider,
-                                                         configuration.getLaunchOptions(), isDebug)
+    val launchTasksProvider = AndroidLaunchTasksProvider(
+      configuration, env, facet, packageName, apkProvider, configuration.getLaunchOptions(), isDebug
+    )
 
     printLaunchTaskStartedMessage(console)
 
@@ -137,15 +136,14 @@ class LaunchTaskRunner(
 
         val launchTasks = launchTasksProvider.getLaunchTasks(device)
         runLaunchTasks(launchTasks, launchContext)
-        // Notify listeners of the deployment.
         project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
       }
     }.awaitAll()
   }
 
-  private suspend fun waitPreviousProcessTermination(devices: List<IDevice>,
-                                                     applicationId: String,
-                                                     indicator: ProgressIndicator) = coroutineScope {
+  private suspend fun waitPreviousProcessTermination(
+    devices: List<IDevice>, applicationId: String, indicator: ProgressIndicator
+  ) = coroutineScope {
     indicator.text = "Terminating the app"
     val results = devices.map { async { ApplicationTerminator(it, applicationId).killApp() } }.awaitAll()
     if (results.any { !it }) {
@@ -228,20 +226,21 @@ class LaunchTaskRunner(
       val attachedContent = existingRunContentDescriptor?.attachedContent
       if (attachedContent == null) {
         createRunContentDescriptor(processHandler, console, env)
-      }
-      else {
-        object : RunContentDescriptor(existingRunContentDescriptor.executionConsole,
-                                      existingRunContentDescriptor.processHandler,
-                                      existingRunContentDescriptor.component,
-                                      existingRunContentDescriptor.displayName,
-                                      existingRunContentDescriptor.icon, null as Runnable?,
-                                      existingRunContentDescriptor.restartActions) {
+      } else {
+        object : RunContentDescriptor(
+          existingRunContentDescriptor.executionConsole,
+          existingRunContentDescriptor.processHandler,
+          existingRunContentDescriptor.component,
+          existingRunContentDescriptor.displayName,
+          existingRunContentDescriptor.icon,
+          null as Runnable?,
+          existingRunContentDescriptor.restartActions
+        ) {
           override fun isHiddenContent() = true
         }.apply {
-            setAttachedContent(attachedContent)
-            // Same as [RunContentBuilder.showRunContent]
-            Disposer.register(project, this)
-          }
+          setAttachedContent(attachedContent)
+          Disposer.register(project, this)
+        }
       }
     }
   }
@@ -264,8 +263,7 @@ class LaunchTaskRunner(
         try {
           task.run(launchContext)
           stat.endLaunchTask(task, details, true)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
           stat.endLaunchTask(task, details, false)
           if (e.cause is DeployerException) {
             throw AndroidExecutionException((e.cause as DeployerException).id, e.message)
@@ -306,8 +304,7 @@ class LaunchTaskRunner(
     val customTask = beginCustomTask(taskId)
     return try {
       task()
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       endCustomTask(customTask, t)
       throw t
     }.also {
