@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession

@@ -17,9 +17,9 @@ package com.android.tools.idea.streaming.benchmark
 
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.streaming.AbstractDisplayView
-import com.android.tools.idea.streaming.interpolate
-import com.android.tools.idea.streaming.location
+import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.interpolate
+import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.utils.time.TestTimeSource
 import com.android.utils.time.TimeSource.TimeMark

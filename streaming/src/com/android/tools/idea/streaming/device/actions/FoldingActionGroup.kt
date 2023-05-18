@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
+import com.android.tools.idea.streaming.core.findComponentForAction
 import com.android.tools.idea.streaming.device.DEVICE_MAIN_TOOLBAR_ID
-import com.android.tools.idea.streaming.findComponentForAction
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction

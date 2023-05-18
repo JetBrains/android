@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.device.dialogs
 
-import com.android.tools.idea.streaming.CloseDialogAction
+import com.android.tools.idea.streaming.core.CloseDialogAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper

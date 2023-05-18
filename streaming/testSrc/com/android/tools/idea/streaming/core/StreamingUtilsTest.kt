@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.fail

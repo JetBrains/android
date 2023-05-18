@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.streaming.benchmark
 
-import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.RunningDevicePanel
+import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project

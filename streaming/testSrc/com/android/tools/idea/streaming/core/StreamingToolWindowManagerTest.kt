@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.android.adblib.DevicePropertyNames
 import com.android.emulator.control.KeyboardEvent
@@ -36,6 +36,10 @@ import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
+import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.isFFmpegAvailableToTest
@@ -45,6 +49,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.flags.override
@@ -344,7 +349,7 @@ class StreamingToolWindowManagerTest {
 
     // Check that PhysicalDeviceWatcher gets disposed after disabling device mirroring.
     // DisposerExplorer is used because alternative ways of testing this are pretty slow.
-    val physicalDeviceWatcherClassName = "com.android.tools.idea.streaming.StreamingToolWindowManager\$PhysicalDeviceWatcher"
+    val physicalDeviceWatcherClassName = "com.android.tools.idea.streaming.core.StreamingToolWindowManager\$PhysicalDeviceWatcher"
     assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).hasSize(1)
     deviceMirroringSettings.deviceMirroringEnabled = false
     assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).isEmpty()

@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ImageUtils.ellipticalClip
-import com.android.tools.idea.streaming.coerceAtMost
+import com.android.tools.idea.streaming.core.coerceAtMost
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.containers.ContainerUtil

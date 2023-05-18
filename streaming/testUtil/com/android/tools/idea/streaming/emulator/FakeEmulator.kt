@@ -68,8 +68,8 @@ import com.android.tools.idea.protobuf.CodedOutputStream
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.protobuf.MessageOrBuilder
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
-import com.android.tools.idea.streaming.interpolate
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.interpolate
 import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.diagnostic.thisLogger

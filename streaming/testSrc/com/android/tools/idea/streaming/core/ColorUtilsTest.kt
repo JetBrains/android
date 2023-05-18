@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -32,8 +32,7 @@ class ColorUtilsTest {
     assertThat(interpolate(Color.BLACK, Color.WHITE, 0.753)).isEqualTo(Color.LIGHT_GRAY)
     assertThat(interpolate(Color.RED, Color.YELLOW, 0.785)).isEqualTo(Color.ORANGE)
     assertThat(interpolate(Color.RED, Color.WHITE, 0.685)).isEqualTo(Color.PINK)
-    assertThat(interpolate(Color.MAGENTA, Color.CYAN, 0.5)).isEqualTo(
-      interpolate(Color.BLUE, Color.WHITE, 0.5))
+    assertThat(interpolate(Color.MAGENTA, Color.CYAN, 0.5)).isEqualTo(interpolate(Color.BLUE, Color.WHITE, 0.5))
   }
 
   @Test

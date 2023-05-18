@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.AnyThread
@@ -26,6 +26,10 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
+import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.EmulatorSettingsListener
 import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsPage
 import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
 import com.intellij.openapi.Disposable

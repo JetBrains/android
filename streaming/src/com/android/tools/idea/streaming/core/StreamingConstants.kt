@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("StreamingConstants")
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroup.Companion.findRegisteredGroup

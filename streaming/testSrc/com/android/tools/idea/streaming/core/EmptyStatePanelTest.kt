@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.android.SdkConstants
 import com.android.repository.Revision
@@ -27,6 +27,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsPage
 import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
 import com.android.tools.idea.testing.AndroidExecutorsRule

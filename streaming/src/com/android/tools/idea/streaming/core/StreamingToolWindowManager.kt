@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.AnyThread
@@ -31,7 +31,11 @@ import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
-import com.android.tools.idea.streaming.RunningDevicePanel.UiState
+import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
+import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.core.RunningDevicePanel.UiState
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel

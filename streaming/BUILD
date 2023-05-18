@@ -43,6 +43,21 @@ iml_module(
 iml_module(
     name = "intellij.android.streaming.tests",
     iml_files = ["intellij.android.streaming.tests.iml"],
+    split_test_targets = {
+        "benchmark": {
+            "test_filter": "com.android.tools.idea.streaming.benchmark",
+        },
+        "core": {
+            "test_filter": "com.android.tools.idea.streaming.core",
+        },
+        "device": {
+            "test_filter": "com.android.tools.idea.streaming.device",
+        },
+        "emulator": {
+            "test_filter": "com.android.tools.idea.streaming.emulator",
+        },
+        "other": {},
+    },
     test_class = "com.android.tools.idea.streaming.StreamingTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",

@@ -16,6 +16,9 @@
 package com.android.tools.idea.streaming
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.core.ZoomablePanel
 import com.android.tools.idea.streaming.device.DEVICE_CLIENT_KEY
 import com.android.tools.idea.streaming.device.DEVICE_CONTROLLER_KEY
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY

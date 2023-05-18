@@ -16,8 +16,8 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.idea.streaming.rotatedByQuadrants
-import com.android.tools.idea.streaming.scaled
+import com.android.tools.idea.streaming.core.rotatedByQuadrants
+import com.android.tools.idea.streaming.core.scaled
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.Point

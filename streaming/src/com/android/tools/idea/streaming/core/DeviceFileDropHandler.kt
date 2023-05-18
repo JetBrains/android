@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming
+package com.android.tools.idea.streaming.core
 
 import com.android.adblib.DeviceSelector
 import com.android.adblib.RemoteFileMode
@@ -115,7 +115,7 @@ private class DeviceFileDropHandler(
       CoroutineScope(Dispatchers.IO).launch {
         try {
           for (file in files) {
-            adb.syncSend(deviceSelector, file, "${DEVICE_DOWNLOAD_DIR}/${file.fileName}", RemoteFileMode.DEFAULT)
+            adb.syncSend(deviceSelector, file, "$DEVICE_DOWNLOAD_DIR/${file.fileName}", RemoteFileMode.DEFAULT)
           }
           notifyOfSuccess("$fileList copied")
         }

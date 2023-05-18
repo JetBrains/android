@@ -30,7 +30,7 @@
                 canCloseContents="true"
                 doNotActivateOnStart="true"
                 icon="StudioIcons.Shell.ToolWindows.EMULATOR"
-                factoryClass="com.android.tools.idea.streaming.StreamingToolWindowFactory"/>
+                factoryClass="com.android.tools.idea.streaming.core.StreamingToolWindowFactory"/>
     <notificationGroup id="Running Devices Messages"
                        displayType="BALLOON"
                        toolWindowId="Running Devices"
