@@ -43,7 +43,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -80,7 +79,7 @@ class DeviceToolWindowPanelTest {
   private val agentRule = FakeScreenSharingAgentRule()
 
   @get:Rule
-  val ruleChain = RuleChain(ApplicationRule(), ClipboardSynchronizationDisablementRule(), agentRule, PortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
@@ -91,7 +90,7 @@ class DeviceToolWindowPanelTest {
 
   @Before
   fun setUp() {
-    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
+    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = MockitoKt.mock<ScreenRecordingSupportedCache>()
     MockitoKt.whenever(mockScreenRecordingCache.isScreenRecordingSupported(MockitoKt.any(), Mockito.anyInt())).thenReturn(true)

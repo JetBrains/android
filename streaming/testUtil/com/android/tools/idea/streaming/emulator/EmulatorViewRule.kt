@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit
  * Allows tests to create [EmulatorView]s connected to [FakeEmulator]s.
  */
 class EmulatorViewRule : TestRule {
+
   private val projectRule = AndroidProjectRule.inMemory()
   private val emulatorRule = FakeEmulatorRule()
   private val fakeEmulators = Int2ObjectOpenHashMap<FakeEmulator>()

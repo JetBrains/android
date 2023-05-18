@@ -72,10 +72,11 @@ import javax.swing.table.DefaultTableCellRenderer
 @RunsInEdt
 class ManageSnapshotsDialogTest {
   private val emulatorViewRule = EmulatorViewRule()
+  private val headlessDialogRule = HeadlessDialogRule()
   private val timeoutRule = Timeout.builder().withTimeout(60, TimeUnit.SECONDS).withLookingForStuckThread(true).build()
 
   @get:Rule
-  val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule(), HeadlessDialogRule())
+  val ruleChain = RuleChain(timeoutRule, emulatorViewRule, EdtRule(), headlessDialogRule)
 
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()

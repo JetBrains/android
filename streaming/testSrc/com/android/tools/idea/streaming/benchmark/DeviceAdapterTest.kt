@@ -20,12 +20,13 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.location
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.disposable
 import com.android.utils.time.TestTimeSource
 import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
@@ -56,7 +57,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @RunWith(JUnit4::class)
 class DeviceAdapterTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = ProjectRule()
 
   private val deviceDisplaySize = Dimension(WIDTH, HEIGHT)
   private val displayRectangle = Rectangle(deviceDisplaySize)
@@ -204,7 +205,7 @@ class DeviceAdapterTest {
   fun ready_keysConfigurationIntoApp() {
     FakeUi(view, createFakeWindow = true)
     view.isVisible = true
-    FakeKeyboardFocusManager(projectRule.testRootDisposable).focusOwner = view
+    FakeKeyboardFocusManager(projectRule.disposable).focusOwner = view
 
     adapter.ready()
     view.notifyFrame(INITIALIZED_FRAME)
@@ -383,7 +384,7 @@ class DeviceAdapterTest {
         override fun keyReleased(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_RELEASED to e.keyCode) }
       }
       addKeyListener(keyListener)
-      Disposer.register(projectRule.testRootDisposable, this)
+      Disposer.register(projectRule.disposable, this)
     }
 
     override val deviceSerialNumber: String = "test"

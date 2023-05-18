@@ -36,7 +36,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDi
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
@@ -54,8 +54,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestDataProvider
 import com.intellij.ui.EditorNotificationPanel
 import org.junit.Before
 import org.junit.ClassRule
@@ -96,19 +98,17 @@ import javax.swing.JViewport
  */
 @RunsInEdt
 class EmulatorToolWindowPanelTest {
+
   companion object {
     @JvmField
     @ClassRule
     val iconRule = IconLoaderRule()
   }
 
-  private val projectRule = AndroidProjectRule.inMemory()
+  private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   @get:Rule
-  val ruleChain: RuleChain = RuleChain(projectRule, emulatorRule, EdtRule())
-
-  @get:Rule
-  val portableUiFontRule = PortableUiFontRule()
+  val ruleChain: RuleChain = RuleChain(projectRule, emulatorRule, PortableUiFontRule(), EdtRule())
 
   private var nullableEmulator: FakeEmulator? = null
 
@@ -117,12 +117,12 @@ class EmulatorToolWindowPanelTest {
     set(value) { nullableEmulator = value }
 
   private val project get() = projectRule.project
-  private val testRootDisposable get() = projectRule.testRootDisposable
+  private val testRootDisposable get() = projectRule.disposable
 
   @Before
   fun setUp() {
-    // Necessary to properly update toolbar button states.
-    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
+    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
     whenever(mockScreenRecordingCache.isScreenRecordingSupported(any(), Mockito.anyInt())).thenReturn(true)
     projectRule.project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)

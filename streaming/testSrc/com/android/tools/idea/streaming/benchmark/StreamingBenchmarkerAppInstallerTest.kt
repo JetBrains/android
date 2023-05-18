@@ -21,11 +21,13 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.inOrder
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
 import io.ktor.util.encodeBase64
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
@@ -51,15 +53,18 @@ private const val START_COMMAND = "am start -n com.android.tools.screensharing.b
 @RunWith(JUnit4::class)
 class StreamingBenchmarkerAppInstallerTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  val projectRule = ProjectRule()
   private val adb: StreamingBenchmarkerAppInstaller.AdbWrapper = mock()
   private val urlFileCache: UrlFileCache = mock()
+  private val testRootDisposable
+    get() = projectRule.disposable
 
-  lateinit var installer: StreamingBenchmarkerAppInstaller
+  private lateinit var installer: StreamingBenchmarkerAppInstaller
+
   @Before
   fun setUp() {
     installer = StreamingBenchmarkerAppInstaller(projectRule.project, SERIAL_NUMBER, adb)
-    projectRule.replaceProjectService(UrlFileCache::class.java, urlFileCache)
+    projectRule.project.replaceService(UrlFileCache::class.java, urlFileCache, testRootDisposable)
   }
 
   @Test
@@ -69,7 +74,7 @@ class StreamingBenchmarkerAppInstallerTest {
     val basePrebuiltsUrl = "https://android.googlesource.com/platform/prebuilts/tools/+/refs/heads/mirror-goog-studio-main/"
     val apkUrl = "$basePrebuiltsUrl$relativePath?format=TEXT"  // Base-64 encoded
 
-    val studioPathManager = mockStatic<StudioPathManager>(projectRule.testRootDisposable)
+    val studioPathManager = mockStatic<StudioPathManager>(testRootDisposable)
     studioPathManager.whenever<Any?> { StudioPathManager.isRunningFromSources() }.thenReturn(false)
     val indicator: ProgressIndicator = mock()
     whenever(urlFileCache.get(eq(apkUrl), anyLong(), any(), any())).thenReturn(downloadPath)

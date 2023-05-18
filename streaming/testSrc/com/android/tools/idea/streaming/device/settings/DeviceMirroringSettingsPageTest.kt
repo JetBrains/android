@@ -20,9 +20,9 @@ import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
@@ -38,7 +38,7 @@ import javax.swing.JTextField
 @RunsInEdt
 class DeviceMirroringSettingsPageTest {
   @get:Rule
-  val ruleChain = RuleChain(AndroidProjectRule.inMemory(), EdtRule(), HeadlessDialogRule())
+  val ruleChain = RuleChain(ProjectRule(), EdtRule(), HeadlessDialogRule())
 
   private val settings by lazy { DeviceMirroringSettings.getInstance() }
 

@@ -70,7 +70,6 @@ import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -129,12 +128,12 @@ import kotlin.time.Duration.Companion.seconds
  */
 @RunsInEdt
 internal class DeviceViewTest {
+
   private val agentRule = FakeScreenSharingAgentRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val crashReporterRule = CrashReporterRule()
   @get:Rule
-  val ruleChain =
-      RuleChain(ApplicationRule(), crashReporterRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule, agentRule, EdtRule())
+  val ruleChain = RuleChain(crashReporterRule, androidExecutorsRule, agentRule, ClipboardSynchronizationDisablementRule(), EdtRule())
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice

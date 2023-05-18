@@ -76,6 +76,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
+import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyBoolean
@@ -118,9 +119,16 @@ import javax.swing.JScrollPane
  */
 @RunsInEdt
 class EmulatorViewTest {
+
+  companion object {
+    @JvmField
+    @ClassRule
+    val iconLoaderRule = IconLoaderRule()
+  }
+
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
-  val ruleChain = RuleChain(IconLoaderRule(), emulatorViewRule, EdtRule())
+  val ruleChain = RuleChain(emulatorViewRule, EdtRule())
   private val filesOpened = mutableListOf<VirtualFile>()
 
   private val testRootDisposable

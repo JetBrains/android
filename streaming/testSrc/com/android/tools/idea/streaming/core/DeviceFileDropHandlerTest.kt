@@ -29,8 +29,8 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.dnd.DnDEvent
 import com.intellij.ide.dnd.DnDManager
@@ -39,6 +39,7 @@ import com.intellij.ide.dnd.TransferableWrapper
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -58,7 +59,8 @@ private const val TEST_DATA_PATH = "tools/adt/idea/streaming/testData/DeviceFile
  */
 @RunsInEdt
 class DeviceFileDropHandlerTest {
-  private val projectRule = AndroidProjectRule.inMemory()
+
+  private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()
   private val adbRule = FakeAdbRule()
   private val adbServiceRule = FakeAdbServiceRule(projectRule::project, adbRule)
@@ -74,7 +76,7 @@ class DeviceFileDropHandlerTest {
     set(value) { nullableEmulator = value }
 
   private val testRootDisposable
-    get() = projectRule.testRootDisposable
+    get() = projectRule.disposable
 
   @Test
   fun testDragToInstallApp() {

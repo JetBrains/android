@@ -19,10 +19,10 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.CameraVelocityControls
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
@@ -37,7 +37,7 @@ import javax.swing.JCheckBox
 @RunsInEdt
 class EmulatorSettingsPageTest {
   @get:Rule
-  val ruleChain = RuleChain(AndroidProjectRule.inMemory(), EdtRule())
+  val ruleChain = RuleChain(ProjectRule(), EdtRule())
 
   private val settings
     get() = EmulatorSettings.getInstance()

@@ -40,6 +40,7 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.streaming.createTestEvent
+import com.android.tools.idea.streaming.device.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.isFFmpegAvailableToTest
@@ -95,12 +96,14 @@ import javax.swing.UIManager
  */
 @RunsInEdt
 class StreamingToolWindowManagerTest {
+
   private val agentRule = FakeScreenSharingAgentRule()
   private val emulatorRule = FakeEmulatorRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val popupRule = JBPopupRule()
   @get:Rule
-  val ruleChain = RuleChain(agentRule, emulatorRule, androidExecutorsRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
+  val ruleChain = RuleChain(agentRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule, EdtRule(),
+                            PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private var nullableToolWindow: TestToolWindow? = null
