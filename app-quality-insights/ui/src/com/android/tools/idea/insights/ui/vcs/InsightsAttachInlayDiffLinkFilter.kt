@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.vcs
+package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
+import com.android.tools.idea.insights.vcs.getVcsManager
+import com.android.tools.idea.insights.vcs.locateRepository
+import com.android.tools.idea.insights.vcs.toVcsFilePath
 import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.codeInsight.hints.presentation.PresentationRenderer
 import com.intellij.execution.filters.ExceptionInfoCache
@@ -114,10 +117,10 @@ class InsightsAttachInlayDiffLinkFilter(private val containingConsole: ConsoleVi
 
 private const val INLAY_DIFF_LINK_DISPLAY_TEXT = "or diff with the historical source ↗"
 
-private class DiffLinkInlayResult(
+data class DiffLinkInlayResult(
   private val diffContextData: ContextDataForDiff,
-  highlightStartOffset: Int,
-  highlightEndOffset: Int
+  private val highlightStartOffset: Int,
+  private val highlightEndOffset: Int
 ) : ResultItem(highlightStartOffset, highlightEndOffset, null), InlayProvider {
   override fun createInlayRenderer(editor: Editor): EditorCustomElementRenderer {
     val factory = PresentationFactory(editor as EditorImpl)

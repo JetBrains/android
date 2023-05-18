@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.vcs
+package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.vcs.VcsForAppInsights
+import com.android.tools.idea.insights.vcs.createShortRevisionString
 import com.intellij.diff.DiffDialogHints
 import com.intellij.diff.DiffEditorTitleCustomizer
 import com.intellij.diff.DiffManager
@@ -58,49 +60,51 @@ data class ContextDataForDiff(
  *
  * The caret is placed on the line of the left panel where the crash is associated to.
  */
-fun goToDiff(context: ContextDataForDiff, project: Project) {
-  val requestChain =
-    object : ChangeDiffRequestChain.Async() {
-      override fun loadRequestProducers(): ListSelection<out ChangeDiffRequestChain.Producer> {
-        try {
-          val changeContext =
-            mapOf<Key<*>, Any>(
-              // Customize titles.
-              DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER to
-                listOfNotNull(
-                  createEditorTitleFromContext(context, project),
-                  createEditorTitle("Your version")
-                ),
-              // Customize caret place
-              DiffUserDataKeys.SCROLL_TO_LINE to Pair.create(Side.LEFT, context.lineNumber - 1),
-              // Customize diff alignment.
-              DiffUserDataKeys.ALIGNED_TWO_SIDED_DIFF to true
-            )
+internal fun goToDiff(context: ContextDataForDiff, project: Project) {
+  val requestChain = InsightsDiffRequestChain(context, project)
 
-          val chained =
-            changes
-              .mapNotNull { ChangeDiffRequestProducer.create(project, it, changeContext) }
-              .toList()
-
-          return ListSelection.create(chained, null)
-        } catch (exception: Exception) {
-          // Rethrow, then the exception message would be printed out in the diff view.
-          throw DiffRequestProducerException(exception)
-        }
-      }
-
-      private val changes: List<Change>
-        get() {
-          val vcsContext =
-            VcsForAppInsights.getExtensionByKey(context.vcsKey)
-              ?.createVcsContent(context.filePath, context.revision, project)
-
-          return createChangesWithCurrentContentForFile(context.filePath, vcsContext)
-        }
-    }
-
-  // TODO: Should bring up an existing window if there's instead of creating a new one.
+  // TODO: Should bring up an existing window if there is one instead of creating a new one.
   DiffManager.getInstance().showDiff(project, requestChain, DiffDialogHints.DEFAULT)
+}
+
+class InsightsDiffRequestChain(
+  private val context: ContextDataForDiff,
+  private val project: Project
+) : ChangeDiffRequestChain.Async() {
+  override fun loadRequestProducers(): ListSelection<out ChangeDiffRequestChain.Producer> {
+    try {
+      val changeContext =
+        mapOf<Key<*>, Any>(
+          // Customize titles.
+          DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER to
+            listOfNotNull(
+              createEditorTitleFromContext(context, project),
+              createEditorTitle("Your version")
+            ),
+          // Customize caret place
+          DiffUserDataKeys.SCROLL_TO_LINE to Pair.create(Side.LEFT, context.lineNumber - 1),
+          // Customize diff alignment.
+          DiffUserDataKeys.ALIGNED_TWO_SIDED_DIFF to true
+        )
+
+      val chained =
+        changes.mapNotNull { ChangeDiffRequestProducer.create(project, it, changeContext) }.toList()
+
+      return ListSelection.create(chained, null)
+    } catch (exception: Exception) {
+      // Rethrow, then the exception message would be printed out in the diff view.
+      throw DiffRequestProducerException(exception)
+    }
+  }
+
+  private val changes: List<Change>
+    get() {
+      val vcsContext =
+        VcsForAppInsights.getExtensionByKey(context.vcsKey)
+          ?.createVcsContent(context.filePath, context.revision, project)
+
+      return createChangesWithCurrentContentForFile(context.filePath, vcsContext)
+    }
 }
 
 private fun createEditorTitle(title: String): DiffEditorTitleCustomizer {
