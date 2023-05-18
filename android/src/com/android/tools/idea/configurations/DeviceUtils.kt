@@ -140,18 +140,6 @@ private fun sizeGroupNexus(device: Device): DeviceGroup {
 }
 
 /**
- * Return the avd devices in the module of [configuration]
- */
-fun getAvdDevices(configuration: Configuration): List<Device> {
-  // Unlikely, but has happened - see http://b.android.com/68091
-  val module = (configuration.configModule as StudioConfigurationModelModule).module
-  val facet = AndroidFacet.getInstance(module) ?: return emptyList()
-  val configurationManager = configuration.configurationManager
-  val avdManager = AvdManagerUtils.getAvdManager(facet) ?: return emptyList()
-  return avdManager.validAvds.mapNotNull { configurationManager.createDeviceForAvd(it) }
-}
-
-/**
  * The must-have uses-feature tag in AndroidManifest for a WearOS project.
  */
 private const val WEAR_OS_USE_FEATURE_TAG = "android.hardware.type.watch"

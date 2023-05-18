@@ -61,7 +61,7 @@ class ConfigurationForFile(
   }
 
   override fun computeBestDevice(): Device? {
-    for (device in myManager.getRecentDevices(getAvdDevices(this))) {
+    for (device in myManager.getRecentDevices()) {
       val finalStateName = stateName ?: device.defaultState.name
       val selectedState: State = ConfigurationFileState.getState(device, finalStateName)!!
       val module = module

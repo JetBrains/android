@@ -27,6 +27,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
@@ -46,6 +47,10 @@ import java.util.Map;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.AndroidTargetData;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AvdManagerUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -436,7 +441,8 @@ public class ConfigurationManager implements Disposable {
   /**
    * Returns the most recently used devices, in MRU order
    */
-  public List<Device> getRecentDevices(List<Device> avdDevices) {
+  public List<Device> getRecentDevices() {
+    List<Device> avdDevices = getAvdDevices();
     List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
     if (deviceIds.isEmpty()) {
       return Collections.emptyList();
@@ -574,5 +580,23 @@ public class ConfigurationManager implements Disposable {
     }
 
     return myResolverCache;
+  }
+
+  /** Return the avd devices. */
+  @NotNull
+  public List<Device> getAvdDevices() {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet == null) {
+      return Collections.emptyList();
+    }
+    AvdManager avdManager = AvdManagerUtils.getAvdManager(facet);
+    if (avdManager == null) {
+      return Collections.emptyList();
+    }
+
+    return avdManager.getValidAvds().stream()
+      .filter(Objects::nonNull)
+      .map(this::createDeviceForAvd)
+      .collect(Collectors.toList());
   }
 }

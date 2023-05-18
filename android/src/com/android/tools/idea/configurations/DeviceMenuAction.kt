@@ -210,7 +210,7 @@ class DeviceMenuAction(private val renderContext: ConfigurationHolder,
   }
 
   private fun addAvdDeviceSection() {
-    val devices = getAvdDevices(renderContext.configuration!!)
+    val devices = renderContext.configuration!!.configurationManager.avdDevices
     if (devices.isNotEmpty()) {
       add(DeviceCategory("Virtual Device", "Android Virtual Devices", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES))
       val current = renderContext.configuration?.device
@@ -274,7 +274,7 @@ class DeviceMenuAction(private val renderContext: ConfigurationHolder,
         groupedDevices.get(DeviceGroup.WEAR),
         groupedDevices.get(DeviceGroup.TV),
         groupedDevices.get(DeviceGroup.AUTOMOTIVE),
-        getAvdDevices(config),
+        config.configurationManager.avdDevices,
         groupedDevices.get(DeviceGroup.GENERIC),
       ).map { it ?: emptyList() }.flatten()
     }
