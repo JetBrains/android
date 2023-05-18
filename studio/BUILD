@@ -61,6 +61,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/.idea/libraries:jetty",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
+        "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
         "//tools/adt/idea/.idea/libraries:kxml2",
         "//tools/adt/idea/.idea/libraries:layoutinspector-skia-proto",
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto",
@@ -226,6 +227,7 @@ studio_plugin(
             "//tools/adt/idea/server-flags:intellij.android.server-flags",
             "//tools/adt/idea/codenavigation:codenavigation",
             "//tools/adt/idea/execution/common:intellij.android.execution.common",
+            "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",

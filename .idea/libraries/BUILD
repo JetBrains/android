@@ -309,3 +309,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:google-api-client_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "kotlin-multiplatform-android-models-proto",
+    jars = ["//tools/base/kotlin-multiplatform-models/proto:kotlin_multiplatform_android_models_proto.jar"],
+    visibility = ["//visibility:public"],
+)

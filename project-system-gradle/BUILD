@@ -46,6 +46,8 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
+        "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models[module]",
+        "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/project-system-gradle/lib:pepk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",

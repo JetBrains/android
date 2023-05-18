@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKey
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
@@ -81,6 +82,7 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.projectModel.CompilerArgumentsCacheAware
+import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
@@ -202,6 +204,15 @@ private val jbModelDumpers = listOf(
   SpecializedDumper(property = KotlinTaskProperties::pluginVersion) {
     // We do not have access to `TestUtils.KOTLIN_VERSION_FOR_TESTS` here. Remove the property.
     prop(propertyName, "<CUT>")
+  },
+  SpecializedDumper(property = KotlinTarget::extras) { extras ->
+    prop(propertyName, extras.entries.associate {
+      if (it.key == androidTargetKey) {
+        it.key.name to "<OMITTED>"
+      } else {
+        it.key to it.value
+      }
+    })
   }
 )
 

@@ -830,6 +830,7 @@ MODULE                        : Kotlin_Multiplatform
                     androidRuntimeElements        : <empty>
                     - androidRuntimeElements-published      : <ROOT>/kmpFirstLib/build/outputs/aar/kmpFirstLib.aar [-]
                     androidSourcesElements        : <empty>
+                    androidTestUtil               : <empty>
                     androidUnitTestApi            : <empty>
                     androidUnitTestApiDependenciesMetadata  : <empty>
                     androidUnitTestCompilationApi : <empty>
@@ -1031,6 +1032,7 @@ MODULE                        : Kotlin_Multiplatform
                     androidRuntimeElements        : <empty>
                     - androidRuntimeElements-published      : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
                     androidSourcesElements        : <empty>
+                    androidTestUtil               : <empty>
                     - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-jvm.jar [-]
                     - archives                    : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib-metadata.jar [-]
                     - archives                    : <ROOT>/kmpSecondLib/build/outputs/aar/kmpSecondLib.aar [-]
@@ -2461,6 +2463,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     resourcesDir                  : <ROOT>/kmpFirstLib/build/processedResources/android/unitTest [-]
                 platform                      : JVM
             disambiguationClassifier      : android
+            extras
+                android-target-model          : <OMITTED>
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmpFirstLib/build/libs/kmpFirstLib.jar [-]
             platform                      : JVM
@@ -2781,6 +2785,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                     resourcesDir                  : <ROOT>/kmpSecondLib/build/processedResources/android/main [-]
                 platform                      : JVM
             disambiguationClassifier      : android
+            extras
+                android-target-model          : <OMITTED>
             jar                           : KotlinTargetJarImpl
                 archiveFile                   : <ROOT>/kmpSecondLib/build/libs/kmpSecondLib.jar [-]
             platform                      : JVM
