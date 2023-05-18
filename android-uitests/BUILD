@@ -752,15 +752,18 @@ java_test(
 )
 
 java_test(
-    name = "BuildTypesTest",
+    name = "UpdateBuildTypesTest",
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.BuildTypesTest"],
-    tags = COMMON_TAGS + ["manual"],  #UI flaky issue, fail sometimes
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.UpdateBuildTypesTest"],
+    tags = COMMON_TAGS + [
+        "no_windows",
+        "qa_fast",
+    ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
 )
