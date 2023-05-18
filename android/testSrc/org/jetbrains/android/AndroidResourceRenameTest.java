@@ -619,22 +619,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     doMovePackageTest("p1.p2", "p33");
   }
 
-  // Ignored: b/281863312
-  public void ignore_testMoveClass1() {
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p3");
-    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    doMoveClass("p1.p2.MyActivity", "p3");
-  }
-
-  // Ignored: b/281863312
-  public void ignore_testMoveClass2() {
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
-    myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p3");
-    myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
-    doMoveClass("p1.p2.MyActivity", "p1.p3");
-  }
-
   public void testRenameJavaPackage1() {
     myFixture.copyDirectoryToProject(BASE_PATH + "empty", "src/p1/p2");
     myFixture.copyFileToProject(BASE_PATH + "MyActivity.java", "src/p1/p2/MyActivity.java");
@@ -796,21 +780,6 @@ public class AndroidResourceRenameTest extends AndroidTestCase {
     assertEquals(dirs.length, 1);
 
     new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{aPackage},
-                                       new SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage), dirs[0]),
-                                       true, false, null).run();
-    FileDocumentManager.getInstance().saveAllDocuments();
-  }
-
-  private void doMoveClass(String className, String newParentPackageName) {
-    final JavaPsiFacade facade = JavaPsiFacade.getInstance(getProject());
-    final PsiClass psiClass = facade.findClass(className, GlobalSearchScope.projectScope(getProject()));
-    final PsiPackage newParentPackage = facade.findPackage(newParentPackageName);
-
-    assertNotNull(newParentPackage);
-    final PsiDirectory[] dirs = newParentPackage.getDirectories();
-    assertEquals(dirs.length, 1);
-
-    new MoveClassesOrPackagesProcessor(getProject(), new PsiElement[]{psiClass},
                                        new SingleSourceRootMoveDestination(PackageWrapper.create(newParentPackage), dirs[0]),
                                        true, false, null).run();
     FileDocumentManager.getInstance().saveAllDocuments();
