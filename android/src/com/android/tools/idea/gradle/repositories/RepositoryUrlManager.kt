@@ -19,7 +19,6 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.ide.common.repository.GradleCoordinate.ArtifactType
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.io.CancellableFileIo
@@ -147,7 +146,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     if (!CancellableFileIo.isDirectory(artifactDirectory!!)) {
       return null
     }
-    for (artifactType in ImmutableList.of(ArtifactType.JAR, ArtifactType.AAR)) {
+    for (artifactType in ImmutableList.of("jar", "aar")) {
       val archive = artifactDirectory.resolve("$name-${component.version}.$artifactType")
       if (CancellableFileIo.isRegularFile(archive)) {
         return archive.toFile()
