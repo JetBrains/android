@@ -2235,6 +2235,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : JVM
+                    extras
+                        android-source-set-model      : <OMITTED>
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2276,6 +2278,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         useFirLT                      : true
                 - declaredSourceSets          : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
+                extras
+                    android-compilation-model     : <OMITTED>
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
@@ -2308,6 +2312,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         - platforms                   : JVM
                     - allDependsOnSourceSets      : commonMain
                     - declaredDependsOnSourceSets : commonMain
+                    extras
+                        android-source-set-model      : <OMITTED>
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2349,6 +2355,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         useFirLT                      : true
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
+                extras
+                    android-compilation-model     : <OMITTED>
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
@@ -2381,6 +2389,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         - platforms                   : JVM
                     - allDependsOnSourceSets      : commonTest
                     - declaredDependsOnSourceSets : commonTest
+                    extras
+                        android-source-set-model      : <OMITTED>
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2422,6 +2432,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         useFirLT                      : true
                 - declaredSourceSets          : androidUnitTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
+                extras
+                    android-compilation-model     : <OMITTED>
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>
@@ -2687,6 +2699,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                         - platforms                   : JVM
                     - allDependsOnSourceSets      : commonMain
                     - declaredDependsOnSourceSets : commonMain
+                    extras
+                        android-source-set-model      : <OMITTED>
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2728,6 +2742,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                         useFirLT                      : true
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
+                extras
+                    android-compilation-model     : <OMITTED>
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
                     pluginVersion                 : <CUT>

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilationKey
+import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKey
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -82,6 +84,8 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.projectModel.CompilerArgumentsCacheAware
+import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
+import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -208,6 +212,24 @@ private val jbModelDumpers = listOf(
   SpecializedDumper(property = KotlinTarget::extras) { extras ->
     prop(propertyName, extras.entries.associate {
       if (it.key == androidTargetKey) {
+        it.key.name to "<OMITTED>"
+      } else {
+        it.key to it.value
+      }
+    })
+  },
+  SpecializedDumper(property = KotlinCompilation::extras) { extras ->
+    prop(propertyName, extras.entries.associate {
+      if (it.key == androidCompilationKey) {
+        it.key.name to "<OMITTED>"
+      } else {
+        it.key to it.value
+      }
+    })
+  },
+  SpecializedDumper(property = KotlinSourceSet::extras) { extras ->
+    prop(propertyName, extras.entries.associate {
+      if (it.key == androidSourceSetKey) {
         it.key.name to "<OMITTED>"
       } else {
         it.key to it.value
