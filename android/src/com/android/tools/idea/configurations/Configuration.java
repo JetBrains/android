@@ -77,7 +77,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -479,7 +478,7 @@ public class Configuration implements Disposable, ModificationTracker {
         target = myManager.getTarget(version.getVersion());
       }
 
-      return getTargetForRendering(target);
+      return getTargetForRendering(target, myManager.getConfigModule());
     }
 
     return myTarget;
@@ -746,7 +745,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   public void setTarget(@Nullable IAndroidTarget target) {
     if (myTarget != target) {
-      myTarget = getTargetForRendering(target);
+      myTarget = getTargetForRendering(target, myManager.getConfigModule());
       updated(CFG_TARGET);
     }
   }
@@ -1251,12 +1250,12 @@ public class Configuration implements Disposable, ModificationTracker {
    * Returns a target that is only suitable to be used for rendering (as opposed to a target that can be used for attribute resolution).
    */
   @Nullable
-  private static IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target) {
+  private static IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target, @NotNull ConfigurationModelModule module) {
     if (target == null) {
       return null;
     }
 
-    return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
+    return module.getCompatibilityTarget(target);
   }
 
   /**
