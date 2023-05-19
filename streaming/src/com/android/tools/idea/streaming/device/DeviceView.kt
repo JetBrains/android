@@ -515,12 +515,16 @@ internal class DeviceView(
       if (!isConnected) {
         return
       }
+      if (event.isAltDown || event.isControlDown || event.isMetaDown) {
+        return
+      }
       val c = event.keyChar
       if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
         return
       }
       val message = TextInputMessage(c.toString())
       deviceController?.sendControlMessage(message)
+      event.consume()
     }
 
     override fun keyPressed(event: KeyEvent) {
@@ -554,13 +558,14 @@ internal class DeviceView(
           if (androidKeyCode != AKEYCODE_UNKNOWN) {
             val action = if (event.id == KEY_PRESSED) ACTION_DOWN else ACTION_UP
             deviceController?.sendControlMessage(KeyEventMessage(action, androidKeyCode, modifiersToMetaState(modifiers)))
+            event.consume()
           }
         }
       }
       else if (event.id == KEY_PRESSED) {
         deviceController?.sendKeyStroke(androidKeyStroke)
+        event.consume()
       }
-      event.consume()
     }
 
     private fun hostKeyStrokeToAndroidKeyStroke(hostKeyCode: Int, modifiers: Int): AndroidKeyStroke? {

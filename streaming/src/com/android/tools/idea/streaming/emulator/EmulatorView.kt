@@ -708,6 +708,10 @@ class EmulatorView(
         return
       }
 
+      if (event.isAltDown || event.isControlDown || event.isMetaDown) {
+        return
+      }
+
       val c = event.keyChar
       if (c == CHAR_UNDEFINED || Character.isISOControl(c)) {
         return
@@ -715,6 +719,7 @@ class EmulatorView(
 
       val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
       emulator.sendKey(keyboardEvent)
+      event.consume()
     }
 
     override fun keyPressed(event: KeyEvent) {
@@ -775,14 +780,15 @@ class EmulatorView(
           val eventType = if (event.id == KEY_PRESSED) KeyEventType.keydown else KeyEventType.keyup
           emulator.sendKey(createKeyboardEvent(keyName, eventType))
           emulator.releaseModifierKeys(modifiers)
+          event.consume()
         }
       }
       else if (event.id == KEY_PRESSED) {
         emulator.pressModifierKeys(emulatorKeyStroke.modifiers)
         emulator.sendKey(KeyboardEvent.newBuilder().setKey(emulatorKeyStroke.keyName).setEventType(KeyEventType.keypress).build())
         emulator.releaseModifierKeys(emulatorKeyStroke.modifiers)
+        event.consume()
       }
-      event.consume()
     }
 
     private fun hostKeyStrokeToEmulatorKeyStroke(hostKeyCode: Int, modifiers: Int): EmulatorKeyStroke? {
