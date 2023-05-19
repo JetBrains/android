@@ -83,8 +83,7 @@ class AppInsightsProjectLevelControllerImpl(
   dispatcher: CoroutineDispatcher,
   appInsightsClient: AppInsightsClient,
   appConnection: Flow<List<Connection>>,
-  offlineStatus: Flow<ConnectionMode>,
-  private val setOfflineMode: (ConnectionMode) -> Unit,
+  private val offlineStatusManager: OfflineStatusManager,
   @TestOnly private val flowStart: SharingStarted = SharingStarted.Eagerly,
   private val onIssuesChanged: () -> Unit = {},
   private val tracker: AppInsightsTracker,
@@ -150,7 +149,7 @@ class AppInsightsProjectLevelControllerImpl(
       merge(
           eventFlow,
           appConnection.map { SafeFiltersAdapter(ConnectionsChanged(it, defaultFilters)) },
-          offlineStatus.map { it.toEvent() }
+          offlineStatusManager.offlineStatus.map { it.toEvent() }
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
           Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
@@ -160,7 +159,7 @@ class AppInsightsProjectLevelControllerImpl(
             updateIssueIndex(computeIssuesPerFilename(newState.issues.map { it.value }))
           }
           if (currentState.mode != newState.mode) {
-            setOfflineMode(newState.mode)
+            offlineStatusManager.enterMode(newState.mode)
           }
           ProjectState(
               currentState = newState,

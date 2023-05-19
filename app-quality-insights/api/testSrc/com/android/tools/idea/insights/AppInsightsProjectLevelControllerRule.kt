@@ -72,7 +72,7 @@ class AppInsightsProjectLevelControllerRule(
   private lateinit var cache: AppInsightsCache
 
   override fun before(description: Description) {
-    val offlineStateFlow = MutableSharedFlow<ConnectionMode>(replay = 1)
+    val offlineStatusManager = OfflineStatusManagerImpl()
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
     cache = AppInsightsCacheImpl()
@@ -94,8 +94,7 @@ class AppInsightsProjectLevelControllerRule(
         AndroidDispatchers.workerThread,
         client,
         appConnection = connections,
-        offlineStatus = offlineStateFlow,
-        setOfflineMode = { mode -> scope.launch { offlineStateFlow.emit(mode) } },
+        offlineStatusManager,
         flowStart = SharingStarted.Lazily,
         tracker = tracker,
         clock = clock,
