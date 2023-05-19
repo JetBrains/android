@@ -270,6 +270,23 @@ class TomlDslChangerTest : PlatformTestCase() {
   }
 
   @Test
+  fun testAddToArrayTable() {
+    val toml = """
+      [[a]]
+      foo = "foo"
+    """.trimIndent()
+    val expected = """
+      [[a]]
+      foo = "foo"
+      bar = "bar"
+    """.trimIndent()
+    doTest(toml, expected) {
+      val map = ((elements["a"] as GradleDslExpressionList).getElementAt(0) as GradleDslExpressionMap)
+      map.addNewLiteral("bar","bar")
+    }
+  }
+
+  @Test
   fun testInsertLiteralLastInInlineTable() {
     val toml = """
       foo = { two = "two" }

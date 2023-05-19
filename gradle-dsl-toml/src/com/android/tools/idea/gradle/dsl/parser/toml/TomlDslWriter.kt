@@ -17,28 +17,24 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.findParentOfType
-import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlElement
 import org.toml.lang.psi.TomlElementTypes
 import org.toml.lang.psi.TomlElementTypes.COMMA
@@ -48,7 +44,6 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlPsiFactory
 import org.toml.lang.psi.TomlTable
-import java.lang.UnsupportedOperationException
 
 class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, TomlDslNameConverter {
   override fun getContext(): BuildModelContext = context
@@ -95,7 +90,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
 
     if (anchor != null) {
       when (parentPsiElement) {
-        is TomlTable, is TomlFile -> addedElement.addAfter(factory.createNewline(), null)
+        is TomlTable, is TomlFile, is TomlArrayTable -> addedElement.addAfter(factory.createNewline(), null)
         is TomlInlineTable -> when {
           parentPsiElement.entries.size == 1 -> Unit
           anchor is LeafPsiElement && anchor.elementType == TomlElementTypes.L_CURLY -> parentPsiElement.addAfter(comma, addedElement)
