@@ -89,7 +89,6 @@ iml_studio_test(
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],
     module = ":intellij.android.device-explorer.integration.tests",
-    tags = ["manual"],  # b/279213772
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [

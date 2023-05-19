@@ -40,7 +40,6 @@ iml_module(
         "//tools/adt/idea/android/testData",
     ],
     test_srcs = ["testSrc"],
-    test_tags = ["manual"],  # b/279213772
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
