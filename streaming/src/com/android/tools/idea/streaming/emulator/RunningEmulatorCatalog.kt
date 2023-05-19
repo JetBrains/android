@@ -35,6 +35,7 @@ import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -322,7 +323,8 @@ class RunningEmulatorCatalog : Disposable.Parent {
             avdName = if (name.contains(' ')) name else name.replace('_', ' ')
           }
           line.startsWith("avd.dir=") -> {
-            avdFolder = Paths.get(line.substring("add.dir=".length))
+            // TODO: The toRealPath call is a workaround for b/280110539. Remove after January 1, 2024.
+            avdFolder = Paths.get(line.substring("add.dir=".length)).toRealPath(LinkOption.NOFOLLOW_LINKS)
           }
           line.startsWith("port.serial=") -> {
             serialPort = parseInt(line.substring("port.serial=".length), 0)
