@@ -200,10 +200,12 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
     get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   class TestParameters(val mode: DataBindingMode) {
+    private fun String.pairify() = this.indexOf(':').let { substring(0, it) to substring(it + 1) }
+
     val projectName: String =
       if (mode == DataBindingMode.ANDROIDX) PROJECT_WITH_DATA_BINDING_ANDROID_X else PROJECT_WITH_DATA_BINDING_SUPPORT
-    val dataBindingLibArtifact: String =
-      if (mode == DataBindingMode.ANDROIDX) ANDROIDX_DATA_BINDING_LIB_ARTIFACT else DATA_BINDING_LIB_ARTIFACT
+    val dataBindingLibArtifact: Pair<String,String> =
+      if (mode == DataBindingMode.ANDROIDX) ANDROIDX_DATA_BINDING_LIB_ARTIFACT.pairify() else DATA_BINDING_LIB_ARTIFACT.pairify()
     val dataBindingBaseBindingClass: String = mode.viewDataBinding.pkgToPath() + ".class"
 
     // `toString` output is used by JUnit for parameterized test names, so keep it simple
@@ -221,7 +223,9 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
   private fun findViewDataBindingClass(): ClassReader {
     val model = GradleAndroidModel.get(projectRule.androidFacet(":app"))!!
     val classJar = model.mainArtifact.compileClasspath.androidLibraries.first { lib ->
-      lib.target.artifactAddress.startsWith(parameters.dataBindingLibArtifact)
+      lib.target.component?.let {
+        it.group == parameters.dataBindingLibArtifact.first && it.name == parameters.dataBindingLibArtifact.second
+      } ?: false
     }.target.runtimeJarFiles.find {
       it.name == "classes.jar"
     }

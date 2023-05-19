@@ -161,20 +161,20 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
     // TODO(solodkyy): Inverse the process and match parsed dependencies with resolved instead. (See other TODOs).
     val parsedDependencies = parent.dependencies
 
-    val coordinates = GradleCoordinate.parseCoordinateString(library.artifactAddress)
-    if (coordinates != null) {
-      val spec = PsArtifactDependencySpec.create(coordinates)
+    val component = library.component
+    if (component != null) {
+      val spec = PsArtifactDependencySpec.create(component)
       // TODO(b/74425541): Make sure it returns all the matching parsed dependencies rather than the first one.
       val matchingDeclaredDependencies =
         parsedDependencies
-          .findLibraryDependencies(coordinates.groupId, coordinates.artifactId)
+          .findLibraryDependencies(component.group, component.name)
           .filter { artifact.contains(it.parsedModel) }
       // TODO(b/74425541): Reconsider duplicates.
       val androidDependency = PsResolvedLibraryAndroidDependency(parent, this, spec, artifact, matchingDeclaredDependencies)
 
       if (transitiveDependencies != null) {
         androidDependency.setTransitiveDependencies(
-          transitiveDependencies.mapNotNull { PsArtifactDependencySpec.create(it.artifactAddress) }
+          transitiveDependencies.mapNotNull { it.component?.let { component -> PsArtifactDependencySpec.create(component) } }
         )
       } else if (libraryArtifactFile != null) {
         // Note: Sometime in the near future of writing this we won't fetch pom files from Gradle since we have the full transitive

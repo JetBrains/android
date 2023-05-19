@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.gradle.Component
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
@@ -156,9 +156,9 @@ class PsArtifactDependencySpecTest : TestCase() {
     assertEquals("version", spec.version)
   }
 
-  fun testCreate_mavenCoordinates() {
-    val coordinates = GradleCoordinate.parseCoordinateString("group:name:version@aar")
-    val spec = PsArtifactDependencySpec.create(coordinates!!)
+  fun testCreate_gradleComponent() {
+    val component = Component.parse("group:name:version")
+    val spec = PsArtifactDependencySpec.create(component)
     assertNotNull(spec)
     assertEquals("group", spec.group)
     assertEquals("name", spec.name)

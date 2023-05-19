@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
@@ -145,37 +147,58 @@ class GradleModuleSystem(
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getCompileDependenciesFor(module, scope)
       ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-      ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) }
+      ?.mapNotNull { it.target.component }
       ?.find { it.matches(coordinate) }
+      ?.let { GradleCoordinate(it.group, it.name, it.version.toString()) }
   }
+
+  private fun Component.matches(coordinate: GradleCoordinate): Boolean =
+    this.group == coordinate.groupId &&
+    this.name == coordinate.artifactId &&
+    RichVersion.parse(coordinate.revision).contains(this.version)
 
   override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
     return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
       ?.let { dependencies ->
-        dependencies.androidLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact } +
-          dependencies.javaLibraries.asSequence().map { it.target.artifactAddress to it.target.artifact }
+        dependencies.androidLibraries.asSequence().mapNotNull { it.target.component?.let { c -> c to it.target.artifact } } +
+          dependencies.javaLibraries.asSequence().mapNotNull { it.target.component?.let { c -> c to it.target.artifact } }
       }
-      ?.find { GradleCoordinate.parseCoordinateString(it.first)?.matches(coordinate) ?: false }
+      ?.find { it.first.matches(coordinate) }
       ?.second?.toPath()
   }
 
   // TODO: b/129297171
   override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
-    getRegisteredDependency(ExternalModule(coordinate.groupId, coordinate.artifactId))?.toIdentifier()
-      ?.let { GradleCoordinate.parseCoordinateString(it) }
-      // TODO(xof): I'm reasonably convinced that this interface (in terms of GradleCoordinate) and its implementation
-      //  verifying that any version field specified in the GradleCoordinate matches (in some sense, where "+" is treated
-      //  specially in the coordinate but not in any of the matches) is not reasonably supportable.  Almost all uses of this in production
-      //  use a bare version of "+", which will match any version.  There is an exception, which attempts to insert specific versions
-      //  taken from fragments of other Gradle build files (or Maven XML).
-      //  I think the ideal final state will involve removing this function from the AndroidModuleSystem interface; converting users of
-      //  this to the getRegisteredDependency(ExternalModule) method below; and require clients who want to query or add specific
-      //  dependency versions to Gradle build files to accept that they are using GradleModuleSystem facilities, which we will allow from
-      //  a limited set of modules.  In the meantime, preserve existing behavior by performing this matches(...) check.
+    // TODO(xof): I'm reasonably convinced that this interface (in terms of GradleCoordinate) and its implementation
+    //  verifying that any version field specified in the GradleCoordinate matches (in some sense, where "+" is treated
+    //  specially in the coordinate but not in any of the matches) is not reasonably supportable.  Almost all uses of this in production
+    //  use a bare version of "+", which will match any version.  There is an exception, which attempts to insert specific versions
+    //  taken from fragments of other Gradle build files (or Maven XML).
+    //  I think the ideal final state will involve removing this function from the AndroidModuleSystem interface; converting users of
+    //  this to the getRegisteredDependency(ExternalModule) method below; and require clients who want to query or add specific
+    //  dependency versions to Gradle build files to accept that they are using GradleModuleSystem facilities, which we will allow from
+    //  a limited set of modules.  In the meantime, preserve existing behavior by emulating GradleCoordinate.matches(...)
+    getRegisteredDependency(ExternalModule(coordinate.groupId, coordinate.artifactId))
       ?.takeIf { it.matches(coordinate) }
+      ?.toIdentifier()
+      ?.let { GradleCoordinate.parseCoordinateString(it) }
+
+  // This only exists to support the contract of getRegisteredDependency(), which is that an existing declared dependency should be
+  // returned if it matches the coordinate given, with a possibly-wild or possibly rich version.  If the declared dependency is to
+  // an explicit singleton, we check whether the pattern contains that version; if the pattern version is wild, we accept any
+  // declared dependency; otherwise, we accept only exact rich version matches.
+  private fun Dependency.matches(coordinate: GradleCoordinate): Boolean =
+    coordinate.groupId == this.group &&
+    coordinate.artifactId == this.name &&
+    when (val version = this.version?.explicitSingletonVersion) {
+      null -> coordinate.revision == "+" || RichVersion.parse(coordinate.revision) == this.version
+      else -> RichVersion.parse(coordinate.revision).contains(version)
+    }
 
   fun getRegisteredDependency(externalModule: ExternalModule): Dependency? =
     getDirectDependencies(module).find { it.name == externalModule.name && it.group == externalModule.group }
+
+  private fun Component.dependency() = Dependency(group, name, RichVersion.parse(version.toString()))
 
   fun getDirectDependencies(module: Module): Sequence<Dependency> {
     // TODO: b/129297171
@@ -191,7 +214,7 @@ class GradleModuleSystem(
     } else {
       getCompileDependenciesFor(module, DependencyScopeType.MAIN)
         ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-        ?.mapNotNull { Dependency.parse(it.target.artifactAddress) } ?: emptySequence()
+        ?.mapNotNull { it.target.component?.dependency() } ?: emptySequence()
     }
   }
 

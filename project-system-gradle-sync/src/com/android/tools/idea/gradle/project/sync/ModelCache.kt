@@ -218,6 +218,8 @@ internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
  */
 internal fun convertToLibraryName(libraryArtifactAddress: String, projectBasePath: File?): String {
   when {
+    // TODO(xof): there are other magic prefixes like "__local_asars__", "__wrapped_aars__" (post AGP-7.3) and "artifacts" (pre AGP-7.3)
+    //  that might be constructed from LibraryService
     libraryArtifactAddress.startsWith("$LOCAL_AARS:") -> libraryArtifactAddress.removePrefix("$LOCAL_AARS:")
     libraryArtifactAddress.startsWith("$LOCAL_JARS:") -> libraryArtifactAddress.removePrefix("$LOCAL_JARS:")
     else -> null

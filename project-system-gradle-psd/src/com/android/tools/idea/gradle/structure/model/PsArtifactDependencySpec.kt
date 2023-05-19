@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -92,6 +93,9 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
 
     fun create(coordinates: GradleCoordinate): PsArtifactDependencySpec =
       create(coordinates.groupId, coordinates.artifactId, coordinates.revision)
+
+    fun create(component: Component): PsArtifactDependencySpec =
+      create(component.group, component.name, component.version.toString())
 
     fun create(moduleVersion: GradleModuleVersion): PsArtifactDependencySpec =
       create(moduleVersion.group, moduleVersion.name, moduleVersion.version)

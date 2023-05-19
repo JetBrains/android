@@ -80,8 +80,8 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       ModuleManager.getInstance(project).modules.mapNotNull { module -> GradleAndroidModel.get(module) }.forEach { model ->
         val dependencies = model.selectedMainCompileDependencies
 
-        kotlinVersion = ordering.max(kotlinVersion, dependencies.javaLibraries.findVersion("org.jetbrains.kotlin:kotlin-stdlib"))
-        ktxVersion = ordering.max(ktxVersion, dependencies.androidLibraries.findVersion("androidx.core:core-ktx"))
+        kotlinVersion = ordering.max(kotlinVersion, dependencies.javaLibraries.findVersion("org.jetbrains.kotlin", "kotlin-stdlib"))
+        ktxVersion = ordering.max(ktxVersion, dependencies.androidLibraries.findVersion("androidx.core", "core-ktx"))
       }
 
       val kotlinSupport = KotlinSupport.newBuilder()
@@ -138,9 +138,9 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
   }
 }
 
-private fun Collection<IdeArtifactDependency<*>>.findVersion(artifact: String): Version? {
-  val library = firstOrNull { library -> library.target.artifactAddress.startsWith(artifact) } ?: return null
-  return GradleCoordinate.parseCoordinateString(library.target.artifactAddress)?.lowerBoundVersion
+private fun Collection<IdeArtifactDependency<*>>.findVersion(group: String, name: String): Version? {
+  val library = firstOrNull { library -> library.target.component?.let { it.group == group && it.name == name } ?: false } ?: return null
+  return library.target.component?.version
 }
 
 private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project: Project, rootProjectPath: @SystemIndependent String) {

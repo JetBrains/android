@@ -144,7 +144,7 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * Query coordinate a:b:456 will return null if version 123 is a resolved dependency but not version 456.
    * Use [AndroidModuleSystem.getRegisteredDependency] if you want the registered dependency.
    * <p>
-   * **Note**: This function will not acquire any locks during it's operation.
+   * **Note**: This function will not acquire any locks during its operation.
    */
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = getResolvedDependency(coordinate, DependencyScopeType.MAIN)

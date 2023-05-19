@@ -368,7 +368,10 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       IdeJavaLibrary libraryTarget = gradleLibrary.getTarget();
       String libraryName = getNameWithoutExtension(libraryTarget.getArtifact());
       if (libraryName.equals(library.getName())) {
-        return ArtifactDependencySpec.create(libraryTarget.getArtifactAddress());
+        Component component = libraryTarget.getComponent();
+        if (component != null) {
+          return ArtifactDependencySpec.create(component.getName(), component.getGroup(), component.getVersion().toString());
+        }
       }
     }
     return null;
