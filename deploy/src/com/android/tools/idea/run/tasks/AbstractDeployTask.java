@@ -75,30 +75,23 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractDeployTask implements LaunchTask {
 
   public static final int MIN_API_VERSION = 26;
+  public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
   private static final NotificationGroup NOTIFICATION_GROUP = NotificationGroupManager.getInstance().getNotificationGroup("Deploy");
-  private static final Map<OptimisticInstallSupportLevel, EnumSet<ChangeType>>
-    OPTIMISTIC_INSTALL_SUPPORT =
-    ImmutableMap.of(
-      OptimisticInstallSupportLevel.DISABLED, EnumSet.noneOf(ChangeType.class),
-      OptimisticInstallSupportLevel.DEX, EnumSet.of(ChangeType.DEX),
-      OptimisticInstallSupportLevel.DEX_AND_NATIVE,
-      EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY),
-      OptimisticInstallSupportLevel.DEX_AND_NATIVE_AND_RESOURCES,
-      EnumSet.of(
-        ChangeType.DEX,
-                                            ChangeType.NATIVE_LIBRARY,
-                                            ChangeType.RESOURCE));
-
+  private static final Map<OptimisticInstallSupportLevel, EnumSet<ChangeType>> OPTIMISTIC_INSTALL_SUPPORT =
+    ImmutableMap.of(OptimisticInstallSupportLevel.DISABLED, EnumSet.noneOf(ChangeType.class), OptimisticInstallSupportLevel.DEX,
+                    EnumSet.of(ChangeType.DEX), OptimisticInstallSupportLevel.DEX_AND_NATIVE,
+                    EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY), OptimisticInstallSupportLevel.DEX_AND_NATIVE_AND_RESOURCES,
+                    EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY, ChangeType.RESOURCE));
+  protected final boolean myRerunOnSwapFailure;
+  protected final boolean myAlwaysInstallWithPm;
   @NotNull private final Project myProject;
   @NotNull private final Collection<ApkInfo> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
-  protected final boolean myRerunOnSwapFailure;
-  protected final boolean myAlwaysInstallWithPm;
 
-  public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
-
-  public AbstractDeployTask(
-      @NotNull Project project, @NotNull Collection<ApkInfo> packages, boolean rerunOnSwapFailure, boolean alwaysInstallWithPm) {
+  public AbstractDeployTask(@NotNull Project project,
+                            @NotNull Collection<ApkInfo> packages,
+                            boolean rerunOnSwapFailure,
+                            boolean alwaysInstallWithPm) {
     myProject = project;
     myPackages = packages;
     myRerunOnSwapFailure = rerunOnSwapFailure;
@@ -136,8 +129,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     }
   }
 
-  private List<Deployer.Result> doRun(@NotNull IDevice device, ProgressIndicator indicator)
-    throws DeployerException {
+  private List<Deployer.Result> doRun(@NotNull IDevice device, ProgressIndicator indicator) throws DeployerException {
     Canceller canceller = new Canceller() {
       @Override
       public boolean cancelled() {
@@ -170,21 +162,18 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
     EnumSet<ChangeType> optimisticInstallSupport = EnumSet.noneOf(ChangeType.class);
     if (!myAlwaysInstallWithPm) {
-      optimisticInstallSupport = OPTIMISTIC_INSTALL_SUPPORT.getOrDefault(
-        StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get(), EnumSet.noneOf(ChangeType.class));
+      optimisticInstallSupport =
+        OPTIMISTIC_INSTALL_SUPPORT.getOrDefault(StudioFlags.OPTIMISTIC_INSTALL_SUPPORT_LEVEL.get(), EnumSet.noneOf(ChangeType.class));
     }
-    DeployerOption option =
-      new DeployerOption.Builder()
-        .setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
-        .setUseOptimisticResourceSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
-        .setOptimisticInstallSupport(optimisticInstallSupport)
-        .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
-        .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
-        .setFastRestartOnSwapFail(getFastRerunOnSwapFailure())
-        .enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get())
-        .build();
-    Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
-                                     installer, ideService, metrics, logger, option);
+    DeployerOption option = new DeployerOption.Builder().setUseOptimisticSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get())
+      .setUseOptimisticResourceSwap(StudioFlags.APPLY_CHANGES_OPTIMISTIC_RESOURCE_SWAP.get())
+      .setOptimisticInstallSupport(optimisticInstallSupport)
+      .setUseStructuralRedefinition(StudioFlags.APPLY_CHANGES_STRUCTURAL_DEFINITION.get())
+      .setUseVariableReinitialization(StudioFlags.APPLY_CHANGES_VARIABLE_REINITIALIZATION.get())
+      .setFastRestartOnSwapFail(getFastRerunOnSwapFailure()).enableCoroutineDebugger(StudioFlags.COROUTINE_DEBUGGER_ENABLE.get()).build();
+    Deployer deployer =
+      new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(), installer, ideService,
+                   metrics, logger, option);
     List<String> idsSkippedInstall = new ArrayList<>();
     List<Deployer.Result> results = new ArrayList<>();
     for (ApkInfo apkInfo : myPackages) {
@@ -204,15 +193,12 @@ public abstract class AbstractDeployTask implements LaunchTask {
     long duration = stopwatch.elapsed(TimeUnit.MILLISECONDS);
     if (idsSkippedInstall.isEmpty()) {
       String content = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
-      NOTIFICATION_GROUP
-        .createNotification(content, NotificationType.INFORMATION)
-        .notify(myProject);
-    } else {
+      NOTIFICATION_GROUP.createNotification(content, NotificationType.INFORMATION).notify(myProject);
+    }
+    else {
       String title = String.format("%s successfully finished in %s.", getDescription(), StringUtil.formatDuration(duration));
       String content = createSkippedApkInstallMessage(idsSkippedInstall, idsSkippedInstall.size() == myPackages.size());
-      NOTIFICATION_GROUP
-        .createNotification(title, content, NotificationType.INFORMATION)
-        .notify(myProject);
+      NOTIFICATION_GROUP.createNotification(title, content, NotificationType.INFORMATION).notify(myProject);
     }
 
     return results;
@@ -222,24 +208,19 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
   abstract protected boolean shouldTaskLaunchApp();
 
-  abstract protected Deployer.Result perform(IDevice device,
-                                             Deployer deployer,
-                                             @NotNull ApkInfo apkInfo,
-                                             @NotNull Canceller canceller) throws DeployerException;
+  abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo, @NotNull Canceller canceller)
+    throws DeployerException;
 
   private String getLocalInstaller() {
     Path path;
     if (StudioPathManager.isRunningFromSources()) {
       // Development mode
       path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
-    } else {
+    }
+    else {
       path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
     }
     return path.toString();
-  }
-
-  protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {
-    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).map(Path::toString).collect(Collectors.toList());
   }
 
   @NotNull
@@ -251,8 +232,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     return myRerunOnSwapFailure;
   }
 
-  private void addSubTaskDetails(@NotNull Collection<DeployMetric> metrics, long startNanoTime,
-                                 long startWallClockMs) {
+  private void addSubTaskDetails(@NotNull Collection<DeployMetric> metrics, long startNanoTime, long startWallClockMs) {
     for (DeployMetric metric : metrics) {
       if (!metric.getName().isEmpty()) {
         LaunchTaskDetail.Builder detail = LaunchTaskDetail.newBuilder();
@@ -260,10 +240,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
         long startOffsetMs = TimeUnit.NANOSECONDS.toMillis(metric.getStartTimeNs() - startNanoTime);
         long endOffsetMs = TimeUnit.NANOSECONDS.toMillis(metric.getEndTimeNs() - startNanoTime);
 
-        detail.setId(getId() + "." + metric.getName())
-          .setStartTimestampMs(startWallClockMs + startOffsetMs)
-          .setEndTimestampMs(startWallClockMs + endOffsetMs)
-          .setTid((int)metric.getThreadId());
+        detail.setId(getId() + "." + metric.getName()).setStartTimestampMs(startWallClockMs + startOffsetMs)
+          .setEndTimestampMs(startWallClockMs + endOffsetMs).setTid((int)metric.getThreadId());
 
         if (metric.hasStatus()) {
           detail.setStatus(metric.getStatus());
@@ -277,20 +255,6 @@ public abstract class AbstractDeployTask implements LaunchTask {
     for (Deploy.AgentExceptionLog log : agentExceptionLogs) {
       UsageTracker.log(toStudioEvent(log));
     }
-  }
-
-  private static AndroidStudioEvent.Builder toStudioEvent(Deploy.AgentExceptionLog log) {
-    ApplyChangesAgentError.AgentPurpose purpose = ApplyChangesAgentError.AgentPurpose.forNumber(log.getAgentPurposeValue());
-    ApplyChangesAgentError.Builder builder = ApplyChangesAgentError.newBuilder()
-      .setEventTimeMs(TimeUnit.MILLISECONDS.convert(log.getEventTimeNs(), TimeUnit.NANOSECONDS))
-      .setAgentAttachTimeMs(TimeUnit.MILLISECONDS.convert(log.getAgentAttachTimeNs(), TimeUnit.NANOSECONDS))
-      .setAgentAttachCount(log.getAgentAttachCount())
-      .setAgentPurpose(purpose);
-    log.getFailedClassesList().stream().map(ApplyChangesAgentError.TargetClass::valueOf).forEach(builder::addTargetClasses);
-    return AndroidStudioEvent.newBuilder()
-      .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
-      .setKind(AndroidStudioEvent.EventKind.APPLY_CHANGES_AGENT_ERROR)
-      .setApplyChangesAgentError(builder);
   }
 
   @Override
@@ -328,9 +292,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
         actionId = "android.deploy.ApplyChanges";
         break;
       case RUN_APP:
-        actionId = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId())
-                   ? IdeActions.ACTION_DEFAULT_DEBUGGER
-                   : IdeActions.ACTION_DEFAULT_RUNNER;
+        actionId =
+          DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId()) ? IdeActions.ACTION_DEFAULT_DEBUGGER : IdeActions.ACTION_DEFAULT_RUNNER;
         break;
       case RETRY:
         actionId = executor.getActionName();
@@ -360,5 +323,20 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @Override
   public Collection<ApkInfo> getApkInfos() {
     return myPackages;
+  }
+
+  protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {
+    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).map(Path::toString).collect(Collectors.toList());
+  }
+
+  private static AndroidStudioEvent.Builder toStudioEvent(Deploy.AgentExceptionLog log) {
+    ApplyChangesAgentError.AgentPurpose purpose = ApplyChangesAgentError.AgentPurpose.forNumber(log.getAgentPurposeValue());
+    ApplyChangesAgentError.Builder builder =
+      ApplyChangesAgentError.newBuilder().setEventTimeMs(TimeUnit.MILLISECONDS.convert(log.getEventTimeNs(), TimeUnit.NANOSECONDS))
+        .setAgentAttachTimeMs(TimeUnit.MILLISECONDS.convert(log.getAgentAttachTimeNs(), TimeUnit.NANOSECONDS))
+        .setAgentAttachCount(log.getAgentAttachCount()).setAgentPurpose(purpose);
+    log.getFailedClassesList().stream().map(ApplyChangesAgentError.TargetClass::valueOf).forEach(builder::addTargetClasses);
+    return AndroidStudioEvent.newBuilder().setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
+      .setKind(AndroidStudioEvent.EventKind.APPLY_CHANGES_AGENT_ERROR).setApplyChangesAgentError(builder);
   }
 }
