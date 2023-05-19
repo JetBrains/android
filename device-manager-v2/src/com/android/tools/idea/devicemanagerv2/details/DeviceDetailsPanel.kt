@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The aoid Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 package com.android.tools.idea.devicemanagerv2.details
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceManagerPanel
+import com.android.tools.idea.devicemanagerv2.PairingStatus
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 /**
@@ -52,12 +57,27 @@ private constructor(
   }
 
   companion object {
-    fun create(scope: CoroutineScope, handle: DeviceHandle): DeviceDetailsPanel {
+    fun create(
+      project: Project,
+      scope: CoroutineScope,
+      handle: DeviceHandle,
+      devicesFlow: Flow<List<DeviceHandle>>,
+      pairedDevicesFlow: Flow<Map<String, ImmutableList<PairingStatus>>>
+    ): DeviceDetailsPanel {
       val deviceInfoPanel = DeviceInfoPanel()
       scope.launch { populateDeviceInfo(deviceInfoPanel, handle) }
 
       val pairedDevicesPanel =
-        handle.state.properties.wearPairingId?.let { PairedDevicesPanel(scope, handle) }
+        handle.state.properties.wearPairingId?.let {
+          PairedDevicesPanel.create(
+            PairedDevicesPanel.StudioPairingManager(project),
+            scope,
+            uiThread,
+            handle,
+            devicesFlow,
+            pairedDevicesFlow
+          )
+        }
       val tabbedPane =
         pairedDevicesPanel?.let { createTabbedPane(deviceInfoPanel, pairedDevicesPanel) }
       val mainComponent = tabbedPane ?: JBScrollPane(deviceInfoPanel)

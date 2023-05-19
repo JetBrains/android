@@ -22,7 +22,6 @@ import com.android.tools.adtui.categorytable.ColorableAnimatedSpinnerIcon
 import com.android.tools.adtui.categorytable.Column
 import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.adtui.categorytable.LabelColumn
-import com.android.tools.idea.wearpairing.WearPairingManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
@@ -33,8 +32,7 @@ internal object DeviceTableColumns {
 
   val nameAttribute = stringAttribute<DeviceRowData>(isGroupable = false) { it.name }
 
-  class Name(private val wearPairingManager: WearPairingManager) :
-    Column<DeviceRowData, String, DeviceNamePanel> {
+  object Name : Column<DeviceRowData, String, DeviceNamePanel> {
     override val name = DeviceManagerBundle.message("column.title.name")
     override val widthConstraint = Column.SizeConstraint(min = 200, preferred = 400)
     override val attribute = nameAttribute
@@ -158,12 +156,5 @@ internal object DeviceTableColumns {
   }
 
   fun columns(project: Project, coroutineScope: CoroutineScope) =
-    listOf(
-      Status,
-      Type,
-      Name(WearPairingManager.getInstance()),
-      Api,
-      IsVirtual,
-      Actions(project, coroutineScope)
-    )
+    listOf(Status, Type, Name, Api, IsVirtual, Actions(project, coroutineScope))
 }

@@ -79,7 +79,8 @@ class CategoryTable<T : Any>(
    * The values in the table, in display order (considering grouping and sorting). Maintained by
    * [groupAndSortValues].
    */
-  private var values: List<T> = emptyList()
+  var values: List<T> = emptyList()
+    private set
 
   /**
    * All [CategoryRowComponent] and [ValueRowComponent] components in the table, in display order.

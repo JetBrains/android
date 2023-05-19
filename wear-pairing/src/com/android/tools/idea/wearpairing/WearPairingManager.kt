@@ -299,6 +299,20 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
     }
   }
 
+  suspend fun removePairedDevices(
+    phoneId: String,
+    wearId: String,
+    restartWearGmsCore: Boolean = true
+  ) {
+    val phoneWearPair =
+      mutex.withLock {
+        pairedDevicesList.find { it.phone.deviceID == phoneId && it.wear.deviceID == wearId }
+      }
+      ?: return
+
+    removePairedDevices(phoneWearPair, restartWearGmsCore)
+  }
+
   suspend fun removePairedDevices(phoneWearPair: PhoneWearPair, restartWearGmsCore: Boolean = true) {
     try {
       mutex.withLock {

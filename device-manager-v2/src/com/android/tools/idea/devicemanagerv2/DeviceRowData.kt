@@ -86,8 +86,6 @@ internal data class DeviceRowData(
         pairingStatus = emptyList(),
       )
     }
-
-    private fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }
   }
 
   enum class Status {

@@ -122,11 +122,11 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
       null -> ""
       else -> androidVersion.toLabelText() + (abi?.cpuArch?.let { " | $it" } ?: "")
     }
+}
 
-  private fun AndroidVersion.toLabelText(): String {
-    val (name, details) = getReleaseNameAndDetails(includeCodeName = true)
-    return name + (details?.let { " ($details)" } ?: "")
-  }
+internal fun AndroidVersion.toLabelText(): String {
+  val (name, details) = getReleaseNameAndDetails(includeCodeName = true)
+  return name + (details?.let { " ($details)" } ?: "")
 }
 
 /**

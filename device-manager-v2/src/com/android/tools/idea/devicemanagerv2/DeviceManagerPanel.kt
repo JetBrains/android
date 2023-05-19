@@ -266,9 +266,14 @@ internal class DeviceManagerPanel(
   }
 
   private fun createDetailsPanel(handle: DeviceHandle): DeviceDetailsPanel =
-    DeviceDetailsPanel.create(panelScope.createChildScope(isSupervisor = true), handle).apply {
-      addCloseActionListener { deviceDetailsPanel = null }
-    }
+    DeviceDetailsPanel.create(
+        project,
+        panelScope.createChildScope(isSupervisor = true),
+        handle,
+        deviceProvisioner.devices,
+        pairedDevicesFlow
+      )
+      .apply { addCloseActionListener { deviceDetailsPanel = null } }
 
   override fun getData(dataId: String): Any? =
     when {
