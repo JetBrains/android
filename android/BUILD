@@ -139,9 +139,6 @@ iml_module(
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
         # Keep sorted by the test_filter package, with "other" at the end.
-        "apk": {
-            "test_filter": "com.android.tools.idea.apk",
-        },
         "AndroidKotlinCompletionContributorTest": {
             "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
         },
