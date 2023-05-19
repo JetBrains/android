@@ -170,6 +170,8 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     if (anchor == null && (parent is TomlInlineTable || parent is TomlArray)) return parent.firstChild
     if (anchor == null && parent is TomlTable) return parent.header
     while (anchor != null && anchor.parent != parent) {
+      // if we did not find parent psi - we have split element case
+      if(anchor is TomlFile) return parent.lastChild
       anchor = anchor.parent
     }
     return anchor ?: parent

@@ -334,6 +334,66 @@ class TomlDslChangerTest : PlatformTestCase() {
     }
   }
 
+  // Toml does not allow to have duplicate tables - so next cases are mostly about that we don't crash
+  @Test
+  fun testUpdateInSplitElement() {
+    val toml = """
+      [a]
+      foo = "foo"
+      [a]
+      bar = "bar"
+    """.trimIndent()
+    val expected = """
+      [a]
+      foo = "foo_updated"
+      [a]
+      bar = "bar"
+    """.trimIndent()
+    doTest(toml, expected) {
+      ((elements["a"] as GradleDslExpressionMap).getElement("foo") as GradleDslLiteral).setValue("foo_updated")
+    }
+  }
+  @Test
+  fun testUpdateInSplitElement2() {
+    val toml = """
+      [a]
+      foo = "foo"
+      [a]
+      bar = "bar"
+    """.trimIndent()
+    val expected = """
+      [a]
+      foo = "foo"
+      [a]
+      bar = "bar_updated"
+    """.trimIndent()
+    doTest(toml, expected) {
+      ((elements["a"] as GradleDslExpressionMap).getElement("bar") as GradleDslLiteral).setValue("bar_updated")
+    }
+  }
+
+  fun testAddIntoASplitElement() {
+    val toml = """
+      [a]
+      foo = "foo"
+      [a]
+      bar = "bar"
+    """.trimIndent()
+    val expected = """
+      [a]
+      foo = "foo"
+      baz = "baz"
+      [a]
+      bar = "bar"
+    """.trimIndent()
+    doTest(toml, expected) {
+      val a = getPropertyElement("a") as GradleDslExpressionMap
+      val baz = GradleDslLiteral(a, GradleNameElement.create("baz"))
+      baz.setValue("baz")
+      a.setNewElement(baz)
+    }
+  }
+
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val libsTomlFile = writeLibsTomlFile(toml)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
