@@ -123,6 +123,9 @@
     <usageTypeProvider id="org.jetbrains.android.refactoring.GradleUsageTypeProvider"
                        implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidPropertiesUsageType" order="first" />
+    <referencesSearch implementation="com.android.tools.idea.gradle.navigation.GradleKtsVersionCatalogReferencesSearcher"/>
+    <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtNameReferenceExpression"
+                             implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
     <intentionAction>
