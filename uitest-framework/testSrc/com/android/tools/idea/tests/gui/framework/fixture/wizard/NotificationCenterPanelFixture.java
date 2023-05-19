@@ -54,4 +54,8 @@ public class NotificationCenterPanelFixture {
     myIdeFrameFixture.robot()
       .click(label);
   }
+
+  public boolean isVisible() {
+    return notificationPanel.isVisible();
+  }
 }
