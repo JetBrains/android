@@ -254,6 +254,100 @@ class TomlDslChangerTest : PlatformTestCase() {
   }
 
   @Test
+  fun testDeleteLastFromSegmentedTable() {
+    val toml = """
+      [a.b]
+      foo = "foo"
+      bar = "bar"
+    """.trimIndent()
+    val expected = """
+      [a.b]
+      foo = "foo"
+
+    """.trimIndent()
+    doTest(toml, expected) {
+      ((elements["a"] as GradleDslExpressionMap)
+        .getElement("b") as GradleDslExpressionMap)
+        .removeProperty("bar")
+    }
+  }
+
+  fun testDeleteFirstFromSegmentedTable() {
+    val toml = """
+      [a.b]
+      foo = "foo"
+      bar = "bar"
+    """.trimIndent()
+    val expected = """
+      [a.b]
+      bar = "bar"
+    """.trimIndent()
+    doTest(toml, expected) {
+      ((elements["a"] as GradleDslExpressionMap)
+        .getElement("b") as GradleDslExpressionMap)
+        .removeProperty("foo")
+    }
+  }
+
+  fun testDeleteMiddleFromSegmentedTable() {
+    val toml = """
+      [a.b]
+      foo = "foo"
+      bar = "bar"
+      baz = "baz"
+    """.trimIndent()
+    val expected = """
+      [a.b]
+      foo = "foo"
+      baz = "baz"
+    """.trimIndent()
+    doTest(toml, expected) {
+      ((elements["a"] as GradleDslExpressionMap)
+        .getElement("b") as GradleDslExpressionMap)
+        .removeProperty("bar")
+    }
+  }
+
+  @Test
+  fun testAddSecondTable() {
+    val toml = """
+       [table]
+       foo = "bar"
+     """.trimIndent()
+    val expected = """
+       [table]
+       foo = "bar"
+       [table2]
+       baz = "baz"
+     """.trimIndent()
+    doTest(toml, expected) {
+      val table2 = GradleDslExpressionMap(this, GradleNameElement.create("table2"))
+      val baz = GradleDslLiteral(table2, GradleNameElement.create("baz"))
+      baz.setValue("baz")
+      this.setNewElement(table2)
+      table2.setNewElement(baz)
+    }
+  }
+
+  @Test
+  fun testAddToSegmentedTable() {
+    val toml = """
+      [a.b]
+      foo = "foo"
+    """.trimIndent()
+    val expected = """
+      [a.b]
+      foo = "foo"
+      bar = "bar"
+    """.trimIndent()
+    doTest(toml, expected) {
+      ((elements["a"] as GradleDslExpressionMap)
+        .getElement("b") as GradleDslExpressionMap)
+        .addNewLiteral("bar", "bar")
+    }
+  }
+
+  @Test
   fun testInsertLiteralFirstInInlineTable() {
     val toml = """
       foo = { two = "two" }
