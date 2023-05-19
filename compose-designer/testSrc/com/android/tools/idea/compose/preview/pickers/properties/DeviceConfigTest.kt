@@ -121,7 +121,7 @@ internal class DeviceConfigTest {
     assertEquals(2338.875f, config.height)
 
     // We change the dpi, which should result in different dimensions in dp (half pixel density = twice as the length on each dimension)
-    config.dpi = config.dpi / 2
+    config.dpi /= 2
     config.dimUnit = DimUnit.dp
     assertEquals(822f, config.width)
     assertEquals(1782f, config.height)

@@ -185,7 +185,7 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
           val absolutePath = embeddedJdkPath.toAbsolutePath().toString()
           val listener = UseJdkAsProjectJdkListener(project, absolutePath, ".embedded")
           if (!registeredListeners.contains(listener.id)) {
-            notificationData.message = notificationData.message + "<a href=\"${listener.id}\">Use Embedded JDK ($absolutePath)</a>\n"
+            notificationData.message += "<a href=\"${listener.id}\">Use Embedded JDK ($absolutePath)</a>\n"
             notificationData.setListener(listener.id, listener)
             registeredListeners = notificationData.registeredListenerIds
           }
@@ -199,7 +199,7 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
           if (embeddedJdkPath == null || (!FileUtils.isSameFile(embeddedJdkPath.toFile(), File(defaultPath)))) {
             val listener = UseJdkAsProjectJdkListener(project, defaultPath)
             if (!registeredListeners.contains(listener.id)) {
-              notificationData.message = notificationData.message + "<a href=\"${listener.id}\">Use JDK ${defaultJdk.name} ($defaultPath)</a>\n"
+              notificationData.message += "<a href=\"${listener.id}\">Use JDK ${defaultJdk.name} ($defaultPath)</a>\n"
               notificationData.setListener(listener.id, listener)
               registeredListeners = notificationData.registeredListenerIds
             }
@@ -211,7 +211,7 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
         val service = ProjectSettingsService.getInstance(project)
         if (service is AndroidProjectSettingsService) {
           val listener = OpenProjectJdkLocationListener(service)
-          notificationData.message = notificationData.message + "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
+          notificationData.message += "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
           notificationData.setListener(OpenProjectJdkLocationListener.ID, listener)
         }
       }

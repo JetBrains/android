@@ -57,7 +57,7 @@ class WarningsPageViewTest {
   }
   val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000).apply {
     issues = listOf(TaskIssueUiDataContainer.TaskSetupIssue(this, task1, ""))
-    task1.issues = task1.issues + listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
+    task1.issues += listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
   }
 
   private val data = MockUiData(tasksList = listOf(task1, task2, task3))

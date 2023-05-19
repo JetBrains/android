@@ -129,8 +129,8 @@ sealed class Destination(protected open val parent: NlComponent) : Comparable<De
       graphics.clip = oldClip
       graphics.color = PLACEHOLDER_BORDER
       graphics.stroke = THUMBNAIL_BORDER_STROKE
-      roundRect.width = roundRect.width + THUMBNAIL_BORDER_THICKNESS
-      roundRect.height = roundRect.height + THUMBNAIL_BORDER_THICKNESS
+      roundRect.width += THUMBNAIL_BORDER_THICKNESS
+      roundRect.height += THUMBNAIL_BORDER_THICKNESS
       roundRect.x = 0.5f
       roundRect.y = 0.5f
       roundRect.archeight = THUMBNAIL_OUTER_RADIUS

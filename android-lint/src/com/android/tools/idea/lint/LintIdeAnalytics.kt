@@ -208,7 +208,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
             }
         }
       }
-      issueBuilder.count = issueBuilder.count + 1
+      issueBuilder.count += 1
     }
   }
 

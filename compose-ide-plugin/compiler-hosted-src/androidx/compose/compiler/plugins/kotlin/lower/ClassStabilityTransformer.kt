@@ -149,18 +149,18 @@ class ClassStabilityTransformer(
             stability = stability
         )
 
-        cls.annotations = cls.annotations + IrConstructorCallImpl(
-            UNDEFINED_OFFSET,
-            UNDEFINED_OFFSET,
-            StabilityInferredClass.defaultType,
-            StabilityInferredClass.constructors.first(),
-            0,
-            0,
-            1,
-            null
-        ).also {
-            it.putValueArgument(0, irConst(parameterMask))
-        }
+      cls.annotations += IrConstructorCallImpl(
+        UNDEFINED_OFFSET,
+        UNDEFINED_OFFSET,
+        StabilityInferredClass.defaultType,
+        StabilityInferredClass.constructors.first(),
+        0,
+        0,
+        1,
+        null
+      ).also {
+        it.putValueArgument(0, irConst(parameterMask))
+      }
 
         val stabilityField = makeStabilityField().also { f ->
             f.parent = cls
