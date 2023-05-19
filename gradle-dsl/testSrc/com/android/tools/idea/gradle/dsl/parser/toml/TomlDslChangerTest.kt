@@ -65,6 +65,23 @@ class TomlDslChangerTest : PlatformTestCase() {
     doTest(toml, expected) { removeProperty("two") }
   }
 
+  fun testDeleteFromArrayTable() {
+    val toml = """
+      [[a]]
+      foo = "foo"
+      bar = "bar"
+    """.trimIndent()
+    val expected = """
+      [[a]]
+      foo = "foo"
+
+    """.trimIndent()
+    doTest(toml, expected) {
+      val map = ((elements["a"] as GradleDslExpressionList).getElementAt(0) as GradleDslExpressionMap)
+      map.removeProperty("bar")
+    }
+  }
+
   @Test
   fun testRenameMiddleLiteral() {
     val toml = """

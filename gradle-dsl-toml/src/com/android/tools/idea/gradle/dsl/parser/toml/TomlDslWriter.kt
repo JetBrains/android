@@ -157,7 +157,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     when (parent) {
       is GradleDslFile -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
       is GradleDslExpressionMap -> when (parentPsi) {
-        is TomlTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
+        is TomlTable, is TomlArrayTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
         is TomlInlineTable -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionMap, TomlKeyValue>(element, psiElement, parent)
       }
       is GradleDslExpressionList -> when (parentPsi) {
