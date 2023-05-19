@@ -62,10 +62,59 @@ class CategoryTableTest {
   }
 
   @Test
+  fun addOrUpdateRow() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    table.addGrouping(Type.attribute)
+    val device = CategoryTableDemo.devices[0]
+
+    assertThat(table.addOrUpdateRow(device)).isTrue()
+    assertThat(table.addOrUpdateRow(device)).isFalse()
+
+    assertThat(table.rowComponents).hasSize(2)
+    assertThat(table.rowComponents[0]).isInstanceOf(CategoryRowComponent::class.java)
+    assertThat(table.rowComponents[1]).isInstanceOf(ValueRowComponent::class.java)
+  }
+
+  @Test
+  fun addOrUpdateRow_withPrimaryKey() {
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name })
+    table.addGrouping(Type.attribute)
+    val offlineNexus7 = CategoryTableDemo.devices[4]
+    val onlineNexus7 = CategoryTableDemo.devices[5]
+
+    assertThat(table.addOrUpdateRow(offlineNexus7)).isTrue()
+    assertThat(table.addOrUpdateRow(onlineNexus7)).isFalse()
+    assertThat(table.rowComponents).hasSize(2)
+  }
+
+  @Test
+  fun removeRow() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    table.addGrouping(Type.attribute)
+    val device = CategoryTableDemo.devices[0]
+
+    assertThat(table.addOrUpdateRow(device)).isTrue()
+    table.removeRow(device)
+    assertThat(table.rowComponents).hasSize(0)
+  }
+
+  @Test
+  fun removeRowByKey() {
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name })
+    table.addGrouping(Type.attribute)
+    val offlineNexus7 = CategoryTableDemo.devices[4]
+    val onlineNexus7 = CategoryTableDemo.devices[5]
+
+    assertThat(table.addOrUpdateRow(offlineNexus7)).isTrue()
+    table.removeRowByKey(onlineNexus7.name)
+    assertThat(table.rowComponents).hasSize(0)
+  }
+
+  @Test
   fun addAndRemoveGrouping() {
     val table = CategoryTable(CategoryTableDemo.columns)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     assertThat(table.rowComponents).hasSize(6)
 
     table.toggleSortOrder(Name.attribute)
@@ -209,7 +258,7 @@ class CategoryTableTest {
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     fakeUi.layout()
 
     assertThat(table.selection.selectedKeys()).isEmpty()
@@ -241,7 +290,7 @@ class CategoryTableTest {
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     table.addGrouping(Status.attribute)
 
     fakeUi.layout()
@@ -279,7 +328,7 @@ class CategoryTableTest {
         rowDataProvider = DefaultValueRowDataProvider(DEVICE_DATA_KEY)
       )
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
 
     val component = (table.rowComponents[0] as ValueRowComponent).componentList[0].component
     val data = DataManager.getInstance().getDataContext(component).getData(DEVICE_DATA_KEY)
@@ -293,7 +342,7 @@ class CategoryTableTest {
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     fakeUi.layout()
 
     val position = fakeUi.getPosition(table.rowComponents[1])
@@ -320,7 +369,7 @@ class CategoryTableTest {
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
 
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     table.addGrouping(Status.attribute)
     fakeUi.layout()
 
@@ -351,7 +400,7 @@ class CategoryTableTest {
     val table = CategoryTable(CategoryTableDemo.columns)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane)
-    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
 
     scrollPane.setBounds(0, 0, 800, 400)
     assertThat(scrollPane.verticalScrollBar.isVisible).isFalse()

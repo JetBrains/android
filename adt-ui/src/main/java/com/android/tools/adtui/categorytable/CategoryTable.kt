@@ -272,19 +272,33 @@ class CategoryTable<T : Any>(
   }
 
   /**
-   * Adds the given row to the table. If a row already exists with the same primary key, nothing is
-   * done.
+   * Adds the given row to the table. If a row already exists with the same primary key, it is
+   * updated to the new value. This may result in addition or deletion of category nodes.
+   *
+   * @return true if a new row was added
    */
-  fun addRow(rowValue: T) {
+  fun addOrUpdateRow(rowValue: T): Boolean {
     val key = primaryKey(rowValue)
-    if (!valueRows.contains(key)) {
+    val add = !valueRows.contains(key)
+    if (add) {
       valueRows[key] =
         ValueRowComponent(rowDataProvider, header, columns, rowValue, key).also {
           addRowComponent(it)
         }
       updateValues { it + rowValue }
-      updateComponents()
+    } else {
+      updateValues { currentValues ->
+        // Replace the value with the same primary key with the given value.
+        currentValues.map {
+          when {
+            primaryKey(it) == key -> rowValue
+            else -> it
+          }
+        }
+      }
     }
+    updateComponents()
+    return add
   }
 
   private fun addRowComponent(rowComponent: RowComponent<T>) {
@@ -301,26 +315,6 @@ class CategoryTable<T : Any>(
   fun removeRowByKey(key: Any) {
     updateValues { it.filterNot { primaryKey(it) == key } }
     valueRows.remove(key)?.let { remove(it) }
-    updateComponents()
-  }
-
-  /**
-   * Notifies the table that the contents of the row have changed (i.e. the row having the same
-   * primary key as the given value), and that its sort, grouping, and rendering may need to be
-   * updated. This may result in addition or deletion of category nodes.
-   */
-  fun updateRow(rowValue: T) {
-    val key = primaryKey(rowValue)
-    checkNotNull(valueRows[key]) { "Value not present on table: $rowValue" }
-    updateValues { currentValues ->
-      // Replace the value with the same primary key with the given value.
-      currentValues.map {
-        when {
-          primaryKey(it) == key -> rowValue
-          else -> it
-        }
-      }
-    }
     updateComponents()
   }
 

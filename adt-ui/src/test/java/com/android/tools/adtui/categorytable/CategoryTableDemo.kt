@@ -100,7 +100,7 @@ fun main(args: Array<String>) {
   frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
   val table = CategoryTable(CategoryTableDemo.columns)
 
-  CategoryTableDemo.devices.forEach(table::addRow)
+  CategoryTableDemo.devices.forEach(table::addOrUpdateRow)
   val scroll = JBScrollPane()
   frame.contentPane = scroll
   table.addToScrollPane(scroll)

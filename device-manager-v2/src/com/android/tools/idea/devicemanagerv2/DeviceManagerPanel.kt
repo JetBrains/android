@@ -151,13 +151,14 @@ internal class DeviceManagerPanel(
         }
       }
   }
+
   private suspend fun trackDeviceTemplates() {
     deviceProvisioner.templates
       .map { it.toSet() }
       .trackSetChanges()
       .collect { change ->
         when (change) {
-          is SetChange.Add -> deviceTable.addRow(DeviceRowData.create(change.value))
+          is SetChange.Add -> deviceTable.addOrUpdateRow(DeviceRowData.create(change.value))
           is SetChange.Remove -> deviceTable.removeRowByKey(change.value)
         }
       }
@@ -165,7 +166,7 @@ internal class DeviceManagerPanel(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   private suspend fun trackDevice(handle: DeviceHandle) {
-    deviceTable.addRow(DeviceRowData.create(handle, emptyList()))
+    deviceTable.addOrUpdateRow(DeviceRowData.create(handle, emptyList()))
 
     handle.sourceTemplate?.let {
       if (templateInstantiationCount.add(it, 1) == 0) {
@@ -190,7 +191,7 @@ internal class DeviceManagerPanel(
                 .distinctUntilChanged()
                 .map { pairedDevices -> DeviceRowData.create(handle, pairedDevices) }
             }
-            .collect { withContext(uiThread) { deviceTable.updateRow(it) } }
+            .collect { withContext(uiThread) { deviceTable.addOrUpdateRow(it) } }
         }
         .join()
 
