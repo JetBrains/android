@@ -16,8 +16,8 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.wizard.model.ModelWizard

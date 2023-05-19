@@ -26,7 +26,7 @@ import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.resources.ResourceAsserts.assertThat;
-import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.testing.AndroidTestUtils.moveCaret;
 import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 import static com.google.common.truth.Truth.assertThat;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.activity;
 
-import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryActivitiesFromManifestIndex;
 import static com.android.tools.idea.run.activity.DefaultActivityLocator.getActivitiesFromMergedManifest;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
@@ -30,10 +29,8 @@ import static org.mockito.Mockito.when;
 import com.android.SdkConstants;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.ActivitiesAndAliases;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestModificationListener;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
 import java.util.List;
 import java.util.concurrent.Callable;

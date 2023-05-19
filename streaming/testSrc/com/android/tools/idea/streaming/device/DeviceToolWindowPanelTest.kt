@@ -19,11 +19,11 @@ import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP

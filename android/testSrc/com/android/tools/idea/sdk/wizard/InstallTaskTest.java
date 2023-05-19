@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.inOrder;
@@ -41,7 +42,6 @@ import com.android.repository.testframework.FakeRepoManager;
 import com.android.repository.testframework.FakeSettingsController;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
-import com.android.tools.idea.concurrency.AsyncTestUtils;
 import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -405,7 +405,7 @@ public class InstallTaskTest extends AndroidTestCase {
       listenerAdded.complete(true);
       FutureUtils.pumpEventsAndWaitForFuture(completed, 5, TimeUnit.SECONDS);
       // The above only waits for the wizard to be completed, but the backgrounded step may not be done yet.
-      AsyncTestUtils.waitForCondition(5, TimeUnit.SECONDS, () -> progressIndicator[0].getFraction() == 1.0);
+      waitForCondition(5, TimeUnit.SECONDS, () -> progressIndicator[0].getFraction() == 1.0);
     }
     finally {
       if (wizard != null) {

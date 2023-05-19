@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
@@ -22,10 +23,9 @@ import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.EDIT_TEXT;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
-import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
 import static com.google.common.truth.Truth.assertThat;
@@ -54,7 +54,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
-import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -62,6 +61,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.rendering.parsers.TagSnapshot;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;

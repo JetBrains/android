@@ -22,7 +22,7 @@ import static com.android.SdkConstants.ATTR_PARENT_TAG;
 import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.BOTTOM_APP_BAR;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
-import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 

@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 
-import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
@@ -40,7 +39,6 @@ import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
 
 /**
  * Tests for {@link StringResourceViewPanel}.

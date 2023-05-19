@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.util
 
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogcatHeader

@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.repositories
 
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.testutils.file.createInMemoryFileSystem
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.application.ApplicationManager

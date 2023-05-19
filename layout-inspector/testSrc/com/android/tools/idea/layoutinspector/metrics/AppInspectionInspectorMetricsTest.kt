@@ -18,9 +18,9 @@ package com.android.tools.idea.layoutinspector.metrics
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess

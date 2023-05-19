@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.executeStreamingAction

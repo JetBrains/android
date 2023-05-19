@@ -16,10 +16,10 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.testing.AndroidProjectRule

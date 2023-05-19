@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.webp
 
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.testutils.waitForCondition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications

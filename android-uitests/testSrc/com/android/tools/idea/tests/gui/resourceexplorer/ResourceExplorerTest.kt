@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.resourceexplorer
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ui.ClickableLabel
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceValueDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture

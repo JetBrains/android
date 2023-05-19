@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.Locale;

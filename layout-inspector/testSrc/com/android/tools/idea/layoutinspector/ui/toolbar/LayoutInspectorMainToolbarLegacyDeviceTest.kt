@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar
 
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider

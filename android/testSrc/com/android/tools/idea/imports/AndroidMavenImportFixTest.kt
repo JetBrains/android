@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.getIntentionAction

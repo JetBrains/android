@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.testing
 
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.codeInsight.intention.IntentionAction

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.model
 
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.util.toIoFile
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager

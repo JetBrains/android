@@ -17,7 +17,7 @@ package org.jetbrains.android.exportSignedPackage
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.MockitoThreadLocalsCleaner
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth
