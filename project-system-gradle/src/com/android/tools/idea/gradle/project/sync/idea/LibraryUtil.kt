@@ -138,6 +138,7 @@ private fun IdeUnresolvedLibraryTable.resolve(
       ?: return listOf(
         IdeJavaLibraryImpl(
           unresolved.artifact.path,
+          null,
           unresolved.artifact.path,
           unresolved.artifact,
           null,

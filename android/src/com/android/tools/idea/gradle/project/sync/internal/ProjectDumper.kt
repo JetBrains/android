@@ -232,7 +232,7 @@ class ProjectDumper(
   }
 
   /**
-   * Temporarily configures additional identation and optionally configures a new current directory root which will be replaced
+   * Temporarily configures additional indentation and optionally configures a new current directory root which will be replaced
    * with [rootName] in the output and runs [code].
    */
   fun nest(root: File? = null, rootName: String? = null, code: ProjectDumper.() -> Unit) {

@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.gradle.model
 
+import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.projectsystem.gradle.convertLibraryToExternalLibrary
 import com.android.tools.idea.gradle.project.sync.ModelCache
@@ -43,6 +44,7 @@ class GradleModelConverterUtilTest {
   fun testConvertAndroidLibrary() {
     val original = IdeAndroidLibraryImpl.create(
       artifactAddress = "artifact:address:1.0",
+      component = Component.parse("artifact:address:1.0"),
       name = "artifact:address:1.0",
       folder = File("libraryFolder"),
       manifest = "manifest.xml",

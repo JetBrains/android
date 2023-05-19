@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.model
 
+import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
@@ -173,6 +175,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   fun testLevel2AndroidLibrary() = assertSerializable {
     IdeAndroidLibraryImpl.create(
       "artifactAddress",
+      Component("com.example", "example", Version.parse("1.0")),
       "name",
       File("folder"),
       "manifest",
@@ -202,6 +205,7 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     IdeAndroidLibraryDependencyImpl(
       IdeAndroidLibraryImpl.create(
         "artifactAddress",
+        Component("com.example", "example", Version.parse("1.0")),
         "name",
         File("folder"),
         "manifest",
@@ -353,6 +357,16 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   @Test
   fun testMap() = assertSerializable {
     TestData(1, mapOf<String, Any>("1" to 1))
+  }
+
+  @Test
+  fun testVersion() = assertSerializable {
+    Version.parse("1.2.3-alpha04-SNAPSHOT")
+  }
+
+  @Test
+  fun testComponent() = assertSerializable {
+    Component.parse("com.example:example:00.3.17-rC")
   }
 
   /*

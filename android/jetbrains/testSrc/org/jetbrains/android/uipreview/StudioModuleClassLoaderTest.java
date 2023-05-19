@@ -24,6 +24,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.updateTest
 import static com.google.common.truth.Truth.assertThat;
 import static org.jetbrains.android.uipreview.JavacUtil.getJavac;
 
+import com.android.ide.common.gradle.Component;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration;
@@ -392,6 +393,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     return new AndroidLibraryDependency(
       IdeAndroidLibraryImpl.Companion.create(
         artifactAddress,
+        Component.Companion.parse(artifactAddress),
         "",
         gradleCacheRoot.toPath().resolve(folder).toFile(),
         "manifest.xml",

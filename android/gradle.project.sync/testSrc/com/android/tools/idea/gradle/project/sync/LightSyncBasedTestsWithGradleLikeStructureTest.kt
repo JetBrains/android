@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.testing.AndroidLibraryDependency
@@ -212,6 +213,7 @@ private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
   AndroidLibraryDependency(
     IdeAndroidLibraryImpl.create(
       artifactAddress = artifactAddress,
+      component = Component.parse(artifactAddress),
       name = "",
       folder = gradleCacheRoot.resolve(File("libraryFolder")),
       manifest = "manifest.xml",

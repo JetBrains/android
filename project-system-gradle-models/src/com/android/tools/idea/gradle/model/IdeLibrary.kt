@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model
 
+import com.android.ide.common.gradle.Component
 import java.io.File
 
 /**
@@ -32,12 +33,13 @@ sealed interface IdeLibrary {
 sealed interface IdeArtifactLibrary : IdeLibrary {
   /**
    * Returns the artifact address in a unique way.
-   *
-   *
-   * This is either a module path for sub-modules (with optional variant name), or a maven
-   * coordinate for external dependencies.
    */
   val artifactAddress: String
+
+  /**
+   * Returns the artifact's Gradle Component information, if known.
+   */
+  val component: Component?
 
   /**
    * The name to be used to represent the library in the IDE.

@@ -61,6 +61,8 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
+import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
@@ -411,6 +413,21 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     return address
   }
 
+  /**
+   * @param library Instance of level 1 Library.
+   * @return The artifact's Gradle Component information, if known.
+   */
+  fun computeComponent(library: Library): Component? {
+    if (library.project != null && library is AndroidLibrary) return null
+    val resolvedCoordinates = library.resolvedCoordinates
+    when (resolvedCoordinates?.groupId) {
+      null, "__local_aars__", "__wrapped_aars__", "__local_asars__", "artifacts" -> return null
+    }
+    return library.resolvedCoordinates.let {
+      Component(it.groupId, it.artifactId, Version.parse(it.version))
+    }
+  }
+
   fun getSymbolFilePath(androidLibrary: AndroidLibrary): String {
     return try {
       androidLibrary.symbolFile.path
@@ -436,8 +453,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       makeDependency(createIdeModuleLibrary(androidLibrary, projectPath), isProvided = false)
     } else {
       val artifactAddress = computeAddress(androidLibrary)
+      val artifactComponent = computeComponent(androidLibrary)
       val unnamedLibrary = IdeAndroidLibraryImpl.create(
         artifactAddress = artifactAddress,
+        component = artifactComponent,
         name = "",
         folder = androidLibrary.folder,
         manifest = androidLibrary.manifest.path,
@@ -475,8 +494,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       makeDependency(createIdeModuleLibrary(javaLibrary, project), isProvided = false)
     } else {
       val artifactAddress = computeAddress(javaLibrary)
+      val artifactComponent = computeComponent(javaLibrary)
       val unnamedLibrary = IdeJavaLibraryImpl(
         artifactAddress = artifactAddress,
+        component = artifactComponent,
         name = "",
         artifact = javaLibrary.jarFile,
         srcJar = null,
@@ -491,7 +512,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
 
   fun libraryFrom(jarFile: File): IdeDependencyCoreAndIsProvided {
     val artifactAddress = "${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified"
-    val unnamedLibrary = IdeJavaLibraryImpl(artifactAddress, "", jarFile, null, null, null)
+    val unnamedLibrary = IdeJavaLibraryImpl(artifactAddress, null, "", jarFile, null, null, null)
     return makeDependency(internedModels.getOrCreate(unnamedLibrary), false)
   }
 
@@ -619,6 +640,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           IdeAndroidLibraryImpl.create(
             // NOTE: [artifactAddress] needs to be in this form to meet LintModelFactory expectations.
             artifactAddress = "$LOCAL_AARS:" + jarFile.path + ":unspecified",
+            component = null,
             name = "",
             folder = aarLibraryDir,
             manifest = manifestFile.absolutePath,
@@ -644,7 +666,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         )
       } else {
         // NOTE: [artifactAddress] needs to be in this form to meet LintModelFactory expectations.
-        internedModels.getOrCreate(IdeJavaLibraryImpl("$LOCAL_JARS:" + jarFile.path + ":unspecified", "", jarFile, null, null, null))
+        internedModels.getOrCreate(IdeJavaLibraryImpl("$LOCAL_JARS:" + jarFile.path + ":unspecified", null, "", jarFile, null, null, null))
       }
     }
 

@@ -7,7 +7,11 @@ iml_module(
     iml_files = ["intellij.android.projectSystem.gradle.models.iml"],
     jvm_target = "8",
     visibility = ["//visibility:public"],
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle[module]",
+    ],
 )
 
 # managed by go/iml_to_build

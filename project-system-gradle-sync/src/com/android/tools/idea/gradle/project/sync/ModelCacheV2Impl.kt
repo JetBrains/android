@@ -53,6 +53,8 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
+import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
@@ -422,6 +424,13 @@ internal fun modelCacheV2Impl(
     )
   }
 
+  fun Library.getComponent() = libraryInfo?.let {
+    when (it.group) {
+      "__local_aars__", "__wrapped_aars__", "__local_asars__", "artifacts" -> null
+      else -> Component(it.group, it.name, Version.parse(it.version))
+    }
+  }
+
   /**
    * @param androidLibrary Instance returned by android plugin.
    * path to build directory for all modules.
@@ -435,6 +444,7 @@ internal fun modelCacheV2Impl(
     val artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@aar"
     val core = IdeAndroidLibraryImpl.create(
       artifactAddress = artifactAddress,
+      component = androidLibrary.getComponent(),
       name = "",
       folder = androidLibraryData.resFolder.parentFile.deduplicateFile(),
       artifact = androidLibrary.artifact ?: File(""),
@@ -469,6 +479,7 @@ internal fun modelCacheV2Impl(
     val artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@jar"
     val unnamed = IdeJavaLibraryImpl(
       artifactAddress = artifactAddress,
+      component = javaLibrary.getComponent(),
       name = "",
       artifact = javaLibrary.artifact!!,
       srcJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.srcJar else null,
@@ -479,7 +490,7 @@ internal fun modelCacheV2Impl(
   }
 
   fun javaLibraryFromJarFile(jarFile: File): LibraryReference {
-    return internedModels.getOrCreate(IdeJavaLibraryImpl("${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified", "", jarFile, null, null, null))
+    return internedModels.getOrCreate(IdeJavaLibraryImpl("${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified", null, "", jarFile, null, null, null))
   }
 
   fun moduleLibraryFrom(
