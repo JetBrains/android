@@ -142,12 +142,6 @@ iml_module(
         "AndroidKotlinCompletionContributorTest": {
             "test_filter": "com.android.tools.idea.completion.AndroidKotlinCompletionContributorTest",
         },
-        "configurations": {
-            "test_filter": "com.android.tools.idea.configurations",
-        },
-        "diagnostics": {
-            "test_filter": "com.android.tools.idea.diagnostics",
-        },
         "editors": {
             "test_filter": "com.android.tools.idea.editors",
         },
