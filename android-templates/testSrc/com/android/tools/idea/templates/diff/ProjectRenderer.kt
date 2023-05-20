@@ -54,28 +54,28 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Path
 
-// We ignore these directories because they just contain metadata uninteresting to templates, and it saves space for golden files
+// We ignore these directories because they just contain metadata uninteresting to templates, and it
+// saves space for golden files
 val FILES_TO_IGNORE = emptyArray<String>()
-//val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
+// val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
 
 abstract class ProjectRenderer(private val template: Template) {
   private lateinit var moduleState: ModuleTemplateDataBuilder
 
-  fun renderProject(projectRule: AndroidProjectRule,
-                    moduleName: String,
-                    avoidModifiedModuleName: Boolean = false,
-                    vararg customizers: ProjectStateCustomizer) {
+  fun renderProject(
+    projectRule: AndroidProjectRule,
+    moduleName: String,
+    avoidModifiedModuleName: Boolean = false,
+    vararg customizers: ProjectStateCustomizer
+  ) {
     val project = projectRule.project
     val modifiedModuleName = getModifiedModuleName(moduleName, avoidModifiedModuleName)
     moduleState = getDefaultModuleState(project, template)
-    customizers.forEach {
-      it(moduleState, moduleState.projectTemplateDataBuilder)
-    }
+    customizers.forEach { it(moduleState, moduleState.projectTemplateDataBuilder) }
 
     try {
       createProject(projectRule, modifiedModuleName)
-    }
-    finally {
+    } finally {
       val openProjects = ProjectManagerEx.getInstanceEx().openProjects
       assert(openProjects.size <= 1) // 1: the project created by default by the test case
     }
@@ -87,9 +87,7 @@ abstract class ProjectRenderer(private val template: Template) {
     createProject(projectRule)
   }
 
-  /**
-   * Renders project, module and possibly activity template.
-   */
+  /** Renders project, module and possibly activity template. */
   private fun createProject(projectRule: AndroidProjectRule) {
     val moduleName = moduleState.name!!
 
@@ -98,52 +96,72 @@ abstract class ProjectRenderer(private val template: Template) {
       throw IOException("Unable to create directory '$projectRoot'.")
     }
 
-    val moduleRoot = GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, moduleName)).paths.moduleRoot!!
+    val moduleRoot =
+      GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, moduleName))
+        .paths
+        .moduleRoot!!
 
     val appTitle = "Template Test App Title"
 
-    val moduleRecipe: Recipe = when (template.formFactor) {
-      // TODO(qumeric): support C++
-      // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
-      FormFactor.Mobile -> { data: TemplateData ->
-        this.generateAndroidModule(
-          data as ModuleTemplateData, appTitle, false, BytecodeLevel.L8)
+    val moduleRecipe: Recipe =
+      when (template.formFactor) {
+        // TODO(qumeric): support C++
+        // TODO(qumeric): investigate why it requires 1.8 and does not work with 1.7
+        FormFactor.Mobile -> { data: TemplateData ->
+            this.generateAndroidModule(
+              data as ModuleTemplateData,
+              appTitle,
+              false,
+              BytecodeLevel.L8
+            )
+          }
+        FormFactor.Wear -> { data: TemplateData ->
+            this.generateWearModule(data as ModuleTemplateData, appTitle, false)
+          }
+        FormFactor.Tv -> { data: TemplateData ->
+            this.generateTvModule(data as ModuleTemplateData, appTitle, false)
+          }
+        FormFactor.Automotive -> { data: TemplateData ->
+            this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false)
+          }
+        FormFactor.Generic -> { data: TemplateData ->
+            this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false)
+          }
       }
 
-      FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle, false) }
-      FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle, false) }
-      FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle, false) }
-      FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, "LibraryTemplate", false) }
-    }
-
-    val context = RenderingContext(
-      project = projectRule.project,
-      module = null,
-      commandName = "Run TemplateTest",
-      templateData = moduleState.build(),
-      moduleRoot = moduleRoot,
-      dryRun = false,
-      showErrors = true
-    )
+    val context =
+      RenderingContext(
+        project = projectRule.project,
+        module = null,
+        commandName = "Run TemplateTest",
+        templateData = moduleState.build(),
+        moduleRoot = moduleRoot,
+        dryRun = false,
+        showErrors = true
+      )
 
     // TODO(qumeric): why doesn't it work with one executor?
     val moduleRecipeExecutor = DefaultRecipeExecutor(context)
     val templateRecipeExecutor = DefaultRecipeExecutor(context)
 
     WizardParameterData(moduleState.packageName!!, false, "main", template.parameters)
-    (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value = moduleState.packageName!!
+    (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value =
+      moduleState.packageName!!
 
-    // This copies in build.gradle, gradle.properties, and settings.gradle from testData/projects/projectWithNoModules
+    // This copies in build.gradle, gradle.properties, and settings.gradle from
+    // testData/projects/projectWithNoModules
     prepareGradleProject(getNoModulesTestProjectPath(), projectRoot) {
-      // Normally, a "patcher" function here would generate the gradlew and gradlew.bat files and fill out build.gradle, but since the
-      // templates don't affect those files, we can skip them in the diff and make our golden snapshots smaller.
+      // Normally, a "patcher" function here would generate the gradlew and gradlew.bat files and
+      // fill out build.gradle, but since the templates don't affect those files, we can skip them
+      // in the diff and make our golden snapshots smaller.
     }
 
     runWriteActionAndWait {
       writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
       moduleRecipe.render(context, moduleRecipeExecutor)
-      // Executor for the template needs to apply changes so that the toml file is visible in the executor
-      //templateRecipeExecutor.applyChanges()
+      // Executor for the template needs to apply changes so that the toml file is visible in the
+      // executor
+      // templateRecipeExecutor.applyChanges()
       template.render(context, templateRecipeExecutor)
     }
 
@@ -155,9 +173,11 @@ abstract class ProjectRenderer(private val template: Template) {
   }
 
   /**
-   * To be overridden to handle the golden and template output directories after the template project is generated
+   * To be overridden to handle the golden and template output directories after the template
+   * project is generated
    *
-   * @param moduleName a unique name for this template, used to determine the directory name to output golden files to
+   * @param moduleName a unique name for this template, used to determine the directory name to
+   *   output golden files to
    * @param goldenDir the location of this template's golden reference files
    * @param projectDir the location of this template-generated project
    */
@@ -168,11 +188,14 @@ private fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecut
   WriteCommandAction.writeCommandAction(project).run<IOException> {
     executor.copy(
       File(FileUtils.join("fileTemplates", "internal", "Version Catalog File.versions.toml.ft")),
-      File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)))
+      File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG))
+    )
     executor.applyChanges()
   }
 }
 
 private fun getNoModulesTestProjectPath(): File {
-  return TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").resolve(TestProjectPaths.NO_MODULES).toFile()
+  return TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData")
+    .resolve(TestProjectPaths.NO_MODULES)
+    .toFile()
 }

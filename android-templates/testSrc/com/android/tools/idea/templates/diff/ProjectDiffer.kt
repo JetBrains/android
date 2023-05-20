@@ -32,7 +32,8 @@ class ProjectDiffer(template: Template) : ProjectRenderer(template) {
 }
 
 /**
- * Recursively diffs the files in two directories, ignoring certain filenames specified by FILES_TO_IGNORE
+ * Recursively diffs the files in two directories, ignoring certain filenames specified by
+ * FILES_TO_IGNORE
  */
 private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: String = "") {
   val goldenFiles = getNonEmptyDirEntries(goldenDir, printPrefix)
@@ -49,7 +50,11 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
     val projectFile = projectDir.resolve(filename)
     val goldenFile = goldenDir.resolve(filename)
 
-    Assert.assertEquals("$projectFile and $goldenFile are not of same file type", projectFile.isDirectory(), goldenFile.isDirectory())
+    Assert.assertEquals(
+      "$projectFile and $goldenFile are not of same file type",
+      projectFile.isDirectory(),
+      goldenFile.isDirectory()
+    )
 
     if (projectFile.isDirectory()) {
       println("${printPrefix}$projectFile is a directory")
@@ -59,14 +64,14 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
 
     println("${printPrefix}diffing $projectFile and $goldenFile")
 
-    // Checking whether it's a text file is complicated, and we don't really need to check the text, it's just for human readability, so
+    // Checking whether it's a text file is complicated, and we don't really need to check the text,
+    // it's just for human readability, so
     // diffing all lines and only reading bytes if text fails is simpler.
     try {
       val goldenLines = Files.readAllLines(goldenFile).map { replaceVariables(it, printPrefix) }
       val projectLines = Files.readAllLines(projectFile).map { replaceVariables(it, printPrefix) }
       Truth.assertThat(projectLines).isEqualTo(goldenLines)
-    }
-    catch (error: MalformedInputException) {
+    } catch (error: MalformedInputException) {
       println("${printPrefix}reading lines failed, compare bytes instead")
       val goldenBytes = Files.readAllBytes(goldenFile)
       val projectBytes = Files.readAllBytes(projectFile)
@@ -77,9 +82,11 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
 
 private fun getNonEmptyDirEntries(dir: Path, printPrefix: String = ""): MutableSet<String> {
   return Files.list(dir).use { pathStream ->
-    pathStream.filter {
-      !it.isDirectory() || !isDirectoryEmpty(it, printPrefix)
-    }.map { it.fileName.toString() }.toList().toMutableSet()
+    pathStream
+      .filter { !it.isDirectory() || !isDirectoryEmpty(it, printPrefix) }
+      .map { it.fileName.toString() }
+      .toList()
+      .toMutableSet()
   }
 }
 
@@ -101,17 +108,23 @@ private fun replaceVariables(text: String, printPrefix: String = ""): String {
   }
 }
 
-// TODO: check what localization it is that we generate the files with, date format could be different...
-// This applies to gradle-wrapper.properties and local.properties. Example: #Tue Mar 21 15:26:47 PDT 2023
-// According to Wikipedia's list of time zone abbreviations, some of them just use +03, etc. instead of being letters, hence the \S+
-val PROPERTIES_DATE = Regex(
-  "(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{2} \\d{2}:\\d{2}:\\d{2} \\S+ \\d{4}")
+// TODO: check what localization it is that we generate the files with, date format could be
+// different...
+// This applies to gradle-wrapper.properties and local.properties.
+// Example: #Tue Mar 21 15:26:47 PDT 2023
+// According to Wikipedia's list of time zone abbreviations, some of them just use +03, etc. instead
+// of being letters, hence the \S+
+val PROPERTIES_DATE =
+  Regex(
+    "(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{2} \\d{2}:\\d{2}:\\d{2} \\S+ \\d{4}"
+  )
 
 // This string replaces dates in template-generated files. See replaceDates.
 const val PROPERTIES_DATE_REPLACEMENT = "DATE_REPLACED"
 
 /**
- * Some metadata files contain the generated date/time, which we need to replace in order to diff the whole file
+ * Some metadata files contain the generated date/time, which we need to replace in order to diff
+ * the whole file
  */
 private fun replaceDates(text: String, printPrefix: String = ""): String {
   val replacedText = PROPERTIES_DATE.replace(text, PROPERTIES_DATE_REPLACEMENT)
@@ -125,13 +138,15 @@ private fun replaceDates(text: String, printPrefix: String = ""): String {
 // distributionUrl=file\:/C\:/src/studio-main/tools/external/gradle/gradle-8.0-bin.zip
 val GRADLE_DISTRIBUTION_URL = Regex("distributionUrl=.*[\\\\/]")
 
-// This string replaces the distributionUrl path in template-generated files. See replaceDistributionUrl.
+// This string replaces the distributionUrl path in template-generated files. See
+// replaceDistributionUrl.
 // It replaces the path such that we can still diff the gradle version:
 // distributionUrl=DISTRIBUTION_URL_REPLACEDgradle-8.0-bin.zip
 const val GRADLE_DISTRIBUTION_URL_REPLACEMENT = "distributionUrl=DISTRIBUTION_URL_REPLACED"
 
 /**
- * gradle-wrapper.properties files contain the generated Gradle distribution path, which we need to replace in order to diff the whole file
+ * gradle-wrapper.properties files contain the generated Gradle distribution path, which we need to
+ * replace in order to diff the whole file
  */
 private fun replaceDistributionUrl(text: String, printPrefix: String = ""): String {
   val replacedText = GRADLE_DISTRIBUTION_URL.replace(text, GRADLE_DISTRIBUTION_URL_REPLACEMENT)
@@ -141,7 +156,8 @@ private fun replaceDistributionUrl(text: String, printPrefix: String = ""): Stri
   return replacedText
 }
 
-// The url value in build.gradle under the maven section. When run from IDEA it may be of similar format to:
+// The url value in build.gradle under the maven section. When run from IDEA it may be of similar
+// format to:
 // url "file:/C:/src/studio-main/prebuilts/tools/common/m2/repository/"
 // When run from Bazel it may be of similar format to:
 // url "file:/C:/botcode/w40/_tmp/64cb621d51aeb63b419ca295dc73be0b/offline-maven-repo/"
@@ -151,7 +167,8 @@ val MAVEN_REPO_URL = Regex("url \".*[\\\\/]\"")
 const val MAVEN_REPO_URL_REPLACEMENT = "url \"MAVEN_REPO_PATH\""
 
 /**
- * build.gradle files contain the generated Maven repo path, which we need to replace in order to diff the whole file
+ * build.gradle files contain the generated Maven repo path, which we need to replace in order to
+ * diff the whole file
  */
 private fun replaceMavenRepoUrl(text: String, printPrefix: String = ""): String {
   val replacedText = MAVEN_REPO_URL.replace(text, MAVEN_REPO_URL_REPLACEMENT)
@@ -165,20 +182,21 @@ private fun replaceMavenRepoUrl(text: String, printPrefix: String = ""): String 
 // com.android.tools.build:gradle:8.0.0-beta04
 val AGP_VERSION_CLASSPATH = Regex("com\\.android\\.tools\\.build:gradle:.*")
 
-// This string replaces the dependency classpath in template-generated build.gradle. See replaceLatestGradleVersion.
-// It is only replaced when we test the latest AGP version.
+// This string replaces the dependency classpath in template-generated build.gradle. See
+// replaceLatestGradleVersion. It is only replaced when we test the latest AGP version.
 const val AGP_VERSION_CLASSPATH_REPLACEMENT = "LATEST_GRADLE_VERSION"
 
 // The Gradle version in gradle-wrapper.properties of similar format to:
 // distributionUrl=file\:/C\:/src/studio-main/tools/external/gradle/gradle-8.0-bin.zip
 val GRADLE_VERSION_ZIP = Regex("gradle-\\d\\.\\d(\\.\\d)?-bin\\.zip")
 
-// This string replaces the distributionUrl file path in template-generated files. See replaceLatestGradleVersion.
-// It is only replaced when we test the latest AGP version.
+// This string replaces the distributionUrl file path in template-generated files. See
+// replaceLatestGradleVersion. It is only replaced when we test the latest AGP version.
 const val GRADLE_VERSION_ZIP_REPLACEMENT = "gradle-LATEST_VERSION-bin.zip"
 
 /**
- * When testing the latest AGP version, we replace the version string because it changes ~weekly, to avoid constantly updating golden files.
+ * When testing the latest AGP version, we replace the version string because it changes ~weekly, to
+ * avoid constantly updating golden files.
  */
 private fun replaceLatestGradleVersion(text: String, printPrefix: String = ""): String {
   if (!smartDiffAgpVersion()) {

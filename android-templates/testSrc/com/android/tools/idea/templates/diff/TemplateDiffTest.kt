@@ -33,15 +33,14 @@ import org.junit.Test
 import kotlin.system.measureTimeMillis
 
 /**
- * Template test that generates the template files and diffs them against golden files located in android-templates/testData/golden
- * The template is not built, Linted, or otherwise analyzed; this is checked by BaselineGenerator.
+ * Template test that generates the template files and diffs them against golden files located in
+ * android-templates/testData/golden The template is not built, Linted, or otherwise analyzed; this
+ * is checked by BaselineGenerator.
  */
 class TemplateDiffTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModels()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setUp() {
@@ -57,7 +56,8 @@ class TemplateDiffTest {
    * Checks the given template in the given category. Supports overridden template values.
    *
    * @param name the template name
-   * @param customizers An instance of [ProjectStateCustomizer]s used for providing template and project overrides.
+   * @param customizers An instance of [ProjectStateCustomizer]s used for providing template and
+   *   project overrides.
    */
   private fun checkCreateTemplate(
     name: String,
@@ -78,7 +78,8 @@ class TemplateDiffTest {
 
     val msToCheck = measureTimeMillis {
       val projectName = "${template.name}_default"
-      val projectRenderer = if (generateBaseline) BaselineGenerator(template) else ProjectDiffer(template)
+      val projectRenderer =
+        if (generateBaseline) BaselineGenerator(template) else ProjectDiffer(template)
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
@@ -89,10 +90,14 @@ class TemplateDiffTest {
 
   @MustBeDocumented
   @Retention(AnnotationRetention.RUNTIME)
-  @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
+  @Target(
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY_GETTER,
+    AnnotationTarget.PROPERTY_SETTER
+  )
   annotation class TemplateCheck
 
-  //--- Activity templates ---
+  // --- Activity templates ---
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivity() {
@@ -100,11 +105,10 @@ class TemplateDiffTest {
   }
 
   /**
-   * Gets the system property for whether to generate and overwrite the golden files. This can be run from Bazel with the option:
-   *   --test_env=GENERATE_GOLDEN=true
+   * Gets the system property for whether to generate and overwrite the golden files. This can be
+   * run from Bazel with the option: --test_env=GENERATE_GOLDEN=true
    *
-   * Or from IDEA by setting the environment variable:
-   *   GENERATE_GOLDEN=true
+   * Or from IDEA by setting the environment variable: GENERATE_GOLDEN=true
    */
   private fun getGenerateGolden(): Boolean {
     return System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false

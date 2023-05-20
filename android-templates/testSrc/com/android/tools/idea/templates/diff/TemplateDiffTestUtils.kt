@@ -20,15 +20,14 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import java.nio.file.Path
 
 object TemplateDiffTestUtils {
-  /**
-   * Gets the path where golden files are stored
-   */
+  /** Gets the path where golden files are stored */
   internal fun getTestDataRoot(): Path {
     return TestUtils.resolveWorkspacePath("tools/adt/idea/android-templates/testData")
   }
 
   /**
    * Gets the Android Gradle Plugin version that we should use in the template-generated files
+   *
    * TODO: extend this to more versions
    */
   internal fun getPinnedAgpVersion(): AgpVersionSoftwareEnvironmentDescriptor {
@@ -36,9 +35,10 @@ object TemplateDiffTestUtils {
   }
 
   /**
-   * Whether to use smart diff for the AGP version string found in a couple template-generated files, usually properties files.
-   * This is because the version numbers change frequently (~ every week) on the latest major AGP version in development, so we want to be
-   * able to diff the other file contents without having to update golden files every week just for this version string.
+   * Whether to use smart diff for the AGP version string found in a couple template-generated
+   * files, usually properties files. This is because the version numbers change frequently (~ every
+   * week) on the latest major AGP version in development, so we want to be able to diff the other
+   * file contents without having to update golden files every week just for this version string.
    */
   internal fun smartDiffAgpVersion(): Boolean {
     return getPinnedAgpVersion() == AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
