@@ -35,7 +35,7 @@ class StudioTests(unittest.TestCase):
     for platform in PLATFORMS:
       i = 0
       while i < len(actual[platform]) and i < len(expected[platform]):
-        self.assertEqual(actual[platform][i], expected[platform][i], "#%d - Expected \"%s\", got \"%s\"" % (i, expected[platform][i], actual[platform][i]))
+        self.assertEqual(actual[platform][i], expected[platform][i], "Platform %s #%d - Expected \"%s\", got \"%s\"" % (platform, i, expected[platform][i], actual[platform][i]))
         i += 1
       self.assertEqual(i, len(expected[platform]), "Expected item did not appear")
       self.assertEqual(i, len(actual[platform]), "Unexpected item")
