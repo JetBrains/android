@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.RefreshType
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.waitForSmartMode
@@ -532,7 +533,10 @@ class ComposePreviewRepresentationGradleTest {
   fun `refresh returns completed exceptionally if ComposePreviewRepresentation is disposed`() {
     var refreshDeferred = runBlocking {
       val completableDeferred = CompletableDeferred<Unit>()
-      composePreviewRepresentation.requestRefresh(true, completableDeferred = completableDeferred)
+      composePreviewRepresentation.requestRefresh(
+        RefreshType.QUICK,
+        completableDeferred = completableDeferred
+      )
       completableDeferred
     }
     assertNotNull(refreshDeferred)
@@ -540,7 +544,10 @@ class ComposePreviewRepresentationGradleTest {
     runInEdtAndWait { Disposer.dispose(composePreviewRepresentation) }
     refreshDeferred = runBlocking {
       val completableDeferred = CompletableDeferred<Unit>()
-      composePreviewRepresentation.requestRefresh(true, completableDeferred = completableDeferred)
+      composePreviewRepresentation.requestRefresh(
+        RefreshType.QUICK,
+        completableDeferred = completableDeferred
+      )
       completableDeferred
     }
     // Verify that is completed exceptionally

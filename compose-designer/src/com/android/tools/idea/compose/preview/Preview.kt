@@ -41,12 +41,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.SyntaxErrorUpdate
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
-import com.android.tools.idea.concurrency.conflateLatest
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.concurrency.syntaxErrorFlow
-import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
@@ -110,7 +108,6 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.time.Duration
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -130,7 +127,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -291,16 +287,12 @@ class ComposePreviewRepresentation(
   FastPreviewSurface {
 
   /**
+   * Only for requests to refresh UI and notifications (without refreshing the preview contents).
+   * This allows to bundle notifications and respects the activation/deactivation lifecycle.
+   *
    * Each instance subscribes itself to the flow when it is activated, and it is automatically
    * unsubscribed when the [lifecycleManager] detects a deactivation (see [onActivate],
    * [initializeFlows] and [onDeactivate])
-   */
-  private val refreshFlow: MutableSharedFlow<RefreshRequest> = MutableSharedFlow(replay = 1)
-
-  /**
-   * Same as [refreshFlow] but only for requests to refresh UI and notifications (without refreshing
-   * the preview contents). This allows to bundle notifications and respects the
-   * activation/deactivation lifecycle.
    */
   private val refreshNotificationsAndVisibilityFlow: MutableSharedFlow<Unit> =
     MutableSharedFlow(replay = 1)
@@ -311,6 +303,30 @@ class ComposePreviewRepresentation(
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val project
     get() = psiFilePointer.project
+
+  private val refreshManager = ComposePreviewRefreshManager.getInstance(project)
+
+  private val lifecycleManager =
+    PreviewLifecycleManager(
+      project,
+      parentScope = this,
+      onInitActivate = { activate(false) },
+      onResumeActivate = { activate(true) },
+      onDeactivate = {
+        log.debug("onDeactivate")
+        if (interactiveMode.isStartingOrReady()) {
+          pauseInteractivePreview()
+        }
+        // The editor is scheduled to be deactivated, deactivate its issue model to avoid updating
+        // publish the issue update event.
+        surface.deactivateIssueModel()
+      },
+      onDelayedDeactivate = {
+        stopInteractivePreview()
+        log.debug("Delayed surface deactivation")
+        surface.deactivate()
+      }
+    )
 
   private val previewElementsFlow: MutableStateFlow<Set<ComposePreviewElement>> =
     MutableStateFlow(emptySet())
@@ -461,7 +477,7 @@ class ComposePreviewRepresentation(
     previewElementProvider.instanceFilter = instance
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
-    forceRefresh(quickRefresh).invokeOnCompletion {
+    forceRefresh(if (quickRefresh) RefreshType.QUICK else RefreshType.NORMAL).invokeOnCompletion {
       surface.sceneManagers.forEach { it.resetInteractiveEventsCounter() }
       // Currently it will re-create classloader and will be slower that switch from static
       InteractivePreviewUsageTracker.getInstance(surface)
@@ -707,73 +723,12 @@ class ComposePreviewRepresentation(
   private val psiCodeFileChangeDetectorService =
     PsiCodeFileChangeDetectorService.getInstance(project)
 
-  private val lifecycleManager =
-    PreviewLifecycleManager(
-      project,
-      parentScope = this,
-      onInitActivate = { activate(false) },
-      onResumeActivate = { activate(true) },
-      onDeactivate = {
-        log.debug("onDeactivate")
-        if (interactiveMode.isStartingOrReady()) {
-          pauseInteractivePreview()
-        }
-        // The editor is scheduled to be deactivated, deactivate its issue model to avoid updating
-        // publish the issue update event.
-        surface.deactivateIssueModel()
-      },
-      onDelayedDeactivate = {
-        stopInteractivePreview()
-        log.debug("Delayed surface deactivation")
-        surface.deactivate()
-      }
-    )
-
   init {
     Disposer.register(this, ticker)
   }
 
   override val component: JComponent
     get() = composeWorkBench.component
-
-  private data class RefreshRequest(
-    val type: Type,
-    val requestSources: List<Throwable>,
-    val completableDeferred: CompletableDeferred<Unit>? = null,
-    val requestId: String = UUID.randomUUID().toString().substring(0, 5)
-  ) {
-    enum class Type {
-      /**
-       * Previews from the same Composable are not re-inflated. See
-       * [ComposePreviewRepresentation.requestRefresh].
-       */
-      QUICK,
-
-      /** Previews are inflated and rendered. */
-      NORMAL,
-
-      /**
-       * Previews are not rendered or inflated. This mode is just used to trace a request to, for
-       * example, ensure there are no pending requests.
-       */
-      TRACE
-    }
-  }
-
-  private fun combineRefreshTypes(typeA: RefreshRequest.Type, typeB: RefreshRequest.Type) =
-    when {
-      // If they are the same type, return it.
-      typeA == typeB -> typeA
-      // If any of the types is TRACE, we want to retain the most complete rendering type. TRACE
-      // does no work, QUICK does a bit
-      // and NORMAL does all the work so we retain whichever is not TRACE.
-      typeA == RefreshRequest.Type.TRACE -> typeB
-      typeB == RefreshRequest.Type.TRACE -> typeA
-      // Same as above, if one is QUICK and the other mode is normal, retain that one.
-      typeA == RefreshRequest.Type.QUICK || typeB == RefreshRequest.Type.QUICK ->
-        RefreshRequest.Type.NORMAL
-      else -> throw IllegalStateException("Unexpected states $typeA and $typeB")
-    }
 
   // region Lifecycle handling
   /**
@@ -905,54 +860,6 @@ class ComposePreviewRepresentation(
 
           requestRefresh()
         }
-      }
-
-      // Flow to collate and process requestRefresh requests.
-      launch(workerThread) {
-        refreshFlow
-          .conflateLatest { accumulator, value ->
-            val completableDeferred =
-              if (accumulator.completableDeferred == null && value.completableDeferred == null) null
-              else
-                wrapCompletableDeferredCollection(
-                  listOfNotNull(accumulator.completableDeferred, value.completableDeferred)
-                )
-
-            // Create a new request source grouping the existing ones.
-            RefreshRequest(
-                // Quick refresh is only allowed if both the request in the buffer and the new one
-                // had requested it.
-                type = combineRefreshTypes(accumulator.type, value.type),
-                requestSources = accumulator.requestSources + value.requestSources,
-                completableDeferred = completableDeferred,
-                // We keep the request id from the one in the buffer (the first to arrive).
-                requestId = accumulator.requestId
-              )
-              .also { log.debug("${value.requestId} bundled into ${accumulator.requestId}") }
-          }
-          .distinctUntilChanged()
-          .collect { refreshRequest ->
-            log.debug("refreshFlow, request=$refreshRequest")
-            refreshFlow
-              .resetReplayCache() // Do not keep re-playing after we have received the element.
-
-            val refreshJob = refresh(refreshRequest)
-            // Link refreshJob and the completableDeferred so when one is cancelled the other one
-            // is too.
-            refreshRequest.completableDeferred?.let { completableDeferred ->
-              refreshJob.invokeOnCompletion { throwable ->
-                if (throwable != null) {
-                  completableDeferred.completeExceptionally(throwable)
-                } else completableDeferred.complete(Unit)
-              }
-
-              completableDeferred.invokeOnCompletion {
-                // If the deferred is cancelled, cancel the refresh Job too
-                if (it is CancellationException) refreshJob.cancel(it)
-              }
-            }
-            refreshJob.join()
-          }
       }
 
       // Flow to collate and process refreshNotificationsAndVisibilityFlow requests.
@@ -1284,7 +1191,7 @@ class ComposePreviewRepresentation(
   }
 
   internal fun requestRefresh(
-    quickRefresh: Boolean = false,
+    type: RefreshType = RefreshType.NORMAL,
     completableDeferred: CompletableDeferred<Unit>? = null
   ) {
     if (isDisposed.get()) {
@@ -1292,13 +1199,9 @@ class ComposePreviewRepresentation(
       return
     }
 
-    val refreshRequest =
-      RefreshRequest(
-        type = if (quickRefresh) RefreshRequest.Type.QUICK else RefreshRequest.Type.NORMAL,
-        requestSources = listOf(Throwable()),
-        completableDeferred = completableDeferred
-      )
-    launch(workerThread) { refreshFlow.emit(refreshRequest) }
+    refreshManager.requestRefresh(
+      ComposePreviewRefreshRequest(this.hashCode().toString(), ::refresh, completableDeferred, type)
+    )
   }
 
   private fun requestVisibilityAndNotificationsUpdate() {
@@ -1311,14 +1214,14 @@ class ComposePreviewRepresentation(
    * render those elements. The refresh will only happen if the Preview elements have changed from
    * the last render.
    */
-  private fun refresh(refreshRequest: RefreshRequest): Job {
+  private fun refresh(refreshRequest: ComposePreviewRefreshRequest): Job {
     val requestLogger = LoggerWithFixedInfo(log, mapOf("requestId" to refreshRequest.requestId))
     requestLogger.debug(
       "Refresh triggered editor=${psiFilePointer.containingFile?.name}. quickRefresh: ${refreshRequest.type}"
     )
     val refreshTriggers: List<Throwable> = refreshRequest.requestSources
 
-    if (refreshRequest.type == RefreshRequest.Type.TRACE) {
+    if (refreshRequest.type == RefreshType.TRACE) {
       refreshTriggers.forEach { requestLogger.debug("Refresh trace, no work being done", it) }
       return CompletableDeferred(Unit)
     }
@@ -1329,7 +1232,10 @@ class ComposePreviewRepresentation(
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(
         project,
-        message("refresh.progress.indicator.title"),
+        message(
+          "refresh.progress.indicator.title",
+          psiFilePointer.containingFile?.let { " (${it.name})" } ?: ""
+        ),
         "",
         "",
         true
@@ -1340,8 +1246,17 @@ class ComposePreviewRepresentation(
         it.completeExceptionally(IllegalStateException("Already disposed"))
       }
     }
-    // This is not launched in the activation scope to avoid cancelling the refresh mid-way when the
-    // user changes tabs.
+
+    // Make sure not to start refreshes when deactivated.
+    // But don't launch in the activation scope to avoid cancelling the refresh mid-way when a
+    // simple tab change happens.
+    if (!lifecycleManager.isActive()) {
+      refreshProgressIndicator.processFinish()
+      requestLogger.debug(
+        "Inactive representation (${psiFilePointer.containingFile?.name}), no work being done"
+      )
+      return CompletableDeferred(Unit)
+    }
     val refreshJob =
       launchWithProgress(refreshProgressIndicator, uiThread) {
         refreshTriggers.forEach {
@@ -1401,12 +1316,15 @@ class ComposePreviewRepresentation(
             composeWorkBench.updateProgress(message("panel.initializing"))
             doRefreshSync(
               filePreviewElements,
-              refreshRequest.type == RefreshRequest.Type.QUICK,
+              refreshRequest.type == RefreshType.QUICK,
               refreshProgressIndicator
             )
           }
         } catch (t: Throwable) {
-          requestLogger.warn("Request failed", t)
+          // It's normal for refreshes to get cancelled by the refreshManager, so log the
+          // CancellationExceptions as 'debug' to avoid being too noisy.
+          if (t is CancellationException) requestLogger.debug("Request cancelled", t)
+          else requestLogger.warn("Request failed", t)
         } finally {
           refreshCallsCount.decrementAndGet()
           // Force updating toolbar icons after refresh
@@ -1509,10 +1427,10 @@ class ComposePreviewRepresentation(
    *
    * The return [Deferred] will complete when the refresh finalizes.
    */
-  private fun forceRefresh(quickRefresh: Boolean = false): Deferred<Unit> {
+  private fun forceRefresh(type: RefreshType = RefreshType.NORMAL): Deferred<Unit> {
     val completableDeferred = CompletableDeferred<Unit>()
     invalidate()
-    requestRefresh(quickRefresh, completableDeferred)
+    requestRefresh(type, completableDeferred)
 
     return completableDeferred
   }
@@ -1538,13 +1456,7 @@ class ComposePreviewRepresentation(
 
     val completableDeferred = CompletableDeferred<Unit>()
     completableDeferred.invokeOnCompletion { if (it == null) runnable() }
-    val refreshRequest =
-      RefreshRequest(
-        type = RefreshRequest.Type.TRACE,
-        requestSources = listOf(Throwable()),
-        completableDeferred = completableDeferred
-      )
-    launch(workerThread) { refreshFlow.emit(refreshRequest) }
+    requestRefresh(RefreshType.TRACE, completableDeferred)
     completableDeferred.join()
   }
 
@@ -1583,11 +1495,8 @@ class ComposePreviewRepresentation(
       status(),
       fastPreviewCompilationLauncher
     ) { outputAbsolutePath ->
-      waitForAnyPendingRefresh {
-        // Wait for any pending refreshes before updating the overlay
-        ModuleClassLoaderOverlays.getInstance(previewFileModule)
-          .pushOverlayPath(File(outputAbsolutePath).toPath())
-      }
+      ModuleClassLoaderOverlays.getInstance(previewFileModule)
+        .pushOverlayPath(File(outputAbsolutePath).toPath())
       forceRefresh().join()
     }
   }

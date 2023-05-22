@@ -128,6 +128,8 @@ private constructor(
       }
     }
 
+  fun isActive() = isActive.get()
+
   private fun delayedDeactivate() =
     activationLock.withLock {
       if (!isActive.get()) {
