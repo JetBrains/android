@@ -15,26 +15,11 @@
  */
 package com.android.tools.idea.lang.agsl
 
-import com.android.tools.idea.flags.StudioFlags
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.kotlin.idea.KotlinFileType
 
 class AgslAnnotatorTest : JavaCodeInsightFixtureAdtTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    try {
-      StudioFlags.AGSL_LANGUAGE_SUPPORT.clearOverride()
-    }
-    finally {
-      super.tearDown()
-    }
-  }
-
   fun testSimple() {
     checkHighlighting(
       """
@@ -68,17 +53,6 @@ class AgslAnnotatorTest : JavaCodeInsightFixtureAdtTestCase() {
         float distToCenter = max(abs(posInCell.x), abs(posInCell.y));
 
         return distToCenter > v ? imageA.eval(p).rgb1 : imageB.eval(p).rgb1;
-      }
-      """
-    )
-  }
-
-  fun test_NOT_highlightingWithFlagOff() {
-    StudioFlags.AGSL_LANGUAGE_SUPPORT.override(false)
-    checkHighlighting(
-      """
-      void main() {
-        const double scale = 2.0;
       }
       """
     )

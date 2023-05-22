@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.lang.agsl
 
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.lexer.EmptyLexer
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
@@ -27,7 +25,7 @@ import com.intellij.psi.tree.IElementType
  * Basic syntax highlighter that highlights the keywords and comments.
  */
 class AgslSyntaxHighlighter : SyntaxHighlighterBase() {
-  override fun getHighlightingLexer(): Lexer = if (StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) AgslLexer() else EmptyLexer()
+  override fun getHighlightingLexer(): Lexer = AgslLexer()
 
   override fun getTokenHighlights(tokenType: IElementType?): Array<TextAttributesKey> = when (tokenType) {
     in AgslTokenTypeSets.KEYWORDS -> pack(DefaultLanguageHighlighterColors.KEYWORD)
