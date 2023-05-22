@@ -26,6 +26,7 @@ import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.PopupHandler
 import kotlinx.coroutines.CoroutineScope
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
@@ -117,9 +118,21 @@ class LayoutInspectorRenderer(
     // calculate how much we need to scale the Layout Inspector bounds to match the device frame.
     val scale = displayRectangle.width.toDouble() / renderModel.model.screenDimension.width.toDouble()
 
+    val screenScaled = renderModel.model.screenDimension.scale(scale)
+    val rootBoundsScaled = renderModel.model.root.layoutBounds.scale(scale)
+
+    val leftBorderScaled = rootBoundsScaled.x
+    val topBorderScaled = rootBoundsScaled.y
+    val rightBorderScaled = screenScaled.width - (rootBoundsScaled.x + rootBoundsScaled.width)
+    val bottomBorderScaled = screenScaled.height - (rootBoundsScaled.y + rootBoundsScaled.height)
+
     return AffineTransform().apply {
-      // translate to center of panel
-      translate(displayRectangle.x + displayRectangle.width / 2.0, displayRectangle.y + displayRectangle.height / 2.0)
+      // Translate to be centered with the rendering from Running Devices.
+      translate((displayRectangle.x + displayRectangle.width / 2.0), displayRectangle.y + displayRectangle.height / 2.0)
+      // Translate to keep into account potential borders on the sides of the display.
+      // For example if the device has a notch, in landscape node the UI might not be rendered in that area.
+      // So if, for example, the border is on the left, we need to translate the view bounds to the right.
+      translate((leftBorderScaled - rightBorderScaled) / 2.0, (topBorderScaled - bottomBorderScaled) / 2.0)
       scale(scale, scale)
     }
   }
@@ -224,6 +237,8 @@ private class ForwardingMouseListener(
     }
   }
 }
+
+private fun Dimension.scale(scale: Double) = Dimension((width * scale).toInt(), (height * scale).toInt())
 
 private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
   return Rectangle((x * physicalToLogicalScale).toInt(), (y * physicalToLogicalScale).toInt(), (width * physicalToLogicalScale).toInt(), (height *physicalToLogicalScale).toInt())

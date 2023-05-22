@@ -98,24 +98,27 @@ class LayoutInspectorRendererTest {
 
   private lateinit var sessionStats: SessionStatisticsImpl
 
-  private val inspectorModel = model {
-    view(ROOT, 0, 0, 100, 150) {
-      view(VIEW1, 10, 15, 25, 25) {
-        image()
-      }
-      compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
-    }
-  }
-
   private val treeSettings = FakeTreeSettings()
   private val renderSettings = FakeRenderSettings()
 
   private lateinit var renderModel: RenderModel
   private lateinit var renderLogic: RenderLogic
 
+  /** The dimension of the screen, or canvas in this case */
   private val screenDimension = Dimension(200, 250)
-  private val deviceFrameDimension = Dimension(100, 150)
-  private val deviceFrame = Rectangle(10, 10, deviceFrameDimension.width, deviceFrameDimension.height)
+  /** The dimension of the device screen */
+  private val deviceScreenDimension = Dimension(100, 150)
+  /** The rectangle that contains the device rendering, LI rendering should be overlaid to this rectangle. */
+  private val deviceDisplayRectangle = Rectangle(10, 10, deviceScreenDimension.width, deviceScreenDimension.height)
+
+  private val inspectorModel = model {
+    view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+      view(VIEW1, 10, 15, 25, 25) {
+        image()
+      }
+      compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+    }
+  }
 
   @Before
   fun setUp() {
@@ -128,8 +131,83 @@ class LayoutInspectorRendererTest {
   fun testViewBordersAreRendered() {
     val layoutInspectorRenderer = createRenderer()
 
-    @Suppress("UndesirableClassUsage")
-    val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
+    val renderImage = createRenderImage()
+    paint(renderImage, layoutInspectorRenderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  fun testScreenWithLeftBorder() {
+    val inspectorModelWithLeftBorder = model {
+      view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+        view(VIEW1, 10, 15, 25, 25) {
+          image()
+        }
+      }
+    }
+    inspectorModelWithLeftBorder.resourceLookup.screenDimension = deviceScreenDimension
+
+    val renderModel = RenderModel(inspectorModelWithLeftBorder, treeSettings) { DisconnectedClient }
+    val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, layoutInspectorRenderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  fun testScreenWithRightBorder() {
+    val inspectorModelWithRightBorder = model {
+      view(ROOT, 0, 0, deviceScreenDimension.width - 10, deviceScreenDimension.height) {
+        view(VIEW1, 10, 15, 25, 25) {
+          image()
+        }
+      }
+    }
+    inspectorModelWithRightBorder.resourceLookup.screenDimension = deviceScreenDimension
+
+    val renderModel = RenderModel(inspectorModelWithRightBorder, treeSettings) { DisconnectedClient }
+    val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, layoutInspectorRenderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  fun testScreenWithTopBorder() {
+    val inspectorModelWithTopBorder = model {
+      view(ROOT, 0, 10, deviceScreenDimension.width, deviceScreenDimension.height) {
+        view(VIEW1, 10, 15, 25, 25) {
+          image()
+        }
+      }
+    }
+    inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
+
+    val renderModel = RenderModel(inspectorModelWithTopBorder, treeSettings) { DisconnectedClient }
+    val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, layoutInspectorRenderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  fun testScreenWithBottomBorder() {
+    val inspectorModelWithTopBorder = model {
+      view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
+        view(VIEW1, 10, 15, 25, 25) {
+          image()
+        }
+      }
+    }
+    inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
+
+    val renderModel = RenderModel(inspectorModelWithTopBorder, treeSettings) { DisconnectedClient }
+    val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
+
+    val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
     assertSimilar(renderImage, testName.methodName)
   }
@@ -140,8 +218,7 @@ class LayoutInspectorRendererTest {
 
     renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
 
-    @Suppress("UndesirableClassUsage")
-    val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
+    val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
     assertSimilar(renderImage, testName.methodName)
   }
@@ -158,7 +235,7 @@ class LayoutInspectorRendererTest {
     assertThat(renderModel.model.hoveredNode).isNull()
 
     // move mouse above VIEW1.
-    fakeUi.mouse.moveTo(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
 
     fakeUi.render()
 
@@ -166,8 +243,7 @@ class LayoutInspectorRendererTest {
 
     renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
 
-    @Suppress("UndesirableClassUsage")
-    val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
+    val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
     assertSimilar(renderImage, testName.methodName)
   }
@@ -188,7 +264,7 @@ class LayoutInspectorRendererTest {
     fakeUi.render()
 
     // click mouse above VIEW1.
-    fakeUi.mouse.click(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
 
     fakeUi.render()
     fakeUi.layoutAndDispatchEvents()
@@ -197,8 +273,7 @@ class LayoutInspectorRendererTest {
 
     renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
 
-    @Suppress("UndesirableClassUsage")
-    val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
+    val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
     assertSimilar(renderImage, testName.methodName)
   }
@@ -222,7 +297,7 @@ class LayoutInspectorRendererTest {
     fakeUi.render()
 
     // click mouse above VIEW1.
-    fakeUi.mouse.doubleClick(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.doubleClick(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
 
     fakeUi.render()
     fakeUi.layoutAndDispatchEvents()
@@ -257,7 +332,7 @@ class LayoutInspectorRendererTest {
     fakeUi.render()
 
     // Right click on VIEW1 when system views are showing:
-    fakeUi.mouse.click(deviceFrame.x + 10, deviceFrame.y + 15, FakeMouse.Button.RIGHT)
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15, FakeMouse.Button.RIGHT)
     latestPopup!!.assertSelectViewAction(ROOT, VIEW1)
   }
 
@@ -277,8 +352,8 @@ class LayoutInspectorRendererTest {
     fakeUi.render()
 
     // move mouse above VIEW1.
-    fakeUi.mouse.moveTo(deviceFrame.x + 10, deviceFrame.y + 15)
-    fakeUi.mouse.click(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
 
     fakeUi.layoutAndDispatchEvents()
 
@@ -288,7 +363,7 @@ class LayoutInspectorRendererTest {
     assertThat(fakeMouseListener.mouseMovedCount).isEqualTo(2)
     assertThat(fakeMouseListener.mousePressedCount).isEqualTo(1)
 
-    fakeUi.mouse.press(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.press(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
     fakeUi.mouse.dragTo(1, 1)
     fakeUi.mouse.release()
     fakeUi.mouse.moveTo(-1, -1)
@@ -316,8 +391,8 @@ class LayoutInspectorRendererTest {
     val fakeUi = FakeUi(parent)
     fakeUi.render()
 
-    fakeUi.mouse.moveTo(deviceFrame.x + 10, deviceFrame.y + 15)
-    fakeUi.mouse.click(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
 
     fakeUi.layoutAndDispatchEvents()
 
@@ -327,7 +402,7 @@ class LayoutInspectorRendererTest {
     assertThat(fakeMouseListener.mouseMovedCount).isEqualTo(0)
     assertThat(fakeMouseListener.mousePressedCount).isEqualTo(0)
 
-    fakeUi.mouse.press(deviceFrame.x + 10, deviceFrame.y + 15)
+    fakeUi.mouse.press(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
     fakeUi.mouse.dragTo(1, 1)
     fakeUi.mouse.release()
     fakeUi.mouse.moveTo(-1, -1)
@@ -342,21 +417,32 @@ class LayoutInspectorRendererTest {
     val graphics = image.createGraphics()
     // add a gray background
     graphics.fillRect(Rectangle(0, 0, screenDimension.width, screenDimension.height), Color(250, 250, 250))
+    // render the display rectangle in black, the rendering from LI should be overlaid to it.
+    graphics.color = Color(0, 0, 0)
+    graphics.draw(deviceDisplayRectangle)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
     layoutInspectorRenderer.paint(graphics)
   }
 
-  private fun createRenderer(_renderModel: RenderModel = renderModel): LayoutInspectorRenderer {
+  private fun createRenderer(
+    renderModel: RenderModel = this.renderModel,
+    deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle
+  ): LayoutInspectorRenderer {
     return LayoutInspectorRenderer(
       androidProjectRule.testRootDisposable,
       AndroidCoroutineScope(androidProjectRule.testRootDisposable),
       renderLogic,
-      _renderModel,
-      displayRectangleProvider = { deviceFrame },
+      renderModel,
+      displayRectangleProvider = { deviceDisplayRectangle },
       screenScaleProvider = { 1.0 },
       { sessionStats }
     )
+  }
+
+  private fun createRenderImage(): BufferedImage {
+    @Suppress("UndesirableClassUsage")
+    return BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
   }
 
   /**
