@@ -180,7 +180,6 @@
       <module fileurl="file://$PROJECT_DIR$/android/integration/intellij.android.core.integration.iml" filepath="$PROJECT_DIR$/android/integration/intellij.android.core.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/intellij.android.core.tests.iml" filepath="$PROJECT_DIR$/android/intellij.android.core.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/actions/intellij.android.core.actions.iml" filepath="$PROJECT_DIR$/android/actions/intellij.android.core.actions.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/apk/intellij.android.core.apk.iml" filepath="$PROJECT_DIR$/android/apk/intellij.android.core.apk.iml" />
       <module fileurl="file://$PROJECT_DIR$/dagger/intellij.android.dagger.iml" filepath="$PROJECT_DIR$/dagger/intellij.android.dagger.iml" />
       <module fileurl="file://$PROJECT_DIR$/dagger/intellij.android.dagger.tests.iml" filepath="$PROJECT_DIR$/dagger/intellij.android.dagger.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/databinding/intellij.android.databinding.iml" filepath="$PROJECT_DIR$/databinding/intellij.android.databinding.iml" />
