@@ -20,31 +20,71 @@ import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.ProjectStateCustomizer
 import com.android.tools.idea.templates.TemplateStateCustomizer
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
+import kotlin.system.measureTimeMillis
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.system.measureTimeMillis
+import org.junit.rules.TestRule
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 /**
  * Template test that generates the template files and diffs them against golden files located in
- * android-templates/testData/golden The template is not built, Linted, or otherwise analyzed; this
- * is checked by BaselineGenerator.
+ * android-templates/testData/golden
  */
-class TemplateDiffTest {
-  @get:Rule val projectRule = AndroidProjectRule.withAndroidModels()
+@RunWith(Parameterized::class)
+class TemplateDiffTest(private val testMode: TestMode) {
+  @get:Rule
+  val projectRule: TestRule =
+    if (shouldUseGradle()) AndroidGradleProjectRule() else AndroidProjectRule.withAndroidModels()
 
   @get:Rule val disposableRule = DisposableRule()
+
+  companion object {
+    /**
+     * Utilizes parameterized test to decide which modes to run the test in. When DIFFING the
+     * template-generated files against golden files, we do not run Gradle sync, to keep the test
+     * fast.
+     *
+     * When we need to validate and generate the golden files however, we run the first part,
+     * VALIDATING, with Gradle sync, which calls into BaselineValidator that also builds and Lints.
+     * Then, after the template is validated, we generate the golden files WITHOUT Gradle sync, to
+     * have them be diff-able without syncing.
+     */
+    @JvmStatic
+    @Parameterized.Parameters
+    fun data(): List<TestMode> {
+      return if (shouldGenerateGolden()) {
+        listOf(TestMode.VALIDATING, TestMode.GENERATING)
+      } else {
+        listOf(TestMode.DIFFING)
+      }
+    }
+
+    /**
+     * Gets the system property for whether to generate and overwrite the golden files. This can be
+     * run from Bazel with the option: --test_env=GENERATE_GOLDEN=true
+     *
+     * Or from IDEA by setting the environment variable: GENERATE_GOLDEN=true
+     */
+    private fun shouldGenerateGolden(): Boolean {
+      return System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
+    }
+  }
 
   @Before
   fun setUp() {
     getPinnedAgpVersion().agpVersion?.let { StudioFlags.AGP_VERSION_TO_USE.override(it) }
+    println("Current test mode: $testMode")
   }
 
   @After
@@ -61,7 +101,6 @@ class TemplateDiffTest {
    */
   private fun checkCreateTemplate(
     name: String,
-    generateBaseline: Boolean = false,
     vararg customizers: ProjectStateCustomizer,
     templateStateCustomizer: TemplateStateCustomizer = mapOf(),
     category: Category? = null,
@@ -78,12 +117,23 @@ class TemplateDiffTest {
 
     val msToCheck = measureTimeMillis {
       val projectName = "${template.name}_default"
-      val projectRenderer =
-        if (generateBaseline) BaselineGenerator(template) else ProjectDiffer(template)
+      val project: Project =
+        if (shouldUseGradle()) {
+          (projectRule as AndroidGradleProjectRule).project
+        } else {
+          (projectRule as AndroidProjectRule).project
+        }
+      val projectRenderer: ProjectRenderer =
+        when (testMode) {
+          TestMode.DIFFING -> ProjectDiffer(template)
+          TestMode.VALIDATING ->
+            BaselineValidator(template, projectRule as AndroidGradleProjectRule)
+          TestMode.GENERATING -> BaselineGenerator(template)
+        }
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectRenderer.renderProject(projectRule, projectName, avoidModifiedModuleName, *customizers)
+      projectRenderer.renderProject(project, projectName, avoidModifiedModuleName, *customizers)
     }
     println("Checked $name successfully in ${msToCheck}ms")
   }
@@ -101,16 +151,20 @@ class TemplateDiffTest {
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivity() {
-    checkCreateTemplate("Empty Views Activity", getGenerateGolden())
+    checkCreateTemplate("Empty Views Activity")
   }
 
-  /**
-   * Gets the system property for whether to generate and overwrite the golden files. This can be
-   * run from Bazel with the option: --test_env=GENERATE_GOLDEN=true
-   *
-   * Or from IDEA by setting the environment variable: GENERATE_GOLDEN=true
-   */
-  private fun getGenerateGolden(): Boolean {
-    return System.getenv("GENERATE_GOLDEN")?.equals("true") ?: false
+  enum class TestMode {
+    DIFFING,
+    VALIDATING,
+    GENERATING
+  }
+
+  private fun shouldUseGradle(): Boolean {
+    return when (testMode) {
+      TestMode.DIFFING -> false
+      TestMode.VALIDATING -> true
+      TestMode.GENERATING -> false
+    }
   }
 }

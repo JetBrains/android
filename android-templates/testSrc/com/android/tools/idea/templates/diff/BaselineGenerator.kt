@@ -17,6 +17,7 @@ package com.android.tools.idea.templates.diff
 
 import com.android.tools.idea.wizard.template.Template
 import com.android.utils.FileUtils
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -33,9 +34,9 @@ class BaselineGenerator(template: Template) : ProjectRenderer(template) {
     FILES_TO_IGNORE.forEach { FileUtils.deleteRecursivelyIfExists(goldenDir.resolve(it).toFile()) }
   }
 
-  // TODO: build
-  // TODO: lint
-  // TODO: other checks
+  override fun prepareProject(projectRoot: File) {
+    prepareProjectImpl(projectRoot)
+  }
 
   /**
    * Gets the output directory where we should put the generated golden files. If this is run from

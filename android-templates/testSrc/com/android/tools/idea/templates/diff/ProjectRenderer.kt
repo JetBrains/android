@@ -31,7 +31,6 @@ import com.android.tools.idea.templates.getDefaultModuleState
 import com.android.tools.idea.templates.getModifiedModuleName
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.toIoFile
@@ -59,36 +58,35 @@ import java.nio.file.Path
 val FILES_TO_IGNORE = emptyArray<String>()
 // val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
 
-abstract class ProjectRenderer(private val template: Template) {
+abstract class ProjectRenderer(protected val template: Template) {
   private lateinit var moduleState: ModuleTemplateDataBuilder
 
   fun renderProject(
-    projectRule: AndroidProjectRule,
+    project: Project,
     moduleName: String,
     avoidModifiedModuleName: Boolean = false,
     vararg customizers: ProjectStateCustomizer
   ) {
-    val project = projectRule.project
     val modifiedModuleName = getModifiedModuleName(moduleName, avoidModifiedModuleName)
     moduleState = getDefaultModuleState(project, template)
     customizers.forEach { it(moduleState, moduleState.projectTemplateDataBuilder) }
 
     try {
-      createProject(projectRule, modifiedModuleName)
+      createProject(project, modifiedModuleName)
     } finally {
       val openProjects = ProjectManagerEx.getInstanceEx().openProjects
       assert(openProjects.size <= 1) // 1: the project created by default by the test case
     }
   }
 
-  private fun createProject(projectRule: AndroidProjectRule, moduleName: String) {
-    val projectRoot = projectRule.project.guessProjectDir()!!.toIoFile()
+  private fun createProject(project: Project, moduleName: String) {
+    val projectRoot = project.guessProjectDir()!!.toIoFile()
     println("Checking project $moduleName in $projectRoot")
-    createProject(projectRule)
+    createProject(project)
   }
 
   /** Renders project, module and possibly activity template. */
-  private fun createProject(projectRule: AndroidProjectRule) {
+  private fun createProject(project: Project) {
     val moduleName = moduleState.name!!
 
     val projectRoot = moduleState.projectTemplateDataBuilder.topOut!!
@@ -131,7 +129,7 @@ abstract class ProjectRenderer(private val template: Template) {
 
     val context =
       RenderingContext(
-        project = projectRule.project,
+        project = project,
         module = null,
         commandName = "Run TemplateTest",
         templateData = moduleState.build(),
@@ -148,28 +146,47 @@ abstract class ProjectRenderer(private val template: Template) {
     (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value =
       moduleState.packageName!!
 
-    // This copies in build.gradle, gradle.properties, and settings.gradle from
-    // testData/projects/projectWithNoModules
-    prepareGradleProject(getNoModulesTestProjectPath(), projectRoot) {
-      // Normally, a "patcher" function here would generate the gradlew and gradlew.bat files and
-      // fill out build.gradle, but since the templates don't affect those files, we can skip them
-      // in the diff and make our golden snapshots smaller.
-    }
-
-    runWriteActionAndWait {
-      writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
-      moduleRecipe.render(context, moduleRecipeExecutor)
-      // Executor for the template needs to apply changes so that the toml file is visible in the
-      // executor
-      // templateRecipeExecutor.applyChanges()
-      template.render(context, templateRecipeExecutor)
-    }
+    prepareProject(projectRoot)
+    renderTemplate(project, moduleRecipe, context, moduleRecipeExecutor, templateRecipeExecutor)
 
     // TODO: generify this to use probably the unmodified module name as the golden directory name
     // TODO: make sure it's unique even with different params
     val templateModuleName = "testNewEmptyViewActivity"
     val goldenDir = getTestDataRoot().resolve("golden").resolve(templateModuleName)
     handleDirectories(templateModuleName, goldenDir, projectRoot.toPath())
+  }
+
+  protected open fun prepareProject(projectRoot: File) {}
+
+  /**
+   * Copies in build.gradle, gradle.properties, and settings.gradle from
+   * testData/projects/projectWithNoModules
+   *
+   * When using AndroidGradleProjectRule, this is unnecessary because it's already done by load()
+   */
+  protected fun prepareProjectImpl(projectRoot: File) {
+    prepareGradleProject(getNoModulesTestProjectPath(), projectRoot) {
+      // Normally, a "patcher" function here would generate the gradlew and gradlew.bat files and
+      // fill out build.gradle, but since the templates don't affect those files, we can skip them
+      // in the diff and make our golden snapshots smaller.
+    }
+  }
+
+  protected open fun renderTemplate(
+    project: Project,
+    moduleRecipe: Recipe,
+    context: RenderingContext,
+    moduleRecipeExecutor: DefaultRecipeExecutor,
+    templateRecipeExecutor: DefaultRecipeExecutor
+  ) {
+    runWriteActionAndWait {
+      writeDefaultTomlFile(project, moduleRecipeExecutor)
+      moduleRecipe.render(context, moduleRecipeExecutor)
+      // Executor for the template needs to apply changes so that the toml file is visible in the
+      // executor
+      templateRecipeExecutor.applyChanges()
+      template.render(context, templateRecipeExecutor)
+    }
   }
 
   /**
@@ -184,7 +201,7 @@ abstract class ProjectRenderer(private val template: Template) {
   abstract fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path)
 }
 
-private fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecutor) {
+internal fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecutor) {
   WriteCommandAction.writeCommandAction(project).run<IOException> {
     executor.copy(
       File(FileUtils.join("fileTemplates", "internal", "Version Catalog File.versions.toml.ft")),

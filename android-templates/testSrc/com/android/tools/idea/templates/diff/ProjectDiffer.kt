@@ -20,14 +20,19 @@ import com.android.tools.idea.wizard.template.Template
 import com.google.common.truth.Truth
 import com.intellij.util.containers.isEmpty
 import com.intellij.util.io.isDirectory
-import org.junit.Assert
+import java.io.File
 import java.nio.charset.MalformedInputException
 import java.nio.file.Files
 import java.nio.file.Path
+import org.junit.Assert
 
 class ProjectDiffer(template: Template) : ProjectRenderer(template) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     diffDirectories(goldenDir, projectDir, "")
+  }
+
+  override fun prepareProject(projectRoot: File) {
+    prepareProjectImpl(projectRoot)
   }
 }
 
