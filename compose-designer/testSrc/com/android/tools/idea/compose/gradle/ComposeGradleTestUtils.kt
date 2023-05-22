@@ -21,11 +21,13 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
+import com.android.tools.rendering.RenderService
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent.VK_SHIFT
+import java.util.concurrent.TimeoutException
 import javax.swing.JLabel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +36,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import org.junit.Assert
 
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
 suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi) =
@@ -59,6 +60,7 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi
                 sceneViewPeerPanels
                   .mapNotNull { it.sceneView.sceneManager as? LayoutlibSceneManager }
                   .joinToString { it.renderResult.toString() }
+                  .ifBlank { "<empty>" }
               "Retry $retryCounter $resultsString"
             }
           }
@@ -71,7 +73,10 @@ suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi
       waitForRender(sceneViewPeerPanels)
     }
   } catch (e: TimeoutCancellationException) {
-    Assert.fail("Timeout while waiting for render to complete")
+    throw AssertionError(
+      "Timeout while waiting for render to complete",
+      TimeoutException().also { it.stackTrace = RenderService.getCurrentExecutionStackTrace() }
+    )
   }
 
 private suspend fun ComposePreviewRepresentation.waitForRender(

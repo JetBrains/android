@@ -76,6 +76,9 @@ private constructor(
     renderingExecutorService.shutdownNow()
   }
 
+  fun currentStackTrace() =
+    renderingExecutorService.stackTrace()
+
   private fun createRenderTimeoutException(message: String): TimeoutException =
     TimeoutException(message).apply { stackTrace = renderingExecutorService.stackTrace() }
 

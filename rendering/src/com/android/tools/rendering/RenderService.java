@@ -101,6 +101,14 @@ final public class RenderService implements Disposable {
     return ourExecutor;
   }
 
+  /**
+   * Returns the current stack trace of the render thread. Only for testing.
+   */
+  @TestOnly
+  public static StackTraceElement[] getCurrentExecutionStackTrace() {
+    return ourExecutor.currentStackTrace();
+  }
+
   public RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
     myConfigureBuilder = configureBuilder;
   }
