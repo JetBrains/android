@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.builder.model.SyncIssue
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.Companion.toGradleSyncIssueType
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
