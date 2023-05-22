@@ -41,7 +41,7 @@ class AssistantInvokerImpl : AssistantInvoker {
     val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
     val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
     val runProcessor = showAndGetDeprecatedConfigurationsUpgradeDialog(
-      processor, element, { p -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(p) })
+      processor, element) { p -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(p) }
     if (runProcessor) {
       DumbService.getInstance(project).smartInvokeLater { processor.run() }
     }
@@ -95,5 +95,16 @@ class AssistantInvokerImpl : AssistantInvoker {
               "'${StudioFlags.DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
     val notification = AGP_UPGRADE_NOTIFICATION_GROUP.createNotification(msg, MessageType.WARNING)
     notification.notify(project)
+  }
+
+  override fun performRecommendedPluginUpgrade(project: Project) {
+    executeOnPooledThread {
+      com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade(project)
+    }
+  }
+
+  @Slow
+  override fun shouldRecommendPluginUpgradeToLatest(project: Project): Boolean {
+    return shouldRecommendPluginUpgrade(project).upgrade
   }
 }

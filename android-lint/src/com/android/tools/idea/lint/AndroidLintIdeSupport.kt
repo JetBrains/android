@@ -28,8 +28,6 @@ import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Im
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.findPluginInfo
-import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
-import com.android.tools.idea.gradle.project.upgrade.shouldRecommendPluginUpgrade
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.lint.common.LintBatchResult
@@ -250,13 +248,15 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       else -> null
     }
   }
+
   override fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean {
-    return shouldRecommendPluginUpgrade(project).upgrade
+    return project
+      .getService(AssistantInvoker::class.java)
+      .shouldRecommendPluginUpgradeToLatest(project)
   }
+
   override fun updateAgpToLatest(project: Project) {
-    ApplicationManager.getApplication().executeOnPooledThread {
-      performRecommendedPluginUpgrade(project)
-    }
+    project.getService(AssistantInvoker::class.java).performRecommendedPluginUpgrade(project)
   }
 
   override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = true

@@ -43,4 +43,16 @@ interface AssistantInvoker {
    * Displays a message to alert the user if they have disabled forced upgrades
    */
   fun displayForceUpdatesDisabledMessage(project: Project)
+
+  /**
+   * Invokes the AGP Upgrade Assistant Tool Window, allowing the user to update the version of AGP used in their project.
+   * If the current version can not be determined no action is taken.
+   */
+  fun performRecommendedPluginUpgrade(project: Project)
+
+  /**
+   * Checks to see if we should be recommending an upgrade of the Android Gradle Plugin.
+   */
+  @Slow
+  fun shouldRecommendPluginUpgradeToLatest(project: Project): Boolean
 }
