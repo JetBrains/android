@@ -23,6 +23,7 @@ import org.junit.Assume
 import org.junit.Test
 import java.io.File
 import java.io.IOException
+import java.time.Duration
 
 
 class LlvmSymbolizerTest {
@@ -156,7 +157,7 @@ class LlvmSymbolizerTest {
     Assume.assumeFalse(SystemInfo.isWindows) // Windows doesn't have 'yes'
     val symLocator = SymbolFilesLocator(createSymbolSource())
     val yesPath = "yes" // call 'yes' instead llvm-symbolizer to simulate freezing symbolizer
-    val symbolizer = LlvmSymbolizer(yesPath, symLocator, 50)
+    val symbolizer = LlvmSymbolizer(yesPath, symLocator, Duration.ofMillis(50))
     for (addr in 0L..6L) {
       Assert.assertNull(symbolizer.symbolize("x86", libFileName, addr))
     }
