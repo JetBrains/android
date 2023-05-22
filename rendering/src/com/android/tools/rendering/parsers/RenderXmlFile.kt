@@ -19,9 +19,15 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import java.util.function.Supplier
 
-/** Representation of a xml file. Used in rendering pipeline. */
-interface RenderXmlFile {
+/**
+ * Representation of a xml file. Used in rendering pipeline.
+ *
+ * A [PsiFile] supplied by this xml file is used only in [RenderErrorContributor] through
+ * [RenderResult], the [get] implementation can be a no-op outside of studio.
+ */
+interface RenderXmlFile : Supplier<PsiFile> {
   val folderType: ResourceFolderType?
 
   val rootTag: RenderXmlTag?
@@ -37,10 +43,4 @@ interface RenderXmlFile {
   val resourceNamespace: ResourceNamespace?
 
   fun getRootTagAttribute(attribute: String, namespace: String?): String?
-
-  /**
-   * A [PsiFile] of this xml file, used only in [RenderErrorContributor] through [RenderResult]. Should be implemented by every
-   * implementation but can be no-op outside of studio.
-   */
-  val psiFile: PsiFile
 }

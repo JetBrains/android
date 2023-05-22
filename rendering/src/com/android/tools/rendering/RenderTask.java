@@ -241,7 +241,7 @@ public class RenderTask {
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule(), () -> {
       RenderTask task = xmlFileProvider.get();
       RenderXmlFile xmlFile = task != null ? task.getXmlFile() : null;
-      return xmlFile != null ? xmlFile.getPsiFile() : null;
+      return xmlFile != null ? xmlFile.get() : null;
     });
     if (privateClassLoader) {
       myModuleClassLoader = classLoaderManager.getPrivate(
@@ -737,7 +737,7 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(context, session, xmlFile.getPsiFile(), myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
+        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         if (oldRenderSession != null) {
@@ -906,7 +906,7 @@ public class RenderTask {
         }
         else {
           if (xmlFile.isValid()) {
-            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile.getPsiFile(), ex);
+            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex);
           }
           else {
             LOG.warn("Invalid file " + xmlFile);
@@ -932,7 +932,7 @@ public class RenderTask {
       RenderXmlFile xmlFile = getXmlFile();
       return runAsyncRenderAction(() -> {
         myRenderSession.measure();
-        return RenderResult.create(myContext, renderSession, xmlFile.getPsiFile(), myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
+        return RenderResult.create(myContext, renderSession, xmlFile, myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
       });
     }
     catch (Exception e) {
@@ -1056,7 +1056,7 @@ public class RenderTask {
         return runAsyncRenderAction(() -> {
           myRenderSession.render();
           RenderResult result =
-            RenderResult.create(myContext, myRenderSession, xmlFile.getPsiFile(), myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
+            RenderResult.create(myContext, myRenderSession, xmlFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());
@@ -1090,7 +1090,7 @@ public class RenderTask {
         RenderModelModule module = myContext.getModule();
         RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
         myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(module, xmlFile.getPsiFile(), e));
+        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(module, xmlFile, e));
       }
     });
   }

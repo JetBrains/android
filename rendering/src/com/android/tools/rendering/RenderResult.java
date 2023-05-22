@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.rendering.api.EnvironmentContext;
 import com.android.tools.rendering.api.IdeaModuleProvider;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.imagepool.ImagePool;
@@ -34,6 +35,7 @@ import com.intellij.psi.PsiFile;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +46,7 @@ import org.jetbrains.annotations.TestOnly;
 public class RenderResult {
   private static Logger LOG = Logger.getInstance(RenderResult.class);
 
-  @NotNull private final PsiFile mySourceFile;
+  @NotNull private final Supplier<PsiFile> mySourceFileProvider;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final ImmutableList<ViewInfo> myRootViews;
   @NotNull private final ImmutableList<ViewInfo> mySystemRootViews;
@@ -61,7 +63,7 @@ public class RenderResult {
   private boolean isDisposed;
   private final RenderResultStats myStats;
 
-  public RenderResult(@NotNull PsiFile sourceFile,
+  public RenderResult(@NotNull Supplier<PsiFile> sourceFileProvider,
                          @NotNull Project project,
                          @NotNull IdeaModuleProvider module,
                          @NotNull RenderLogger logger,
@@ -78,7 +80,7 @@ public class RenderResult {
     myModule = module;
     myProject = project;
     myRenderContext = renderContext;
-    mySourceFile = sourceFile;
+    mySourceFileProvider = sourceFileProvider;
     myLogger = logger;
     myRenderResult = renderResult;
     myRootViews = rootViews;
@@ -94,7 +96,7 @@ public class RenderResult {
   @TestOnly
   protected RenderResult(RenderResult result) {
     this(
-      result.mySourceFile,
+      result.mySourceFileProvider,
       result.myProject,
       result.myModule,
       result.myLogger,
@@ -142,13 +144,19 @@ public class RenderResult {
     }
   }
 
+  private static Supplier<PsiFile> createSourceFileProvider(
+    @NotNull EnvironmentContext environment, @NotNull Supplier<PsiFile> fileProvider
+  ) {
+    return () -> environment.getOriginalFile(fileProvider.get());
+  }
+
   /**
    * Creates a new {@link RenderResult} from a given RenderTask and RenderSession
    */
   @NotNull
   public static RenderResult create(@NotNull RenderContext renderContext,
                                     @NotNull RenderSession session,
-                                    @NotNull PsiFile file,
+                                    @NotNull Supplier<PsiFile> file,
                                     @NotNull RenderLogger logger,
                                     @NotNull ImagePool.Image image,
                                     boolean hasRequestedCustomViews) {
@@ -157,7 +165,7 @@ public class RenderResult {
     Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
     Map<Object, ResourceReference> defaultStyles = session.getDefaultNamespacedStyles();
     RenderResult result = new RenderResult(
-      renderContext.getModule().getEnvironment().getOriginalFile(file),
+      createSourceFileProvider(renderContext.getModule().getEnvironment(), file),
       renderContext.getModule().getProject(),
       renderContext.getModule(),
       logger,
@@ -185,7 +193,7 @@ public class RenderResult {
   @NotNull
   public RenderResult createWithStats(@NotNull RenderResultStats stats) {
     return new RenderResult(
-      mySourceFile,
+      mySourceFileProvider,
       myProject,
       myModule,
       myLogger,
@@ -203,9 +211,9 @@ public class RenderResult {
 
   @NotNull
   public static RenderResult createRenderTaskErrorResult(
-    @NotNull RenderModelModule renderModule, @NotNull PsiFile file, @Nullable Throwable throwable) {
+    @NotNull RenderModelModule renderModule, @NotNull Supplier<PsiFile> file, @Nullable Throwable throwable) {
     RenderResult result = new RenderResult(
-      renderModule.getEnvironment().getOriginalFile(file),
+      createSourceFileProvider(renderModule.getEnvironment(), file),
       renderModule.getProject(),
       renderModule,
       new RenderLogger(renderModule.getProject()),
@@ -252,7 +260,7 @@ public class RenderResult {
    */
   @NotNull
   public PsiFile getSourceFile() {
-    return mySourceFile;
+    return mySourceFileProvider.get();
   }
 
   @Nullable
@@ -319,7 +327,7 @@ public class RenderResult {
   public String toString() {
     return MoreObjects.toStringHelper(this)
       .add("renderResult", myRenderResult)
-      .add("sourceFile", mySourceFile)
+      .add("sourceFile", getSourceFile())
       .add("rootViews", myRootViews)
       .add("systemViews", mySystemRootViews)
       .add("stats", myStats)
