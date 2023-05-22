@@ -4093,7 +4093,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   // 17: POSTFIX(collate_expression)
   // 18: ATOM(literal_expression)
   // 19: ATOM(column_ref_expression)
-  // 20: PREFIX(paren_expression)
+  // 20: ATOM(paren_expression)
   public static boolean expression(PsiBuilder builder, int level, int priority) {
     if (!recursion_guard_(builder, level, "expression")) return false;
     addVariant(builder, "<expression>");
@@ -4797,17 +4797,40 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
+  // '(' expression ( ',' expression )* ')'
   public static boolean paren_expression(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "paren_expression")) return false;
     if (!nextTokenIsSmart(builder, LPAREN)) return false;
-    boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_, null);
+    boolean result;
+    Marker marker = enter_section_(builder);
     result = consumeTokenSmart(builder, LPAREN);
-    pinned = result;
-    result = pinned && expression(builder, level, -1);
-    result = pinned && report_error_(builder, consumeToken(builder, RPAREN)) && result;
-    exit_section_(builder, level, marker, PAREN_EXPRESSION, result, pinned, null);
-    return result || pinned;
+    result = result && expression(builder, level + 1, -1);
+    result = result && paren_expression_2(builder, level + 1);
+    result = result && consumeToken(builder, RPAREN);
+    exit_section_(builder, marker, PAREN_EXPRESSION, result);
+    return result;
+  }
+
+  // ( ',' expression )*
+  private static boolean paren_expression_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "paren_expression_2")) return false;
+    while (true) {
+      int pos = current_position_(builder);
+      if (!paren_expression_2_0(builder, level + 1)) break;
+      if (!empty_element_parsed_guard_(builder, "paren_expression_2", pos)) break;
+    }
+    return true;
+  }
+
+  // ',' expression
+  private static boolean paren_expression_2_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "paren_expression_2_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeTokenSmart(builder, COMMA);
+    result = result && expression(builder, level + 1, -1);
+    exit_section_(builder, marker, null, result);
+    return result;
   }
 
 }

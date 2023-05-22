@@ -1031,6 +1031,11 @@ class MiscParserTest : AndroidSqlParserTest() {
       toParseTreeText("ALTER TABLE myTable RENAME columnNameOld TO columnNameNew")
     )
   }
+
+  // Regression test for b/243679694
+  fun testRowValue() {
+    check("SELECT abc, def FROM some_table WHERE (abc, def) NOT IN (SELECT abc, def FROM other_table)")
+  }
 }
 
 class ErrorMessagesTest : AndroidSqlParserTest() {

@@ -318,7 +318,7 @@ drop_view_statement ::= DROP VIEW ( IF EXISTS )? ( database_name '.' )? view_nam
 //  | unary_operator expr
 //  | expr binary_operator expr
 //  | function_name '(' ( ( DISTINCT )? expr ( ',' expr )* | '*' )? ')'
-//  | '(' expr ')'
+//  | '(' expression ( ',' expression )* ')'
 //  | CAST '(' expr AS type_name ')'
 //  | expr COLLATE collation_name
 //  | expr ( NOT )? ( LIKE | GLOB | REGEXP | MATCH ) expr ( ESCAPE expr )?
@@ -366,7 +366,7 @@ mul_expression ::= expression ( '*' | '/' | '%' ) expression
 concat_expression ::= expression '||' expression
 unary_expression ::= ('-' | '+' | '~' | NOT) expression
 literal_expression ::= literal_value | bind_parameter
-paren_expression ::= '(' expression ')'
+paren_expression ::= '(' expression ( ',' expression )* ')'
 collate_expression ::= expression COLLATE collation_name
 between_expression ::= expression NOT? BETWEEN expression AND expression
 cast_expression ::= CAST '(' expression AS type_name ')'
