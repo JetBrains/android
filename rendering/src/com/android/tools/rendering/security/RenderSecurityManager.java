@@ -85,11 +85,7 @@ public class RenderSecurityManager extends SecurityManager {
    * For debugging purposes
    */
   private static String sLastFailedPath;
-  private final String mIndexRootPath;
-  private final String mCachePath;
-
-  /** Root of the path where IntelliJ stores the logs. */
-  private final String mLogRootPath;
+  private final String[] mAllowedPaths;
 
   private boolean mAllowSetSecurityManager;
   private boolean mDisabled;
@@ -154,17 +150,33 @@ public class RenderSecurityManager extends SecurityManager {
   public RenderSecurityManager(
     @Nullable String sdkPath,
     @Nullable String projectPath,
-    boolean restrictReads) {
+    boolean restrictReads,
+    @NotNull String[] allowedPaths) {
     mSdkPath = sdkPath;
     mProjectPath = projectPath;
     mTempDir = System.getProperty("java.io.tmpdir");
     mNormalizedTempDir = new File(mTempDir).getPath(); // will call fs.normalize() on the path
-    mIndexRootPath = normalizeDirectoryPath(PathManager.getIndexRoot());
-    mLogRootPath = normalizeDirectoryPath(PathManager.getLogPath());
-    mCachePath = normalizeDirectoryPath(Paths.get(PathManager.getSystemPath(), "caches"));
+    mAllowedPaths = allowedPaths;
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     sLastFailedPath = null;
     isRestrictReads = restrictReads;
+  }
+
+  public RenderSecurityManager(
+    @Nullable String sdkPath,
+    @Nullable String projectPath,
+    boolean restrictReads) {
+    this(sdkPath, projectPath, restrictReads, new String[]{
+      // When loading classes, IntelliJ might sometimes drop a corruption marker
+      normalizeDirectoryPath(PathManager.getIndexRoot()),
+      /*
+        Root of the path where IntelliJ stores the logs. When loading classes,
+        IntelliJ might try to update cache hashes for the loaded files
+      */
+      normalizeDirectoryPath(PathManager.getLogPath()),
+      // When loading classes, IntelliJ might try to update cache hashes for the loaded files
+      normalizeDirectoryPath(Paths.get(PathManager.getSystemPath(), "caches"))
+    });
   }
 
   /**
@@ -438,6 +450,15 @@ public class RenderSecurityManager extends SecurityManager {
     return Paths.get(path).normalize().toFile().getCanonicalPath();
   }
 
+  private boolean isInAllowedPath(@NotNull String path) {
+    for (int i = 0; i < mAllowedPaths.length; ++i) {
+      if (path.startsWith(mAllowedPaths[i])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @SuppressWarnings("RedundantIfStatement")
   private boolean isWritingAllowed(String path) {
     try {
@@ -449,13 +470,7 @@ public class RenderSecurityManager extends SecurityManager {
     catch (IOException e) {
       return false;
     }
-    return isTempDirPath(path) ||
-           // When loading classes, IntelliJ might sometimes drop a corruption marker
-           path.startsWith(mIndexRootPath) ||
-           // When rotating the logs, IntelliJ might need to write or update the log.
-           path.startsWith(mLogRootPath) ||
-           // When loading classes, IntelliJ might try to update cache hashes for the loaded files
-           path.startsWith(mCachePath);
+    return isTempDirPath(path) || isInAllowedPath(path);
   }
 
   private boolean isTempDirPath(String path) {
