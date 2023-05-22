@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("TestXmlParser")
+@file:JvmName("XmlParser")
 package com.android.tools.rendering.parsers
 
 import org.kxml2.io.KXmlParser
@@ -21,16 +21,16 @@ import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader
 
 /** Parses xml from [xmlString] into a [RenderXmlTag] hierarchy returning root tag. */
-internal fun getRootTag(xmlString: String): RenderXmlTag {
+fun parseRootTag(xmlString: String): RenderXmlTag {
   val parser = KXmlParser()
   parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true)
   parser.setInput(StringReader(xmlString))
   return getTags(parser)[0]
 }
 
-private fun getTags(parser: XmlPullParser): List<TestRenderXmlTag> {
+private fun getTags(parser: XmlPullParser): List<RenderXmlTagImpl> {
   var eventType = parser.eventType
-  val tags: MutableList<TestRenderXmlTag> = ArrayList()
+  val tags: MutableList<RenderXmlTagImpl> = ArrayList()
   while (XmlPullParser.END_DOCUMENT != eventType && XmlPullParser.END_TAG != eventType) {
     if (XmlPullParser.START_TAG == eventType) {
       val namespaceCount = parser.getNamespaceCount(parser.depth)
@@ -46,13 +46,13 @@ private fun getTags(parser: XmlPullParser): List<TestRenderXmlTag> {
         val namespace = parser.getAttributeNamespace(it)
         val prefix = reverseNamespaceMap[namespace] ?: ""
         val value = parser.getAttributeValue(it)
-        TestRenderXmlAttribute(value, name, namespace, prefix)
+        RenderXmlAttributeImpl(value, name, namespace, prefix)
       }
       val tagName = parser.name
       val tagNamespace = parser.namespace
       parser.next()
       val childTags = getTags(parser)
-      val newTag = TestRenderXmlTag(tagName, tagNamespace, namespaceMap, childTags, attrs)
+      val newTag = RenderXmlTagImpl(tagName, tagNamespace, namespaceMap, childTags, attrs)
       childTags.forEach { it.parentTag = newTag }
       tags.add(newTag)
       eventType = parser.eventType

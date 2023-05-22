@@ -18,7 +18,7 @@ package com.android.tools.rendering.parsers
 import com.android.ide.common.rendering.api.ResourceNamespace
 
 /** Simple implementation of [RenderXmlTag] assuming it is not related to any file. */
-class TestRenderXmlTag(
+internal class RenderXmlTagImpl(
   override val localName: String,
   override val namespace: String,
   private val prefixToNamespace: Map<String, String>,

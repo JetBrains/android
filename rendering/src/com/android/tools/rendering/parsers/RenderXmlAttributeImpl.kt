@@ -16,7 +16,7 @@
 package com.android.tools.rendering.parsers
 
 /** Simple implementation of [RenderXmlAttribute]. */
-class TestRenderXmlAttribute(override val value: String?,
+internal class RenderXmlAttributeImpl(override val value: String?,
                              override val localName: String,
                              override val namespace: String,
                              override val namespacePrefix: String) : RenderXmlAttribute {

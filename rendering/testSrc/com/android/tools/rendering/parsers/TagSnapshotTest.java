@@ -34,7 +34,7 @@ public class TagSnapshotTest {
   public void testSnapshotCreatingIf() {
 
     @Language("XML") final String layoutString = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                                                 "  android:orientation=\"vertical\">\"\n" +
+                                                 "  android:orientation=\"vertical\">\n" +
                                                  "  <Button\n" +
                                                  "    android:layout_width=\"wrap_content\"\n" +
                                                  "    android:layout_height=\"wrap_content\" />\n" +
@@ -45,7 +45,7 @@ public class TagSnapshotTest {
 
     AtomicInteger callCount = new AtomicInteger(0);
 
-    RenderXmlTag linearLayout = TestXmlParser.getRootTag(layoutString);
+    RenderXmlTag linearLayout = XmlParser.parseRootTag(layoutString);
     TagSnapshot snapshot = TagSnapshot.createTagSnapshot(linearLayout, (tag) -> {
       callCount.incrementAndGet();
 
@@ -62,7 +62,7 @@ public class TagSnapshotTest {
 
     // Once per element
     assertThat(callCount.get()).isEqualTo(3);
-    RenderXmlTag tag = TestXmlParser.getRootTag("<transformed />");
+    RenderXmlTag tag = XmlParser.parseRootTag("<transformed />");
     TagSnapshot synthetic = TagSnapshot.createSyntheticTag(tag, "synthetic", null, null,
                                                            Collections.emptyList(), Collections.emptyList(), null);
     synthetic.children = Collections.singletonList(snapshot);
@@ -90,7 +90,7 @@ public class TagSnapshotTest {
                                                 "  </aapt:attr>\n" +
                                                 "</ImageView>";
 
-    RenderXmlTag image = TestXmlParser.getRootTag(imageString);
+    RenderXmlTag image = XmlParser.parseRootTag(imageString);
     TagSnapshot root = TagSnapshot.createTagSnapshot(image, null);
     String expectedId = Long.toString(AaptAttrAttributeSnapshot.ourUniqueId.get() - 1);
     assertThat(root.toString()).isEqualTo(
@@ -110,7 +110,7 @@ public class TagSnapshotTest {
                                                 "  android:layout_height=\"wrap_content\"\n" +
                                                 "  tools:useTag=\"Button\" />";
 
-    RenderXmlTag image = TestXmlParser.getRootTag(imageString);
+    RenderXmlTag image = XmlParser.parseRootTag(imageString);
     TagSnapshot button = TagSnapshot.createTagSnapshot(image, null);
     assertThat(button.toString()).isEqualTo(
       "TagSnapshot{Button, attributes=[AttributeSnapshot{layout_width=\"wrap_content\"}, AttributeSnapshot{layout_height=\"wrap_content\"}, AttributeSnapshot{useTag=\"Button\"}], children=\n" +
@@ -124,7 +124,7 @@ public class TagSnapshotTest {
                                                 "  android:layout_width=\"wrap_content\"\n" +
                                                 "  android:layout_height=\"wrap_content\" />";
 
-    RenderXmlTag image = TestXmlParser.getRootTag(imageString);
+    RenderXmlTag image = XmlParser.parseRootTag(imageString);
     TagSnapshot button = TagSnapshot.createTagSnapshot(image, null);
     assertThat(button.toString()).isEqualTo(
       "TagSnapshot{androidx.compose.ui.tooling.ComposeViewAdapter, attributes=[AttributeSnapshot{layout_width=\"wrap_content\"}, AttributeSnapshot{layout_height=\"wrap_content\"}], children=\n" +
