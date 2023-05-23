@@ -87,6 +87,7 @@ import org.mockito.Mockito
 import java.awt.Component
 import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
+import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
@@ -649,6 +650,19 @@ internal class DeviceViewTest {
     agentRule.disconnectDevice(device)
 
     waitForCondition(15.seconds) { !view.isConnected }
+  }
+
+  @Test
+  fun testKeysForMnemonicsShouldNotBeConsumed() {
+    createDeviceView(500, 1000, screenScale = 1.0)
+
+    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, KeyEvent.VK_M, KeyEvent.VK_M.toChar())
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMPressedEvent)
+    assertThat(altMPressedEvent.isConsumed).isFalse()
+
+    val altMReleasedEvent = KeyEvent(view, KeyEvent.KEY_RELEASED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, KeyEvent.VK_M, KeyEvent.VK_M.toChar())
+    KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMReleasedEvent)
+    assertThat(altMReleasedEvent.isConsumed).isFalse()
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
