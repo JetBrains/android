@@ -893,8 +893,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
      * @return the test task for the module. This does not include the full task path, but only the task name.
      * The full task path will be configured later at the execution level in the Gradle producers.
      */
-    private fun getTasksFromAndroidModuleData(androidModuleModel: GradleAndroidModelData): String {
-      val variant = androidModuleModel.selectedVariantName
+    private fun getTasksFromAndroidModuleData(gradleAndroidModel: GradleAndroidModelData): String {
+      val variant = gradleAndroidModel.selectedVariantName
       return "test".appendCapitalized(variant, "unitTest")
     }
 

@@ -555,8 +555,8 @@ public final class GradleApkProvider implements ApkProvider {
                                                           boolean alwaysDeployApkFromBundle) {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
 
-    GradleAndroidModel androidModuleModel = GradleAndroidModel.get(androidFacet);
-    if (androidModuleModel == null) {
+    GradleAndroidModel gradleAndroidModel = GradleAndroidModel.get(androidFacet);
+    if (gradleAndroidModel == null) {
       ConfigurationQuickFix requestProjectSync =
         (dataContext) -> ProjectSystemUtil.getSyncManager(androidFacet.getModule().getProject())
           .syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST);
@@ -565,16 +565,16 @@ public final class GradleApkProvider implements ApkProvider {
     }
 
     if (alwaysDeployApkFromBundle) {
-      if (StringUtil.isEmpty(androidModuleModel.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName())) {
+      if (StringUtil.isEmpty(gradleAndroidModel.getSelectedVariant().getMainArtifact().getBuildInformation().getBundleTaskName())) {
         ValidationError error = ValidationError.fatal("Bundle task not supported for module '" + androidFacet.getModule().getName() + "'");
         result.add(error);
       }
     }
 
     if (isTest) {
-      IdeAndroidArtifact testArtifact = androidModuleModel.getArtifactForAndroidTest();
+      IdeAndroidArtifact testArtifact = gradleAndroidModel.getArtifactForAndroidTest();
       if (testArtifact == null) {
-        IdeVariant selectedVariant = androidModuleModel.getSelectedVariant();
+        IdeVariant selectedVariant = gradleAndroidModel.getSelectedVariant();
         result.add(ValidationError.warning("Active build variant \"" + selectedVariant.getName() + "\" does not have a test artifact."));
       }
     }
@@ -583,19 +583,19 @@ public final class GradleApkProvider implements ApkProvider {
     AndroidVersion targetDevicesMinVersion = null; // NOTE: ApkProvider.validate() runs in a device-less context.
     Module module = androidFacet.getModule();
     //noinspection ConstantConditions
-    if (androidModuleModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
+    if (gradleAndroidModel.getAndroidProject().getProjectType() == IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP ||
         GradleApkProvider.getOutputKind(module,
                                         alwaysDeployApkFromBundle,
                                         isTest,
                                         targetDevicesMinVersion
         ) == OutputKind.AppBundleOutputModel ||
-        GradleApkProvider.isArtifactSigned(androidModuleModel, isTest)) {
+        GradleApkProvider.isArtifactSigned(gradleAndroidModel, isTest)) {
       return result.build();
     }
 
     final String message =
-      AndroidBundle.message("run.error.apk.not.signed", androidModuleModel.getSelectedVariant().getDisplayName());
-    ConfigurationQuickFix quickFix = new UnsignedApkQuickFix(module, androidModuleModel.getSelectedVariant().getBuildType());
+      AndroidBundle.message("run.error.apk.not.signed", gradleAndroidModel.getSelectedVariant().getDisplayName());
+    ConfigurationQuickFix quickFix = new UnsignedApkQuickFix(module, gradleAndroidModel.getSelectedVariant().getBuildType());
     result.add(ValidationError.fatal(message, quickFix));
     return result.build();
   }
@@ -688,8 +688,8 @@ public final class GradleApkProvider implements ApkProvider {
     return fileName.substring(0, separatorIndex);
   }
 
-  private static boolean isArtifactSigned(GradleAndroidModel androidModuleModel, boolean isTest) {
-    IdeAndroidArtifact artifact = isTest ? androidModuleModel.getArtifactForAndroidTest() : androidModuleModel.getMainArtifact();
+  private static boolean isArtifactSigned(GradleAndroidModel gradleAndroidModel, boolean isTest) {
+    IdeAndroidArtifact artifact = isTest ? gradleAndroidModel.getArtifactForAndroidTest() : gradleAndroidModel.getMainArtifact();
     return artifact != null && artifact.isSigned();
   }
 

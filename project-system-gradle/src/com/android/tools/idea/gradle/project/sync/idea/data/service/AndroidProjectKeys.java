@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.model.IdeCompositeBuildMap;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
@@ -48,10 +48,10 @@ import org.jetbrains.annotations.NotNull;
  * <br/>
  * The reason for having {@link NdkModuleModelDataService} before
  * {@link AndroidModuleDataService} is to give more precedence to the jni sources reported in
- * {@link NdkModuleModel} than the ones reported in {@link AndroidModuleModel}. This is required because for a hybrid module,
- * both the models can contain jni sources information when using the latest Gradle plugin, but only {@link AndroidModuleModel} is provided
+ * {@link NdkModuleModel} than the ones reported in {@link GradleAndroidModel}. This is required because for a hybrid module,
+ * both the models can contain jni sources information when using the latest Gradle plugin, but only {@link GradleAndroidModel} is provided
  * with the older plugin versions. Due to that we always use the information in {@link NdkModuleModel} when available and
- * fall back to {@link AndroidModuleModel} when required.
+ * fall back to {@link GradleAndroidModel} when required.
  */
 public final class AndroidProjectKeys {
   // some of android ModuleCustomizer's should be run after core external system services

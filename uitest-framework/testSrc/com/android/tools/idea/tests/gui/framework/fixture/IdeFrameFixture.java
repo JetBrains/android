@@ -32,9 +32,7 @@ import com.android.tools.idea.execution.common.applychanges.CodeSwapAction;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
@@ -95,7 +93,6 @@ import org.fest.swing.edt.GuiTask;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JToggleButtonFixture;
 import org.fest.swing.timing.Wait;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,20 +121,6 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       names.add(module.getName());
     }
     return names;
-  }
-
-  @NotNull
-  public AndroidModuleModel getAndroidProjectForModule(@NotNull String name) {
-    Module module = getModule(name);
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    if (facet != null && AndroidModel.isRequired(facet)) {
-      // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
-      AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
-      if (androidModel != null) {
-        return androidModel;
-      }
-    }
-    throw new AssertionError("Unable to find AndroidGradleModel for module '" + name + "'");
   }
 
   @NotNull

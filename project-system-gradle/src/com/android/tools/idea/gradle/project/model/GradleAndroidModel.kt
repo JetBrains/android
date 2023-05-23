@@ -58,9 +58,7 @@ class GradleAndroidModel(
   private val data: GradleAndroidModelData,
   val project: Project,
   private val ideLibraryModelResolver: IdeLibraryModelResolver
-) : AndroidModuleModel {
-
-  private val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
+) : AndroidModel {
 
   private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> =
     androidProject.multiVariantData?.buildTypes.orEmpty().associateBy {it.buildType.name }
@@ -72,8 +70,8 @@ class GradleAndroidModel(
   private val myCachedResolvedVariantsByName: Map<String, IdeVariant> =
     myCachedVariantsByName.mapValues { (_, value) -> IdeVariantImpl(value, ideLibraryModelResolver) }
 
+  val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
   val features: AndroidModelFeatures = AndroidModelFeatures(agpVersion)
-
   val moduleName: String get() = data.moduleName
   val rootDirPath: File get() = data.rootDirPath
   val androidProject: IdeAndroidProject get() = data.androidProject
@@ -127,8 +125,6 @@ class GradleAndroidModel(
   val allUnitTestSourceProviders: List<IdeSourceProvider> get() = data.allUnitTestSourceProviders
   val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
-
-  override fun getAgpVersion(): AgpVersion = agpVersion
 
   /**
    * Returns the current application ID.

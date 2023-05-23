@@ -2383,17 +2383,17 @@ fun Project.requestSyncAndWait(
 private fun setupDataNodesForSelectedVariant(
   project: Project,
   buildId: @SystemIndependent String,
-  androidModuleModels: List<GradleAndroidModelData>,
+  gradleAndroidModels: List<GradleAndroidModelData>,
   projectDataNode: DataNode<ProjectData>,
   libraryResolver: IdeLibraryModelResolver
 ) {
   val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
   val moduleIdToDataMap = createGradleProjectPathToModuleDataMap(buildId, moduleNodes)
-  androidModuleModels.forEach { androidModuleModel ->
-    val newVariant = androidModuleModel.selectedVariant(libraryResolver)
+  gradleAndroidModels.forEach { gradleAndroidModel ->
+    val newVariant = gradleAndroidModel.selectedVariant(libraryResolver)
 
     val moduleNode = moduleNodes.firstOrNull { node ->
-      node.data.internalName == androidModuleModel.moduleName
+      node.data.internalName == gradleAndroidModel.moduleName
     } ?: return@forEach
 
     // Now we need to recreate these nodes using the information from the new variant.
@@ -2407,7 +2407,7 @@ private fun setupDataNodesForSelectedVariant(
         lib.samplesJar
       )
     }, newVariant)
-    moduleNode.setupAndroidContentEntriesPerSourceSet(androidModuleModel)
+    moduleNode.setupAndroidContentEntriesPerSourceSet(gradleAndroidModel)
   }
 }
 

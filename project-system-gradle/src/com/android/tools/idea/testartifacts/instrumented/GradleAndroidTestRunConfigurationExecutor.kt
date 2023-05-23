@@ -165,7 +165,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
   }
 
   fun doRunGradleTask(devices: List<IDevice>, androidTestSuiteView: AndroidTestSuiteView, isDebug: Boolean) {
-    val androidModuleModel = requireNotNull(GradleAndroidModel.get(facet))
+    val gradleAndroidModel = requireNotNull(GradleAndroidModel.get(facet))
     val retentionConfiguration = RetentionConfiguration(
       configuration.RETENTION_ENABLED,
       configuration.RETENTION_MAX_SNAPSHOTS,
@@ -178,28 +178,28 @@ open class GradleAndroidTestRunConfigurationExecutor(
     when (configuration.TESTING_TYPE) {
       AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
-          project, devices, packageName, androidTestSuiteView, androidModuleModel, isDebug,
+          project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
           "", "", "", configuration.TEST_NAME_REGEX, retentionConfiguration,
           extraInstrumentationOptions)
       }
 
       AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
-          project, devices, packageName, androidTestSuiteView, androidModuleModel, isDebug,
+          project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
           configuration.PACKAGE_NAME, "", "", "", retentionConfiguration,
           extraInstrumentationOptions)
       }
 
       AndroidTestRunConfiguration.TEST_CLASS -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
-          project, devices, packageName, androidTestSuiteView, androidModuleModel, isDebug,
+          project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
           "", configuration.CLASS_NAME, "", "", retentionConfiguration,
           extraInstrumentationOptions)
       }
 
       AndroidTestRunConfiguration.TEST_METHOD -> {
         gradleConnectedAndroidTestInvoker.runGradleTask(
-          project, devices, packageName, androidTestSuiteView, androidModuleModel, isDebug,
+          project, devices, packageName, androidTestSuiteView, gradleAndroidModel, isDebug,
           "", configuration.CLASS_NAME, configuration.METHOD_NAME, "", retentionConfiguration,
           extraInstrumentationOptions)
       }

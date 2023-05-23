@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -31,8 +31,8 @@ val Module.androidAppId: String?
     if (AndroidFacet.getInstance(this)?.configuration?.isAppProject != true) {
       return null
     }
-    val appId = AndroidModuleModel.get(this)?.applicationId ?: return null
-    if (appId == AndroidModuleModel.UNINITIALIZED_APPLICATION_ID) {
+    val appId = AndroidModel.get(this)?.applicationId ?: return null
+    if (appId == AndroidModel.UNINITIALIZED_APPLICATION_ID) {
       return null
     }
     return appId

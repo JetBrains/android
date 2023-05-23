@@ -677,7 +677,7 @@ private fun Expect.consistentConfigurationOf(project: Project) {
 
 private fun Expect.thatModuleVariantIs(project: Project, gradlePath: String, variant: String, abi: String? = null) {
   val module = project.gradleModule(gradlePath)
-  withMessage("Selected variant in AndroidModuleModel $gradlePath").that(module?.selectedModelVariant()).isEqualTo(variant)
+  withMessage("Selected variant in AndroidModel $gradlePath").that(module?.selectedModelVariant()).isEqualTo(variant)
   withMessage("Selected variant in AndroidFacet $gradlePath").that(module?.selectedFacetVariant()).isEqualTo(variant)
   if (abi != null) {
     withMessage("Selected variant in NdkModuleModel $gradlePath")

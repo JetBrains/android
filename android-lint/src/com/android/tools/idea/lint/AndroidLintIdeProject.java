@@ -670,7 +670,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   }
 
   private static class LintGradleProject extends LintModelModuleProject {
-    private final GradleAndroidModel myAndroidModuleModel;
+    private final GradleAndroidModel myGradleAndroidModel;
     private final AndroidFacet myFacet;
 
     /**
@@ -682,12 +682,12 @@ public class AndroidLintIdeProject extends LintIdeProject {
       @NonNull File referenceDir,
       @NonNull LintModelVariant variant,
       @NonNull AndroidFacet facet,
-      @NonNull GradleAndroidModel androidModuleModel) {
+      @NonNull GradleAndroidModel gradleAndroidModel) {
       super(client, dir, referenceDir, variant, null);
       gradleProject = true;
       mergeManifests = true;
       myFacet = facet;
-      myAndroidModuleModel = androidModuleModel;
+      myGradleAndroidModel = gradleAndroidModel;
     }
 
     @NonNull
@@ -712,7 +712,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
 
     @Override
     public int getBuildSdk() {
-      String compileTarget = myAndroidModuleModel.getAndroidProject().getCompileTarget();
+      String compileTarget = myGradleAndroidModel.getAndroidProject().getCompileTarget();
       AndroidVersion version = AndroidTargetHash.getPlatformVersion(compileTarget);
       if (version != null) {
         return version.getFeatureLevel();
@@ -729,7 +729,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     @Nullable
     @Override
     public String getBuildTargetHash() {
-      return myAndroidModuleModel.getAndroidProject().getCompileTarget();
+      return myGradleAndroidModel.getAndroidProject().getCompileTarget();
     }
   }
 

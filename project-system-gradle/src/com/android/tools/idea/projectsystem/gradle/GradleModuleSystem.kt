@@ -32,7 +32,6 @@ import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -182,7 +181,7 @@ class GradleModuleSystem(
     @Suppress("ConstantConditionIf")
     return if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
       projectBuildModelHandler.read {
-        // TODO: Replace the below artifacts with the direct dependencies from the AndroidModuleModel see b/128449813
+        // TODO: Replace the below artifacts with the direct dependencies from the GradleAndroidModel see b/128449813
         val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read emptySequence<Dependency>()
         artifacts
           .asSequence()
@@ -393,11 +392,11 @@ class GradleModuleSystem(
 
   override fun getTestPackageName(): String? {
     val facet = AndroidFacet.getInstance(module) ?: return null
-    val androidModuleModel = GradleAndroidModel.get(facet)
-    val variant = androidModuleModel?.selectedVariant ?: return null
+    val gradleAndroidModel = GradleAndroidModel.get(facet)
+    val variant = gradleAndroidModel?.selectedVariant ?: return null
     // Only report a test package if the selected variant actually has corresponding androidTest components
     if (variant.androidTestArtifact == null) return null
-    return androidModuleModel.androidProject.testNamespace ?: variant.deprecatedPreMergedTestApplicationId ?: run {
+    return gradleAndroidModel.androidProject.testNamespace ?: variant.deprecatedPreMergedTestApplicationId ?: run {
       // That's how older versions of AGP that do not include testNamespace directly in the model work:
       // in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
       // there is no applicationId and the package name from the manifest is used with the suffix.
@@ -408,7 +407,7 @@ class GradleModuleSystem(
 
   override fun getApplicationIdProvider(): ApplicationIdProvider {
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
-    val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
+    val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find GradleAndroidModel. Module: ${module.name}")
     val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule()
     return GradleApplicationIdProvider.create(
       androidFacet, forTests, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant

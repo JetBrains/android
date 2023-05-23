@@ -27,7 +27,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.google.common.annotations.VisibleForTesting;
@@ -90,10 +90,14 @@ public class AndroidPluginInfo {
   @Nullable
   public static AndroidPluginInfo findFromModel(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-      if (gradleModel != null && getModuleSystem(module).getType() == AndroidModuleSystem.Type.TYPE_APP) {
+      GradleFacet gradleModel = GradleFacet.getInstance(module);
+      if (gradleModel != null && gradleModel.getGradleModuleModel() != null &&
+          getModuleSystem(module).getType() == AndroidModuleSystem.Type.TYPE_APP) {
         // This is the 'app' module in the project.
-        return new AndroidPluginInfo(module, gradleModel.getAgpVersion(), null);
+        String agpStringVersion = gradleModel.getGradleModuleModel().getAgpVersion();
+        if (agpStringVersion != null) {
+          return new AndroidPluginInfo(module, AgpVersion.tryParse(agpStringVersion), null);
+        }
       }
     }
     return null;

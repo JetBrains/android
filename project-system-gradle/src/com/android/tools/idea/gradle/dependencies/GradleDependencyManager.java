@@ -36,7 +36,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationSpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
@@ -129,7 +129,7 @@ public class GradleDependencyManager {
   @NotNull
   public List<GradleCoordinate> findMissingDependencies(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
     Project project = module.getProject();
-    AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
+    GradleAndroidModel gradleModel = GradleAndroidModel.get(module);
     GradleBuildModel buildModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
 
     if (gradleModel == null && buildModel == null) {

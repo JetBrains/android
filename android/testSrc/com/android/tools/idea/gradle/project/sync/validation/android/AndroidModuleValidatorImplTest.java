@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator.AndroidModuleValidatorImpl;
 import com.intellij.openapi.module.Module;

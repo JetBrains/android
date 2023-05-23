@@ -157,16 +157,16 @@ fun ProjectDumper.dumpAndroidIdeModel(
   }
 }
 
-fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: GradleAndroidModel, projectPath: String) {
+fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(gradleAndroidModel: GradleAndroidModel, projectPath: String) {
   nest(File(projectPath), "PROJECT") {
     with(ideModelDumper(this)) {
-      androidModuleModel.let { androidModuleModel ->
-        dump(androidModuleModel.androidProject)
-        dumpLibraryTable(androidModuleModel.project)
+      gradleAndroidModel.let { gradleAndroidModel ->
+        dump(gradleAndroidModel.androidProject)
+        dumpLibraryTable(gradleAndroidModel.project)
         // Dump all the fetched Ide variants.
         head("IdeVariants")
         nest {
-          androidModuleModel.variants.forEach { ideVariant ->
+          gradleAndroidModel.variants.forEach { ideVariant ->
             dump(ideVariant)
           }
         }

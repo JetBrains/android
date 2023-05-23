@@ -97,7 +97,7 @@ class GradleConnectedAndroidTestInvoker(
     devices: List<IDevice>,
     taskId: String,
     androidTestSuiteView: AndroidTestSuiteView,
-    androidModuleModel: GradleAndroidModel,
+    gradleAndroidModel: GradleAndroidModel,
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
@@ -109,12 +109,12 @@ class GradleConnectedAndroidTestInvoker(
     androidTestSuiteView.println("Running tests")
 
     val adapters = devices.associate {
-      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.getArtifactForAndroidTest(), androidTestSuiteView)
+      val adapter = gradleTestResultAdapterFactory(it, taskId, gradleAndroidModel.getArtifactForAndroidTest(), androidTestSuiteView)
       adapter.device.id to adapter
     }
 
     val path: File = Projects.getBaseDirPath(project)
-    val taskNames: List<String> = getTaskNames(androidModuleModel)
+    val taskNames: List<String> = getTaskNames(gradleAndroidModel)
     val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID,
                                                                            ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
@@ -188,7 +188,7 @@ class GradleConnectedAndroidTestInvoker(
             rerunDevices.map { it.iDevice }.toList(),
             taskId,
             androidTestSuiteView,
-            androidModuleModel,
+            gradleAndroidModel,
             waitForDebugger,
             testPackageName,
             testClassName,
@@ -342,10 +342,10 @@ class GradleConnectedAndroidTestInvoker(
     }
   }
 
-  private fun getTaskNames(androidModuleModel: GradleAndroidModel): List<String> {
+  private fun getTaskNames(gradleAndroidModel: GradleAndroidModel): List<String> {
     return listOf(
       "${moduleData.gradleIdentityPath.trimEnd(':')}" +
-      ":connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
+      ":connected${gradleAndroidModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
     )
   }
 

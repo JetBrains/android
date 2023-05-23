@@ -38,7 +38,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -386,7 +386,7 @@ public class GradleSyncTest {
     assertThat(lastSyncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED);
 
     // But the models should still be present
-    assertThat(AndroidModuleModel.get(ideFrame.getModule("app"))).isNotNull();
+    assertThat(GradleAndroidModel.get(ideFrame.getModule("app"))).isNotNull();
     assertThat(GradleFacet.getInstance(ideFrame.getModule("app"))).isNotNull();
     ideFrame.closeProject();
   }

@@ -19,7 +19,6 @@ package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
@@ -130,8 +129,8 @@ fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variantData: DataN
 
 /**
  * Sets up the IDE to containing the dependency information in the selected variants for modules of all provided
- * [AndroidModuleModel].
- * This method assumes that the new variant name has been already set on the [AndroidModuleModel]s.
+ * [GradleAndroidModel].
+ * This method assumes that the new variant name has been already set on the [GradleAndroidModel]s.
  *
  * If we have the variant information this method re-configures the project to use this new information by adjusting the
  * [DataNode] tree to use the new variant information. If we don't we just trigger a new refresh project syncing the new
@@ -164,9 +163,9 @@ private fun DataNode<ProjectData>.repopulateProjectDataWith(
 }
 
 private fun variantAndAbi(moduleDataNode: DataNode<out ModuleData>): VariantAndAbi? {
-  val androidModuleModel = GradleAndroidModelDataImpl.findFromModuleDataNode(moduleDataNode) ?: return null
+  val gradleAndroidModel = GradleAndroidModelDataImpl.findFromModuleDataNode(moduleDataNode) ?: return null
   val ndkModuleModel = ExternalSystemApiUtil.find(moduleDataNode, AndroidProjectKeys.NDK_MODEL)?.data
-  return VariantAndAbi(androidModuleModel.selectedVariantName, ndkModuleModel?.selectedAbi)
+  return VariantAndAbi(gradleAndroidModel.selectedVariantName, ndkModuleModel?.selectedAbi)
 }
 
 private class AndroidModule(
