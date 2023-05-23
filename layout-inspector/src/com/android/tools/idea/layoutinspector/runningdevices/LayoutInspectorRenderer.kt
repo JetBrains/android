@@ -26,7 +26,6 @@ import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.PopupHandler
 import kotlinx.coroutines.CoroutineScope
 import java.awt.Component
-import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
@@ -39,6 +38,8 @@ import java.awt.event.MouseWheelListener
 import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
 import javax.swing.JPanel
+import kotlin.math.abs
+import kotlin.math.max
 
 /**
  * Panel responsible for rendering the [RenderModel] into a [Graphics] object and reacting to mouse and keyboard events.
@@ -47,6 +48,7 @@ import javax.swing.JPanel
  * A Physical pixel corresponds to a real pixel on the display. A logical pixel corresponds to a physical pixels * screen scale.
  * For example on a Retina display a logical pixel is a physical pixel * 2.
  * @param screenScaleProvider Returns the screen scale. For example 1 on a regular display and 2 on a Retina display.
+ * @param orientationQuadrantProvider Returns an integer that indicates if the device rendering is rotated and in which quadrant.
  */
 class LayoutInspectorRenderer(
   disposable: Disposable,
@@ -55,6 +57,7 @@ class LayoutInspectorRenderer(
   private val renderModel: RenderModel,
   private val displayRectangleProvider: () -> Rectangle?,
   private val screenScaleProvider: () -> Double,
+  private val orientationQuadrantProvider: () -> Int,
   private val currentSessionStatistics: () -> SessionStatistics
 ): JPanel(), Disposable {
 
@@ -111,18 +114,80 @@ class LayoutInspectorRenderer(
   }
 
   /**
-   * Transform to the center of the panel and scale Layout Inspector UI to display size.
-   * @param displayRectangle The rectangle on which the device display is rendered.
+   * Transform the rendering from LI to match the display rendering from Running Devices.
+   * This function assumes the rendering from LI starts a coordinates (0, 0).
+   * @param displayRectangle The rectangle from Running Devices, on which the device display is rendered.
    */
   private fun getTransform(displayRectangle: Rectangle): AffineTransform {
-    // calculate how much we need to scale the Layout Inspector bounds to match the device frame.
-    val scale = displayRectangle.width.toDouble() / renderModel.model.screenDimension.width.toDouble()
+    val layoutInspectorScreenDimension = renderModel.model.screenDimension
+    // The rectangle containing LI rendering, in device scale.
+    val layoutInspectorDisplayRectangle = Rectangle(0, 0, layoutInspectorScreenDimension.width, layoutInspectorScreenDimension.height)
 
-    return AffineTransform().apply {
-      // Translate to overlap the rendering from Running Devices.
-      translate((displayRectangle.x.toDouble()), displayRectangle.y.toDouble())
+    val scale = calculateScaleDifference(displayRectangle, layoutInspectorDisplayRectangle)
+    val quadrant = getOrientationQuadrant()
+
+    val transform = AffineTransform()
+
+    // Apply scale and rotation, this will transform LI rendering to match the rendering from RD, in terms of scale and orientation.
+    transform.apply {
       scale(scale, scale)
+      quadrantRotate(quadrant)
     }
+
+    // Create the new transformed shape of LI rendering. This will have same scale and orientation as the display from RD.
+    val deviceRectTrans = transform.createTransformedShape(layoutInspectorDisplayRectangle)
+
+    // Calculate the distance between LI rendering and the display from RD.
+    val xDelta = abs(displayRectangle.x - deviceRectTrans.bounds.x)
+    val yDelta = abs(displayRectangle.y - deviceRectTrans.bounds.y)
+
+    transform.apply {
+      // Remove rotation, otherwise translate is affected by it.
+      quadrantRotate(-quadrant)
+      // Translate LI rendering to overlap with display from RD.
+      translate(xDelta.toDouble() / scale, yDelta.toDouble() / scale)
+      // Re-apply rotation.
+      quadrantRotate(quadrant)
+    }
+
+    return transform
+  }
+
+  /**
+   * Calculate the scale difference between [displayRectangle] and [layoutInspectorDisplayRectangle].
+   * This function assumes that the two rectangles are the same rectangle, at different scale.
+   * @return A scale such that [layoutInspectorDisplayRectangle] * scale is equal to [displayRectangle].
+   */
+  private fun calculateScaleDifference(displayRectangle: Rectangle, layoutInspectorDisplayRectangle: Rectangle): Double {
+    // Get the biggest side of both rectangles and use them to calculate the difference in scale.
+    // Using the biggest side makes sure that if the rotation of the two rectangles is not the same, the scale difference is not affected.
+    val displayMaxSide = max(displayRectangle.width, displayRectangle.height)
+    val layoutInspectorDisplayMaxSide = max(layoutInspectorDisplayRectangle.width, layoutInspectorDisplayRectangle.height)
+
+    return displayMaxSide.toDouble() / layoutInspectorDisplayMaxSide.toDouble()
+  }
+
+  /**
+   * Returns the quadrant in which the rendering should be rotated.
+   */
+  private fun getOrientationQuadrant(): Int {
+    // The rotation of the display rendering coming from Running Devices.
+    val displayRectangleOrientationQuadrant = orientationQuadrantProvider()
+
+    // The rotation of the display coming from Layout Inspector, this should match the actual orientation of the device.
+    val layoutInspectorDisplayOrientationQuadrant = when (renderModel.model.resourceLookup.displayOrientation) {
+      0 -> 0
+      90 -> 1
+      180 -> 2
+      270 -> 3
+      else -> 0
+    }
+
+    // The difference in quadrant rotation between Layout Inspector and the display rendering.
+    // Both the display from RD and the device can be rotated in all 4 quadrants, independently of each other.
+    // We use the diff to reconcile the difference in rotation, as ultimately the rendering from LI should match the rendering of the
+    // display from RD.
+    return (layoutInspectorDisplayOrientationQuadrant - displayRectangleOrientationQuadrant).mod(4)
   }
 
   override fun paint(g: Graphics) {
@@ -225,8 +290,6 @@ private class ForwardingMouseListener(
     }
   }
 }
-
-private fun Dimension.scale(scale: Double) = Dimension((width * scale).toInt(), (height * scale).toInt())
 
 private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
   return Rectangle((x * physicalToLogicalScale).toInt(), (y * physicalToLogicalScale).toInt(), (width * physicalToLogicalScale).toInt(), (height *physicalToLogicalScale).toInt())

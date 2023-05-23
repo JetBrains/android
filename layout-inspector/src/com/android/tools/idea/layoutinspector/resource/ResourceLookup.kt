@@ -83,7 +83,7 @@ class ResourceLookup(private val project: Project) {
     @VisibleForTesting set
 
   var displayOrientation: Int? = null
-    private set
+    @VisibleForTesting set
 
   /**
    * Updates the configuration after a possible configuration change detected on the device.

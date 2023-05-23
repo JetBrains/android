@@ -212,6 +212,53 @@ class LayoutInspectorRendererTest {
     assertSimilar(renderImage, testName.methodName)
   }
 
+  private data class RotationCombination(val displayQuadrant: Int, val deviceRotation: Int)
+
+  private fun allPossibleCombinations(displayQuadrants: List<Int>, deviceRotations: List<Int>): List<RotationCombination> {
+    val combinations = mutableListOf<RotationCombination>()
+
+    for (num1 in displayQuadrants) {
+      for (num2 in deviceRotations) {
+        val pair = RotationCombination(num1, num2)
+        combinations.add(pair)
+      }
+    }
+
+    return combinations
+  }
+
+  @Test
+  fun testRotation() {
+    // test all possible combinations of rotations
+    val combinations = allPossibleCombinations(listOf(0, 1, 2, 3), listOf(0, 90, 180, 270))
+    combinations.forEach {
+      val displayQuadrant = it.displayQuadrant
+      val inspectorModelWithTopBorder = model {
+        view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
+          view(VIEW1, 10, 15, 25, 25) {
+            image()
+          }
+        }
+      }
+      inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
+      inspectorModel.resourceLookup.displayOrientation = it.deviceRotation
+      val deviceScreenDimension = when (it.deviceRotation) {
+        0, 180 -> Dimension(1080, 1920)
+        // assume that when the device is horizontal it's in landscape mode.
+        90, 270 -> Dimension(1920, 1080)
+        else -> throw IllegalArgumentException()
+      }
+      inspectorModel.resourceLookup.screenDimension = deviceScreenDimension
+
+      val renderModel = RenderModel(inspectorModelWithTopBorder, treeSettings) { DisconnectedClient }
+      val layoutInspectorRenderer = createRenderer(renderModel = renderModel, displayOrientation = displayQuadrant)
+
+      val renderImage = createRenderImage()
+      paint(renderImage, layoutInspectorRenderer, displayQuadrant = displayQuadrant)
+      assertSimilar(renderImage, testName.methodName + "${it.displayQuadrant}_${it.deviceRotation}")
+    }
+  }
+
   @Test
   fun testOverlayIsRendered() {
     val layoutInspectorRenderer = createRenderer()
@@ -297,7 +344,7 @@ class LayoutInspectorRendererTest {
     fakeUi.render()
 
     // click mouse above VIEW1.
-    fakeUi.mouse.doubleClick(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+    fakeUi.mouse.doubleClick(deviceDisplayRectangle.x + 30, deviceDisplayRectangle.y + 35)
 
     fakeUi.render()
     fakeUi.layoutAndDispatchEvents()
@@ -413,13 +460,19 @@ class LayoutInspectorRendererTest {
     assertThat(fakeMouseListener.mouseDraggedCount).isEqualTo(0)
   }
 
-  private fun paint(image: BufferedImage, layoutInspectorRenderer: LayoutInspectorRenderer) {
+  private fun paint(image: BufferedImage, layoutInspectorRenderer: LayoutInspectorRenderer, displayQuadrant: Int = 0) {
     val graphics = image.createGraphics()
     // add a gray background
     graphics.fillRect(Rectangle(0, 0, screenDimension.width, screenDimension.height), Color(250, 250, 250))
     // render the display rectangle in black, the rendering from LI should be overlaid to it.
     graphics.color = Color(0, 0, 0)
-    graphics.draw(deviceDisplayRectangle)
+    // rotate the device display rectangle to match the quadrant rotation
+    val displayRect = when (displayQuadrant) {
+      0, 2 -> deviceDisplayRectangle
+      1, 3 -> Rectangle(deviceDisplayRectangle.y, deviceDisplayRectangle.x, deviceDisplayRectangle.height, deviceDisplayRectangle.width)
+      else -> throw IllegalArgumentException()
+    }
+    graphics.draw(displayRect)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
     layoutInspectorRenderer.paint(graphics)
@@ -427,7 +480,8 @@ class LayoutInspectorRendererTest {
 
   private fun createRenderer(
     renderModel: RenderModel = this.renderModel,
-    deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle
+    deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
+    displayOrientation: Int = 0
   ): LayoutInspectorRenderer {
     return LayoutInspectorRenderer(
       androidProjectRule.testRootDisposable,
@@ -436,6 +490,7 @@ class LayoutInspectorRendererTest {
       renderModel,
       displayRectangleProvider = { deviceDisplayRectangle },
       screenScaleProvider = { 1.0 },
+      orientationQuadrantProvider = { displayOrientation },
       { sessionStats }
     )
   }
