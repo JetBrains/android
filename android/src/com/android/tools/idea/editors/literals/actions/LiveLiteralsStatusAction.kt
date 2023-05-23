@@ -115,7 +115,6 @@ class LiveLiteralsStatusAction(private val project: Project) : DropDownAction(nu
       ToggleLiveLiteralsStatusAction(),
       ToggleLiveLiteralsHighlightAction(),
       ShowLiveLiteralsProblemAction(),
-      CustomizeLiveLiteralsThemeAction()
     ))
 
     return false

@@ -916,15 +916,6 @@
     <option name="message" hit="Warn message" />
     <option name="warn" hit="Warn message" />
   </configurable>
-  <configurable id="reference.settingsdialog.IDE.editor.colors.Live Edit of Compose Literals" configurable_name="Live Edit of Compose Literals">
-    <option name="compose" hit="Live Edit of Compose Literals" />
-    <option name="edit" hit="Live Edit of Compose Literals" />
-    <option name="literals" hit="Live Edit of Compose Literals" />
-    <option name="live" hit="Live Edit of Compose Literals" />
-    <option name="of" hit="Live Edit of Compose Literals" />
-    <option name="decorations" hit="Literals decorations" />
-    <option name="literals" hit="Literals decorations" />
-  </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Logcat Filter" configurable_name="Logcat Filter">
     <option name="filter" hit="Logcat Filter" />
     <option name="logcat" hit="Logcat Filter" />
