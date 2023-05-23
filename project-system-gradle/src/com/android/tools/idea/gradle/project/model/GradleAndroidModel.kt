@@ -235,8 +235,7 @@ class GradleAndroidModel(
   }
 
   override fun getResValues(): Map<String, DynamicResourceValue> {
-    @Suppress("DEPRECATION")
-    return classFieldsToDynamicResourceValues(selectedVariant.mainArtifact.resValues)
+    return classFieldsToDynamicResourceValues(selectedVariant.resValues)
   }
 
   override fun getTestOptions(): TestOptions {

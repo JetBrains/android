@@ -53,13 +53,6 @@ interface IdeAndroidArtifactCore : Serializable, IdeBaseArtifactCore {
   val generatedResourceFolders: Collection<File>
 
   /**
-   * Map of generated res values where the key is the res name. This method is deprecated and will
-   * always return an empty map
-   */
-  @Deprecated("Returns empty map")
-  val resValues: Map<String, IdeClassField>
-
-  /**
    * Returns a list of additional APKs that need to installed on the device for this artifact to
    * work correctly.
    *
