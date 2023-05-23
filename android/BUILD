@@ -205,9 +205,6 @@ iml_module(
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
         },
-        "res": {
-            "test_filter": "com.android.tools.idea.res",
-        },
         "run": {
             "shard_count": 5,
             "test_filter": "com.android.tools.idea.run",
