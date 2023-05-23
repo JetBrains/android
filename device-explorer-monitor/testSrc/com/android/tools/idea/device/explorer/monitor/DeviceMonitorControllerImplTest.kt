@@ -24,21 +24,22 @@ import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImp
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.mocks.MockProjectApplicationIdsProvider
+import com.android.tools.idea.device.explorer.monitor.options.DeviceMonitorSettings
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
-import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -70,6 +71,11 @@ class DeviceMonitorControllerImplTest {
       // Add new client to trigger device update
       addClient(testDevice1, 60)
     }
+    ApplicationManager.getApplication().registerOrReplaceServiceInstance(
+      DeviceMonitorSettings::class.java,
+      DeviceMonitorSettings(),
+      androidProjectRule.testRootDisposable
+    )
     packageNameProvider = MockProjectApplicationIdsProvider(project)
     model = DeviceMonitorModel(processService, packageNameProvider)
     mockView = MockDeviceMonitorView(model)

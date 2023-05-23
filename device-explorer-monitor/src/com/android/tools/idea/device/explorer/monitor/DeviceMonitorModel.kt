@@ -18,6 +18,7 @@ package com.android.tools.idea.device.explorer.monitor
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
+import com.android.tools.idea.device.explorer.monitor.options.DeviceMonitorSettings
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
@@ -32,15 +33,16 @@ import kotlinx.coroutines.sync.withLock
 class DeviceMonitorModel(
   private val processService: DeviceProcessService,
   private val packageNamesProvider: ProjectApplicationIdsProvider) {
+  private val settings: DeviceMonitorSettings = DeviceMonitorSettings.getInstance()
   private var activeDevice: AdbDevice? = null
   private val activeDeviceMutex = Mutex()
   val tableModel = DeviceMonitorTableModel()
-  val isPackageFilterActive = MutableStateFlow(false)
+  val isPackageFilterActive = MutableStateFlow(settings.isPackageFilterActive)
   val isApplicationIdsEmpty = MutableStateFlow(true)
 
   suspend fun setPackageFilter(isActive: Boolean) {
     if (isPackageFilterActive.value != isActive) {
-      isPackageFilterActive.value = isActive
+      setPackageFilterValue(isActive)
       refreshCurrentProcessList()
     }
   }
@@ -48,7 +50,7 @@ class DeviceMonitorModel(
   suspend fun projectApplicationIdListChanged() {
     isApplicationIdsEmpty.value = packageNamesProvider.getPackageNames().isEmpty()
     if (isApplicationIdsEmpty.value) {
-      isPackageFilterActive.value = false
+      setPackageFilterValue(false)
     } else if (isPackageFilterActive.value) {
       refreshCurrentProcessList()
     }
@@ -102,6 +104,11 @@ class DeviceMonitorModel(
         processService.debugProcess(project, processInfo, it.device)
       }
     }
+  }
+
+  private fun setPackageFilterValue(value: Boolean) {
+    isPackageFilterActive.value = value
+    settings.isPackageFilterActive = value
   }
 
   private suspend fun invokeOnProcessInfo(rows: IntArray, block: suspend (ProcessInfo) -> Unit) {
