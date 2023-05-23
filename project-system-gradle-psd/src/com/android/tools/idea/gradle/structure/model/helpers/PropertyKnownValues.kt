@@ -38,9 +38,9 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
-import com.android.tools.idea.gradle.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.repositories.search.SearchResult
+import com.android.tools.idea.gradle.repositories.search.SingleModuleSearchQuery
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
@@ -141,18 +141,20 @@ fun productFlavorMatchingFallbackValues(project: PsProject, dimension: String?):
 
 private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
 fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFuture<List<ValueDescriptor<String>>> =
-  Futures.transform(
-    model.parent.parent.repositorySearchFactory
-      .create(model.parent.getArtifactRepositories())
-      .search(SearchRequest(SearchQuery(model.spec.group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)),
-    { it!!.toVersionValueDescriptors() },
-    directExecutor())
+  model.spec.group?.let { group ->
+    Futures.transform(
+      model.parent.parent.repositorySearchFactory
+        .create(model.parent.getArtifactRepositories())
+        .search(SearchRequest(SingleModuleSearchQuery(group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)),
+      { it!!.toVersionValueDescriptors() },
+      directExecutor())
+  } ?: immediateFuture(listOf())
 
 fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
   Futures.transform(
     model.repositorySearchFactory
       .create(model.getPluginArtifactRepositories())
-      .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
+      .search(SearchRequest(SingleModuleSearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
     { sr ->
       val searchResult = sr!!
       // TODO(b/242691473): going through toString() here is not pretty, but the type information is buried quite deep.

@@ -57,7 +57,7 @@ class LocalMavenRepositoryTest {
   fun searchByName() {
     assertThat(
       repository
-        .search(SearchRequest(SearchQuery(null, "lib1"), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery(null, "lib1"), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       equalTo(SearchResult(artifacts = listOf(LIB1))))
@@ -67,7 +67,7 @@ class LocalMavenRepositoryTest {
   fun searchByGroupId() {
     assertThat(
       repository
-        .search(SearchRequest(SearchQuery("com.example.jlib", ""), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery("com.example.jlib", ""), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       equalTo(SearchResult(artifacts = listOf(JLIB3, JLIB4))))
@@ -77,7 +77,7 @@ class LocalMavenRepositoryTest {
   fun searchByNameWildcard() {
     assertThat(
       repository
-        .search(SearchRequest(SearchQuery("", "lib*"), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery("", "lib*"), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       equalTo(SearchResult(artifacts = listOf(JLIB3, JLIB4, LIB1, LIB2))))
@@ -87,7 +87,7 @@ class LocalMavenRepositoryTest {
   fun searchByGroupIdWildcard() {
     assertThat(
       repository
-        .search(SearchRequest(SearchQuery("com.example.j*", null), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery("com.example.j*", null), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       equalTo(SearchResult(artifacts = listOf(JLIB3, JLIB4))))
@@ -97,7 +97,7 @@ class LocalMavenRepositoryTest {
   fun searchByExactMatch() {
     assertThat(
       repository
-        .search(SearchRequest(SearchQuery("com.example.libs", "lib2"), 50, 0))
+        .search(SearchRequest(SingleModuleSearchQuery("com.example.libs", "lib2"), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       equalTo(SearchResult(artifacts = listOf(LIB2))))
@@ -107,7 +107,7 @@ class LocalMavenRepositoryTest {
   fun searchByWildcard() {
     assertThat(
       repository
-        .search(SearchRequest(SearchQuery("com.example.lib*", "lib*"), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery("com.example.lib*", "lib*"), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       equalTo(SearchResult(artifacts = listOf(LIB1, LIB2))))

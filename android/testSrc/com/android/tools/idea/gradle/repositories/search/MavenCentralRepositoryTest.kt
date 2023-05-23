@@ -27,35 +27,35 @@ import java.io.StringReader
 class MavenCentralRepositoryTest {
   @Test
   fun testCreateUrlWithGroupId() {
-    val request = SearchRequest(SearchQuery("com.google.guava", "guava"), 20, 1)
-    val url = MavenCentralRepository.createRequestUrl(request)
+    val request = SearchRequest(ArbitraryModulesSearchQuery("com.google.guava", "guava"), 20, 1)
+    val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
     assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.guava+AND+a%3Aguava", url)
   }
 
   @Test
   fun testCreateUrlWithoutGroupId() {
-    val request = SearchRequest(SearchQuery(null, "guava"), 20, 1)
-    val url = MavenCentralRepository.createRequestUrl(request)
+    val request = SearchRequest(ArbitraryModulesSearchQuery(null, "guava"), 20, 1)
+    val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
     assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=a%3Aguava", url)
   }
 
   @Test
   fun testCreateUrlWithoutArtifactId() {
-    val request = SearchRequest(SearchQuery("com.google.guava", ""), 20, 1)
-    val url = MavenCentralRepository.createRequestUrl(request)
+    val request = SearchRequest(ArbitraryModulesSearchQuery("com.google.guava", ""), 20, 1)
+    val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
     assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.guava", url)
   }
 
   @Test
   fun testCreateUrlWithWildcards() {
-    val request = SearchRequest(SearchQuery("com.google.*", "gu*va"), 20, 1)
-    val url = MavenCentralRepository.createRequestUrl(request)
+    val request = SearchRequest(ArbitraryModulesSearchQuery("com.google.*", "gu*va"), 20, 1)
+    val url = MavenCentralRepository.createArbitraryModulesRequestUrl(request)
     assertEquals("https://search.maven.org/solrsearch/select?rows=20&start=1&wt=xml&q=g%3Acom.google.*+AND+a%3Agu*va", url)
   }
 
   @Test
   @Throws(Exception::class)
-  fun testParse() {
+  fun testParseArbitraryModulesResponse() {
     @Language("XML")
     val response = """
       <response>
@@ -196,7 +196,7 @@ class MavenCentralRepositoryTest {
            </lst>
         </response>"""
     val responseReader = StringReader(response)
-    val result = MavenCentralRepository.parse(responseReader)
+    val result = MavenCentralRepository.parseArbitraryModulesResponse(responseReader)
     val coordinates = result.artifactCoordinates
     assertThat(coordinates).containsExactly(
       "org.sonatype.spice.inject:guice-bean:1.3.4",
@@ -204,5 +204,88 @@ class MavenCentralRepositoryTest {
       "be.fluid-it.com.squarespace.jersey2-guice:jersey2-guice:0.10-fix",
       "com.peterphi.std.guice:stdlib-guice-hibernate:8.5.1",
       "com.peterphi.std.guice:stdlib-guice-webapp:8.5.1")
+  }
+
+  @Test
+  fun testCreateSingleModuleUrl() {
+    val query = SingleModuleSearchQuery("com.google.guava", "guava")
+    val request = SearchRequest(query, 20, 1)
+    val url = MavenCentralRepository.createSingleModuleRequestUrl(request, query)
+    assertEquals("https://repo.maven.apache.org/maven2/com/google/guava/guava/maven-metadata.xml", url)
+  }
+
+  @Test
+  fun testCreateSingleModuleUrlWithDotsInArtifactId() {
+    val query = SingleModuleSearchQuery("ai.agnos", "reactive-sparql_2.12")
+    val request = SearchRequest(query, 20, 1)
+    val url = MavenCentralRepository.createSingleModuleRequestUrl(request, query)
+    assertEquals("https://repo.maven.apache.org/maven2/ai/agnos/reactive-sparql_2.12/maven-metadata.xml", url)
+  }
+
+  @Test
+  fun testParseSingleModuleResponse() {
+    @Language("XML")
+    val response = """<metadata modelVersion="1.1.0">
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <versioning>
+        <latest>2.12.0</latest>
+        <release>2.12.0</release>
+        <versions>
+          <version>0.1</version>
+          <version>1.0</version>
+          <version>1.1</version>
+          <version>1.2</version>
+          <version>1.3</version>
+          <version>1.3.1</version>
+          <version>1.3.2</version>
+          <version>1.4</version>
+          <version>2.0</version>
+          <version>2.0.1</version>
+          <version>2.1</version>
+          <version>2.2</version>
+          <version>2.3</version>
+          <version>2.4</version>
+          <version>2.5</version>
+          <version>2.6</version>
+          <version>2.7</version>
+          <version>2.8.0</version>
+          <version>2.9.0</version>
+          <version>2.10.0</version>
+          <version>2.11.0</version>
+          <version>2.12.0</version>
+        </versions>
+        <lastUpdated>20230516171153</lastUpdated>
+      </versioning></metadata>
+      """.trimIndent()
+
+    val query = SingleModuleSearchQuery("commons-io", "commons-io")
+    val responseReader = StringReader(response)
+    val result = MavenCentralRepository.parseSingleModuleResponse(responseReader, query)
+    val coordinates = result.artifactCoordinates
+    assertThat(coordinates).containsExactly(
+      "commons-io:commons-io:0.1",
+      "commons-io:commons-io:1.0",
+      "commons-io:commons-io:1.1",
+      "commons-io:commons-io:1.2",
+      "commons-io:commons-io:1.3",
+      "commons-io:commons-io:1.3.1",
+      "commons-io:commons-io:1.3.2",
+      "commons-io:commons-io:1.4",
+      "commons-io:commons-io:2.0",
+      "commons-io:commons-io:2.0.1",
+      "commons-io:commons-io:2.1",
+      "commons-io:commons-io:2.2",
+      "commons-io:commons-io:2.3",
+      "commons-io:commons-io:2.4",
+      "commons-io:commons-io:2.5",
+      "commons-io:commons-io:2.6",
+      "commons-io:commons-io:2.7",
+      "commons-io:commons-io:2.8.0",
+      "commons-io:commons-io:2.9.0",
+      "commons-io:commons-io:2.10.0",
+      "commons-io:commons-io:2.11.0",
+      "commons-io:commons-io:2.12.0",
+    )
   }
 }

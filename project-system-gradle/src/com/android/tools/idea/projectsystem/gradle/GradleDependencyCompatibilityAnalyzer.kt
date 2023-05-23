@@ -41,9 +41,9 @@ import com.android.tools.idea.gradle.repositories.search.JCenterRepository
 import com.android.tools.idea.gradle.repositories.search.LocalMavenRepository
 import com.android.tools.idea.gradle.repositories.search.MavenCentralRepository
 import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
-import com.android.tools.idea.gradle.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.repositories.search.SearchResult
+import com.android.tools.idea.gradle.repositories.search.SingleModuleSearchQuery
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.google.common.collect.ArrayListMultimap
@@ -110,8 +110,10 @@ class GradleDependencyCompatibilityAnalyzer(
 
   @Suppress("UnstableApiUsage") // Futures.allAsList
   private fun findVersions(dependencies: List<Dependency>): ListenableFuture<List<SearchResult>> =
-    Futures.allAsList(dependencies.map {
-      createSearchService().search(SearchRequest(SearchQuery(it.group, it.name), MAX_ARTIFACTS_TO_REQUEST, 0))
+    Futures.allAsList(dependencies.mapNotNull {
+      it.group?.let { group ->
+        createSearchService().search(SearchRequest(SingleModuleSearchQuery(group, it.name), MAX_ARTIFACTS_TO_REQUEST, 0))
+      }
     })
 
   private fun createSearchService(): ArtifactRepositorySearchService {

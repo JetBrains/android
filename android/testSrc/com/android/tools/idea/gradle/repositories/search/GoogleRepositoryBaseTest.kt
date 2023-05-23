@@ -123,7 +123,7 @@ class GoogleRepositoryBaseTest {
   fun searchByName() {
     Assert.assertThat(
       repository
-        .search(SearchRequest(SearchQuery(null, "common-java8"), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery(null, "common-java8"), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(COMMON_JAVA8))))
@@ -133,7 +133,7 @@ class GoogleRepositoryBaseTest {
   fun searchByGroupId() {
     Assert.assertThat(
       repository
-        .search(SearchRequest(SearchQuery("com.android.support", ""), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery("com.android.support", ""), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       CoreMatchers.equalTo(
@@ -144,7 +144,7 @@ class GoogleRepositoryBaseTest {
   fun searchByNameWildcard() {
     Assert.assertThat(
       repository
-        .search(SearchRequest(SearchQuery("", "common*"), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery("", "common*"), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(COMMON, COMMON_JAVA8))))
@@ -154,7 +154,7 @@ class GoogleRepositoryBaseTest {
   fun searchByGroupIdWildcard() {
     Assert.assertThat(
       repository
-        .search(SearchRequest(SearchQuery("com.android.*", null), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery("com.android.*", null), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       CoreMatchers.equalTo(
@@ -165,7 +165,7 @@ class GoogleRepositoryBaseTest {
   fun searchByExactMatch() {
     Assert.assertThat(
       repository
-        .search(SearchRequest(SearchQuery("com.android.support", "leanback-v17"), 50, 0))
+        .search(SearchRequest(SingleModuleSearchQuery("com.android.support", "leanback-v17"), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(LEANBACK))))
@@ -175,7 +175,7 @@ class GoogleRepositoryBaseTest {
   fun searchByWildcard() {
     Assert.assertThat(
       repository
-        .search(SearchRequest(SearchQuery("android.*", "common-*"), 50, 0))
+        .search(SearchRequest(ArbitraryModulesSearchQuery("android.*", "common-*"), 50, 0))
         .get(10, TimeUnit.SECONDS)
         .clearStats(),
       CoreMatchers.equalTo(SearchResult(artifacts = listOf(COMMON_JAVA8))))
