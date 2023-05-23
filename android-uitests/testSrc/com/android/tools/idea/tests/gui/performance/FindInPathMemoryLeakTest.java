@@ -42,7 +42,7 @@ public class FindInPathMemoryLeakTest {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
       ideFrame.focus()
-        .invokeMenuPath("Edit", "Find", "Find in Files...");
+        .invokeMenuPath("Edit", "Find", "Find in Files\u2026");
       FindPopupPanelFixture.find(ideFrame)
         .dialog()
         .close();

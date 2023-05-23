@@ -108,7 +108,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .open("app/build.gradle")
-              .select("implementation ('com.google.guava.guava:18.0')")
+              .select("implementation ('androidx.appcompat:appcompat:1.3.0')")
               .enterText("'com.android.support:design:28.0.0'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
@@ -118,7 +118,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .select("implementation ('com.android.support:design:28.0.0')")
-              .enterText("'com.google.guava:guava:18.0'")
+              .enterText("'androidx.appcompat:appcompat:1.3.0'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
               .performAction("Sync Now")
@@ -136,7 +136,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .open("app/build.gradle")
-              .select("implementation ('com.google.guava.guava:18.0')")
+              .select("implementation ('androidx.appcompat:appcompat:1.3.0')")
               .enterText("'com.android.support:design123'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
@@ -146,7 +146,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .select("implementation ('com.android.support:design123')")
-              .enterText("'com.google.guava:guava:18.0'")
+              .enterText("'androidx.appcompat:appcompat:1.3.0'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
               .performAction("Sync Now")

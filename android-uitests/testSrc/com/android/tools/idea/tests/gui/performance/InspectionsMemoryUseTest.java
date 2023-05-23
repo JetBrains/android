@@ -42,8 +42,8 @@ public class InspectionsMemoryUseTest {
   public void inspectCode() throws IOException {
     guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> guiTest.ideFrame()
-      .openFromMenu(InspectCodeDialogFixture::find, "Analyze", "Inspect Code...")
-      .clickOk()
+      .openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code\u2026")
+      .clickAnalyze()
       .close()
     );
   }

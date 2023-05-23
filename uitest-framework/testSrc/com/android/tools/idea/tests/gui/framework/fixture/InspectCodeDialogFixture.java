@@ -58,9 +58,10 @@ public class InspectCodeDialogFixture extends IdeaDialogFixture<DialogWrapper> {
     return InspectionsFixture.find(myIdeFrameFixture);
   }
 
-  public void clickAnalyze() {
+  public InspectionsFixture clickAnalyze() {
     GuiTests.findAndClickButton(this, "Analyze");
     waitUntilNotShowing();
     GuiTests.waitForBackgroundTasks(robot(), Wait.seconds(180));
+    return InspectionsFixture.find(myIdeFrameFixture);
   }
 }
