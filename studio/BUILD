@@ -267,6 +267,7 @@ studio_plugin(
         ],
         "sdk-common.jar": [
             "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
+            "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle",
         ],
         "sdk-tools.jar": [
             "//tools/base/annotations:studio.android.sdktools.android-annotations",
