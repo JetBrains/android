@@ -68,6 +68,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -387,7 +388,9 @@ public class RenderErrorContributor {
     Project project = myModule.getProject();
     WolfTheProblemSolver wolfgang = WolfTheProblemSolver.getInstance(project);
 
-    if (!wolfgang.hasProblemFilesBeneath(myModule)) {
+    boolean hasProblemsInModule =
+      ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> wolfgang.hasProblemFilesBeneath(myModule));
+    if (!hasProblemsInModule) {
       return;
     }
 
@@ -397,7 +400,7 @@ public class RenderErrorContributor {
     if (logger.seenTagPrefix(TAG_RESOURCES_PREFIX)) {
       // Do we have errors in the res/ files?
       // See if it looks like we have aapt problems
-      boolean haveResourceErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == XmlFileType.INSTANCE);
+      boolean haveResourceErrors = checkErrorsByFileType(wolfgang, XmlFileType.INSTANCE);
       if (haveResourceErrors) {
         summary = "Resource errors";
         builder.addBold("This project contains resource errors, so aapt did not succeed, " +
@@ -406,7 +409,7 @@ public class RenderErrorContributor {
       }
     }
     else if (myHasRequestedCustomViews) {
-      boolean hasJavaErrors = wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == JavaFileType.INSTANCE);
+      boolean hasJavaErrors = checkErrorsByFileType(wolfgang, JavaFileType.INSTANCE);
       if (hasJavaErrors) {
         summary = "Compilation errors";
         builder.addBold("This project contains Java compilation errors, " +
@@ -424,6 +427,11 @@ public class RenderErrorContributor {
       .setSummary(summary)
       .setHtmlContent(builder)
       .build();
+  }
+
+  private static boolean checkErrorsByFileType(@NotNull WolfTheProblemSolver wolfgang, @NotNull FileType type) {
+    return ApplicationManager.getApplication().runReadAction(
+      (Computable<Boolean>)() -> wolfgang.hasProblemFilesBeneath(virtualFile -> virtualFile.getFileType() == type));
   }
 
   private boolean reportSandboxError(@NotNull Throwable throwable, boolean newlineBefore, boolean newlineAfter) {
