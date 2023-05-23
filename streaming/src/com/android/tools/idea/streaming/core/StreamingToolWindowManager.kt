@@ -24,8 +24,11 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
+import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
 import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
@@ -47,6 +50,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.google.common.cache.CacheBuilder
+import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.icons.AllIcons
@@ -58,13 +62,16 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ex.MessagesEx.showErrorDialog
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid
 import com.intellij.openapi.util.Disposer
@@ -86,10 +93,14 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.guava.asDeferred
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
 import java.text.Collator
@@ -156,6 +167,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   // IDs of recently launched AVDs keyed by themselves.
   private val recentEmulatorLaunches = CacheBuilder.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, String>()
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+  @Suppress("UnstableApiUsage")
+  private val toolWindowScope = disposingScope(Dispatchers.EDT)
 
   private val contentManagerListener = object : ContentManagerListener {
     override fun selectionChanged(event: ContentManagerEvent) {
@@ -246,7 +259,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
                                        RunningEmulatorCatalog.getInstance().updateNow()
                                        EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
                                          showLiveIndicator()
-                                         if (requestType != AvdLaunchListener.RequestType.INDIRECT) {
+                                         if (requestType != RequestType.INDIRECT) {
                                            onEmulatorHeadsUp(avd.name)
                                          }
                                        }
@@ -691,17 +704,53 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  private fun createMirroringActions(): DefaultActionGroup {
+  private suspend fun showDeviceActionPopup(anchorComponent: Component?, dataContext: DataContext) {
+    val actionGroup = createDeviceActions()
+
+    val popup = JBPopupFactory.getInstance().createActionGroupPopup(
+        null, actionGroup, dataContext,
+        if (actionGroup.childrenCount > 1) ActionSelectionAid.ALPHA_NUMBERING else ActionSelectionAid.SPEEDSEARCH,
+        true, null, -1, null,
+        ActionPlaces.getActionGroupPopupPlace(ActionPlaces.TOOLWINDOW_TOOLBAR_BAR))
+
+    if (anchorComponent == null) {
+      popup.showInFocusCenter()
+    }
+    else {
+      popup.showUnderneathOf(anchorComponent)
+    }
+    // Clear initial selection.
+    (popup as? ListPopupImpl)?.list?.clearSelection()
+  }
+
+  private suspend fun createDeviceActions(): DefaultActionGroup {
     return DefaultActionGroup().apply {
       val deviceDescriptions = devicesExcludedFromMirroring.values.toTypedArray().sortedBy { it.deviceName }
       if (deviceDescriptions.isNotEmpty()) {
-        add(Separator("Connected Physical Devices"))
+        add(Separator("Connected Devices"))
         for (deviceDescription in deviceDescriptions) {
           add(StartMirroringAction(deviceDescription))
         }
         add(Separator.getInstance())
       }
+
+      val avds = getStartableAvds().sortedBy { it.displayName }
+      if (avds.isNotEmpty()) {
+        add(Separator("Available Devices"))
+        for (avd in avds) {
+          add(StartAvdAction(avd, project))
+        }
+        add(Separator.getInstance())
+      }
       add(ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID))
+    }
+  }
+
+  private suspend fun getStartableAvds(): List<AvdInfo> {
+    return withContext(Dispatchers.IO) {
+      val runningAvdFolders = RunningEmulatorCatalog.getInstance().emulators.map { it.emulatorId.avdFolder }.toSet()
+      val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
+      avdManager.getAvds(false).filter { it.dataFolderPath !in runningAvdFolders }
     }
   }
 
@@ -848,24 +897,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private inner class NewTabAction : DumbAwareAction("New Tab", "Show a new device", AllIcons.General.Add), DumbAware {
 
     override fun actionPerformed(event: AnActionEvent) {
-      val actionGroup = createMirroringActions()
-
-      val popup = JBPopupFactory.getInstance().createActionGroupPopup(
-          null, actionGroup, event.dataContext,
-          if (actionGroup.childrenCount > 1) ActionSelectionAid.NUMBERING else ActionSelectionAid.SPEEDSEARCH,
-          true, null, -1, null,
-          ActionPlaces.getActionGroupPopupPlace(ActionPlaces.TOOLWINDOW_TOOLBAR_BAR))
-
       val component = event.inputEvent?.component
       val actionComponent = if (component is ActionButtonComponent) component else event.findComponentForAction(this)
-      if (actionComponent == null) {
-        popup.showInFocusCenter()
+      val dataContext = event.dataContext
+
+      toolWindowScope.launch {
+        showDeviceActionPopup(actionComponent, dataContext)
       }
-      else {
-        popup.showUnderneathOf(actionComponent)
-      }
-      // Clear initial selection.
-      (popup as? ListPopupImpl)?.list?.clearSelection()
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -875,6 +913,27 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     override fun actionPerformed(event: AnActionEvent) {
       activateMirroring(device)
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  }
+
+  private inner class StartAvdAction(private val avd: AvdInfo, private val project: Project) : DumbAwareAction(avd.displayName) {
+
+    override fun actionPerformed(event: AnActionEvent) {
+      toolWindowScope.launch(Dispatchers.IO) {
+        val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
+        try {
+          avdManager.startAvd(project, avd, RequestType.DIRECT_RUNNING_DEVICES).asDeferred().await()
+        }
+        catch (e: Exception) {
+          val message = e.message?.let { if (it.contains(avd.displayName)) it else "Unable to launch ${avd.displayName} - $it"} ?:
+              "Unable to launch ${avd.displayName}"
+          withContext(Dispatchers.EDT) {
+            showErrorDialog(toolWindow.component, message)
+          }
+        }
+      }
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

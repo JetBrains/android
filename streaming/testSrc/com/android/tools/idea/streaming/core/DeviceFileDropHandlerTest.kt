@@ -155,7 +155,7 @@ class DeviceFileDropHandlerTest {
   }
 
   private fun createWindowPanelForPhone(): EmulatorToolWindowPanel {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.root)
+    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot)
     return createWindowPanel(avdFolder)
   }
 

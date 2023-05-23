@@ -35,10 +35,10 @@ class RunningEmulatorCatalogTest {
   @Test
   fun testCatalogUpdates() {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), standalone = false)
-    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = true)
+    val tempFolder = emulatorRule.avdRoot
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder))
+    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     val eventQueue = LinkedBlockingDeque<CatalogEvent>()
     catalog.addListener(object : RunningEmulatorCatalog.Listener {
@@ -55,7 +55,7 @@ class RunningEmulatorCatalogTest {
     assertThat(catalog.emulators).isEmpty()
 
     // Start the first Emulator and check that it is reflected in the catalog after an explicit update.
-    emulator1.start()
+    emulator1.start(standalone = false)
     val emulators = catalog.updateNow().get()
     val event1: CatalogEvent = eventQueue.poll(50, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event1.type).isEqualTo(EventType.ADDED)
@@ -65,7 +65,7 @@ class RunningEmulatorCatalogTest {
     assertThat(emulators).isEqualTo(catalog.emulators)
 
     // Start the second Emulator and check that a listener gets notified.
-    emulator2.start()
+    emulator2.start(standalone = false)
     val event2 = eventQueue.poll(1500, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event2.type).isEqualTo(EventType.ADDED)
     assertThat(event2.emulator.emulatorId.grpcPort).isEqualTo(emulator2.grpcPort)
@@ -87,7 +87,7 @@ class RunningEmulatorCatalogTest {
     assertThat(catalog.emulators).isEmpty()
 
     // Start a standalone emulator and check that it is reflected in the catalog after an explicit update.
-    emulator3.start()
+    emulator3.start(standalone = true)
     val event5: CatalogEvent = eventQueue.poll(1500, TimeUnit.MILLISECONDS) ?: throw AssertionError("Listener was not called")
     assertThat(event5.type).isEqualTo(EventType.ADDED)
     assertThat(catalog.emulators).containsExactly(event5.emulator)

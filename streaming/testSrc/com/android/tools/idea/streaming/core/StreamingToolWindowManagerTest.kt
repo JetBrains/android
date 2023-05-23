@@ -22,6 +22,7 @@ import com.android.emulator.control.PaneEntry.PaneIndex
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.override
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
@@ -37,6 +38,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.streaming.createTestEvent
@@ -147,17 +149,17 @@ class StreamingToolWindowManagerTest {
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
 
-    val tempFolder = emulatorRule.root
-    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder), standalone = false)
-    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder), standalone = true)
-    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder), standalone = false)
+    val tempFolder = emulatorRule.avdRoot
+    val emulator1 = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
+    val emulator2 = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(tempFolder))
+    val emulator3 = emulatorRule.newEmulator(FakeEmulator.createWatchAvd(tempFolder))
 
     // The Emulator tool window is closed.
     assertThat(toolWindow.isVisible).isFalse()
 
     // Start the first and the second emulators.
-    emulator1.start()
-    emulator2.start()
+    emulator1.start(standalone = false)
+    emulator2.start(standalone = true)
 
     // Send notification that the emulator has been launched.
     val avdInfo = AvdInfo(emulator1.avdId, emulator1.avdFolder.resolve("config.ini"), emulator1.avdFolder, mock(), null)
@@ -179,7 +181,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
 
     // Start the third emulator.
-    emulator3.start()
+    emulator3.start(standalone = false)
 
     waitForCondition(3, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
 
@@ -222,7 +224,7 @@ class StreamingToolWindowManagerTest {
   fun testEmulatorCrash() {
     createToolWindowContent()
 
-    val tempFolder = emulatorRule.root
+    val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     toolWindow.show()
@@ -247,7 +249,7 @@ class StreamingToolWindowManagerTest {
   fun testUiStatePreservation() {
     createToolWindowContent()
 
-    val tempFolder = emulatorRule.root
+    val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     toolWindow.show()
@@ -287,7 +289,7 @@ class StreamingToolWindowManagerTest {
   fun testZoomStatePreservation() {
     createToolWindowContent()
 
-    val tempFolder = emulatorRule.root
+    val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
     toolWindow.show()
@@ -491,7 +493,7 @@ class StreamingToolWindowManagerTest {
     assertThat(newTabAction.templatePresentation.icon).isEqualTo(AllIcons.General.Add)
 
     newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
-    var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup()
+    var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
@@ -499,9 +501,9 @@ class StreamingToolWindowManagerTest {
     contentManager.removeContent(contentManager.contents[0], true)
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup()
+    popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
-        "[Separator (Connected Physical Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
+        "[Separator (Connected Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
         "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     executeStreamingAction(popup.actions[2], toolWindow.component, project)
@@ -510,9 +512,9 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 7 API 33")
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup()
+    popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
-        "[Separator (Connected Physical Devices), Pixel 4 API 30 (null), " +
+        "[Separator (Connected Devices), Pixel 4 API 30 (null), " +
                 "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
@@ -521,9 +523,46 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup()
+    popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+  }
+
+  @Test
+  fun testAvdStarting() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
+    EmulatorSettings.getInstance()::launchInToolWindow.override(false, testRootDisposable)
+    createToolWindowContent()
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+    toolWindow.show()
+
+    val avdRoot = emulatorRule.avdRoot
+    val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(avdRoot))
+    val tablet = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(avdRoot))
+    tablet.start(standalone = true)
+
+    assertThat(toolWindow.tabActions).isNotEmpty()
+    val newTabAction = toolWindow.tabActions[0]
+    val testEvent = createTestEvent(toolWindow.component, project)
+    newTabAction.actionPerformed(testEvent)
+    lateinit var popup: FakeListPopup<Any>
+    waitForCondition(4, TimeUnit.SECONDS) {
+      newTabAction.actionPerformed(testEvent)
+      popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
+      popup.items.size >= 2
+    }
+    assertThat(popup.actions.toString()).isEqualTo(
+        "[Separator (Available Devices), ${phone.avdName} (null), " +
+        "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+
+    executeStreamingAction(popup.actions[1], toolWindow.component, project)
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo(phone.avdName)
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo(phone.avdName)
   }
 
   @Test
@@ -569,13 +608,13 @@ class StreamingToolWindowManagerTest {
     val newTabAction = toolWindow.tabActions[0]
     val testEvent = createTestEvent(toolWindow.component, project)
     lateinit var popup: FakeListPopup<Any>
-    waitForCondition(2, TimeUnit.SECONDS) {
+    waitForCondition(4, TimeUnit.SECONDS) {
       newTabAction.actionPerformed(testEvent)
-      popup = popupRule.fakePopupFactory.getNextPopup()
+      popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
       popup.items.size >= 3
     }
     assertThat(popup.actions.toString()).isEqualTo(
-        "[Separator (Connected Physical Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
+        "[Separator (Connected Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
         "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
   }
 
@@ -696,7 +735,7 @@ class StreamingToolWindowManagerTest {
     windowFactory.init(toolWindow)
     toolWindow.setType(ToolWindowType.DOCKED) {}
 
-    val windowAction = (toolWindow as TestToolWindow).titleActions.find { it.templateText == "Window" }!!
+    val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
     windowAction.actionPerformed(AnActionEvent.createFromAnAction(windowAction, null, "", dataContext))
 
     assertThat(toolWindow.type).isEqualTo(ToolWindowType.WINDOWED)
@@ -705,7 +744,7 @@ class StreamingToolWindowManagerTest {
   @Test
   fun testWindowViewModeActionUnavailableWhenTypeIsWindowedOrFloat() {
     windowFactory.init(toolWindow)
-    val windowAction = (toolWindow as TestToolWindow).titleActions.find { it.templateText == "Window" }!!
+    val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
 
     toolWindow.setType(ToolWindowType.FLOATING) {}
     AnActionEvent.createFromAnAction(windowAction, null, "", dataContext).also(windowAction::update).let {

@@ -65,7 +65,7 @@ class EmulatorViewRule : TestRule {
 
   fun newEmulatorView(avdCreator: (Path) -> Path = { path -> FakeEmulator.createPhoneAvd(path) }): EmulatorView {
     val catalog = RunningEmulatorCatalog.getInstance()
-    val tempFolder = emulatorRule.root
+    val tempFolder = emulatorRule.avdRoot
     val fakeEmulator = emulatorRule.newEmulator(avdCreator(tempFolder))
     fakeEmulators[fakeEmulator.grpcPort] = fakeEmulator
     fakeEmulator.start()

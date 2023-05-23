@@ -49,6 +49,7 @@ import com.android.emulator.control.VmRunState
 import com.android.emulator.control.WheelEvent
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
 import com.android.io.writeImage
+import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
 import com.android.tools.idea.io.grpc.ForwardingServerCall.SimpleForwardingServerCall
@@ -118,10 +119,10 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 /**
  * Fake emulator for use in tests. Provides in-process gRPC services.
  */
-class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path, standalone: Boolean = false) {
+@Suppress("UseJBColor")
+class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path) {
 
   val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
-  private val registration: String
   private val registrationFile = registrationDirectory.resolve("pid_${grpcPort + 12345}.ini")
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("FakeEmulatorControllerService", 1)
   private var grpcServer = createGrpcServer()
@@ -179,30 +180,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
   private val grpcSemaphore = Semaphore(Int.MAX_VALUE)
 
-  init {
-    val embeddedFlags = if (standalone) {
-      ""
-    }
-    else {
-      """ "-qt-hide-window" "-idle-grpc-timeout" "300""""
-    }
-
-    registration = """
-      port.serial=${serialPort}
-      port.adb=${serialPort + 1}
-      avd.name=${avdId}
-      avd.dir=${avdFolder}
-      avd.id=${avdId}
-      cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "$avdId" $embeddedFlags
-      grpc.port=${grpcPort}
-      grpc.token=RmFrZSBnUlBDIHRva2Vu
-      """.trimIndent()
-  }
-
   /**
    * Starts the Emulator. The Emulator is fully initialized when the method returns.
    */
-  fun start() {
+  fun start(standalone: Boolean = false) {
     synchronized(lifeCycleLock) {
       val keysToExtract = setOf("fastboot.chosenSnapshotFile", "fastboot.forceChosenSnapshotBoot", "fastboot.forceFastBoot")
       val map = readKeyValueFile(avdFolder.resolve("config.ini"), keysToExtract)
@@ -218,8 +199,23 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       startTime = System.currentTimeMillis()
       grpcCallLog.clear()
       grpcServer.start()
-      Files.write(registrationFile, registration.toByteArray(UTF_8), CREATE_NEW)
+      Files.write(registrationFile, registrationContent(standalone).toByteArray(UTF_8), CREATE_NEW)
     }
+  }
+
+  private fun registrationContent(standalone: Boolean): String {
+    val embeddedFlags = if (standalone) "" else """ "-qt-hide-window" "-idle-grpc-timeout" "300""""
+
+    return """
+        port.serial=${serialPort}
+        port.adb=${serialPort + 1}
+        avd.name=${avdId}
+        avd.dir=${avdFolder}
+        avd.id=${avdId}
+        cmdline="/emulator_home/fake_emulator" "-netdelay" "none" "-netspeed" "full" "-avd" "$avdId" $embeddedFlags
+        grpc.port=${grpcPort}
+        grpc.token=RmFrZSBnUlBDIHRva2Vu
+        """.trimIndent()
   }
 
   /**
@@ -336,6 +332,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private fun drawDisplayImage(size: Dimension, displayId: Int): BufferedImage {
+    @Suppress("UndesirableClassUsage")
     val image = BufferedImage(size.width, size.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
     g.paint = Color.WHITE
@@ -854,7 +851,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      * Creates a fake "Pixel 3 XL" AVD. The skin path in config.ini is absolute.
      */
     @JvmStatic
-    fun createPhoneAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk"), api: Int = 29): Path {
+    fun createPhoneAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 29): Path {
       val avdId = "Pixel_3_XL_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -940,15 +937,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, sourceProperties)
-      return createAvd(avdFolder, configIni, hardwareIni)
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
     /**
      * Creates a fake "Nexus 10" AVD. The skin path in config.ini is relative.
      */
     @JvmStatic
-    fun createTabletAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk"), api: Int = 29): Path {
+    fun createTabletAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 29): Path {
       val avdId = "Nexus_10_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1037,15 +1034,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, sourceProperties)
-      return createAvd(avdFolder, configIni, hardwareIni)
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
     /**
      * Creates a fake "7.6 Fold-in with outer display" AVD.
      */
     @JvmStatic
-    fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk"), api: Int = 31): Path {
+    fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 31): Path {
       val avdId = "7.6_Fold-in_with_outer_display_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1158,15 +1155,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, sourceProperties)
-      return createAvd(avdFolder, configIni, hardwareIni)
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
     /**
      * Creates a fake 7.4 "Rollable" AVD.
      */
     @JvmStatic
-    fun createRollableAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk"), api: Int = 31): Path {
+    fun createRollableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 31): Path {
       val avdId = "7.4_Rollable_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1293,15 +1290,15 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, sourceProperties)
-      return createAvd(avdFolder, configIni, hardwareIni)
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
     /**
      * Creates a fake "Resizable" AVD.
      */
     @JvmStatic
-    fun createResizableAvd(parentFolder: Path, sdkFolder: Path = parentFolder.resolve("Sdk"), api: Int = 32): Path {
+    fun createResizableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 32): Path {
       val avdId = "Resizable_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
@@ -1389,8 +1386,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           Addon.VendorDisplay=Google Inc.
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, sourceProperties)
-      return createAvd(avdFolder, configIni, hardwareIni)
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
     /**
@@ -1398,7 +1395,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
      */
     @JvmStatic
     fun createWatchAvd(parentFolder: Path,
-                       sdkFolder: Path = parentFolder.resolve("Sdk"),
+                       sdkFolder: Path = getSdkFolder(parentFolder),
                        api: Int = 30,
                        skinFolder: Path? = getSkinFolder("wearos_small_round")): Path {
       val avdId = "Android_Wear_Round_API_$api"
@@ -1485,20 +1482,42 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           SystemImage.TagDisplay=Wear OS
           """.trimIndent()
 
-      createSystemImage(systemImageFolder, sourceProperties)
-      return createAvd(avdFolder, configIni, hardwareIni)
+      createSystemImage(systemImageFolder, api, sourceProperties)
+      return createAvd(avdId, avdFolder, configIni, hardwareIni)
     }
 
-    private fun createSystemImage(systemImageFolder: Path, sourceProperties: String) {
+    private fun createSystemImage(systemImageFolder: Path, api: Int, sourceProperties: String) {
+      if (Files.exists(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))) {
+        return
+      }
       systemImageFolder.createDirectories()
-      Files.write(systemImageFolder.resolve("source.properties"), sourceProperties.toByteArray(UTF_8))
+      val abi = systemImageFolder.fileName.toString()
+      val packageContents = """
+          <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+          <ns:sdk-sys-img xmlns:ns="http://schemas.android.com/sdk/android/repo/sys-img2/01">
+            <localPackage path="${systemImageFolder.toString().replace('/', ';')}" obsolete="false">
+              <type-details xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ns:sysImgDetailsType">
+                <api-level>$api</api-level>
+                <tag><id>google_apis</id><display>Google APIs</display></tag>
+                <vendor><id>google</id><display>Google Inc.</display></vendor>
+                <abi>$abi</abi>
+              </type-details>
+              <revision><major>9</major></revision>
+              <display-name>Google APIs System Image</display-name>
+            </localPackage>
+          </ns:sdk-sys-img>
+          """.trimIndent()
+      Files.writeString(systemImageFolder.resolve("package.xml"), packageContents)
+      Files.writeString(systemImageFolder.resolve("source.properties"), sourceProperties)
+      Files.createFile(systemImageFolder.resolve(SystemImageManager.SYS_IMG_NAME))
     }
 
     @JvmStatic
-    private fun createAvd(avdFolder: Path, configIni: String, hardwareIni: String): Path {
+    private fun createAvd(avdId: String, avdFolder: Path, configIni: String, hardwareIni: String): Path {
       avdFolder.createDirectories()
-      Files.write(avdFolder.resolve("config.ini"), configIni.toByteArray(UTF_8))
-      Files.write(avdFolder.resolve("hardware-qemu.ini"), hardwareIni.toByteArray(UTF_8))
+      Files.writeString(avdFolder.resolve("config.ini"), configIni)
+      Files.writeString(avdFolder.resolve("hardware-qemu.ini"), hardwareIni)
+      Files.writeString(avdFolder.parent.resolve("$avdId.ini"), "path=$avdFolder")
       return avdFolder
     }
 
@@ -1531,6 +1550,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     @JvmStatic
     fun grpcServerName(port: Int) = "FakeEmulator@${port}"
 
+    @JvmStatic
+    fun getSdkFolder(avdRootFolder: Path): Path =
+        avdRootFolder.resolve("Sdk")
+
     /**
      * Waits for the next queued item while dispatching UI events. Returns the next item and removes
      * it from the queue of recorded items. Throws TimeoutException if the specified waiting time
@@ -1562,6 +1585,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
 private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)
 
+@Suppress("UseJBColor")
 private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 219, 216), Color(212, 230, 241), Color(84, 153, 199)),
                                    ColorScheme(Color(154, 236, 99), Color(230, 250, 216), Color(238, 212, 241), Color(188, 84, 199)),
                                    ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),

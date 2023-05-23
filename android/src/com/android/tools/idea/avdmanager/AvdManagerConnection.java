@@ -128,6 +128,7 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
@@ -246,18 +247,17 @@ public class AvdManagerConnection {
   }
 
   /**
-   * Sets a factory to be used for creating connections, so subclasses can be injected for testing.
+   * Sets the factory to be used for creating connections, so subclasses can be injected for testing.
    */
-  @VisibleForTesting
-  protected synchronized static void setConnectionFactory(
-    @NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> factory) {
+  @TestOnly
+  public synchronized static void setConnectionFactory(@NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> factory) {
     ourAvdCache.clear();
     ourGradleAvdCache.clear();
     ourConnectionFactory = factory;
   }
 
-  @VisibleForTesting
-  protected static void resetConnectionFactory() {
+  @TestOnly
+  public static void resetConnectionFactory() {
     setConnectionFactory(AvdManagerConnection::new);
   }
 

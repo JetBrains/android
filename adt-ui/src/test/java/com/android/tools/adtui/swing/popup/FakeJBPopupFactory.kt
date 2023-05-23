@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.swing.popup
 
+import com.android.testutils.waitForCondition
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -41,6 +42,7 @@ import com.intellij.ui.popup.ActionPopupStep
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
+import java.util.concurrent.TimeUnit
 import java.util.function.Function
 import java.util.function.Supplier
 import javax.swing.Icon
@@ -83,6 +85,18 @@ class FakeJBPopupFactory : JBPopupFactory() {
    */
   @Suppress("UNCHECKED_CAST")
   fun <T, U : FakeJBPopup<T>> getNextPopup(): U = popups.removeFirst() as U
+
+  /**
+   * Returns the oldest popup that was created using this factory and removes it from the factory.
+   * If no popups have been created yet, waits for one to be created.
+   *
+   * Type safety is the responsibility of the caller.
+   */
+  @Suppress("UNCHECKED_CAST")
+  fun <T, U : FakeJBPopup<T>> getNextPopup(timeout: Long, timeUnit: TimeUnit): U {
+    waitForCondition(timeout, timeUnit) { popups.isNotEmpty() }
+    return popups.removeFirst() as U
+  }
 
   /**
    * Returns a balloon that has been created using this factory.

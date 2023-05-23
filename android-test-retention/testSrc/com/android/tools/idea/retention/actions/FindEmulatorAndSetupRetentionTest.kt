@@ -77,7 +77,7 @@ class FindEmulatorAndSetupRetentionTest {
 
   @Before
   fun setUp() {
-    tempFolder = emulatorRule.root
+    tempFolder = emulatorRule.avdRoot
     snapshotFile = File(tempFolder.resolve("snapshot.tar").toUri())
     snapshotFile.writeText("file content")
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(AndroidLocationsSingleton.avdLocation))

@@ -238,7 +238,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testWearToolbarActionsApi30() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 30)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 30)
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
 
@@ -308,7 +308,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testWearToolbarActionsApi28() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 28)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 28)
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
 
@@ -342,7 +342,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testWearToolbarActionsApi26() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 26)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 26)
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
 
@@ -378,7 +378,7 @@ class EmulatorToolWindowPanelTest {
 
   @Test
   fun testChangeDisplayMode() {
-    val avdFolder = FakeEmulator.createResizableAvd(emulatorRule.root)
+    val avdFolder = FakeEmulator.createResizableAvd(emulatorRule.avdRoot)
     val panel = createWindowPanel(avdFolder)
     panel.zoomToolbarVisible = false
     val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
@@ -455,7 +455,7 @@ class EmulatorToolWindowPanelTest {
   /** Checks a large container size resulting in a scale greater than 1:1. */
   @Test
   fun testZoomLargeScale() {
-    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 30)
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.avdRoot, api = 30)
     val panel = createWindowPanel(avdFolder)
     val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
 
@@ -720,7 +720,7 @@ class EmulatorToolWindowPanelTest {
   }
 
   private fun createWindowPanelForPhone(): EmulatorToolWindowPanel {
-    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.root)
+    val avdFolder = FakeEmulator.createPhoneAvd(emulatorRule.avdRoot)
     return createWindowPanel(avdFolder)
   }
 

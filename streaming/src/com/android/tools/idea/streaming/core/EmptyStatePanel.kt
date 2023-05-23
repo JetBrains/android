@@ -18,12 +18,9 @@ package com.android.tools.idea.streaming.core
 import com.android.SdkConstants
 import com.android.annotations.concurrency.AnyThread
 import com.android.repository.Revision
-import com.android.repository.api.ProgressIndicator
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.adtui.stdui.StandardColors
-import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.streaming.DeviceMirroringSettings
@@ -32,11 +29,13 @@ import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettingsListener
 import com.android.tools.idea.streaming.device.settings.DeviceMirroringSettingsPage
 import com.android.tools.idea.streaming.emulator.settings.EmulatorSettingsPage
+import com.intellij.collaboration.async.disposingScope
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -46,6 +45,9 @@ import com.intellij.ui.components.htmlComponent
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.AndroidIcons
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.SwingConstants
@@ -68,7 +70,6 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
   private var deviceMirroringEnabled: Boolean
   private var emulatorVersionIsSufficient: Boolean
   private var hyperlinkListener: HyperlinkListener
-  private var disposed = false
 
   init {
     Disposer.register(disposableParent, this)
@@ -115,17 +116,21 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
       updateContent()
     })
 
-    AndroidExecutors.getInstance().workerThreadExecutor.execute {
+    val progress = StudioLoggerProgressIndicator(EmptyStatePanel::class.java)
+    @Suppress("UnstableApiUsage")
+    val job = disposingScope(Dispatchers.IO).launch {
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      val progress: ProgressIndicator = StudioLoggerProgressIndicator(AvdManagerConnection::class.java)
       val sdkManager = sdkHandler.getSdkManager(progress)
       val listener = RepoLoadedListener { packages -> localPackagesUpdated(packages) }
-      UIUtil.invokeLaterIfNeeded {
-        if (!disposed) {
-          sdkManager.addLocalChangeListener(listener)
-          Disposer.register(this) { sdkManager.removeLocalChangeListener(listener) }
-          localPackagesUpdated(sdkManager.packages)
-        }
+      sdkManager.addLocalChangeListener(listener)
+      Disposer.register(this@EmptyStatePanel) { sdkManager.removeLocalChangeListener(listener) }
+      localPackagesUpdated(sdkManager.packages)
+    }
+    Disposer.register(this) {
+      progress.cancel()
+      job.cancel()
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        runBlocking { job.join() } // Wait for asynchronous activity to finish in tests.
       }
     }
 
@@ -275,6 +280,5 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
   }
 
   override fun dispose() {
-    disposed = true
   }
 }
