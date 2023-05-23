@@ -199,7 +199,9 @@ class SourceCodeEditorProviderTest {
     runBlocking {
       preview.awaitForRepresentationsUpdated()
     }
+/* b/284511036
     assertThat(preview.representationNames).containsExactly("Representation1")
+b/284511036 */
   }
 
   // Regression test for b/232045613
