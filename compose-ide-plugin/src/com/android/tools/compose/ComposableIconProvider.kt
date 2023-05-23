@@ -27,8 +27,8 @@ import org.jetbrains.kotlin.psi.psiUtil.hasActualModifier
 import javax.swing.Icon
 
 /**
- * Returns Composable function icon for [KtFunction] elements that are composable, and fall back to the Kotlin plugin's default
- * [KotlinIconProvider] otherwise. This may be used in various places across the IDE; one example is in the "Add Import" menu.
+ * Returns Composable function icon for [KtFunction] elements that are composable, or null otherwise to allow fallback to any
+ * other providers. This may be used in various places across the IDE; one example is in the "Add Import" menu.
  */
 class ComposableIconProvider : KotlinIconProvider() {
 
@@ -41,7 +41,7 @@ class ComposableIconProvider : KotlinIconProvider() {
       return COMPOSABLE_FUNCTION
     }
 
-    return super.getIcon(psiElement, flags)
+    return null
   }
 
   override fun isMatchingExpected(declaration: KtDeclaration): Boolean {
