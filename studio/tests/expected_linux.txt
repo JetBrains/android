@@ -450,7 +450,7 @@ android-studio/lib/ant/lib/classpath.index
 android-studio/lib/ant/lib/libraries.properties
 android-studio/lib/ant/src.zip
 android-studio/lib/app.jar
-android-studio/lib/build-marker-AI-231.8109.175.2311.__BUILD_NUMBER__
+android-studio/lib/build-marker-AI-231.8770.65.2311.__BUILD_NUMBER__
 android-studio/lib/byte-buddy-agent.jar
 android-studio/lib/cds/classesLogAgent.jar
 android-studio/lib/error-prone-annotations.jar
@@ -593,7 +593,6 @@ android-studio/plugins/Kotlin/kotlinc/lib/kotlin-script-runtime.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-common.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-compiler-impl.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-compiler.jar
-android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-js.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-jvm.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk7-sources.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk7.jar

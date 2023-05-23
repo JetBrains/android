@@ -662,7 +662,6 @@ android-studio/plugins/Kotlin/kotlinc/lib/kotlin-script-runtime.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-common.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-compiler-impl.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-compiler.jar
-android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-js.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-scripting-jvm.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk7-sources.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk7.jar

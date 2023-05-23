@@ -594,7 +594,6 @@ Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-script-run
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-scripting-common.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-scripting-compiler-impl.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-scripting-compiler.jar
-Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-scripting-js.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-scripting-jvm.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk7-sources.jar
 Android Studio Preview.app/Contents/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk7.jar
