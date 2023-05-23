@@ -318,15 +318,27 @@ class CaptureNodeHRendererTest {
       assertThat(e.message).isEqualTo("Model must be a subclass of NativeNodeModel.")
     }
 
-    val vendorModel = CppFunctionModel.Builder("Load").setIsUserCode(false).setClassOrNamespace("glClear").build()
+    val vendorModel = CppFunctionModel.Builder("Load").apply {
+      isUserCode = false
+      classOrNamespace = "glClear"
+    }.build()
+
     doTestNativeColors(vendorModel, ProfilerColors.CPU_CALLCHART_VENDOR, ProfilerColors.CPU_FLAMECHART_VENDOR,
                        ProfilerColors.CPU_CALLCHART_VENDOR_HOVER, ProfilerColors.CPU_FLAMECHART_VENDOR_HOVER)
 
-    val platformModel = CppFunctionModel.Builder("Inflate").setIsUserCode(false).setClassOrNamespace("android::Activity").build()
+    val platformModel = CppFunctionModel.Builder("Inflate").apply {
+      isUserCode = false
+      classOrNamespace = "android::Activity"
+    }.build()
+
     doTestNativeColors(platformModel, ProfilerColors.CPU_CALLCHART_PLATFORM, ProfilerColors.CPU_FLAMECHART_PLATFORM,
                        ProfilerColors.CPU_CALLCHART_PLATFORM_HOVER, ProfilerColors.CPU_FLAMECHART_PLATFORM_HOVER)
 
-    val appModel = CppFunctionModel.Builder("DoFrame").setIsUserCode(true).setClassOrNamespace("PlayScene").build()
+    val appModel = CppFunctionModel.Builder("DoFrame").apply {
+      isUserCode = true
+      classOrNamespace = "PlayScene"
+    }.build()
+
     doTestNativeColors(appModel, ProfilerColors.CPU_CALLCHART_APP, ProfilerColors.CPU_FLAMECHART_APP,
                        ProfilerColors.CPU_CALLCHART_APP_HOVER, ProfilerColors.CPU_FLAMECHART_APP_HOVER)
   }
@@ -345,8 +357,12 @@ class CaptureNodeHRendererTest {
 
   @Test
   fun testFittingTextForNativeMethod() {
-    checkFittingText(nodeModel = CppFunctionModel.Builder("myNativeMethod").setParameters("int, float")
-      .setClassOrNamespace("MyNativeClass").build(), expectedTexts = listOf(
+    val cppFunctionModule = CppFunctionModel.Builder("myNativeMethod").apply {
+      parameters = "int, float"
+      classOrNamespace = "MyNativeClass"
+    }.build()
+
+    checkFittingText(nodeModel = cppFunctionModule, expectedTexts = listOf(
       "MyNativeClass::myNativeMethod",
       "M::myNativeMethod",
       "myNativeMethod",
