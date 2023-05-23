@@ -605,6 +605,26 @@ class TreeTableImplTest {
   }
 
   @Test
+  fun testExplicitExpansionWithModelUpdate() {
+    val result = createTree() {
+      withExpandableRoot()
+    }
+    val table = result.focusComponent as TreeTableImpl
+    val model = result.model
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Nothing is expanded:
+    assertThat(table.rowCount).isEqualTo(1)
+
+    // Simulate a model change.
+    model.hierarchyChanged(null, listOf(item1, item2))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // item1 and item2 are expanded:
+    assertThat(table.rowCount).isEqualTo(4)
+  }
+
+  @Test
   fun testFullExpansionOnRootUpdates() {
     val result = createTree {
       withExpandAllOnRootChange()

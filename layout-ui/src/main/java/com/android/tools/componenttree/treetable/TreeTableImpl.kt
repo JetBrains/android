@@ -333,6 +333,7 @@ class TreeTableImpl(
         } else {
           TreeUtil.restoreExpandedPaths(tree, expanded)
         }
+        event.toExpand.forEach { tree.expandPath(it) }
       }
       (transferHandler as? TreeTableTransferHandler)?.resetDraggedItem()
       dropTargetHandler?.reset()

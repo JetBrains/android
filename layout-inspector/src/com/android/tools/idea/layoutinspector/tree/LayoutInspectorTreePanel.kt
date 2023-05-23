@@ -446,17 +446,17 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   override fun dispose() {
   }
 
-  @Suppress("UNUSED_PARAMETER")
   private fun modelModified(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     if (structuralChange) {
-      var changedNode = new?.let { addToRoot(it) }
+      val added = new?.let { addToRoot(it) } ?: emptyList()
+      var changedNode = added.singleOrNull() ?: root
+      val toExpand = if (old == null) added else emptyList()
       if (windowRoots.keys.retainAll(inspectorModel?.windows?.keys ?: emptySet())) {
+        // If a different window was removed then force an update of the root node
         changedNode = root
       }
-      if (changedNode == root) {
-        rebuildRoot()
-      }
-      changedNode?.let { componentTreeModel.hierarchyChanged(it) }
+      rebuildRoot()
+      componentTreeModel.hierarchyChanged(changedNode, toExpand)
     } else {
       componentTreeModel.columnDataChanged()
     }
@@ -468,23 +468,23 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     invokeLater { toolWindowCallback?.updateActions() }
   }
 
-  private fun addToRoot(window: AndroidWindow): TreeViewNode {
+  /**
+   * Add the TreeViewNode(s) of [window] root to the corresponding [windowRoots] such that the TreeViewNode tree reflect
+   * the current system filter setting. Since the [window] root may be currently hidden there may be multiple roots.
+   * Return these roots.
+   */
+  private fun addToRoot(window: AndroidWindow): List<TreeViewNode> {
     temp.children.clear()
     readAccess {
       updateHierarchy(window.root, temp, temp)
     }
     temp.children.forEach { it.parent = root }
-    val changedNode = temp.children.singleOrNull()
     val windowNodes = windowRoots.getOrPut(window.id) { mutableListOf() }
-    if (changedNode != null && windowNodes.singleOrNull() === changedNode) {
-      temp.children.clear()
-      return changedNode
-    }
     windowNodes.clear()
     windowNodes.addAll(temp.children)
     temp.children.clear()
 
-    return root
+    return windowNodes
   }
 
   private fun rebuildRoot() {

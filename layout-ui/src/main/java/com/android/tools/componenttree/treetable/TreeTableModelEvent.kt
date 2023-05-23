@@ -21,10 +21,17 @@ import javax.swing.tree.TreePath
 /**
  * A TreeModelEvent with information of whether this change implies a root change.
  */
-class TreeTableModelEvent(source: Any, path: TreePath?, val rootChanged: Boolean) : TreeModelEvent(source, path)
+class TreeTableModelEvent(
+  source: Any, path: TreePath?,
+  val rootChanged: Boolean,
+  val toExpand: List<TreePath>
+) : TreeModelEvent(source, path)
 
 /**
  * Return true if the root has changed with a given tree model change event.
  */
 val TreeModelEvent.rootChanged: Boolean
   get() = (this as? TreeTableModelEvent)?.rootChanged ?: false
+
+val TreeModelEvent.toExpand: List<TreePath>
+  get() = (this as? TreeTableModelEvent)?.toExpand ?: emptyList()
