@@ -17,19 +17,19 @@ iml_module(
         "Benchmark200Repeated20TimesMemory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
         },
-        "Benchmark500": {
+        "Benchmark500Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
             "exec_properties": LARGE_MACHINE,
         },
-        "Benchmark1000": {
+        "Benchmark1000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
             "exec_properties": LARGE_MACHINE,
         },
-        "Benchmark2000": {
+        "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
         },
-        "BenchmarkXL": {
+        "Benchmark4200Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark4200MemoryTest",
             "exec_properties": LARGE_MACHINE,
             "tags": ["manual"],
@@ -39,6 +39,20 @@ iml_module(
         },
         "Benchmark500Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
+        },
+        "Benchmark1000Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
+            "exec_properties": LARGE_MACHINE,
+        },
+        "Benchmark2000Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
+            "exec_properties": LARGE_MACHINE,
+            "tags": ["manual"],
+        },
+        "Benchmark4200Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark4200CpuTest",
+            "exec_properties": LARGE_MACHINE,
+            "tags": ["manual"],
         },
     },
     test_data = [
