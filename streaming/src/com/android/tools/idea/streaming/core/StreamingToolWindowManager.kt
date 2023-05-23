@@ -675,7 +675,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun startMirroringIfConfirmed(serialNumber: String, deviceClient: DeviceClient) {
-    if (deviceMirroringSettings.confirmationDialogShown) {
+    // Reservable devices are assumed to be privacy protected.
+    if (deviceMirroringSettings.confirmationDialogShown || deviceClient.deviceHandle.reservationAction != null) {
       startMirroring(serialNumber, deviceClient)
     }
     else if (!mirroringConfirmationDialogShowing) { // Ignore a recursive call inside the dialog's event loop.
