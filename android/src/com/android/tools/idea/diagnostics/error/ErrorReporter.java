@@ -17,12 +17,16 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.annotations.Nullable;
+import com.android.tools.analytics.AnalyticsSettings;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
 import com.android.tools.idea.diagnostics.StudioCrashDetails;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReport;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.SystemHealthEvent;
 import com.intellij.diagnostic.AbstractMessage;
 import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.diagnostic.ReportMessages;
@@ -39,6 +43,7 @@ import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.diagnostic.SubmittedReportInfo;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -48,7 +53,11 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
+import java.util.Arrays;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.diagnostics.error.ErrorBean;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
@@ -59,7 +68,9 @@ import java.util.List;
 import java.util.Map;
 
 public class ErrorReporter extends ErrorReportSubmitter {
+  private static final Logger LOG = Logger.getInstance(ErrorReporter.class);
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
+  private static final long REPORT_ID_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10);
 
   @NotNull
   @Override
@@ -84,13 +95,12 @@ public class ErrorReporter extends ErrorReportSubmitter {
       bean.setPluginVersion(plugin.getVersion());
     }
 
-    Object data = event.getData();
-
     // Early escape (and no UI impact) if these are analytics events being pushed from the platform
-    if (handleAnalyticsReports(event.getThrowable(), data)) {
+    if (handleAnalyticsReports(event, bean)) {
       return true;
     }
 
+    Object data = event.getData();
     if (data instanceof AbstractMessage) {
       bean.setAttachments(((AbstractMessage)data).getIncludedAttachments());
     }
@@ -129,11 +139,8 @@ public class ErrorReporter extends ErrorReportSubmitter {
     if (data instanceof ErrorReportCustomizer) {
       feedbackTask = ((ErrorReportCustomizer) data).makeReportingTask(project, FEEDBACK_TASK_TITLE, true, bean, successCallback, errorCallback);
     } else {
-      List<Pair<String, String>> kv = IdeaITNProxy
-        .getKeyValuePairs(null, null, bean, ApplicationManager.getApplication(),
-                          (ApplicationInfoEx)ApplicationInfo.getInstance(), ApplicationNamesInfo.getInstance(),
-                          UpdateSettings.getInstance());
-      feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), pair2map(kv), successCallback, errorCallback);
+      Map<String, String> errorDataMap = getPlatformErrorData(bean);
+      feedbackTask = new SubmitCrashReportTask(project, FEEDBACK_TASK_TITLE, true, event.getThrowable(), errorDataMap, successCallback, errorCallback);
     }
 
     if (project == null) {
@@ -154,59 +161,150 @@ public class ErrorReporter extends ErrorReportSubmitter {
     return true;
   }
 
-  private static boolean handleAnalyticsReports(@Nullable Throwable t, @Nullable Object data) {
-    if (!(data instanceof Map)) {
+  private static boolean handleAnalyticsReports(@NotNull IdeaLoggingEvent loggingEvent, ErrorBean bean) {
+    Object data = loggingEvent.getData();
+
+    if (!(data instanceof Map map)) {
       return false;
     }
 
-    Map map = (Map)data;
     String type = (String)map.get("Type");
-    if ("Exception".equals(type)) {
-      ImmutableMap<String, String> productData = ImmutableMap.of("md5", (String)map.get("md5"),
-                                                                 "summary", (String)map.get("summary"));
-      StudioExceptionReport exceptionReport =
-        new StudioExceptionReport.Builder().setThrowable(t, false, true).addProductData(productData).build();
-      StudioCrashReporter.getInstance().submit(exceptionReport);
-    }
-    else if ("Crashes".equals(type)) {
-      //noinspection unchecked
-      List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
-      List<String> descriptions = ContainerUtil.map(crashDetails, details -> details.getDescription());
-      // If at least one report was JVM crash, submit the batch as a JVM crash
-      boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
-      // As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
-      // a single crash anyway).
-      long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
-
-      StudioCrashReport.Builder reportBuilder =
-        new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs);
-
-      if (isJvmCrash) {
-        Optional<StudioCrashDetails> jvmCrashOptional = crashDetails.stream().filter(details -> details.isJvmCrash()).findAny();
-        if (jvmCrashOptional.isPresent()) {
-          StudioCrashDetails jvmCrash = jvmCrashOptional.get();
-          reportBuilder.setErrorSignal(jvmCrash.getErrorSignal());
-          reportBuilder.setErrorFrame(jvmCrash.getErrorFrame());
-          reportBuilder.setErrorThread(jvmCrash.getErrorThread());
-          reportBuilder.setNativeStack(jvmCrash.getNativeStack());
-        }
+    switch (type) {
+      case "Exception" -> {
+        handleExceptionEvent(loggingEvent, map, bean);
+        return true;
       }
-
-      StudioCrashReport report = reportBuilder.build();
-      // Crash reports are not limited by a rate limiter.
-      StudioCrashReporter.getInstance().submit(report, true);
+      case "Crashes" -> {
+        handleCrashesEvent(map);
+        return true;
+      }
     }
-    return true;
+    return false;
+  }
+
+  private static void handleCrashesEvent(Map map) {
+    //noinspection unchecked
+    List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
+    List<String> descriptions = ContainerUtil.map(crashDetails, StudioCrashDetails::getDescription);
+    // If at least one report was JVM crash, submit the batch as a JVM crash
+    boolean isJvmCrash = crashDetails.stream().anyMatch(StudioCrashDetails::isJvmCrash);
+    // As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only
+    // a single crash anyway).
+    long uptimeInMs = crashDetails.stream().mapToLong(StudioCrashDetails::getUptimeInMs).min().orElse(-1);
+
+    StudioCrashReport.Builder reportBuilder =
+      new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs);
+
+    if (isJvmCrash) {
+      Optional<StudioCrashDetails> jvmCrashOptional = crashDetails.stream().filter(StudioCrashDetails::isJvmCrash).findAny();
+      if (jvmCrashOptional.isPresent()) {
+        StudioCrashDetails jvmCrash = jvmCrashOptional.get();
+        reportBuilder.setErrorSignal(jvmCrash.getErrorSignal());
+        reportBuilder.setErrorFrame(jvmCrash.getErrorFrame());
+        reportBuilder.setErrorThread(jvmCrash.getErrorThread());
+        reportBuilder.setNativeStack(jvmCrash.getNativeStack());
+      }
+    }
+
+    StudioCrashReport report = reportBuilder.build();
+    // Crash reports are not limited by a rate limiter.
+    StudioCrashReporter.getInstance().submit(report, true);
+  }
+
+  private static void handleExceptionEvent(@NotNull IdeaLoggingEvent loggingEvent, Map<Object, Object> map, ErrorBean bean) {
+    Throwable t = loggingEvent.getThrowable();
+
+    if (t == null) {
+      return;
+    }
+
+    AndroidStudioSystemHealthMonitor.AndroidStudioExceptionEvent exceptionEvent =
+      loggingEvent instanceof AndroidStudioSystemHealthMonitor.AndroidStudioExceptionEvent
+      ? (AndroidStudioSystemHealthMonitor.AndroidStudioExceptionEvent)loggingEvent
+      : null;
+
+    ImmutableMap.Builder<String, String> mapBuilder = ImmutableMap.builder();
+    for (Entry<Object, Object> e : map.entrySet()) {
+      mapBuilder.put(e.getKey().toString(), e.getValue().toString());
+    }
+
+    Map<String, String> platformMap = getPlatformErrorData(bean);
+    for (Entry<String, String> e : platformMap.entrySet()) {
+      mapBuilder.put(e.getKey(), e.getValue());
+    }
+
+    mapBuilder.put("sessionId", UsageTracker.getSessionId());
+
+    ImmutableMap<String, String> productData = mapBuilder.buildKeepingLast();
+    StudioExceptionReport exceptionReport =
+      new StudioExceptionReport.Builder().setThrowable(t, false, true).addProductData(productData).build();
+
+    // Submit exception through Crash reporter
+    // Note: Exceptions use their own limiter, so it should skip StudioCrashReporter limiter
+    CompletableFuture<String> reportIdFuture = StudioCrashReporter.getInstance().submit(exceptionReport, true);
+
+    final long timeMs = AnalyticsSettings.getDateProvider().now().getTime();
+    reportIdFuture
+      .completeOnTimeout("[timeout:%dms]".formatted(REPORT_ID_TIMEOUT_MS), REPORT_ID_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+      .whenComplete(
+        (reportId, throwable) -> {
+          if (throwable != null) {
+            // Exception thrown while uploading report to crash
+            reportId = "[exception:%s]".formatted(throwable.getClass().getName());
+          }
+
+          SystemHealthEvent.Exception.Builder exceptionBuilder =
+            SystemHealthEvent.Exception.newBuilder()
+              .setCrashReportId(reportId);
+
+          String signature = "[missing signature]";
+          if (exceptionEvent != null) {
+            signature = exceptionEvent.getSignature();
+            exceptionBuilder
+              .setExceptionIndex(exceptionEvent.getExceptionIndex())
+              .setSignatureIndex(exceptionEvent.getSignatureIndex())
+              .setSignatureReportsSkipped(exceptionEvent.getDeniedSinceLastAllow())
+              .setStableSignature(signature);
+          }
+          final AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.SYSTEM_HEALTH_EVENT)
+              .setSystemHealthEvent(
+                SystemHealthEvent.newBuilder()
+                  .setEventType(SystemHealthEvent.SystemHealthEventType.EXCEPTION)
+                  .setException(exceptionBuilder)
+              );
+          UsageTracker.log(timeMs, event);
+          LOG.info("Exception signature: %s, report ID: %s".formatted(signature, reportId));
+        });
   }
 
   @NotNull
-  private static Map<String, String> pair2map(@NotNull List<Pair<String, String>> kv) {
-    Map<String, String> m = Maps.newHashMapWithExpectedSize(kv.size());
+  private static Map<String, String> getPlatformErrorData(ErrorBean bean) {
+    List<Pair<String, String>> keyValuePairs = IdeaITNProxy
+      .getKeyValuePairs(
+        null,
+        null,
+        bean,
+        ApplicationManager.getApplication(),
+        (ApplicationInfoEx)ApplicationInfo.getInstance(),
+        ApplicationNamesInfo.getInstance(),
+        UpdateSettings.getInstance());
 
-    for (Pair<String, String> i : kv) {
-      m.put(i.getFirst(), i.getSecond());
+    ImmutableMap.Builder<String,String> builder = ImmutableMap.builder();
+    for (Pair<String, String> p : keyValuePairs) {
+      if (p.first != null && p.second != null && !ignoredErrorDataEntry(p.first)) {
+        builder.put(p.first, p.second);
+      }
+    }
+    return builder.build();
+  }
+
+  private static boolean ignoredErrorDataEntry(@NotNull String key) {
+    for (String s : Arrays.asList("os.", "user.", "java.", "error.")) {
+      if (key.startsWith(s))
+        return true;
     }
 
-    return m;
+    return false;
   }
 }

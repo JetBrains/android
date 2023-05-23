@@ -30,7 +30,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
-import org.apache.log4j.LogManager
 import java.util.Calendar
 import java.util.GregorianCalendar
 
@@ -154,18 +153,18 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
   }
 
   fun testCalculateSignature() {
-    val sig1 = service.calculateSignature(ex1)
+    val sig1 = ExceptionDataCollection.calculateSignature(ex1)
     assertThat(sig1).isEqualTo(ex1Sig)
 
-    val sig2 = service.calculateSignature(ex2)
+    val sig2 = ExceptionDataCollection.calculateSignature(ex2)
     assertThat(sig2).isEqualTo(ex2Sig)
 
-    val sig3 = service.calculateSignature(ex3)
+    val sig3 = ExceptionDataCollection.calculateSignature(ex3)
     assertThat(sig3).isEqualTo(ex3Sig)
   }
 
   fun testCalculateSignatueMissingStack() {
-    val sig3 = service.calculateSignature(exNoStack)
+    val sig3 = ExceptionDataCollection.calculateSignature(exNoStack)
     assertThat(sig3).isEqualTo(exNoStackSig)
   }
 
