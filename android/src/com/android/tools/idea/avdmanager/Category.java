@@ -22,12 +22,18 @@ import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 enum Category {
-  PHONE("Phone", "Pixel 2", definition -> definition.getTagId() == null && !hasTabletScreen(definition)),
-  TABLET("Tablet", "Pixel C", definition -> definition.getTagId() == null && hasTabletScreen(definition)),
-  WEAR_OS("Wear OS", "Wear OS Square", HardwareConfigHelper::isWear),
-  DESKTOP("Desktop", "Medium Desktop", HardwareConfigHelper::isDesktop),
-  TV("TV", "Television (1080p)", definition -> HardwareConfigHelper.isTv(definition) || hasTvScreen(definition)),
-  AUTOMOTIVE("Automotive", "Automotive (1024p landscape)", HardwareConfigHelper::isAutomotive);
+  PHONE("Phone", "Pixel 2", definition -> !definition.getIsDeprecated() && definition.getTagId() == null && !hasTabletScreen(definition)),
+  TABLET("Tablet", "Pixel C", definition -> !definition.getIsDeprecated() && definition.getTagId() == null && hasTabletScreen(definition)),
+  WEAR_OS("Wear OS", "Wear OS Square", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isWear(definition)),
+  DESKTOP("Desktop", "Medium Desktop", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isDesktop(definition)),
+
+  TV("TV", "Television (1080p)", definition ->
+    !definition.getIsDeprecated() && (HardwareConfigHelper.isTv(definition) || hasTvScreen(definition))),
+
+  AUTOMOTIVE("Automotive", "Automotive (1024p landscape)", definition ->
+    !definition.getIsDeprecated() && HardwareConfigHelper.isAutomotive(definition)),
+
+  LEGACY("Legacy", "Nexus S", Device::getIsDeprecated);
 
   @NotNull
   private final String myName;
@@ -65,22 +71,19 @@ enum Category {
 
   @NotNull
   static Category valueOfDefinition(@NotNull Device definition) {
-    return Arrays.stream(values())
-      .filter(category -> category.myPredicate.test(definition))
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(definition.toString()));
+    return valueOfObject(definition, category -> category.myPredicate.test(definition));
   }
 
   @NotNull
   static Category valueOfName(@NotNull String name) {
-    return switch (name) {
-      case "Phone" -> PHONE;
-      case "Tablet" -> TABLET;
-      case "Wear OS" -> WEAR_OS;
-      case "Desktop" -> DESKTOP;
-      case "TV" -> TV;
-      case "Automotive" -> AUTOMOTIVE;
-      default -> throw new IllegalArgumentException(name);
-    };
+    return valueOfObject(name, category -> category.myName.equals(name));
+  }
+
+  @NotNull
+  private static Category valueOfObject(@NotNull Object object, @NotNull Predicate<Category> predicate) {
+    return Arrays.stream(values())
+      .filter(predicate)
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException(object.toString()));
   }
 }

@@ -40,6 +40,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -234,14 +235,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void setDefaultDevices() {
-    putDefaultDefinition(Category.PHONE);
+    Arrays.asList(Category.values()).forEach(this::putDefaultDefinition);
     myDefaultDevice = myDefaultCategoryDeviceMap.get(Category.PHONE.getName());
-
-    putDefaultDefinition(Category.TABLET);
-    putDefaultDefinition(Category.WEAR_OS);
-    putDefaultDefinition(Category.DESKTOP);
-    putDefaultDefinition(Category.TV);
-    putDefaultDefinition(Category.AUTOMOTIVE);
   }
 
   private void putDefaultDefinition(@NotNull Category category) {
@@ -374,9 +369,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     myDeviceCategoryMap.clear();
     for (Device d : myDevices) {
-      if (d.getIsDeprecated()) {
-        continue;
-      }
       var category = Category.valueOfDefinition(d).getName();
       if (!myDeviceCategoryMap.containsKey(category)) {
         myDeviceCategoryMap.put(category, new ArrayList<>(1));

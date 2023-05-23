@@ -101,6 +101,19 @@ public final class CategoryTest {
     assertEquals(Category.AUTOMOTIVE, category);
   }
 
+  @Test
+  public void valueOfDefinitionLegacy() {
+    // Arrange
+    var definition = mockDefinition(null, null);
+    Mockito.when(definition.getIsDeprecated()).thenReturn(true);
+
+    // Act
+    var category = Category.valueOfDefinition(definition);
+
+    // Assert
+    assertEquals(Category.LEGACY, category);
+  }
+
   @NotNull
   private static Device mockDefinition(@Nullable String id, @Nullable Hardware hardware) {
     var definition = Mockito.mock(Device.class);
