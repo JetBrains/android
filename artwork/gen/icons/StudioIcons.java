@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package icons;
 
 import com.intellij.ui.IconManager;
@@ -588,13 +588,13 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon FAVORITE_FILLED = load("studio/icons/logcat/input/favorite-filled.svg", -1435939861, 2);
       /** 16x16 */ public static final @NotNull Icon FAVORITE_OUTLINE_HOVER = load("studio/icons/logcat/input/favorite-outline-hover.svg", 415489183, 2);
       /** 16x16 */ public static final @NotNull Icon FAVORITE_OUTLINE = load("studio/icons/logcat/input/favorite-outline.svg", -648178012, 2);
-      /** 16x16 */ public static final @NotNull Icon FILTER_HISTORY_DELETE = load("studio/icons/logcat/input/filter-history-delete.svg", 1228793912, 2);
+      /** 16x16 */ public static final @NotNull Icon FILTER_HISTORY_DELETE = load("studio/icons/logcat/input/filter-history-delete.svg", 1221464480, 2);
       /** 16x16 */ public static final @NotNull Icon FILTER_HISTORY = load("studio/icons/logcat/input/filter-history.svg", 1239047306, 2);
     }
 
     public static final class Toolbar {
-      /** 16x16 */ public static final @NotNull Icon PAUSE = load("studio/icons/logcat/toolbar/pause.svg", 1579249870, 2);
-      /** 16x16 */ public static final @NotNull Icon RESUME = load("studio/icons/logcat/toolbar/resume.svg", -1680214123, 2);
+      /** 16x16 */ public static final @NotNull Icon PAUSE = load("studio/icons/logcat/toolbar/pause.svg", -446054440, 2);
+      /** 16x16 */ public static final @NotNull Icon RESUME = load("studio/icons/logcat/toolbar/resume.svg", 1501830185, 2);
       /** 16x16 */ public static final @NotNull Icon SETTINGS = load("studio/icons/logcat/toolbar/settings.svg", -207496678, 2);
       /** 16x16 */ public static final @NotNull Icon WRAP_TEXT = load("studio/icons/logcat/toolbar/wrap-text.svg", 313003740, 2);
     }
