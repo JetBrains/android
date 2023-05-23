@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,122 +13,106 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res
 
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.ResourceRepository;
-import com.android.tools.res.ids.ResourceClassGenerator;
-import com.android.tools.res.ids.ResourceIdManager;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceRepository
+import com.android.tools.res.ids.ResourceClassGenerator
+import com.android.tools.res.ids.ResourceIdManager
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.TimeoutCachedValue
+import org.jetbrains.annotations.TestOnly
+import java.util.WeakHashMap
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
-/**
- * A project-wide registry for class lookup of resource classes (R classes).
- */
-public class ResourceClassRegistry {
-  private final Map<ResourceRepository, ResourceClassGenerator> myGeneratorMap = new HashMap<>();
-  private Set<String> myPackages;
+private val PACKAGE_TIMEOUT = 5.minutes
+
+/** Returns whether this is an R class or one of its inner classes. */
+private fun String.isRClassName() = endsWith(".R") || substringAfterLast('.').startsWith("R$")
+
+/** A project-wide registry for class lookup of resource classes (R classes). */
+@Service(Service.Level.PROJECT)
+class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Duration) {
+  constructor() : this(PACKAGE_TIMEOUT)
+
+  private val repoMap = WeakHashMap<ResourceRepository, ResourceRepositoryInfo>()
+  private var packages: TimeoutCachedValue<Set<String>> = createPackageCache()
 
   /**
    * Adds definition of a new R class to the registry. The R class will contain resources from the given repo in the given namespace and
-   * will be generated when the {@link #findClassDefinition} is called with a class name that matches the {@code packageName} and
-   * the {@code repo} resource repository can be found in the {@link StudioResourceRepositoryManager} passed to {@link #findClassDefinition}.
+   * will be generated when the [findClassDefinition] is called with a class name that matches the [packageName] and
+   * the `repo` resource repository can be found in the [StudioResourceRepositoryManager] passed to [findClassDefinition].
    *
-   * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
-   * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
-   * in question. In namespaced projects the repository is a {@link com.android.ide.common.resources.aar.AarResourceRepository} of just
+   * Note that the [ResourceClassRegistry] is a project-level component, so the same R class may be generated in different ways
+   * depending on the repository used. In non-namespaced project, the repository is the full [AppResourceRepository] of the module
+   * in question. In namespaced projects the repository is a [com.android.ide.common.resources.aar.AarResourceRepository] of just
    * the AAR contents.
    */
-  public void addLibrary(@NotNull ResourceRepository repo,
-                         @NotNull ResourceIdManager idManager,
-                         @Nullable String packageName,
-                         @NotNull ResourceNamespace namespace) {
-    if (StringUtil.isNotEmpty(packageName)) {
-      if (myPackages == null) {
-        myPackages = new HashSet<>();
-      }
-      myPackages.add(packageName);
-      if (!myGeneratorMap.containsKey(repo)) {
-        ResourceClassGenerator generator = ResourceClassGenerator.create(idManager, repo, namespace);
-        myGeneratorMap.put(repo, generator);
-      }
-    }
+  fun addLibrary(repo: ResourceRepository, idManager: ResourceIdManager, packageName: String?, namespace: ResourceNamespace) {
+    if (packageName.isNullOrEmpty()) return
+
+    val info = repoMap.getOrPut(repo) { ResourceRepositoryInfo(repo, idManager, namespace) }
+    info.packages.add(packageName)
+    // Explicit cleanup for Disposable instead of waiting for GC.
+    if (repo is Disposable && !Disposer.tryRegister(repo) { removeRepository(repo) }) removeRepository(repo)
+    packages = createPackageCache()  // Invalidate cache.
   }
 
-  /** Looks up a class definition for the given name, if possible */
-  @Nullable
-  public byte[] findClassDefinition(@NotNull String className, @NotNull StudioResourceRepositoryManager repositoryManager) {
-    int index = className.lastIndexOf('.');
-    if (index > 1 && className.charAt(index + 1) == 'R' && (index == className.length() - 2 || className.charAt(index + 2) == '$')) {
-      // If this is an R class or one of its inner classes.
-      String pkg = className.substring(0, index);
-      if (myPackages != null && myPackages.contains(pkg)) {
-        ResourceNamespace namespace = ResourceNamespace.fromPackageName(pkg);
-        List<ResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
-        ResourceClassGenerator generator = findClassGenerator(repositories, className);
-        if (generator != null) {
-          return generator.generate(className);
-        }
-      }
+  /** Looks up a class definition for the given name, if possible  */
+  fun findClassDefinition(className: String, repositoryManager: StudioResourceRepositoryManager): ByteArray? {
+    if (!className.isRClassName()) return null
+    val pkg = className.substringBeforeLast(".", "")
+    if (pkg in packages.get()) {
+      val namespace = ResourceNamespace.fromPackageName(pkg)
+      val repositories = repositoryManager.getAppResourcesForNamespace(namespace)
+      return findClassGenerator(repositories, className)?.generate(className)
     }
-    return null;
-  }
-
-  @Nullable
-  private ResourceClassGenerator findClassGenerator(@NotNull List<ResourceRepository> repositories, @NotNull String className) {
-    ResourceClassGenerator foundGenerator = null;
-    for (int i = 0; i < repositories.size(); i++) {
-      ResourceClassGenerator generator = myGeneratorMap.get(repositories.get(i));
-      if (generator != null) {
-        if (foundGenerator == null) {
-          foundGenerator = generator;
-        }
-        else {
-          // There is a package name collision between libraries. Throw NoClassDefFoundError exception.
-          throw new NoClassDefFoundError(className + " class could not be loaded because of package name collision between libraries");
-        }
-      }
-    }
-    return foundGenerator;
+    return null
   }
 
   /**
    * Ideally, this method would not exist. But there are potential bugs in the caching mechanism. So, the method should be called when
    * rendering fails due to hard to explain causes: like NoSuchFieldError.
    *
-   * @see ResourceIdManager#resetDynamicIds()
+   * @see ResourceIdManager.resetDynamicIds
    */
-  public void clearCache() {
-    myGeneratorMap.clear();
+  fun clearCache() {
+    repoMap.clear()
+    packages = createPackageCache()
   }
 
-  /**
-   * Lazily instantiates a registry with the target project.
-   */
-  @NotNull
-  public static ResourceClassRegistry get(@NotNull Project project) {
-    return project.getService(ResourceClassRegistry.class);
+  private fun findClassGenerator(repositories: List<ResourceRepository>, className: String): ResourceClassGenerator? {
+    return repositories.asSequence().mapNotNull { repoMap[it]?.resourceClassGenerator }.reduceOrNull { _, _ ->
+      // There is a package name collision between libraries. Throw NoClassDefFoundError exception.
+      throw NoClassDefFoundError("$className class could not be loaded because of package name collision between libraries")
+    }
   }
 
-  @VisibleForTesting
-  @NotNull
-  Collection<String> getPackages() {
-    return myPackages == null ? Collections.emptySet() : myPackages;
+  private fun createPackageCache() = TimeoutCachedValue(packageTimeout.inWholeMilliseconds, TimeUnit.MILLISECONDS) {
+    buildSet {
+      repoMap.values.forEach { this.addAll(it.packages) }
+    }
   }
 
-  @VisibleForTesting
-  @NotNull
-  Map<ResourceRepository, ResourceClassGenerator> getGeneratorMap() {
-    return myGeneratorMap;
+  private fun removeRepository(repo: ResourceRepository) {
+    repoMap.remove(repo)
+    packages = createPackageCache()
+  }
+
+  private class ResourceRepositoryInfo(repo: ResourceRepository, idManager: ResourceIdManager, namespace: ResourceNamespace) {
+    val resourceClassGenerator = ResourceClassGenerator.create(idManager, repo, namespace)
+    val packages = mutableSetOf<String>()
+  }
+
+  companion object {
+    /** Lazily instantiates a registry with the target project. */
+    @JvmStatic
+    fun get(project: Project): ResourceClassRegistry = project.service()
   }
 }

@@ -253,7 +253,6 @@
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$MyStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
-    <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
     <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
     <postStartupActivity implementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild$MyStartupActivity"/>
