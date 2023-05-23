@@ -107,6 +107,9 @@ class InlinedResource {
           if (myElement instanceof PsiMethodCallExpression) {
             text = insertArguments((PsiMethodCallExpression)myElement, text);
           }
+          if (myResourceReference.getResourceType() == ResourceType.BOOL) {
+            return text;
+          }
           if (myResourceReference.getResourceType() == ResourceType.PLURALS && text.startsWith(STRING_PREFIX)) {
             String name = text.substring(STRING_PREFIX.length());
             value = ResourceRepositoryUtil.getConfiguredValue(myResourceRepository, ResourceType.STRING, name, referenceConfig);

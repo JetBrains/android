@@ -159,7 +159,9 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     }
     if (resourceUrl.type.equals(ResourceType.STRING) ||
         resourceUrl.type.equals(ResourceType.DIMEN) ||
-        resourceUrl.type.equals(ResourceType.INTEGER)) {
+        resourceUrl.type.equals(ResourceType.INTEGER) ||
+        resourceUrl.type.equals(ResourceType.BOOL)
+    ) {
       ResourceReference resourceReference = IdeResourcesUtil.resolve(resourceUrl, element);
       if (resourceReference != null) {
         return createdInlinedResource(resourceReference, element);
