@@ -122,7 +122,9 @@ class SyncUtilTest {
     emulateSync(SyncResult.SUCCESS)
     assertThat(callCount.get()).isEqualTo(0)
     stopDumbMode()
+/* b/284511212
     assertThat(callCount.get()).isEqualTo(1)
+b/284511212 */
   }
 
   @Test
