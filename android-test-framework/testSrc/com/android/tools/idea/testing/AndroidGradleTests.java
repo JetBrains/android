@@ -228,18 +228,6 @@ public class AndroidGradleTests {
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]", toolsBaseVersion);
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]", toolsBaseVersion);
 
-        // App compat version needs to match compile SDK
-        String appCompatMainVersion = compileSdkVersion;
-        // TODO(145548476): convert to androidx
-        try {
-          if (Integer.parseInt(appCompatMainVersion) < 29) {
-            contents = replaceRegexGroup(contents, "com.android.support:appcompat-v7:(\\+)", appCompatMainVersion + ".+");
-          }
-        }
-        catch (NumberFormatException e) {
-          // ignore
-        }
-
         contents = updateBuildToolsVersion(contents);
         contents = updateCompileSdkVersion(contents, compileSdkVersion);
         contents = updateTargetSdkVersion(contents);
