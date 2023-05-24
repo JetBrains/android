@@ -43,6 +43,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.htmlComponent
+import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.AndroidIcons
@@ -128,7 +129,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
         sdkManager.addLocalChangeListener(listener)
         localPackagesUpdated(sdkManager.packages)
       }
-      catch (_: IllegalStateException) {
+      catch (_: IncorrectOperationException) {
         // Disposed already.
       }
     }
