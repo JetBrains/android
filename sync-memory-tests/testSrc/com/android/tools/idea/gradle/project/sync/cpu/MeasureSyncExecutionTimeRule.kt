@@ -35,10 +35,18 @@ import kotlin.time.DurationUnit
 val CPU_BENCHMARK = Benchmark.Builder("Cpu time")
   .setProject("Android Studio Sync Test")
   .build()
+
+private typealias TimestampedMeasurement = Pair<Instant, Duration>
+
 private data class ImportResult(
   var gradleDuration: Duration? = null,
-  var totalDuration: Duration? = null
 ) {
+  lateinit var finishTimestamp : Instant
+  var totalDuration: Duration? = null
+    set(value) {
+      field = value
+      finishTimestamp = Clock.System.now()
+    }
   val ideDuration get() = totalDuration!! - gradleDuration!!
 }
 class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
@@ -79,21 +87,23 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
         else -> ""
       }
       listOf(
-        "${prefix}Ide_Ms" to value.ideDuration,
-        "${prefix}Total_Ms" to value.totalDuration!!,
-        "${prefix}Gradle_Ms" to value.gradleDuration!!
-    )}.groupBy { it.first }.entries.forEach {
-      println("Recording ${projectName}_${it.key} -> ${it.value.map { it.second.toLong(DurationUnit.MILLISECONDS)}}")
-      recordCpuMeasurement("${projectName}_${it.key}", it.value.map { it.second.toLong(DurationUnit.MILLISECONDS) })
+        "${prefix}Ide_Ms" to TimestampedMeasurement(value.finishTimestamp, value.ideDuration),
+        "${prefix}Total_Ms" to TimestampedMeasurement(value.finishTimestamp, value.totalDuration!!),
+        "${prefix}Gradle_Ms" to TimestampedMeasurement(value.finishTimestamp, value.gradleDuration!!)
+      )
+      }.groupBy { (type, _,) -> type }
+      .mapValues { groupEntry -> groupEntry.value.map {it.second} }.entries // unpack group values
+      .forEach { (type, values: List<TimestampedMeasurement>) ->
+      println("Recording ${projectName}_$type -> $values")
+      recordCpuMeasurement("${projectName}_$type", values)
     }
   }
 }
 
-internal fun recordCpuMeasurement(metricName: String, values: Iterable<Long>) {
-  val currentTime = java.time.Instant.now().toEpochMilli()
+internal fun recordCpuMeasurement(metricName: String, values: Iterable<TimestampedMeasurement>) {
   Metric(metricName).apply {
     values.forEach {
-      addSamples(CPU_BENCHMARK, Metric.MetricSample(currentTime, it))
+      addSamples(CPU_BENCHMARK, Metric.MetricSample(it.first.toEpochMilliseconds(), it.second.toLong(DurationUnit.MILLISECONDS)))
     }
     commit()
   }
