@@ -178,9 +178,6 @@ iml_module(
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.imports",
         },
-        "instantapp": {
-            "test_filter": "com.android.tools.idea.instantapp",
-        },
         "javadoc": {
             "test_filter": "com.android.tools.idea.javadoc",
         },
