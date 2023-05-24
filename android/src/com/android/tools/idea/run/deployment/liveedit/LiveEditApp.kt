@@ -28,19 +28,22 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiL
   val minAPI : MinApiLevel by lazy(LazyThreadSafetyMode.NONE) { calculateMinAPI(apks) }
   private val logger = LiveEditLogger("LE App")
 
+  // We store some events in a journal so we can output a proper error message in case of failure later.
+  private val journal = mutableListOf<String>()
+
   private fun calculateMinAPI(apks: Set<Path>) : MinApiLevel {
     val start = System.nanoTime()
     val minApis : MutableSet<MinApiLevel> = mutableSetOf()
     apks.forEach{
       val apk = it
-      logger.log("Searching marker for apk '${apk.absolute()}'")
       val consumer = LiveEditMarkerInfoConsumer()
       ExtractMarker.run(ExtractMarkerCommand.builder().addProgramFiles(apk).setMarkerInfoConsumer(consumer).build())
-      minApis.add(consumer.minApi)
+      journal("Apk '${apk.fileName}' contains minAPI = ${consumer.minApis}")
+      minApis.addAll(consumer.minApis)
     }
 
     if (minApis.size > 1) {
-      desugarFailure("Too many minAPI from APKs=$apks, minAPIs extracted: $minApis")
+      desugarFailure("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
     }
 
     if (minApis.isEmpty()) {
@@ -51,5 +54,10 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiL
     val duration = (System.nanoTime() - start) / 1_000_000
     logger.log("Found minAPI = $minApis in ${duration}ms")
     return minApis.first()
+  }
+
+  private fun journal(msg: String) {
+    logger.log(msg)
+    journal.add(msg)
   }
 }
