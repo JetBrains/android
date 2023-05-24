@@ -44,12 +44,12 @@ open class ComposeRenderTestBase {
       Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
-    StudioModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(true)
+    StudioModuleClassLoaderManager.setCaptureClassLoadingDiagnostics(true)
   }
 
   @After
   open fun tearDown() {
-    StudioModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
+    StudioModuleClassLoaderManager.setCaptureClassLoadingDiagnostics(false)
     ApplicationManager.getApplication().invokeAndWait {
       RenderTestUtil.afterRenderTestCase()
     }

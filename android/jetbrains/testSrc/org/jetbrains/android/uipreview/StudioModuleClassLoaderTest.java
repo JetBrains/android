@@ -377,7 +377,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     StudioModuleClassLoader copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
     assertNotNull(copy);
-    Disposer.dispose(copy);
+    copy.dispose();
 
     StudioModuleClassLoaderManager.get().release(loader, this);
 

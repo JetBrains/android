@@ -257,7 +257,7 @@ public class RenderTask {
                                                          additionalNonProjectTransform,
                                                          onNewModuleClassLoader);
     }
-    ClassLoaderPreloaderKt.preload(myModuleClassLoader, () -> Disposer.isDisposed(myModuleClassLoader), classesToPreload);
+    ClassLoaderPreloaderKt.preload(myModuleClassLoader, myModuleClassLoader::isDisposed, classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
