@@ -36,10 +36,10 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
-import org.apache.commons.lang.time.DurationFormatUtils
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import org.apache.commons.lang.time.DurationFormatUtils
 
 /** A generic implementation of [PreviewViewModel]. */
 open class CommonPreviewViewModel(

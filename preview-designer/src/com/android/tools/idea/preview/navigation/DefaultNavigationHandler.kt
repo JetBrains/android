@@ -25,8 +25,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiFile
-import kotlinx.coroutines.withContext
 import java.util.WeakHashMap
+import kotlinx.coroutines.withContext
 
 /**
  * Navigation handler that defaults navigation from a [SceneView] to a particular predefined (via
@@ -36,12 +36,13 @@ import java.util.WeakHashMap
  */
 open class DefaultNavigationHandler(
   private val componentNavigationDelegate:
-  (sceneView: SceneView, hitX: Int, hitY: Int, requestFocus: Boolean, fileName: String) -> Navigatable?
+    (
+      sceneView: SceneView, hitX: Int, hitY: Int, requestFocus: Boolean, fileName: String
+    ) -> Navigatable?
 ) : PreviewNavigationHandler {
   private val LOG = Logger.getInstance(DefaultNavigationHandler::class.java)
   // Default location to use when components are not found
-  @VisibleForTesting
-  val defaultNavigationMap = WeakHashMap<NlModel, Pair<String, Navigatable>>()
+  @VisibleForTesting val defaultNavigationMap = WeakHashMap<NlModel, Pair<String, Navigatable>>()
 
   /** Add default navigation location for model. */
   override fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int) {
@@ -54,8 +55,9 @@ open class DefaultNavigationHandler(
 
   override suspend fun handleNavigate(sceneView: SceneView, requestFocus: Boolean): Boolean {
     return (defaultNavigationMap[sceneView.sceneManager.model]?.second?.apply {
-      withContext(uiThread) { navigate(requestFocus) }
-    } != null).also { LOG.debug { "Navigated to default? $it" } }
+        withContext(uiThread) { navigate(requestFocus) }
+      } != null)
+      .also { LOG.debug { "Navigated to default? $it" } }
   }
 
   override suspend fun handleNavigate(

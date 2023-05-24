@@ -23,63 +23,61 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-/**
- * Interface to be implemented by classes providing a list of [PreviewElement]
- */
-interface PreviewElementProvider<P: PreviewElement> {
-  /**
-   * Returns a [Sequence] of [PreviewElement]s.
-   */
+/** Interface to be implemented by classes providing a list of [PreviewElement] */
+interface PreviewElementProvider<P : PreviewElement> {
+  /** Returns a [Sequence] of [PreviewElement]s. */
   suspend fun previewElements(): Sequence<P>
 }
 
-class StaticPreviewProvider<P : PreviewElement>(private val collection: Collection<P>) : PreviewElementProvider<P> {
+class StaticPreviewProvider<P : PreviewElement>(private val collection: Collection<P>) :
+  PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = collection.asSequence()
 }
 
-/**
- * A [PreviewElementProvider] that applies a filter to the result.
- */
-class FilteredPreviewElementProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>,
-                                                        private val filter: (P) -> Boolean) : PreviewElementProvider<P> {
+/** A [PreviewElementProvider] that applies a filter to the result. */
+class FilteredPreviewElementProvider<P : PreviewElement>(
+  private val delegate: PreviewElementProvider<P>,
+  private val filter: (P) -> Boolean
+) : PreviewElementProvider<P> {
   override suspend fun previewElements(): Sequence<P> = delegate.previewElements().filter(filter)
 }
 
 /**
- * A [PreviewElementProvider] for dealing with [PreviewElementProvider] that might be @[Slow]. This [PreviewElementProvider] contents
- * will only be updated when the given [modificationTracker] updates.
+ * A [PreviewElementProvider] for dealing with [PreviewElementProvider] that might be @[Slow]. This
+ * [PreviewElementProvider] contents will only be updated when the given [modificationTracker]
+ * updates.
  */
-class MemoizedPreviewElementProvider<P: PreviewElement>(private val delegate: PreviewElementProvider<P>,
-                                                        private val modificationTracker: ModificationTracker) : PreviewElementProvider<P> {
+class MemoizedPreviewElementProvider<P : PreviewElement>(
+  private val delegate: PreviewElementProvider<P>,
+  private val modificationTracker: ModificationTracker
+) : PreviewElementProvider<P> {
   private var savedModificationStamp = -1L
   private val cachedPreviewElementLock = ReentrantReadWriteLock()
   @GuardedBy("cachedPreviewElementLock")
   private var cachedPreviewElements: Collection<P> = emptyList()
 
-  /**
-   * Refreshes the [previewElements]. Do not call on the UI thread.
-   */
+  /** Refreshes the [previewElements]. Do not call on the UI thread. */
   private suspend fun refreshIfNeeded() {
     val newModificationStamp = modificationTracker.modificationCount
 
     try {
       if (newModificationStamp != savedModificationStamp) {
         val elements = delegate.previewElements().toList()
-        cachedPreviewElementLock.write {
-          cachedPreviewElements = elements
-        }
+        cachedPreviewElementLock.write { cachedPreviewElements = elements }
         savedModificationStamp = newModificationStamp
       }
-    } catch(t: Throwable) {
-      // An exception happened during the refresh, log it and return the previous cached value if any.
-      // This is a mitigation for b/222843951 which causes an unexpected exception during delegate.previewElements()
+    } catch (t: Throwable) {
+      // An exception happened during the refresh, log it and return the previous cached value if
+      // any.
+      // This is a mitigation for b/222843951 which causes an unexpected exception during
+      // delegate.previewElements()
       Logger.getInstance(MemoizedPreviewElementProvider::class.java).warn(t)
     }
   }
 
   /**
-   * Returns the latest value of the [ComposePreviewElement]s contained in the [delegate]. If the [modificationTracker] has not changed,
-   * this property will return a cached value.
+   * Returns the latest value of the [ComposePreviewElement]s contained in the [delegate]. If the
+   * [modificationTracker] has not changed, this property will return a cached value.
    *
    * _This call might be [Slow]. Do not call on the UI thread._
    */

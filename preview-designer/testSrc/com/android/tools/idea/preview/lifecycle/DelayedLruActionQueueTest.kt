@@ -18,12 +18,12 @@ package com.android.tools.idea.preview.lifecycle
 import com.android.testutils.VirtualTimeScheduler
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import java.time.Duration
-import java.util.concurrent.TimeUnit
 
 internal class DelayedLruActionQueueTest {
   lateinit var testDisposable: Disposable
@@ -66,9 +66,7 @@ internal class DelayedLruActionQueueTest {
     val lruActionQueue = DelayedLruActionQueue(3, Duration.ofMinutes(2), scheduler)
 
     var executionCount = 0
-    repeat(3) {
-      lruActionQueue.addDelayedAction(testDisposable) { executionCount++ }
-    }
+    repeat(3) { lruActionQueue.addDelayedAction(testDisposable) { executionCount++ } }
     assertEquals(0, executionCount)
     assertEquals(3, lruActionQueue.queueSize())
     // Next one will evict one action that will get executed
@@ -101,9 +99,7 @@ internal class DelayedLruActionQueueTest {
       var executionCount = 0
       assertEquals(0, lruActionQueue.queueSize())
       // Check the cancellation also works for evictions
-      repeat(2) {
-        lruActionQueue.addDelayedAction(testDisposable) { executionCount++ }
-      }
+      repeat(2) { lruActionQueue.addDelayedAction(testDisposable) { executionCount++ } }
       val disposable = Disposer.newDisposable()
       lruActionQueue.addDelayedAction(disposable) { executionCount++ }
 

@@ -26,7 +26,8 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
- * Wraps [component] into a [JComponent] that has a fixed size regardless of the [component] visibility.
+ * Wraps [component] into a [JComponent] that has a fixed size regardless of the [component]
+ * visibility.
  */
 private fun fixedSizeWrapper(component: JComponent) =
   JPanel(BorderLayout()).apply {
@@ -40,18 +41,11 @@ private fun fixedSizeWrapper(component: JComponent) =
     preferredSize = component.minimumSize
   }
 
-/**
- * Returns a preview status icon from corresponding [AnAction] and a [target] component.
- */
+/** Returns a preview status icon from corresponding [AnAction] and a [target] component. */
 fun createStatusIcon(action: AnAction, target: JComponent): JComponent {
   val component =
     ActionManagerEx.getInstanceEx()
-      .createActionToolbar(
-        "sceneView",
-        DefaultActionGroup(action),
-        true,
-        false
-      )
+      .createActionToolbar("sceneView", DefaultActionGroup(action), true, false)
       .apply {
         targetComponent = target
         (this as? ActionToolbarImpl)?.setForceMinimumSize(true)

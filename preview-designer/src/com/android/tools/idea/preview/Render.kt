@@ -21,8 +21,8 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.executeCallbacks
 
 /**
- * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that specific to compose to render components
- * that do not simply render in a first pass.
+ * Utility method that requests a given [LayoutlibSceneManager] to render. It applies logic that
+ * specific to compose to render components that do not simply render in a first pass.
  */
 internal suspend fun LayoutlibSceneManager.requestDoubleRender() {
   render()

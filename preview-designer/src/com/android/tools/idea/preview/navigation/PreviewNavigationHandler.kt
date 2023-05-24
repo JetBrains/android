@@ -20,9 +20,9 @@ import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.psi.PsiFile
 
 /**
- * Interface that allows to specify location in a [PsiFile] of the element corresponding to the [NlModel].
+ * Interface that allows to specify location in a [PsiFile] of the element corresponding to the
+ * [NlModel].
  */
-interface PreviewNavigationHandler : NavigationHandler
-{
+interface PreviewNavigationHandler : NavigationHandler {
   fun setDefaultLocation(model: NlModel, psiFile: PsiFile, offset: Int)
 }

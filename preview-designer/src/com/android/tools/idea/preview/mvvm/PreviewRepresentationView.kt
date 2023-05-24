@@ -20,8 +20,8 @@ import javax.swing.JComponent
 
 /**
  * Interface that should be implemented by the view exposing the API that is accessed by the
- * [PreviewRepresentation] implementation for updating the previews for the [PreviewElement]s.
- * This is to bypass the [PreviewViewModel] and use the [PreviewView] directly.
+ * [PreviewRepresentation] implementation for updating the previews for the [PreviewElement]s. This
+ * is to bypass the [PreviewViewModel] and use the [PreviewView] directly.
  */
 interface PreviewRepresentationView {
   val component: JComponent

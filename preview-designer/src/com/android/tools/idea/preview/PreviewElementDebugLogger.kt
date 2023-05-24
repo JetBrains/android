@@ -23,20 +23,24 @@ import com.intellij.openapi.diagnostic.Logger
 import java.util.UUID
 
 /**
- * A logger intended to be used in [updatePreviewsAndRefresh] that encapsulates complex debugging logic and abstracts out the
- * [PreviewElement] descendant features that might be used for logging. The users are supposed to inherit from the
- * [PreviewElementDebugLogger] and implement [logPreviewElement] for the specified [PreviewElement] descendant.
+ * A logger intended to be used in [updatePreviewsAndRefresh] that encapsulates complex debugging
+ * logic and abstracts out the [PreviewElement] descendant features that might be used for logging.
+ * The users are supposed to inherit from the [PreviewElementDebugLogger] and implement
+ * [logPreviewElement] for the specified [PreviewElement] descendant.
  */
 class PreviewElementDebugLogger(private val log: Logger) {
   private val refreshId = UUID.randomUUID().toString()
   private val stopwatch = StopWatch()
 
-  fun logPreviewElement(previewElementLogString: String, previewXmlContent: String){
-    log("""Preview found at ${stopwatch.duration.toMillis()}ms
+  fun logPreviewElement(previewElementLogString: String, previewXmlContent: String) {
+    log(
+      """Preview found at ${stopwatch.duration.toMillis()}ms
         $previewElementLogString
 
         $previewXmlContent
-     """.trimIndent())
+     """
+        .trimIndent()
+    )
   }
 
   fun log(message: String) {
@@ -51,13 +55,16 @@ class PreviewElementDebugLogger(private val log: Logger) {
       val modelName = it.model.modelDisplayName
       it.renderResult?.let { result ->
         val renderLogger = result.logger
-        log("""modelName="$modelName" result
+        log(
+          """modelName="$modelName" result
                   | $result
                   | hasErrors=${renderLogger.hasErrors()}
                   | missingClasses=${renderLogger.missingClasses}
                   | messages=${renderLogger.messages.asLogString()}
                   | exceptions=${renderLogger.brokenClasses.values}
-                """.trimMargin())
+                """
+            .trimMargin()
+        )
       }
     }
   }

@@ -32,7 +32,10 @@ import kotlin.concurrent.withLock
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
-/** Interface for tracking build status. TODO(b/269723767): Use [PsiCodeFileChangeDetectorService] and remove this file. */
+/**
+ * Interface for tracking build status. TODO(b/269723767): Use [PsiCodeFileChangeDetectorService]
+ * and remove this file.
+ */
 interface CodeOutOfDateTracker : ModificationTracker {
   /**
    * Call this method when an external event has caused the saved build to not be "usable" anymore.
@@ -88,7 +91,8 @@ constructor(module: Module, parentDisposable: Disposable, needsRefreshCallback: 
     { reasons ->
       // If this listener was triggered by any reason but a project build or a configuration change,
       // then we need to refresh the previews on the next successful build.
-      if (reasons.any {
+      if (
+        reasons.any {
           it != ResourceNotificationManager.Reason.PROJECT_BUILD &&
             it != ResourceNotificationManager.Reason.CONFIGURATION_CHANGED
         }
