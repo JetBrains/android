@@ -544,6 +544,7 @@ class StreamingToolWindowManagerTest {
     val phone = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(avdRoot))
     val tablet = emulatorRule.newEmulator(FakeEmulator.createTabletAvd(avdRoot))
     tablet.start(standalone = true)
+    RunningEmulatorCatalog.getInstance().updateNow().get()
 
     assertThat(toolWindow.tabActions).isNotEmpty()
     val newTabAction = toolWindow.tabActions[0]

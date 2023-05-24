@@ -123,9 +123,14 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
       val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
       val sdkManager = sdkHandler.getSdkManager(progress)
       val listener = RepoLoadedListener { packages -> localPackagesUpdated(packages) }
-      sdkManager.addLocalChangeListener(listener)
-      Disposer.register(this@EmptyStatePanel) { sdkManager.removeLocalChangeListener(listener) }
-      localPackagesUpdated(sdkManager.packages)
+      try {
+        Disposer.register(this@EmptyStatePanel) { sdkManager.removeLocalChangeListener(listener) }
+        sdkManager.addLocalChangeListener(listener)
+        localPackagesUpdated(sdkManager.packages)
+      }
+      catch (_: IllegalStateException) {
+        // Disposed already.
+      }
     }
     Disposer.register(this) {
       progress.cancel()
