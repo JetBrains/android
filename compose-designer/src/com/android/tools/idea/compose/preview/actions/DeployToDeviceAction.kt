@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewElement
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.previewProviderClassAndIndex
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
@@ -59,11 +60,15 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     val isTestFile =
       previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) } ?: false
     e.presentation.apply {
-      isEnabled = !isTestFile
+      val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
+      isEnabled = !isTestFile && !isLiteModeEnabled
       isVisible = true
       description =
         if (isTestFile) message("action.run.description.test.files")
-        else message("action.run.description")
+        else {
+          if (isLiteModeEnabled) message("action.run.lite.mode.description")
+          else message("action.run.description")
+        }
     }
   }
 

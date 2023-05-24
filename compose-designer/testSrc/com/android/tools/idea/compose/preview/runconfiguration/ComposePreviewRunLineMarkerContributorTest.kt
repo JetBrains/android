@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -27,6 +28,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -46,6 +48,13 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     super.setUp()
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
+    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.override(true)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.clearOverride()
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = false
   }
 
   override fun configureAdditionalModules(
@@ -81,6 +90,30 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should be created since the function is a valid preview.
     assertNotNull(contributor.getInfo(functionIdentifier))
+  }
+
+  fun testGetInfoWhenLiteModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = true
+    val file =
+      myFixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
+        import androidx.compose.ui.tooling.preview.Preview
+
+        @Composable
+        @Preview
+        fun Preview1() {
+        }
+      """
+          .trimIndent()
+      )
+
+    val functionIdentifier = file.findFunctionIdentifier("Preview1")
+    // Although the function is a valid preview, a run line marker should not be created, because
+    // Lite Mode is enabled
+    assertNull(contributor.getInfo(functionIdentifier))
   }
 
   fun testGetInfoLibraryModule() {

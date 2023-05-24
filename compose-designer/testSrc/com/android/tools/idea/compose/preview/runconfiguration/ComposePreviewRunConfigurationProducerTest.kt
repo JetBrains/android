@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.RunManager
@@ -31,6 +32,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
@@ -58,6 +60,13 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           .trimIndent()
       )
     composableFunction = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.override(true)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.clearOverride()
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = false
   }
 
   override fun configureAdditionalModules(
@@ -92,6 +101,18 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
       assertEquals("Preview1", configurationFromAnnotation.name)
       assertEquals("TestKt.Preview1", configurationFromAnnotation.composableMethodFqn)
     }
+  }
+
+  fun testSetupConfigurationFromContextWhenLiteModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = true
+
+    val context = ConfigurationContext(composableFunction)
+    val runConfiguration = newComposePreviewRunConfiguration()
+    val producer = ComposePreviewRunConfigurationProducer()
+    // We shouldn't be able to create a configuration from context when lite mode is enabled.
+    assertFalse(
+      producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
+    )
   }
 
   fun testParameterProvider() {
@@ -273,6 +294,18 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
     runConfiguration.name = "Preview2"
     assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
+  }
+
+  fun testIsConfigurationFromContextWhenLiteModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = true
+    val producer = ComposePreviewRunConfigurationProducer()
+    val context = ConfigurationContext(composableFunction)
+    val runConfiguration = newComposePreviewRunConfiguration()
+
+    runConfiguration.name = "Preview1"
+    runConfiguration.composableMethodFqn = "TestKt.Preview1"
+    // Configuration shouldn't match when Lite Mode is enabled, even if both name and FQN match.
+    assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
   }
 
   private fun createConfigurationFromElement(
