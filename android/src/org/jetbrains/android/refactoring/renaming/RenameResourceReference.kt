@@ -125,35 +125,36 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   }
 
   private fun renameAndroidLightField(element: PsiElement, usage: UsageInfo, newName: String) {
-    val resolvedValue = usage.reference?.resolve()
-    if (resolvedValue is ResourceLightField) {
-      RenameUtil.rename(usage, newName)
-    }
-    else if (resolvedValue is StyleableAttrLightField) {
-      val fieldUrl = resolvedValue.styleableAttrFieldUrl
-      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return
-      when (resourceReference.resourceType) {
-        ResourceType.ATTR -> {
-          val newAttrName = StyleableAttrFieldUrl(fieldUrl.styleable, ResourceReference(
-            fieldUrl.attr.namespace, ResourceType.ATTR, newName)).toFieldName()
-          RenameUtil.rename(usage, newAttrName)
-        }
-        ResourceType.STYLEABLE -> {
-          val newStyleableName = StyleableAttrFieldUrl(ResourceReference(
-            fieldUrl.styleable.namespace, ResourceType.STYLEABLE, newName), fieldUrl.attr).toFieldName()
-          RenameUtil.rename(usage, newStyleableName)
-        }
-        else -> {
-          //Cannot rename a styleable attr field any other ResourceType
-          if (LOG.isDebugEnabled) {
-            LOG.debug("Trying to rename styleable attr field from incorrect resource type: ${resourceReference.resourceType.displayName}")
+    when (val resolvedValue = usage.reference?.resolve()) {
+      is ResourceLightField -> {
+        RenameUtil.rename(usage, newName)
+      }
+      is StyleableAttrLightField -> {
+        val fieldUrl = resolvedValue.styleableAttrFieldUrl
+        val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return
+        when (resourceReference.resourceType) {
+          ResourceType.ATTR -> {
+            val newAttrName = StyleableAttrFieldUrl(fieldUrl.styleable, ResourceReference(
+              fieldUrl.attr.namespace, ResourceType.ATTR, newName)).toFieldName()
+            RenameUtil.rename(usage, newAttrName)
+          }
+          ResourceType.STYLEABLE -> {
+            val newStyleableName = StyleableAttrFieldUrl(ResourceReference(
+              fieldUrl.styleable.namespace, ResourceType.STYLEABLE, newName), fieldUrl.attr).toFieldName()
+            RenameUtil.rename(usage, newStyleableName)
+          }
+          else -> {
+            //Cannot rename a styleable attr field any other ResourceType
+            if (LOG.isDebugEnabled) {
+              LOG.debug("Trying to rename styleable attr field from incorrect resource type: ${resourceReference.resourceType.displayName}")
+            }
           }
         }
       }
-    }
-    else {
-      // Attempt to rename a synthetic element related to the resource
-      RenameUtil.rename(usage, newName)
+      else -> {
+        // Attempt to rename a synthetic element related to the resource
+        RenameUtil.rename(usage, newName)
+      }
     }
   }
 

@@ -209,15 +209,18 @@ class AndroidLintTest : AndroidTestCase() {
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
     modules: List<MyAdditionalModuleData>
   ) {
-    if ("testImlFileOutsideContentRoot" == name) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
-      addModuleWithAndroidFacet(projectBuilder, modules, "module2", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
-    }
-    else if ("testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", AndroidProjectTypes.PROJECT_TYPE_APP)
-    } else if ("testAddSdkIntJava" == name || "testAddSdkIntKotlin" == name) {
-      // These lint checks only do something in libraries, not app modules
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
+    when (name) {
+      "testImlFileOutsideContentRoot" -> {
+        addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
+        addModuleWithAndroidFacet(projectBuilder, modules, "module2", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
+      }
+      "testAppCompatMethod", "testExtendAppCompatWidgets" -> {
+        addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", AndroidProjectTypes.PROJECT_TYPE_APP)
+      }
+      "testAddSdkIntJava", "testAddSdkIntKotlin" -> {
+        // These lint checks only do something in libraries, not app modules
+        addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
+      }
     }
   }
 

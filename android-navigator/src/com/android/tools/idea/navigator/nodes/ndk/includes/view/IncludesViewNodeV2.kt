@@ -128,17 +128,19 @@ class IncludesViewNodeV2(
     val includes = organize(simpleIncludes)
 
     for (include in includes) {
-      if (include is ShadowingIncludeValue) {
-        val concrete = include
-        result.addAll(IncludeViewNodes.getIncludeFolderNodesWithShadowing(
-          concrete.includePathsInOrder, VirtualFiles.convertToVirtualFile(concrete.myExcludes), false, project!!, settings))
-      }
-      else if (include is SimpleIncludeValue) {
-        result.add(SimpleIncludeViewNode(include, includeDirs, true, project, settings))
-      }
-      else if (include is ClassifiedIncludeValue) {
-        // Add folders to the list of folders to exclude from the simple path group
-        result.add(IncludeViewNode.createIncludeView(include, includeDirs, true, project, settings))
+      when (include) {
+        is ShadowingIncludeValue -> {
+          val concrete = include
+          result.addAll(IncludeViewNodes.getIncludeFolderNodesWithShadowing(
+            concrete.includePathsInOrder, VirtualFiles.convertToVirtualFile(concrete.myExcludes), false, project!!, settings))
+        }
+        is SimpleIncludeValue -> {
+          result.add(SimpleIncludeViewNode(include, includeDirs, true, project, settings))
+        }
+        is ClassifiedIncludeValue -> {
+          // Add folders to the list of folders to exclude from the simple path group
+          result.add(IncludeViewNode.createIncludeView(include, includeDirs, true, project, settings))
+        }
       }
     }
     return result

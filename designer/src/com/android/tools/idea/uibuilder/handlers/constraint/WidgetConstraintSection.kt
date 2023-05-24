@@ -105,7 +105,7 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
         val apiLevel = scene.renderedApiLevel
         val rtl = scene.isInRTL
         val constraint = getConstraintForAttribute(itemData.attribute, apiLevel, rtl)
-        surface.selectionModel?.setSecondarySelection(widgetModel.component, constraint)
+        surface.selectionModel.setSecondarySelection(widgetModel.component, constraint)
         surface.invalidate()
         surface.repaint()
       }
@@ -113,23 +113,25 @@ class WidgetConstraintSection(private val widgetModel : WidgetConstraintModel) :
 
     list.addKeyListener(object: KeyAdapter() {
       override fun keyReleased(e: KeyEvent) {
-        if (e.keyCode == KeyEvent.VK_DELETE || e.keyCode == KeyEvent.VK_BACK_SPACE) {
-          val index = list.selectedIndex
-          val item = listData.removeAt(index)
+        when (e.keyCode) {
+          KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE -> {
+            val index = list.selectedIndex
+            val item = listData.removeAt(index)
 
-          widgetModel.removeAttributes(item.namespace, item.attribute)
-          list.clearSelection()
-          e.consume()
-        }
-        else if (e.keyCode == KeyEvent.VK_ESCAPE) {
-          list.clearSelection()
-          widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, null)
-          widgetModel.surface?.invalidate()
-          widgetModel.surface?.repaint()
-          e.consume()
-        }
-        else {
-          super.keyReleased(e)
+            widgetModel.removeAttributes(item.namespace, item.attribute)
+            list.clearSelection()
+            e.consume()
+          }
+          KeyEvent.VK_ESCAPE -> {
+            list.clearSelection()
+            widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, null)
+            widgetModel.surface?.invalidate()
+            widgetModel.surface?.repaint()
+            e.consume()
+          }
+          else -> {
+            super.keyReleased(e)
+          }
         }
       }
     })

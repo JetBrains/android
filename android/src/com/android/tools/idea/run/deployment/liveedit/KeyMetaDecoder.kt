@@ -85,12 +85,10 @@ internal class GroupKeyAnnotationVisitor(val parent: KeyMetaAnnotationVisitor) :
   }
 
   override fun visit(name: String, value: Any) {
-    if ("key" == name) {
-      parent.keys.add(value.toString().toInt())
-    } else if ("startOffset" == name) {
-      parent.startOffsets.add(value.toString().toInt())
-    } else if ("endOffset" == name) {
-      parent.endOffsets.add(value.toString().toInt())
+    when (name) {
+      "key" -> parent.keys.add(value.toString().toInt())
+      "startOffset" -> parent.startOffsets.add(value.toString().toInt())
+      "endOffset" -> parent.endOffsets.add(value.toString().toInt())
     }
   }
 }
