@@ -28,7 +28,6 @@
                 anchor="right"
                 secondary="true"
                 canCloseContents="true"
-                doNotActivateOnStart="true"
                 icon="StudioIcons.Shell.ToolWindows.EMULATOR"
                 factoryClass="com.android.tools.idea.streaming.core.StreamingToolWindowFactory"/>
     <notificationGroup id="Running Devices Messages"
