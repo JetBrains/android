@@ -33,7 +33,7 @@ class LiveEditMarkerInfoConsumer : MarkerInfoConsumer {
     }
 
     if (minApis.size != 1) {
-      desugarFailure("Multiple MinAPI detected")
+      desugarFailure("Multiple MinAPI detected: ${minApis} ")
     }
 
     foundMinAPI = true
