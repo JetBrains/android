@@ -382,7 +382,7 @@ public class GuiTestRule implements TestRule {
   public IdeFrameFixture openProjectAndWaitForProjectSyncToFinish(@NotNull File projectDir, @NotNull Wait waitForSync) {
     ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
-    return actAndWaitForGradleProjectSyncToFinish(waitForSync, () -> ideFrame());
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync, this::ideFrame, true);
   }
 
   /**

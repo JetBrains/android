@@ -54,7 +54,9 @@ android {
         ]
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "+"
+        // Keep it in sync with ComposePreviewTest#KOTLIN_VERSION according to:
+        // https://developer.android.com/jetpack/androidx/releases/compose-kotlin
+        kotlinCompilerExtensionVersion = "1.4.3"
     }
 }
 

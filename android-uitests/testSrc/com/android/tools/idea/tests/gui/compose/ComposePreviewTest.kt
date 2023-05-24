@@ -20,9 +20,12 @@ import com.android.fakeadbserver.CommandHandler
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.tools.adtui.compose.IssueNotificationActionButton
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
@@ -31,6 +34,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture
 import com.android.tools.idea.tests.gui.framework.fixture.compose.getNotificationsFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -61,6 +65,8 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.swing.JMenuItem
 
+private const val KOTLIN_VERSION = "1.8.10"
+
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
   @get:Rule
@@ -90,7 +96,15 @@ class ComposePreviewTest {
     }
   }
 
-  private fun getSyncedProjectFixture() = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+  private fun getSyncedProjectFixture() =
+    guiTest.importProjectAndWaitForProjectSyncToFinish(
+      "SimpleComposeApplication",
+      null,
+      null,
+      KOTLIN_VERSION,
+      null,
+      DEFAULT_IMPORT_AND_SYNC_WAIT
+    )
 
   @Test
   @Throws(Exception::class)
@@ -173,9 +187,11 @@ class ComposePreviewTest {
 
     guiTest.robot().waitForIdle()
 
-    composePreview
-      .getNotificationsFixture()
-      .waitForNotificationContains("syntax errors")
+    val notificationButton = GuiTests.waitUntilShowing(guiTest.robot(), Matchers.byType(IssueNotificationActionButton::class.java))
+    Wait
+      .seconds(10)
+      .expecting("Status to be Paused, due to a syntax error.")
+      .until { notificationButton.presentation.text == "Paused" }
 
     // Undo modifications and close editor to return to the initial state
     editor.select("(${modification})")

@@ -462,6 +462,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@Nullable Wait waitForSync,
                                                                        @NotNull Supplier<? extends IdeFrameFixture> ideFrame) {
+    return actAndWaitForGradleProjectSyncToFinish(waitForSync, ideFrame, false);
+  }
+
+  public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(
+    @Nullable Wait waitForSync,
+    @NotNull Supplier<? extends IdeFrameFixture> ideFrame,
+    boolean isOpeningProject
+  ) {
     long beforeStartedTimeStamp = System.currentTimeMillis();
 
     IdeFrameFixture ideFixture = ideFrame.get();
@@ -474,7 +482,15 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     (waitForSync != null ? waitForSync : Wait.seconds(60))
       .expecting("syncing project '" + project.getName() + "' to finish")
-      .until(() -> GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp() > beforeStartedTimeStamp);
+      .until(() -> {
+        long lastTimestamp = GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp();
+        if (isOpeningProject && lastTimestamp > 0) {
+          // When opening the project, a sync is started, therefore lastTimestamp can be less than beforeStartedTimeStamp if sync
+          // finishes before this method is called.
+          return true;
+        }
+        return lastTimestamp > beforeStartedTimeStamp;
+      });
 
     if (GradleSyncState.getInstance(project).lastSyncFailed()) {
       fail("Sync failed. See logs.");
