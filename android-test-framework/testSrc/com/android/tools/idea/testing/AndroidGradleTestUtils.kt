@@ -1609,8 +1609,8 @@ private fun createJavaModuleDataNode(
           GRADLE_SYSTEM_ID,
           root
         ).also {
-          it.storePath(if (isTest) ExternalSystemSourceType.TEST else ExternalSystemSourceType.SOURCE, root + "/java")
-          it.storePath(if (isTest) ExternalSystemSourceType.TEST_RESOURCE else ExternalSystemSourceType.RESOURCE, root + "/resources")
+          it.storePath(if (isTest) ExternalSystemSourceType.TEST else ExternalSystemSourceType.SOURCE, "$root/java")
+          it.storePath(if (isTest) ExternalSystemSourceType.TEST_RESOURCE else ExternalSystemSourceType.RESOURCE, "$root/resources")
         },
         null
       )

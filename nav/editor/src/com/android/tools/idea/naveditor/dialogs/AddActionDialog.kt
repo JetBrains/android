@@ -380,7 +380,7 @@ open class AddActionDialog(
               text += " (Self)"
             }
             else if (index != -1 && !value.isParent) {
-              text = "  " + text
+              text = "  $text"
             }
             setText(text)
           }

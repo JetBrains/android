@@ -34,7 +34,7 @@ open class ModuleSuggestionsConfigurable(
   perspectiveConfigurable: BasePerspectiveConfigurable,
   module: PsModule
 ) : AbstractModuleConfigurable<PsModule, AbstractMainPanel>(context, perspectiveConfigurable, module) {
-  override fun getId() = "android.psd.suggestions." + displayName
+  override fun getId() = "android.psd.suggestions.$displayName"
 
   override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
     private val panel = createInnerPanel().also {

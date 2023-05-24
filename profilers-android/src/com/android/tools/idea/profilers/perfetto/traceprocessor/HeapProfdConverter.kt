@@ -106,7 +106,7 @@ class HeapProfdConverter(private val abi: String,
       if (callSiteId > 0L) {
         val frameName = pointerMap[callSiteId]?.let { frames[it.frameId]?.last()?.methodName } ?: UNKNOWN_FRAME.methodName
         fullStack.addFrames(0, Memory.AllocationStack.StackFrame.newBuilder()
-          .setMethodName("[Recursive] " + frameName))
+          .setMethodName("[Recursive] $frameName"))
       }
 
       val stack = Memory.AllocationStack.newBuilder()

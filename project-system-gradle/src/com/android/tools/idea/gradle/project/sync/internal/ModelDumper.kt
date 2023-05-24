@@ -195,7 +195,7 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
     }
 
     fun processOrderedCollection(v: Collection<*>) {
-      v.forEach { doDump("- " + propertyName, it) }
+      v.forEach { doDump("- $propertyName", it) }
     }
 
     fun processUnorderedCollection(v: Collection<*>) {
@@ -214,7 +214,7 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
     }
 
     fun processArray(v: Array<*>) {
-      v.forEach { doDump("- " + propertyName, it) }
+      v.forEach { doDump("- $propertyName", it) }
     }
 
     fun processMapEntryValue(v: Any?) {
