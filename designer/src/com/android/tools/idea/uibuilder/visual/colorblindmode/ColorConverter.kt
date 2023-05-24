@@ -19,6 +19,8 @@ import com.intellij.openapi.Disposable
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.util.function.Function
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.pow
 
 /**
@@ -135,19 +137,19 @@ class ColorLut(val lut: IntArray, val dim: Int) {
 
     // 2) x - INDEX, y - COLOR. Interpolate from x to y.
     val rx: Double = red * (dim - 1) / 255.0
-    val rx0: Int = Math.floor(rx).toInt()
+    val rx0: Int = floor(rx).toInt()
 
     val gx: Double = green * (dim - 1) / 255.0
-    val gx0: Int = Math.floor(gx).toInt()
+    val gx0: Int = floor(gx).toInt()
 
     val bx: Double = blue * (dim - 1) / 255.0
-    val bx0: Int = Math.floor(bx).toInt()
+    val bx0: Int = floor(bx).toInt()
 
     val x0 = rx0 + gx0 * dim + bx0 * dimdim
 
-    val rx1 = Math.ceil(rx).toInt()
-    val gx1 = Math.ceil(gx).toInt()
-    val bx1 = Math.ceil(bx).toInt()
+    val rx1 = ceil(rx).toInt()
+    val gx1 = ceil(gx).toInt()
+    val bx1 = ceil(bx).toInt()
 
     val ry0 = r(lut[x0])
     val ry1 = r(lut[nextRed(x0)])

@@ -41,7 +41,6 @@ import gnu.trove.TObjectIntHashMap
 import org.jetbrains.android.facet.AndroidFacet
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
-import java.util.Arrays
 import java.util.EnumMap
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
@@ -112,7 +111,7 @@ open class ResourceIdManagerImpl protected constructor(val module: Module) : Res
     }
 
     override fun toString(): String {
-      return Arrays.toString(counters)
+      return counters.contentToString()
     }
   }
 

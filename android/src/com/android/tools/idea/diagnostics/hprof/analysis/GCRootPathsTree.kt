@@ -27,6 +27,8 @@ import gnu.trove.TIntArrayList
 import gnu.trove.TIntHashSet
 import gnu.trove.TIntObjectHashMap
 import java.util.ArrayDeque
+import kotlin.math.ceil
+import kotlin.math.min
 
 class GCRootPathsTree(
   private val context: AnalysisContext,
@@ -298,9 +300,9 @@ class GCRootPathsTree(
       }
       val totalInstanceCount = calculateTotalInstanceCount()
 
-      val minimumObjectsForReport = Math.min(
+      val minimumObjectsForReport = min(
         treeDisplayOptions.minimumObjectCount,
-        (Math.ceil(totalInstanceCount / 100.0) * treeDisplayOptions.minimumObjectCountPercent).toInt())
+        (ceil(totalInstanceCount / 100.0) * treeDisplayOptions.minimumObjectCountPercent).toInt())
 
       // Show paths from roots that have at least minimumObjectCountPercent%, minimumObjectCount objects or size of all reported objects
       // in the subtree is more than minimumObjectSize.

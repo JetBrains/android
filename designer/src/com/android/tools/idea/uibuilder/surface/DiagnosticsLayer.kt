@@ -29,6 +29,7 @@ import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
+import kotlin.math.min
 
 val FONT = JBUI.Fonts.create(Font.MONOSPACED, 9)
 val PCT_FORMAT = DecimalFormat("###.##")
@@ -111,7 +112,7 @@ class DiagnosticsLayer(val surface: DesignSurface<*>) : Layer() {
     lastRenders.takeLast(TIME_BAR_COUNT)
       .forEach {
         g.color = colorForRenderTime(it)
-        val barLength = Math.min((it / 3).toInt(), MAX_TIME_BAR_LENGTH)
+        val barLength = min((it / 3).toInt(), MAX_TIME_BAR_LENGTH)
         g.fillRect(startX, startLine + (MAX_TIME_BAR_LENGTH - barLength), TIME_BAR_WIDTH, barLength)
         startX += TIME_BAR_WIDTH + TIME_BAR_SPACE
       }

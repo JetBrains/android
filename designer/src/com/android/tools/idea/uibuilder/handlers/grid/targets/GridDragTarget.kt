@@ -32,6 +32,9 @@ import com.intellij.openapi.util.text.StringUtil
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Graphics2D
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 private const val MIN_WIDTH = 16
 private const val MIN_HEIGHT = 16
@@ -98,8 +101,8 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     val dragX = x - offsetX
     val dragY = y - offsetY
 
-    val componentX = Math.max(parent.drawX, Math.min(dragX, parent.drawX + parent.drawWidth - myComponent.drawWidth))
-    val componentY = Math.max(parent.drawY, Math.min(dragY, parent.drawY + parent.drawHeight - myComponent.drawHeight))
+    val componentX = max(parent.drawX, min(dragX, parent.drawX + parent.drawWidth - myComponent.drawWidth))
+    val componentY = max(parent.drawY, min(dragY, parent.drawY + parent.drawHeight - myComponent.drawHeight))
     myComponent.setPosition(componentX, componentY)
 
     val component = myComponent.nlComponent
@@ -135,7 +138,7 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     updateAttributes(attributes, x, y)
     attributes.apply()
 
-    if (!(Math.abs(x - firstMouseX) <= 1 && Math.abs(y - firstMouseY) <= 1)) {
+    if (!(abs(x - firstMouseX) <= 1 && abs(y - firstMouseY) <= 1)) {
       WriteCommandAction
           .writeCommandAction(component.model.file)
           .withName("Dragged " + StringUtil.getShortName(component.tagName))

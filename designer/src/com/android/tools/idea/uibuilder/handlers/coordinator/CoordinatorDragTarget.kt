@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Color
+import kotlin.math.abs
 
 private const val DEBUG: Boolean = false
 
@@ -154,7 +155,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
       val attributes = component.startAttributeTransaction()
       updateAttributes(attributes, x, y)
       attributes.apply()
-      if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
+      if (abs(x - myFirstMouseX) > 1 || abs(y - myFirstMouseY) > 1) {
         NlWriteCommandActionUtil.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
       }
     }

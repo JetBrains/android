@@ -21,6 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.intellij.util.ui.JBUI
 import java.awt.Point
+import kotlin.math.abs
 
 const val NEW_DESTINATION_MARKER_PROPERTY = "new.destination"
 
@@ -48,7 +49,7 @@ class NewDestinationLayoutAlgorithm : SingleComponentLayoutAlgorithm() {
     val children = surface.scene?.root?.children!!
 
     while (children.any {
-        Math.abs(it.getDrawX(0) - point.x) < tolerance && Math.abs(it.getDrawY(0) - point.y) < tolerance
+        abs(it.getDrawX(0) - point.x) < tolerance && abs(it.getDrawY(0) - point.y) < tolerance
       }) {
       point.translate(incrementalOffset, incrementalOffset)
     }

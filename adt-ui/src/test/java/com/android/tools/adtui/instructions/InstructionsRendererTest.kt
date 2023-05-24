@@ -19,7 +19,6 @@ import com.google.common.truth.Truth
 import org.junit.Test
 import java.awt.Dimension
 import java.awt.Point
-import java.util.Arrays
 
 class InstructionsRendererTest {
 
@@ -27,7 +26,7 @@ class InstructionsRendererTest {
   fun testRowHeightAndTotalSize() {
     // Fake a list of instructions.
     // Row height should be 100, and total size should be {150, 210}
-    val instructions = Arrays.asList(
+    val instructions = listOf(
         FakeRenderInstructions(100, 100),
         FakeRenderInstructions(50, 90),
         NewRowInstruction(10),
@@ -43,7 +42,7 @@ class InstructionsRendererTest {
   @Test
   fun testLeftAlignStartX() {
     // Fake a list of instructions.
-    val instructions = Arrays.asList(
+    val instructions = listOf(
         FakeRenderInstructions(100, 100),
         FakeRenderInstructions(50, 90),
         NewRowInstruction(10),
@@ -63,7 +62,7 @@ class InstructionsRendererTest {
   @Test
   fun testCenterAlignStartX() {
     // Fake a list of instructions.
-    val instructions = Arrays.asList(
+    val instructions = listOf(
         FakeRenderInstructions(100, 100),
         FakeRenderInstructions(50, 90),
         NewRowInstruction(10),
@@ -83,7 +82,7 @@ class InstructionsRendererTest {
   @Test
   fun testRightAlignStartX() {
     // Fake a list of instructions.
-    val instructions = Arrays.asList(
+    val instructions = listOf(
         FakeRenderInstructions(100, 100),
         FakeRenderInstructions(50, 90),
         NewRowInstruction(10),

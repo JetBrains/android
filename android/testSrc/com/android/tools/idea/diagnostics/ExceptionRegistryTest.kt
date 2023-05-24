@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFrom
 import junit.framework.TestCase
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.math.max
 
 class ExceptionRegistryTest : TestCase() {
 
@@ -57,7 +58,7 @@ class ExceptionRegistryTest : TestCase() {
         }
         val hash = frame.md5string()
         if (includeSummaries) {
-          val summary = frame.summarize(Math.max(maxWidth - 40, 20)) // 40: subtract out the space taken by the frequency and hash strings
+          val summary = frame.summarize(max(maxWidth - 40, 20)) // 40: subtract out the space taken by the frequency and hash strings
           sb.append(String.format("%1$6d %2$32s %3\$s\n", count, hash, summary))
         }
         else {

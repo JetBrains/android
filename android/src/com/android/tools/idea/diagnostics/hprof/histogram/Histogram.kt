@@ -22,7 +22,7 @@ import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toPaddedSho
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toPaddedShortStringAsSize
 import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
 import com.android.tools.idea.diagnostics.hprof.visitors.HistogramVisitor
-import java.lang.Math.min
+import kotlin.math.min
 
 class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
 

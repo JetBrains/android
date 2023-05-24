@@ -28,6 +28,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import java.util.Locale
 import javax.imageio.ImageIO
+import kotlin.math.roundToLong
 
 enum class DesignAssetMetadata(val metadataName: String) {
   FILE_NAME("File name"),
@@ -110,8 +111,8 @@ fun VirtualFile.getMetadata(vararg dataKeys: DesignAssetMetadata = DesignAssetMe
 
     if (keys.remove(DIMENSIONS_DP) && density != null && density.isValidValueForDevice) {
       val dpiValue = density.dpiValue.toDouble()
-      val dpWidth = Math.round(width / (dpiValue / Density.DEFAULT_DENSITY))
-      val dpHeight = Math.round(height / (dpiValue / Density.DEFAULT_DENSITY))
+      val dpWidth = (width / (dpiValue / Density.DEFAULT_DENSITY)).roundToLong()
+      val dpHeight = (height / (dpiValue / Density.DEFAULT_DENSITY)).roundToLong()
       map[DIMENSIONS_DP] = "${dpWidth}x${dpHeight}"
     }
 

@@ -24,6 +24,7 @@ import java.awt.BasicStroke
 import java.awt.Graphics2D
 import java.awt.Rectangle
 import java.awt.Stroke
+import kotlin.math.min
 
 /**
  * Draws animated frames but without directions covering one side.
@@ -62,7 +63,7 @@ class DrawAnimatedFrameNoDirection(
     var shift = (sceneContext.time % REPAT_MS).toInt()
     shift /= REPAT_MS / PATERN_LENGTH
 
-    mXPoints[0] = x + width / 2 - Math.min(shift, width / 2)
+    mXPoints[0] = x + width / 2 - min(shift, width / 2)
     mYPoints[0] = y + height
     mXPoints[1] = x
     mYPoints[1] = y + height

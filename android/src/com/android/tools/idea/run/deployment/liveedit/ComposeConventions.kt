@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.objectweb.asm.ClassReader
+import kotlin.math.ceil
 
 const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
@@ -51,11 +52,11 @@ fun calcStateParamCount(realValueParamsCount : Int, numDefaults : Int = 0) : Int
     totalSyntheticParamCount += 1;
   } else {
     val totalParams = realValueParamsCount
-    totalSyntheticParamCount += Math.ceil(totalParams.toDouble() / SLOTS_PER_INT.toDouble()).toInt()
+    totalSyntheticParamCount += ceil(totalParams.toDouble() / SLOTS_PER_INT.toDouble()).toInt()
   }
 
   if (realValueParamsCount != 0 && numDefaults != 0) {
-    totalSyntheticParamCount += Math.ceil(realValueParamsCount.toDouble() / BITS_PER_INT.toDouble()).toInt()
+    totalSyntheticParamCount += ceil(realValueParamsCount.toDouble() / BITS_PER_INT.toDouble()).toInt()
   }
   return totalSyntheticParamCount;
 }
