@@ -16,6 +16,7 @@
 
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
 import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.android.tools.idea.kotlin.findAnnotation
@@ -24,9 +25,17 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
+import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtLocalVariableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
@@ -47,6 +56,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
+import org.jetbrains.kotlin.util.OperatorNameConventions
 
 fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.usesCompose ?: false
 
@@ -106,4 +116,27 @@ internal fun KtFunction.hasComposableAnnotation() = if (isK2Plugin()) {
   findAnnotation(ComposeFqNames.Composable) != null
 } else {
   descriptor?.hasComposableAnnotation() == true
+}
+
+internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KtCallableSymbol): Boolean {
+  fun hasComposableAnnotation(annotated: KtAnnotated?) =
+    annotated != null && annotated.hasAnnotation(ComposeClassIds.Composable)
+
+  val type = callableSymbol.returnType
+  if (hasComposableAnnotation(type)) return true
+  val functionSymbol = callableSymbol as? KtFunctionSymbol
+  if (functionSymbol != null &&
+      functionSymbol.isOperator &&
+      functionSymbol.name == OperatorNameConventions.INVOKE
+    ) {
+    functionSymbol.receiverType?.let { receiverType ->
+      if (hasComposableAnnotation(receiverType)) return true
+    }
+  }
+  return when (callableSymbol) {
+    is KtValueParameterSymbol -> false
+    is KtLocalVariableSymbol -> false
+    is KtPropertySymbol -> hasComposableAnnotation(callableSymbol.getter)
+    else -> hasComposableAnnotation(callableSymbol)
+  }
 }
