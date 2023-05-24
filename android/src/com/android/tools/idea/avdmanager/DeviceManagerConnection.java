@@ -18,6 +18,7 @@ package com.android.tools.idea.avdmanager;
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
+import com.android.sdklib.devices.DeviceManager.DeviceFilter;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -25,8 +26,6 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.sdk.DeviceManagers;
 import com.android.utils.ILogger;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.FileInputStream;
@@ -100,11 +99,16 @@ public class DeviceManagerConnection {
 
   @NotNull
   public Collection<Device> getDevices() {
+    return getDevices(DeviceManager.ALL_DEVICES);
+  }
+
+  @NotNull
+  Collection<Device> getDevices(@NotNull Collection<DeviceFilter> filters) {
     if (!initIfNecessary()) {
       return List.of();
     }
 
-    return ourDeviceManager.getDevices(DeviceManager.ALL_DEVICES);
+    return ourDeviceManager.getDevices(filters);
   }
 
   /**
@@ -128,7 +132,7 @@ public class DeviceManagerConnection {
     if (!initIfNecessary()) {
       return baseId;
     }
-    Collection<Device> devices = ourDeviceManager.getDevices(DeviceManager.DeviceFilter.USER);
+    var devices = ourDeviceManager.getDevices(DeviceFilter.USER);
     String candidate = baseId;
     int i = 0;
     while (anyIdMatches(candidate, devices)) {
@@ -206,12 +210,10 @@ public class DeviceManagerConnection {
     if (!initIfNecessary()) {
       return false;
     }
-    return Iterables.any(ourDeviceManager.getDevices(DeviceManager.DeviceFilter.USER), new Predicate<Device>() {
-      @Override
-      public boolean apply(Device input) {
-        return device.getId().equalsIgnoreCase(input.getId());
-      }
-    });
+
+    return ourDeviceManager.getDevices(DeviceFilter.USER).stream()
+      .map(Device::getId)
+      .anyMatch(device.getId()::equalsIgnoreCase);
   }
 
   public static List<Device> getDevicesFromFile(@NotNull File xmlFile) {
