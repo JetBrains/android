@@ -39,9 +39,7 @@ class StudioModuleClassLoaderManagerTest {
   fun testDown() {
     val moduleClassLoader =  ModuleClassLoaderManager.get() as StudioModuleClassLoaderManager
     StudioModuleClassLoaderManager.setCaptureClassLoadingDiagnostics(false)
-    if (moduleClassLoader.hasAllocatedSharedClassLoaders()) {
-      fail("Class loaders were not released correctly by the tests")
-    }
+    moduleClassLoader.assertNoClassLoadersHeld()
   }
 
   @Test

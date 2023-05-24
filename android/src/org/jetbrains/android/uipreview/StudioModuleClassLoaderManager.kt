@@ -44,9 +44,9 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.removeUserData
 import com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService
+import com.intellij.util.containers.MultiMap
 import java.lang.ref.SoftReference
 import java.util.Collections
-import java.util.IdentityHashMap
 import java.util.WeakHashMap
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicBoolean
@@ -243,15 +243,33 @@ private fun Module.getOrCreateHatchery() =
 /** A [ClassLoader] for the [Module] dependencies. */
 class StudioModuleClassLoaderManager : ModuleClassLoaderManager, Disposable {
   // MutableSet is backed by the WeakHashMap in prod so we do not retain the holders
-  private val holders: MutableMap<StudioModuleClassLoader, MutableSet<Any>> = IdentityHashMap()
+  /**
+   * Creates a [MultiMap] to be used as a storage of [ModuleClassLoader] holders. We would like
+   * the implementation to be different in prod and in tests:
+   *
+   * In Prod, it should be a Set of value WEAK references. So that in case we do not release the holder
+   * (due to some unexpected flow) it is not retained by the [StudioModuleClassLoaderManager]
+   *
+   * In Tests, we would like it to be a Set of STRONG references. So that any unreleased references
+   * got caught by the LeakHunter.
+   */
+  private val holders: MultiMap<StudioModuleClassLoader, Any> = if (ApplicationManager.getApplication().isUnitTestMode)
+    WeakMultiMap.create()
+  else
+    WeakMultiMap.createWithWeakValues()
 
   override fun dispose() {
-    holders.keys
-      .mapNotNull { it.module }
-      .forEach { clearCache(it) }
+    holders.keySet().mapNotNull { it.module }.forEach { clearCache(it) }
   }
 
-  @TestOnly fun hasAllocatedSharedClassLoaders() = holders.isNotEmpty()
+  @TestOnly
+  fun assertNoClassLoadersHeld() {
+    if (!holders.isEmpty) {
+      val referencesString =
+        holders.entrySet().joinToString { "${it.key} held by ${it.value.joinToString(", ")}" }
+      throw AssertionError("Class loaders were not released correctly by the tests\n$referencesString\n")
+    }
+  }
 
   /**
    * Returns a project class loader to use for rendering. May cache instances across render
@@ -303,7 +321,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager, Disposable {
     }
 
     oldClassLoader?.let { release(it, DUMMY_HOLDER) }
-    holders.computeIfAbsent(moduleClassLoader) { createHoldersSet() }.apply { add(holder) }
+    holders.putValue(moduleClassLoader, holder)
     return moduleClassLoader
   }
 
@@ -332,9 +350,8 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager, Disposable {
     return (preloadedClassLoader ?: StudioModuleClassLoader(parent, moduleRenderContext,
                                                             combinedProjectTransformations,
                                                             combinedNonProjectTransformations,
-                                                            createDiagnostics())).apply {
-      holders[this] = createHoldersSet().apply { add(holder) }
-    }
+                                                            createDiagnostics()))
+      .apply { holders.putValue(this, holder) }
   }
 
   @Synchronized
@@ -344,25 +361,9 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager, Disposable {
   @VisibleForTesting
   fun createCopy(mcl: StudioModuleClassLoader): StudioModuleClassLoader? = mcl.copy(createDiagnostics())
 
-  /**
-   * Creates a [MutableMap] to be used as a storage of [ModuleClassLoader] holders. We would like the implementation to be different in
-   * prod and in tests:
-   *
-   * In Prod, it should be a Set of WEAK references. So that in case we do not release the holder (due to some unexpected flow) it is not
-   * retained by the [StudioModuleClassLoaderManager]
-   *
-   * In Tests, we would like it to be a Set of STRONG references. So that any unreleased references got caught by the LeakHunter.
-   */
-  private fun createHoldersSet(): MutableSet<Any> =
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      mutableSetOf()
-    } else {
-      Collections.newSetFromMap(WeakHashMap())
-    }
-
   @Synchronized
   override fun clearCache(module: Module) {
-    holders.keys.toList().filter { it.module?.getHolderModule() == module.getHolderModule() }.forEach { holders.remove(it) }
+    holders.keySet().toList().filter { it.module?.getHolderModule() == module.getHolderModule() }.forEach { holders.remove(it) }
     setOf(module.getHolderModule(), module).forEach { mdl ->
       mdl.removeUserData(PRELOADER)?.dispose()
       mdl.getUserData(HATCHERY)?.destroy()
@@ -371,17 +372,12 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager, Disposable {
 
   @Synchronized
   private fun unHold(moduleClassLoader: ModuleClassLoader, holder: Any) {
-    holders[moduleClassLoader]?.let {
-      it.remove(holder)
-      if (it.isEmpty()) {
-        holders.remove(moduleClassLoader)
-      }
-    }
+    holders.remove(moduleClassLoader as StudioModuleClassLoader, holder)
   }
 
   @Synchronized
   private fun stopManagingIfNotHeld(moduleClassLoader: StudioModuleClassLoader): Boolean {
-    if (holders[moduleClassLoader]?.isNotEmpty() == true) {
+    if (holders.containsKey(moduleClassLoader)) {
       return false
     }
     // If that was a shared ModuleClassLoader that is no longer used, we have to destroy the old one to free the resources, but we also
@@ -391,13 +387,18 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager, Disposable {
         return@let
       }
       if (module.getUserData(PRELOADER)?.isLoadingFor(moduleClassLoader) != true) {
-        if (holders.isNotEmpty()) {
+        if (!holders.isEmpty) {
           StudioModuleClassLoaderCreationContext.fromClassLoader(moduleClassLoader)?.let {
-            module.getOrCreateHatchery().incubateIfNeeded(it) {  donorInformation ->
-              StudioModuleClassLoader(donorInformation.parent, donorInformation.moduleRenderContext, donorInformation.projectTransform, donorInformation.nonProjectTransformation, createDiagnostics())
+            module.getOrCreateHatchery().incubateIfNeeded(it) { donorInformation ->
+              StudioModuleClassLoader(
+                donorInformation.parent,
+                donorInformation.moduleRenderContext,
+                donorInformation.projectTransform,
+                donorInformation.nonProjectTransformation,
+                createDiagnostics()
+              )
             }
           }
-
         }
       } else {
         module.removeUserData(PRELOADER)?.cancel()
@@ -406,7 +407,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager, Disposable {
         val classesToLoad = moduleClassLoader.nonProjectLoadedClasses + moduleClassLoader.projectLoadedClasses
         module.putUserData(PRELOADER, Preloader(newClassLoader, classesToLoad))
       }
-      if (holders.isEmpty()) { // If there are no more users of ModuleClassLoader destroy the hatchery to free the resources
+      if (holders.isEmpty) { // If there are no more users of ModuleClassLoader destroy the hatchery to free the resources
         module.getUserData(HATCHERY)?.destroy()
       }
     }
@@ -442,7 +443,8 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager, Disposable {
     }
 
     internal fun createDiagnostics() =
-      if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl() else NopModuleClassLoadedDiagnostics
+      if (captureDiagnostics) ModuleClassLoadedDiagnosticsImpl()
+      else NopModuleClassLoadedDiagnostics
 
     @JvmStatic
     fun get(): StudioModuleClassLoaderManager =
