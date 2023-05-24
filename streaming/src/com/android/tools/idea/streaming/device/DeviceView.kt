@@ -139,9 +139,6 @@ internal class DeviceView(
   override var displayOrientationQuadrants: Int = 0
     private set
 
-  internal var displayOrientationCorrectionQuadrants: Int = 0
-    private set
-
   private var connectionState = ConnectionState.INITIAL
     set(value) {
       if (field != value) {
