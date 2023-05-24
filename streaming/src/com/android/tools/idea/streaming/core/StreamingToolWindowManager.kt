@@ -270,7 +270,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, this)
 
-    if (deviceMirroringSettings.deviceMirroringEnabled) {
+    if (deviceMirroringSettings.deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()) {
       UIUtil.invokeLaterIfNeeded {
         if (!toolWindow.isDisposed) {
           physicalDeviceWatcher = PhysicalDeviceWatcher(this)
@@ -625,7 +625,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   override fun settingsChanged(settings: DeviceMirroringSettings) {
-    if (settings.deviceMirroringEnabled) {
+    if (settings.deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()) {
       if (physicalDeviceWatcher == null) {
         physicalDeviceWatcher = PhysicalDeviceWatcher(this)
       }
@@ -962,18 +962,27 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
   }
 
   val deviceSerialNumber = serialNumber
-  if (isLocalEmulator(deviceSerialNumber)) {
-    if (!StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
-      return false
+  when {
+    isLocalEmulator(deviceSerialNumber) -> { // Local virtual device.
+      if (!StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
+        return false
+      }
+      val emulators = RunningEmulatorCatalog.getInstance().updateNow().suspendingGet()
+      val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber }
+      if (emulator == null || emulator.emulatorId.isEmbedded) {
+        return false
+      }
     }
-    val emulators = RunningEmulatorCatalog.getInstance().updateNow().suspendingGet()
-    val emulator = emulators.find { "emulator-${it.emulatorId.serialPort}" == deviceSerialNumber }
-    if (emulator == null || emulator.emulatorId.isEmbedded) {
-      return false
+    properties.isVirtual == true -> { // Remote virtual device.
+      if (!StudioFlags.DEVICE_MIRRORING_REMOTE_EMULATORS.get()) {
+        return false
+      }
     }
-  }
-  else if (properties.isVirtual == true && !StudioFlags.DEVICE_MIRRORING_REMOTE_EMULATORS.get()) {
-    return false
+    reservation == null -> { // Local physical device.
+      if (!DeviceMirroringSettings.getInstance().deviceMirroringEnabled) {
+        return false
+      }
+    }
   }
 
   val apiLevel = properties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API

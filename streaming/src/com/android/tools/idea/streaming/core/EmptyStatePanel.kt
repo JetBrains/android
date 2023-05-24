@@ -21,6 +21,7 @@ import com.android.repository.Revision
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.tools.adtui.stdui.StandardColors
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.streaming.DeviceMirroringSettings
@@ -81,7 +82,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
     isFocusable = true
 
     emulatorLaunchesInToolWindow = EmulatorSettings.getInstance().launchInToolWindow
-    deviceMirroringEnabled = DeviceMirroringSettings.getInstance().deviceMirroringEnabled
+    deviceMirroringEnabled = DeviceMirroringSettings.getInstance().deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()
     emulatorVersionIsSufficient = true
 
     hyperlinkListener = HyperlinkListener { event ->
