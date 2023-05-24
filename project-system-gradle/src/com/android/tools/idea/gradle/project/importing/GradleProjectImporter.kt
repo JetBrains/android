@@ -66,9 +66,8 @@ import java.nio.file.Path
 class GradleProjectImporter @NonInjectable @VisibleForTesting internal constructor(
   private val mySdkSync: SdkSync,
   private val myTopLevelModuleFactory: TopLevelModuleFactory,
-  private val myProjectFolderFactory: ProjectFolder.Factory
 ) {
-  constructor() : this(SdkSync.getInstance(), TopLevelModuleFactory(), ProjectFolder.Factory())
+  constructor() : this(SdkSync.getInstance(), TopLevelModuleFactory())
 
   /**
    * Ensures presence of the top level Gradle build file and the .idea directory and, additionally, performs cleanup of the libraries
@@ -126,10 +125,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
 
   @Throws(IOException::class)
   fun importProjectNoSync(request: Request) {
-    val projectFolderPath = Projects.getBaseDirPath(request.project).absoluteFile
-    val projectFolder = myProjectFolderFactory.create(projectFolderPath)
-    projectFolder.createTopLevelBuildFile()
-    projectFolder.createIdeaProjectFolder()
     val newProject = request.project
     val projectInfo = GradleProjectInfo.getInstance(newProject)
     projectInfo.isNewProject = request.isNewProject

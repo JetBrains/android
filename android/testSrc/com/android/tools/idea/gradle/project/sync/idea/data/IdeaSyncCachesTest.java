@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.intellij.openapi.application.ActionsKt.runWriteAction;
-import static com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER;
 
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -31,7 +28,6 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.containers.ContainerUtil;
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -116,26 +112,5 @@ public class IdeaSyncCachesTest extends AndroidGradleTestCase {
       });
       return null;
     });
-  }
-
-  public void testLibrariesFolderIsDeleted() throws Exception {
-    loadSimpleApplication();
-
-    // Create .idea/libraries folder under project folder.
-    File ideaFolderPath = new File(getBaseDirPath(getProject()), DIRECTORY_STORE_FOLDER);
-    File librariesFolderPath = new File(ideaFolderPath, "libraries");
-    assertTrue(librariesFolderPath.mkdirs());
-
-    // Verify that libraries folder exists.
-    assertExists(librariesFolderPath);
-
-    // Verify that after invalidating cache, libraries folder is deleted (only in Android Studio).
-    myInvalidator.invalidateCaches();
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      assertDoesntExist(librariesFolderPath);
-    }
-    else {
-      assertExists(librariesFolderPath);
-    }
   }
 }
