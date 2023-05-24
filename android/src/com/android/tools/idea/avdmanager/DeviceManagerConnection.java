@@ -21,29 +21,31 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.sdk.DeviceManagers;
 import com.android.utils.ILogger;
-import com.android.tools.idea.log.LogWrapper;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import java.io.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A wrapper class which manages a {@link DeviceManager} instance and provides convenience functions
@@ -96,15 +98,13 @@ public class DeviceManagerConnection {
     return true;
   }
 
-  /**
-   * @return a list of Devices currently present on the system.
-   */
   @NotNull
-  public List<Device> getDevices() {
+  public Collection<Device> getDevices() {
     if (!initIfNecessary()) {
-      return ImmutableList.of();
+      return List.of();
     }
-    return Lists.newArrayList(ourDeviceManager.getDevices(DeviceManager.ALL_DEVICES));
+
+    return ourDeviceManager.getDevices(DeviceManager.ALL_DEVICES);
   }
 
   /**

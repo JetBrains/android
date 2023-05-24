@@ -66,7 +66,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -483,7 +482,7 @@ public final class AvdOptionsModel extends WizardModel {
   }
 
   private void updateValuesWithAvdInfo(@NotNull AvdInfo avdInfo) {
-    List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
+    var devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     Device selectedDevice = null;
     String manufacturer = avdInfo.getDeviceManufacturer();
     String deviceId = avdInfo.getDeviceName();

@@ -86,7 +86,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private SearchTextField mySearchTextField;
   private final List<DeviceDefinitionSelectionListener> myListeners = new ArrayList<>();
   private final List<DeviceCategorySelectionListener> myCategoryListeners = new ArrayList<>();
-  private List<Device> myDevices;
+  private Collection<Device> myDevices;
   private Device myDefaultDevice;
 
   public DeviceDefinitionList() {
