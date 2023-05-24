@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb
 
 import com.android.utils.reflection.qualifiedName
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -43,7 +44,7 @@ data class AdbFileProvider(private val supplier: Supplier<File?>) {
     project.putUserData(KEY, this)
   }
 
-  fun storeInApplication() {
-    ApplicationManager.getApplication().putUserData(KEY, this)
+  fun storeInApplication(app: Application) {
+    app.putUserData(KEY, this)
   }
 }

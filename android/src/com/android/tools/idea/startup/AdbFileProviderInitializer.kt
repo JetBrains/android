@@ -17,7 +17,7 @@ package com.android.tools.idea.startup
 
 import com.android.tools.idea.adb.AdbFileProvider
 import com.android.utils.reflection.qualifiedName
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
@@ -48,9 +48,9 @@ class AdbFileProviderInitializer : ProjectManagerListener {
 
   companion object {
     @JvmStatic
-    fun initializeApplication() {
-      val supplier = Supplier<File?> { getAdbPathAndReportError(null, ApplicationManager.getApplication()) }
-      AdbFileProvider(supplier).storeInApplication()
+    fun initializeApplication(app: Application) {
+      val supplier = Supplier<File?> { getAdbPathAndReportError(null, app) }
+      AdbFileProvider(supplier).storeInApplication(app)
     }
 
     private val LOG_ERROR_KEY: Key<Boolean> = Key.create(::LOG_ERROR_KEY.qualifiedName)

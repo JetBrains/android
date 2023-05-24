@@ -21,18 +21,17 @@ import com.android.tools.idea.apk.ApkFacet
 import com.android.tools.idea.initializeApkFacetChecker
 import com.intellij.facet.FacetManager
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 
 /**
  * Provides an implementation of the [ApkFacetCheckerInternal] interface.
  */
-fun initializeApkFacetChecker() {
-  initializeApkFacetChecker(object: ApkFacetCheckerInternal {
-    override fun hasApkFacet(module: Module): Boolean =
-      FacetManager.getInstance(module).getFacetByType(ApkFacet.ID) != null
+fun initializeApkFacetChecker(app: Application) {
+  initializeApkFacetChecker(app = app, checker = object: ApkFacetCheckerInternal {
+    override fun hasApkFacet(module: Module): Boolean = FacetManager.getInstance(module).getFacetByType(ApkFacet.ID) != null
 
-    override fun hasApkFacet(project: Project): Boolean =
-      ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.ID)
+    override fun hasApkFacet(project: Project): Boolean = ProjectFacetManager.getInstance(project).hasFacets(ApkFacet.ID)
   })
 }

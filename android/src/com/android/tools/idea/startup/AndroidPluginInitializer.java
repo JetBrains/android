@@ -30,7 +30,7 @@ public class AndroidPluginInitializer implements ApplicationLoadListener {
   public void beforeApplicationLoaded(@NotNull Application application, @NotNull Path configPath) {
     //AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
     StudioProgressManagerAdapter.initialize();
-    ApkFacetCheckerInitializer.initializeApkFacetChecker();
-    AdbFileProviderInitializer.initializeApplication();
+    ApkFacetCheckerInitializer.initializeApkFacetChecker(application);
+    AdbFileProviderInitializer.initializeApplication(application);
   }
 }

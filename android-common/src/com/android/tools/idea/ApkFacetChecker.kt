@@ -16,6 +16,7 @@
 @file:JvmName("ApkFacetChecker")
 package com.android.tools.idea
 
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -31,8 +32,8 @@ fun Module.hasApkFacet(): Boolean =
 fun Project.hasApkFacet(): Boolean =
   ApplicationManager.getApplication().getUserData(APK_FACET_CHECKER_KEY)?.hasApkFacet(this) ?: false
 
-fun initializeApkFacetChecker(checker: ApkFacetCheckerInternal) {
-  ApplicationManager.getApplication().putUserData(APK_FACET_CHECKER_KEY, checker)
+fun initializeApkFacetChecker(checker: ApkFacetCheckerInternal, app: Application) {
+  app.putUserData(APK_FACET_CHECKER_KEY, checker)
 }
 
 interface ApkFacetCheckerInternal {
