@@ -50,8 +50,7 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
               type: CpuTraceType,
               range: Range,
               captureTrees: Map<CpuThreadInfo, CaptureNode>) :
-    this(traceId, type, true, null, range, captureTrees) {
-  }
+    this(traceId, type, true, null, range, captureTrees)
 
   private val availableThreads: Set<CpuThreadInfo>
   private val threadIdToNode: Map<Int, CaptureNode>
