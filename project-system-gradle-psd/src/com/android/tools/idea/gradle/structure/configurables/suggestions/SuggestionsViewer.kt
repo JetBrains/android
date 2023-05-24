@@ -56,6 +56,8 @@ class SuggestionsViewer(
   }
 
   private fun renderIssues(issues: SortedMap<PsIssue.Severity, List<PsIssue>>, scope: PsPath?) {
+    // Save current visible rectangle to restore it after issues are updated
+    val selectedBounds = myMainPanel.visibleRect
     myEmptyIssuesLabel.isVisible = issues.isEmpty()
 
     for ((groupIndex, group) in groups.withIndex().reversed()) {
@@ -84,6 +86,9 @@ class SuggestionsViewer(
         group.view.add(
             SuggestionViewer(context, renderer, issue, scope, isLast = rowIndex == groupIssues.size - 1).component)
       }
+    }
+    if (selectedBounds != null) {
+      myMainPanel.scrollRectToVisible(selectedBounds)
     }
   }
 
