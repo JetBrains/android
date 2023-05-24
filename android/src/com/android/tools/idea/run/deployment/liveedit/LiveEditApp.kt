@@ -40,7 +40,7 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiL
     }
 
     if (minApis.size > 1) {
-      desugarFailure("Too many minAPI from APKs=$apks, minAPIs extracted=$minApis")
+      desugarFailure("Too many minAPI from APKs=$apks, minAPIs extracted: $minApis")
     }
 
     if (minApis.isEmpty()) {
