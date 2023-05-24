@@ -51,4 +51,5 @@ data class IdeAndroidProjectImpl(
   override val testNamespace: String?,
   override val isKaptEnabled: Boolean,
   override val desugarLibraryConfigFiles: List<File>,
+  override val defaultVariantName: String?
 ) : IdeAndroidProject, Serializable

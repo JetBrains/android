@@ -110,7 +110,7 @@ public class BuildVariantUpdater {
       ProjectDataManager.getInstance().getExternalProjectData(myProject, GradleConstants.SYSTEM_ID, myProject.getBasePath());
 
     DataNode<ProjectData> variantProjectDataNode =
-      StudioFlags.GRADLE_SYNC_ENABLE_CACHED_VARIANTS.get() &&data != null
+      StudioFlags.GRADLE_SYNC_ENABLE_CACHED_VARIANTS.get() && data != null
       ? VariantSwitcher.findVariantProjectData(moduleToUpdate, variantAndAbi, data)
       : null;
 
@@ -180,7 +180,6 @@ public class BuildVariantUpdater {
       requestedVariantChange);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener());
   }
-
 
   private static void setupCachedVariant(@NotNull Project project,
                                          @NotNull DataNode<ProjectData> variantData) {

@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.gradle.project.sync.SelectedVariantCollectorKt.getModuleIdForSyncRequest;
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
 import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
 import static com.intellij.util.ui.JBUI.scale;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
+import android.annotation.SuppressLint;
 import com.android.tools.idea.fileTypes.AndroidIconProvider;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot;
+import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
 import com.intellij.icons.AllIcons;
@@ -83,6 +86,7 @@ public class BuildVariantView {
   private static final int MODULE_COLUMN_INDEX = 0;
   private static final int VARIANT_COLUMN_INDEX = 1;
   private static final int ABI_COLUMN_INDEX = 2;
+  protected static final String DEFAULT_INDICATOR = " (default)";
 
   private static final Color CONFLICT_CELL_BACKGROUND = MessageType.ERROR.getPopupBackground();
 
@@ -91,6 +95,7 @@ public class BuildVariantView {
   private JPanel myToolWindowPanel;
   private JBTable myVariantsTable;
   private JPanel myNotificationPanel;
+  private JButton mySetDefaultButton;
 
   private final List<Conflict> myConflicts = new ArrayList<>();
 
@@ -239,7 +244,7 @@ public class BuildVariantView {
    * Represents the contents of the Build Variant table in the panel.
    */
   private class BuildVariantTable extends JBTable {
-    // If true, then the a "loading" label is displayed instead of the table rows. This prevents the user from making changes while the IDE
+    // If true, then a "loading" label is displayed instead of the table rows. This prevents the user from making changes while the IDE
     // is working to apply a previous selection (e.g., sync).
     private boolean myLoading;
 
@@ -259,7 +264,7 @@ public class BuildVariantView {
           int column = getSelectedColumn();
           int row = getSelectedRow();
 
-          // Map the F2 button to enter edit mode when the the variant and ABI cells are selected.
+          // Map the F2 button to enter edit mode when the variant and ABI cells are selected.
           if ((column == VARIANT_COLUMN_INDEX || column == ABI_COLUMN_INDEX)
               && row >= 0 && e.getKeyCode() == KeyEvent.VK_F2 && editCellAt(row, column)) {
             Component editorComponent = getEditorComponent();
@@ -323,15 +328,17 @@ public class BuildVariantView {
       BuildVariantItem selected = tableRow.variantItem();
 
       ComboBox<BuildVariantItem> editor = new ComboBox<>(items);
-      if (selected != null) {
-        editor.setSelectedItem(selected);
-      }
+      editor.setSelectedItem(selected);
 
       editor.setBorder(JBUI.Borders.empty());
       editor.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
-          BuildVariantUpdater.getInstance(myProject).updateSelectedBuildVariant(tableRow.getModule(), selectedVariant.getBuildVariantName());
+          String variantName = selectedVariant.getBuildVariantName();
+          if (selectedVariant.isDefault()) {
+            variantName = variantName.substring(0, variantName.indexOf(DEFAULT_INDICATOR));
+          }
+          BuildVariantUpdater.getInstance(myProject).updateSelectedBuildVariant(tableRow.getModule(), variantName);
         }
       });
       DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);

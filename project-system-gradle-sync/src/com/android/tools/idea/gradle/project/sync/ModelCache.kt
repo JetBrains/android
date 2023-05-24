@@ -77,6 +77,7 @@ interface ModelCache {
       project: AndroidProject,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
+      defaultVariantName: String?
     ): ModelResult<IdeAndroidProjectImpl>
 
     fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
@@ -119,6 +120,7 @@ interface ModelCache {
       androidDsl: AndroidDsl,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
+      defaultVariantName: String?
     ): ModelResult<IdeAndroidProjectImpl>
   }
 

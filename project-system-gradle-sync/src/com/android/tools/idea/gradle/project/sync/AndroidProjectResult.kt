@@ -74,12 +74,21 @@ sealed class AndroidProjectResult {
       gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<V1Project> {
       val agpVersion: String = safeGet(androidProject::getModelVersion, "")
-      val ideAndroidProjectResult: ModelResult<IdeAndroidProjectImpl> =
-        modelCache.androidProjectFrom(rootBuildId, buildId, buildName, projectPath, androidProject, legacyAndroidGradlePluginProperties, gradlePropertiesModel)
-      return ideAndroidProjectResult.mapCatching { ideAndroidProject ->
-        val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
-        val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
+      val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
+      val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
           ?: allVariantNames.getDefaultOrFirstItem("debug")
+      val ideAndroidProjectResult: ModelResult<IdeAndroidProjectImpl> =
+        modelCache.androidProjectFrom(
+          rootBuildId,
+          buildId,
+          buildName,
+          projectPath,
+          androidProject,
+          legacyAndroidGradlePluginProperties,
+          gradlePropertiesModel,
+          defaultVariantName
+        )
+      return ideAndroidProjectResult.mapCatching { ideAndroidProject ->
         val syncIssues: Collection<SyncIssue>? = @Suppress("DEPRECATION") (safeGet(androidProject::getSyncIssues, null))
         val ndkVersion: String? = safeGet(androidProject::getNdkVersion, null)
         V1Project(
@@ -112,6 +121,9 @@ sealed class AndroidProjectResult {
       val buildName: String = basicAndroidProject.buildName
       val agpVersion: String = modelVersions.agp
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
+      val defaultVariantName: String? =
+          // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
+          basicVariants.getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
       val ideAndroidProjectResult: ModelResult<IdeAndroidProjectImpl> =
         modelCache.androidProjectFrom(
           rootBuildId = rootBuildId,
@@ -122,6 +134,7 @@ sealed class AndroidProjectResult {
           androidDsl = androidDsl,
           legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
           gradlePropertiesModel = gradlePropertiesModel,
+          defaultVariantName = defaultVariantName
         )
 
       return ideAndroidProjectResult.mapCatching { ideAndroidProject ->
@@ -140,9 +153,6 @@ sealed class AndroidProjectResult {
         }
 
         val allVariantNames: Set<String> = basicVariants.map { it.name }.toSet()
-        val defaultVariantName: String? =
-          // Try to get the default variant based on default BuildTypes and productFlavors, otherwise get first one in the list.
-          basicVariants.getDefaultVariant(androidDsl.buildTypes, androidDsl.productFlavors)
         val v2Variants = v2VariantResults.mapNotNull { it.recordAndGet() }
         val androidVariantResolver: AndroidVariantResolver =
           buildVariantNameResolver(ideAndroidProject, v2Variants)

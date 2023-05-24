@@ -1464,6 +1464,7 @@ internal fun modelCacheV2Impl(
     androidDsl: AndroidDsl,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     gradlePropertiesModel: GradlePropertiesModel,
+    defaultVariantName: String?
   ): ModelResult<IdeAndroidProjectImpl> {
     val defaultConfigCopy: IdeProductFlavorImpl = productFlavorFrom(androidDsl.defaultConfig)
     val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl = sourceProviderContainerFrom(basicProject.mainSourceSet)
@@ -1551,6 +1552,7 @@ internal fun modelCacheV2Impl(
         agpFlags = agpFlags,
         isKaptEnabled = false,
         desugarLibraryConfigFiles = desugarLibConfig,
+        defaultVariantName = defaultVariantName
       )
     }
   }
@@ -1597,8 +1599,19 @@ internal fun modelCacheV2Impl(
       androidDsl: AndroidDsl,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
+      defaultVariantName: String?
     ): ModelResult<IdeAndroidProjectImpl> = lock.withLock {
-      androidProjectFrom(rootBuildId, buildId, basicProject, project, androidVersion, androidDsl, legacyAndroidGradlePluginProperties, gradlePropertiesModel)
+      androidProjectFrom(
+        rootBuildId,
+        buildId,
+        basicProject,
+        project,
+        androidVersion,
+        androidDsl,
+        legacyAndroidGradlePluginProperties,
+        gradlePropertiesModel,
+        defaultVariantName
+      )
     }
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }

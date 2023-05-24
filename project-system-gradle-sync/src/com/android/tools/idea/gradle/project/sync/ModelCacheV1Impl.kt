@@ -1283,6 +1283,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     project: AndroidProject,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     gradlePropertiesModel: GradlePropertiesModel,
+    defaultVariantName: String?
   ): ModelResult<IdeAndroidProjectImpl> {
     // Old plugin versions do not return model version.
     val parsedModelVersion = AgpVersion.tryParse(project.modelVersion)
@@ -1369,6 +1370,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         agpFlags = agpFlags,
         isKaptEnabled = false,
         desugarLibraryConfigFiles = listOf(),
+        defaultVariantName = null
       )
     }
   }
@@ -1394,9 +1396,19 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       project: AndroidProject,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
+      defaultVariantName: String?
     ): ModelResult<IdeAndroidProjectImpl> {
       return lock.withLock {
-        androidProjectFrom(rootBuildId, buildId, buildName, projectPath, project, legacyAndroidGradlePluginProperties, gradlePropertiesModel)
+        androidProjectFrom(
+          rootBuildId,
+          buildId,
+          buildName,
+          projectPath,
+          project,
+          legacyAndroidGradlePluginProperties,
+          gradlePropertiesModel,
+          defaultVariantName
+        )
       }
     }
 
