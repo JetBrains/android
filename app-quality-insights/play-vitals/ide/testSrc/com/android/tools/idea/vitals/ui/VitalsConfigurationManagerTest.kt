@@ -28,6 +28,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
@@ -62,7 +63,11 @@ class VitalsConfigurationManagerTest {
       assertThat(model).isInstanceOf(AppInsightsModel.Authenticated::class.java)
       val controller = (model as AppInsightsModel.Authenticated).controller
 
-      assertThat(controller.state.map { state -> state.connections.items.map { it.appId } }.first())
+      assertThat(
+          controller.state
+            .map { state -> state.connections.items.map { it.appId } }
+            .first { it.isNotEmpty() }
+        )
         .isEqualTo(listOf(APP_CONNECTION1.appId))
     }
 
@@ -108,6 +113,7 @@ class VitalsConfigurationManagerTest {
 
       controller.state
         .map { state -> state.connections.items.map { it.appId } }
+        .filterNot { it.isEmpty() }
         .take(2)
         .collectIndexed { index, value ->
           when (index) {
