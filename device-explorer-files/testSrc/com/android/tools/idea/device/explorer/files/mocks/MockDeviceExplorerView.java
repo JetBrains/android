@@ -23,8 +23,6 @@ import com.android.tools.idea.device.explorer.files.DeviceExplorerViewListener;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerViewProgressListener;
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemRenderer;
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService;
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerViewImpl;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
@@ -32,7 +30,6 @@ import java.awt.Dimension;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.event.TreeModelEvent;
@@ -147,20 +144,15 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   @Override
-  public void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t) {
+  public void reportError(@NotNull String message, @NotNull Throwable t) {
     myReportErrorRelatedToDeviceTracker.produce(message + getThrowableMessage(t));
-    myViewImpl.reportErrorRelatedToDevice(fileSystem, message, t);
+    myViewImpl.reportError(message, t);
   }
 
   @Override
   public void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t) {
     myReportErrorRelatedToNodeTracker.produce(message + getThrowableMessage(t));
     myViewImpl.reportErrorRelatedToNode(node, message, t);
-  }
-
-  @Override
-  public void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message) {
-    myViewImpl.reportMessageRelatedToDevice(fileSystem, message);
   }
 
   @Override
@@ -214,18 +206,8 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   @Override
-  public void setProgressOkColor() {
-    myViewImpl.setProgressOkColor();
-  }
-
-  @Override
   public void setProgressWarningColor() {
     myViewImpl.setProgressWarningColor();
-  }
-
-  @Override
-  public void setProgressErrorColor() {
-    myViewImpl.setProgressErrorColor();
   }
 
   @Override

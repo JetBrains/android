@@ -58,10 +58,9 @@ class AdbFileListing(
       val command = getCommand(null, "stat -c \"%A %U %G %z %s %n\" ").withDirectoryEscapedPath("/").build() //$NON-NLS-1$
       val commandResult = myShellCommandsUtil.executeCommand(command)
       if (commandResult.output.isEmpty() || commandResult.isError) {
-        defaultRoot
-      } else {
-        processStatOutputLine(commandResult.output[0] ?: "")
+        commandResult.throwIfError()
       }
+      processStatOutputLine(commandResult.output[0])
     }
   }
 
@@ -119,11 +118,13 @@ class AdbFileListing(
 
   private fun processStatOutputLine(line: String): AdbFileListingEntry {
     if (line.isEmpty()) {
+      LOGGER.warn("Stat command return an unexpected empty line, using default root instead")
       return defaultRoot
     }
 
     val m = FileListingService.STAT_PATTERN.matcher(line)
     if (!m.matches()) {
+      LOGGER.warn("Stat command return an unexpected string pattern, using default root instead")
       return defaultRoot
     }
 

@@ -25,7 +25,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
-import com.android.tools.idea.device.explorer.files.fs.DeviceState
 import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import com.android.tools.idea.device.explorer.files.ui.TreeUtil
@@ -127,37 +126,24 @@ class DeviceFileExplorerControllerImpl(
 
   private fun setNoActiveDevice() {
     cancelOrMoveToBackgroundPendingOperations()
-    model.activeDevice = null
-    model.setActiveDeviceTreeModel(null, null, null)
+    model.setDevice(null, null, null)
     view.showNoDeviceScreen()
   }
 
   private suspend fun setActiveDevice(device: DeviceFileSystem) {
     cancelOrMoveToBackgroundPendingOperations()
-    model.activeDevice = device
-    updateActiveDeviceState(device, device.deviceState)
+    updateActiveDeviceState(device)
   }
 
   /** Updates the view and tree model to reflect the given device and state. */
-  private suspend fun updateActiveDeviceState(device: DeviceFileSystem, state: DeviceState) {
-    if (state != DeviceState.ONLINE) {
-      val message = when (state) {
-        DeviceState.UNAUTHORIZED, DeviceState.OFFLINE ->
-          "Device is pending authentication: please accept debugging session on the device"
-        else ->
-          String.format("Device is not online (%s)", state)
-      }
-      view.reportMessageRelatedToDevice(device, message)
-      model.setActiveDeviceTreeModel(device, null, null)
-      return
-    }
+  private suspend fun updateActiveDeviceState(device: DeviceFileSystem) {
     try {
       val root = device.rootDirectory()
       val model = DefaultTreeModel(DeviceFileEntryNode(root))
-      this.model.setActiveDeviceTreeModel(device, model, DefaultTreeSelectionModel())
+      this.model.setDevice(device, model, DefaultTreeSelectionModel())
     } catch (t: Throwable) {
-      model.setActiveDeviceTreeModel(device, null, null)
-      view.reportErrorRelatedToDevice(device, "Unable to access root directory of device", t)
+      model.setDevice(device, null, null)
+      view.reportError("Unable to access root directory of device", t)
     }
   }
 
@@ -1175,7 +1161,6 @@ class DeviceFileExplorerControllerImpl(
     }
 
     private suspend fun loadNodeChildren(node: DeviceFileEntryNode) {
-
       // Track a specific set of directories to analyze user behaviour
       if (node.entry.fullPath.matches(Regex("^/data/data/[^/]+$"))) {
         trackAction(DeviceExplorerEvent.Action.EXPAND_APP_DATA)

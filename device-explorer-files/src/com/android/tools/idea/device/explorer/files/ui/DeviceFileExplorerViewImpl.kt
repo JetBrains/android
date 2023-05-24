@@ -111,7 +111,7 @@ class DeviceFileExplorerViewImpl(
     setupPanel()
   }
 
-  override fun reportErrorRelatedToDevice(fileSystem: DeviceFileSystem, message: String, t: Throwable) {
+  override fun reportError(message: String, t: Throwable) {
     val messageToReport =  if (t.message != null) "$message: ${t.message}" else message
 
     // If there is an error related to a device, show the error "layer", hiding the other
@@ -121,10 +121,6 @@ class DeviceFileExplorerViewImpl(
 
   override fun reportErrorRelatedToNode(node: DeviceFileEntryNode, message: String, t: Throwable) {
     reportError(message, t, toolWindowID)
-  }
-
-  override fun reportMessageRelatedToDevice(fileSystem: DeviceFileSystem, message: String) {
-    panel.showMessageLayer(message)
   }
 
   override fun reportMessageRelatedToNode(node: DeviceFileEntryNode, message: String) {
@@ -159,16 +155,8 @@ class DeviceFileExplorerViewImpl(
     panel.progressPanel.setProgress(fraction)
   }
 
-  override fun setProgressOkColor() {
-    panel.progressPanel.setOkStatusColor()
-  }
-
   override fun setProgressWarningColor() {
     panel.progressPanel.setWarningStatusColor()
-  }
-
-  override fun setProgressErrorColor() {
-    panel.progressPanel.setErrorStatusColor()
   }
 
   override fun setProgressText(text: String) {

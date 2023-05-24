@@ -19,6 +19,7 @@ import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
+import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystem.Companion.OPERATION_TIMEOUT_MILLIS
 import kotlinx.coroutines.delay
 import java.nio.file.Path
 
