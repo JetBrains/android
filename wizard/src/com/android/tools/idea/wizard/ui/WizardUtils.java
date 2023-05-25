@@ -53,15 +53,16 @@ public final class WizardUtils {
    */
   @NotNull
   public static File getProjectLocationParent() {
+    String defaultProjectLocation = GeneralLocalSettings.getInstance().getDefaultProjectDirectory();
+    if (!defaultProjectLocation.isEmpty()) {
+      return new File(defaultProjectLocation);
+    }
+
     String parent = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
     if (parent != null) {
       return new File(PathUtil.toSystemDependentName(parent));
     }
 
-    String defaultProjectLocation = GeneralLocalSettings.getInstance().getDefaultProjectDirectory();
-    if (defaultProjectLocation != null && !defaultProjectLocation.isEmpty()) {
-      return new File(defaultProjectLocation);
-    }
 
     String child = ApplicationNamesInfo.getInstance().getFullProductName().replace(" ", "") + "Projects";
     return new File(SystemProperties.getUserHome(), child);
