@@ -119,7 +119,6 @@
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.refactoring.VersionCatalogGoToDeclarationHandler"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
     <usageTypeProvider id="org.jetbrains.android.refactoring.GradleUsageTypeProvider"
                        implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidPropertiesUsageType" order="first" />
