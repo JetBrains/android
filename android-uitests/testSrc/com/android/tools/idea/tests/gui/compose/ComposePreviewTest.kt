@@ -51,7 +51,6 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -219,14 +218,12 @@ class ComposePreviewTest {
   }
 
   @Test
-  @Ignore("b/149464527")
   @Throws(Exception::class)
   fun testAddAdditionalPreview() {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture)
 
-    // Commented until b/156216008 is solved
-    //assertFalse(composePreview.hasRenderErrors())
+    assertFalse(composePreview.hasRenderErrors())
     composePreview.waitForSceneViewsCount(1)
 
     val editor = fixture.editor
@@ -241,23 +238,10 @@ class ComposePreviewTest {
             Text(text = "A second preview")
       """.trimIndent())
 
-    composePreview
-      .getNotificationsFixture()
-      .waitForNotificationContains("out of date")
-
-    assertTrue("Build failed",
-               fixture.actAndWaitForBuildToFinish {
-                 composePreview
-                   .findActionButtonByText("Build  Refresh")
-                   .waitUntilEnabledAndShowing()
-                   .click()
-               }.isBuildSuccessful)
-
     composePreview.waitForRenderToFinish()
 
     // Check the new preview has been added
     composePreview.waitForSceneViewsCount(2)
-
     editor.close()
   }
 
