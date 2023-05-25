@@ -207,11 +207,14 @@ class ComposePreviewTest {
     assertFalse(composePreview.hasRenderErrors())
 
     val editor = fixture.editor
+    // Get the design surface before removing the preview annotation, because accessing the property will call [waitUntilShowing] before
+    // returning the surface. If we call it after removing the annotation, the surface won´t be visible by then.
+    val designSurface = composePreview.designSurface
     editor.select("(@Preview)")
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
+
     guiTest.ideFrame().invokeMenuPath("Code", "Optimize Imports") // This will remove the Preview import
-    composePreview
-      .designSurface
+    designSurface
       .waitUntilNotShowing(Wait.seconds(10));
 
     editor.close()
