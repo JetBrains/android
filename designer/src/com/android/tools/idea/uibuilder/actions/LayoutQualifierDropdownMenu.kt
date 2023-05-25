@@ -151,7 +151,6 @@ class SwitchToVariationAction(private val title: String,
 
   override fun update(e: AnActionEvent) {
     e.presentation.setText(title, false)
-    e.presentation.isEnabled = !selected
     Toggleable.setSelected(e.presentation, selected)
   }
 
