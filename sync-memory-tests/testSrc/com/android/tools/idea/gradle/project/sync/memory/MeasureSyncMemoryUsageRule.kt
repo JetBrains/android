@@ -61,7 +61,6 @@ class MeasureSyncMemoryUsageRule (
   }
 
   override fun after() {
-    collectDaemonLogs()
     collectHprofs(outputDirectory)
     StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.clearOverride()
     analysisFlag.clearOverride()
@@ -146,18 +145,6 @@ class MeasureSyncMemoryUsageRule (
       }
     }
   }
-}
-
-private fun collectDaemonLogs() {
-  val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
-  val testOutputDir = TestUtils.getTestOutputDir()
-  tmpDir
-    .resolve(".gradle/daemon").toFile()
-    .walk()
-    .filter { it.name.endsWith("out.log") }
-    .forEach {
-      Files.move(it.toPath(), testOutputDir.resolve(it.name))
-    }
 }
 
 private fun collectHprofs(outputDirectory: String) {
