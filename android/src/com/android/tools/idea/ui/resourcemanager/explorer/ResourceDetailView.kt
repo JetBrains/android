@@ -93,7 +93,11 @@ class ResourceDetailView(
       ResourceManagerTracking.logDetailViewOpened(viewModel.facet, designAssetSet.assets.firstOrNull()?.type)
     }
 
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      // The EDT is needed here because this action does not belong to a toolbar but is added directly to the UI.
+      return ActionUpdateThread.EDT
+    }
+
     override fun update(e: AnActionEvent) {
       super.update(e)
       e.presentation.isEnabledAndVisible = true
