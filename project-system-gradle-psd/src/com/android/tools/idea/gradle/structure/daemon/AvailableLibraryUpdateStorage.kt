@@ -83,14 +83,15 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
       val key = spec.toLibraryKey()
       val update = updatesByKey[key] ?: return null
       val stableOrPreviewVersion = update.stableOrPreviewVersion
-      val suggestPreview = parsedVersion.previewPrefix?.let { prefix ->
-        when {
-          parsedVersion.major == null -> false
-          stableOrPreviewVersion == null -> false
-          Version.parse(stableOrPreviewVersion).let { prefix < it && it < prefix.nextPrefix() } -> true
-          else -> false
-        }
-      } ?: false
+      val infimum = parsedVersion.previewInfimum
+      val supremum = parsedVersion.previewSupremum
+      val suggestPreview = when {
+        parsedVersion.major == null -> false
+        infimum == null || supremum == null -> false
+        stableOrPreviewVersion == null -> false
+        Version.parse(stableOrPreviewVersion).let { infimum < it && it < supremum } -> true
+        else -> false
+      }
       val updateString = (if (suggestPreview) update.stableOrPreviewVersion else update.stableVersion) ?: return null
       val foundVersion = Version.parse(updateString)
       return if (foundVersion > parsedVersion) foundVersion else null
