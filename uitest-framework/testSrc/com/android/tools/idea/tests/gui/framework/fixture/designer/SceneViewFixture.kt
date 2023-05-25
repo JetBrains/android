@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.util.IconLoader
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.core.MouseButton
 import org.fest.swing.core.Robot
@@ -43,6 +44,7 @@ import java.awt.Dimension
 import java.awt.Point
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JMenuItem
 
 private const val TIMEOUT_FOR_SCENE_COMPONENT_ANIMATION_SECONDS = 5L
@@ -236,6 +238,13 @@ class SceneViewTopPanelFixture(private val robot: Robot, private val toolbar: JC
       }
     }, secondsToWait)
     return ActionButtonFixture(robot, button)
+  }
+
+  fun clickActionByIcon(label: String, actionIcon: Icon) {
+    // Click on the label first to make sure the toolbar actions show up.
+    val toolbarLabel = GuiTests.waitUntilShowing(robot, Matchers.byText(JLabel::class.java, label))
+    robot.click(toolbarLabel)
+    ActionButtonFixture.findByIcon(actionIcon, robot, toolbar).click()
   }
 }
 

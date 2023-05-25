@@ -31,7 +31,7 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
  *   information.
  */
-internal class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
+class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(
     message("action.animation.inspector.title"),
     message("action.animation.inspector.description"),

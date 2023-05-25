@@ -280,7 +280,6 @@ class ComposePreviewTest {
   }
 
   @Test
-  @RunIn(TestGroup.UNRELIABLE) // b/160776556
   @Throws(Exception::class)
   fun testAnimationInspector() {
     fun SplitEditorFixture.findAnimationInspector() =
@@ -292,7 +291,7 @@ class ComposePreviewTest {
       }
 
     val fixture = getSyncedProjectFixture()
-    val noAnimationsComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
+    val noAnimationsComposePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
       .waitForRenderToFinish()
       .waitForSceneViewsCount(3)
 
@@ -305,7 +304,7 @@ class ComposePreviewTest {
 
     try {
       // MultipleComposePreviews does not have animations, so the animation preview button is expected not to be displayed.
-      previewToolbar.findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
+      previewToolbar.clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
       fail("The animation preview icon is not expected to be found.")
     }
     catch (_: WaitTimedOutError) {
@@ -322,13 +321,11 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-      .waitUntilEnabledAndShowing()
-      .click()
+      .clickActionByIcon("GestureAnimationSample", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
     assertNotNull(composePreview.findAnimationInspector())
 
     // Open the animation inspector in another file
-    val otherComposePreview = openComposePreview(fixture, "Animations2.kt", false)
+    val otherComposePreview = openComposePreview(fixture, "Animations2.kt")
       .waitForRenderToFinish()
       .waitForSceneViewsCount(1)
 
@@ -337,9 +334,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
-      .waitUntilEnabledAndShowing()
-      .click()
+      .clickActionByIcon("VerySimpleAnimation", StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR)
     assertNotNull(otherComposePreview.findAnimationInspector())
 
     val animations1Relative = "app/src/main/java/google/simpleapplication/Animations.kt"
