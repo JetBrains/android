@@ -102,6 +102,7 @@ iml_test(
 
 iml_studio_test(
     name = "EmulatorBeforeStudioTest",
+    timeout = "long",
     data = [
         ":minapp",
         "//prebuilts/studio/sdk:emulator",
