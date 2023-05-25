@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowMo
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.Blocked
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.CaughtException
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.InvalidVersionError
+import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.VersionSelectionInProgress
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.Loading
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.NoStepsSelected
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.ProjectFilesNotCleanWarning
@@ -297,14 +298,25 @@ class ContentManagerImplTest {
   }
 
   @Test
+  fun testVersionUpdatedFromComboBox() {
+    addMinimalBuildGradleToProject()
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }).listeningStatesChanges()
+    toolWindowModel.versionComboTextChanged()
+    toolWindowModel.newVersionCommit(latestAgpVersion.toString())
+    assertThat(uiStates).containsExactly(VersionSelectionInProgress, Loading, ReadyToRun).inOrder()
+  }
+
+  @Test
   fun testToolWindowModelUIStateOnFailedValidation() {
     val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }).listeningStatesChanges()
-    toolWindowModel.newVersionSet("")
+    toolWindowModel.versionComboTextChanged()
+    toolWindowModel.newVersionCommit("")
     // The following order might be not obvious but in fact it is correct:
     // Firstly version parser validates new version and sets the error,
     // Then UI is cleared showing Loading state,
     // Finally refresh logic results back in InvalidVersionError state.
     assertThat(uiStates).containsExactly(
+      VersionSelectionInProgress,
       InvalidVersionError(StatusMessage(Severity.ERROR, "Invalid AGP version format.")),
       Loading,
       InvalidVersionError(StatusMessage(Severity.ERROR, "Invalid AGP version format."))
@@ -1108,6 +1120,7 @@ class ContentManagerImplTest {
       AllDone, Blocked,
       is CaughtException,
       is InvalidVersionError,
+      VersionSelectionInProgress,
       Loading, NoStepsSelected, ProjectFilesNotCleanWarning, ProjectUsesVersionCatalogs,
       ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
       is UpgradeSyncFailed,

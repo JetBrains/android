@@ -46,6 +46,7 @@ import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.ActionLink
@@ -62,12 +63,15 @@ import com.intellij.util.ui.tree.TreeModelAdapter
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
 import java.awt.FlowLayout
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
 import javax.swing.event.DocumentEvent
+import javax.swing.event.PopupMenuEvent
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeSelectionModel
@@ -113,7 +117,6 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
   val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
   val versionTextField = CommonComboBox<AgpVersion, CommonComboBoxModel<AgpVersion>>(
-    // TODO this model needs to be enhanced to know when to commit value, instead of doing it in document listener below.
     object : DefaultCommonComboBoxModel<AgpVersion>(
       model.selectedVersion?.toString() ?: "",
       model.suggestedVersions.valueOrNull ?: emptyList()
@@ -152,11 +155,19 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
     myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
       isEnabled = uiState.comboEnabled
     }
-
+    val textField = editor.editorComponent as CommonTextField<*>
+    fun enter() {
+      if (isPopupVisible) {
+        hidePopup()
+        return
+      }
+      textField.enterInLookup()
+      this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
+      textField.selectAll()
+    }
     // Need to register additional key listeners to the textfield that would hide main combo-box popup.
     // Otherwise textfield consumes these events without hiding popup making it impossible to do with a keyboard.
-    val textField = editor.editorComponent as CommonTextField<*>
-    textField.registerActionKey({ hidePopup(); textField.enterInLookup() }, KeyStrokes.ENTER, "enter")
+    textField.registerActionKey({ enter() }, KeyStrokes.ENTER, "enter")
     textField.registerActionKey({ hidePopup(); textField.escapeInLookup() }, KeyStrokes.ESCAPE, "escape")
     ComponentValidator(this@UpgradeAssistantView.model).withValidator { ->
       val text = editor.item.toString()
@@ -171,10 +182,22 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
       object: DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           ComponentValidator.getInstance(this@apply).ifPresent { v -> v.revalidate() }
-          this@UpgradeAssistantView.model.newVersionSet(editor.item.toString())
+          this@UpgradeAssistantView.model.versionComboTextChanged()
         }
       }
     )
+    addPopupMenuListener(object : PopupMenuListenerAdapter() {
+      override fun popupMenuWillBecomeInvisible(e: PopupMenuEvent?) {
+        this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
+      }
+    })
+    val focusListener = object : FocusAdapter() {
+      override fun focusLost(e: FocusEvent?) {
+        this@UpgradeAssistantView.model.newVersionCommit(editor.item.toString())
+      }
+    }
+    addFocusListener(focusListener)
+    textField.addFocusListener(focusListener)
   }
 
   val refreshButton = JButton("Refresh").apply {

@@ -215,6 +215,12 @@ class UpgradeAssistantWindowModel(
       override val runTooltip = "This project uses Gradle Version Catalogs in its build definition.  Some AGP Upgrade Assistant " +
                                 "functionality may not work as expected."
     }
+    object VersionSelectionInProgress : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NO_RUN
+      override val layoutState = LayoutState.LOADING
+      override val runTooltip = "Press enter to commit selected version for upgrade."
+
+    }
     class InvalidVersionError(
       override val statusMessage: StatusMessage
     ) : UIState() {
@@ -363,7 +369,12 @@ class UpgradeAssistantWindowModel(
     }
   }
 
-  fun newVersionSet(newVersionString: String) {
+  fun versionComboTextChanged() {
+    uiState.set(UIState.VersionSelectionInProgress)
+  }
+
+  fun newVersionCommit(newVersionString: String) {
+    if (uiState.get() != UIState.VersionSelectionInProgress) return
     val status = editingValidation(newVersionString)
     _selectedVersion = if (status.first == EditingErrorCategory.ERROR) {
       uiState.set(UIState.InvalidVersionError(StatusMessage(Severity.ERROR, status.second)))
