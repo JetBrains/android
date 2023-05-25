@@ -18,9 +18,11 @@ package com.android.tools.idea.run.activity;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProvider {
@@ -29,6 +31,10 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
   @NotNull private final String myExtraFlags;
 
   @NotNull private final Project myProject;
+
+  @NotNull
+  private static final Logger LOG = Logger.getInstance(DefaultStartActivityFlagsProvider.class);
+
 
   public DefaultStartActivityFlagsProvider(@NotNull Project project, boolean waitForDebugger,
                                            @NotNull String extraFlags) {
@@ -51,7 +57,9 @@ public class DefaultStartActivityFlagsProvider implements StartActivityFlagsProv
       flags.add(myExtraFlags);
     }
 
-    return StringUtil.join(flags, " ");
+    String flagsString = StringUtil.join(flags, " ");
+    LOG.info(String.format(Locale.US, "Default flags: '%s'", flagsString));
+    return flagsString;
   }
 
   private boolean suspendSupported(IDevice device) {
