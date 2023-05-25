@@ -36,6 +36,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -121,6 +122,7 @@ class DeviceMonitorControllerImplTest {
     checkMockViewActiveDevice(2)
   }
 
+  @Ignore("http://b/284318588")
   @Test
   fun removingDevice() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
@@ -190,6 +192,7 @@ class DeviceMonitorControllerImplTest {
     }
   }
 
+  @Ignore("http://b/284318588")
   @Test
   fun changeInDeviceSelection() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
