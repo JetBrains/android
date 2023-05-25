@@ -21,6 +21,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.verifyLanguageFiles
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.injectBuildOutputDumpingBuildViewManager
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.Template
@@ -39,7 +40,7 @@ class BaselineValidator(
   private val gradleProjectRule: AndroidGradleProjectRule
 ) : ProjectRenderer(template) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
-    // TODO: build
+    performBuild()
     // TODO: lint
     checkProjectProperties(projectDir)
   }
@@ -66,6 +67,17 @@ class BaselineValidator(
     }
   }
 
+  /** Build the project to ensure it compiles */
+  private fun performBuild() {
+    @Suppress("IncorrectParentDisposable")
+    injectBuildOutputDumpingBuildViewManager(gradleProjectRule.project, gradleProjectRule.project)
+    gradleProjectRule.invokeTasks("compileDebugSources").apply { // "assembleDebug" is too slow
+      buildError?.printStackTrace()
+      assertTrue("Project didn't compile correctly", isBuildSuccessful)
+    }
+  }
+
+  /** Other checks outside of building and Linting */
   private fun checkProjectProperties(projectDir: Path) {
     // Check that a thumbnail is specified
     assertNotEquals(template.thumb(), Thumb.NoThumb)
