@@ -43,7 +43,7 @@ import com.android.tools.rendering.LayoutlibCallbackImpl;
 import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.RenderModelModule;
-import com.android.tools.rendering.classloading.ModuleClassLoader;
+import com.android.tools.rendering.classloading.ModuleClassLoaderManagerKt;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -63,6 +63,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
+import kotlin.Unit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
@@ -139,24 +140,26 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
       ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
-      ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
-      RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
-      LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
-      ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
-        ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
-      ));
+      ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
+        RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
+        LayoutlibCallbackImpl layoutlibCallback =
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+        ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
+          ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
+        ));
 
-      assertNotNull(parser);
-      try {
-        parser.nextTag(); // Read top LinearLayout
-        parser.nextTag(); // Read <fragment>
-      } catch (Exception ex) {
-        throw new RuntimeException(ex);
-      }
-      String startDestination = parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT);
-      assertEquals("@layout/fragment_blank", startDestination);
-      StudioModuleClassLoaderManager.get().release(classLoader, this);
+        assertNotNull(parser);
+        try {
+          parser.nextTag(); // Read top LinearLayout
+          parser.nextTag(); // Read <fragment>
+        } catch (Exception ex) {
+          throw new RuntimeException(ex);
+        }
+        String startDestination = parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT);
+        assertEquals("@layout/fragment_blank", startDestination);
+
+        return Unit.INSTANCE;
+      });
     });
   }
 
@@ -178,14 +181,15 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
       ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
-      ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
-      RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
-      LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+      ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
+        RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
+        LayoutlibCallbackImpl layoutlibCallback =
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
 
-      assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
+        assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
 
-      StudioModuleClassLoaderManager.get().release(classLoader, this);
+        return Unit.INSTANCE;
+      });
     });
 
   }
@@ -206,15 +210,16 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
       ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
-      ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
-      RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
-      LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
-      layoutlibCallback.setProjectFonts(myProjectFonts);
+      ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
+        RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
+        LayoutlibCallbackImpl layoutlibCallback =
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+        layoutlibCallback.setProjectFonts(myProjectFonts);
 
-      assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontFile.getPath()));
+        assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontFile.getPath()));
 
-      StudioModuleClassLoaderManager.get().release(classLoader, this);
+        return Unit.INSTANCE;
+      });
     });
 
   }

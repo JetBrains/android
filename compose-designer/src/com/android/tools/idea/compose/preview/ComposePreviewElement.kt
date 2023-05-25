@@ -46,6 +46,7 @@ import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ModuleClassLoader
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
+import com.android.tools.rendering.classloading.useWithClassLoader
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
@@ -540,20 +541,16 @@ class ParametrizedComposePreviewElementTemplate(
     }
 
     val moduleRenderContext = renderContext ?: forFile(file)
-    val classLoader =
-      ModuleClassLoaderManager.get()
-        .getPrivate(
-          ParametrizedComposePreviewElementTemplate::class.java.classLoader,
-          moduleRenderContext,
-          this
-        )
-    try {
-      return parameterProviders
-        .map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }
-        .first()
-    } finally {
-      ModuleClassLoaderManager.get().release(classLoader, this)
-    }
+    ModuleClassLoaderManager.get()
+      .getPrivate(
+        ParametrizedComposePreviewElementTemplate::class.java.classLoader,
+        moduleRenderContext
+      )
+      .useWithClassLoader { classLoader ->
+        return parameterProviders
+          .map { previewParameter -> loadPreviewParameterProvider(classLoader, previewParameter) }
+          .first()
+      }
   }
 
   private fun loadPreviewParameterProvider(

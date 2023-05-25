@@ -18,6 +18,7 @@ package org.jetbrains.android.uipreview
 import com.android.SdkConstants
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.rendering.ModuleRenderContext.Companion.forModule
+import com.android.tools.rendering.classloading.useWithClassLoader
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootModificationUtil
@@ -82,13 +83,12 @@ class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
     val dClass = VfsUtil.findFileByIoFile(File(dSrc.getParent().toFile(), "D.class"), true)
     assertNotNull(dClass)
 
-    val loader = get().getShared(null, forModule(myModule), this)
-    loader.injectProjectClassFile("com.foo.qwe.D", dClass!!)
+    val loaderReference = get().getShared(null, forModule(myModule)).useWithClassLoader { loader ->
+      loader.injectProjectClassFile("com.foo.qwe.D", dClass!!)
 
-    val loadedDClass = loader.loadClass("com.foo.qwe.D")
-    assertNotNull(loadedDClass.getConstructor())
-
-    get().release(loader, this)
+      val loadedDClass = loader.loadClass("com.foo.qwe.D")
+      assertNotNull(loadedDClass.getConstructor())
+    }
   }
 
   companion object {

@@ -16,10 +16,13 @@
 package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.ModuleRenderContext
-import com.android.tools.rendering.classloading.ClassTransform
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import java.io.Closeable
+
+inline fun <T: ModuleClassLoader, R> ModuleClassLoaderManager.Reference<T>.useWithClassLoader(block: (T) -> R) = use {
+  block(classLoader)
+}
 
 /**
  * Responsible for providing access to [ModuleClassLoader]s.
@@ -27,28 +30,47 @@ import com.intellij.openapi.module.Module
  * This is required because normally [ModuleClassLoader] is a very heavy resource, and it is important to keep as few instances of those
  * as possible and delete those right after they are no longer needed.
  */
-interface ModuleClassLoaderManager {
-  companion object {    @JvmStatic
-    fun get(): ModuleClassLoaderManager =
+interface ModuleClassLoaderManager<T: ModuleClassLoader> {
+  /**
+   * A reference to a [ModuleClassLoader]. This reference is used as a token for users of the [ModuleClassLoaderManager] to ensure the
+   * correct handling of shared and private module class loaders. When the caller finishes using the [ModuleClassLoader] it should call
+   * [ModuleClassLoaderManager.release] or [Reference.close] to release the reference.
+   *
+   * References implement [Closeable] to they can be used in try/catch blocks with automatic release.
+   *
+   * Released references should not be used after the release call.
+   */
+  interface Reference<T: ModuleClassLoader>: Closeable {
+    /** Returns the [ModuleClassLoader] being referenced by this [Reference]. */
+    val classLoader: T
+
+    override fun close() {
+      @Suppress("RemoveRedundantQualifierName")
+      ModuleClassLoaderManager.get().release(this)
+    }
+  }
+
+  companion object {
+    @JvmStatic
+    fun get(): ModuleClassLoaderManager<*> =
       ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java)
   }
-  fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any,
+  fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext,
                 additionalProjectTransformation: ClassTransform = ClassTransform.identity,
                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity,
-                onNewModuleClassLoader: Runnable = Runnable {}): ModuleClassLoader
+                onNewModuleClassLoader: Runnable = Runnable {}): Reference<T>
 
   // Workaround for interfaces not currently supporting @JvmOverloads (https://youtrack.jetbrains.com/issue/KT-36102)
-  fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any): ModuleClassLoader
+  fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext): Reference<T>
 
   fun getPrivate(parent: ClassLoader?,
                  moduleRenderContext: ModuleRenderContext,
-                 holder: Any,
                  additionalProjectTransformation: ClassTransform = ClassTransform.identity,
-                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity): ModuleClassLoader
+                 additionalNonProjectTransformation: ClassTransform = ClassTransform.identity): Reference<T>
 
-  fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, holder: Any): ModuleClassLoader
+  fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext): Reference<T>
 
-  fun release(moduleClassLoader: ModuleClassLoader, holder: Any)
+  fun release(moduleClassLoaderReference: Reference<*>)
 
   fun clearCache(module: Module)
 }

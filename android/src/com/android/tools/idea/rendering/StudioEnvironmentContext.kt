@@ -122,7 +122,7 @@ class StudioEnvironmentContext(private val module: Module) : EnvironmentContext 
     return psiFile
   }
 
-  override fun getModuleClassLoaderManager(): ModuleClassLoaderManager = ModuleClassLoaderManager.get()
+  override fun getModuleClassLoaderManager(): ModuleClassLoaderManager<*> = ModuleClassLoaderManager.get()
 
   override fun getCrashReporter(): CrashReporter = StudioCrashReporter.getInstance()
 

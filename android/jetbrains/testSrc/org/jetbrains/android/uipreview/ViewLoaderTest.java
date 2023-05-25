@@ -30,7 +30,7 @@ import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.rendering.ViewLoader;
-import com.android.tools.rendering.classloading.ModuleClassLoader;
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -54,7 +54,7 @@ public class ViewLoaderTest extends AndroidTestCase {
   }
 
   LayoutLibrary myLayoutLib;
-  ModuleClassLoader myClassLoader;
+  ModuleClassLoaderManager.Reference<StudioModuleClassLoader> myClassLoaderReference;
 
   @Override
   protected void setUp() throws Exception {
@@ -67,7 +67,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
     myLayoutLib = StudioRenderServiceKt.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
-    myClassLoader = StudioModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule), this);
+    myClassLoaderReference = StudioModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule));
   }
 
   @Override
@@ -76,23 +76,24 @@ public class ViewLoaderTest extends AndroidTestCase {
       RenderTestUtil.afterRenderTestCase();
     } finally {
       // Copy the classloader field before super.tearDown() nulls it out via UsefulTestCase.clearDeclaredFields().
-      ModuleClassLoader classLoader = myClassLoader;
+      ModuleClassLoaderManager.Reference<StudioModuleClassLoader> classLoaderReference = myClassLoaderReference;
       super.tearDown();
-      StudioModuleClassLoaderManager.get().release(classLoader, this);
+      StudioModuleClassLoaderManager.get().release(classLoaderReference);
     }
   }
 
   public void testMissingClass() throws Exception {
     Project project = myModule.getProject();
     RenderLogger logger = new RenderLogger();
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null,
+                                           myClassLoaderReference.getClassLoader());
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
     logger = new RenderLogger();
-    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoaderReference.getClassLoader());
 
     try {
       viewLoader.loadView("broken.brokenclass", null, null);
@@ -102,14 +103,14 @@ public class ViewLoaderTest extends AndroidTestCase {
     }
 
     logger = new RenderLogger();
-    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoaderReference.getClassLoader());
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
     RenderLogger logger = new RenderLogger();
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoaderReference.getClassLoader());
     ResourceIdManager idManager = ResourceIdManager.get(myModule);
     assertNotNull(idManager);
 

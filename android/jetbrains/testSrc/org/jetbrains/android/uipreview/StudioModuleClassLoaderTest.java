@@ -42,6 +42,7 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.android.tools.idea.testing.ModuleModelBuilder;
 import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
+import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.android.tools.res.ids.TestResourceIdManager;
@@ -55,7 +56,6 @@ import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.SourceFolder;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -119,17 +119,16 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     generateRClass(getProject(), "test", new File(outputDir, "R.class"));
 
     ApplicationManager.getApplication().runReadAction(() -> {
-      ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(module), this);
-      try {
-        Class<?> rClass = loader.loadClass("test.R");
-        String value = (String)rClass.getDeclaredField("ID").get(null);
-        assertEquals("FileID", value);
-      }
-      catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
-        fail("Unexpected exception " + e.getLocalizedMessage());
-      }
-      finally {
-        StudioModuleClassLoaderManager.get().release(loader, this);
+      try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference = StudioModuleClassLoaderManager.get()
+        .getShared(null, ModuleRenderContext.forModule(module))) {
+        try {
+          Class<?> rClass = loaderReference.getClassLoader().loadClass("test.R");
+          String value = (String)rClass.getDeclaredField("ID").get(null);
+          assertEquals("FileID", value);
+        }
+        catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException e) {
+          fail("Unexpected exception " + e.getLocalizedMessage());
+        }
       }
     });
   }
@@ -166,19 +165,18 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     rClassRegistry.addLibrary(moduleResources, ResourceIdManager.get(module), "test", namespace);
 
     ApplicationManager.getApplication().runReadAction(() -> {
-      ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(module), this);
-      try {
-        Class<?> rClass = loader.loadClass("test.R");
-        rClass.getDeclaredField("ID");
-        fail("Field \"ID\" is not expected");
-      }
-      catch (NoSuchFieldException expected) {
-      }
-      catch (ClassNotFoundException e) {
-        fail("Unexpected exception " + e.getLocalizedMessage());
-      }
-      finally {
-        StudioModuleClassLoaderManager.get().release(loader, this);
+      try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference = StudioModuleClassLoaderManager.get()
+        .getShared(null, ModuleRenderContext.forModule(module))) {
+        try {
+          Class<?> rClass = loaderReference.getClassLoader().loadClass("test.R");
+          rClass.getDeclaredField("ID");
+          fail("Field \"ID\" is not expected");
+        }
+        catch (NoSuchFieldException expected) {
+        }
+        catch (ClassNotFoundException e) {
+          fail("Unexpected exception " + e.getLocalizedMessage());
+        }
       }
     });
   }
@@ -208,8 +206,9 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     buildFile(getProject(), aClassSrc.toString());
 
-    StudioModuleClassLoader loader =
-      (StudioModuleClassLoader)StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
+    ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference =
+      StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule));
+    StudioModuleClassLoader loader = loaderReference.getClassLoader();
 
     // Add the compiled class to the overlay directory
     Files.copy(packageDir.resolve("AClass.class"), overlayDir1.resolve("com/google/example/AClass.class"));
@@ -219,7 +218,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     // New overlay will make the code out-of-date
     ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayDir2);
     assertFalse(loader.isUserCodeUpToDateNonCached());
-    StudioModuleClassLoaderManager.get().release(loader, this);
+    StudioModuleClassLoaderManager.get().release(loaderReference);
   }
 
   private void doTestLibRClass(boolean finalIdsUsed) throws Exception {
@@ -251,7 +250,9 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     });
     assertThat(Manifest.getMainManifest(myFacet)).isNotNull();
 
-    ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
+    ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference =
+      StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule));
+    ModuleClassLoader loader = loaderReference.getClassLoader();
     try {
       assertNotNull(loader.loadClass("p1.p2.R"));
       if (finalIdsUsed) {
@@ -266,7 +267,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     // Make sure there is a compiled R class in the output directory, to be used when final IDs are used.
     Path moduleCompileOutputPath =
-      GradleClassFinderUtil.getModuleCompileOutputs(myModule,false).collect(Collectors.toList()).get(0).toPath();
+      GradleClassFinderUtil.getModuleCompileOutputs(myModule, false).collect(Collectors.toList()).get(0).toPath();
     Files.createDirectories(moduleCompileOutputPath);
     Path packageDir = Files.createDirectories(moduleCompileOutputPath.resolve("p1/p2"));
     Path rSrcFile = Files.createFile(packageDir.resolve("R.java"));
@@ -275,7 +276,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     // Now, the class should be found, regardless of final IDs being used or not.
     assertNotNull(loader.loadClass("p1.p2.R"));
-    StudioModuleClassLoaderManager.get().release(loader, this);
+    StudioModuleClassLoaderManager.get().release(loaderReference);
   }
 
   // Regression test for b/233862429
@@ -297,8 +298,9 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
         "debug",
         createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY)));
 
-    ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(myModule), this);
-    try {
+    try (ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderRef = StudioModuleClassLoaderManager.get()
+      .getShared(null, ModuleRenderContext.forModule(myModule))) {
+      ModuleClassLoader loader = loaderRef.getClassLoader();
       try {
         loader.loadClass("kotlinx.coroutines.android.AndroidDispatcherFactory");
         fail("AndroidDispatcherFactory should not be allowed to load by ModuleClassLoader since it would trigger the use of Android " +
@@ -312,8 +314,6 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
       // Verify that not existing resources return null
       assertNull(loader.getResource("META-INF/services/does.not.exist"));
-    } finally {
-      StudioModuleClassLoaderManager.get().release(loader, this);
     }
   }
 
@@ -342,9 +342,9 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     );
 
     Module appModule = gradleModule(getProject(), ":app");
-    StudioModuleClassLoader loader =
-      (StudioModuleClassLoader)StudioModuleClassLoaderManager.get()
-        .getPrivate(null, ModuleRenderContext.forModule(Objects.requireNonNull(appModule)), this);
+    ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderRef = StudioModuleClassLoaderManager.get()
+      .getPrivate(null, ModuleRenderContext.forModule(Objects.requireNonNull(appModule)));
+    StudioModuleClassLoader loader = loaderRef.getClassLoader();
     // In addition to the initial check this also triggers creation of myJarClassLoader in ModuleClassLoader
     assertTrue(loader.areDependenciesUpToDate());
 
@@ -367,19 +367,19 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     assertFalse(loader.areDependenciesUpToDate());
 
-    StudioModuleClassLoaderManager.get().release(loader, this);
+    StudioModuleClassLoaderManager.get().release(loaderRef);
   }
 
   public void testModuleClassLoaderCopy() {
-    StudioModuleClassLoader loader =
-      (StudioModuleClassLoader)StudioModuleClassLoaderManager.get()
-        .getPrivate(null, ModuleRenderContext.forModule(Objects.requireNonNull(myFixture.getModule())), this);
+    ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderRef = StudioModuleClassLoaderManager.get()
+      .getPrivate(null, ModuleRenderContext.forModule(Objects.requireNonNull(myFixture.getModule())));
+    StudioModuleClassLoader loader = loaderRef.getClassLoader();
 
     StudioModuleClassLoader copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
     assertNotNull(copy);
     copy.dispose();
 
-    StudioModuleClassLoaderManager.get().release(loader, this);
+    StudioModuleClassLoaderManager.get().release(loaderRef);
 
     copy = loader.copy(NopModuleClassLoadedDiagnostics.INSTANCE);
     assertNull("Disposed ModuleClassLoaders can not be copied", copy);

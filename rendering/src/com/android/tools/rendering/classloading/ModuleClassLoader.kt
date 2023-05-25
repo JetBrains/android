@@ -16,6 +16,7 @@
 package com.android.tools.rendering.classloading
 
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.NopLoader
 
 /**
  * Classloader used in rendering and responsible for loading classes for a specific android project module, restricting and isolating
@@ -35,3 +36,13 @@ abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) :
      */
     abstract val isUserCodeUpToDate: Boolean
   }
+
+object NopModuleClassLoader: ModuleClassLoader(null, NopLoader) {
+  override val stats: ModuleClassLoaderDiagnosticsRead
+    get() = NopModuleClassLoadedDiagnostics
+  override val isDisposed: Boolean
+    get() = true
+  override val isUserCodeUpToDate: Boolean
+    get() = false
+
+}

@@ -55,7 +55,7 @@ interface EnvironmentContext {
 
   fun getOriginalFile(psiFile: PsiFile): PsiFile
 
-  fun getModuleClassLoaderManager(): ModuleClassLoaderManager
+  fun getModuleClassLoaderManager(): ModuleClassLoaderManager<*>
 
   fun getCrashReporter(): CrashReporter
 

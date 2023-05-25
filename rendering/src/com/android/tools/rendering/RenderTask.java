@@ -143,7 +143,7 @@ public class RenderTask {
   @NotNull private final ImagePool myImagePool;
   @NotNull private final RenderContext myContext;
 
-  @NotNull private final ModuleClassLoaderManager myClassLoaderManager;
+  @NotNull private final ModuleClassLoaderManager<?> myClassLoaderManager;
   @NotNull private final RenderLogger myLogger;
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
@@ -171,7 +171,7 @@ public class RenderTask {
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private RenderXmlFile myXmlFile;
   @NotNull private String myDefaultForegroundColor = "#333333";
-  @NotNull private final ModuleClassLoader myModuleClassLoader;
+  @NotNull private final ModuleClassLoaderManager.Reference<?> myModuleClassLoaderReference;
 
   /**
    * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
@@ -244,20 +244,20 @@ public class RenderTask {
       return xmlFile != null ? xmlFile.get() : null;
     });
     if (privateClassLoader) {
-      myModuleClassLoader = classLoaderManager.getPrivate(
+      myModuleClassLoaderReference = classLoaderManager.getPrivate(
         myLayoutLib.getClassLoader(),
         moduleRenderContext,
-        this, additionalProjectTransform, additionalNonProjectTransform);
+        additionalProjectTransform, additionalNonProjectTransform);
       onNewModuleClassLoader.run();
     } else {
-      myModuleClassLoader = classLoaderManager.getShared(myLayoutLib.getClassLoader(),
+      myModuleClassLoaderReference = classLoaderManager.getShared(myLayoutLib.getClassLoader(),
                                                          moduleRenderContext,
-                                                         this,
                                                          additionalProjectTransform,
                                                          additionalNonProjectTransform,
                                                          onNewModuleClassLoader);
     }
-    ClassLoaderPreloaderKt.preload(myModuleClassLoader, myModuleClassLoader::isDisposed, classesToPreload);
+    ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
+    ClassLoaderPreloaderKt.preload(moduleClassLoader, moduleClassLoader::isDisposed, classesToPreload);
     try {
       myLayoutlibCallback =
         new LayoutlibCallbackImpl(
@@ -268,7 +268,7 @@ public class RenderTask {
           myCredential,
           actionBarHandler,
           parserFactory,
-          myModuleClassLoader);
+          moduleClassLoader);
       if (renderContext.getModule().getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
@@ -374,7 +374,7 @@ public class RenderTask {
   // Workaround for http://b/143378087
   private void clearClassLoader() {
     try {
-      myClassLoaderManager.release(myModuleClassLoader, this);
+      myClassLoaderManager.release(myModuleClassLoaderReference);
     }
     catch (AlreadyDisposedException e) {
       // The project has already been disposed.
@@ -902,7 +902,7 @@ public class RenderTask {
             new RenderResultStats(
               System.currentTimeMillis() - startInflateTimeMs,
               -1,
-              myModuleClassLoader.getStats()));
+              myModuleClassLoaderReference.getClassLoader().getStats()));
         }
         else {
           if (xmlFile.isValid()) {
@@ -1062,7 +1062,7 @@ public class RenderTask {
             reportException(renderResult.getException());
             myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
           }
-          if (reportOutOfDateUserClasses && !myModuleClassLoader.isUserCodeUpToDate()) {
+          if (reportOutOfDateUserClasses && ! myModuleClassLoaderReference.getClassLoader().isUserCodeUpToDate()) {
             RenderProblem.Html problem = RenderProblem.create(WARNING);
             HtmlBuilder builder = problem.getHtmlBuilder();
             builder.addLink("The project has been edited more recently than the last build: ", "Build", " the project.",
@@ -1074,12 +1074,13 @@ public class RenderTask {
           // After render clean-up. Dispose the GapWorker cache.
           RenderSessionCleaner.clearGapWorkerCache(myLayoutlibCallback);
           RenderSessionCleaner.clearFontRequestWorker(myLayoutlibCallback);
+          ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
           return result.createWithStats(new RenderResultStats(
             inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
             System.currentTimeMillis() - startRenderTimeMs,
-            myModuleClassLoader.getStats().getClassesFound(),
-            myModuleClassLoader.getStats().getAccumulatedFindTimeMs(),
-            myModuleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
+            moduleClassLoader.getStats().getClassesFound(),
+            moduleClassLoader.getStats().getAccumulatedFindTimeMs(),
+            moduleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
         });
       }
       catch (Exception e) {

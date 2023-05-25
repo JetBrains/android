@@ -25,13 +25,14 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * How many different classloader types the hatchery stores. The current default is 2 with the idea
- * of having:
+ * How many different classloader types the hatchery stores. The current default is 2 with the idea of having:
  * 1. ModuleClassLoader for the static preview
  * 2. ModuleClassLoader for the interactive preview
  */
 private const val CAPACITY = 2
-/** How many copies of the same classloader the hatchery maintains */
+/**
+ * How many copies of the same classloader the hatchery maintains
+ */
 private const val COPIES = 1
 
 /**
@@ -92,17 +93,17 @@ private class Clutch(
     repeat(copies) { cloner(donor)?.let { eggs.add(Preloader(it, donor.classesToPreload)) } }
   }
 
-  /** Checks if the clutch maintains the [StudioModuleClassLoader]s of this type. */
+  /**
+   * Checks if the clutch maintains the [StudioModuleClassLoader]s of this type.
+   */
   fun isCompatible(
     parent: ClassLoader?,
     projectTransformations: ClassTransform,
-    nonProjectTransformations: ClassTransform
-  ) =
+    nonProjectTransformations: ClassTransform) =
     eggs.peek()?.isForCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
 
   /**
-   * If possible, returns a [StudioModuleClassLoader] from the clutch and transfers full ownership
-   * to the caller, otherwise returns null.
+   * If possible, returns a [StudioModuleClassLoader] from the clutch and transfers full ownership to the caller, otherwise returns null.
    */
   fun retrieve(): StudioModuleClassLoader? {
     return generateSequence { eggs.poll()?.getClassLoader() }
@@ -122,28 +123,25 @@ private class Clutch(
       }
   }
 
-  /** Should be called when the clutch is no longer needed to free all the resources. */
+  /**
+   * Should be called when the clutch is no longer needed to free all the resources.
+   */
   fun destroy() {
-    generateSequence { eggs.poll() }
-      .forEach {
-        it.dispose()
-      }
+    generateSequence { eggs.poll() }.forEach { it.dispose() }
   }
 
   fun getStats(): Stats {
-    return Stats(
-      "Clutch ${this.hashCode()}",
-      eggs.map { ReadyState(it.getLoadedCount(), donor.classesToPreload.size) }
-    )
+    return Stats("Clutch ${this.hashCode()}", eggs.map { ReadyState(it.getLoadedCount(), donor.classesToPreload.size) })
   }
 }
 
-/** Data representing the identification of the [StudioModuleClassLoader] type. */
+/**
+ * Data representing the identification of the [StudioModuleClassLoader] type.
+ */
 private data class Request(
   val parent: ClassLoader?,
   val projectTransformations: ClassTransform,
-  val nonProjectTransformations: ClassTransform
-) {
+  val nonProjectTransformations: ClassTransform) {
   override fun equals(other: Any?): Boolean {
     if (other !is Request) {
       return false
@@ -161,14 +159,9 @@ private data class Request(
 }
 
 /**
- * A data structure responsible for replenishing and providing on demand [StudioModuleClassLoader]s
- * ready to use
+ * A data structure responsible for replenishing and providing on demand [StudioModuleClassLoader]s ready to use
  */
-class ModuleClassLoaderHatchery(
-  private val capacity: Int = CAPACITY,
-  private val copies: Int = COPIES,
-  parentDisposable: Disposable
-) {
+class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private val copies: Int = COPIES, parentDisposable: Disposable) {
   // Requests for ModuleClassLoaders type that hatchery does not know how to create
   private val requests = mutableSetOf<Request>()
   // Clutches of different ModuleClassLoader types
@@ -184,41 +177,35 @@ class ModuleClassLoaderHatchery(
     }
   }
 
-  /** Request a ModuleClassLoader compatible with the input from this hatchery if such exists. */
+  /**
+   * Request a ModuleClassLoader compatible with the input from this hatchery if such exists.
+   */
   @Synchronized
-  fun requestClassLoader(
-    parent: ClassLoader?,
-    projectTransformations: ClassTransform,
-    nonProjectTransformations: ClassTransform
-  ): StudioModuleClassLoader? {
+  fun requestClassLoader(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform): StudioModuleClassLoader? {
+    if (isDisposed.get()) return null
+
     storage
       .find { it.isCompatible(parent, projectTransformations, nonProjectTransformations) }
       ?.let { clutch ->
         return clutch.retrieve()
       }
-    // If there is no compatible clutch we remember the request and will create one when we have an
-    // appropriate donor
+    // If there is no compatible clutch we remember the request and will create one when we have an appropriate donor
     requests.add(Request(parent, projectTransformations, nonProjectTransformations))
     return null
   }
 
   /**
-   * Create a clutch from the [donor] [StudioModuleClassLoader] if a clutch of this type does not
-   * exist and such type was requested. The [donor] should only be used for cloning. Returns true if
-   * donor was used for cloning and false otherwise.
+   * Create a clutch from the [donor] [StudioModuleClassLoader] if a clutch of this type does not exist and such type was requested. The [donor]
+   * should only be used for cloning. Returns true if donor was used for cloning and false otherwise.
    */
   @Synchronized
-  fun incubateIfNeeded(
-    donor: StudioModuleClassLoaderCreationContext,
-    cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader?
-  ): Boolean {
-    if (
-      storage.find {
-        it.isCompatible(donor.parent, donor.projectTransform, donor.nonProjectTransformation)
-      } != null
-    ) {
-      return false
-    }
+  fun incubateIfNeeded(donor: StudioModuleClassLoaderCreationContext, cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader?): Boolean {
+    if (isDisposed.get()) return false
+
+    val hasCompatibleDonor = storage.find {
+      it.isCompatible(donor.parent, donor.projectTransform, donor.nonProjectTransformation)
+    } != null
+    if (hasCompatibleDonor) return false
     val request = Request(donor.parent, donor.projectTransform, donor.nonProjectTransformation)
     if (requests.contains(request)) {
       requests.remove(request)
@@ -244,8 +231,12 @@ class ModuleClassLoaderHatchery(
   }
 }
 
-/** Represents the current preloading [progress] (number of classes) out of full [toDo] number. */
+/**
+ * Represents the current preloading [progress] (number of classes) out of full [toDo] number.
+ */
 data class ReadyState(val progress: Int, val toDo: Int)
 
-/** Represents [ReadyState] stats for all eggs in a Clutch identified by [label] */
+/**
+ * Represents [ReadyState] stats for all eggs in a Clutch identified by [label]
+ */
 data class Stats(val label: String, val states: List<ReadyState>)
