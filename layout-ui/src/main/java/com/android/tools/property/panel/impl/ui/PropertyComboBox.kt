@@ -37,6 +37,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
@@ -100,6 +101,13 @@ class PropertyComboBox(
       }
     }
   }
+
+  // Override the preferred width of this JPanel to match the component being shown.
+  // Without this override, the control will show up with a very low height: b/284255907
+  override fun getPreferredSize(): Dimension = if (comboBox.isVisible)
+    comboBox.preferredSize.apply { JBInsets.addTo(this, insets) }
+  else
+    label.preferredSize.apply { JBInsets.addTo(this, insets) }
 
   override fun doLayout() {
     // The ComboBox should fill up the entire area of this component.

@@ -68,6 +68,17 @@ class PropertyComboBoxTest {
   }
 
   @Test
+  fun testPreferredSizeCoversEditorControl() {
+    val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "")
+    val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
+    val comboBox = createComboBox(property, enumSupport)
+    val size = comboBox.preferredSize
+    val editorSize = comboBox.editor.preferredSize
+    assertThat(editorSize.width).isAtMost(size.width)
+    assertThat(editorSize.height).isAtMost(size.height)
+  }
+
+  @Test
   fun testEnter() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
@@ -237,9 +248,9 @@ class PropertyComboBoxTest {
     getWrappedComboBox(comboBox).isPopupVisible()
 
   private fun createComboBox(
-    property: PropertyItem, 
-    enumSupport: EnumSupport, 
-    context: EditorContext = EditorContext.TABLE_EDITOR, 
+    property: PropertyItem,
+    enumSupport: EnumSupport,
+    context: EditorContext = EditorContext.TABLE_EDITOR,
     editable: Boolean = true
   ): PropertyComboBox {
     val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
