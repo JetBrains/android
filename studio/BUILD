@@ -1020,6 +1020,7 @@ iml_studio_test(
         ":updater.jar",
     ],
     module = ":intellij.android.studio.integration",
+    tags = ["manual"],  # Disabled due to b/284193142
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.UpdateTest",
