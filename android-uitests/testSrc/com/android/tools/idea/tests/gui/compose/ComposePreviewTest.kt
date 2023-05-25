@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.compose
 
-import com.android.ddmlib.testing.FakeAdbRule
-import com.android.fakeadbserver.CommandHandler
-import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.FakeAdbServer
-import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.tools.adtui.compose.IssueNotificationActionButton
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.bleak.UseBleak
@@ -36,10 +32,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
-import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.exception.WaitTimedOutError
@@ -59,7 +53,6 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.event.KeyEvent
-import java.net.Socket
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.swing.JMenuItem
@@ -73,10 +66,8 @@ class ComposePreviewTest {
   @get:Rule
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
-  private val commandHandler = DeployPreviewCommandHandler()
-
   @get:Rule
-  val adbRule: FakeAdbRule = FakeAdbRule().initAbdBridgeDuringSetup(false).withDeviceCommandHandler(commandHandler)
+  val adbRule: FakeAdbTestRule = FakeAdbTestRule()
 
   private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt", assertNoNotifications: Boolean = true):
     SplitEditorFixture {
@@ -363,60 +354,40 @@ class ComposePreviewTest {
   @Test
   @Throws(Exception::class)
   fun testDeployPreview() {
-    // Enable the fake ADB server and attach a fake device to which the preview will be deployed.
-    AndroidDebugBridgeUtils.enableFakeAdbServerMode(adbRule.fakeAdbServerPort)
-    adbRule.attachDevice("42", "Google", "Pix3l", "versionX", "29")
+    val composablePackageName = "google.simpleapplication"
+    val composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
+    val processId = 42
+
+    val deviceState = adbRule.connectAndWaitForDevice()
+    deviceState.setActivityManager { args, _ ->
+      val command = args.joinToString(" ")
+      val deployPreviewCommand = "start -n $composablePackageName/$COMPOSE_PREVIEW_ACTIVITY_FQN -a android.intent.action.MAIN -c" +
+                                 " android.intent.category.LAUNCHER --es composable $composableFqn"
+      if (command == deployPreviewCommand) {
+        deviceState.startClient(processId, 111, composablePackageName, false)
+      }
+    }
 
     val fixture = getSyncedProjectFixture()
-    val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt", false)
-    commandHandler.composablePackageName = "google.simpleapplication"
-    commandHandler.composableFqn = "google.simpleapplication.MultipleComposePreviewsKt.Preview1"
-    commandHandler.previewActivityName = COMPOSE_PREVIEW_ACTIVITY_FQN
+    val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")
 
     composePreview.designSurface
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE).waitUntilEnabledAndShowing().click()
+      .clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.RUN_ON_DEVICE)
 
     val runToolWindowFixture = RunToolWindowFixture(guiTest.ideFrame())
     val contentFixture = runToolWindowFixture.findContent("Preview1")
-    // We should display "Launching '<Compose Preview Configuration Name>' on <Device>"
-    val launchingPreview = Pattern.compile(".*Launching 'Preview1' on Google Pix3l.*", Pattern.DOTALL)
+    // We should display "Launching <Compose Preview Configuration Name> on <Device>"
+    val launchingPreview = Pattern.compile(".*Launching Preview1 on .*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(launchingPreview), 10)
-    // We should display the adb shell command containing androidx.compose.ui.tooling.preview.PreviewActivity, which wraps the @Composable
-    val previewActivityPattern = COMPOSE_PREVIEW_ACTIVITY_FQN.replace(".", "\\.")
-    val previewActivity = Pattern.compile(".*${previewActivityPattern}.*", Pattern.DOTALL)
+    // We should display the adb shell command saying that we connected to the target process, which happens when the ActivityManager
+    // processes the command to start the PreviewActivity (see [deviceState.setActivityManager] above)
+    val previewActivity = Pattern.compile(".*Connected to process $processId on device.*", Pattern.DOTALL)
     contentFixture.waitForOutput(PatternTextMatcher(previewActivity), 10)
 
     guiTest.ideFrame().invokeMenuPath("Run", "Stop 'Preview1'")
     fixture.editor.close()
-  }
-
-  private class DeployPreviewCommandHandler : DeviceCommandHandler("shell") {
-    var composablePackageName: String = "com.example"
-    var composableFqn: String = "com.example.MyComposable"
-    var previewActivityName: String = "Activity"
-
-    override fun accept(
-      server: FakeAdbServer,
-      socketScope: CoroutineScope,
-      socket: Socket,
-      device: DeviceState,
-      command: String,
-      args: String
-    ): Boolean {
-      val deployArgs = "am start -n \"$composablePackageName/$previewActivityName\"" +
-                       " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es composable $composableFqn"
-      val stopArgs = "am force-stop $composablePackageName"
-      return when (args) {
-        deployArgs, stopArgs -> {
-          CommandHandler.writeOkay(socket.getOutputStream())
-          true
-        }
-
-        else -> false
-      }
-    }
   }
 }
