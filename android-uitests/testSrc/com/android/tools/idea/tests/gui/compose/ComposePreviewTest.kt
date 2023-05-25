@@ -260,9 +260,7 @@ class ComposePreviewTest {
       .allSceneViews
       .first()
       .toolbar()
-      .findButtonByIcon(StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
-      .waitUntilEnabledAndShowing()
-      .click()
+      .clickActionByIcon("Preview1", StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW)
 
     composePreview
       .waitForRenderToFinish()
