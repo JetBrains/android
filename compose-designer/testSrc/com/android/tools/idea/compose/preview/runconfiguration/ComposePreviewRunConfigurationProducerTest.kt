@@ -183,7 +183,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     )
   }
 
-  fun testSetupConfigurationFromContextMultipreviw() {
+  fun testSetupConfigurationFromContextMultipreview() {
     val file =
       myFixture.addFileToProjectAndInvalidate(
         "src/TestMultipreview.kt",
