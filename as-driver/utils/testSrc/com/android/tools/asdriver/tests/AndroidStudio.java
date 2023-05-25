@@ -130,7 +130,7 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 120, TimeUnit.SECONDS);
     return Integer.parseInt(matcher.group(1));
   }
 
