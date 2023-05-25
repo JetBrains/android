@@ -281,6 +281,7 @@
     <actionConfigurationCustomizer implementation="org.jetbrains.android.AndroidPlugin$ActionCustomizer"/>
     <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin" preload="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.streaming.DeviceMirroringSettings"/>
+    <applicationService serviceImplementation="com.android.tools.idea.streaming.DeviceMirroringSettings$SettingsV1"/>
     <applicationService serviceImplementation="com.android.tools.idea.streaming.EmulatorSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.res.ResourceUpdateTraceSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.welcome.config.AndroidFirstRunPersistentData" />
