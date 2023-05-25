@@ -18,13 +18,17 @@ package com.android.tools.idea.templates.diff
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
+import com.android.tools.idea.templates.verifyLanguageFiles
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.Thumb
 import com.intellij.openapi.project.Project
-import java.io.File
+import com.intellij.openapi.project.guessProjectDir
 import java.nio.file.Path
+import org.junit.Assert.*
 
 /**
  * Generates files from a template and performs checks on them to ensure they're valid and can be
@@ -37,7 +41,7 @@ class BaselineValidator(
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     // TODO: build
     // TODO: lint
-    // TODO: other checks
+    checkProjectProperties(projectDir)
   }
 
   /**
@@ -60,5 +64,17 @@ class BaselineValidator(
         templateRecipeExecutor
       )
     }
+  }
+
+  private fun checkProjectProperties(projectDir: Path) {
+    // Check that a thumbnail is specified
+    assertNotEquals(template.thumb(), Thumb.NoThumb)
+
+    // Check that project root is set up correctly
+    assertEquals(projectDir, gradleProjectRule.project.guessProjectDir()!!.toNioPath())
+
+    // Check that the file extensions are of the correct language
+    val language = Language.valueOf(moduleState.projectTemplateDataBuilder.language!!.toString())
+    verifyLanguageFiles(projectDir, language)
   }
 }

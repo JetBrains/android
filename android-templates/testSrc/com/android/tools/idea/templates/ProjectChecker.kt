@@ -90,7 +90,7 @@ data class ProjectChecker(
 
   private fun Project.verify(projectRule: AndroidGradleProjectRule, language: Language) {
     val projectDir = getBaseDirPath(this)
-    verifyLanguageFiles(projectDir, language)
+    verifyLanguageFiles(projectDir.toPath(), language)
     if (basePath?.contains("Folder") != true) { // running Gradle for new folders doesn't make much sense and takes long time
       injectBuildOutputDumpingBuildViewManager(projectRule.project, projectRule.project)
       projectRule.invokeTasks("compileDebugSources").apply { // "assembleDebug" is too slow

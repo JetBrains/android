@@ -105,7 +105,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
     templateStateCustomizer: TemplateStateCustomizer = mapOf(),
     category: Category? = null,
     formFactor: FormFactor? = null,
-    avoidModifiedModuleName: Boolean = false,
   ) {
     AndroidTestBase.ensureSdkManagerAvailable(disposableRule.disposable)
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
@@ -116,7 +115,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
     }
 
     val msToCheck = measureTimeMillis {
-      val projectName = "${template.name}_default"
       val project: Project =
         if (shouldUseGradle()) {
           (projectRule as AndroidGradleProjectRule).project
@@ -133,7 +131,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
       // TODO: We need to check more combinations of different moduleData/template params here.
       // Running once to make it as easy as possible.
-      projectRenderer.renderProject(project, projectName, avoidModifiedModuleName, *customizers)
+      projectRenderer.renderProject(project, *customizers)
     }
     println("Checked $name successfully in ${msToCheck}ms")
   }

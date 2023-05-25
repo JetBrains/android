@@ -28,12 +28,10 @@ import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectStateCustomizer
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getTestDataRoot
 import com.android.tools.idea.templates.getDefaultModuleState
-import com.android.tools.idea.templates.getModifiedModuleName
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.prepareGradleProject
-import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -47,7 +45,6 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtilRt
 import java.io.File
 import java.io.IOException
@@ -59,30 +56,18 @@ val FILES_TO_IGNORE = emptyArray<String>()
 // val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
 
 abstract class ProjectRenderer(protected val template: Template) {
-  private lateinit var moduleState: ModuleTemplateDataBuilder
+  protected lateinit var moduleState: ModuleTemplateDataBuilder
 
-  fun renderProject(
-    project: Project,
-    moduleName: String,
-    avoidModifiedModuleName: Boolean = false,
-    vararg customizers: ProjectStateCustomizer
-  ) {
-    val modifiedModuleName = getModifiedModuleName(moduleName, avoidModifiedModuleName)
+  fun renderProject(project: Project, vararg customizers: ProjectStateCustomizer) {
     moduleState = getDefaultModuleState(project, template)
     customizers.forEach { it(moduleState, moduleState.projectTemplateDataBuilder) }
 
     try {
-      createProject(project, modifiedModuleName)
+      createProject(project)
     } finally {
       val openProjects = ProjectManagerEx.getInstanceEx().openProjects
       assert(openProjects.size <= 1) // 1: the project created by default by the test case
     }
-  }
-
-  private fun createProject(project: Project, moduleName: String) {
-    val projectRoot = project.guessProjectDir()!!.toIoFile()
-    println("Checking project $moduleName in $projectRoot")
-    createProject(project)
   }
 
   /** Renders project, module and possibly activity template. */
@@ -93,6 +78,8 @@ abstract class ProjectRenderer(protected val template: Template) {
     if (!FileUtilRt.createDirectory(projectRoot)) {
       throw IOException("Unable to create directory '$projectRoot'.")
     }
+
+    println("Creating project $moduleName in $projectRoot")
 
     val moduleRoot =
       GradleAndroidModuleTemplate.createDefaultTemplateAt(File(projectRoot.path, moduleName))
@@ -137,6 +124,8 @@ abstract class ProjectRenderer(protected val template: Template) {
         dryRun = false,
         showErrors = true
       )
+
+    println("Using template ${template.name}")
 
     // TODO(qumeric): why doesn't it work with one executor?
     val moduleRecipeExecutor = DefaultRecipeExecutor(context)
