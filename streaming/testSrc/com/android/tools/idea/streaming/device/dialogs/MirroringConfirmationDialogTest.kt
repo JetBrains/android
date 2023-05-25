@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device.dialogs
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -64,7 +65,8 @@ class MirroringConfirmationDialogTest {
       val rootPane = dlg.rootPane
       val ui = FakeUi(rootPane)
       val rejectButton = ui.getComponent<JButton> { !it.isDefaultButton }
-      assertThat(rejectButton.text).isEqualTo("Disable Mirroring")
+      assertThat(rejectButton.text).isEqualTo(
+          if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) "Cancel" else "Disable Mirroring")
       ui.clickOn(rejectButton)
     }
 
