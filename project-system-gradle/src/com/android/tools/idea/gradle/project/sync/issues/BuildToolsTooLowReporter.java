@@ -87,7 +87,7 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
 
 
     List<VirtualFile> buildFiles =
-      affectedModules.stream().map(m -> buildFileMap.get(m)).filter(Objects::nonNull).collect(Collectors.toList());
+      affectedModules.stream().map(buildFileMap::get).filter(Objects::nonNull).collect(Collectors.toList());
 
     if (!buildToolInstalled) {
       hyperlinks

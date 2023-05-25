@@ -45,7 +45,7 @@ public class InstallBuildToolsHyperlink extends SyncIssueNotificationHyperlink {
 
   public InstallBuildToolsHyperlink(@NotNull String version, @NotNull List<VirtualFile> buildFiles, boolean removeBuildTools) {
     super("install.build.tools",
-          getText(version, !buildFiles.isEmpty()),
+          getText(version, !buildFiles.isEmpty(), removeBuildTools),
           AndroidStudioEvent.GradleSyncQuickFix.INSTALL_BUILD_TOOLS_HYPERLINK);
     myBuildFiles = buildFiles;
     myVersion = version;
@@ -53,15 +53,19 @@ public class InstallBuildToolsHyperlink extends SyncIssueNotificationHyperlink {
   }
 
   @NotNull
-  private static String getText(@NotNull String version, boolean hasBuildFiles) {
-    String msg = String.format("Install Build Tools %1$s", version);
+  private static String getText(@NotNull String version, boolean hasBuildFiles, boolean myRemoveBuildTools) {
+    StringBuilder msg = new StringBuilder(String.format("Install Build Tools %1$s", version));
     if (hasBuildFiles) {
-      msg += ", update version in build file and sync project";
+      if (myRemoveBuildTools) {
+        msg.append(", remove version from build file to use the default one provided by AGP and sync project");
+      } else {
+        msg.append(", update version in build file to use the default one provided by AGP and sync project");
+      }
     }
     else {
-      msg += " and sync project";
+      msg.append(" and sync project");
     }
-    return msg;
+    return msg.toString();
   }
 
   @Override
