@@ -83,8 +83,6 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = getInstance(facet.module)
   override val resourceIdManager: ResourceIdManager
     get() = ResourceIdManager.get(facet.module)
-  override val moduleKey: Any
-    get() = facet.module
   override val resourcePackage: String?
     get() = facet.module.getModuleSystem().getPackageName()
   override val dependencies: ModuleDependencies = StudioModuleDependencies(facet.module)

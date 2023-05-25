@@ -15,6 +15,8 @@
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
-    <orderEntry type="library" name="asm-tools" level="project" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
+  <component name="TestModuleProperties" production-module="intellij.android.rendering" />
 </module>

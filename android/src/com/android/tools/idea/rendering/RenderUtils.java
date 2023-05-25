@@ -45,7 +45,7 @@ public class RenderUtils {
         if (target != null) {
           AndroidTargetData targetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));
           if (targetData != null) {
-            targetData.clearAllCaches(module);
+            targetData.clearAllCaches(configuration.getConfigModule().getModuleKey());
           }
 
         // Reset resources for the current module and all the dependencies

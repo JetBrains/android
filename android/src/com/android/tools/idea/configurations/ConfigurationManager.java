@@ -554,7 +554,7 @@ public class ConfigurationManager implements Disposable {
         // bitmap sets are in memory.
         AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myConfigurationModule.getAndroidPlatform());
         if (targetData != null) {
-          targetData.clearLayoutBitmapCache(myConfigurationModule);
+          targetData.clearLayoutBitmapCache(myConfigurationModule.getModuleKey());
         }
       }
 

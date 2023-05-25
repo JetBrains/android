@@ -22,6 +22,8 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
+import com.android.tools.rendering.ModuleKey
+import com.android.tools.rendering.ModuleKeyManager
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.module.Module
@@ -42,6 +44,9 @@ class StudioConfigurationModelModule(val module: Module): ConfigurationModelModu
   override val name: String = module.name
   override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(module.project)
   override val dependencies: ModuleDependencies = StudioModuleDependencies(module)
+
+  override val moduleKey: ModuleKey
+    get() = ModuleKeyManager.getKey(module)
 
   override fun dispose() {
   }

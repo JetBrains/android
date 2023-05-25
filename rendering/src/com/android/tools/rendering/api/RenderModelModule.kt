@@ -40,9 +40,6 @@ interface RenderModelModule : Disposable, IdeaModuleProvider {
 
   val resourceIdManager: ResourceIdManager
 
-  /** An object uniquely identifying the module. Used for caching. */
-  val moduleKey: Any
-
   /** If found, returns the module's resource package name. */
   val resourcePackage: String?
 

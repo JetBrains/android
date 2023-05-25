@@ -66,6 +66,7 @@ import com.android.resources.base.ResourceSourceFile;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.util.FileExtensions;
+import com.android.tools.rendering.ModuleKeyManager;
 import com.android.utils.Base128InputStream;
 import com.android.utils.SdkUtils;
 import com.android.utils.TraceUtils;
@@ -1082,7 +1083,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
    */
   private void bitmapUpdated(@NotNull VirtualFile bitmap) {
     Module module = myFacet.getModule();
-    getAndroidTargetDataThenRun(bitmap, targetData -> targetData.clearLayoutBitmapCache(module));
+    getAndroidTargetDataThenRun(bitmap, targetData -> targetData.clearLayoutBitmapCache(ModuleKeyManager.INSTANCE.getKey(module)));
   }
 
   /**
