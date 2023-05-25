@@ -1073,6 +1073,7 @@ public class RenderTask {
         }).handle((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache.
           RenderSessionCleaner.clearGapWorkerCache(myLayoutlibCallback);
+          RenderSessionCleaner.clearFontRequestWorker(myLayoutlibCallback);
           return result.createWithStats(new RenderResultStats(
             inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
             System.currentTimeMillis() - startRenderTimeMs,

@@ -130,6 +130,8 @@ class SingleComposePreviewElementRendererTest {
     val pendingRepliesField =
       fontRequestWorker.getDeclaredField("PENDING_REPLIES").apply { isAccessible = true }
     val pendingReplies = pendingRepliesField.get(fontRequestWorker)
+    val size = pendingReplies::class.java.getMethod("size").invoke(pendingReplies) as Int
+    assertEquals("FontRequestWorker.PENDING_REPLIES size must be 0 after render", 0, size)
 
     assertTrue((animationScaleField.get(windowRecomposer) as Map<*, *>).isNotEmpty())
 
@@ -163,9 +165,6 @@ class SingleComposePreviewElementRendererTest {
       "animationScale should have been cleared",
       (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty()
     )
-
-    val size = pendingReplies::class.java.getMethod("size").invoke(pendingReplies) as Int
-    assertEquals("FontRequestWorker.PENDING_REPLIES size must be 0 after dispose", 0, size)
 
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
 

@@ -94,19 +94,6 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
     toRunTrampolinedRef.set(WeakReference(findToRunTrampolined(classLoader)))
   }
 
-  try {
-    val fontRequestWorker: Class<*> = classLoader.findClass(FONT_REQUEST_WORKER_FQN)
-    val pendingRepliesField = fontRequestWorker.getDeclaredField("PENDING_REPLIES")
-    pendingRepliesField.isAccessible = true
-    val pendingReplies = pendingRepliesField[fontRequestWorker]
-    // Clear the SimpleArrayMap
-    pendingReplies.javaClass.getMethod("clear").invoke(pendingReplies)
-  }
-  catch (ex: ReflectiveOperationException) {
-    // If the FontRequestWorker does not exist or the PENDING_REPLIES does not exist anymore, ignore.
-    LOG.debug("Unable to dispose the PENDING_REPLIES", ex)
-  }
-
   val broadcastManagerInstanceField = WeakReference(findLocalBroadcastManagerInstance(classLoader))
 
   disposeMethod.ifPresent { m: Method -> m.isAccessible = true }
@@ -209,6 +196,23 @@ private fun findLocalBroadcastManagerInstance(classLoader: LayoutlibCallbackImpl
   } catch (ex: ReflectiveOperationException) {
     LOG.debug("Unable to find $LOCAL_BROADCAST_MANAGER_FQN.mInstance", ex)
     null
+  }
+}
+
+fun clearFontRequestWorker(classLoader: LayoutlibCallbackImpl) {
+  if (!classLoader.hasLoadedClass(FONT_REQUEST_WORKER_FQN)) return
+
+  try {
+    val fontRequestWorker: Class<*> = classLoader.findClass(FONT_REQUEST_WORKER_FQN)
+    val pendingRepliesField = fontRequestWorker.getDeclaredField("PENDING_REPLIES")
+    pendingRepliesField.isAccessible = true
+    val pendingReplies = pendingRepliesField[fontRequestWorker]
+    // Clear the SimpleArrayMap
+    pendingReplies.javaClass.getMethod("clear").invoke(pendingReplies)
+  }
+  catch (ex: ReflectiveOperationException) {
+    // If the FontRequestWorker does not exist or the PENDING_REPLIES does not exist anymore, ignore.
+    LOG.debug("Unable to dispose the PENDING_REPLIES", ex)
   }
 }
 
