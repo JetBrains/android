@@ -729,6 +729,7 @@ class ResourceExplorerListView(
       val toolbar = ActionToolbarImpl("AssetSection", DefaultActionGroup(expandAction), true).apply {
         layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
       }
+      toolbar.targetComponent = this@apply
 
       add(headerNameLabel, BorderLayout.WEST)
       add(toolbar.component, BorderLayout.EAST)
