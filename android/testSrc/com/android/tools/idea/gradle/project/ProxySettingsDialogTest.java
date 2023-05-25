@@ -22,7 +22,7 @@ import static com.intellij.openapi.util.Disposer.isDisposed;
 
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.intellij.openapi.Disposable;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,13 +30,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link ProxySettingsDialog}.
  */
-public class ProxySettingsDialogTest extends PlatformTestCase {
+public class ProxySettingsDialogTest extends LightPlatformTestCase {
   private ProxySettingsDialog myDialog;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myDialog = new ProxySettingsDialog(getProject(), new ProxySettings(HTTP_PROXY_TYPE));
+    myDialog = new ProxySettingsDialog(getProject(), new ProxySettings(HTTP_PROXY_TYPE), true);
   }
 
   @Override
@@ -247,5 +247,13 @@ public class ProxySettingsDialogTest extends PlatformTestCase {
 
     assertEquals(host, getHttpsProxyHost(properties));
     assertEquals(port, getHttpsProxyPort(properties));
+  }
+
+  /**
+   * Verify that the dialog text correctly indicates if the IDE is using a proxy
+   */
+  public void testDialogText() {
+    assertThat(ProxySettingsDialog.generateDialogText(/* with proxy */ true)).contains("is configured to use an HTTP proxy");
+    assertThat(ProxySettingsDialog.generateDialogText(/* without proxy */ false)).contains("is configured to not use an HTTP proxy");
   }
 }
