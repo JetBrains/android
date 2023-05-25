@@ -92,6 +92,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.Arrays
 import java.util.Collections
 import java.util.Enumeration
 import java.util.Stack
@@ -653,7 +654,7 @@ class DeviceExplorerControllerTest {
 
     // Act: Call "update" on each action, just to make sure the code is covered
     myMockView.tree.selectionPath = getFileEntryPath(myFile1)
-    val actions = listOf(*actionGroup.getChildren(null))
+    val actions = Arrays.asList(*actionGroup.getChildren(null))
     val e = createContentMenuItemEvent()
     actions.forEach  { it.update(e) }
   }
@@ -919,7 +920,7 @@ class DeviceExplorerControllerTest {
     //       a directory tree download, in this case we should have exactly one.
     val files = tempDirectory.listFiles()
     checkNotNull(files)
-    val createdFiles = listOf(*files)
+    val createdFiles = Arrays.asList(*files)
     assertEquals(1, createdFiles.size)
     assertTrue(createdFiles.any { it.name == myFooDir.name })
   }
@@ -1345,7 +1346,7 @@ class DeviceExplorerControllerTest {
       }
 
       override fun getTransferData(flavor: DataFlavor): Any {
-        return listOf(tempFile)
+        return Arrays.asList(tempFile)
       }
     }
     val support = mock<TransferSupport>()

@@ -74,7 +74,6 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import kotlin.math.max
 
 class ProjectStructureConfigurable(private val myProject: Project) : SearchableConfigurable, Place.Navigator, Configurable.NoMargin,
                                                                      Configurable.NoScroll {
@@ -217,7 +216,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     val left = object : JPanel(BorderLayout()) {
       override fun getMinimumSize(): Dimension {
         val original = super.getMinimumSize()
-        return Dimension(max(original.width, JBUI.scale(150)), original.height)
+        return Dimension(Math.max(original.width, JBUI.scale(150)), original.height)
       }
     }
 

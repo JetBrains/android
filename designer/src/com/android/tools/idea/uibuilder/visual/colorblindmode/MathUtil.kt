@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -170,6 +169,6 @@ class Mat3D(private val aa: Double, private val ab: Double, private val ac: Doub
   }
 
   private fun close(one: Double, two: Double, threshold: Double = COMPARE_THRESHOLD): Boolean {
-    return abs(one - two) < threshold
+    return Math.abs(one - two) < threshold
   }
 }

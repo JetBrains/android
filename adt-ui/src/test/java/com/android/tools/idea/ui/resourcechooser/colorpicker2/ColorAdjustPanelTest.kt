@@ -22,7 +22,6 @@ import org.mockito.Mockito
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.MouseEvent
-import kotlin.math.roundToInt
 import kotlin.test.assertNotEquals
 
 class ColorAdjustPanelTest : PlatformTestCase() {
@@ -127,13 +126,13 @@ class ColorAdjustPanelTest : PlatformTestCase() {
     model.setColor(Color.BLUE, null)
     assertEquals(Color.BLUE, indicator.color)
     val blueHue = Color.RGBtoHSB(Color.BLUE.red, Color.BLUE.green, Color.BLUE.blue, null)[0]
-    assertEquals((blueHue * 360).roundToInt(), hueSlide.value)
+    assertEquals(Math.round(blueHue * 360), hueSlide.value)
     assertEquals(Color.BLUE, alphaSlide.sliderBackgroundColor)
 
     model.setColor(Color.YELLOW, null)
     assertEquals(Color.YELLOW, indicator.color)
     val yellowHue = Color.RGBtoHSB(Color.YELLOW.red, Color.YELLOW.green, Color.YELLOW.blue, null)[0]
-    assertEquals((yellowHue * 360).roundToInt(), hueSlide.value)
+    assertEquals(Math.round(yellowHue * 360), hueSlide.value)
     assertEquals(Color.YELLOW, alphaSlide.sliderBackgroundColor)
   }
 

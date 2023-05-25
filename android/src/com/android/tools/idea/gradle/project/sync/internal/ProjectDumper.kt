@@ -32,8 +32,8 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.idea.artifacts.KotlinArtifacts
 import java.io.File
+import java.lang.Math.max
 import java.util.Locale
-import kotlin.math.max
 
 /**
  * A helper class to dump an IDEA project to a stable human readable text format that can be compared in tests.

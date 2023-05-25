@@ -38,11 +38,11 @@ class ColorLutTest: TestCase() {
       val color2 = uniform2.lut[i]
 
       assertTrue("Red comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-                 abs(r(color1) - r(color2)) <= threshhold)
+                 Math.abs(r(color1) - r(color2)) <= threshhold)
       assertTrue("Green comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-                            abs(g(color1) - g(color2)) <= threshhold)
+                            Math.abs(g(color1) - g(color2)) <= threshhold)
       assertTrue("Blue comparison between ${getColorString(color1)} vs ${getColorString(color2)}",
-                 abs(b(color1) - b(color2)) <= threshhold)
+                 Math.abs(b(color1) - b(color2)) <= threshhold)
     }
   }
 
@@ -82,9 +82,9 @@ class ColorLutTest: TestCase() {
     for (color in 0 until 0xFFFFFF) {
       val out = uniform.interpolate(color)
 
-      assertTrue("Red input : $color, output : $out", abs(r(color) - r(out)) <= 1)
-      assertTrue("Green input : $color, output : $out", abs(g(color) - g(out)) <= 1)
-      assertTrue("Blue input : $color, output : $out", abs(b(color) - b(out)) <= 1)
+      assertTrue("Red input : $color, output : $out", Math.abs(r(color) - r(out)) <= 1)
+      assertTrue("Green input : $color, output : $out", Math.abs(g(color) - g(out)) <= 1)
+      assertTrue("Blue input : $color, output : $out", Math.abs(b(color) - b(out)) <= 1)
     }
   }
 

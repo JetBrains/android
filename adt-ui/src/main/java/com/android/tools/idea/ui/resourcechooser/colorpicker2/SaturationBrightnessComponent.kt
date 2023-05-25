@@ -28,8 +28,6 @@ import java.awt.event.MouseEvent
 import java.awt.image.ColorModel
 import java.awt.image.MemoryImageSource
 import javax.swing.JComponent
-import kotlin.math.max
-import kotlin.math.min
 
 private val KNOB_COLOR = Color.WHITE
 
@@ -77,8 +75,8 @@ class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JCo
   }
 
   private fun handleMouseEvent(e: MouseEvent, commit: Boolean) {
-    knobX = max(0, min(e.x, size.width))
-    knobY = max(0, min(e.y, size.height))
+    knobX = Math.max(0, Math.min(e.x, size.width))
+    knobY = Math.max(0, Math.min(e.y, size.height))
 
     val saturation = knobX.toFloat() / size.width
     val brightness = 1.0f - knobY.toFloat() / size.height

@@ -44,11 +44,11 @@ class FakeProfilerPreferences : ProfilerPreferences {
   }
 
   override fun setFloat(name: String, value: Float, defaultValue: Float) {
-    if (value.compareTo(defaultValue) == 0) {
+    if (java.lang.Float.compare(value, defaultValue) == 0) {
       myMap.remove(name)
     }
     else {
-      myMap.put(name, value.toString())
+      myMap.put(name, java.lang.Float.toString(value))
     }
   }
 
@@ -61,7 +61,7 @@ class FakeProfilerPreferences : ProfilerPreferences {
       myMap.remove(name)
     }
     else {
-      myMap.put(name, value.toString())
+      myMap.put(name, Integer.toString(value))
     }
   }
 

@@ -146,11 +146,11 @@ fun analyzeSingleDepthInlinedFunctions(
   }
 
   // TODO REMOVE
-  println("analyzeSingleDepthInlinedFunctions took: $elapsed ms")
+  System.out.println("analyzeSingleDepthInlinedFunctions took: $elapsed ms")
   return referencedClasses
 }
 
-// This is mostly org.jetbrains.kotlin.idea.core.util.inlineAnalysisUtils but non-recursive and fitted with Live edit specific abstraction
+// This is mostly org.jetbrains.kotlin.idea.core.util.inlineAnalysisUtils but non recursive and fitted with Live edit specific abstraction
 private fun analyzeElementWithOneLevelInline(
   resolutionFacade: ResolutionFacade,
   element: KtFile,

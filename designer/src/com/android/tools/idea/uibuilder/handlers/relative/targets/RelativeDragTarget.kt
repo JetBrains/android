@@ -28,9 +28,6 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.intellij.openapi.util.text.StringUtil
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Target to handle the drag of RelativeLayout's children
@@ -77,7 +74,7 @@ class RelativeDragTarget : DragBaseTarget() {
       dropHandler.hideHighlightTargets()
       attributes.apply()
 
-      if (abs(x - myFirstMouseX) > 1 || abs(y - myFirstMouseY) > 1) {
+      if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
         NlWriteCommandActionUtil.run(component, "Dragged " + StringUtil.getShortName(component.tagName), { attributes.commit() })
       }
     }
@@ -159,7 +156,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
 
     clearHorizontalConstrains(attributes)
     attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL)
-    val dx = max(parent.drawLeft, min(x, parent.drawRight - myComponent.drawWidth))
+    val dx = Math.max(parent.drawLeft, Math.min(x, parent.drawRight - myComponent.drawWidth))
     if (!isAutoConnectionEnabled()) {
       return dx
     }
@@ -239,7 +236,7 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
 
     clearVerticalConstrains(attributes)
     attributes.removeAndroidAttribute(SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL)
-    val dy = max(parent.drawTop, min(y, parent.drawBottom - myComponent.drawHeight))
+    val dy = Math.max(parent.drawTop, Math.min(y, parent.drawBottom - myComponent.drawHeight))
     if (!isAutoConnectionEnabled()) {
       return dy
     }

@@ -1,4 +1,3 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.dom
 
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
@@ -51,6 +50,7 @@ import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.Test
 import java.io.IOException
+import java.util.Arrays
 
 /**
  * Tests semantic highlighting and completion in layout XML files.
@@ -1309,7 +1309,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val file = copyFileToProject(fileName)
     myFixture.configureFromExistingVirtualFile(file)
     val elements = myFixture.complete(CompletionType.BASIC)
-    val elementsToCheck = HashSet(listOf("view", "include", "requestFocus", "fragment", "Button"))
+    val elementsToCheck = HashSet(Arrays.asList(
+      "view", "include", "requestFocus", "fragment", "Button"))
 
     for (element in elements) {
       val s = element.lookupString

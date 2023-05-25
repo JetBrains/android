@@ -37,6 +37,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle
 import org.mockito.Mockito.mock
 import java.io.File
+import java.util.Arrays
 import java.util.concurrent.TimeUnit
 
 class KeystoreStepTest : LightPlatformTestCase() {
@@ -267,9 +268,9 @@ class KeystoreStepTest : LightPlatformTestCase() {
     assertEquals(testKeyStorePath, keystoreStep2.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep2.keyAliasField.text)
     waitForCondition(1, TimeUnit.SECONDS) {
-      testKeyStorePassword.toCharArray().contentEquals(keystoreStep2.keyStorePasswordField.password)
+      Arrays.equals(testKeyStorePassword.toCharArray(), keystoreStep2.keyStorePasswordField.password)
     }
-    waitForCondition(1, TimeUnit.SECONDS) { testKeyPassword.toCharArray().contentEquals(keystoreStep2.keyPasswordField.password) }
+    waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testKeyPassword.toCharArray(), keystoreStep2.keyPasswordField.password) }
   }
 
   fun testRemembersPasswordForAllKeystoresAndAliases() {
@@ -457,9 +458,9 @@ class KeystoreStepTest : LightPlatformTestCase() {
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
     waitForCondition(1, TimeUnit.SECONDS) {
-      testLegacyKeyStorePassword.toCharArray().contentEquals(keystoreStep.keyStorePasswordField.password)
+      Arrays.equals(testLegacyKeyStorePassword.toCharArray(), keystoreStep.keyStorePasswordField.password)
     }
-    waitForCondition(1, TimeUnit.SECONDS) { testLegacyKeyPassword.toCharArray().contentEquals(keystoreStep.keyPasswordField.password) }
+    waitForCondition(1, TimeUnit.SECONDS) { Arrays.equals(testLegacyKeyPassword.toCharArray(), keystoreStep.keyPasswordField.password) }
 
     // Set passwords and commit.
     keystoreStep.keyStorePasswordField.text = testKeyStorePassword

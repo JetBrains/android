@@ -28,6 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.util.Arrays
 import java.util.concurrent.TimeUnit
 
 @RunWith(Parameterized::class)
@@ -42,9 +43,9 @@ class EnergyEventsFetcherTest(private val useUnifiedEvents: Boolean) {
   }
 
   private val myEvents = ImmutableList.Builder<Common.Event>()
-    .addAll(newEnergyEventGroup(1L, listOf(1000, 1300)))
-    .addAll(newEnergyEventGroup(2L, listOf(1200)))
-    .addAll(newEnergyEventGroup(3L, listOf(1300, 1400)))
+    .addAll(newEnergyEventGroup(1L, Arrays.asList(1000, 1300)))
+    .addAll(newEnergyEventGroup(2L, Arrays.asList(1200)))
+    .addAll(newEnergyEventGroup(3L, Arrays.asList(1300, 1400)))
     .build()
   private val mySession = Common.Session.newBuilder().setSessionId(1234L).setStreamId(STREAM_ID).setPid(PID).build()
   private val myEnergyService = FakeEnergyService(eventList = myEvents)

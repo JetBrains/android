@@ -1013,7 +1013,8 @@ class AndroidLintTest : AndroidTestCase() {
 
   fun testOldTargetApi() {
     deleteManifest()
-    val expectedTarget = AndroidLintIdeClient(project, LintIgnoredResult()).highestKnownApiLevel.toString()
+    val expectedTarget = Integer.toString(
+      AndroidLintIdeClient(project, LintIgnoredResult()).highestKnownApiLevel)
     doTestWithFix(
       AndroidLintOldTargetApiInspection(),
       "Update targetSdkVersion to $expectedTarget", "AndroidManifest.xml", "xml")

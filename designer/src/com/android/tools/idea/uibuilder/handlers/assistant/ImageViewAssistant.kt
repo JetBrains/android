@@ -41,11 +41,12 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.util.EnumSet
 import java.util.concurrent.CompletableFuture
+import java.util.function.BiConsumer
+import java.util.function.Supplier
 import javax.swing.Box
 import javax.swing.DefaultListModel
 import javax.swing.JComboBox
 import javax.swing.JPanel
-import kotlin.math.min
 
 private const val ITEM_COUNT = 12
 private val IMAGE_SIZE = scale(48)
@@ -222,7 +223,7 @@ class ImageViewAssistant(
     while (listModel.size() < ITEM_COUNT) {
       listModel.addElement(null)
     }
-    drawableGrid.selectedIndex = min(selectedIndex, drawableGrid.model.size - 1)
+    drawableGrid.selectedIndex = Math.min(selectedIndex, drawableGrid.model.size - 1)
   }
 
   private fun applySampleItem(item: SampleDataResourceItem?, resourceValueIndex: Int) {

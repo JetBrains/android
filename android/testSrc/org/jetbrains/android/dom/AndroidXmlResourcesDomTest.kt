@@ -25,6 +25,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiPackage
 import com.intellij.util.ArrayUtil
 import org.jetbrains.android.refactoring.setAndroidxProperties
+import java.util.Arrays
 
 /**
  * Tests for code editor features when working with resources under res/xml.
@@ -128,7 +129,7 @@ class AndroidXmlResourcesDomTest : AndroidDomTestCase("dom/xml") {
         return
       }
     }
-    fail(listOf(*lookupElements).toString())
+    fail(Arrays.asList(*lookupElements).toString())
   }
 
   fun testJavaCompletion1() {

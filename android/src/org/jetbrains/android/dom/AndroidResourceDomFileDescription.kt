@@ -111,7 +111,7 @@ abstract class MultipleKnownRootsResourceDomFileDescription<T : DomElement>(
     rootElementClass: Class<T>,
     resourceFolderType: ResourceFolderType,
     vararg tagNames: String
-  ) : this(rootElementClass, resourceFolderType, setOf(*tagNames))
+  ) : this(rootElementClass, resourceFolderType, java.util.Set.of(*tagNames))
 
   final override fun acceptsOtherRootTagNames() = true
   final override fun isMyFile(file: XmlFile, module: Module?) = super.isMyFile(file, module) && tagNames.contains(file.rootTag?.name)

@@ -42,7 +42,6 @@ import javax.swing.AbstractAction
 import javax.swing.JComponent
 import javax.swing.KeyStroke
 import kotlin.math.max
-import kotlin.math.min
 
 private const val PADDING = 5
 
@@ -121,7 +120,7 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
           e.wheelRotation < 0 -> -e.scrollAmount
           else -> e.scrollAmount
         }
-        val newKnobPosition = max(0, min(_knobPosition + amount, sliderWidth))
+        val newKnobPosition = Math.max(0, Math.min(_knobPosition + amount, sliderWidth))
         knobPosition = newKnobPosition
       }, true)
       e.consume()
@@ -178,7 +177,7 @@ abstract class SliderComponent<T: Number>(initialValue: T) : JComponent() {
   }
 
   private fun processMouse(e: MouseEvent, commit: Boolean) = runAndUpdateIfNeeded({
-    val newKnobPosition = max(0, min(e.x - leftPadding, sliderWidth))
+    val newKnobPosition = Math.max(0, Math.min(e.x - leftPadding, sliderWidth))
     knobPosition = newKnobPosition
   }, commit)
 

@@ -39,8 +39,6 @@ import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 import java.util.function.Consumer
 import javax.swing.JLabel
-import kotlin.math.max
-import kotlin.math.min
 
 class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<out CaptureObject>>,
                        private val viewRange: Range)
@@ -80,7 +78,7 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
     val dimWidth = dim.width
     val dimHeight = dim.height
 
-    val height = min(origHeight, dimHeight).toDouble()
+    val height = Math.min(origHeight, dimHeight).toDouble()
     val clipRect = Rectangle2D.Float()
 
     for (i in 0 until startsCache.size) {
@@ -88,9 +86,9 @@ class HeapDumpRenderer(private val model: DurationDataModel<CaptureDurationData<
       val xLen = durationsCache.getDouble(i)
       val scaledXStart = xStart * dimWidth
       val scaledDuration = xLen * dimWidth
-      val newX = max(scaledXStart, origX)
+      val newX = Math.max(scaledXStart, origX)
       clipRect.setRect(newX, origY.toDouble(),
-                       min(scaledDuration + scaledXStart - newX, origX + origWidth - newX),
+                       Math.min(scaledDuration + scaledXStart - newX, origX + origWidth - newX),
                        height)
 
       // Draw blank box for heap dump period to indicate the lack of data,

@@ -25,7 +25,6 @@ import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.model.ensureLiveId
 import java.awt.Color
-import kotlin.math.min
 
 /**
  * A "snap" target for CoordinatorLayout. When a CoordinatorDragTarget
@@ -50,7 +49,7 @@ class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlacehold
     var t = top
     var r = right
     var b = bottom
-    val d = min(min(b - t, r - l) / 4, mySize)
+    val d = Math.min(Math.min(b- t, r- l) / 4, mySize)
     if (myType == Type.RIGHT_TOP || myType == Type.RIGHT || myType == Type.RIGHT_BOTTOM) {
       l = r - d
     } else if (myType == Type.TOP || myType == Type.CENTER || myType == Type.BOTTOM) {

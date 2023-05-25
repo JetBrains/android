@@ -75,7 +75,7 @@ class NativeAllocationSampleCaptureObjectTest {
     val endTimeNs: Long = 8
     val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
-    transportService.addFile(startTimeNs.toString(), ByteString.copyFrom("TODO".toByteArray()))
+    transportService.addFile(java.lang.Long.toString(startTimeNs), ByteString.copyFrom("TODO".toByteArray()))
     assertThat(capture.load(null, null)).isTrue()
     assertThat(capture.isDoneLoading).isTrue()
     assertThat(capture.isError).isFalse()

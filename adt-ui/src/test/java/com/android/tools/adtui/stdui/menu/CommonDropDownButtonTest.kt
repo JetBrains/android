@@ -20,6 +20,8 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import java.beans.PropertyChangeListener
+import java.util.Arrays
 
 @RunWith(JUnit4::class)
 class CommonDropDownButtonTest {
@@ -33,27 +35,27 @@ class CommonDropDownButtonTest {
     parent.addChildrenActions(child1, child2)
     child1.addChildrenActions(grandChild1)
 
-    var actions = listOf(parent, child1, child2, grandChild1)
+    var actions = Arrays.asList(parent, child1, child2, grandChild1)
     for (action in actions) {
-      assertThat(action.propertyChangeListeners).asList().isEmpty()
+      assertThat<PropertyChangeListener>(action.propertyChangeListeners).asList().isEmpty()
     }
 
     // Listeners should be hooked up after creating the dropdown.
     val dropdown = CommonDropDownButton(parent)
     for (action in actions) {
-      assertThat(action.propertyChangeListeners).asList().containsExactly(dropdown)
+      assertThat<PropertyChangeListener>(action.propertyChangeListeners).asList().containsExactly(dropdown)
     }
 
     // Modifying the first child should clear listeners on grandChild1
     child1.clear()
-    assertThat(grandChild1.propertyChangeListeners).asList().isEmpty()
+    assertThat<PropertyChangeListener>(grandChild1.propertyChangeListeners).asList().isEmpty()
 
     // Modifying the second child should add listeners for grandChild2
     val grandChild2 = CommonAction("Grandchild2", null)
     child2.addChildrenActions(grandChild2)
-    actions = listOf(parent, child1, child2, grandChild2)
+    actions = Arrays.asList(parent, child1, child2, grandChild2)
     for (action in actions) {
-      assertThat(action.propertyChangeListeners).asList().containsExactly(dropdown)
+      assertThat<PropertyChangeListener>(action.propertyChangeListeners).asList().containsExactly(dropdown)
     }
   }
 
