@@ -54,7 +54,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
       deviceMirroringEnabledCheckBox = JBCheckBox().apply { isSelected = true }
       row {
         activateOnConnectionCheckBox =
-          checkBox("Activate mirroring when a physical device is connected")
+          checkBox("Activate mirroring when a new physical device is connected")
             .bindSelected(state::activateOnConnection)
             .component.apply {
               addActionListener {

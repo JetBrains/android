@@ -169,7 +169,7 @@ class DeviceMirroringSettingsPageTest {
     val component = settingsUi.createComponent()!!
     val ui = FakeUi(component)
     val activateOnConnectionCheckBox =
-        ui.getComponent<JCheckBox> { it.text == "Activate mirroring when a physical device is connected" }
+        ui.getComponent<JCheckBox> { it.text == "Activate mirroring when a new physical device is connected" }
     val activateOnAppLaunchCheckBox =
         ui.getComponent<JCheckBox> { it.text == "Activate mirroring when launching an app on a physical device" }
     val activateOnTestLaunchCheckBox =
