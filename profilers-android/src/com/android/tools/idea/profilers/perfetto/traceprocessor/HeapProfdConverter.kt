@@ -21,17 +21,13 @@ import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.memory.adapters.ClassDb
 import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
-import com.intellij.util.Base64
-import gnu.trove.TLongHashSet
-import java.util.HashMap
+import java.util.Base64
 
 /**
  * Helper class to convert from perfetto memory proto to profiler protos.
  * The {@link NativeMemoryHeapSet} passed into the constructor is populated by calling {@link populateHeapSet}.
  */
-class HeapProfdConverter(private val abi: String,
-                         private val memorySet: NativeMemoryHeapSet,
-                         private val demangler: NameDemangler) {
+class HeapProfdConverter(private val memorySet: NativeMemoryHeapSet, private val demangler: NameDemangler) {
 
   companion object {
     private val UNKNOWN_FRAME = Memory.AllocationStack.StackFrame.newBuilder().setMethodName("unknown").build()
@@ -44,17 +40,20 @@ class HeapProfdConverter(private val abi: String,
    * The file name and line number are also populated if available.
    */
   private fun toStackFrameInfo(rawFrame: StackFrame): StackFrameInfo {
-    val module = String(Base64.decode(rawFrame.module))
-    var formattedName = String(Base64.decode(rawFrame.name))
-    var file = ""
-    if (rawFrame.lineNumber > 0) {
-      file = String(Base64.decode(rawFrame.sourceFile))
-      formattedName += " (${file}:${rawFrame.lineNumber})"
+    val base64 = Base64.getDecoder()
+
+    val module = base64.decode(rawFrame.module).toString(Charsets.UTF_8)
+    val file = if (rawFrame.lineNumber > 0) base64.decode(rawFrame.sourceFile).toString(Charsets.UTF_8) else ""
+    val name = base64.decode(rawFrame.name).toString(Charsets.UTF_8)
+
+    // If there is a file name (source file), then we will have a line number.
+    val fullName = if (file.isNotEmpty()) {
+      "$name ($file:${rawFrame.lineNumber})"
+    } else {
+      name
     }
-    return StackFrameInfo(name = formattedName,
-                          fileName = file,
-                          lineNumber = rawFrame.lineNumber,
-                          moduleName = module)
+
+    return StackFrameInfo(name = fullName, fileName = file, lineNumber = rawFrame.lineNumber, moduleName = module)
   }
 
   /**
@@ -92,7 +91,8 @@ class HeapProfdConverter(private val abi: String,
     val pointerMap = context.pointersMap
     context.allocationsList.forEach { allocation ->
       // Some callstacks are recursive. Instead of having a fixed callstack length we track what site ids we have visited.
-      val visitedCallSiteIds = TLongHashSet()
+      val visitedCallSiteIds = mutableSetOf<Long>()
+
       // Build allocation stack proto
       val fullStack = Memory.AllocationStack.StackFrameWrapper.newBuilder()
       var callSiteId = pointerMap[allocation.stackId]?.parentId ?: -1
@@ -106,7 +106,7 @@ class HeapProfdConverter(private val abi: String,
       if (callSiteId > 0L) {
         val frameName = pointerMap[callSiteId]?.let { frames[it.frameId]?.last()?.methodName } ?: UNKNOWN_FRAME.methodName
         fullStack.addFrames(0, Memory.AllocationStack.StackFrame.newBuilder()
-          .setMethodName("[Recursive] " + frameName))
+          .setMethodName("[Recursive] $frameName"))
       }
 
       val stack = Memory.AllocationStack.newBuilder()
@@ -123,7 +123,7 @@ class HeapProfdConverter(private val abi: String,
       val instanceObject = NativeAllocationInstanceObject(
         event, classDb.registerClass(0, 0, allocationMethod.methodName), stack, allocation.count)
 
-      // Add it to the heapset book keeping.
+      // Add it to the heapset bookkeeping.
       if (allocation.count > 0) {
         memorySet.addDeltaInstanceObject(instanceObject)
       }

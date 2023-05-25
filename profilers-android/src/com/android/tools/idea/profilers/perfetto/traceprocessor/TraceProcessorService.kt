@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.profilers.perfetto.traceprocessor
 
-import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.profiler.perfetto.proto.Memory
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.LoadTraceRequest
@@ -200,7 +199,7 @@ class TraceProcessorServiceImpl(
                               abi: String,
                               memorySet: NativeMemoryHeapSet,
                               ideProfilerServices: IdeProfilerServices) {
-    val converter = HeapProfdConverter(abi, memorySet, WindowsNameDemangler())
+    val converter = HeapProfdConverter(memorySet, WindowsNameDemangler())
     handleRequest(traceId, ideProfilerServices, FeatureTracker::trackTraceProcessorMemoryData,
                   RequestBuilder({ memoryRequest = Memory.AllocationDataRequest.getDefaultInstance() },
                                  { converter.populateHeapSet(it.memoryEvents)}))
