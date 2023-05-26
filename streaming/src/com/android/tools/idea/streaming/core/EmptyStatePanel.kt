@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.repository.Revision
 import com.android.repository.api.RepoManager.RepoLoadedListener
 import com.android.repository.impl.meta.RepositoryPackages
+import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -68,8 +69,12 @@ private const val SIDE_MARGIN = 0.15
  */
 internal class EmptyStatePanel(project: Project, disposableParent: Disposable): JBPanel<EmptyStatePanel>(GridBagLayout()), Disposable {
 
-  private var emulatorLaunchesInToolWindow: Boolean
-  private var deviceMirroringEnabled: Boolean
+  private val emulatorLaunchesInToolWindow: Boolean
+    get()= EmulatorSettings.getInstance().launchInToolWindow
+  private val deviceMirroringEnabled: Boolean
+    get() = DeviceMirroringSettings.getInstance().deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()
+  private val activateOnConnection: Boolean
+    get() = DeviceMirroringSettings.getInstance().activateOnConnection
   private var emulatorVersionIsInsufficient: Boolean
   private var hyperlinkListener: HyperlinkListener
 
@@ -82,8 +87,6 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
     // Allow the panel to receive focus so that the framework considers the tool window active (b/157181475).
     isFocusable = true
 
-    emulatorLaunchesInToolWindow = EmulatorSettings.getInstance().launchInToolWindow
-    deviceMirroringEnabled = DeviceMirroringSettings.getInstance().deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()
     emulatorVersionIsInsufficient = false
 
     hyperlinkListener = HyperlinkListener { event ->
@@ -111,11 +114,9 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(EmulatorSettingsListener.TOPIC, EmulatorSettingsListener { settings ->
-      emulatorLaunchesInToolWindow = settings.launchInToolWindow
       updateContent()
     })
     messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, DeviceMirroringSettingsListener { settings ->
-      deviceMirroringEnabled = settings.deviceMirroringEnabled
       updateContent()
     })
 
@@ -159,31 +160,67 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
   private fun createContent() {
     val linkColorString = (JBUI.CurrentTheme.Link.Foreground.ENABLED.rgb and 0xFFFFFF).toString(16)
-    val virtualFragment = when {
-      emulatorVersionIsInsufficient ->
+    val titleColorString = (AdtUiUtils.TITLE_COLOR.rgb and 0xFFFFFF).toString(16)
+    val plusSign = "<font color = $titleColorString size=\"+1\"><b>&#xFF0B;</b></font>"
+    val virtualFragment: String
+    val physicalFragment: String
+    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      virtualFragment = when {
+        emulatorVersionIsInsufficient ->
           "To launch virtual devices in this window, install Android Emulator $MIN_REQUIRED_EMULATOR_VERSION or higher. " +
           "Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install " +
           "the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator."
-      emulatorLaunchesInToolWindow ->
+
+        emulatorLaunchesInToolWindow ->
+          "To launch a&nbsp;virtual device, click $plusSign and select the device from the list, or use the&nbsp;" +
+          "<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
+
+        else ->
+          "To launch a&nbsp;virtual device, click $plusSign and select a virtual device, or select " +
+          "the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option in&nbsp;the&nbsp;" +
+          "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>."
+      }
+      physicalFragment = when {
+        activateOnConnection ->
+          "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi."
+
+        else ->
+          "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi, click $plusSign and select the&nbsp;device from " +
+          "the&nbsp;list. You may also select the&nbsp;<i>Activate mirroring when a&nbsp;new physical device is connected</i> " +
+          "option in&nbsp;the&nbsp;" +
+          "<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
+      }
+    }
+    else {
+      virtualFragment = when {
+        emulatorVersionIsInsufficient ->
+          "To launch virtual devices in this window, install Android Emulator $MIN_REQUIRED_EMULATOR_VERSION or higher. " +
+          "Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install " +
+          "the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator."
+
+        emulatorLaunchesInToolWindow ->
           "To launch a&nbsp;virtual device, use the&nbsp;" +
           "<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font> " +
           "or run your app while targeting a&nbsp;virtual device."
-      else ->
+
+        else ->
           "To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option in&nbsp;the&nbsp;" +
           "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>."
-    }
-    val physicalFragment = when {
-      deviceMirroringEnabled -> "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi."
-      else ->
+      }
+      physicalFragment = when {
+        deviceMirroringEnabled -> "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi."
+
+        else ->
           "To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option in&nbsp;" +
           "the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
+      }
     }
     val html =
       """
       <center>
-      <p>$virtualFragment</p>
-      <p/>
       <p>$physicalFragment</p>
+      <p/>
+      <p>$virtualFragment</p>
       </center>
       """.trimIndent()
 
