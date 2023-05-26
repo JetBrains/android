@@ -16,15 +16,23 @@
 
 package org.jetbrains.android.dom;
 
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
+import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
 
-import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
+import com.android.tools.idea.testing.AndroidGradleTestUtilsKt;
+import com.android.tools.idea.testing.AndroidModuleDependency;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
@@ -36,10 +44,12 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbServiceImpl;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -57,70 +67,156 @@ import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.spellchecker.quickfixes.SaveTo;
+import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
-import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.testFramework.RunsInEdt;
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javaslang.collection.Array;
-import org.jetbrains.android.AndroidTestCase;
+import kotlin.Unit;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /**
  * Tests for code editor features when working with resources under res/values.
  *
  * @see AndroidNamespacedValueResourcesDomTest
  */
-public class AndroidValueResourcesTest extends AndroidTestCase {
-  private static final String MY_TEST_FOLDER = "dom/resources";
+@RunWith(JUnit4.class)
+@RunsInEdt
+public class AndroidValueResourcesTest {
+  private String MY_TEST_FOLDER = "dom/resources";
 
-  @Override
-  protected boolean providesCustomManifest() {
-    return true;
+  private final List<AndroidModuleDependency> moduleDependencyList =
+    ImmutableList.of(new AndroidModuleDependency(":lib", "debug"));
+
+  private final AndroidModuleModelBuilder appModuleBuilder = new AndroidModuleModelBuilder(
+    /* gradlePath= */ ":app",
+    /* gradleVersion= */ null,
+    /* agpVersion= */ null,
+    /* selectedBuildVariant= */ "debug",
+    createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_APP, "p1.p2")
+      .withAndroidModuleDependencyList((unused1, unused2) -> moduleDependencyList)
+  );
+
+  private final AndroidModuleModelBuilder libModuleBuilder = new AndroidModuleModelBuilder(
+    /* gradlePath= */ ":lib",
+    /* gradleVersion= */ null,
+    /* agpVersion= */ null,
+    /* selectedBuildVariant= */ "debug",
+    /* projectBuilder= */ createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, null));
+
+  private static Unit createSourceRoots(File dir) {
+    assertThat((new File(dir, "app/src")).mkdirs()).isTrue();
+    assertThat((new File(dir, "app/res")).mkdirs()).isTrue();
+    assertThat((new File(dir, "lib/src")).mkdirs()).isTrue();
+    assertThat((new File(dir, "lib/res")).mkdirs()).isTrue();
+    return Unit.INSTANCE;
   }
 
-  @Override
+  private final AndroidProjectRule androidProjectRule =
+    AndroidProjectRule.withAndroidModels(
+      AndroidValueResourcesTest::createSourceRoots,
+      getRootModuleBuilder(),
+      appModuleBuilder,
+      libModuleBuilder
+    ).initAndroid(true);
+
+  @Rule
+  public final RuleChain ruleChain = RuleChain.outerRule(androidProjectRule).around(new EdtRule());
+
+  @Rule
+  public final TestName nameRule = new TestName();
+
+  private CodeInsightTestFixture myFixture;
+  private Project myProject;
+  private AndroidFacet myFacet;
+
+  private Module appModule;
+  private Module libModule;
+
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
+    myFixture = androidProjectRule.getFixture();
+    myFixture.setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
+
+    myProject = androidProjectRule.getProject();
+    myFacet = AndroidFacet.getInstance(myFixture.getModule());
+
+    appModule = AndroidGradleTestUtilsKt.gradleModule(myProject, ":app");
+    libModule = AndroidGradleTestUtilsKt.gradleModule(myProject, ":lib");
 
     myFixture.enableInspections(AndroidDomInspection.class,
                                 AndroidUnknownAttributeInspection.class,
                                 AndroidElementNotAllowedInspection.class);
 
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
-  }
-
-  @Override
-  protected final String getResDir() {
-    return "dom/res";
-  }
-
-  @Override
-  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
-                                            @NotNull List<MyAdditionalModuleData> modules) {
-    addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
+    myFixture.copyDirectoryToProject("dom/res", "app/res");
+    myFixture.copyDirectoryToProject("dom/res", "lib/res");
   }
 
   private String getPathToCopy(String testFileName) {
-    if (getTestName(true).equals("resOverlay")) {
-      return "res-overlay/values/" + testFileName;
-    }
-    return "res/values/" + testFileName;
+    return "app/res/values/" + testFileName;
   }
 
-  public void testMacroTagHighlighting() {
-    PsiFile file = myFixture.addFileToProject("res/values/values.xml",
+  private String getTestName(boolean lowercaseFirstLetter) {
+    if (lowercaseFirstLetter) {
+      return nameRule.getMethodName();
+    } else {
+      String name = nameRule.getMethodName();
+      return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, nameRule.getMethodName());
+    }
+  }
+
+  private void waitForResourceRepositoryUpdates() throws Exception {
+    AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet, 2, TimeUnit.SECONDS);
+  }
+
+  private void deleteManifest(final Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    assertThat(facet).isNotNull();
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        VirtualFile manifest = AndroidRootUtil.getPrimaryManifestFile(facet);
+        if (manifest != null) {
+          try {
+            manifest.delete(this);
+          }
+          catch (IOException e) {
+            fail("Could not delete default manifest");
+          }
+        }
+      }
+    });
+  }
+
+  @Test
+  public void macroTagHighlighting() {
+    PsiFile file = myFixture.addFileToProject("app/res/values/values.xml",
                                               "<resources>\n" +
                                               "  <macro name=\"foo\">@string/bar</macro>\n" +
                                               "  <string name=\"bar\">bar</string>\n" +
@@ -131,8 +227,9 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
-  public void testMacroTagStyleAttributeHighlighting() {
-    PsiFile file = myFixture.addFileToProject("res/values/values.xml",
+  @Test
+  public void macroTagStyleAttributeHighlighting() {
+    PsiFile file = myFixture.addFileToProject("app/res/values/values.xml",
                                               "<resources>\n" +
                                               "  <macro name=\"foo\">@string/bar</macro>\n" +
                                               "  <string name=\"bar\">bar</string>\n" +
@@ -147,8 +244,9 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
       new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "textColor"));
   }
 
-  public void testStringArrayHighlighting() {
-    PsiFile file = myFixture.addFileToProject("res/values/strings.xml",
+  @Test
+  public void stringArrayHighlighting() {
+    PsiFile file = myFixture.addFileToProject("app/res/values/strings.xml",
                                               "<resources>\n" +
                                               "    <string-array name=\"foo\" translatable=\"false\"/>\n" +
                                               "</resources>");
@@ -156,8 +254,9 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     myFixture.checkHighlighting();
   }
 
-  public void testStringArrayCompletion() {
-    PsiFile file = myFixture.addFileToProject("res/values/strings.xml",
+  @Test
+  public void stringArrayCompletion() {
+    PsiFile file = myFixture.addFileToProject("app/res/values/strings.xml",
                                               "<resources>\n" +
                                               "    <string-array name=\"foo\" <caret>/>\n" +
                                               "</resources>");
@@ -167,34 +266,41 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     assertThat(lookupElementStrings).contains("translatable");
   }
 
-  public void testHtmlTags() throws Throwable {
+  @Test
+  public void htmlTags() throws Throwable {
     doTestCompletionVariants("htmlTags.xml", "b", "i", "u");
   }
 
-  public void testParentStylesCompletion() throws Throwable {
+  @Test
+  public void parentStylesCompletion() throws Throwable {
     doTestCompletionVariants("styles_parent.xml", "Parent", "Parent2", "AppTheme");
   }
 
-  public void testParentStyleReferenceCompletion() throws Throwable {
+  @Test
+  public void parentStyleReferenceCompletion() throws Throwable {
     doTestCompletionVariants("styles_parent_reference.xml", "@style/Parent", "@style/Parent2", "@style/AppTheme", "@style/NoXxxx",
                              "@style/style1");
   }
 
   /** Checks the completion of parent styles when the attribute is empty */
-  public void testParentStylesEmptyCompletion() throws Throwable {
+  @Test
+  public void parentStylesEmptyCompletion() throws Throwable {
     doTestCompletionVariants("styles_parent_empty.xml", "android:", "Parent", "AppTheme", "style1");
   }
 
   /** Checks the completion of parent styles when the attribute is only "@" */
-  public void testParentStylesEmptyReferenceCompletion() throws Throwable {
+  @Test
+  public void parentStylesEmptyReferenceCompletion() throws Throwable {
     doTestCompletionVariants("styles_parent_empty_reference.xml", "@android:", "@style/Parent", "@style/AppTheme", "@style/style1");
   }
 
-  public void testStyles1() throws Throwable {
+  @Test
+  public void styles1() throws Throwable {
     doTestCompletionVariants("styles1.xml", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3");
   }
 
-  public void testStyles2() throws Throwable {
+  @Test
+  public void styles2() throws Throwable {
     VirtualFile file = copyFileToProject("styles2.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
@@ -202,35 +308,41 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + "styles2_after.xml");
   }
 
-  public void testStyles3() throws Throwable {
+  @Test
+  public void styles3() throws Throwable {
     doTestCompletionVariants("styles3.xml", "normal", "bold", "italic");
   }
 
-  public void testStylesHighlighting() throws Throwable {
+  @Test
+  public void stylesHighlighting() throws Throwable {
     doTestHighlighting("styles4.xml");
   }
 
-  public void testAttrFormatCompletion() throws Throwable {
+  @Test
+  public void attrFormatCompletion() throws Throwable {
     toTestCompletion("attrs1.xml", "attrs1_after.xml");
   }
 
-  public void testDeclareStyleableNameCompletion() throws Throwable {
-    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+  @Test
+  public void declareStyleableNameCompletion() throws Throwable {
+    copyFileToProject("LabelView.java", "app/src/p1/p2/LabelView.java");
     doTestCompletionVariants("attrs2.xml", "LabelView");
   }
 
-  public void testDeclareStyleableNameHighlighting() throws Throwable {
-    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+  @Test
+  public void declareStyleableNameHighlighting() throws Throwable {
+    copyFileToProject("LabelView.java", "app/src/p1/p2/LabelView.java");
     doTestHighlighting("attrs3.xml");
   }
 
-  public void testDeclareStyleableNameNavigation1() throws Exception {
-    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+  @Test
+  public void declareStyleableNameNavigation1() throws Exception {
+    copyFileToProject("LabelView.java", "app/src/p1/p2/LabelView.java");
     VirtualFile file = copyFileToProject("attrs4.xml");
     myFixture.configureFromExistingVirtualFile(file);
 
     PsiElement[] targets =
-      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+      GotoDeclarationAction.findAllTargetElements(myProject, myFixture.getEditor(), myFixture.getCaretOffset());
     assertThat(targets).isNotNull();
     assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
@@ -239,16 +351,16 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     assertThat(targetElement.getText()).isEqualTo("\"TextView\"");
   }
 
-  public void testDeclareStyleableNameNavigation2() throws Exception {
-    copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java");
+  @Test
+  public void declareStyleableNameNavigation2() throws Exception {
+    copyFileToProject("LabelView.java", "app/src/p1/p2/LabelView.java");
     VirtualFile file = copyFileToProject("attrs5.xml");
     myFixture.configureFromExistingVirtualFile(file);
 
     PsiElement[] targets =
-      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
-    assertThat(targets).isNotNull();
+      GotoDeclarationAction.findAllTargetElements(myProject, myFixture.getEditor(), myFixture.getCaretOffset());
     // In the new resources pipeline, a styleable only refers to the resource, not the class that may not exist.
-    assertThat(targets.length).isEqualTo(3);
+    assertThat(targets).hasLength(3);
     for (PsiElement target : targets) {
       assertThat(target).isInstanceOf(XmlAttributeValue.class);
     }
@@ -258,7 +370,8 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     assertThat(containingFileList).containsExactlyElementsIn(Array.of("attrs5.xml", "attrs.xml", "attrs.xml"));
   }
 
-  public void testResourceTypeCompletion() throws Throwable {
+  @Test
+  public void resourceTypeCompletion() throws Throwable {
     // Be careful updating this. "declare-styleable" or "integer-array" is not recognized. "styleable" crashes aapt2.
     doTestCompletionVariants("resourceTypeCompletion.xml",
                              "drawable", "dimen", "bool", "color", "plurals", "string", "raw", "integer", "menu", "transition",
@@ -266,31 +379,38 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
                              "animator", "font");
   }
 
-  public void testStyles5() throws Throwable {
+  @Test
+  public void styles5() throws Throwable {
     toTestCompletion("styles5.xml", "styles5_after.xml");
   }
 
-  public void testStyles6() throws Throwable {
+  @Test
+  public void styles6() throws Throwable {
     toTestCompletion("styles5.xml", "styles5_after.xml");
   }
 
-  public void testStyles7() throws Throwable {
+  @Test
+  public void styles7() throws Throwable {
     toTestCompletion("styles5.xml", "styles5_after.xml");
   }
 
-  public void testStyles8() throws Throwable {
+  @Test
+  public void styles8() throws Throwable {
     toTestCompletion("styles5.xml", "styles5_after.xml");
   }
 
-  public void testStyles9() throws Throwable {
+  @Test
+  public void styles9() throws Throwable {
     toTestCompletion("styles5.xml", "styles5_after.xml");
   }
 
-  public void testStyles10() throws Throwable {
+  @Test
+  public void styles10() throws Throwable {
     doTestHighlighting("styles10.xml");
   }
 
-  public void testStylesAttrNameWithoutPrefix() throws Throwable {
+  @Test
+  public void stylesAttrNameWithoutPrefix() throws Throwable {
     VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
@@ -298,38 +418,42 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(true) + "_after.xml");
   }
 
-  public void testPublicTagHighlighting() throws Throwable {
-    VirtualFile file = copyFileToProject("public_highlighting.xml", "additionalModules/lib/res/values/public.xml");
+  @Test
+  public void publicTagHighlighting() throws Throwable {
+    VirtualFile file = copyFileToProject("public_highlighting.xml", "lib/res/values/public.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting();
   }
 
-  public void testPublicTagCompletion() throws Throwable {
-    VirtualFile file = copyFileToProject("public.xml", "additionalModules/lib/res/values/public.xml");
+  @Test
+  public void publicTagCompletion() throws Throwable {
+    VirtualFile file = copyFileToProject("public.xml", "lib/res/values/public.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + "public_after.xml");
   }
 
-  public void testPublicTagAppModuleCompletion() throws Throwable {
-    VirtualFile file = copyFileToProject("public.xml", "res/values/public.xml");
+  @Test
+  public void publicTagAppModuleCompletion() throws Throwable {
+    VirtualFile file = copyFileToProject("public.xml", "app/res/values/public.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
     // In app module, the completion does not work, the file should be unchanged.
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + "public.xml");
   }
 
-  public void testPublicTagAttributeValueCompletion() {
+  @Test
+  public void publicTagAttributeValueCompletion() {
     // Resources in app module:
     myFixture.addFileToProject(
-      "res/values/strings.xml",
+      "app/res/values/strings.xml",
       "<resources>\n" +
       "  <string name=\"foo\">foo</string>\n" +
       "  <color name=\"colorfoo\">#123456</color>\n" +
       "</resources>").getVirtualFile();
     // Resources in lib module:
     myFixture.addFileToProject(
-      "additionalModules/lib/res/values/strings.xml",
+      "lib/res/values/strings.xml",
       "<resources>\n" +
       "  <string name=\"bar\">bar</string>\n" +
       "  <string name=\"otherbar\">bar</string>\n" +
@@ -338,7 +462,7 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
 
     //Check that all resources are present in code completion for 'name' attribute.
     VirtualFile file = myFixture.addFileToProject(
-      "additionalModules/lib/res/values/public.xml",
+      "lib/res/values/public.xml",
       "<resources>\n" +
       "  <public name=\"<caret>\" type=\"\"/>\n" +
       "</resources>").getVirtualFile();
@@ -362,116 +486,141 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     assertThat(lookupElementStrings).doesNotContain(ImmutableList.of("foo"));
   }
 
-  public void testOverlayableTagCompletion() throws Throwable {
+  @Test
+  public void overlayableTagCompletion() throws Throwable {
     toTestCompletion("overlayable.xml", "overlayable_after.xml");
   }
 
-  public void testOverlayable() throws Throwable {
+  @Test
+  public void overlayable() throws Throwable {
     // Note that the expected
     doTestHighlighting("overlayable_example.xml");
   }
 
 
-  public void testPolicyTagCompletion() throws Throwable {
+  @Test
+  public void policyTagCompletion() throws Throwable {
     toTestCompletion("policy.xml", "policy_after.xml");
   }
 
-  public void testMoreTypes() throws Throwable {
+  @Test
+  public void moreTypes() throws Throwable {
     doTestHighlighting("moreTypes.xml");
   }
 
-  public void testBool() throws Throwable {
+  @Test
+  public void bool() throws Throwable {
     toTestCompletion("bool.xml", "bool_after.xml");
   }
 
-  public void testBool1() throws Throwable {
+  @Test
+  public void bool1() throws Throwable {
     toTestCompletion("bool1.xml", "bool1_after.xml");
   }
 
-  public void testInteger() throws Throwable {
+  @Test
+  public void integer() throws Throwable {
     doTestCompletionVariants("integer.xml", "integer", "integer-array");
   }
 
-  public void testIntegerArray() throws Throwable {
+  @Test
+  public void integerArray() throws Throwable {
     toTestCompletion("integerArray.xml", "integerArray_after.xml");
   }
 
-  public void testItemArray() throws Throwable {
+  @Test
+  public void itemArray() throws Throwable {
     doTestHighlighting("itemArray.xml");
   }
 
-  public void testArray() throws Throwable {
+  @Test
+  public void array() throws Throwable {
     toTestCompletion("array.xml", "array_after.xml");
   }
 
-  public void testPlurals() throws Throwable {
+  @Test
+  public void plurals() throws Throwable {
     doTestCompletion();
   }
 
-  public void testPlurals1() throws Throwable {
+  @Test
+  public void plurals1() throws Throwable {
     doTestCompletion();
   }
 
-  public void testPlurals2() throws Throwable {
+  @Test
+  public void plurals2() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "zero", "one", "two", "few", "many", "other");
   }
 
-  public void testPlurals3() throws Throwable {
+  @Test
+  public void plurals3() throws Throwable {
     doTestHighlighting();
   }
 
-  public void testIntResourceReference() {
-    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intResReference.xml", "res/layout/main.xml");
-    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "res/values/values.xml");
-    myFixture.testCompletion("res/layout/main.xml", MY_TEST_FOLDER + "/intResReference_after.xml");
+  @Test
+  public void intResourceReference() {
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intResReference.xml", "app/res/layout/main.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "app/res/values/values.xml");
+    myFixture.testCompletion("app/res/layout/main.xml", MY_TEST_FOLDER + "/intResReference_after.xml");
   }
 
-  public void testBoolResourceReference() {
-    myFixture.copyFileToProject(MY_TEST_FOLDER + "/boolResReference.xml", "res/layout/main.xml");
-    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "res/values/values.xml");
-    myFixture.testCompletion("res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference_after.xml");
+  @Test
+  public void boolResourceReference() {
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/boolResReference.xml", "app/res/layout/main.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "app/res/values/values.xml");
+    myFixture.testCompletion("app/res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference_after.xml");
   }
 
-  public void testBoolResourceReferenceDumbMode() {
-    myFixture.copyFileToProject(MY_TEST_FOLDER + "/boolResReference.xml", "res/layout/main.xml");
-    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "res/values/values.xml");
+  @Test
+  public void boolResourceReferenceDumbMode() {
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/boolResReference.xml", "app/res/layout/main.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "app/res/values/values.xml");
     // Completion providers don't actually kick in in dumb mode, but does outside of dumb mode.
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    myFixture.testCompletion("res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference.xml");
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
-    myFixture.testCompletion("res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference_after.xml");
+    DumbServiceImpl.getInstance(myProject).setDumb(true);
+    myFixture.testCompletion("app/res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference.xml");
+    DumbServiceImpl.getInstance(myProject).setDumb(false);
+    myFixture.testCompletion("app/res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference_after.xml");
   }
 
-  public void testResourceReferenceAsValueHighlighting() throws Throwable {
+  @Test
+  public void resourceReferenceAsValueHighlighting() throws Throwable {
     doTestHighlighting();
   }
 
-  public void testNameValidation() throws Throwable {
+  @Test
+  public void nameValidation() throws Throwable {
     doTestHighlighting("nameValidation.xml");
   }
 
-  public void testMissingType() throws Throwable {
+  @Test
+  public void missingType() throws Throwable {
     doTestHighlighting("missingType.xml");
   }
 
-  public void testResourceReferenceAsValueCompletion1() throws Throwable {
+  @Test
+  public void resourceReferenceAsValueCompletion1() throws Throwable {
     doTestCompletion();
   }
 
-  public void testResourceReferenceAsValueCompletion2() throws Throwable {
+  @Test
+  public void resourceReferenceAsValueCompletion2() throws Throwable {
     doTestCompletion();
   }
 
-  public void testResourceReferenceAsValueCompletion3() throws Throwable {
+  @Test
+  public void resourceReferenceAsValueCompletion3() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml", "true", "false");
   }
 
-  public void testResourceReferenceAsValueCompletion4() throws Throwable {
+  @Test
+  public void resourceReferenceAsValueCompletion4() throws Throwable {
     doTestCompletionVariants(getTestName(true) + ".xml");
   }
 
-  public void testDrawableResourceReference() throws Throwable {
-    VirtualFile file = copyFileToProject(getTestName(true) + ".xml", "res/layout/main.xml");
+  @Test
+  public void drawableResourceReference() throws Throwable {
+    VirtualFile file = copyFileToProject(getTestName(true) + ".xml", "app/res/layout/main.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     List<String> lookupElements = myFixture.getLookupElementStrings();
@@ -480,13 +629,14 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     assertThat(lookupElements).doesNotContain("@mipmap/icon");
 
     // Add a mipmap to resources and expect for it to be listed
-    myFixture.copyFileToProject(MY_TEST_FOLDER + "/icon.png", "res/mipmap/icon.png");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/icon.png", "app/res/mipmap/icon.png");
     waitForResourceRepositoryUpdates();
     myFixture.complete(CompletionType.BASIC);
     assertThat(myFixture.getLookupElementStrings()).containsAllOf("@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
   }
 
-  public void testParentStyleReference() {
+  @Test
+  public void parentStyleReference() {
     VirtualFile file = myFixture.copyFileToProject(MY_TEST_FOLDER + "/psreference.xml", getPathToCopy("psreference.xml"));
     myFixture.configureFromExistingVirtualFile(file);
     PsiFile psiFile = myFixture.getFile();
@@ -500,105 +650,112 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
       .isEqualTo(new ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme"));
   }
 
-  // see getPathToCopy()
-  public void testResOverlay() throws Throwable {
-    myFacet.getProperties().RES_OVERLAY_FOLDERS = Arrays.asList("/res-overlay");
-    doTestCompletionVariants("styles1.xml", "@drawable/picture1", "@drawable/picture2", "@drawable/picture3");
-  }
-
-  public void testCreateResourceFromUsage() throws Throwable {
-    VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml", "res/values/drawables.xml");
+  @Test
+  public void createResourceFromUsage() throws Throwable {
+    VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml", "app/res/values/drawables.xml");
     doCreateValueResourceFromUsage(virtualFile);
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(true) + "_after.xml", true);
   }
 
-  public void testJavaCompletion1() throws Throwable {
-    copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
+  @Test
+  public void javaCompletion1() throws Throwable {
+    copyFileToProject("value_resources.xml", "app/res/values/value_resources.xml");
     String fileName = getTestName(false) + ".java";
-    VirtualFile file = copyFileToProject(fileName, "src/" + "p1.p2".replace('/', '.') + '/' + fileName);
+    VirtualFile file = copyFileToProject(fileName, "app/src/" + "p1.p2".replace('/', '.') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(false) + "_after.java");
   }
 
-  public void testJavaCompletion2() throws Throwable {
-    copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
+  @Test
+  public void javaCompletion2() throws Throwable {
+    copyFileToProject("value_resources.xml", "app/res/values/value_resources.xml");
     doTestJavaCompletion("p1.p2");
   }
 
-  public void testJavaCompletion3() throws Throwable {
-    copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
+  @Test
+  public void javaCompletion3() throws Throwable {
+    copyFileToProject("value_resources.xml", "app/res/values/value_resources.xml");
     doTestJavaCompletion("p1.p2");
   }
 
-  public void testJavaCompletion4() throws Throwable {
-    copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
+  @Test
+  public void javaCompletion4() throws Throwable {
+    copyFileToProject("value_resources.xml", "app/res/values/value_resources.xml");
     doTestJavaCompletion("p1.p2");
   }
 
-  public void testJavaHighlighting() throws Throwable {
-    copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
+  @Test
+  public void javaHighlighting() throws Throwable {
+    copyFileToProject("value_resources.xml", "app/res/values/value_resources.xml");
     doTestJavaHighlighting("p1.p2");
   }
 
-  public void testFraction() throws Throwable {
+  @Test
+  public void fraction() throws Throwable {
     toTestCompletion("bool.xml", "bool_after.xml");
   }
 
-  public void testTranslatableAttributeCompletion() throws Throwable {
+  @Test
+  public void translatableAttributeCompletion() throws Throwable {
     toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 
-  public void testTranslatableAttributeCompletionDumbMode() throws Throwable {
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
+  @Test
+  public void translatableAttributeCompletionDumbMode() throws Throwable {
+    DumbServiceImpl.getInstance(myProject).setDumb(true);
     toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    DumbServiceImpl.getInstance(myProject).setDumb(false);
     toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 
-  public void testTranslatableFalseCompletion() throws Throwable {
+  @Test
+  public void translatableFalseCompletion() throws Throwable {
     toTestCompletion("strings_translatable_false.xml", "strings_translatable_false_after.xml");
   }
 
-  public void testTranslatableTrueCompletion() throws Throwable {
+  @Test
+  public void translatableTrueCompletion() throws Throwable {
     toTestCompletion("strings_translatable_true.xml", "strings_translatable_true_after.xml");
   }
 
-  public void testFormattedAttributeCompletion() throws Throwable {
+  @Test
+  public void formattedAttributeCompletion() throws Throwable {
     toTestCompletion("strings_formatted_attr.xml", "strings_formatted_attr_after.xml");
   }
 
-  public void testFormattedFalseCompletion() throws Throwable {
+  @Test
+  public void formattedFalseCompletion() throws Throwable {
     toTestCompletion("strings_formatted_false.xml", "strings_formatted_false_after.xml");
   }
 
-  public void testInlineResourceField() throws Exception {
-    copyFileToProject("value_resources.xml", "res/values/value_resources.xml");
-    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
+  @Test
+  public void inlineResourceField() throws Exception {
+    copyFileToProject("value_resources.xml", "app/res/values/value_resources.xml");
+    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "app/src/p1/p2/" + getTestName(false) + ".java");
     myFixture.configureFromExistingVirtualFile(virtualFile);
-    try {
+    assertThrows(CommonRefactoringUtil.RefactoringErrorHintException.class, () -> {
       myFixture.testAction(new InlineAction());
-      fail();
-    }
-    catch (CommonRefactoringUtil.RefactoringErrorHintException e) {
-    }
+    });
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(false) + ".java", true);
   }
 
-  public void testJavaCreateFromUsage() throws Throwable {
-    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
+  @Test
+  public void javaCreateFromUsage() throws Throwable {
+    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "app/src/p1/p2/" + getTestName(false) + ".java");
 /* b/266338533
     doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("res/values/drawables.xml", myTestFolder + '/' + getTestName(true) + "_drawables_after.xml", true);
+    myFixture.checkResultByFile("app/res/values/drawables.xml", myTestFolder + '/' + getTestName(true) + "_drawables_after.xml", true);
 b/266338533 */
   }
 
-  public void testJavaCreateFromUsage1() throws Throwable {
-    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
+  @Test
+  public void javaCreateFromUsage1() throws Throwable {
+    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "app/src/p1/p2/" + getTestName(false) + ".java");
 /* b/263898646
     doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("res/values/bools.xml", myTestFolder + '/' + getTestName(true) + "_bools_after.xml", true);
+    myFixture.checkResultByFile("app/res/values/bools.xml", myTestFolder + '/' + getTestName(true) + "_bools_after.xml", true);
 b/263898646 */
   }
 
@@ -607,48 +764,54 @@ b/263898646 */
    * the main "workspace" module doesn't have a manifest or resources. There are instead some resource-only modules which are
    * dependencies of the main module.
    */
-  public void testJavaCreateFromUsageResourcesInDeps() throws Throwable {
+  @Test
+  public void javaCreateFromUsageResourcesInDeps() throws Throwable {
     // Replace lib manifest (defaults to p1.p2) with one that has the right package (p1.p2.lib).
-    Module libModule = myAdditionalModules.get(0);
     deleteManifest(libModule);
-    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "additionalModules/lib/AndroidManifest.xml");
+    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "lib/AndroidManifest.xml");
 
     // Should be okay even if main module is missing a manifest since the resources come from the library.
-    deleteManifest(myModule);
+    deleteManifest(appModule);
 
-    final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(false) + ".java");
+    final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "app/src/p1/p2/" + getTestName(false) + ".java");
 /* b/263898646
     doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("additionalModules/lib/res/values/strings.xml",
+    myFixture.checkResultByFile("lib/res/values/strings.xml",
                                 myTestFolder + '/' + getTestName(true) + "_strings_after.xml", true);
 b/263898646 */
   }
 
-  public void testAttrReferenceCompletion() throws Throwable {
+  @Test
+  public void attrReferenceCompletion() throws Throwable {
     doTestCompletion();
   }
 
-  public void testAttrReferenceHighlighting() throws Throwable {
+  @Test
+  public void attrReferenceHighlighting() throws Throwable {
     // New resources pipeline does not treat ATTRs different to other ResourceTypes, having an incorrect type should be surfaced in a lint
     // check, not reference resolution.
     doTestHighlighting();
   }
 
-  public void testToolsBaseAttribute() throws Throwable {
+  @Test
+  public void toolsBaseAttribute() throws Throwable {
     doTestHighlighting();
   }
 
-  public void testLocalStyleItemReferenceCompletion() throws Throwable {
-    copyFileToProject("localStyleItemReference_layout.xml", "res/layout/myLayout.xml");
+  @Test
+  public void localStyleItemReferenceCompletion() throws Throwable {
+    copyFileToProject("localStyleItemReference_layout.xml", "app/res/layout/myLayout.xml");
     doTestCompletion();
   }
 
-  public void testLocalStyleItemReferenceHighlighting() throws Throwable {
-    copyFileToProject("localStyleItemReference_layout.xml", "res/layout/myLayout.xml");
+  @Test
+  public void localStyleItemReferenceHighlighting() throws Throwable {
+    copyFileToProject("localStyleItemReference_layout.xml", "app/res/layout/myLayout.xml");
     doTestHighlighting();
   }
 
-  public void testAndroidPrefixInsertHandler() throws Throwable {
+  @Test
+  public void androidPrefixInsertHandler() throws Throwable {
     String fileName = getTestName(true) + ".xml";
 
     myFixture.configureFromExistingVirtualFile(copyFileToProject(fileName));
@@ -661,7 +824,9 @@ b/263898646 */
 
 
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
-  public void ignore_testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
+  @Ignore
+  @Test
+  public void navigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertThat(themes_holo).isNotNull();
@@ -676,7 +841,7 @@ b/263898646 */
     myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(406, 45));
 
     PsiElement[] targets =
-      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+      GotoDeclarationAction.findAllTargetElements(myProject, myFixture.getEditor(), myFixture.getCaretOffset());
     assertThat(targets).isNotNull();
     assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
@@ -690,7 +855,9 @@ b/263898646 */
   }
 
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
-  public void ignore_testNavigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
+  @Ignore
+  @Test
+  public void navigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertThat(themes_holo).isNotNull();
@@ -705,7 +872,7 @@ b/263898646 */
     myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(776, 19));
 
     PsiElement[] targets =
-      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+      GotoDeclarationAction.findAllTargetElements(myProject, myFixture.getEditor(), myFixture.getCaretOffset());
     assertThat(targets).isNotNull();
     assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
@@ -719,7 +886,9 @@ b/263898646 */
   }
 
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
-  public void ignore_testNavigationInPlatformXml3() throws Exception {
+  @Ignore
+  @Test
+  public void navigationInPlatformXml3() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
     assertThat(themes_holo).isNotNull();
@@ -735,7 +904,7 @@ b/263898646 */
     myFixture.getEditor().getCaretModel().moveToLogicalPosition(new LogicalPosition(407, 60));
 
     PsiElement[] targets =
-      GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
+      GotoDeclarationAction.findAllTargetElements(myProject, myFixture.getEditor(), myFixture.getCaretOffset());
     assertThat(targets).isNotNull();
     assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
@@ -748,53 +917,61 @@ b/263898646 */
     assertThat(targetElement.getContainingFile().getVirtualFile()).isEqualTo(colors_holo);
   }
 
-  public void testSpellchecker1() throws Throwable {
+  @Test
+  public void spellchecker1() throws Throwable {
     myFixture.enableInspections(SpellCheckingInspection.class);
     doTestHighlighting();
   }
 
-  public void testSpellchecker2() throws Throwable {
+  @Test
+  public void spellchecker2() throws Throwable {
     doTestSpellcheckerQuickFixes();
   }
 
-  public void testSpellchecker3() throws Throwable {
+  @Test
+  public void spellchecker3() throws Throwable {
     // In English locale, should highlight typos
     myFixture.enableInspections(SpellCheckingInspection.class);
-    VirtualFile file = copyFileToProject("spellchecker3.xml", "res/values-en-rUS/spellchecker3.xml");
+    VirtualFile file = copyFileToProject("spellchecker3.xml", "app/res/values-en-rUS/spellchecker3.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
   }
 
-  public void testSpellchecker4() throws Throwable {
+  @Test
+  public void spellchecker4() throws Throwable {
     // In non-English locale, should not highlight typos
     myFixture.enableInspections(SpellCheckingInspection.class);
-    VirtualFile file = copyFileToProject("spellchecker4.xml", "res/values-nb/spellchecker4.xml");
+    VirtualFile file = copyFileToProject("spellchecker4.xml", "app/res/values-nb/spellchecker4.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
   }
 
-  public void testSpellchecker5() throws Throwable {
+  @Test
+  public void spellchecker5() throws Throwable {
     // In default locale, with a tools:locale defined to non-English, should not get typos highlighted
     myFixture.enableInspections(SpellCheckingInspection.class);
-    VirtualFile file = copyFileToProject("spellchecker5.xml", "res/values/spellchecker5.xml");
+    VirtualFile file = copyFileToProject("spellchecker5.xml", "app/res/values/spellchecker5.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
   }
 
-  public void testSpellchecker6() throws Throwable {
+  @Test
+  public void spellchecker6() throws Throwable {
     // In default locale, with a tools:locale defined to English, should get typos highlighted
     myFixture.enableInspections(SpellCheckingInspection.class);
-    VirtualFile file = copyFileToProject("spellchecker6.xml", "res/values/spellchecker6.xml");
+    VirtualFile file = copyFileToProject("spellchecker6.xml", "app/res/values/spellchecker6.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
   }
 
-  public void testSpellNewlines() throws Throwable {
+  @Test
+  public void spellNewlines() throws Throwable {
     myFixture.enableInspections(SpellCheckingInspection.class);
     doTestHighlighting();
   }
 
-  public void testDoNotFlagLintXml() throws Throwable {
+  @Test
+  public void doNotFlagLintXml() throws Throwable {
     // In default locale, with a tools:locale defined to non-English, should not get typos highlighted
     myFixture.enableInspections(SpellCheckingInspection.class);
     VirtualFile file = copyFileToProject("lint.xml", "lint.xml");
@@ -802,18 +979,21 @@ b/263898646 */
     myFixture.checkHighlighting(true, false, false);
   }
 
-  public void testNamespaceCompletion() throws Exception {
+  @Test
+  public void namespaceCompletion() throws Exception {
     doTestNamespaceCompletion(SdkConstants.XLIFF_URI);
   }
 
-  public void testAttrValidation() throws Throwable {
+  @Test
+  public void attrValidation() throws Throwable {
     // Regression test for https://code.google.com/p/android/issues/detail?id=199247
     // Allow colons in names for attributes
     doTestHighlighting("attrValidation.xml");
   }
 
-  public void testIdentifierHighlightingStringName() {
-    PsiFile file = myFixture.addFileToProject("res/values/strings.xml",
+  @Test
+  public void identifierHighlightingStringName() {
+    PsiFile file = myFixture.addFileToProject("app/res/values/strings.xml",
                                               //language=XML
                                               "<resources>" +
                                               "  <string name=\"foo\">foo</string>" +
@@ -822,7 +1002,7 @@ b/263898646 */
     myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
     myFixture.setReadEditorMarkupModel(true);
 
-    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(getProject(), myFixture.getProjectDisposable(), () -> {
+    IdentifierHighlighterPassFactory.doWithHighlightingEnabled(myProject, myFixture.getProjectDisposable(), () -> {
       AndroidTestUtils.moveCaret(myFixture, "<string name=\"f|oo\">foo</string>");
       // Identifier highlighting has been moved out of the highlighting passes, so we need to wait for BackgroundHighlighter to be computed.
       IdentifierHighlighterPassFactory.waitForIdentifierHighlighting();
@@ -836,9 +1016,9 @@ b/263898646 */
       // b/139262116: manually commit the Document and clear some caches in an attempt to reduce flakiness of this test.
       myFixture.type('X');
       dispatchEvents();
-      ResolveCache.getInstance(getProject()).clearCache(myFixture.getFile().isPhysical());
-      PsiManager.getInstance(getProject()).dropPsiCaches();
-      PsiDocumentManager.getInstance(getProject()).commitDocument(myFixture.getEditor().getDocument());
+      ResolveCache.getInstance(myProject).clearCache(myFixture.getFile().isPhysical());
+      PsiManager.getInstance(myProject).dropPsiCaches();
+      PsiDocumentManager.getInstance(myProject).commitDocument(myFixture.getEditor().getDocument());
       dispatchEvents();
       try {
         AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet);
@@ -856,7 +1036,7 @@ b/263898646 */
     });
   }
 
-  public void dispatchEvents() {
+  private void dispatchEvents() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
 
@@ -876,13 +1056,13 @@ b/263898646 */
     }
     assertThat(actions.size()).isEqualTo(1);
 
-    WriteCommandAction.runWriteCommandAction(getProject(), () -> actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile()));
+    WriteCommandAction.runWriteCommandAction(myProject, () -> actions.get(0).invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
   }
 
   private void doTestJavaCompletion(@NotNull String aPackage) throws Throwable {
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     String fileName = getTestName(false) + ".java";
-    VirtualFile file = copyFileToProject(fileName, "src/" + aPackage.replace('/', '.') + '/' + fileName);
+    VirtualFile file = copyFileToProject(fileName, "app/src/" + aPackage.replace('/', '.') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(false) + "_after.java");
@@ -917,7 +1097,7 @@ b/263898646 */
     assertThat(lookupElementStrings).containsExactlyElementsIn(variants);
   }
 
-  private List<String> getCompletionElements(@NotNull String fileName) throws IOException, InterruptedException, TimeoutException {
+  private List<String> getCompletionElements(@NotNull String fileName) throws Exception {
     VirtualFile file = copyFileToProject(fileName);
     waitForResourceRepositoryUpdates();
     myFixture.configureFromExistingVirtualFile(file);
@@ -959,7 +1139,7 @@ b/263898646 */
   private void doTestJavaHighlighting(String aPackage) throws Throwable {
     // TODO: Kill getTestName, make test classes specify the golden file explicitly.
     String fileName = getTestName(false) + ".java";
-    VirtualFile virtualFile = copyFileToProject(fileName, "src/" + aPackage.replace('.', '/') + '/' + fileName);
+    VirtualFile virtualFile = copyFileToProject(fileName, "app/src/" + aPackage.replace('.', '/') + '/' + fileName);
     myFixture.configureFromExistingVirtualFile(virtualFile);
     myFixture.checkHighlighting(true, false, false);
   }
