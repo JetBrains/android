@@ -141,27 +141,25 @@ void Controller::Initialize() {
     WakeUpDevice();
   }
 
-  if ((Agent::flags() & FOLDING_SUPPORT) != 0) {
-    string states_text = DeviceStateManager::GetSupportedStates();
-    Log::D("Controller::Initialize: states_text=%s", states_text.c_str());
-    if (ContainsMultipleDeviceStates(states_text)) {
-      device_supports_multiple_states_ = true;
-      SupportedDeviceStatesNotification supported_device_states_notification(std::move(states_text));
-      try {
-        supported_device_states_notification.Serialize(output_stream_);
-        output_stream_.Flush();
-      } catch (EndOfFile& e) {
-        // The socket has been closed - ignore.
-      }
-      DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
-      int32_t device_state = DeviceStateManager::GetDeviceState(jni_);
-      Log::D("Controller::Initialize: device_state=%d", device_state);
-      {
-        scoped_lock lock(device_state_mutex_);
-        if (!device_state_changed_) {
-          device_state_ = device_state;
-          device_state_changed_ = true;
-        }
+  string states_text = DeviceStateManager::GetSupportedStates();
+  Log::D("Controller::Initialize: states_text=%s", states_text.c_str());
+  if (ContainsMultipleDeviceStates(states_text)) {
+    device_supports_multiple_states_ = true;
+    SupportedDeviceStatesNotification supported_device_states_notification(std::move(states_text));
+    try {
+      supported_device_states_notification.Serialize(output_stream_);
+      output_stream_.Flush();
+    } catch (EndOfFile& e) {
+      // The socket has been closed - ignore.
+    }
+    DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
+    int32_t device_state = DeviceStateManager::GetDeviceState(jni_);
+    Log::D("Controller::Initialize: device_state=%d", device_state);
+    {
+      scoped_lock lock(device_state_mutex_);
+      if (!device_state_changed_) {
+        device_state_ = device_state;
+        device_state_changed_ = true;
       }
     }
   }
