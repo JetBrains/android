@@ -95,7 +95,7 @@ class FindEmulatorAndSetupRetention(private val avdManagerBuilder: (AndroidSdkHa
 }) : AnAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val dataContext = event.dataContext
-    val project = dataContext.getData<Project>(CommonDataKeys.PROJECT) ?: return
+    val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return
     ProgressManager.getInstance().run(
       object : Task.Backgroundable(project, "Loading retained test failure", true) {
         override fun onFinished() {
@@ -380,7 +380,7 @@ private fun connectDebugger(device: IDevice, dataContext: DataContext) {
     LOG.warn("Cannot connect to ${packageName}")
     return
   }
-  val project = dataContext.getData<Project>(CommonDataKeys.PROJECT) ?: return
+  val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return
   val androidDebugger = AndroidDebugger.EP_NAME.extensions.find {
     it.supportsProject(project) && it.id == AndroidJavaDebugger.ID
   }

@@ -198,12 +198,11 @@ class CoroutineUtilsTest {
 
   @Test
   fun disposing() {
-
     val computationStarted = CountDownLatch(1)
     val computationFinished = CountDownLatch(1)
     val done = CountDownLatch(1)
     val exception = AtomicReference<Exception>(null)
-    val uiUpdated = AtomicReference<Boolean>(false)
+    val uiUpdated = AtomicReference(false)
 
     class FooManager : UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
       override fun dispose() {}
@@ -572,7 +571,7 @@ class CoroutineUtilsTest {
   fun `disposable callback flow`() {
     val parentDisposable = Disposer.newDisposable(projectRule.testRootDisposable, "parent")
     val callbackDeferred = CompletableDeferred<TestCallback>()
-    val disposableFlow = disposableCallbackFlow<Unit>("Test", null, parentDisposable) {
+    val disposableFlow = disposableCallbackFlow("Test", null, parentDisposable) {
       callbackDeferred.complete(object : TestCallback {
         override fun send() {
           this@disposableCallbackFlow.trySend(Unit)

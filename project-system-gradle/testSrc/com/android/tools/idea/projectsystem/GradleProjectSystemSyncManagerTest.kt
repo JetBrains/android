@@ -44,7 +44,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
 
     ideComponents.mockProjectService(GradleDependencyManager::class.java)
     gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java)
-    whenever<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
+    whenever(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
 
     syncManager = GradleProjectSystemSyncManager(myProject)
     gradleBuildState = GradleBuildState.getInstance(myProject)

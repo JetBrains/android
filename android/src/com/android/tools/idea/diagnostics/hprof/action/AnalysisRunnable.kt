@@ -165,7 +165,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
       // No need to check for AnalyticsSettings.hasOptedIn() as user agreed to the privacy policy by
       // clicking "Send" in ShowReportDialog.
       StudioCrashReporter.getInstance().submit(report.asCrashReport(), true)
-        .whenCompleteAsync(BiConsumer<String, Throwable?> { _, throwable ->
+        .whenCompleteAsync(BiConsumer { _, throwable ->
           if (throwable == null) {
             HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),

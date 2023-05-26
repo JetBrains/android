@@ -4343,4 +4343,4 @@ private class GuardedLazy<out T>(initializer: () -> T) {
 private inline operator fun <T> GuardedLazy<T>.getValue(thisRef: Any?, property: KProperty<*>) =
     value(property.name)
 
-private fun <T> guardedLazy(initializer: () -> T) = GuardedLazy<T>(initializer)
+private fun <T> guardedLazy(initializer: () -> T): GuardedLazy<T> = GuardedLazy(initializer)

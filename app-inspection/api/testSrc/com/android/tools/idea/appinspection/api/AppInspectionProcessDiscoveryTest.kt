@@ -438,7 +438,7 @@ class AppInspectionProcessDiscoveryTest {
   }
 
   @Test
-  fun addListenerWithFilter() = runBlocking<Unit> {
+  fun addListenerWithFilter() = runBlocking {
     val processConnectedDeferred = CompletableDeferred<String>()
 
     appInspectionRule.addProcessListener(object : ProcessListener {

@@ -74,7 +74,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun testStartTrackingDatabaseConnectionSendsMessage() = runBlocking<Unit> {
+  fun testStartTrackingDatabaseConnectionSendsMessage() = runBlocking {
     // Prepare
     val emptyResponse = SqliteInspectorProtocol.Response.newBuilder().build().toByteArray()
 
@@ -225,7 +225,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     assertEquals(true, result)
   }
 
-  fun testKeepConnectionOpenError() = runBlocking<Unit> {
+  fun testKeepConnectionOpenError() = runBlocking {
     // Prepare
     val keepDbsOpenResponse = SqliteInspectorProtocol.Response.newBuilder()
       .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenResponse.newBuilder().build())

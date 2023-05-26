@@ -44,7 +44,7 @@ class EnergyProfilerStageTest(private val useUnifiedEvents: Boolean) {
     fun useNewEvenPipelineParameter() = listOf(false, true)
   }
 
-  private val fakeData = ImmutableList.of<Common.Event>(
+  private val fakeData: ImmutableList<Common.Event> = ImmutableList.of(
     Common.Event.newBuilder()
       .setGroupId(1)
       .setTimestamp(2000)

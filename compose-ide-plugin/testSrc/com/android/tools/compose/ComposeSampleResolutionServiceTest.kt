@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import java.io.File
 import java.nio.file.Paths
 
@@ -75,7 +76,7 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
     assume().that(librarySourceFunction).isNotNull()
 
     val sampleTag = librarySourceFunction.docComment!!.getDefaultSection().findTagByName("sample")!!
-    val sample = PsiTreeUtil.findChildOfType<KDocName>(sampleTag, KDocName::class.java)?.mainReference?.resolve()
+    val sample = PsiTreeUtil.findChildOfType(sampleTag, KDocName::class.java)?.mainReference?.resolve()
     assume().that(sample).isNotNull()
     // For library structure see testData/projects/psdSampleRepo/com/example/libraryWithSamples/lib1/1.0.0
     assertThat(sample!!.getKotlinFqName()!!.asString()).isEqualTo("androidx.samples.sampleFunction")

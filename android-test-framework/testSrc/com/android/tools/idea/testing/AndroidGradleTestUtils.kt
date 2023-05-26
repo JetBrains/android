@@ -1261,7 +1261,7 @@ private fun setupTestProjectFromAndroidModelCore(
   val task = IdeaSyncPopulateProjectTask(project)
   val buildPath = rootProjectBasePath.resolve("build")
   val projectName = project.name
-  val projectDataNode = DataNode<ProjectData>(
+  val projectDataNode = DataNode(
     ProjectKeys.PROJECT,
     ProjectData(
       GRADLE_SYSTEM_ID,
@@ -1279,7 +1279,7 @@ private fun setupTestProjectFromAndroidModelCore(
   }
 
   projectDataNode.addChild(
-    DataNode<JavaProjectData>(
+    DataNode(
       JavaProjectData.KEY,
       JavaProjectData(GRADLE_SYSTEM_ID, buildPath.systemIndependentPath, LanguageLevel.JDK_1_6, null),
       null
@@ -1288,7 +1288,7 @@ private fun setupTestProjectFromAndroidModelCore(
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   projectDataNode.addChild(
-    DataNode<ExternalProject>(
+    DataNode(
       ExternalProjectDataCache.KEY,
       object : ExternalProject {
         override fun getExternalSystemId(): String = GRADLE_SYSTEM_ID.id
@@ -1454,7 +1454,7 @@ private fun createAndroidModuleDataNode(
   )
 
   moduleDataNode.addChild(
-    DataNode<GradleModuleModel>(
+    DataNode(
       AndroidProjectKeys.GRADLE_MODULE_MODEL,
       GradleModuleModel(
         qualifiedModuleName,
@@ -1494,7 +1494,7 @@ private fun createAndroidModuleDataNode(
                               "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
                             )
       moduleDataNode.addChild(
-        DataNode<NdkModuleModel>(
+        DataNode(
           AndroidProjectKeys.NDK_MODEL,
           NdkModuleModel(
             qualifiedModuleName,
@@ -1515,7 +1515,7 @@ private fun createAndroidModuleDataNode(
                               "Cannot determine the selected ABI for module '$qualifiedModuleName' with the selected variant '$selectedVariantName'"
                             )
       moduleDataNode.addChild(
-        DataNode<NdkModuleModel>(
+        DataNode(
           AndroidProjectKeys.NDK_MODEL,
           NdkModuleModel(
             qualifiedModuleName,
@@ -1535,7 +1535,7 @@ private fun createAndroidModuleDataNode(
   fun IdeBaseArtifact.setup() {
     val sourceSetModuleName = ModuleUtil.getModuleName(this.name)
     moduleDataNode.addChild(
-      DataNode<GradleSourceSetData>(
+      DataNode(
         GradleSourceSetData.KEY,
         GradleSourceSetData(
           moduleDataNode.data.id + ":" + sourceSetModuleName,
@@ -1586,7 +1586,7 @@ private fun createJavaModuleDataNode(
 
   fun setupSourceSet(sourceSetName: String, isTest: Boolean) {
     val sourceSetModuleName = sourceSetName
-    val sourceSetDataDataNode = DataNode<GradleSourceSetData>(
+    val sourceSetDataDataNode = DataNode(
       GradleSourceSetData.KEY,
       GradleSourceSetData(
         moduleDataNode.data.id + ":" + sourceSetModuleName,
@@ -1641,7 +1641,7 @@ private fun createJavaModuleDataNode(
     val gradleExtensions = DefaultGradleExtensions()
     gradleExtensions.extensions.add(DefaultGradleExtension("java", "org.gradle.api.plugins.internal.DefaultJavaPluginExtension"));
     moduleDataNode.addChild(
-      DataNode<GradleExtensions>(
+      DataNode(
         GradleExtensionsDataService.KEY,
         gradleExtensions,
         null
@@ -1651,7 +1651,7 @@ private fun createJavaModuleDataNode(
 
   if (buildable || gradlePath != ":") {
     moduleDataNode.addChild(
-      DataNode<GradleModuleModel>(
+      DataNode(
         AndroidProjectKeys.GRADLE_MODULE_MODEL,
         GradleModuleModel(
           qualifiedModuleName,
@@ -1690,7 +1690,7 @@ private fun createGradleModuleDataNode(
   imlBasePath: File,
   moduleBasePath: File
 ): DataNode<ModuleData> {
-  val moduleDataNode = DataNode<ModuleData>(
+  val moduleDataNode = DataNode(
     ProjectKeys.MODULE,
     ModuleData(
       if (gradlePath == ":") parentModuleOrProjectName else gradlePath,

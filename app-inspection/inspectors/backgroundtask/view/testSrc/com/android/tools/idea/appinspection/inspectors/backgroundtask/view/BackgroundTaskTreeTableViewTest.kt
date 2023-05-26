@@ -208,7 +208,7 @@ class BackgroundTaskTreeTableViewTest {
   }
 
   @Test
-  fun sortEntriesByClassName() = runBlocking<Unit> {
+  fun sortEntriesByClassName() = runBlocking {
     client.sendWorkEvent {
       workAddedBuilder.apply {
         workBuilder.apply {

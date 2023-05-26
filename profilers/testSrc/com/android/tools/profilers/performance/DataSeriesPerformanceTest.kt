@@ -70,7 +70,7 @@ class DataSeriesPerformanceTest {
   @Before
   fun setup() {
     service = DataStoreService("TestService", TestUtils.createTempDirDeletedOnExit().toString(),
-                               Consumer<Runnable> { ticker.run(it) }, FakeLogService())
+                               Consumer { ticker.run(it) }, FakeLogService())
     for (namespace in service.databases.keys) {
       val db = service.databases[namespace]!!
       val performantDatabase = namespace.myCharacteristic == DataStoreDatabase.Characteristic.PERFORMANT

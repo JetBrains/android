@@ -39,13 +39,13 @@ class AppInspectionTargetManagerTest {
   val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionRule)!!
 
   @Test
-  fun launchTarget() = runBlocking<Unit> {
+  fun launchTarget() = runBlocking {
     appInspectionRule.launchTarget(AppInspectionTestUtils.createFakeProcessDescriptor())
     assertThat(appInspectionRule.targetManager.targets).hasSize(1)
   }
 
   @Test
-  fun disposesClientsForProject() = runBlocking<Unit> {
+  fun disposesClientsForProject() = runBlocking {
     val terminatedProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setName("dispose").setPid(1).build()
     val terminateProcessDescriptor = AppInspectionTestUtils.createFakeProcessDescriptor(process = terminatedProcess)
 
@@ -68,7 +68,7 @@ class AppInspectionTargetManagerTest {
   }
 
   @Test
-  fun processTerminationCleansUpTarget() = runBlocking<Unit> {
+  fun processTerminationCleansUpTarget() = runBlocking {
     val process = AppInspectionTestUtils.createFakeProcessDescriptor()
     appInspectionRule.launchTarget(process)
 

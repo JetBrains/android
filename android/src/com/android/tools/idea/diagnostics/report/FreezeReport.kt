@@ -88,7 +88,7 @@ constructor(val threadDumpPath: Path?,
                     properties: Map<String, String>,
                     format: Long): FreezeReport {
       if (format >= 1L) {
-        val dynamicProperties = TreeMap<String, String>(properties)
+        val dynamicProperties = TreeMap(properties)
         val totalDuration = dynamicProperties.remove("totalDuration")?.toLong()
         val description = dynamicProperties.remove("description")
         val threadDumpPath = dynamicProperties.remove("threadDumpPath")?.let {

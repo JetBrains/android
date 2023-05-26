@@ -78,7 +78,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     val coordinate = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
     assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.IMPLEMENTATION).isSupported()).isTrue()
     gradleModuleSystem.registerDependency(coordinate)
-    Mockito.verify<GradleDependencyManager>(gradleDependencyManager, times(1))
+    Mockito.verify(gradleDependencyManager, times(1))
       .addDependenciesWithoutSync(myModule, listOf(coordinate))
   }
 

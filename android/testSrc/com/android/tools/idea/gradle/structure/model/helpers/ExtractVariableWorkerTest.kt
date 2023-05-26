@@ -57,8 +57,8 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
 
       worker.commit("compileSdkVersion")
       assertThat(compileSdkVersion.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-                                                                                DslText.Reference("compileSdkVersion"))
+                 equalTo(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+                                                DslText.Reference("compileSdkVersion"))
                                                            .annotated()))
       assertThat(appModule.variables.getOrCreateVariable("compileSdkVersion").value,
                  equalTo(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.asParsed<Any>()))
@@ -69,17 +69,17 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("compileSdkVersion1"))   // The second suggested name is the preferredName + "1".
       assertThat(newProperty.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-                                                                                DslText.Reference("compileSdkVersion"))
+                 equalTo(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+                                                DslText.Reference("compileSdkVersion"))
                                                            .annotated()))
 
       worker.commit("otherName")
       assertThat(compileSdkVersion.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-                                                                                DslText.Reference("otherName"))
+                 equalTo(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+                                                DslText.Reference("otherName"))
                                                            .annotated()))
       assertThat(appModule.variables.getOrCreateVariable("otherName").value,
-                 equalTo<ParsedValue<Any>>(
+                 equalTo(
                    ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API, DslText.Reference("compileSdkVersion"))))
     }
   }
@@ -115,8 +115,8 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
 
       worker.commit("renamedName")
       assertThat(compileSdkVersion.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
-                                                                                DslText.Reference("renamedName"))
+                 equalTo(ParsedValue.Set.Parsed(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(),
+                                                DslText.Reference("renamedName"))
                                                            .annotated()))
       assertThat(appModule.variables.getVariable("renamedName"), nullValue())
 
@@ -137,7 +137,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val worker = ExtractVariableWorker(targetCompatibility)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("targetCompatibility"))
-      assertThat(newProperty.getParsedValue(), equalTo<Annotated<ParsedValue<LanguageLevel>>>(ParsedValue.NotSet.annotated()))
+      assertThat(newProperty.getParsedValue(), equalTo(ParsedValue.NotSet.annotated()))
 
       assertThat(worker.validate("targetCompatibility"), equalTo("Cannot bind a variable to an empty value."))
     }
@@ -155,7 +155,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val worker = ExtractVariableWorker(targetCompatibility)
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("targetCompatibility"))
-      assertThat(newProperty.getParsedValue(), equalTo<Annotated<ParsedValue<LanguageLevel>>>(ParsedValue.NotSet.annotated()))
+      assertThat(newProperty.getParsedValue(), equalTo(ParsedValue.NotSet.annotated()))
 
       assertThat(worker.validate(" "), equalTo("Variable name is required."))
     }
@@ -179,11 +179,11 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("junitVersion"))
       assertThat(newProperty.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated()))
+                 equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated()))
       worker.commit("junitVersion")
 
       assertThat(appModule.variables.getOrCreateVariable("junitVersion").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("4.12", DslText.Literal)))
+                 equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal)))
     }
 
     run {
@@ -192,11 +192,11 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val (newName, newProperty) = worker.changeScope(appModule.variables, "")
       assertThat(newName, equalTo("mockitoCoreVersion"))
       assertThat(newProperty.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("3.12.4", DslText.Literal).annotated()))
+                 equalTo(ParsedValue.Set.Parsed("3.12.4", DslText.Literal).annotated()))
       worker.commit("mockitoCoreVersion")
 
       assertThat(appModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("3.12.4", DslText.Literal)))
+                 equalTo(ParsedValue.Set.Parsed("3.12.4", DslText.Literal)))
     }
   }
 
@@ -218,11 +218,11 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val (newName, newProperty) = worker.changeScope(javaModule.variables, "")
       assertThat(newName, equalTo("junitVersion"))
       assertThat(newProperty.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated()))
+                 equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal).annotated()))
       worker.commit("junitVersion")
 
       assertThat(javaModule.variables.getOrCreateVariable("junitVersion").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("4.12", DslText.Literal)))
+                 equalTo(ParsedValue.Set.Parsed("4.12", DslText.Literal)))
     }
 
     run {
@@ -231,11 +231,11 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
       val (newName, newProperty) = worker.changeScope(javaModule.variables, "")
       assertThat(newName, equalTo("mockitoCoreVersion"))
       assertThat(newProperty.getParsedValue(),
-                 equalTo<Annotated<ParsedValue<String>>>(ParsedValue.Set.Parsed("3.12.4", DslText.Literal).annotated()))
+                 equalTo(ParsedValue.Set.Parsed("3.12.4", DslText.Literal).annotated()))
       worker.commit("mockitoCoreVersion")
 
       assertThat(javaModule.variables.getOrCreateVariable("mockitoCoreVersion").value,
-                 equalTo<ParsedValue<Any>>(ParsedValue.Set.Parsed("3.12.4", DslText.Literal)))
+                 equalTo(ParsedValue.Set.Parsed("3.12.4", DslText.Literal)))
     }
   }
 

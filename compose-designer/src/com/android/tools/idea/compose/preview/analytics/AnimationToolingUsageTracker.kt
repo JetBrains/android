@@ -31,8 +31,8 @@ interface AnimationToolingUsageTracker {
 
   companion object {
     private val NOP_TRACKER = AnimationToolingNopTracker()
-    private val MANAGER =
-      DesignerUsageTrackerManager<AnimationToolingUsageTracker, DesignSurface<*>>(::InternalAnimationToolingUsageTracker, NOP_TRACKER)
+    private val MANAGER: DesignerUsageTrackerManager<AnimationToolingUsageTracker, DesignSurface<*>> =
+      DesignerUsageTrackerManager(::InternalAnimationToolingUsageTracker, NOP_TRACKER)
 
     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
   }

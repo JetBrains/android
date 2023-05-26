@@ -140,9 +140,10 @@ class CompactResourcePicker(
     })
   }
 
-  private val resourceSourceComboBoxModel = DefaultCommonComboBoxModel<ResourcePickerSources>(sources.first().displayableName, sources)
+  private val resourceSourceComboBoxModel: DefaultCommonComboBoxModel<ResourcePickerSources> =
+    DefaultCommonComboBoxModel(sources.first().displayableName, sources)
 
-  private val resourceSourceComboBox = ComboBox<ResourcePickerSources>(resourceSourceComboBoxModel).apply {
+  private val resourceSourceComboBox: ComboBox<ResourcePickerSources> = ComboBox(resourceSourceComboBoxModel).apply {
     isEditable = false
     isEnabled = false
     addItemListener { event ->
@@ -296,9 +297,9 @@ class CompactResourcePicker(
   private fun updateResourcesList(source: ResourcePickerSources) {
     resourcesList.setPaintBusy(false)
     resourcesList.emptyText.text = StatusText.getDefaultEmptyText()
-    resourcesListModel = NameFilteringListModel<ResourceAssetSet>(
+    resourcesListModel = NameFilteringListModel(
       // Re-apply the filter from the SearchField to the new list
-      CollectionListModel<ResourceAssetSet>(resourcesModel.getValue(source)),
+      CollectionListModel(resourcesModel.getValue(source)),
       { it.name },
       speedSearch::shouldBeShowing,
       { StringUtil.notNullize(speedSearch.filter) }

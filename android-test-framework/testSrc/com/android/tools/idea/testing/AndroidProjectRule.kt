@@ -355,7 +355,7 @@ class AndroidProjectRule private constructor(
 
   fun <T : Facet<C>, C : FacetConfiguration> addFacet(type: FacetType<T, C>, facetName: String): T {
     val facetManager = FacetManager.getInstance(module)
-    val facet = facetManager.createFacet<T, C>(type, facetName, null)
+    val facet = facetManager.createFacet(type, facetName, null)
     runInEdtAndWait {
       if (withAndroidSdk) {
         Sdks.addLatestAndroidSdk(fixture.testRootDisposable, module)

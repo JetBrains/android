@@ -52,7 +52,7 @@ class HttpArtifactResolverTest {
   }
 
   @Test
-  fun downloadAndCacheArtifact() = runBlocking<Unit> {
+  fun downloadAndCacheArtifact() = runBlocking {
     val fileService = TestFileService()
 
     val resolver = HttpArtifactResolver(fileService, fakeDownloader)

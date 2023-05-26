@@ -41,12 +41,12 @@ class BrClassFinder(project: Project) : PsiElementFinder() {
   init {
     classByPackageCache = CachedValuesManager.getManager(bindingFacetsProvider.project).createCachedValue(
       {
-        val classes = bindingFacetsProvider.getDataBindingEnabledFacets()
+        val classes: Map<String, LightBrClass> = bindingFacetsProvider.getDataBindingEnabledFacets()
           .asSequence()
           .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
           .associateBy { it.qualifiedName }
 
-        CachedValueProvider.Result.create<Map<String, PsiClass>>(classes, bindingFacetsProvider)
+        CachedValueProvider.Result.create(classes, bindingFacetsProvider)
       }, false)
   }
 

@@ -156,7 +156,7 @@ class ImageViewAssistant(
   }
 
   private fun createDrawableGrid() = DrawableGrid(nlComponent.model.facet.module,
-                                                  DefaultListModel<ResourceValue>(),
+                                                  DefaultListModel(),
                                                   IMAGE_SIZE,
                                                   ITEM_COUNT.toLong()).apply {
     isOpaque = false

@@ -206,7 +206,7 @@ class DependencyManagerTest {
     val localDependencyManager: DependencyManager
 
     try {
-      val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable<Module> {
+      val tempModule = WriteCommandAction.runWriteCommandAction(tempProject, Computable {
         ModuleManager.getInstance(tempProject).newModule(bar, StdModuleTypes.JAVA.id)
       })
 

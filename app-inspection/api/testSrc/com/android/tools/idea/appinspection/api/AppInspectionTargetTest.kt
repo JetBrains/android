@@ -93,7 +93,7 @@ class AppInspectionTargetTest {
   }
 
   @Test
-  fun launchInspectorReturnsCorrectConnection() = runBlocking<Unit> {
+  fun launchInspectorReturnsCorrectConnection() = runBlocking {
     val target = appInspectionRule.launchTarget(createFakeProcessDescriptor())
 
     transportService.setCommandHandler(
@@ -154,7 +154,7 @@ class AppInspectionTargetTest {
   }
 
   @Test
-  fun processTerminationDisposesClient() = runBlocking<Unit> {
+  fun processTerminationDisposesClient() = runBlocking {
     val target = appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
 
     // Launch an inspector client.

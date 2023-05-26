@@ -92,7 +92,7 @@ class DependencyManagementTest : DependencyTestCase() {
       val lib306 = libModule.dependencies.findLibraryDependency("com.example.jlib:lib3:0.6")
       assertThat(lib306.testDeclaredScopes(), equalTo(listOf("freeImplementation")))
       val depLib306 = lib306!![0]
-      assertThat<ParsedValue<String>>(depLib306.version, equalTo(ParsedValue.Set.Parsed("0.6", DslText.Reference("var06"))))
+      assertThat(depLib306.version, equalTo(ParsedValue.Set.Parsed("0.6", DslText.Reference("var06"))))
     }
     run {
       val libModule = project.findModuleByName("jModuleK") as PsJavaModule
@@ -544,7 +544,7 @@ class DependencyManagementTest : DependencyTestCase() {
 
       val addedDep = module.dependencies.findLibraryDependency("com.example.libs:lib1:0.6")
       assertThat(addedDep, notNullValue())
-      assertThat<ParsedValue<String>>(addedDep!![0].version, equalTo(ParsedValue.Set.Parsed("0.6", DslText.Reference("var06"))))
+      assertThat(addedDep!![0].version, equalTo(ParsedValue.Set.Parsed("0.6", DslText.Reference("var06"))))
 
       val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
       assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:0.6"), nullValue())
@@ -559,7 +559,7 @@ class DependencyManagementTest : DependencyTestCase() {
 
       val addedDep = module.dependencies.findLibraryDependency("com.example.libs:lib1:0.6")
       assertThat(addedDep, notNullValue())
-      assertThat<ParsedValue<String>>(addedDep!![0].version, equalTo(ParsedValue.Set.Parsed("0.6", DslText.Reference("var06"))))
+      assertThat(addedDep!![0].version, equalTo(ParsedValue.Set.Parsed("0.6", DslText.Reference("var06"))))
 
       val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
       assertThat(resolvedDependencies?.findLibraryDependency("com.example.libs:lib1:0.6"), notNullValue())

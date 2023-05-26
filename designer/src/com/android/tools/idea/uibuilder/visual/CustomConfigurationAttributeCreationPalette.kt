@@ -183,7 +183,7 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
      panel.add(noApiLevelLabel, BorderLayout.CENTER)
     }
     else {
-      val boxModel = MyComboBoxModel<IAndroidTarget>(apiLevels, { it.version.apiLevel.toString() })
+      val boxModel = MyComboBoxModel(apiLevels, { it.version.apiLevel.toString() })
       val box = CommonComboBox(boxModel)
       box.addActionListener { selectedApiTarget = boxModel.selectedValue }
       selectedApiTarget = boxModel.selectedValue

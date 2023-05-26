@@ -210,13 +210,13 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
     ReferenceTo.createReferenceFromText("myVariable", existingAgpDependency!![0].version())?.let {
       existingAgpDependency!![0].version().setValue(it)
     }
-    ReferenceTo.createReferenceFromText("versionVal", existingAgpDependency!![1].version())?.let {
+    ReferenceTo.createReferenceFromText("versionVal", existingAgpDependency[1].version())?.let {
       existingAgpDependency!![1].version().setValue(it)
     }
-    ReferenceTo.createReferenceFromText("localList[0]", existingAgpDependency!![2].version())?.let {
+    ReferenceTo.createReferenceFromText("localList[0]", existingAgpDependency[2].version())?.let {
       existingAgpDependency!![2].version().setValue(it)
     }
-    ReferenceTo.createReferenceFromText("dependencyVersion", existingAgpDependency!![3].version())?.let {
+    ReferenceTo.createReferenceFromText("dependencyVersion", existingAgpDependency[3].version())?.let {
       existingAgpDependency!![3].version().setValue(it)
     }
 
@@ -230,22 +230,22 @@ class AndroidModuleDescriptorsTest : GradleIntegrationTest {
 
     assertTrue(existingAgpDependency != null && existingAgpDependency.size == 4)
     assertThat(existingAgpDependency!![0].compactNotation(), equalTo("com.android.support:appcompat-v7:26.1.0"))
-    assertThat(existingAgpDependency!![0].completeModel().getRawValue(STRING_TYPE),
+    assertThat(existingAgpDependency[0].completeModel().getRawValue(STRING_TYPE),
                equalTo<String>("com.android.support:appcompat-v7:${expectedValues[0]}"))
 
-    assertThat(existingAgpDependency!![1].compactNotation(),
-               equalTo<String>("com.android.support.constraint:constraint-layout:28.0.0"))
-    assertThat(existingAgpDependency!![1].completeModel().getRawValue(STRING_TYPE),
+    assertThat(existingAgpDependency[1].compactNotation(),
+               equalTo("com.android.support.constraint:constraint-layout:28.0.0"))
+    assertThat(existingAgpDependency[1].completeModel().getRawValue(STRING_TYPE),
                equalTo<String>("com.android.support.constraint:constraint-layout:${expectedValues[1]}"))
 
-    assertThat(existingAgpDependency!![2].compactNotation(),
-               equalTo<String>("com.android.support.test:runner:26.1.1"))
-    assertThat(existingAgpDependency!![2].completeModel().getRawValue(STRING_TYPE),
+    assertThat(existingAgpDependency[2].compactNotation(),
+               equalTo("com.android.support.test:runner:26.1.1"))
+    assertThat(existingAgpDependency[2].completeModel().getRawValue(STRING_TYPE),
                equalTo<String>("com.android.support.test:runner:${expectedValues[2]}"))
 
-    assertThat(existingAgpDependency!![3].compactNotation(),
-               equalTo<String>("com.android.support.test.espresso:espresso-core:28.0.0"))
-    assertThat(existingAgpDependency!![3].completeModel().getRawValue(STRING_TYPE),
+    assertThat(existingAgpDependency[3].compactNotation(),
+               equalTo("com.android.support.test.espresso:espresso-core:28.0.0"))
+    assertThat(existingAgpDependency[3].completeModel().getRawValue(STRING_TYPE),
                equalTo<String>("com.android.support.test.espresso:espresso-core:${expectedValues[3]}"))
   }
 

@@ -85,7 +85,7 @@ class AppInspectorTabLaunchSupportTest {
    * 4) compatible inspector but failed to resolve its jar - an info tab should be created with an appropriate error message
    */
   @Test
-  fun getApplicableTabProviders() = runBlocking<Unit> {
+  fun getApplicableTabProviders() = runBlocking {
     val support = AppInspectorTabLaunchSupport(
       { listOf(notApplicableInspector, frameworkInspector, incompatibleLibraryInspector, libraryInspector, unresolvedLibraryInspector) },
       appInspectionServiceRule.apiServices,

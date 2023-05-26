@@ -641,7 +641,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) {
    * via reflection.
    */
   private open class TestClock {
-    fun getAnimatedProperties(animation: Any) = listOf<ComposeAnimatedProperty>(
+    fun getAnimatedProperties(animation: Any): List<ComposeAnimatedProperty> = listOf(
       ComposeAnimatedProperty("Int", 1),
       ComposeAnimatedProperty("IntSnap", 1),
       ComposeAnimatedProperty("Float", 1f),

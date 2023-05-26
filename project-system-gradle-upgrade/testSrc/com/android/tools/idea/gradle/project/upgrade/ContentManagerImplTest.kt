@@ -663,7 +663,7 @@ class ContentManagerImplTest {
   fun testToolWindowDropdownInitializedWithCurrentAndLatest() {
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = ToolWindowModel(project, { currentAgpVersion }) { setOf<GradleVersion>() }
+    val model = ToolWindowModel(project, { currentAgpVersion }, knownVersionsRequester = { setOf() })
     val view = ContentManagerImpl.View(model, toolWindow.contentManager)
     assertThat(view.versionTextField.model.selectedItem).isEqualTo(latestAgpVersion)
     assertThat(view.versionTextField.model.size).isEqualTo(2)
