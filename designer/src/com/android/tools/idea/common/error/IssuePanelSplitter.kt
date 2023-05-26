@@ -21,6 +21,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.OnePixelSplitter
 import javax.swing.JComponent
+import kotlin.math.max
 
 /**
  * A [com.intellij.ui.JBSplitter] that display the [IssuePanel] from the provided [surface] on bottom and the provided [JComponent] on top.
@@ -60,7 +61,7 @@ class IssuePanelSplitter(
     proportion = if (!isExpanded) 1f
     else {
       val newProportion = 1 - height / parent.height.toFloat()
-      Math.max(0.5f, newProportion)
+      max(0.5f, newProportion)
     }
   }
 

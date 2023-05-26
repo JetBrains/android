@@ -23,6 +23,7 @@ import com.android.tools.profilers.memory.adapters.NativeAllocationInstanceObjec
 import com.android.tools.profilers.memory.adapters.classifiers.NativeMemoryHeapSet
 import com.intellij.util.Base64
 import gnu.trove.TLongHashSet
+import kotlin.math.abs
 
 /**
  * Helper class to convert from perfetto memory proto to profiler protos.
@@ -114,7 +115,7 @@ class HeapProfdConverter(private val abi: String,
 
       // Build allocation event proto
       val event = Memory.AllocationEvent.Allocation.newBuilder()
-        .setSize(Math.abs(allocation.size))
+        .setSize(abs(allocation.size))
         .build()
 
       // Build allocation instance object

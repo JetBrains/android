@@ -31,6 +31,7 @@ import java.io.StringWriter
 import java.io.Writer
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import kotlin.math.max
 
 
 data class AndroidDeviceSpecImpl @JvmOverloads constructor (
@@ -116,7 +117,7 @@ private fun combineDeviceLanguages(devices: List<AndroidDevice>, timeout: Long, 
   return try {
     // Note: the "getLanguages" method below uses Duration.Zero as an infinite timeout value.
     // So we must ensure to never use 0 "nanos" if the caller wants the minimal timeout.
-    val nanos = Math.max(1, unit.toNanos(timeout))
+    val nanos = max(1, unit.toNanos(timeout))
     val duration = Duration.ofNanos(nanos)
     val languageSets = devices.map { it.launchedDevice.get(timeout, unit).getLanguages(duration) }
     // Note: If we get an empty list from any device, we want to return an empty list instead of the

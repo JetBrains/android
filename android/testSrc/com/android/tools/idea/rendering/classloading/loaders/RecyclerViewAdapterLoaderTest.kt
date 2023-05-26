@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering.classloading.loaders
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import java.util.Arrays
 
 class RecyclerViewAdapterLoaderTest {
   @Test
@@ -33,9 +32,9 @@ class RecyclerViewAdapterLoaderTest {
     val androidxAdapterViewHolder = loader.loadClass("com.android.layoutlib.bridge.android.androidx.Adapter\$ViewHolder")
     assertNotNull(androidxAdapterViewHolder)
 
-    assertFalse(Arrays.equals(supportAdapter, supportAdapterViewHolder))
-    assertFalse(Arrays.equals(supportAdapter, androidxAdapter))
-    assertFalse(Arrays.equals(androidxAdapter, androidxAdapterViewHolder))
-    assertFalse(Arrays.equals(supportAdapterViewHolder, androidxAdapterViewHolder))
+    assertFalse(supportAdapter.contentEquals(supportAdapterViewHolder))
+    assertFalse(supportAdapter.contentEquals(androidxAdapter))
+    assertFalse(androidxAdapter.contentEquals(androidxAdapterViewHolder))
+    assertFalse(supportAdapterViewHolder.contentEquals(androidxAdapterViewHolder))
   }
 }

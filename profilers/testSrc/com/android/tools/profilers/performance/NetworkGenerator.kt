@@ -18,6 +18,7 @@ package com.android.tools.profilers.performance
 import com.android.tools.datastore.database.NetworkTable
 import com.android.tools.profiler.proto.NetworkProfiler
 import java.sql.Connection
+import kotlin.math.abs
 
 class NetworkGenerator(connection: Connection) : DataGenerator(connection) {
 
@@ -39,8 +40,8 @@ class NetworkGenerator(connection: Connection) : DataGenerator(connection) {
     val data = NetworkProfiler.NetworkProfilerData.newBuilder()
       .setEndTimestamp(timestamp)
       .setSpeedData(NetworkProfiler.SpeedData.newBuilder()
-                      .setReceived(Math.abs(random.nextLong()))
-                      .setSent(Math.abs(random.nextLong())))
+                      .setReceived(abs(random.nextLong()))
+                      .setSent(abs(random.nextLong())))
       .setConnectionData(NetworkProfiler.ConnectionData.newBuilder()
                            .setConnectionNumber(random.nextInt()))
       .build()

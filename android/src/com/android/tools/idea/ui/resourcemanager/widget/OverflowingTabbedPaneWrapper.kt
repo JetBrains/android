@@ -30,6 +30,7 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.JTabbedPane
+import kotlin.math.max
 
 /**
  * A wrapper component over a [JTabbedPane] which displays tabs in
@@ -232,7 +233,7 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
           rect.x = x
         }
         rect.width = calculateTabWidth(tabPlacement, i, metrics)
-        maxTabWidth = Math.max(maxTabWidth, rect.width)
+        maxTabWidth = max(maxTabWidth, rect.width)
 
         x = rect.x + rect.width
 

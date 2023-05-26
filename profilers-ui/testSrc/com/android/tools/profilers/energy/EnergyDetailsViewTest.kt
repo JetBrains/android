@@ -35,7 +35,6 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.JTextPane
@@ -90,7 +89,7 @@ class EnergyDetailsViewTest {
     .setFlexMs(2L)
     .setIntervalMs(3L)
     .setNetworkType(Energy.JobInfo.NetworkType.NETWORK_TYPE_METERED)
-    .addAllTriggerContentUris(Arrays.asList("url1", "url2"))
+    .addAllTriggerContentUris(listOf("url1", "url2"))
     .setTriggerContentMaxDelay(4L)
     .setTriggerContentUpdateDelay(5L)
     .setIsRequireBatteryNotLow(true)
@@ -104,7 +103,7 @@ class EnergyDetailsViewTest {
     .build()
   private val jobParams = Energy.JobParameters.newBuilder()
     .setJobId(3333)
-    .addAllTriggeredContentAuthorities(Arrays.asList("auth1", "auth2"))
+    .addAllTriggeredContentAuthorities(listOf("auth1", "auth2"))
     .setIsOverrideDeadlineExpired(true)
     .setExtras("ExtrasValue")
     .setTransientExtras("TransientExtrasValue")
@@ -142,7 +141,7 @@ class EnergyDetailsViewTest {
   @Test
   fun viewIsVisibleWhenDataIsNotNull() {
     view.isVisible = false
-    view.setDuration(EnergyDuration(Arrays.asList(wakeLockAcquireEvent)))
+    view.setDuration(EnergyDuration(listOf(wakeLockAcquireEvent)))
     assertThat(view.isVisible).isTrue()
   }
 
@@ -155,7 +154,7 @@ class EnergyDetailsViewTest {
 
   @Test
   fun wakeLockIsProperlyRendered() {
-    view.setDuration(EnergyDuration(Arrays.asList(wakeLockAcquireEvent, wakeLockReleaseEvent)))
+    view.setDuration(EnergyDuration(listOf(wakeLockAcquireEvent, wakeLockReleaseEvent)))
     val wakeLockTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(wakeLockTextPane.text) {
       assertUiContainsLabelAndValue(this, "Tag", "wakeLockTag")
@@ -166,7 +165,7 @@ class EnergyDetailsViewTest {
 
   @Test
   fun alarmIsProperlyRendered() {
-    view.setDuration(EnergyDuration(Arrays.asList(alarmSetEvent, alarmCancelledEvent)))
+    view.setDuration(EnergyDuration(listOf(alarmSetEvent, alarmCancelledEvent)))
     val alarmTextPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(alarmTextPane.text) {
       assertUiContainsLabelAndValue(this, "Trigger Time", "1 s")
@@ -181,7 +180,7 @@ class EnergyDetailsViewTest {
   fun callstackIsProperlyRendered() {
     val eventWithTrace = wakeLockAcquireEvent.toBuilder().setEnergyEvent(
       wakeLockAcquireEvent.energyEvent.toBuilder().setCallstack(callstackText)).build()
-    view.setDuration(EnergyDuration(Arrays.asList(eventWithTrace)))
+    view.setDuration(EnergyDuration(listOf(eventWithTrace)))
     val nonEmptyView = TreeWalker(view).descendants().filterIsInstance<EnergyCallstackView>().first()
     assertThat(nonEmptyView.components.any { c -> c is JPanel }).isTrue()
     view.setDuration(null)
@@ -196,7 +195,7 @@ class EnergyDetailsViewTest {
       .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(jobScheduled))
       .build()
-    view.setDuration(EnergyDuration(Arrays.asList(event)))
+    view.setDuration(EnergyDuration(listOf(event)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
       assertJobInfoLabelsAndValues(this)
@@ -216,7 +215,7 @@ class EnergyDetailsViewTest {
       .setTimestamp(TimeUnit.MILLISECONDS.toNanos(200))
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobScheduled(jobScheduled))
       .build()
-    view.setDuration(EnergyDuration(Arrays.asList(event)))
+    view.setDuration(EnergyDuration(listOf(event)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
       assertJobInfoLabelsAndValues(this)
@@ -242,7 +241,7 @@ class EnergyDetailsViewTest {
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(jobFinished))
       .setIsEnded(true)
       .build()
-    view.setDuration(EnergyDuration(Arrays.asList(scheduled, finished)))
+    view.setDuration(EnergyDuration(listOf(scheduled, finished)))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
       assertUiContainsLabelAndValue(this, "Triggered Content Authorities", "auth1, auth2")
@@ -267,7 +266,7 @@ class EnergyDetailsViewTest {
     val eventBuilder = Common.Event.newBuilder()
       .setTimestamp(TimeUnit.MILLISECONDS.toNanos(10))
       .setEnergyEvent(Energy.EnergyEventData.newBuilder().setLocationUpdateRequested(requested))
-    view.setDuration(EnergyDuration(Arrays.asList(eventBuilder.build())))
+    view.setDuration(EnergyDuration(listOf(eventBuilder.build())))
     val textPane = TreeWalker(view).descendants().filterIsInstance<JTextPane>().first()
     with(textPane.text) {
       assertUiContainsLabelAndValue(this, "Provider", "ProviderValue")
