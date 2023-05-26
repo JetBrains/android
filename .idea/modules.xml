@@ -179,6 +179,7 @@
       <module fileurl="file://$PROJECT_DIR$/android/javadoc/intellij.android.core.javadoc.iml" filepath="$PROJECT_DIR$/android/javadoc/intellij.android.core.javadoc.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/lang/intellij.android.core.lang.iml" filepath="$PROJECT_DIR$/android/lang/intellij.android.core.lang.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/model/intellij.android.core.model.iml" filepath="$PROJECT_DIR$/android/model/intellij.android.core.model.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/completion/intellij.android.core.completion.iml" filepath="$PROJECT_DIR$/android/completion/intellij.android.core.completion.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/intellij.android.core.agp-integration-tests.iml" filepath="$PROJECT_DIR$/android/intellij.android.core.agp-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/instantapp/intellij.android.core.instantapp.iml" filepath="$PROJECT_DIR$/android/instantapp/intellij.android.core.instantapp.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/apk/intellij.android.core.apk.iml" filepath="$PROJECT_DIR$/android/apk/intellij.android.core.apk.iml" />
