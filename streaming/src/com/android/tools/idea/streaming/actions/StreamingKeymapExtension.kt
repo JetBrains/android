@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.streaming.actions
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.device.actions.FoldingActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.keymap.KeymapExtension
 import com.intellij.openapi.keymap.KeymapGroup
@@ -39,9 +37,7 @@ class StreamingKeymapExtension : KeymapExtension {
     val keymapGroup = KeymapGroupFactory.getInstance().createGroup(KEYMAP_SECTION_NAME)
 
     for (action in ActionsTreeUtil.getActions(ACTION_GROUP)) {
-      if (action !is FoldingActionGroup || StudioFlags.DEVICE_MIRRORING_FOLDING_SUPPORT.get()) {
-        ActionsTreeUtil.addAction(keymapGroup, action, filtered)
-      }
+      ActionsTreeUtil.addAction(keymapGroup, action, filtered)
     }
 
     return keymapGroup

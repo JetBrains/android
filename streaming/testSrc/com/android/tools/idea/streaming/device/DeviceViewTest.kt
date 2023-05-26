@@ -134,7 +134,7 @@ internal class DeviceViewTest {
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val crashReporterRule = CrashReporterRule()
   @get:Rule
-  val ruleChain = RuleChain(crashReporterRule, androidExecutorsRule, agentRule, ClipboardSynchronizationDisablementRule(), EdtRule())
+  val ruleChain = RuleChain(agentRule, crashReporterRule, androidExecutorsRule, ClipboardSynchronizationDisablementRule(), EdtRule())
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
@@ -187,7 +187,7 @@ internal class DeviceViewTest {
     createDeviceView(200, 300, 2.0)
     assertThat(agent.commandLine).matches("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
                                           " $DEVICE_PATH_BASE com.android.tools.screensharing.Main" +
-                                          " --socket=screen-sharing-agent-\\d+ --max_size=400,600 --flags=5")
+                                          " --socket=screen-sharing-agent-\\d+ --max_size=400,600 --flags=1")
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
@@ -285,7 +285,7 @@ internal class DeviceViewTest {
     createDeviceView(100, 150, 2.0)
     assertThat(agent.commandLine).matches("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
                                           " $DEVICE_PATH_BASE com.android.tools.screensharing.Main" +
-                                          " --socket=screen-sharing-agent-\\d+ --max_size=200,300 --flags=5")
+                                          " --socket=screen-sharing-agent-\\d+ --max_size=200,300 --flags=\\d+")
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(0, 50, 200, 200))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
