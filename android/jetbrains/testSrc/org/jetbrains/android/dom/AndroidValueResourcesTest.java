@@ -26,6 +26,7 @@ import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.android.tools.idea.testing.AndroidTestUtils;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -33,6 +34,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
+import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
@@ -53,17 +55,25 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.actions.InlineAction;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
+import com.intellij.spellchecker.quickfixes.RenameTo;
+import com.intellij.spellchecker.quickfixes.SaveTo;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import javaslang.collection.Array;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.dom.inspections.AndroidDomInspection;
+import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
+import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,10 +82,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * @see AndroidNamespacedValueResourcesDomTest
  */
-public class AndroidValueResourcesTest extends AndroidDomTestCase {
-  public AndroidValueResourcesTest() {
-    super("dom/resources");
-  }
+public class AndroidValueResourcesTest extends AndroidTestCase {
+  private static final String MY_TEST_FOLDER = "dom/resources";
 
   @Override
   protected boolean providesCustomManifest() {
@@ -85,7 +93,17 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+
+    myFixture.enableInspections(AndroidDomInspection.class,
+                                AndroidUnknownAttributeInspection.class,
+                                AndroidElementNotAllowedInspection.class);
+
     myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML);
+  }
+
+  @Override
+  protected final String getResDir() {
+    return "dom/res";
   }
 
   @Override
@@ -94,8 +112,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     addModuleWithAndroidFacet(projectBuilder, modules, "lib", AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
   }
 
-  @Override
-  protected String getPathToCopy(String testFileName) {
+  private String getPathToCopy(String testFileName) {
     if (getTestName(true).equals("resOverlay")) {
       return "res-overlay/values/" + testFileName;
     }
@@ -182,7 +199,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(myTestFolder + '/' + "styles2_after.xml");
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + "styles2_after.xml");
   }
 
   public void testStyles3() throws Throwable {
@@ -278,7 +295,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml");
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(true) + "_after.xml");
   }
 
   public void testPublicTagHighlighting() throws Throwable {
@@ -291,7 +308,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     VirtualFile file = copyFileToProject("public.xml", "additionalModules/lib/res/values/public.xml");
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
-    myFixture.checkResultByFile(myTestFolder + '/' + "public_after.xml");
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + "public_after.xml");
   }
 
   public void testPublicTagAppModuleCompletion() throws Throwable {
@@ -299,7 +316,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.completeBasic();
     // In app module, the completion does not work, the file should be unchanged.
-    myFixture.checkResultByFile(myTestFolder + '/' + "public.xml");
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + "public.xml");
   }
 
   public void testPublicTagAttributeValueCompletion() {
@@ -404,25 +421,25 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testIntResourceReference() {
-    myFixture.copyFileToProject(myTestFolder + "/intResReference.xml", "res/layout/main.xml");
-    myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
-    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/intResReference_after.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intResReference.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "res/values/values.xml");
+    myFixture.testCompletion("res/layout/main.xml", MY_TEST_FOLDER + "/intResReference_after.xml");
   }
 
   public void testBoolResourceReference() {
-    myFixture.copyFileToProject(myTestFolder + "/boolResReference.xml", "res/layout/main.xml");
-    myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
-    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/boolResReference.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "res/values/values.xml");
+    myFixture.testCompletion("res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference_after.xml");
   }
 
   public void testBoolResourceReferenceDumbMode() {
-    myFixture.copyFileToProject(myTestFolder + "/boolResReference.xml", "res/layout/main.xml");
-    myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/boolResReference.xml", "res/layout/main.xml");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "res/values/values.xml");
     // Completion providers don't actually kick in in dumb mode, but does outside of dumb mode.
     DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference.xml");
+    myFixture.testCompletion("res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference.xml");
     DumbServiceImpl.getInstance(getProject()).setDumb(false);
-    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
+    myFixture.testCompletion("res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference_after.xml");
   }
 
   public void testResourceReferenceAsValueHighlighting() throws Throwable {
@@ -463,14 +480,14 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     assertDoesntContain(lookupElements, "@mipmap/icon");
 
     // Add a mipmap to resources and expect for it to be listed
-    myFixture.copyFileToProject(myTestFolder + "/icon.png", "res/mipmap/icon.png");
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/icon.png", "res/mipmap/icon.png");
     waitForResourceRepositoryUpdates();
     myFixture.complete(CompletionType.BASIC);
     assertContainsElements(myFixture.getLookupElementStrings(), "@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
   }
 
   public void testParentStyleReference() {
-    VirtualFile file = myFixture.copyFileToProject(myTestFolder + "/psreference.xml", getPathToCopy("psreference.xml"));
+    VirtualFile file = myFixture.copyFileToProject(MY_TEST_FOLDER + "/psreference.xml", getPathToCopy("psreference.xml"));
     myFixture.configureFromExistingVirtualFile(file);
     PsiFile psiFile = myFixture.getFile();
     String text = psiFile.getText();
@@ -492,7 +509,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   public void testCreateResourceFromUsage() throws Throwable {
     VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml", "res/values/drawables.xml");
     doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(true) + "_after.xml", true);
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(true) + "_after.xml", true);
   }
 
   public void testJavaCompletion1() throws Throwable {
@@ -502,7 +519,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     myFixture.type('\n');
-    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + "_after.java");
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(false) + "_after.java");
   }
 
   public void testJavaCompletion2() throws Throwable {
@@ -566,7 +583,7 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     }
     catch (CommonRefactoringUtil.RefactoringErrorHintException e) {
     }
-    myFixture.checkResultByFile(myTestFolder + '/' + getTestName(false) + ".java", true);
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(false) + ".java", true);
   }
 
   public void testJavaCreateFromUsage() throws Throwable {
@@ -860,5 +877,146 @@ b/263898646 */
     assertEquals(1, actions.size());
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile()));
+  }
+
+  private void doTestJavaCompletion(@NotNull String aPackage) throws Throwable {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
+    String fileName = getTestName(false) + ".java";
+    VirtualFile file = copyFileToProject(fileName, "src/" + aPackage.replace('/', '.') + '/' + fileName);
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(false) + "_after.java");
+  }
+
+  private void doTestNamespaceCompletion(@NotNull String... extraNamespaces)
+    throws IOException {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
+    VirtualFile file = copyFileToProject(getTestName(true) + ".xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    List<String> variants = myFixture.getLookupElementStrings();
+    assertNotNull(variants);
+    List<String> expectedVariants = new ArrayList<>();
+
+    expectedVariants.add(SdkConstants.ANDROID_URI);
+    expectedVariants.add(SdkConstants.TOOLS_URI);
+    expectedVariants.add(SdkConstants.AUTO_URI);
+
+    expectedVariants.addAll(Arrays.asList(extraNamespaces));
+
+    Collections.sort(expectedVariants);
+    assertEquals(expectedVariants, variants);
+  }
+
+  /**
+   * Loads file, invokes code completion at &lt;caret&gt; marker and verifies the resulting completion variants as strings.
+   */
+  private void doTestCompletionVariants(@NotNull String fileName, @NotNull String... variants) throws Throwable {
+    List<String> lookupElementStrings = getCompletionElements(fileName);
+    assertNotNull(lookupElementStrings);
+    assertSameElements(lookupElementStrings, variants);
+  }
+
+  private List<String> getCompletionElements(@NotNull String fileName) throws IOException, InterruptedException, TimeoutException {
+    VirtualFile file = copyFileToProject(fileName);
+    waitForResourceRepositoryUpdates();
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    return myFixture.getLookupElementStrings();
+  }
+
+  private void doTestHighlighting() throws Throwable {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
+    String sourceFile = getTestName(true) + ".xml";
+    String destinationFile = getPathToCopy(CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, sourceFile));
+    doTestHighlighting(sourceFile, destinationFile);
+  }
+
+  /**
+   * Creates a virtual file from {@code fileName} and calls {@code doTestHighlighting(VirtualFile virtualFile)} passing it as a parameter.
+   */
+  private void doTestHighlighting(@NotNull String fileName) throws Throwable {
+    doTestHighlighting(copyFileToProject(fileName));
+  }
+
+  /**
+   * Creates a virtual file {@code projectFile} from {@code fileName} and calls {@code doTestHighlighting(VirtualFile virtualFile)} passing
+   * it as a parameter.
+   */
+  private void doTestHighlighting(@NotNull String sourceFile, @NotNull String projectFile) throws Throwable {
+    doTestHighlighting(copyFileToProject(sourceFile, projectFile));
+  }
+
+  /**
+   * Loads a virtual file and checks whether result of highlighting correspond to XML-like markers left in it. Format of the markers is best
+   * described by an example, check the usages of the function to find out.
+   */
+  private void doTestHighlighting(@NotNull VirtualFile virtualFile) throws Throwable {
+    myFixture.configureFromExistingVirtualFile(virtualFile);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
+  private void doTestJavaHighlighting(String aPackage) throws Throwable {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
+    String fileName = getTestName(false) + ".java";
+    VirtualFile virtualFile = copyFileToProject(fileName, "src/" + aPackage.replace('.', '/') + '/' + fileName);
+    myFixture.configureFromExistingVirtualFile(virtualFile);
+    myFixture.checkHighlighting(true, false, false);
+  }
+
+  private void doTestCompletion() throws Throwable {
+    doTestCompletion(true);
+  }
+
+  private void doTestCompletion(boolean lowercaseFirstLetter) throws Throwable {
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
+    toTestCompletion(getTestName(lowercaseFirstLetter) + ".xml", getTestName(lowercaseFirstLetter) + "_after.xml");
+  }
+
+  /**
+   * Loads first file, puts caret on the &lt;caret&gt; marker, invokes code completion. If running the code completion results in returning
+   * only one completion variant, chooses it to complete code at the caret.
+   */
+  private void toTestCompletion(String fileBefore, String fileAfter) throws Throwable {
+    VirtualFile file = copyFileToProject(fileBefore);
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + fileAfter);
+  }
+
+  private void doTestSpellcheckerQuickFixes() throws IOException {
+    //noinspection unchecked
+    myFixture.enableInspections(SpellCheckingInspection.class);
+    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
+    VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
+    myFixture.configureFromExistingVirtualFile(virtualFile);
+    List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
+    assertEquals(2, fixes.size());
+    assertInstanceOf(((QuickFixWrapper)fixes.get(0)).getFix(), RenameTo.class);
+    assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), SaveTo.class);
+  }
+
+  private VirtualFile copyFileToProject(String path) throws IOException {
+    return copyFileToProject(path, getPathToCopy(path));
+  }
+
+  private VirtualFile copyFileToProject(String from, String to) throws IOException {
+    return myFixture.copyFileToProject(MY_TEST_FOLDER + '/' + from, to);
+  }
+
+  private List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
+    List<HighlightInfo> infos = myFixture.doHighlighting();
+    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+    List<IntentionAction> actions = new ArrayList<>();
+
+    for (HighlightInfo info : infos) {
+      info.findRegisteredQuickFix((descriptor, range) -> {
+        if (aClass == null || descriptor.getAction().getClass() == aClass) {
+          actions.add(descriptor.getAction());
+        }
+        return null;
+      });
+    }
+    return actions;
   }
 }
