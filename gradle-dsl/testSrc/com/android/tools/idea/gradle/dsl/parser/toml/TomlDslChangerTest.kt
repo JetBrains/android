@@ -493,15 +493,38 @@ class TomlDslChangerTest : PlatformTestCase() {
     val expected = """
       [a]
       foo = "foo"
-      baz = "baz"
       [a]
       bar = "bar"
+      baz = "baz"
     """.trimIndent()
     doTest(toml, expected) {
       val a = getPropertyElement("a") as GradleDslExpressionMap
       val baz = GradleDslLiteral(a, GradleNameElement.create("baz"))
       baz.setValue("baz")
       a.setNewElement(baz)
+    }
+  }
+
+  fun testAddIntoASplitElement2() {
+    val toml = """
+      [a.b]
+      foo = "foo"
+      [a.b]
+      bar = "bar"
+    """.trimIndent()
+    val expected = """
+      [a.b]
+      foo = "foo"
+      [a.b]
+      bar = "bar"
+      baz = "baz"
+    """.trimIndent()
+    doTest(toml, expected) {
+      val a = getPropertyElement("a") as GradleDslExpressionMap
+      val b = a.getPropertyElement("b") as GradleDslExpressionMap
+      val baz = GradleDslLiteral(b, GradleNameElement.create("baz"))
+      baz.setValue("baz")
+      b.setNewElement(baz)
     }
   }
 

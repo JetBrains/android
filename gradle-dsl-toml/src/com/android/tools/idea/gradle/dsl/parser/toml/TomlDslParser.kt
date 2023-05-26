@@ -63,6 +63,7 @@ class TomlDslParser(
           val map = context.getPropertyElement(description) ?: context.createChildDslElement(nameElement, element) {
             GradleDslExpressionMap(context, element, nameElement, true)
           }
+          map.psiElement = element // element must point to the last table psi
           getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
         }
       }
