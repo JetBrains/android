@@ -30,9 +30,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.intellij.testFramework.RunsInEdt
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
-import org.junit.Ignore
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -42,8 +40,6 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
 
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-
-  private val gradleVersion = "5.5"
 
   @Test
   fun testObsoleteTestCompileConfigurationInLibrary() {
@@ -184,7 +180,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   }
 
   @Test
-  fun laterTestObsoleteTestCompileConfigurationInFeature() {
+  fun testObsoleteTestCompileConfigurationInFeature() {
     val preparedProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     preparedProject.open { resolvedProject ->
@@ -204,7 +200,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   }
 
   @Test
-  fun laterTestObsoleteCompileConfigurationInFeature() {
+  fun testObsoleteCompileConfigurationInFeature() {
     val preparedProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     preparedProject.open { resolvedProject ->
@@ -224,7 +220,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   }
 
   @Test
-  fun laterTestObsoleteTestCompileConfigurationInDynamicFeature() {
+  fun testObsoleteTestCompileConfigurationInDynamicFeature() {
     val preparedProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     preparedProject.open { resolvedProject ->
@@ -244,7 +240,7 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   }
 
   @Test
-  fun laterTestObsoleteCompileConfigurationInDynamicFeature() {
+  fun testObsoleteCompileConfigurationInDynamicFeature() {
     val preparedProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     preparedProject.open { resolvedProject ->
@@ -313,9 +309,9 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   ) {
     val issueSet = issueSetFor(issues, name)
     val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
-    assertThat(issueMessages, equalTo(expectedMessages))
+    assertEquals(expectedMessages, issueMessages)
     val quickFixChanges = quickFixChangesFor(issueSet)
-    assertThat(quickFixChanges, equalTo(expectedChanges))
+    assertEquals(expectedChanges, quickFixChanges)
   }
 
   private fun issueSetFor(issues: List<PsIssue>, name: String): Set<PsIssue> {
@@ -330,4 +326,3 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       .toSet()
   }
 }
-
