@@ -91,7 +91,8 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
         when (event.description) {
           "DeviceManager" -> {
             // Action id is from com.android.tools.idea.devicemanager.DeviceManagerAction.
-            val action = ActionManager.getInstance().getAction("Android.DeviceManager")
+            val action = ActionManager.getInstance().getAction(
+                if (StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()) "Android.DeviceManager2" else "Android.DeviceManager")
             ActionUtil.invokeAction(action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null)
           }
           "CheckForUpdate" -> {
