@@ -99,17 +99,17 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
 
   override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
     return ScreenView.newBuilder(surface, manager)
-      .withLayersProvider { screenView -> createScreenLayer(screenView) }
+      .withLayersProvider { screenView -> createScreenLayer(surface, screenView) }
       .build()
   }
 
   override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
 
-  private fun createScreenLayer(screenView: ScreenView): ImmutableList<Layer> {
+  private fun createScreenLayer(surface: NlDesignSurface, screenView: ScreenView): ImmutableList<Layer> {
     val backgroundLayer = DrawableBackgroundLayer(screenView, defaultType)
     myDrawableBackgroundLayer = backgroundLayer
-    val borderLayer = BorderLayer(screenView,  isRotating = { screenView.surface.isRotating } )
-    val screenViewLayer = ScreenViewLayer(screenView, colorBlindFilter)
+    val borderLayer = BorderLayer(screenView,  isRotating = { surface.isRotating } )
+    val screenViewLayer = ScreenViewLayer(screenView, colorBlindFilter, surface, surface::getRotateSurfaceDegree)
     return ImmutableList.of(backgroundLayer, borderLayer, screenViewLayer)
   }
 }

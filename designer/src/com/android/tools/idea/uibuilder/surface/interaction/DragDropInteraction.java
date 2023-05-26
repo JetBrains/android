@@ -347,7 +347,7 @@ public class DragDropInteraction extends Interaction {
       if (myDragHandler != null) {
         myDragHandler.cancel();
         myDragHandler = null;
-        mySceneView.getSurface().repaint();
+        myDesignSurface.repaint();
       }
 
       myCurrentHandler = handler;

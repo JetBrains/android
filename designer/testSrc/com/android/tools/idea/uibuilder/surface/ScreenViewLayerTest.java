@@ -136,7 +136,7 @@ public class ScreenViewLayerTest {
     // Create a high quality image bigger than the screenView that will be scaled.
     ImagePool.Image imageHQ = getTestImage(IMAGE_WIDTH, IMAGE_HEIGHT);
     ScreenView screenView = createScreenViewMock(screenViewSize, createRenderResultMock(imageHQ));
-    ScreenViewLayer layer = new ScreenViewLayer(screenView);
+    ScreenViewLayer layer = new ScreenViewLayer(screenView, screenView.getSurface(), screenView.getSurface()::getRotateSurfaceDegree);
 
     // First, we expect the low quality scaling in the first call.
     BufferedImage unscaled = new BufferedImage(SCREEN_VIEW_WIDTH, SCREEN_VIEW_HEIGHT, BufferedImage.TYPE_INT_ARGB);

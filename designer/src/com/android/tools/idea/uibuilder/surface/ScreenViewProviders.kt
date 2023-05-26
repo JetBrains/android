@@ -197,7 +197,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
       ImmutableList.builder<Layer>().apply {
         // Always has border in visualization tool.
         add(BorderLayer(it, isRotating = { surface.isRotating }))
-        add(ScreenViewLayer(it, colorBlindMode))
+        add(ScreenViewLayer(it, colorBlindMode, surface, surface::getRotateSurfaceDegree))
         add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
         add(WarningLayer(it) {
           if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get())
@@ -247,11 +247,11 @@ internal fun colorBlindProvider(surface: NlDesignSurface,
         // Try to get the specific blind mode for this manager/model
         val colorBlindMode: ColorBlindMode? = findColorBlindMode(manager)
         if (colorBlindMode != null) {
-          add(ScreenViewLayer(it, colorBlindMode))
+          add(ScreenViewLayer(it, colorBlindMode, surface, surface::getRotateSurfaceDegree))
         }
         else {
           // ERROR - at least show the original.
-          add(ScreenViewLayer(it, defaultColorBlindMode))
+          add(ScreenViewLayer(it, defaultColorBlindMode, surface, surface::getRotateSurfaceDegree))
         }
       }.build()
     }

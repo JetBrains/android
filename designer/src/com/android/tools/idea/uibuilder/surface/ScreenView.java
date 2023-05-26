@@ -155,9 +155,8 @@ public class ScreenView extends ScreenViewBase {
     if (screenView.hasBorderLayer()) {
       builder.add(new BorderLayer(screenView, () -> screenView.getSurface().isRotating()));
     }
-    builder.add(new ScreenViewLayer(screenView));
-
     NlDesignSurface surface = screenView.getSurface();
+    builder.add(new ScreenViewLayer(screenView, surface, surface::getRotateSurfaceDegree));
     SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
