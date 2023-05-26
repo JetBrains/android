@@ -178,9 +178,6 @@ iml_module(
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.imports",
         },
-        "lang": {
-            "test_filter": "com.android.tools.idea.lang",
-        },
         "model": {
             "test_filter": "com.android.tools.idea.model",
         },
