@@ -180,6 +180,11 @@
       <module fileurl="file://$PROJECT_DIR$/android/lang/intellij.android.core.lang.iml" filepath="$PROJECT_DIR$/android/lang/intellij.android.core.lang.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/model/intellij.android.core.model.iml" filepath="$PROJECT_DIR$/android/model/intellij.android.core.model.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/completion/intellij.android.core.completion.iml" filepath="$PROJECT_DIR$/android/completion/intellij.android.core.completion.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/editors/intellij.android.core.editors.iml" filepath="$PROJECT_DIR$/android/editors/intellij.android.core.editors.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/editors.fast/intellij.android.core.editors.fast.iml" filepath="$PROJECT_DIR$/android/editors.fast/intellij.android.core.editors.fast.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/editors.literals/intellij.android.core.editors.literals.iml" filepath="$PROJECT_DIR$/android/editors.literals/intellij.android.core.editors.literals.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/editors.manifest/intellij.android.core.editors.manifest.iml" filepath="$PROJECT_DIR$/android/editors.manifest/intellij.android.core.editors.manifest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/editors.strings/intellij.android.core.editors.strings.iml" filepath="$PROJECT_DIR$/android/editors.strings/intellij.android.core.editors.strings.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/intellij.android.core.agp-integration-tests.iml" filepath="$PROJECT_DIR$/android/intellij.android.core.agp-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/instantapp/intellij.android.core.instantapp.iml" filepath="$PROJECT_DIR$/android/instantapp/intellij.android.core.instantapp.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/apk/intellij.android.core.apk.iml" filepath="$PROJECT_DIR$/android/apk/intellij.android.core.apk.iml" />

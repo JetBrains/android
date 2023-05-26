@@ -139,23 +139,6 @@ iml_module(
     iml_files = ["intellij.android.core.tests.iml"],
     split_test_targets = {
         # Keep sorted by the test_filter package, with "other" at the end.
-        "editors": {
-            "test_filter": "com.android.tools.idea.editors",
-        },
-        "editors.fast": {
-            "test_filter": "com.android.tools.idea.editors.fast",
-        },
-        "editors.manifest": {
-            "test_filter": "com.android.tools.idea.editors.manifest",
-        },
-        "editors.literals": {
-            # b/253897699
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.editors.literals",
-        },
-        "editors.strings": {
-            "test_filter": "com.android.tools.idea.editors.strings",
-        },
         "gradle": {
             "shard_count": 6,
             "data": ["//prebuilts/studio/sdk:ndk"],

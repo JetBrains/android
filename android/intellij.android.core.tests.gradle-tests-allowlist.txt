@@ -4,8 +4,6 @@
 #
 # Please do not add to this list. Instead add gradle project tests
 # to :intellij.android.core.agp-integration-tests
-com.android.tools.idea.editors.manifest.ManifestActionLocationTest
-com.android.tools.idea.editors.manifest.ManifestConflictTest
 com.android.tools.idea.gradle.LibraryFilePathsTest
 com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManagerTest
 com.android.tools.idea.gradle.plugin.AndroidPluginInfoTest
