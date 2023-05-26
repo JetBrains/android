@@ -178,9 +178,6 @@ iml_module(
             "shard_count": 2,
             "test_filter": "com.android.tools.idea.imports",
         },
-        "model": {
-            "test_filter": "com.android.tools.idea.model",
-        },
         "navigator": {
             "shard_count": 2,
             "data": ["//prebuilts/studio/sdk:ndk"],
