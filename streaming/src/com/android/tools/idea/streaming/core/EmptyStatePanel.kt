@@ -70,7 +70,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
   private var emulatorLaunchesInToolWindow: Boolean
   private var deviceMirroringEnabled: Boolean
-  private var emulatorVersionIsSufficient: Boolean
+  private var emulatorVersionIsInsufficient: Boolean
   private var hyperlinkListener: HyperlinkListener
 
   init {
@@ -84,7 +84,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
     emulatorLaunchesInToolWindow = EmulatorSettings.getInstance().launchInToolWindow
     deviceMirroringEnabled = DeviceMirroringSettings.getInstance().deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()
-    emulatorVersionIsSufficient = true
+    emulatorVersionIsInsufficient = false
 
     hyperlinkListener = HyperlinkListener { event ->
       if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
@@ -148,9 +148,9 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
   private fun localPackagesUpdated(packages: RepositoryPackages) {
     val emulatorPackage = packages.localPackages[SdkConstants.FD_EMULATOR] ?: return
     UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-      val sufficient = emulatorPackage.version >= Revision.parseRevision(MIN_REQUIRED_EMULATOR_VERSION)
-      if (emulatorVersionIsSufficient != sufficient) {
-        emulatorVersionIsSufficient = sufficient
+      val insufficient = emulatorPackage.version < Revision.parseRevision(MIN_REQUIRED_EMULATOR_VERSION)
+      if (emulatorVersionIsInsufficient != insufficient) {
+        emulatorVersionIsInsufficient = insufficient
         updateContent()
       }
     }
@@ -158,72 +158,33 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
   private fun createContent() {
     val linkColorString = (JBUI.CurrentTheme.Link.Foreground.ENABLED.rgb and 0xFFFFFF).toString(16)
-    val html = when {
-      emulatorLaunchesInToolWindow && emulatorVersionIsSufficient && deviceMirroringEnabled ->
-        """
-        <center>
-        <p>To launch a&nbsp;virtual device, use
-        the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
-        or run your app while targeting a&nbsp;virtual device.</p>
-        <p/>
-        <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
-        </center>
-        """.trimIndent()
-      emulatorLaunchesInToolWindow && emulatorVersionIsSufficient && !deviceMirroringEnabled ->
-        """
-        <center>
-        <p>To launch a&nbsp;virtual device, use
-        the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
-        or run your app while targeting a&nbsp;virtual device.</p>
-        <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
-        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
-        </p>
-        </center>
-        """.trimIndent()
-      emulatorLaunchesInToolWindow && !emulatorVersionIsSufficient && deviceMirroringEnabled ->
-        """
-        <center>
-        <p>To launch virtual devices in this window, install Android Emulator $MIN_REQUIRED_EMULATOR_VERSION or higher.
-        Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install
-        the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator.</p>
-        <p/>
-        <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
-        </center>
-        """.trimIndent()
-      emulatorLaunchesInToolWindow && !emulatorVersionIsSufficient && !deviceMirroringEnabled ->
-        """
-        <center>
-        <p>To launch virtual devices in this window, install Android Emulator $MIN_REQUIRED_EMULATOR_VERSION or higher.
-        Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install
-        the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator.</p>
-        <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
-        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
-        </p>
-        </center>
-        """.trimIndent()
-      deviceMirroringEnabled ->
-        """
-        <center>
-        <p>To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option
-        in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
-        <p/>
-        <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
-        </center>
-        """.trimIndent()
+    val virtualFragment = when {
+      emulatorVersionIsInsufficient ->
+          "To launch virtual devices in this window, install Android Emulator $MIN_REQUIRED_EMULATOR_VERSION or higher. " +
+          "Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install " +
+          "the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator."
+      emulatorLaunchesInToolWindow ->
+          "To launch a&nbsp;virtual device, use the&nbsp;" +
+          "<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font> " +
+          "or run your app while targeting a&nbsp;virtual device."
       else ->
-        """
-        <center>
-        <p>To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option
-        in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
-        <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
-        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
-        </p>
-        </center>
-        """.trimIndent()
+          "To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option in&nbsp;the&nbsp;" +
+          "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>."
     }
+    val physicalFragment = when {
+      deviceMirroringEnabled -> "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi."
+      else ->
+          "To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option in&nbsp;" +
+          "the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>."
+    }
+    val html =
+      """
+      <center>
+      <p>$virtualFragment</p>
+      <p/>
+      <p>$physicalFragment</p>
+      </center>
+      """.trimIndent()
 
     val text = htmlComponent(text = html,
                              lineWrap = true,
