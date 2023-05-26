@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.inspection
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
@@ -25,12 +26,19 @@ import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.google.common.truth.Truth
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiDocumentManager
 
 data class LineToInsights(val line: Int, val insights: List<AppInsight>)
 
-internal fun buildIssue(): AppInsightsIssue {
-  return AppInsightsIssue(issueDetails = MockitoKt.mock(), sampleEvent = Event())
+internal fun buildIssue(appVcsInfo: AppVcsInfo): AppInsightsIssue {
+  return AppInsightsIssue(
+    issueDetails = MockitoKt.mock(),
+    sampleEvent = Event(appVcsInfo = appVcsInfo)
+  )
 }
 
 internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight {
@@ -71,5 +79,16 @@ internal fun Document.assertHighlightResults(
     Truth.assertThat(highlightInfo.severity).isEqualTo(HighlightSeverity.INFORMATION)
     Truth.assertThat((highlightInfo.gutterIconRenderer as AppInsightsGutterRenderer).insights)
       .isEqualTo(expectedLineToInsights[index].insights)
+  }
+}
+
+internal fun Document.updateFileContentWithoutSaving(text: String, project: Project) {
+  ApplicationManager.getApplication().invokeAndWait {
+    val runnable = {
+      setText(text)
+      PsiDocumentManager.getInstance(project).commitDocument(this)
+    }
+
+    WriteAction.run<RuntimeException>(runnable)
   }
 }

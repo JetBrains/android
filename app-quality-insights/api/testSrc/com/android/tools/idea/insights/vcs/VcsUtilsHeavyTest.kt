@@ -67,4 +67,14 @@ class VcsUtilsHeavyTest {
     // Assert
     assertThat(found).isNull()
   }
+
+  @Test
+  fun `create vcs document`() {
+    val file = projectRule.fixture.configureByText("Foo.kt", "class Foo {}")
+    val document =
+      createVcsDocument(VCS_CATEGORY.TEST_VCS, file.virtualFile, "1", projectRule.project)
+
+    assertThat(document).isNotNull()
+    assertThat(document!!.text).isEqualTo("class Foo {}")
+  }
 }

@@ -15,25 +15,61 @@
  */
 package com.android.tools.idea.insights.inspection
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Frame
+import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
+import com.android.tools.idea.insights.RepoInfo
+import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
+import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
+import com.android.tools.idea.insights.vcs.updateVcsInfoFlagInModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInsight.daemon.GutterIconDescriptor
 import com.intellij.codeInsight.daemon.LineMarkerSettings
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.replaceService
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class AppInsightsExternalAnnotatorTest {
-  @get:Rule val projectRule = AndroidProjectRule.onDisk()
+@RunWith(Parameterized::class)
+class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: Boolean) {
+  private val projectRule = AndroidProjectRule.onDisk()
+  private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
+  private val flagRule =
+    FlagRule(StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT, enableChangeAwareAnnotation)
+
+  @get:Rule
+  val rule: RuleChain = RuleChain.outerRule(projectRule).around(vcsInsightsRule).around(flagRule)
+
+  companion object {
+    @JvmStatic @Parameterized.Parameters(name = "{0}") fun data() = listOf(true, false)
+  }
+
+  private lateinit var appVcsInfo: AppVcsInfo
 
   private val document
     get() = projectRule.fixture.editor.document
 
+  @Before
+  fun setUp() {
+    projectRule.fixture.module.updateVcsInfoFlagInModel(enableChangeAwareAnnotation)
+    appVcsInfo =
+      AppVcsInfo(
+        listOf(
+          RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "1")
+        )
+      )
+  }
+
   @Test
   fun `disable annotations`() {
-    val expected = listOf(buildAppInsight(Frame(line = 4), buildIssue()))
+    val expected = listOf(buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)))
 
     withFakedInsights(expected)
 
@@ -91,9 +127,9 @@ class AppInsightsExternalAnnotatorTest {
   fun `out of scope issues are filtered out`() {
     val expected =
       listOf(
-        buildAppInsight(Frame(line = 4), buildIssue()),
-        buildAppInsight(Frame(line = 100), buildIssue()),
-        buildAppInsight(Frame(line = 200), buildIssue())
+        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
+        buildAppInsight(Frame(line = 100), buildIssue(appVcsInfo)),
+        buildAppInsight(Frame(line = 200), buildIssue(appVcsInfo))
       )
 
     withFakedInsights(expected)
@@ -116,10 +152,10 @@ class AppInsightsExternalAnnotatorTest {
 
   @Test
   fun `duplicate issues are removed`() {
-    val same = buildIssue()
+    val same = buildIssue(appVcsInfo)
     val expected =
       listOf(
-        buildAppInsight(Frame(line = 1), buildIssue()),
+        buildAppInsight(Frame(line = 1), buildIssue(appVcsInfo)),
         buildAppInsight(Frame(line = 4), same),
         buildAppInsight(Frame(line = 4), same),
       )
@@ -147,8 +183,8 @@ class AppInsightsExternalAnnotatorTest {
   fun `annotations from single insights source`() {
     val expected =
       listOf(
-        buildAppInsight(Frame(line = 1), buildIssue()),
-        buildAppInsight(Frame(line = 4), buildIssue()),
+        buildAppInsight(Frame(line = 1), buildIssue(appVcsInfo)),
+        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
       )
 
     withFakedInsights(expected)
@@ -174,13 +210,13 @@ class AppInsightsExternalAnnotatorTest {
   fun `annotations from two insights sources`() {
     val expected1 =
       listOf(
-        buildAppInsight(Frame(line = 1), buildIssue()),
-        buildAppInsight(Frame(line = 4), buildIssue()),
+        buildAppInsight(Frame(line = 1), buildIssue(appVcsInfo)),
+        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
       )
     val expected2 =
       listOf(
-        buildAppInsight(Frame(line = 2), buildIssue()),
-        buildAppInsight(Frame(line = 4), buildIssue()),
+        buildAppInsight(Frame(line = 2), buildIssue(appVcsInfo)),
+        buildAppInsight(Frame(line = 4), buildIssue(appVcsInfo)),
       )
 
     withFakedInsights(expected1, expected2)

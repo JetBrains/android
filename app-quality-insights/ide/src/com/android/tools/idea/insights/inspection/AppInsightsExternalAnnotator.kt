@@ -29,14 +29,17 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import icons.StudioIcons
 import javax.swing.Icon
-import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.base.psi.getLineCount
 
 private val logger = Logger.getInstance(AppInsightsExternalAnnotator::class.java)
@@ -45,24 +48,51 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   private val lineMarkerProvider = LineMarkerProvider()
   private val analyzer = StackTraceAnalyzer()
 
-  @VisibleForTesting data class InitialInfo(val insights: List<AppInsight>)
+  data class InitialInfo(
+    val insights: List<AppInsight>,
+    val vFile: VirtualFile,
+    val editor: Editor,
+    val project: Project
+  )
 
-  @VisibleForTesting data class AnnotationResult(val insights: List<AppInsight>)
+  data class AnnotationResult(val insights: List<AppInsight>)
 
-  override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean) =
-    doCollectInformation(file)
-
-  private fun doCollectInformation(file: PsiFile): InitialInfo? {
-    if (!LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider)) return null
-
-    val insights = collectInsights(file, analyzer)
-    return if (insights.isEmpty()) null else InitialInfo(insights)
+  override fun collectInformation(file: PsiFile): InitialInfo? {
+    // We do nothing if there's no editor.
+    return null
   }
 
-  override fun doAnnotate(collectedInfo: InitialInfo?): AnnotationResult {
-    collectedInfo ?: return AnnotationResult(emptyList())
+  override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): InitialInfo? {
+    if (!LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider)) return null
+    val vFile = file.virtualFile ?: return null
+    val insights = collectInsights(file, analyzer).takeUnless { it.isEmpty() } ?: return null
 
-    return AnnotationResult(collectedInfo.insights)
+    return InitialInfo(insights, vFile, editor, file.project)
+  }
+
+  override fun doAnnotate(collectedInfo: InitialInfo?): AnnotationResult? {
+    collectedInfo ?: return null
+
+    val project = collectedInfo.project
+    val insights = collectedInfo.insights
+
+    if (!project.isChangeAwareAnnotationEnabled()) {
+      return AnnotationResult(insights)
+    }
+
+    val resolved =
+      insights.mapNotNull { insight ->
+        ProgressManager.checkCanceled()
+        if (collectedInfo.editor.isDisposed) return@mapNotNull null
+
+        insight.updateToCurrentLineNumber(
+          collectedInfo.vFile,
+          collectedInfo.editor.document,
+          project
+        )
+      }
+
+    return AnnotationResult(resolved)
   }
 
   override fun apply(file: PsiFile, annotationResult: AnnotationResult?, holder: AnnotationHolder) {
@@ -140,6 +170,33 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
         }
       }
       .flatten()
+  }
+
+  /**
+   * Returns [AppInsight] with up-to-date [AppInsight.line] or null if there's no matching line
+   * number inferred.
+   */
+  private fun AppInsight.updateToCurrentLineNumber(
+    vFile: VirtualFile,
+    document: Document,
+    project: Project
+  ): AppInsight? {
+    val startTime = System.currentTimeMillis()
+
+    // We try with best attempt.
+    val vcsDocument = tryCreateVcsDocumentOrNull(vFile, project) ?: return null
+
+    val oldLineNumber = line
+    val newLineNumber = getUpToDateLineNumber(oldLineNumber, vcsDocument, document)
+
+    val endTime = System.currentTimeMillis()
+    logger.debug(
+      "It takes ${endTime - startTime}ms to map line number from $oldLineNumber to $newLineNumber in $vFile."
+    )
+
+    newLineNumber ?: return null
+
+    return copy(line = newLineNumber)
   }
 
   class LineMarkerProvider : LineMarkerProviderDescriptor() {

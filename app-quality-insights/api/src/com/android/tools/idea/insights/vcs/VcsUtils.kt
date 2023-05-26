@@ -21,7 +21,10 @@ import com.android.tools.idea.insights.RepoInfo
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.intellij.dvcs.repo.Repository
 import com.intellij.dvcs.repo.VcsRepositoryManager
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtilRt
 import com.intellij.openapi.vcs.AbstractVcs
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
@@ -55,4 +58,21 @@ fun createShortRevisionString(vcsKey: VCS_CATEGORY, revision: String): String? {
   val revisionNumber = createRevisionNumber(vcsKey, revision) ?: return null
 
   return VcsUtil.getShortRevisionString(revisionNumber)
+}
+
+fun createVcsDocument(
+  vcsKey: VCS_CATEGORY,
+  virtualFile: VirtualFile,
+  revision: String,
+  project: Project
+): Document? {
+  // There's underlying cache layer: `ContentRevisionCache`.
+  val vcsContentText =
+    VcsForAppInsights.getExtensionByKey(vcsKey)
+      ?.createVcsContent(virtualFile.toVcsFilePath(), revision, project)
+      ?.content
+      ?.let { StringUtilRt.convertLineSeparators(it, "\n") }
+      ?: return null
+
+  return DocumentImpl(vcsContentText)
 }

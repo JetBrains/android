@@ -1472,6 +1472,14 @@ public final class StudioFlags {
   // region App Insights
   private static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
+  public static final Flag<Boolean> APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT =
+    Flag.create(
+      APP_INSIGHTS,
+      "insights.change.aware.annotation",
+      "Change-aware Annotation Support",
+      "Enhance annotation to aid crash investigation with the recorded VCS info",
+      false);
+
   public static final Flag<Boolean> APP_INSIGHTS_VCS_SUPPORT =
     Flag.create(
       APP_INSIGHTS,

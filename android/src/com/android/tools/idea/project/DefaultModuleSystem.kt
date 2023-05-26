@@ -300,7 +300,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   override var useAndroidX: Boolean by UserData(Keys.useAndroidX, false)
 
-  override val enableVcsInfo: Boolean by UserData(Keys.enableVcsInfo, false)
+  override var enableVcsInfo: Boolean by UserData(Keys.enableVcsInfo, false)
 }
 
 /**
