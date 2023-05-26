@@ -170,22 +170,30 @@ public class IssueModel implements Disposable {
   }
 
   /**
-   * Add issue provider
+   * Add issue provider.
+
    * @param update true if issueModel should be updated to display newest information. False otherwise.
+   * @return true if issueProvider was not already an {@link IssueProvider} associated with this {@link IssueModel}, otherwise false
    */
-  public void addIssueProvider(@NotNull IssueProvider issueProvider, boolean update) {
+  public boolean addIssueProvider(@NotNull IssueProvider issueProvider, boolean update) {
+    boolean wasAdded;
     synchronized (myIssueProviders) {
-      myIssueProviders.add(issueProvider);
+      wasAdded = myIssueProviders.add(issueProvider);
     }
     issueProvider.addListener(myUpdateCallback);
     if (update) {
       updateErrorsList();
     }
+    return wasAdded;
   }
 
-  /** Add issue provider, and update the error list. */
-  public void addIssueProvider(@NotNull IssueProvider issueProvider) {
-    addIssueProvider(issueProvider, true);
+  /**
+   * Add issue provider, and update the error list.
+   *
+   * @return true if issueProvider was not already an {@link IssueProvider} associated with this {@link IssueModel}, otherwise false
+   */
+  public boolean addIssueProvider(@NotNull IssueProvider issueProvider) {
+    return addIssueProvider(issueProvider, true);
   }
 
   public void removeIssueProvider(@NotNull IssueProvider issueProvider) {

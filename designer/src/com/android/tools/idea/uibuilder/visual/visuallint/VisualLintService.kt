@@ -143,10 +143,12 @@ class VisualLintService(val project: Project): Disposable {
       {
         removeAllIssueProviders()
         issueProvider.clear()
-        Disposer.register(parentDisposable) {
-          issueModel.removeIssueProvider(issueProvider)
+        val wasAdded = issueModel.addIssueProvider(issueProvider, true)
+        if (wasAdded) {
+          Disposer.register(parentDisposable) {
+            issueModel.removeIssueProvider(issueProvider)
+          }
         }
-        issueModel.addIssueProvider(issueProvider, true)
 
         val visualLintBaseConfigIssues = VisualLintBaseConfigIssues()
         modelsForBackgroundRun.forEach { runBackgroundVisualLinting(it, issueProvider, visualLintBaseConfigIssues) }
