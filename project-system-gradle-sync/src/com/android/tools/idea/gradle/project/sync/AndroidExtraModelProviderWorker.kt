@@ -26,6 +26,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.GradleVersion
+import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 
@@ -100,11 +101,18 @@ internal class AndroidExtraModelProviderWorker(
             models + StandaloneDeliverableModel.createModel(syncExecutionReport, buildInfo.rootBuild)
           }
           is NativeVariantsSyncActionOptions -> {
+            // Native sync may run with just a subset of resolvers, so make sure to fetch  IdeaProject and ExternalProject directly
             consumer.consume(
               buildInfo.rootBuild,
               // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
               safeActionRunner.runAction { controller -> controller.getModel(IdeaProject::class.java) },
               IdeaProject::class.java
+            )
+            consumer.consume(
+              buildInfo.rootBuild,
+              // TODO(b/215344823): Idea parallel model fetching is broken for now, so we need to request it sequentially.
+              safeActionRunner.runAction { controller -> controller.getModel(ExternalProject::class.java) },
+              ExternalProject::class.java
             )
             NativeVariantsSyncActionWorker(buildInfo, syncOptions, safeActionRunner).fetchNativeVariantsAndroidModels()
           }
