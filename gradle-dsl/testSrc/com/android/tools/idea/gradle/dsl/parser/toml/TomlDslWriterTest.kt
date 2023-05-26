@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
@@ -216,10 +218,68 @@ class TomlDslWriterTest : PlatformTestCase() {
     return libsTomlFile
   }
 
+  fun testSimpleBlock() {
+    val contents = mapOf("block" to blockOf("key1" to "value1", "key2" to "value2"))
+    val expected = """
+      [block]
+      key1 = "value1"
+      key2 = "value2"
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testParentChildBlocksWithAttributes() {
+    val contents = mapOf("block1" to blockOf("key1" to "value1", "block2" to blockOf( "key2" to "value2")))
+    val expected = """
+      [block1]
+      key1 = "value1"
+      [block1.block2]
+      key2 = "value2"
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testCreatingSegmentedBlock() {
+    val contents = mapOf("block1" to blockOf("block2" to blockOf( "key2" to "value2")))
+    val expected = """
+      [block1.block2]
+      key2 = "value2"
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testCreatingArrayInBlock() {
+    val contents = mapOf("block1" to blockOf("array" to listOf("element1", "element2")))
+    val expected = """
+      [block1]
+      array = ["element1", "element2"]
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  fun testCreatingMapInBlock  () {
+    val contents = mapOf("block1" to blockOf("key" to mapOf("key1" to "value1")))
+    val expected = """
+      [block1]
+      key = { key1 = "value1" }
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
   private fun mapToProperties(map: Map<String,Any>, dslFile: GradleDslFile) {
     fun populate(key: String, value: Any, element: GradlePropertiesDslElement) {
       when (value) {
         is String -> element.setNewLiteral(key, value)
+        is Block<*,*> -> {
+          val block = TestBlockElement(element, key)
+          value.forEach { (k, v) -> populate(k as String, v as Any, block) }
+          element.setNewElement(block)
+        }
         is List<*> -> {
           val dslList = GradleDslExpressionList(element, GradleNameElement.create(key), true)
           value.forEachIndexed { i, v -> populate(i.toString(), v as Any, dslList) }
@@ -233,5 +293,21 @@ class TomlDslWriterTest : PlatformTestCase() {
       }
     }
     map.forEach { (k, v) -> populate(k, v, dslFile) }
+  }
+
+  private class TestBlockElement(parent: GradleDslElement, name: String) : GradleDslBlockElement(parent, GradleNameElement.create(name))
+
+  private class Block<K,V> : HashMap<K,V>()
+
+  private fun <K, V> blockOf(vararg pairs: Pair<K, V>): Map<K, V> {
+    val b = Block<K,V>()
+    pairs.toMap(b)
+    return b
+  }
+
+  private fun <K,V> blockOf(pair: Pair<K, V>): Map<K, V> {
+    val b = Block<K,V>()
+    b[pair.first] =  pair.second
+    return b
   }
 }

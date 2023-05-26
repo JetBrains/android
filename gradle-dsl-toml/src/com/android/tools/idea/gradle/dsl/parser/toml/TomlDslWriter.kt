@@ -24,8 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
-
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -45,6 +43,7 @@ import org.toml.lang.psi.TomlElementTypes
 import org.toml.lang.psi.TomlElementTypes.COMMA
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
+import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlPsiFactory
@@ -66,18 +65,26 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     if(element.isAlreadyCreated()) element.psiElement?.let { return it }
 
+    if (element.isNewEmptyBlockElement) {
+      return null // Avoid creation of an empty block statement.
+    }
+
+    if(!canReuseParent(element)) element.parent?.psiElement = null
+
     val parentPsiElement = ensureParentPsi(element) ?: return null
     val project = parentPsiElement.project
     val factory = TomlPsiFactory(project)
-    val comma = factory.createComma()
 
-    val externalNameInfo = maybeTrimForParent(element, this)
+    if (element.parent?.isBlockElement == true && element.isBlockElement) {
+      // we have special handler for block elements
+      return createBlockInBlock(element, factory)
+    }
 
-    val name = externalNameInfo.externalNameParts.getOrElse(0) { "" }
+    val name = getNameTrimmedForParent(element)
+
     val psi = when (element.parent) {
                 is GradleDslFile -> when (element) {
-                  is GradleDslExpressionMap -> factory.createTable(name)
-                  is GradleDslBlockElement -> getBlockDottedList(element)?.let(factory::createTable)
+                  is GradleDslExpressionMap, is GradleDslBlockElement -> factory.createTable(name)
                   is GradleDslElementList, is GradleDslExpressionList -> factory.createArrayTable(name)
                   else -> factory.createKeyValue(name, "\"placeholder\"")
                 }
@@ -94,14 +101,16 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
                   is GradleDslExpressionList -> factory.createKeyValue(name, "[]")
                   else -> factory.createKeyValue(name, "\"placeholder\"")
                 }
-              } ?: return null
+              }
 
     val anchor = getAnchorPsi(parentPsiElement, element.anchor)
 
     val addedElement = parentPsiElement.addAfter(psi, anchor)
 
+    val comma = factory.createComma()
     if (anchor != null) {
       when (parentPsiElement) {
+        // this actually adds new line before addedElement
         is TomlTable, is TomlFile, is TomlArrayTable -> addedElement.addAfter(factory.createNewline(), null)
         is TomlInlineTable -> when {
           parentPsiElement.entries.size == 1 -> Unit
@@ -124,22 +133,67 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     return element.psiElement
   }
 
+  private fun getNameTrimmedForParent(element:GradleDslElement):String{
+    val externalNameInfo = maybeTrimForParent(element, this)
+    return externalNameInfo.externalNameParts.getOrElse(0) { "" }
+  }
+
+  /**
+   * Mark element.parent.psiElement as null if we cannot reuse existing parent psi
+   * For example, if we need to add element but parent psi is a key segment
+   */
+  private fun canReuseParent(element: GradleDslElement):Boolean{
+    val parentPsi = element.parent?.psiElement
+    return parentPsi !is TomlKeySegment // we need to create parent psi element
+  }
+
   private fun GradleDslElement.isAlreadyCreated(): Boolean = psiElement?.findParentOfType<TomlFile>(strict = false) != null
 
   private fun TomlPsiFactory.createDot() = createKey("a.b").children[1]
   private fun TomlPsiFactory.createComma() = createInlineTable("a = \"b\", c = \"d\"").children[2]
   private fun TomlPsiFactory.createArrayTable(name: String) = createTableHeader("[$name]").parent as TomlArrayTable
 
+  private fun createBlockInBlock(element: GradleDslElement, factory: TomlPsiFactory): PsiElement?{
+    val parent = element.parent ?: return null
+    val table = ensureParentPsi(element) as? TomlTable ?: return null
+
+    if(parent.hasOnlyBlockElements() && table.entries.isEmpty()) {
+      // need to reuse parent block as it's empty and there is no non block elements
+      val headerKey = table.header.key ?: return null
+      val segments = headerKey.segments
+
+      val name = getNameTrimmedForParent(element)
+
+      val psi = factory.createKeySegment(name)
+      val addedElement = headerKey.addAfter(psi, segments.last())
+      headerKey.addBefore(factory.createDot(), addedElement)
+
+      parent.psiElement = segments.last()
+      element.psiElement = table
+      return table
+    }
+    else {
+      // need to create new table
+      val file = table.parent
+      val newTable = factory.createTable(element.getSegmentedName())
+      val anchor = getAnchorPsi(file, null)
+
+      val addedElement = file.addAfter(newTable, anchor)
+      addedElement.addAfter(factory.createNewline(), null)
+      element.psiElement = addedElement
+      return addedElement
+    }
+  }
+
+  private fun GradleDslElement.hasOnlyBlockElements() = children.all { it.isBlockElement }
 
   /**
    * Returns null if current block has only blocks or empty.
    * Returns reversed dotted path of blocked elements from current to parents like "android.buildTypes"
    */
-  private fun getBlockDottedList(element: GradleDslBlockElement): String? {
-    val nonBlockElements = element.elements.filter { it.value !is GradleDslBlockElement && it.value !is GradleDslNamedDomainContainer }
-    if (nonBlockElements.isEmpty()) return null
+  private fun GradleDslElement.getSegmentedName(): String {
     val result = mutableListOf<String>()
-    var currentElement: GradleDslElement? = element
+    var currentElement: GradleDslElement? = this
     while (currentElement != null && currentElement is GradleDslBlockElement) {
       result.add(currentElement.name)
       currentElement = currentElement.parent

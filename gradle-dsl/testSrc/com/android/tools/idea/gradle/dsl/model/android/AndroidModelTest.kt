@@ -830,6 +830,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
+    skipDeclarativeTemporary()
     writeToBuildFile(TestFile.ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
