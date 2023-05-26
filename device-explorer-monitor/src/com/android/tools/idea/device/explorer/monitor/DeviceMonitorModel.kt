@@ -23,20 +23,27 @@ import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 @UiThread
 class DeviceMonitorModel(private val processService: DeviceProcessService) {
   private var activeDevice: AdbDevice? = null
+  private val activeDeviceMutex = Mutex()
   val tableModel = DeviceMonitorTableModel()
 
   suspend fun activeDeviceChanged(device: IDevice?) {
     if (device != null) {
       if (activeDevice?.device != device) {
-        activeDevice = AdbDevice(device).apply {
-          refreshProcessList(this)
+        activeDeviceMutex.withLock {
+          activeDevice = AdbDevice(device)
         }
+        refreshCurrentDeviceProcessList()
       }
     } else {
+      activeDeviceMutex.withLock {
+        activeDevice = null
+      }
       tableModel.clearProcesses()
     }
   }
@@ -48,7 +55,7 @@ class DeviceMonitorModel(private val processService: DeviceProcessService) {
   }
 
   suspend fun refreshCurrentProcessList() {
-    refreshProcessList(activeDevice)
+    refreshCurrentDeviceProcessList()
   }
 
   suspend fun killNodesInvoked(rows: IntArray) {
@@ -82,11 +89,13 @@ class DeviceMonitorModel(private val processService: DeviceProcessService) {
     }
   }
 
-  private suspend fun refreshProcessList(device: AdbDevice?) {
-    if (device != null) {
-      val processList = processService.fetchProcessList(device)
-      thisLogger().debug("${device}: Process list updated to ${processList.size} processes")
-      tableModel.updateProcessRows(processList)
+  private suspend fun refreshCurrentDeviceProcessList() {
+    activeDeviceMutex.withLock {
+      activeDevice?.let {
+        val processList = processService.fetchProcessList(it)
+        thisLogger().debug("$it: Process list updated to ${processList.size} processes")
+        tableModel.updateProcessRows(processList)
+      }
     }
   }
 }

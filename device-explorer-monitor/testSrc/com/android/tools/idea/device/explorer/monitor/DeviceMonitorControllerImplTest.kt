@@ -122,7 +122,6 @@ class DeviceMonitorControllerImplTest {
     checkMockViewActiveDevice(2)
   }
 
-  @Ignore("http://b/284318588")
   @Test
   fun removingDevice() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
@@ -192,7 +191,6 @@ class DeviceMonitorControllerImplTest {
     }
   }
 
-  @Ignore("http://b/284318588")
   @Test
   fun changeInDeviceSelection() = runBlocking(AndroidDispatchers.uiThread) {
     // Prepare
