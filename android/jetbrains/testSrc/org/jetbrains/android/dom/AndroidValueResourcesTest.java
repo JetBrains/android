@@ -20,7 +20,6 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndr
 import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -44,7 +43,6 @@ import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.module.Module;
@@ -88,8 +86,6 @@ import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
 import org.jetbrains.android.dom.inspections.AndroidUnknownAttributeInspection;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -127,7 +123,7 @@ public class AndroidValueResourcesTest {
     /* gradleVersion= */ null,
     /* agpVersion= */ null,
     /* selectedBuildVariant= */ "debug",
-    /* projectBuilder= */ createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, null));
+    /* projectBuilder= */ createAndroidProjectBuilderForDefaultTestProjectStructure(IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, "p1.p2.lib"));
 
   private static Unit createSourceRoots(File dir) {
     assertThat((new File(dir, "app/src")).mkdirs()).isTrue();
@@ -193,25 +189,6 @@ public class AndroidValueResourcesTest {
 
   private void waitForResourceRepositoryUpdates() throws Exception {
     AndroidTestUtils.waitForResourceRepositoryUpdates(myFacet, 2, TimeUnit.SECONDS);
-  }
-
-  private void deleteManifest(final Module module) {
-    AndroidFacet facet = AndroidFacet.getInstance(module);
-    assertThat(facet).isNotNull();
-    ApplicationManager.getApplication().runWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        VirtualFile manifest = AndroidRootUtil.getPrimaryManifestFile(facet);
-        if (manifest != null) {
-          try {
-            manifest.delete(this);
-          }
-          catch (IOException e) {
-            fail("Could not delete default manifest");
-          }
-        }
-      }
-    });
   }
 
   @Test
@@ -652,9 +629,16 @@ public class AndroidValueResourcesTest {
 
   @Test
   public void createResourceFromUsage() throws Throwable {
-    VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml", "app/res/values/drawables.xml");
-    doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile(MY_TEST_FOLDER + '/' + getTestName(true) + "_after.xml", true);
+    VirtualFile virtualFile = copyFileToProject("createResourceFromUsage.xml", "app/res/values/drawables.xml");
+    myFixture.configureFromExistingVirtualFile(virtualFile);
+
+    myFixture.doHighlighting();
+    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+
+    IntentionAction action = myFixture.findSingleIntention("Create drawable value resource");
+    WriteCommandAction.runWriteCommandAction(myProject, () -> action.invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
+
+    myFixture.checkResultByFile(MY_TEST_FOLDER + "/createResourceFromUsage_after.xml", true);
   }
 
   @Test
@@ -743,20 +727,38 @@ public class AndroidValueResourcesTest {
 
   @Test
   public void javaCreateFromUsage() throws Throwable {
-    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "app/src/p1/p2/" + getTestName(false) + ".java");
-/* b/266338533
-    doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("app/res/values/drawables.xml", myTestFolder + '/' + getTestName(true) + "_drawables_after.xml", true);
-b/266338533 */
+    VirtualFile virtualFile = copyFileToProject("JavaCreateFromUsage.java", "app/src/p1/p2/JavaCreateFromUsage.java");
+    myFixture.configureFromExistingVirtualFile(virtualFile);
+
+    myFixture.doHighlighting();
+    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+
+    IntentionAction action = myFixture.findSingleIntention("Create drawable value resource");
+    WriteCommandAction.runWriteCommandAction(myProject, () -> action.invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
+
+    myFixture.checkResultByFile(
+      "app/res/values/drawables.xml",
+      MY_TEST_FOLDER + "/javaCreateFromUsage_drawables_after.xml",
+      true);
   }
 
   @Test
   public void javaCreateFromUsage1() throws Throwable {
-    VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "app/src/p1/p2/" + getTestName(false) + ".java");
-/* b/263898646
-    doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("app/res/values/bools.xml", myTestFolder + '/' + getTestName(true) + "_bools_after.xml", true);
-b/263898646 */
+    myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "app/res/values/values.xml");
+
+    VirtualFile virtualFile = copyFileToProject("JavaCreateFromUsage1.java", "app/src/p1/p2/JavaCreateFromUsage1.java");
+    myFixture.configureFromExistingVirtualFile(virtualFile);
+
+    myFixture.doHighlighting();
+    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
+
+    IntentionAction action = myFixture.findSingleIntention("Create bool value resource");
+    WriteCommandAction.runWriteCommandAction(myProject, () -> action.invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
+
+    myFixture.checkResultByFile(
+      "app/res/values/bools.xml",
+      MY_TEST_FOLDER + "/javaCreateFromUsage1_bools_after.xml",
+      true);
   }
 
   /**
@@ -766,19 +768,20 @@ b/263898646 */
    */
   @Test
   public void javaCreateFromUsageResourcesInDeps() throws Throwable {
-    // Replace lib manifest (defaults to p1.p2) with one that has the right package (p1.p2.lib).
-    deleteManifest(libModule);
-    myFixture.copyFileToProject("util/lib/AndroidManifest.xml", "lib/AndroidManifest.xml");
+    final VirtualFile virtualFile =
+      copyFileToProject("JavaCreateFromUsageResourcesInDeps.java", "app/src/p1/p2/JavaCreateFromUsageResourcesInDeps.java");
+    myFixture.configureFromExistingVirtualFile(virtualFile);
 
-    // Should be okay even if main module is missing a manifest since the resources come from the library.
-    deleteManifest(appModule);
+    myFixture.doHighlighting();
+    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
 
-    final VirtualFile virtualFile = copyFileToProject(getTestName(false) + ".java", "app/src/p1/p2/" + getTestName(false) + ".java");
-/* b/263898646
-    doCreateValueResourceFromUsage(virtualFile);
-    myFixture.checkResultByFile("lib/res/values/strings.xml",
-                                myTestFolder + '/' + getTestName(true) + "_strings_after.xml", true);
-b/263898646 */
+    IntentionAction action = myFixture.findSingleIntention("Create string value resource");
+    WriteCommandAction.runWriteCommandAction(myProject, () -> action.invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
+
+    myFixture.checkResultByFile(
+      "lib/res/values/strings.xml",
+      MY_TEST_FOLDER + "/javaCreateFromUsageResourcesInDeps_strings_after.xml",
+      true);
   }
 
   @Test
@@ -1038,25 +1041,6 @@ b/263898646 */
 
   private void dispatchEvents() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-  }
-
-  private void doCreateValueResourceFromUsage(VirtualFile virtualFile) {
-    myFixture.configureFromExistingVirtualFile(virtualFile);
-    List<HighlightInfo> infos = myFixture.doHighlighting();
-    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
-    List<IntentionAction> actions = new ArrayList<>();
-
-    for (HighlightInfo info : infos) {
-      info.findRegisteredQuickFix((descriptor, range) -> {
-        if (descriptor.getAction() instanceof CreateValueResourceQuickFix) {
-          actions.add(descriptor.getAction());
-        }
-        return null;
-      });
-    }
-    assertThat(actions.size()).isEqualTo(1);
-
-    WriteCommandAction.runWriteCommandAction(myProject, () -> actions.get(0).invoke(myProject, myFixture.getEditor(), myFixture.getFile()));
   }
 
   private void doTestJavaCompletion(@NotNull String aPackage) throws Throwable {
