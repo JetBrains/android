@@ -66,9 +66,9 @@ class PerfgateVisualLintTest {
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     DesignerTypeRegistrar.register(LayoutFileType)
     val visualLintInspections = arrayOf(
-      BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
-      TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
-      ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection
+      BoundsAnalyzerInspection(), BottomNavAnalyzerInspection(), BottomAppBarAnalyzerInspection(),
+      TextFieldSizeAnalyzerInspection(), OverlapAnalyzerInspection(), LongTextAnalyzerInspection(),
+      ButtonSizeAnalyzerInspection(), WearMarginAnalyzerInspection()
     )
     projectRule.fixture.enableInspections(*visualLintInspections)
   }

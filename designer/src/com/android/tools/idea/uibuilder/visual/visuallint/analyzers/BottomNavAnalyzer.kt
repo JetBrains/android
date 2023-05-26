@@ -71,6 +71,8 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object BottomNavAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOTTOM_NAV, "bottomNavBackground") {
-  var bottomNavBackground = true
+class BottomNavAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOTTOM_NAV, "bottomNavBackground") {
+  companion object {
+    var bottomNavBackground = true
+  }
 }

@@ -168,6 +168,8 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
 
 }
 
-object LocaleAnalyzerInspection: VisualLintInspection(VisualLintErrorType.LOCALE_TEXT, "localeBackground") {
-  var localeBackground = true
+class LocaleAnalyzerInspection: VisualLintInspection(VisualLintErrorType.LOCALE_TEXT, "localeBackground") {
+  companion object {
+    var localeBackground = true
+  }
 }

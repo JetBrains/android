@@ -95,9 +95,9 @@ class RenderErrorTest {
     composePreviewRepresentation.visualLintingEnabled = true
     val visualLintInspections =
       arrayOf(
-        ButtonSizeAnalyzerInspection,
-        LongTextAnalyzerInspection,
-        TextFieldSizeAnalyzerInspection
+        ButtonSizeAnalyzerInspection(),
+        LongTextAnalyzerInspection(),
+        TextFieldSizeAnalyzerInspection()
       )
     projectRule.fixture.enableInspections(*visualLintInspections)
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)

@@ -70,7 +70,9 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object ButtonSizeAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BUTTON_SIZE, "buttonSizeBackground") {
-  var buttonSizeBackground = true
+class ButtonSizeAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BUTTON_SIZE, "buttonSizeBackground") {
+  companion object {
+    var buttonSizeBackground = true
+  }
 }
 

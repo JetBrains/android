@@ -59,6 +59,8 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object AtfAnalyzerInspection: VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {
-  var atfBackground = true
+class AtfAnalyzerInspection: VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {
+  companion object {
+    var atfBackground = true
+  }
 }

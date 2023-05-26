@@ -62,9 +62,9 @@ class VisualLintAnalysisTest {
   fun setup() {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
-    val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
-                                        TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
-                                        ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection)
+    val visualLintInspections = arrayOf(BoundsAnalyzerInspection(), BottomNavAnalyzerInspection(), BottomAppBarAnalyzerInspection(),
+                                        TextFieldSizeAnalyzerInspection(), OverlapAnalyzerInspection(), LongTextAnalyzerInspection(),
+                                        ButtonSizeAnalyzerInspection(), WearMarginAnalyzerInspection())
     projectRule.fixture.enableInspections(*visualLintInspections)
     InspectionProfileManager.getInstance(projectRule.project).currentProfile.setErrorLevel(
       HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName), HighlightDisplayLevel.ERROR, projectRule.project)
@@ -166,7 +166,7 @@ class VisualLintAnalysisTest {
       assertEquals(it.models.size, it.source.models.size)
     }
 
-    projectRule.fixture.disableInspections(BoundsAnalyzerInspection, TextFieldSizeAnalyzerInspection)
+    projectRule.fixture.disableInspections(BoundsAnalyzerInspection(), TextFieldSizeAnalyzerInspection())
     issueProvider.clear()
     analyzeFile(module, filesToAnalyze, "_device_class_phone")
     analyzeFile(module, filesToAnalyze, "_device_class_foldable")

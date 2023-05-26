@@ -69,6 +69,8 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object TextFieldSizeAnalyzerInspection: VisualLintInspection(VisualLintErrorType.TEXT_FIELD_SIZE, "textFieldSizeBackground") {
-  var textFieldSizeBackground = true
+class TextFieldSizeAnalyzerInspection: VisualLintInspection(VisualLintErrorType.TEXT_FIELD_SIZE, "textFieldSizeBackground") {
+  companion object {
+    var textFieldSizeBackground = true
+  }
 }

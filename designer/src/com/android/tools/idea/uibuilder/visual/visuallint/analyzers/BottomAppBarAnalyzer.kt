@@ -77,6 +77,8 @@ object BottomAppBarAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object BottomAppBarAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOTTOM_APP_BAR, "bottomAppBarBackground") {
-  var bottomAppBarBackground = true
+class BottomAppBarAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOTTOM_APP_BAR, "bottomAppBarBackground") {
+  companion object {
+    var bottomAppBarBackground = true
+  }
 }

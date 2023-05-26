@@ -58,9 +58,9 @@ class VisualLintServiceTest {
     RenderTestUtil.beforeRenderTestCase()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     DesignerTypeRegistrar.register(LayoutFileType)
-    val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
-                                        TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
-                                        ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection, AtfAnalyzerInspection)
+    val visualLintInspections = arrayOf(BoundsAnalyzerInspection(), BottomNavAnalyzerInspection(), BottomAppBarAnalyzerInspection(),
+                                        TextFieldSizeAnalyzerInspection(), OverlapAnalyzerInspection(), LongTextAnalyzerInspection(),
+                                        ButtonSizeAnalyzerInspection(), WearMarginAnalyzerInspection(), AtfAnalyzerInspection())
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
 

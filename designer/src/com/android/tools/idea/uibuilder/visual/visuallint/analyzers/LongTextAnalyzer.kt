@@ -102,6 +102,8 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object LongTextAnalyzerInspection: VisualLintInspection(VisualLintErrorType.LONG_TEXT, "longTextBackground") {
-  var longTextBackground = true
+class LongTextAnalyzerInspection: VisualLintInspection(VisualLintErrorType.LONG_TEXT, "longTextBackground") {
+  companion object {
+    var longTextBackground = true
+  }
 }

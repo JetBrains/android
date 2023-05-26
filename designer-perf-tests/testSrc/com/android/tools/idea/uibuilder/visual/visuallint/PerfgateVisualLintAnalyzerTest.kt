@@ -61,9 +61,9 @@ class PerfgateVisualLintAnalyzerTest {
   fun setup() {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
-    val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
-                                        TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
-                                        ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection)
+    val visualLintInspections = arrayOf(BoundsAnalyzerInspection(), BottomNavAnalyzerInspection(), BottomAppBarAnalyzerInspection(),
+                                        TextFieldSizeAnalyzerInspection(), OverlapAnalyzerInspection(), LongTextAnalyzerInspection(),
+                                        ButtonSizeAnalyzerInspection(), WearMarginAnalyzerInspection())
     projectRule.fixture.enableInspections(*visualLintInspections)
   }
 

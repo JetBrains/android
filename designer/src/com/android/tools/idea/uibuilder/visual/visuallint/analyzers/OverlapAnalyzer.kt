@@ -135,6 +135,8 @@ object OverlapAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object OverlapAnalyzerInspection: VisualLintInspection(VisualLintErrorType.OVERLAP, "overlapBackground") {
-  var overlapBackground = true
+class OverlapAnalyzerInspection: VisualLintInspection(VisualLintErrorType.OVERLAP, "overlapBackground") {
+  companion object {
+    var overlapBackground = true
+  }
 }

@@ -92,6 +92,8 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-object BoundsAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOUNDS, "boundsBackground") {
-  var boundsBackground = true
+class BoundsAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOUNDS, "boundsBackground") {
+  companion object {
+    var boundsBackground = true
+  }
 }

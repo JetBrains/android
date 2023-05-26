@@ -84,6 +84,8 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
 
 data class ViewWithParentBounds(val view: ViewInfo, val absoluteParentLeft: Int, val absoluteParentRight: Int)
 
-object WearMarginAnalyzerInspection: VisualLintInspection(VisualLintErrorType.WEAR_MARGIN, "wearMarginBackground") {
-  var wearMarginBackground = true
+class WearMarginAnalyzerInspection: VisualLintInspection(VisualLintErrorType.WEAR_MARGIN, "wearMarginBackground") {
+  companion object {
+    var wearMarginBackground = true
+  }
 }
