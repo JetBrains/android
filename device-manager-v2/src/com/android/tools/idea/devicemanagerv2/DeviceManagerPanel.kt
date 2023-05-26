@@ -28,6 +28,7 @@ import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.IconButton
+import com.android.tools.adtui.categorytable.RowKey
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -166,14 +167,6 @@ internal class DeviceManagerPanel(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   private suspend fun trackDevice(handle: DeviceHandle) {
-    deviceTable.addOrUpdateRow(DeviceRowData.create(handle, emptyList()))
-
-    handle.sourceTemplate?.let {
-      if (templateInstantiationCount.add(it, 1) == 0) {
-        withContext(uiThread) { deviceTable.setRowVisibleByKey(it, false) }
-      }
-    }
-
     panelScope.launch {
       // As long as the device scope is active, update its state in the table.
       // When it completes, remove it from the table.
@@ -191,7 +184,20 @@ internal class DeviceManagerPanel(
                 .distinctUntilChanged()
                 .map { pairedDevices -> DeviceRowData.create(handle, pairedDevices) }
             }
-            .collect { withContext(uiThread) { deviceTable.addOrUpdateRow(it) } }
+            .collect {
+              withContext(uiThread) {
+                deviceTable.addOrUpdateRow(it, beforeKey = handle.sourceTemplate)
+
+                handle.sourceTemplate?.let {
+                  if (templateInstantiationCount.add(it, 1) == 0) {
+                    if (deviceTable.selection.selectedKeys().contains(RowKey.ValueRowKey(it))) {
+                      deviceTable.selection.selectRow(RowKey.ValueRowKey(handle))
+                    }
+                    deviceTable.setRowVisibleByKey(it, false)
+                  }
+                }
+              }
+            }
         }
         .join()
 

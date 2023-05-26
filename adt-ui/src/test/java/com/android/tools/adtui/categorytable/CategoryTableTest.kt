@@ -88,6 +88,31 @@ class CategoryTableTest {
   }
 
   @Test
+  fun addOrUpdateRow_withPosition() {
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name })
+    val device = CategoryTableDemo.Device("Pixel 4", "33", "Phone", "Offline")
+    table.toggleSortOrder(Api.attribute)
+    listOf(
+        device,
+        device.copy(name = "Pixel 5"),
+        device.copy(name = "Pixel 6"),
+        device.copy(name = "Pixel 7")
+      )
+      .forEach { table.addOrUpdateRow(it) }
+
+    assertThat(table.values.map { it.name })
+      .containsExactly("Pixel 4", "Pixel 5", "Pixel 6", "Pixel 7")
+      .inOrder()
+
+    table.addOrUpdateRow(device.copy(name = "Pixel 4a"), "Pixel 5")
+    table.addOrUpdateRow(device.copy(name = "Pixel 3a", api = "32"), "Pixel 5")
+
+    assertThat(table.values.map { it.name })
+      .containsExactly("Pixel 3a", "Pixel 4", "Pixel 4a", "Pixel 5", "Pixel 6", "Pixel 7")
+      .inOrder()
+  }
+
+  @Test
   fun removeRow() {
     val table = CategoryTable(CategoryTableDemo.columns)
     table.addGrouping(Type.attribute)
