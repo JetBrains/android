@@ -1001,7 +1001,10 @@ iml_studio_test(
     name = "StartUpTest",
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # Disabled due to b/284516925
+    ],
     test_class = "com.android.tools.idea.StartUpTest",
 )
 
