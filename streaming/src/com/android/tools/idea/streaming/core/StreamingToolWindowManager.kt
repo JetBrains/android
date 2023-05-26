@@ -179,7 +179,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val panel = event.content.component as? RunningDevicePanel ?: return
       when (panel) {
         is EmulatorToolWindowPanel -> panel.emulator.shutdown()
-        is DeviceToolWindowPanel -> stopMirroring(panel.deviceSerialNumber)
+        is DeviceToolWindowPanel -> panelClosed(panel)
       }
 
       panels.remove(panel)
@@ -634,6 +634,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       physicalDeviceWatcher?.let { Disposer.dispose(it) }
       physicalDeviceWatcher = null
     }
+  }
+
+  private fun panelClosed(panel: DeviceToolWindowPanel) {
+    val deactivationAction = panel.deviceClient.deviceHandle.deactivationAction
+    deactivationAction?.let { CoroutineScope(Dispatchers.IO).launch { it.deactivate() } } ?: stopMirroring(panel.deviceSerialNumber)
   }
 
   private fun stopMirroring(serialNumber: String) {
