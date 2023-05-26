@@ -35,16 +35,16 @@ import com.intellij.openapi.wm.ToolWindowType
 class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
+
     if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
       toolWindow.hide()
     }
   }
 
   override fun init(toolWindow: ToolWindow) {
-    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
-    toolWindow.setTitleActions(listOf(MoveToWindowAction(toolWindow)))
-
     StreamingToolWindowManager(toolWindow)
+    toolWindow.setTitleActions(listOf(MoveToWindowAction(toolWindow)))
   }
 
   override fun isApplicable(project: Project): Boolean {
