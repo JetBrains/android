@@ -60,7 +60,9 @@ interface AppInsightsProjectLevelController {
   fun toggleFailureType(value: FailureType)
 
   fun enterOfflineMode()
-  fun retrieveLineMatches(file: PsiFile): List<AppInsight>
+
+  fun insightsInFile(file: PsiFile): List<AppInsight>
+
   fun insightsInFile(
     file: PsiFile,
     analyzer: StackTraceAnalyzer,

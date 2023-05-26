@@ -39,68 +39,62 @@ import javax.swing.Icon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.base.psi.getLineCount
 
+private val logger = Logger.getInstance(AppInsightsExternalAnnotator::class.java)
+
 class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationResult>() {
-  private val logger = Logger.getInstance(javaClass)
   private val lineMarkerProvider = LineMarkerProvider()
   private val analyzer = StackTraceAnalyzer()
 
-  private data class AnnotationData(val lineNumber: Int, val insight: AppInsight)
+  @VisibleForTesting data class InitialInfo(val insights: List<AppInsight>)
 
-  @VisibleForTesting data class InitialInfo(val insights: List<AppInsight>, val fileLineCount: Int)
-
-  @VisibleForTesting data class AnnotationResult(val result: Map<Int, List<AppInsight>>)
-
-  override fun collectInformation(file: PsiFile) = doCollectInformation(file)
+  @VisibleForTesting data class AnnotationResult(val insights: List<AppInsight>)
 
   override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean) =
     doCollectInformation(file)
 
   private fun doCollectInformation(file: PsiFile): InitialInfo? {
-    if (!LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider)) {
-      return null
-    }
+    if (!LineMarkerSettings.getSettings().isEnabled(lineMarkerProvider)) return null
 
     val insights = collectInsights(file, analyzer)
-
-    return if (insights.isEmpty()) null else InitialInfo(insights, file.getLineCount())
+    return if (insights.isEmpty()) null else InitialInfo(insights)
   }
 
   override fun doAnnotate(collectedInfo: InitialInfo?): AnnotationResult {
-    val annotationData =
-      collectedInfo
-        ?.insights
-        ?.filter { it.line in 0 until collectedInfo.fileLineCount }
-        ?.map { AnnotationData(lineNumber = it.line, insight = it) }
-        ?: emptyList()
+    collectedInfo ?: return AnnotationResult(emptyList())
 
-    return AnnotationResult(
-      annotationData
-        .groupBy { it.lineNumber }
-        .mapValues { (lineNumber, crashes) ->
-          // Ensures there's only one entry per issue in the crashes list.
-          crashes.map { it.insight }.distinctBy { it.issue }
-        }
-    )
+    return AnnotationResult(collectedInfo.insights)
   }
 
   override fun apply(file: PsiFile, annotationResult: AnnotationResult?, holder: AnnotationHolder) {
-    val doc = PsiDocumentManager.getInstance(file.project).getDocument(file) ?: return
+    annotationResult ?: return
 
-    annotationResult?.result?.forEach { (line, crashes) ->
-      val startLineOffset = doc.getLineStartOffset(line)
-      holder
-        .newSilentAnnotation(HighlightSeverity.INFORMATION)
-        // We do not care for the line itself, so we use startLineOffset for both params.
-        .range(TextRange(startLineOffset, startLineOffset))
-        .gutterIconRenderer(
-          AppInsightsGutterRenderer(crashes) { insight ->
-            AppInsightsToolWindowFactory.show(file.project, insight.provider.displayName) {
-              insight.markAsSelected()
+    val project = file.project
+    val doc = PsiDocumentManager.getInstance(project).getDocument(file) ?: return
+    val validLineNumberRange = 0 until file.getLineCount()
+    val insights = annotationResult.insights
+
+    insights
+      .groupBy { it.line }
+      .filterKeys { it in validLineNumberRange }
+      .mapValues { (_, crashes) ->
+        // Ensures there's only one entry per issue in the crashes list.
+        crashes.distinctBy { it.issue }
+      }
+      .onEach { (line, crashes) ->
+        val startLineOffset = doc.getLineStartOffset(line)
+        holder
+          .newSilentAnnotation(HighlightSeverity.INFORMATION)
+          // We do not care for the line itself, so we use startLineOffset for both params.
+          .range(TextRange(startLineOffset, startLineOffset))
+          .gutterIconRenderer(
+            AppInsightsGutterRenderer(crashes) { insight ->
+              AppInsightsToolWindowFactory.show(file.project, insight.provider.displayName) {
+                insight.markAsSelected()
+              }
             }
-          }
-        )
-        .create()
-    }
+          )
+          .create()
+      }
   }
 
   /**
@@ -110,10 +104,12 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
    * Here each [AppInsightsTabProvider] points to a single kind of source.
    */
   private fun collectInsights(file: PsiFile, analyzer: StackTraceAnalyzer): List<AppInsight> {
+    val project = file.project
+
     return AppInsightsTabProvider.EP_NAME.extensionList
       .filter { it.isApplicable() }
       .map { tabProvider ->
-        val configurationManager = tabProvider.getConfigurationManager(file.project)
+        val configurationManager = tabProvider.getConfigurationManager(project)
 
         when (val model = configurationManager.configuration.value) {
           is AppInsightsModel.Authenticated -> {
@@ -122,7 +118,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
             // Here we do the work just for collecting "matching accuracy" metrics.
             controller.insightsInFile(file, analyzer)
 
-            controller.retrieveLineMatches(file).also {
+            controller.insightsInFile(file).also {
               logger.debug("Found ${it.size} ${controller.key} insights for ${file.name}")
             }
           }

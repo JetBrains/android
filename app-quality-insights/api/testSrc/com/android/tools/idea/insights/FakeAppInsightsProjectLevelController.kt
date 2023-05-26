@@ -46,7 +46,7 @@ class FakeAppInsightsProjectLevelController(
 
   override fun enterOfflineMode() {}
 
-  override fun retrieveLineMatches(file: PsiFile) = retrieveInsights(file)
+  override fun insightsInFile(file: PsiFile) = retrieveInsights(file)
 
   override fun insightsInFile(file: PsiFile, analyzer: StackTraceAnalyzer) {}
 

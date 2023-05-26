@@ -45,7 +45,6 @@ import com.android.tools.idea.insights.events.VisibilityChanged
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueue
-import com.android.tools.idea.insights.inspection.CrashToLineNaiveMapper
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.collect.SetMultimap
@@ -71,6 +70,8 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
+
+private val LOG = Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
 
 private data class ProjectState(
   val currentState: AppInsightsState,
@@ -152,8 +153,7 @@ class AppInsightsProjectLevelControllerImpl(
           offlineStatusManager.offlineStatus.map { it.toEvent() }
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
-          Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
-            .debug("Got event $event for $project.")
+          LOG.debug("Got event $event for $project.")
           val (newState, action) = event.transition(currentState, tracker)
           if (currentState.issues != newState.issues) {
             updateIssueIndex(computeIssuesPerFilename(newState.issues.map { it.value }))
@@ -262,11 +262,23 @@ class AppInsightsProjectLevelControllerImpl(
     eventFlow.emit(event)
   }
 
-  override fun retrieveLineMatches(file: PsiFile): List<AppInsight> =
-    CrashToLineNaiveMapper(this::issuesForFile) { issue ->
-        selectIssue(issue, IssueSelectionSource.INSPECTION)
-      }
-      .retrieve(file, key)
+  override fun insightsInFile(file: PsiFile): List<AppInsight> {
+    val issues = issuesForFile(file).also { logIssues(it, file) }
+    val selectIssueCallback = { issue: AppInsightsIssue ->
+      selectIssue(issue, IssueSelectionSource.INSPECTION)
+    }
+
+    return issues.map { issueInFrame ->
+      AppInsight(
+        line = issueInFrame.crashFrame.frame.line.toInt() - 1,
+        issue = issueInFrame.issue,
+        stackFrame = issueInFrame.crashFrame.frame,
+        cause = issueInFrame.crashFrame.cause,
+        provider = key,
+        markAsSelectedCallback = selectIssueCallback
+      )
+    }
+  }
 
   override fun insightsInFile(
     file: PsiFile,
@@ -279,10 +291,9 @@ class AppInsightsProjectLevelControllerImpl(
           issues
             .map { it.issue.issueDetails.subtitle.ifEmpty { "<missingSubtitle>" } }
             .reduce { acc, value -> acc + "\n" + value }
-        Logger.getInstance(AppInsightsProjectLevelControllerImpl::class.java)
-          .debug(
-            "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
-          )
+        LOG.debug(
+          "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
+        )
       }
       .onEach {
         analyzer.match(file, it.crashFrame)?.let { match ->
@@ -304,6 +315,17 @@ class AppInsightsProjectLevelControllerImpl(
 
   private fun issuesForFile(file: PsiFile): List<IssueInFrame> =
     file.candidateFileNames.flatMap { issuesPerFilename.get(it) }
+
+  private fun logIssues(issues: List<IssueInFrame>, file: PsiFile) {
+    if (issues.isEmpty()) return
+    val formattedIssues =
+      issues
+        .map { it.issue.issueDetails.subtitle.ifEmpty { "<missingSubtitle>" } }
+        .reduce { acc, value -> acc + "\n" + value }
+    LOG.debug(
+      "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
+    )
+  }
 }
 
 data class IssueInFrame(val crashFrame: CrashFrame, val issue: AppInsightsIssue)

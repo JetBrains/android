@@ -15,71 +15,31 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
-import com.android.tools.idea.insights.AppInsight
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Frame
-import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
-import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.GutterIconDescriptor
 import com.intellij.codeInsight.daemon.LineMarkerSettings
-import com.intellij.lang.annotation.AnnotationBuilder
-import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.idea.util.getLineCount
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 
-@RunsInEdt
 class AppInsightsExternalAnnotatorTest {
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
-  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule val disposableRule = DisposableRule()
-
-  private lateinit var mainActivityFile: PsiFile
-
-  @Before
-  fun setup() {
-    projectRule.fixture.testDataPath =
-      TestUtils.resolveWorkspacePath("tools/adt/idea/app-quality-insights/ide/testData").toString()
-    mainActivityFile =
-      projectRule.fixture
-        .copyFileToProject("src/com/google/firebase/assistant/test/MainActivity.kt")
-        .toPsiFile(projectRule.project)!!
-  }
-
-  private val gutterRendererCaptor = ArgumentCaptor.forClass(AppInsightsGutterRenderer::class.java)
+  private val document
+    get() = projectRule.fixture.editor.document
 
   @Test
-  fun testAnnotationsDisabled() {
-    val expected: List<AppInsight> = listOf(mock())
+  fun `disable annotations`() {
+    val expected = listOf(buildAppInsight(Frame(line = 4), buildIssue()))
+
     withFakedInsights(expected)
 
-    var settingEnabled = true
     val fakeLineMarkerSettings =
       object : LineMarkerSettings() {
-        override fun isEnabled(descriptor: GutterIconDescriptor) = settingEnabled
+        override fun isEnabled(descriptor: GutterIconDescriptor) = false
 
         override fun setEnabled(descriptor: GutterIconDescriptor, selected: Boolean) {}
       }
@@ -88,221 +48,177 @@ class AppInsightsExternalAnnotatorTest {
       .replaceService(
         LineMarkerSettings::class.java,
         fakeLineMarkerSettings,
-        disposableRule.disposable
+        projectRule.testRootDisposable
       )
 
-    val file = runReadAction {
-      PsiFileFactory.getInstance(projectRule.project)
-        .createFileFromText(KotlinLanguage.INSTANCE, "foo")
-    }
+    checkAnnotations(
+      fileName = "MainActivity.kt",
+      source =
+        """
+          package test.simple
 
-    val annotator = AppInsightsExternalAnnotator()
-    assertThat(annotator.collectInformation(file)?.insights)
-      .isEqualTo(AppInsightsExternalAnnotator.InitialInfo(expected, 10).insights)
-    settingEnabled = false
-    assertThat(annotator.collectInformation(file)).isNull()
+          class MainActivity {
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      lineToInsights = emptyList()
+    )
   }
 
   @Test
-  fun `lines are correctly annotated`() {
-    val expected: List<AppInsight> =
-      listOf(
-        buildCrashlyticsInsight(Frame(line = 10), mock()),
-        buildCrashlyticsInsight(Frame(line = 12), mock()),
-        buildCrashlyticsInsight(Frame(line = 30), mock())
-      )
-    withFakedInsights(expected)
-
-    val annotator = AppInsightsExternalAnnotator()
-
-    val collectedInformationWhenErrors =
-      annotator.collectInformation(mainActivityFile, mock(), true)
-    val collectedInformation = annotator.collectInformation(mainActivityFile)
-    assertThat(collectedInformation).isEqualTo(collectedInformationWhenErrors)
-
-    assertThat(collectedInformation).isNotNull()
-    assertThat(collectedInformation!!.insights).hasSize(3)
-
-    val annotationResult = annotator.doAnnotate(collectedInformation)
-    assertThat(annotationResult.result)
-      .containsExactlyEntriesIn(
-        mapOf(9 to listOf(expected[0]), 11 to listOf(expected[1]), 29 to listOf(expected[2]))
-      )
-  }
-
-  @Test
-  fun `apply will create annotations for success scenario`() {
-    val expected: List<AppInsight> =
-      listOf(
-        buildCrashlyticsInsight(Frame(line = 10), mock()),
-        buildCrashlyticsInsight(Frame(line = 12), mock()),
-        buildCrashlyticsInsight(Frame(line = 30), mock())
-      )
-    withFakedInsights(expected)
-
-    val annotator = AppInsightsExternalAnnotator()
-    val collectedInformation = annotator.collectInformation(mainActivityFile)
-    val annotationResult = annotator.doAnnotate(collectedInformation)
-
-    val (mockAnnotationHolder, mockAnnotationBuilder) = createMockAnnotationHolderAndBuilder()
-    annotator.apply(mainActivityFile, annotationResult, mockAnnotationHolder)
-
-    verify(mockAnnotationBuilder, times(3)).gutterIconRenderer(gutterRendererCaptor.capture())
-    val capturedValues = gutterRendererCaptor.allValues
-    assertThat(capturedValues.flatMap { it.insights }).containsAllIn(expected)
-  }
-
-  @Test
-  fun `file with no annotations is supported`() {
+  fun `no annotations`() {
     withFakedInsights(emptyList())
 
-    val annotator = AppInsightsExternalAnnotator()
-    val collectedInformation = annotator.collectInformation(mainActivityFile)
-    assertThat(collectedInformation).isNull()
-    assertThat(annotator.doAnnotate(collectedInformation).result).isEmpty()
+    checkAnnotations(
+      fileName = "MainActivity.kt",
+      source =
+        """
+          package test.simple
+
+          class MainActivity {
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      lineToInsights = emptyList()
+    )
   }
 
   @Test
-  fun `file with all issues out of scope is supported`() {
-    val expected: List<AppInsight> =
+  fun `out of scope issues are filtered out`() {
+    val expected =
       listOf(
-        buildCrashlyticsInsight(Frame(line = 300), mock()),
-        buildCrashlyticsInsight(Frame(line = 320), mock()),
-        buildCrashlyticsInsight(Frame(line = 400), mock())
+        buildAppInsight(Frame(line = 4), buildIssue()),
+        buildAppInsight(Frame(line = 100), buildIssue()),
+        buildAppInsight(Frame(line = 200), buildIssue())
       )
+
     withFakedInsights(expected)
 
-    val annotator = AppInsightsExternalAnnotator()
-    val collectedInformation = annotator.collectInformation(mainActivityFile)
-    assertThat(collectedInformation).isNotNull()
-    assertThat(collectedInformation!!.insights).hasSize(3)
+    checkAnnotations(
+      fileName = "MainActivity.kt",
+      source =
+        """
+          package test.simple
 
-    val annotationResult = annotator.doAnnotate(collectedInformation)
-    assertThat(annotationResult.result).isEmpty()
+          class MainActivity {
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      lineToInsights = listOf(LineToInsights(3, listOf(expected[0]))),
+    )
   }
 
   @Test
-  fun `duplicate entries are removed from line`() {
-    val issue = ISSUE1
-    val expected: List<AppInsight> =
+  fun `duplicate issues are removed`() {
+    val same = buildIssue()
+    val expected =
       listOf(
-        buildCrashlyticsInsight(Frame(line = 10), issue),
-        buildCrashlyticsInsight(Frame(line = 10), issue),
-        buildCrashlyticsInsight(Frame(line = 30), mock())
+        buildAppInsight(Frame(line = 1), buildIssue()),
+        buildAppInsight(Frame(line = 4), same),
+        buildAppInsight(Frame(line = 4), same),
       )
+
     withFakedInsights(expected)
 
-    val annotator = AppInsightsExternalAnnotator()
-    val collectedInformation = annotator.collectInformation(mainActivityFile)
-    assertThat(collectedInformation).isNotNull()
-    // Deduping happens after this point
-    assertThat(collectedInformation!!.insights).hasSize(3)
+    checkAnnotations(
+      fileName = "MainActivity.kt",
+      source =
+        """
+          package test.simple
 
-    val annotationResult = annotator.doAnnotate(collectedInformation)
-    assertThat(annotationResult.result).isNotEmpty()
-    // Offset should be 1 less than the expected value
-    assertThat(annotationResult.result.keys).containsAllIn(listOf(9, 29))
+          class MainActivity {
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      lineToInsights =
+        listOf(LineToInsights(0, listOf(expected[0])), LineToInsights(3, listOf(expected[1]))),
+    )
   }
 
   @Test
-  fun `apply works for files with valid annotations`() {
-    val expected: List<AppInsight> =
+  fun `annotations from single insights source`() {
+    val expected =
       listOf(
-        buildCrashlyticsInsight(Frame(line = 10), mock()),
-        buildCrashlyticsInsight(Frame(line = 12), mock()),
-        buildCrashlyticsInsight(Frame(line = 30), mock())
+        buildAppInsight(Frame(line = 1), buildIssue()),
+        buildAppInsight(Frame(line = 4), buildIssue()),
       )
+
     withFakedInsights(expected)
 
-    val annotator = AppInsightsExternalAnnotator()
-    val collectedInformation = annotator.collectInformation(mainActivityFile)
-    assertThat(collectedInformation).isNotNull()
-    assertThat(collectedInformation!!.insights).hasSize(3)
+    checkAnnotations(
+      fileName = "MainActivity.kt",
+      source =
+        """
+          package test.simple
 
-    val annotationResult = annotator.doAnnotate(collectedInformation)
-    assertThat(annotationResult.result).isNotEmpty()
-    // Offset should be 1 less than the expected value
-    assertThat(annotationResult.result.keys).containsAllIn(listOf(9, 11, 29))
+          class MainActivity {
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      lineToInsights =
+        listOf(LineToInsights(0, listOf(expected[0])), LineToInsights(3, listOf(expected[1]))),
+    )
   }
 
   @Test
   fun `annotations from two insights sources`() {
     val expected1 =
       listOf(
-        buildCrashlyticsInsight(Frame(line = 10), mock()),
-        buildCrashlyticsInsight(Frame(line = 12), mock()),
-        buildCrashlyticsInsight(Frame(line = 30), mock())
+        buildAppInsight(Frame(line = 1), buildIssue()),
+        buildAppInsight(Frame(line = 4), buildIssue()),
       )
     val expected2 =
       listOf(
-        buildCrashlyticsInsight(Frame(line = 12), mock()),
-        buildCrashlyticsInsight(Frame(line = 27), mock()),
-        buildCrashlyticsInsight(Frame(line = 78), mock()),
+        buildAppInsight(Frame(line = 2), buildIssue()),
+        buildAppInsight(Frame(line = 4), buildIssue()),
       )
 
     withFakedInsights(expected1, expected2)
-    val annotator = AppInsightsExternalAnnotator()
-    val collectedInformation = annotator.collectInformation(mainActivityFile)
-    assertThat(collectedInformation).isNotNull()
-    assertThat(collectedInformation!!.insights).hasSize(6)
 
-    val annotationResult = annotator.doAnnotate(collectedInformation)
-    assertThat(annotationResult.result)
-      .containsExactlyEntriesIn(
-        mapOf(
-          9 to listOf(expected1[0]),
-          11 to listOf(expected1[1], expected2[0]),
-          29 to listOf(expected1[2]),
-          26 to listOf(expected2[1])
-        )
-      )
+    checkAnnotations(
+      fileName = "MainActivity.kt",
+      source =
+        """
+          package test.simple
 
-    val (mockAnnotationHolder, mockAnnotationBuilder) = createMockAnnotationHolderAndBuilder()
-    annotator.apply(mainActivityFile, annotationResult, mockAnnotationHolder)
-
-    verify(mockAnnotationBuilder, times(4)).gutterIconRenderer(gutterRendererCaptor.capture())
-    assertThat(gutterRendererCaptor.allValues.flatMap { it.insights })
-      .containsAllIn((expected1 + expected2).filter { it.line < mainActivityFile.getLineCount() })
+          class MainActivity {
+              fun onCreate() {
+              }
+          }
+      """
+          .trimIndent(),
+      lineToInsights =
+        listOf(
+          LineToInsights(0, listOf(expected1[0])),
+          LineToInsights(1, listOf(expected2[0])),
+          LineToInsights(3, listOf(expected1[1], expected2[1])),
+        ),
+    )
   }
 
-  private fun buildCrashlyticsInsight(frame: Frame, issue: AppInsightsIssue): AppInsight {
-    val insightMock: AppInsight = mock()
-    whenever(insightMock.stackFrame).thenReturn(frame)
-    whenever(insightMock.issue).thenReturn(issue)
-    whenever(insightMock.line).thenReturn(frame.line.toInt() - 1)
-    return insightMock
-  }
-
-  private fun withFakedInsights(
-    expectedInsightsFromTabProvider1: List<AppInsight>,
-    expectedInsightsFromTabProvider2: List<AppInsight> = emptyList()
+  private fun checkAnnotations(
+    fileName: String,
+    source: String,
+    lineToInsights: List<LineToInsights>
   ) {
-    AppInsightsTabProvider.EP_NAME.extensionList
-      .filterIsInstance<TestTabProvider>()
-      .forEachIndexed { index, tabProvider ->
-        if (index == 0) {
-          tabProvider.returnInsights(expectedInsightsFromTabProvider1)
-        } else {
-          tabProvider.returnInsights(expectedInsightsFromTabProvider2)
-        }
+    val psiFile = projectRule.fixture.addFileToProject("src/$fileName", source)
+    projectRule.fixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+
+    val results =
+      projectRule.fixture.doHighlighting().filter {
+        it.gutterIconRenderer is AppInsightsGutterRenderer
       }
-  }
 
-  private fun createMockAnnotationHolderAndBuilder(): Pair<AnnotationHolder, AnnotationBuilder> {
-    val mockAnnotationHolder: AnnotationHolder = mock()
-    val mockAnnotationBuilder: AnnotationBuilder = mock()
-    whenever(mockAnnotationHolder.newSilentAnnotation(any())).thenReturn(mockAnnotationBuilder)
-    whenever(mockAnnotationBuilder.range(any<TextRange>())).thenReturn(mockAnnotationBuilder)
-    whenever(mockAnnotationBuilder.gutterIconRenderer(any())).thenReturn(mockAnnotationBuilder)
-    return mockAnnotationHolder to mockAnnotationBuilder
+    document.assertHighlightResults(results, lineToInsights)
   }
-
-  private val testTabProvider1: AppInsightsTabProvider
-    get() = AppInsightsTabProvider.EP_NAME.extensionList.first()
-  private val testTabProvider2: AppInsightsTabProvider
-    get() = AppInsightsTabProvider.EP_NAME.extensionList[1]
-  private val testTabProvider1Name: String
-    get() = testTabProvider1.displayName
-  private val testTabProvider2Name: String
-    get() = testTabProvider2.displayName
 }
