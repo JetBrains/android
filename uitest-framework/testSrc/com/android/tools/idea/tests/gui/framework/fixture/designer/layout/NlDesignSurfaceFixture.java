@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import static org.fest.swing.timing.Pause.pause;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -23,16 +26,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import java.util.ArrayList;
+import java.util.List;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static org.fest.swing.timing.Pause.pause;
-import static org.junit.Assert.assertTrue;
 
 public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurfaceFixture, NlDesignSurface> {
 
@@ -107,10 +105,6 @@ public class NlDesignSurfaceFixture extends DesignSurfaceFixture<NlDesignSurface
     for (NlComponent child : component.getChildren()) {
       addComponents(tag, child, components);
     }
-  }
-
-  public boolean isInScreenMode(@NotNull NlScreenViewProvider sceneModesProvider) {
-    return target().getScreenViewProvider() == sceneModesProvider;
   }
 
   public void waitUntilNotShowing(@NotNull Wait wait) {
