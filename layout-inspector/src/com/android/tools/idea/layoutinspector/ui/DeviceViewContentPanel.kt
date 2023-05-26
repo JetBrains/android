@@ -115,8 +115,13 @@ class DeviceViewContentPanel(
   private val deviceViewContentPanelTransform: AffineTransform
     get() {
       return AffineTransform().apply {
+        val screen = renderModel.model.screenDimension
+
+        // translate to center of the panel
         translate(size.width / 2.0, size.height / 2.0)
         scale(renderSettings.scaleFraction, renderSettings.scaleFraction)
+        // center the rendering
+        translate(-screen.width / 2.0, -screen.height / 2.0)
       }
     }
 

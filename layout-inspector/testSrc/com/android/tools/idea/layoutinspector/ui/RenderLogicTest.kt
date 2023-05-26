@@ -694,9 +694,11 @@ class RenderLogicTest {
     val renderModel = RenderModel(inspectorModel, treeSettings) { DisconnectedClient }
     val renderLogic = RenderLogic(renderModel, renderSettings)
 
-    // center the render in the buffered image
     val centerTransform = AffineTransform().apply {
+      // center the render in the buffered image
       translate(renderDimension.width / 2.0, renderDimension.height / 2.0)
+      // make the center of the view correspond to the center of the buffered image
+      translate(-renderModel.model.screenDimension.width / 2.0, -renderModel.model.screenDimension.height / 2.0)
     }
 
     return TestConfig(

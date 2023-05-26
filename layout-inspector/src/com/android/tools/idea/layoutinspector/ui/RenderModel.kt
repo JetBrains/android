@@ -210,7 +210,7 @@ class RenderModel(
       magnitude = min(0.98, hypot(xOff, yOff))
       angle = if (abs(xOff) < 0.00001) PI / 2.0 else atan(yOff / xOff)
 
-      transform.translate(-rootBounds.x.toDouble(), -rootBounds.y.toDouble())
+      // Transformation related to 3D view.
       transform.rotate(angle)
     }
     else {
@@ -354,10 +354,10 @@ class RenderModel(
         val viewTransform = AffineTransform(transform)
 
         val sign = if (xOff < 0) -1 else 1
+        // Transformations related to 3D view.
         viewTransform.translate(magnitude * (level - maxDepth / 2) * layerSpacing * sign, 0.0)
         viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
         viewTransform.rotate(-angle)
-        viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
 
         val rect = viewTransform.createTransformedShape(view.unfilteredOwner.renderBounds)
         newHitRects.add(ViewDrawInfo(rect, viewTransform, view, hitLevel, isCollapsed))

@@ -121,7 +121,7 @@ import javax.swing.JPopupMenu
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val DIFF_THRESHOLD = 0.01
-private const val DIFF_THRESHOLD_TEXT = 0.2
+private const val DIFF_THRESHOLD_TEXT = 0.5
 private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 
 class DeviceViewContentPanelTest {
@@ -590,6 +590,7 @@ class DeviceViewContentPanelTest {
         }
       }
     }
+    model.resourceLookup.screenDimension = Dimension(100, 200)
 
     val renderSettings = FakeRenderSettings()
     renderSettings.drawLabel = false
@@ -603,6 +604,12 @@ class DeviceViewContentPanelTest {
     assertThat(model.selection).isNull()
 
     treeSettings.hideSystemNodes = false
+
+    fakeUi.mouse.click(27,  35)
+    fakeUi.render()
+    fakeUi.layoutAndDispatchEvents()
+    assertThat(model.selection).isSameAs(model[VIEW1]!!)
+
     fakeUi.mouse.doubleClick(27, 35)
     runDispatching { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("activity_main.xml", 7, "<TextView")

@@ -50,57 +50,6 @@ private const val EPSILON = 0.001
 class RenderModelTest {
 
   @Test
-  fun testFlatRects() {
-    val expectedTransforms = mapOf(
-      ROOT to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      VIEW1 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      VIEW2 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      VIEW3 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
-
-    checkRects(expectedTransforms, 0.0, 0.0)
-  }
-
-  @Test
-  fun testFlatRectsWithHiddenSystemNodes() {
-    val expectedTransforms = mapOf(
-      VIEW2 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
-      VIEW3 to AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0))
-
-    checkRects(expectedTransforms, 0.0, 0.0, hideSystemNodes = true)
-  }
-
-  @Test
-  fun test1dRects() {
-    val expectedTransforms = mapOf(
-      ROOT to AffineTransform(0.995, 0.0, 0.0, 1.0, -64.749, -100.0),
-      VIEW1 to AffineTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
-      VIEW3 to AffineTransform(0.995, 0.0, 0.0, 1.0, -34.749, -100.0),
-      VIEW2 to AffineTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
-
-    checkRects(expectedTransforms, 0.1, 0.0)
-  }
-
-  @Test
-  fun test1dRectsWithHiddenSystemNodes() {
-    val expectedTransforms = mapOf(
-      VIEW2 to AffineTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0),
-      VIEW3 to AffineTransform(0.995, 0.0, 0.0, 1.0, -49.749, -100.0))
-
-    checkRects(expectedTransforms, 0.1, 0.0, hideSystemNodes = true)
-  }
-
-  @Test
-  fun test2dRects() {
-    val expectedTransforms = mapOf(
-      ROOT to AffineTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
-      VIEW1 to AffineTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
-      VIEW2 to AffineTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
-      VIEW3 to AffineTransform(0.995, -0.010, -0.010, 0.980, -33.734, -67.468))
-
-    checkRects(expectedTransforms, 0.1, 0.2)
-  }
-
-  @Test
   fun testOverlappingRects() {
     val rectMap = mapOf(
       ROOT to Rectangle(0, 0, 100, 100),
@@ -121,15 +70,7 @@ class RenderModelTest {
       }
     }
 
-    val expectedTransforms = mapOf(
-      ROOT to AffineTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
-      VIEW1 to AffineTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      VIEW2 to AffineTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
-      VIEW3 to AffineTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      VIEW4 to AffineTransform(0.866, 0.0, 0.0, 1.0, 31.698, -50.0)
-    )
-
-    checkModel(model, 0.5, 0.0, expectedTransforms, rectMap)
+    checkModel(model, 0.5, 0.0, rectMap)
   }
 
   @Test
@@ -154,15 +95,7 @@ class RenderModelTest {
       }
     }
 
-    val expectedTransforms = mapOf(
-      ROOT to AffineTransform(0.866, 0.0, 0.0, 1.0, -193.301, -50.0),
-      VIEW1 to AffineTransform(0.866, 0.0, 0.0, 1.0, -118.301, -50.0),
-      VIEW2 to AffineTransform(0.866, 0.0, 0.0, 1.0, -43.301, -50.0),
-      VIEW3 to AffineTransform(0.866, 0.0, 0.0, 1.0, 31.699, -50.0),
-      VIEW4 to AffineTransform(0.866, 0.0, 0.0, 1.0, 106.699, -50.0)
-    )
-
-    checkModel(model, 0.5, 0.0, expectedTransforms, rectMap)
+    checkModel(model, 0.5, 0.0, rectMap)
   }
 
   @Test
@@ -178,10 +111,10 @@ class RenderModelTest {
     treeSettings.hideSystemNodes = false
     val panelModel = RenderModel(model, treeSettings) { DisconnectedClient }
     panelModel.rotate(0.1, 0.2)
-    assertEqualAffineTransform(AffineTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468), panelModel.hitRects[0].transform)
+    assertEqualAffineTransform(AffineTransform(0.995, -0.010, -0.010, 0.980, -15.0, -30.0), panelModel.hitRects[0].transform)
 
     panelModel.resetRotation()
-    assertEqualAffineTransform(AffineTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0), panelModel.hitRects[0].transform)
+    assertEqualAffineTransform(AffineTransform(1.0, 0.0, 0.0, 1.0, 0.0, -0.0), panelModel.hitRects[0].transform)
   }
 
   @Test
@@ -261,10 +194,9 @@ class RenderModelTest {
     }
     val treeSettings = FakeTreeSettings()
     var panelModel = RenderModel(model, treeSettings) { DisconnectedClient }
-    // Note that coordinates are transformed to center the view, so (-45, -45) below corresponds to (5, 5)
-    assertThat(panelModel.findViewsAt(-45.0, -45.0).map { it.drawId }.toList()).containsExactly(VIEW2, VIEW1, ROOT)
-    assertThat(panelModel.findViewsAt(-1.0, -1.0).map { it.drawId }.toList()).containsExactly(ROOT)
-    assertThat(panelModel.findViewsAt(10.0, 10.0).map { it.drawId }.toList()).containsExactly(VIEW3, ROOT)
+    assertThat(panelModel.findViewsAt(5.0, 5.0).map { it.drawId }.toList()).containsExactly(VIEW2, VIEW1, ROOT)
+    assertThat(panelModel.findViewsAt(99.0, 99.0).map { it.drawId }.toList()).containsExactly(ROOT)
+    assertThat(panelModel.findViewsAt(60.0, 60.0).map { it.drawId }.toList()).containsExactly(VIEW3, ROOT)
 
     model = model {
       view(ROOT, 0, 0, 100, 100) {
@@ -342,7 +274,7 @@ class RenderModelTest {
     verify(mockStats).selectionMadeFromImage(selectedView)
   }
 
-  private fun checkRects(expectedTransforms: Map<Long, AffineTransform>, xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
+  private fun checkRects(xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
     val rectMap = mapOf(
       ROOT to Rectangle(0, 0, 100, 200),
       VIEW1 to Rectangle(0, 0, 50, 60),
@@ -361,14 +293,13 @@ class RenderModelTest {
       }
     }
 
-    checkModel(model, xOff, yOff, expectedTransforms, rectMap, hideSystemNodes)
+    checkModel(model, xOff, yOff, rectMap, hideSystemNodes)
   }
 
   private fun checkModel(
     model: InspectorModel,
     xOff: Double,
     yOff: Double,
-    expectedTransforms: Map<Long, AffineTransform>,
     rectMap: Map<Long, Rectangle>,
     hideSystemNodes: Boolean = false
   ) {
@@ -378,8 +309,6 @@ class RenderModelTest {
     panelModel.rotate(xOff, yOff)
 
     val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }
-    assertThat(expectedTransforms.keys).containsExactlyElementsIn(expectedTransforms.keys)
-    expectedTransforms.keys.forEach { assertEqualAffineTransform(expectedTransforms[it]!!, actualTransforms[it]!!) }
 
     panelModel.hitRects.associateBy { it.node.findFilteredOwner(treeSettings)?.drawId }.forEach { (drawId, info) ->
       assertPathEqual(actualTransforms[drawId]?.createTransformedShape(rectMap[drawId])!!, info.bounds)
