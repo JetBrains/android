@@ -231,11 +231,11 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
 
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
-    assertNotNull(targets);
-    assertEquals(1, targets.length);
+    assertThat(targets).isNotNull();
+    assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
     // A styleable only refers to the resource, not the class that may not exist.
-    assertInstanceOf(targetElement, XmlAttributeValue.class);
+    assertThat(targetElement).isInstanceOf(XmlAttributeValue.class);
     assertThat(targetElement.getText()).isEqualTo("\"TextView\"");
   }
 
@@ -246,9 +246,9 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
 
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
-    assertNotNull(targets);
+    assertThat(targets).isNotNull();
     // In the new resources pipeline, a styleable only refers to the resource, not the class that may not exist.
-    assertEquals(3, targets.length);
+    assertThat(targets.length).isEqualTo(3);
     for (PsiElement target : targets) {
       assertThat(target).isInstanceOf(XmlAttributeValue.class);
     }
@@ -475,15 +475,15 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     List<String> lookupElements = myFixture.getLookupElementStrings();
-    assertContainsElements(lookupElements, "@android:", "@color/color1", "@color/color2", "@drawable/picture1");
+    assertThat(lookupElements).containsAllOf("@android:", "@color/color1", "@color/color2", "@drawable/picture1");
     // mipmap won't be offered as an option since there are not mipmap resources
-    assertDoesntContain(lookupElements, "@mipmap/icon");
+    assertThat(lookupElements).doesNotContain("@mipmap/icon");
 
     // Add a mipmap to resources and expect for it to be listed
     myFixture.copyFileToProject(MY_TEST_FOLDER + "/icon.png", "res/mipmap/icon.png");
     waitForResourceRepositoryUpdates();
     myFixture.complete(CompletionType.BASIC);
-    assertContainsElements(myFixture.getLookupElementStrings(), "@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
+    assertThat(myFixture.getLookupElementStrings()).containsAllOf("@android:", "@color/color1", "@drawable/picture1", "@mipmap/icon");
   }
 
   public void testParentStyleReference() {
@@ -493,9 +493,9 @@ public class AndroidValueResourcesTest extends AndroidTestCase {
     String text = psiFile.getText();
     int rootOffset = text.indexOf("Theme\">");
     PsiReference rootReference = psiFile.findReferenceAt(rootOffset);
-    assertNotNull(rootReference);
+    assertThat(rootReference).isNotNull();
     PsiElement element = rootReference.resolve();
-    assertInstanceOf(element, ResourceReferencePsiElement.class);
+    assertThat(element).isInstanceOf(ResourceReferencePsiElement.class);
     assertThat(((ResourceReferencePsiElement)element).getResourceReference())
       .isEqualTo(new ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme"));
   }
@@ -653,10 +653,10 @@ b/263898646 */
 
     myFixture.configureFromExistingVirtualFile(copyFileToProject(fileName));
     myFixture.complete(CompletionType.BASIC);
-    assertEquals("@android:", myFixture.getLookupElementStrings().get(0));
+    assertThat(myFixture.getLookupElementStrings().get(0)).isEqualTo("@android:");
     myFixture.type('\n');
     // Assert another completion was started automatically and that all framework resources are present.
-    assertTrue(myFixture.getLookupElements().length > 100);
+    assertThat(myFixture.getLookupElements().length).isGreaterThan(100);
   }
 
 
@@ -664,10 +664,10 @@ b/263898646 */
   public void ignore_testNavigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
-    assertNotNull(themes_holo);
+    assertThat(themes_holo).isNotNull();
     VirtualFile themes =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes.xml").toString());
-    assertNotNull(themes);
+    assertThat(themes).isNotNull();
 
     // In themes_holo.xml: point to value of "Theme" in the parent attribute on line:
     //     <style name="Theme.Holo.Light" parent="Theme.Light">
@@ -677,26 +677,26 @@ b/263898646 */
 
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
-    assertNotNull(targets);
-    assertEquals(1, targets.length);
+    assertThat(targets).isNotNull();
+    assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
 
-    assertInstanceOf(targetElement, XmlAttributeValue.class);
+    assertThat(targetElement).isInstanceOf(XmlAttributeValue.class);
     XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
-    assertEquals("Theme", targetAttrValue.getValue());
-    assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
-    assertEquals("style", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
-    assertEquals(themes, targetElement.getContainingFile().getVirtualFile());
+    assertThat(targetAttrValue.getValue()).isEqualTo("Theme");
+    assertThat(((XmlAttribute)targetAttrValue.getParent()).getName()).isEqualTo("name");
+    assertThat(((XmlTag)targetAttrValue.getParent().getParent()).getName()).isEqualTo("style");
+    assertThat(targetElement.getContainingFile().getVirtualFile()).isEqualTo(themes);
   }
 
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
   public void ignore_testNavigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
-    assertNotNull(themes_holo);
+    assertThat(themes_holo).isNotNull();
     VirtualFile themes =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes.xml").toString());
-    assertNotNull(themes);
+    assertThat(themes).isNotNull();
 
     // In themes_holo.xml: point to value of "Theme" in the name attribute on line:
     //     <style name="Theme.Holo.NoActionBar">
@@ -706,26 +706,26 @@ b/263898646 */
 
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
-    assertNotNull(targets);
-    assertEquals(1, targets.length);
+    assertThat(targets).isNotNull();
+    assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
 
-    assertInstanceOf(targetElement, XmlAttributeValue.class);
+    assertThat(targetElement).isInstanceOf(XmlAttributeValue.class);
     XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
-    assertEquals("Theme", targetAttrValue.getValue());
-    assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
-    assertEquals("style", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
-    assertEquals(themes, targetElement.getContainingFile().getVirtualFile());
+    assertThat(targetAttrValue.getValue()).isEqualTo("Theme");
+    assertThat(((XmlAttribute)targetAttrValue.getParent()).getName()).isEqualTo("name");
+    assertThat(((XmlTag)targetAttrValue.getParent().getParent()).getName()).isEqualTo("style");
+    assertThat(targetElement.getContainingFile().getVirtualFile()).isEqualTo(themes);
   }
 
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
   public void ignore_testNavigationInPlatformXml3() throws Exception {
     VirtualFile themes_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/themes_holo.xml").toString());
-    assertNotNull(themes_holo);
+    assertThat(themes_holo).isNotNull();
     VirtualFile colors_holo =
       LocalFileSystem.getInstance().findFileByPath(TestUtils.resolvePlatformPath("data/res/values/colors_holo.xml").toString());
-    assertNotNull(colors_holo);
+    assertThat(colors_holo).isNotNull();
 
     // In themes_holo.xml: point to value of "bright_foreground_holo_light" on line:
     //    <item name="colorForeground">@color/bright_foreground_holo_light</item>
@@ -736,16 +736,16 @@ b/263898646 */
 
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
-    assertNotNull(targets);
-    assertEquals(1, targets.length);
+    assertThat(targets).isNotNull();
+    assertThat(targets.length).isEqualTo(1);
     PsiElement targetElement = targets[0];
 
-    assertInstanceOf(targetElement, XmlAttributeValue.class);
+    assertThat(targetElement).isInstanceOf(XmlAttributeValue.class);
     XmlAttributeValue targetAttrValue = (XmlAttributeValue)targetElement;
-    assertEquals("bright_foreground_holo_light", targetAttrValue.getValue());
-    assertEquals("name", ((XmlAttribute)targetAttrValue.getParent()).getName());
-    assertEquals("color", ((XmlTag)targetAttrValue.getParent().getParent()).getName());
-    assertEquals(colors_holo, targetElement.getContainingFile().getVirtualFile());
+    assertThat(targetAttrValue.getValue()).isEqualTo("bright_foreground_holo_light");
+    assertThat(((XmlAttribute)targetAttrValue.getParent()).getName()).isEqualTo("name");
+    assertThat(((XmlTag)targetAttrValue.getParent().getParent()).getName()).isEqualTo("color");
+    assertThat(targetElement.getContainingFile().getVirtualFile()).isEqualTo(colors_holo);
   }
 
   public void testSpellchecker1() throws Throwable {
@@ -874,7 +874,7 @@ b/263898646 */
         return null;
       });
     }
-    assertEquals(1, actions.size());
+    assertThat(actions.size()).isEqualTo(1);
 
     WriteCommandAction.runWriteCommandAction(getProject(), () -> actions.get(0).invoke(getProject(), myFixture.getEditor(), myFixture.getFile()));
   }
@@ -895,7 +895,7 @@ b/263898646 */
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.complete(CompletionType.BASIC);
     List<String> variants = myFixture.getLookupElementStrings();
-    assertNotNull(variants);
+    assertThat(variants).isNotNull();
     List<String> expectedVariants = new ArrayList<>();
 
     expectedVariants.add(SdkConstants.ANDROID_URI);
@@ -905,7 +905,7 @@ b/263898646 */
     expectedVariants.addAll(Arrays.asList(extraNamespaces));
 
     Collections.sort(expectedVariants);
-    assertEquals(expectedVariants, variants);
+    assertThat(variants).isEqualTo(expectedVariants);
   }
 
   /**
@@ -913,8 +913,8 @@ b/263898646 */
    */
   private void doTestCompletionVariants(@NotNull String fileName, @NotNull String... variants) throws Throwable {
     List<String> lookupElementStrings = getCompletionElements(fileName);
-    assertNotNull(lookupElementStrings);
-    assertSameElements(lookupElementStrings, variants);
+    assertThat(lookupElementStrings).isNotNull();
+    assertThat(lookupElementStrings).containsExactlyElementsIn(variants);
   }
 
   private List<String> getCompletionElements(@NotNull String fileName) throws IOException, InterruptedException, TimeoutException {
@@ -991,9 +991,9 @@ b/263898646 */
     VirtualFile virtualFile = copyFileToProject(getTestName(true) + ".xml");
     myFixture.configureFromExistingVirtualFile(virtualFile);
     List<IntentionAction> fixes = highlightAndFindQuickFixes(null);
-    assertEquals(2, fixes.size());
-    assertInstanceOf(((QuickFixWrapper)fixes.get(0)).getFix(), RenameTo.class);
-    assertInstanceOf(((QuickFixWrapper)fixes.get(1)).getFix(), SaveTo.class);
+    assertThat(fixes.size()).isEqualTo(2);
+    assertThat(((QuickFixWrapper)fixes.get(0)).getFix()).isInstanceOf(RenameTo.class);
+    assertThat(((QuickFixWrapper)fixes.get(1)).getFix()).isInstanceOf(SaveTo.class);
   }
 
   private VirtualFile copyFileToProject(String path) throws IOException {
