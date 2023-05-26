@@ -55,7 +55,7 @@ def main():
     intellij = load_project("IntelliJ", intellij_root)
     convert_intellij_sdk_libs(studio, intellij, source_map_file)
     rename_libraries_using_prefix(studio, "studio-lib")
-    move_project_kotlinc_opts_into_modules(studio)
+    move_project_kotlinc_opts_into_modules(intellij)
 
     # Merge the projects and write out the result.
     merged = JpsProject(
@@ -242,6 +242,7 @@ def transfer_config_files(intellij: JpsProject, studio: JpsProject, outdir: Path
     # Config files that should be transfered from Studio, but not from IntelliJ.
     studio_override_paths = [
         ".idea/ant.xml",  # Contains our bazel-dependencies build step.
+        ".idea/kotlinc.xml",  # Prefer our Kotlinc version to maintain compatibility with our compiler plugins.
         ".idea/codeInsightSettings.xml",
         ".idea/codeStyles/codeStyleConfig.xml",
         ".idea/codeStyles/Project.xml",
