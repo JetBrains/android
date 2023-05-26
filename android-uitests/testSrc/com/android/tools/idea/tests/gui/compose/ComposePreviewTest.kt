@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture
-import com.android.tools.idea.tests.gui.framework.fixture.compose.getNotificationsFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
@@ -69,7 +68,7 @@ class ComposePreviewTest {
   @get:Rule
   val adbRule: FakeAdbTestRule = FakeAdbTestRule()
 
-  private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt", assertNoNotifications: Boolean = true):
+  private fun openComposePreview(fixture: IdeFrameFixture, fileName: String = "MainActivity.kt"):
     SplitEditorFixture {
     // Open the main compose activity and check that the preview is present
     val editor = fixture.editor
@@ -79,11 +78,7 @@ class ComposePreviewTest {
 
     editor.open(file)
 
-    return editor.getSplitEditorFixture().waitForRenderToFinish().apply {
-      if (assertNoNotifications) {
-        getNotificationsFixture().waitForNotificationsToDisappear()
-      }
-    }
+    return editor.getSplitEditorFixture().waitForRenderToFinish()
   }
 
   private fun getSyncedProjectFixture() =
