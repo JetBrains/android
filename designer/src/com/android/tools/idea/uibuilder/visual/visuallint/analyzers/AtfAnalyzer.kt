@@ -40,9 +40,6 @@ object AtfAnalyzer : VisualLintAnalyzer() {
 
   /**
    * Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint.
-   * For now, it only runs [DuplicateClickableBoundsCheck] among all other atf checks.
-   *
-   * To run more checks, update the policy in [VisualLintAtfAnalysis.validateAndUpdateLint]
    */
   override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
     if (!StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {

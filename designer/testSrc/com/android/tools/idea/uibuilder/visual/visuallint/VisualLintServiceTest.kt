@@ -189,10 +189,10 @@ class VisualLintServiceTest {
                                                 mapOf(result to atfModel), visualLintExecutorService)
         visualLintExecutorService.waitForTasksToComplete()
         val issues = visualLintIssueModel.issues
-        assertEquals(2, issues.size)
+        assertEquals(3, issues.size)
         val clickIssue = issues.filterIsInstance<VisualLintRenderIssue>()
           .filter { it.type == VisualLintErrorType.ATF }
-        assertEquals(1, clickIssue.size)
+        assertEquals(2, clickIssue.size)
       }
       catch (ex: Exception) {
         throw RuntimeException(ex)

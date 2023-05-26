@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.gradle.preview
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
@@ -28,8 +27,10 @@ import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
@@ -97,7 +98,8 @@ class RenderErrorTest {
       arrayOf(
         ButtonSizeAnalyzerInspection(),
         LongTextAnalyzerInspection(),
-        TextFieldSizeAnalyzerInspection()
+        TextFieldSizeAnalyzerInspection(),
+        AtfAnalyzerInspection(),
       )
     projectRule.fixture.enableInspections(*visualLintInspections)
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
@@ -179,19 +181,23 @@ class RenderErrorTest {
 
   @Test
   fun testAtfErrors() {
-    val sceneViewPanel = panels.single { it.displayName == "PreviewWithContrastError" }
-    val issueModel = sceneViewPanel.sceneView.surface.issueModel
+    val issueModel = VisualLintService.getInstance(project).issueModel
     runBlocking {
       delayUntilCondition(delayPerIterationMs = 200, timeout = 5.seconds) {
-        issueModel.issues.filter { it.category == "Accessibility" }.size == 2
+        issueModel.issues
+          .filterIsInstance<VisualLintRenderIssue>()
+          .filter { it.type == VisualLintErrorType.ATF }
+          .size == 2
       }
     }
-    val accessibilityIssues = issueModel.issues.filter { it.category == "Accessibility" }
+    val accessibilityIssues =
+      issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter {
+        it.type == VisualLintErrorType.ATF
+      }
     val offsets = mutableListOf<Int>()
     accessibilityIssues.forEach {
       assertEquals("Insufficient text color contrast ratio", it.summary)
-      assertTrue(it.source is NlComponentIssueSource)
-      val navigatable = (it.source as NlComponentIssueSource).component?.navigatable
+      val navigatable = it.components[0].navigatable
       assertTrue(navigatable is OpenFileDescriptor)
       offsets.add((navigatable as OpenFileDescriptor).offset)
       assertEquals("RenderError.kt", navigatable.file.name)
@@ -204,7 +210,7 @@ class RenderErrorTest {
     val issueModel = VisualLintService.getInstance(project).issueModel
     runBlocking {
       delayUntilCondition(delayPerIterationMs = 200, timeout = 10.seconds) {
-        issueModel.issueCount == 2
+        issueModel.issueCount == 4
       }
     }
     issueModel.issues.forEach {

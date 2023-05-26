@@ -72,7 +72,6 @@ class VisualLintAtfAnalysis(
           EnumSet.of(ValidatorData.Type.ACCESSIBILITY,
                      ValidatorData.Type.RENDER),
           EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING, ValidatorData.Level.INFO, ValidatorData.Level.VERBOSE))
-        policy.mChecks.add(DuplicateClickableBoundsCheck())
 
         val validated = ValidatorUtil.generateResults(policy, validatorResult)
         return validateAndUpdateLint(renderResult, validated)
