@@ -137,77 +137,6 @@ iml_module(
 iml_module(
     name = "intellij.android.core.tests",
     iml_files = ["intellij.android.core.tests.iml"],
-    split_test_targets = {
-        # Keep sorted by the test_filter package, with "other" at the end.
-        "gradle": {
-            "shard_count": 6,
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            "test_filter": "com.android.tools.idea.gradle",
-        },
-        "gradle.project.sync": {
-            "shard_count": 4,
-            "data": [
-                "//prebuilts/studio/sdk:ndk",
-                "//tools/data-binding:data_binding_runtime.zip",
-            ],
-            # Mismatches from ProjectDumper (b/150709248), and sync errors/timeout (b/152778663)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync",
-        },
-        "imports": {
-            "shard_count": 2,
-            "test_filter": "com.android.tools.idea.imports",
-        },
-        "navigator": {
-            "shard_count": 2,
-            "data": ["//prebuilts/studio/sdk:ndk"],
-            "test_filter": "com.android.tools.idea.navigator",
-        },
-        "project": {
-            "test_filter": "com.android.tools.idea.project",
-        },
-        "modularize": {
-            "test_filter": "com.android.tools.idea.refactoring.modularize",
-        },
-        "rendering": {
-            "test_filter": "com.android.tools.idea.rendering",
-            "shard_count": 2,
-        },
-        "run": {
-            "shard_count": 5,
-            "test_filter": "com.android.tools.idea.run",
-        },
-        "sdk": {
-            "test_filter": "com.android.tools.idea.sdk",
-        },
-        "testartifacts": {
-            "shard_count": 3,
-            "test_filter": "com.android.tools.idea.testartifacts",
-        },
-        "ui": {
-            "test_filter": "com.android.tools.idea.ui",
-        },
-        "ui.designer.overlays": {
-            "test_filter": "com.android.tools.idea.ui.designer.overlays",
-        },
-        "ui.resourcemanager": {
-            "test_filter": "com.android.tools.idea.ui.resourcemanager",
-            "shard_count": 2,
-        },
-        "jetbrains": {
-            "test_filter": "org.jetbrains.android",
-            "shard_count": 6,
-        },
-        "AndroidGutterIconTest": {
-            # test requires actual image assets from icons to be rendered, if other tests run
-            # before it in the same shard, image assets wouldn't be rendered as they'd be DummyIcons
-            "test_filter": "org.jetbrains.android.AndroidGutterIconAnnotatorTest",
-            "shard_count": 1,
-        },
-        "other": {
-            "shard_count": 5,
-        },
-    },
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [
@@ -251,6 +180,7 @@ iml_module(
         "-Djdk.attach.allowAttachSelf=true",
     ],
     test_resources = ["testResources"],
+    test_shard_count = 5,
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",

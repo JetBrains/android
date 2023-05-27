@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Class loader that stores a number of .class files loaded in memory and loads the classes.
  */
-class TestClassLoader extends DelegatingClassLoader implements ModuleProvider {
+public class TestClassLoader extends DelegatingClassLoader implements ModuleProvider {
   private Module myModule;
 
   /**

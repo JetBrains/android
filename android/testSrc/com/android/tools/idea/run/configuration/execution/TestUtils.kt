@@ -65,7 +65,7 @@ private fun createManifestActivityInfo(
 }
 
 
-internal class TestApplicationInstaller : ApplicationDeployer {
+class TestApplicationInstaller : ApplicationDeployer {
 
   private var appIdToApp: HashMap<String, App>
 
@@ -93,7 +93,7 @@ internal class TestApplicationInstaller : ApplicationDeployer {
   }
 }
 
-internal fun CodeInsightTestFixture.addWearDependenciesToProject() { // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
+fun CodeInsightTestFixture.addWearDependenciesToProject() { // Simulates that 'com.google.android.support:wearable:xxx' was added to `build.gradle`
   addFileToProject(
     "src/android/support/wearable/watchface/WatchFaceService.kt", """
       package android.support.wearable.watchface
@@ -119,4 +119,4 @@ internal fun CodeInsightTestFixture.addWearDependenciesToProject() { // Simulate
   )
 }
 
-internal fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!
+fun PsiFile.findElementByText(text: String): PsiElement = findDescendantOfType { it.node.text == text }!!
