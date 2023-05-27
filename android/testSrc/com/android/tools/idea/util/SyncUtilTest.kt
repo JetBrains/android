@@ -113,18 +113,14 @@ class SyncUtilTest {
 
   @Test
   fun waitForSmartAndSyncedWhenDumbAndSynced() {
-    val callCount = AtomicInteger(0)
-    // Start dumb mode
+    val latch = CountDownLatch(1)
     startDumbMode()
-
-    project.runWhenSmartAndSynced(callback = Consumer { callCount.incrementAndGet() })
-    assertThat(callCount.get()).isEqualTo(0)
+    project.runWhenSmartAndSynced(callback = { latch.countDown() })
+    assertThat(latch.count).isEqualTo(1)
     emulateSync(SyncResult.SUCCESS)
-    assertThat(callCount.get()).isEqualTo(0)
+    assertThat(latch.count).isEqualTo(1)
     stopDumbMode()
-/* b/284511212
-    assertThat(callCount.get()).isEqualTo(1)
-b/284511212 */
+    assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
   @Test
