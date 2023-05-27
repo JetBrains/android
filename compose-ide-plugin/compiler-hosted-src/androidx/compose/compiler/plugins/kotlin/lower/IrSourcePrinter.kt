@@ -266,7 +266,6 @@ class IrSourcePrinterVisitor(
 
     private var isInNotCall = false
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitCall(expression: IrCall) {
         val function = expression.symbol.owner
         val name = function.name.asString()
@@ -772,7 +771,6 @@ class IrSourcePrinterVisitor(
         println("}")
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitReturn(expression: IrReturn) {
         val value = expression.value
         // only print the return statement directly if it is not a lambda

@@ -467,7 +467,6 @@ interface CallbackFlowWithDisposableScope<T> : CoroutineScope {
  *
  * This allows for any callbacks to use that [Disposable] and dispose the listeners when the flow is not needed.
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 fun <T> disposableCallbackFlow(debugName: String,
                                logger: Logger? = null,
                                parentDisposable: Disposable? = null,

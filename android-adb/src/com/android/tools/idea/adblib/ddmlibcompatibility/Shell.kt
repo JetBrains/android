@@ -67,7 +67,6 @@ fun executeShellCommand(device: IDevice, command: String, receiver: IShellOutput
  * Coroutine-based wrapper around DDMLib's [IDevice.executeShellCommand], returning a Flow of shell output,
  * like that produced by [AdbDeviceServices.shell].
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 fun <T> executeShellCommand(device: IDevice, command: String, shellCollector: ShellCollector<T>): Flow<T> =
   flow {
     shellCollector.start(this)

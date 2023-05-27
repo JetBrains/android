@@ -242,7 +242,6 @@ open class LiveLiteralTransformer(
         putValueArgument(0, irConst(file))
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun irLiveLiteralGetter(
         key: String,
         literalValue: IrExpression,
@@ -396,7 +395,6 @@ open class LiveLiteralTransformer(
         }
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitConst(expression: IrConst<*>): IrExpression {
         when (expression.kind) {
             IrConstKind.Null -> return expression
