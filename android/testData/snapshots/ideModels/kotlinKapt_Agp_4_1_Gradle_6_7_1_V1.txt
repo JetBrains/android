@@ -1309,6 +1309,7 @@ MODULE                        : MainActivity
                             - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                             - files                       : <ROOT>/javaLib/build/resources/main [-]
                         - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
+                        - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
                     test                          : test (DefaultExternalSourceSet)
