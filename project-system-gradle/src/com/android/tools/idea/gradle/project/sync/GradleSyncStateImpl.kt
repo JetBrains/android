@@ -208,7 +208,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED, rootProjectPath)
-    syncPublisher() { syncStarted(project, rootProjectPath) }
+    syncPublisher { syncStarted(project, rootProjectPath) }
     return true
   }
 

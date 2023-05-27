@@ -75,7 +75,7 @@ class RenderExecutorTest {
         order.add(4)
         actionIsRunningLatch.countDown()
       }
-      executor.runAsyncActionWithTestDefault() {
+      executor.runAsyncActionWithTestDefault {
         order.add(2)
         actionIsRunningLatch.countDown()
       }

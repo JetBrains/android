@@ -150,7 +150,7 @@ class AnimationClock(val clock: Any) {
   fun findClockFunction(functionName: String): Method = findClockFunctionIfExists(functionName)!!
 
   private fun findClockFunctionIfExists(functionName: String): Method? =
-    clock::class.java.methods.firstOrNull() {
+    clock::class.java.methods.firstOrNull {
       // Convert something like `setClockTime-zrx7VqY` into `setClockTime` in order to handle methods that use inline classes.
       // See https://kotlinlang.org/docs/inline-classes.html#mangling for more info.
       val normalizedName = it.name.substringBefore('-')

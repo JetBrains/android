@@ -335,7 +335,7 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     view.updateDatabases(listOf(DatabaseDiffOperation.AddDatabase(ViewDatabase(databaseId2, true), SqliteSchema(emptyList()), 0)))
 
     // Assert
-    val emptyStateRightPanel = TreeWalker(view.component).descendants().firstOrNull() { it.name == "right-panel-empty-state" }
+    val emptyStateRightPanel = TreeWalker(view.component).descendants().firstOrNull { it.name == "right-panel-empty-state" }
     val tabsPanel = TreeWalker(view.component).descendants().first { it.name == "right-panel-tabs-panel" }
 
     assertNull(emptyStateRightPanel)

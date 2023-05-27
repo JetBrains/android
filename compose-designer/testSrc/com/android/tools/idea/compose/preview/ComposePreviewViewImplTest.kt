@@ -287,7 +287,7 @@ class ComposePreviewViewImplTest {
     previewView.mainSurface.zoomToFit()
     fakeUi.root.validate()
 
-    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
+    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel> { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
   }
@@ -316,7 +316,7 @@ class ComposePreviewViewImplTest {
     previewView.mainSurface.zoomToFit()
     fakeUi.root.validate()
 
-    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
+    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel> { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
     // Not visible by default
@@ -328,7 +328,7 @@ class ComposePreviewViewImplTest {
     fakeUi.root.validate()
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Pinned Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Pinned Display2" }!!.isShowing)
-    assertEquals(4, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
+    assertEquals(4, fakeUi.findAllComponents<SceneViewPeerPanel> { it.isShowing }.size)
   }
 
   @RunsInEdt
