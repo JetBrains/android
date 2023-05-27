@@ -211,7 +211,7 @@ private fun createBackgroundExecutor() = ThreadPoolExecutor(
   1,
   1,
   TimeUnit.MINUTES,
-  LinkedBlockingQueue<Runnable>(),
+  LinkedBlockingQueue(),
   ThreadFactoryBuilder().setNameFormat(
     "${MaterialVdIconsProvider::class.java.simpleName}-backgroundMaterialIconsTasks-%d"
   ).build()

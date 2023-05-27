@@ -44,8 +44,8 @@ class ListUsbDevicesActionStateManagerTest : AndroidTestCase() {
     myStateManager = ListUsbDevicesActionStateManager()
     testUsbDeviceCollector = mock(UsbDeviceCollector::class.java)
     whenever(testUsbDeviceCollector.listUsbDevices()).thenReturn(CompletableFuture.completedFuture(ArrayList()))
-    rawDevices = CompletableFuture.completedFuture(emptyList<AdbDevice>())
-    devices = emptyList<IDevice>()
+    rawDevices = CompletableFuture.completedFuture(emptyList())
+    devices = emptyList()
     myStateManager.init(project, emptyActionData, testUsbDeviceCollector, { rawDevices }, { devices } )
   }
 

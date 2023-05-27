@@ -263,7 +263,7 @@ b/214265385 */
 
       assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
       WriteCommandAction.writeCommandAction(myFixture.project).run(
-        ThrowableRunnable<Throwable?> {
+        ThrowableRunnable {
           action.invoke(myFixture.project, myFixture.editor, myFixture.file)
         })
       myFixture.checkResultByFile("build.gradle",
@@ -309,7 +309,7 @@ b/214265385 */
   private fun doTestWithAction(extension: String, action: IntentionAction) {
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
     WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable<Throwable?> {
+      ThrowableRunnable {
         action.invoke(myFixture.project, myFixture.editor, myFixture.file)
       })
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)

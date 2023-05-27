@@ -103,7 +103,7 @@ sealed class ManifestInnerClass(
       CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, MergedManifestModificationTracker.getInstance(myFacet.module))
     }
     else {
-      CachedValueProvider.Result.create<Array<PsiField>>(
+      CachedValueProvider.Result.create(
         doGetFields().map { (name, value) ->
           ManifestLightField(
             name,

@@ -551,7 +551,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   private fun addClass(@Language("JAVA") content: String): PsiClass {
-    val result = WriteCommandAction.runWriteCommandAction(project, Computable<PsiClass> {
+    val result = WriteCommandAction.runWriteCommandAction(project, Computable {
       myFixture.addClass(content)
     })
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }

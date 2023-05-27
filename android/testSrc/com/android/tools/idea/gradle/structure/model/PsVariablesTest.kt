@@ -202,10 +202,10 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val variableKnownValues =
       PsVariable.Descriptors.variableValue.bindContext(variables.getOrCreateVariable("varBool")).getKnownValues().get()
 
-    assertThat(rootVariableKnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
-    assertThat(rootVariable2KnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
-    assertThat(rootVariable3KnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
-    assertThat(variableKnownValues.literals, equalTo<List<ValueDescriptor<Any>>>(booleanValues(null).get()))
+    assertThat(rootVariableKnownValues.literals, equalTo(booleanValues(null).get()))
+    assertThat(rootVariable2KnownValues.literals, equalTo(booleanValues(null).get()))
+    assertThat(rootVariable3KnownValues.literals, equalTo(booleanValues(null).get()))
+    assertThat(variableKnownValues.literals, equalTo(booleanValues(null).get()))
   }
 
   fun testGetAvailableVariablesForType() {

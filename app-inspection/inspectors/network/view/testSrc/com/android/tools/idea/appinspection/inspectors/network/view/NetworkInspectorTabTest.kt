@@ -41,7 +41,7 @@ class NetworkInspectorTabTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @Test
-  fun pressActionButtons() = runBlocking<Unit> {
+  fun pressActionButtons() = runBlocking {
     val scope = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
     val timer = FakeTimer()
     timer.start()

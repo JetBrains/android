@@ -405,7 +405,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
 
       myUiState.proportion = mySplitter!!.proportion
       (mySelectedConfigurable as? MasterDetailsComponent)?.saveSideProportion()
-      myConfigurables.keys.forEach(Consumer<Configurable> { it.disposeUIResources() })
+      myConfigurables.keys.forEach(Consumer { it.disposeUIResources() })
 
       myUiState.save(myProject)
 

@@ -57,7 +57,7 @@ class SuspendingSocketChannel(
         continuation.resumeWithException(exception)
       }
     }
-    suspendCancellableCoroutine<Void?> { continuation ->
+    suspendCancellableCoroutine { continuation ->
       networkChannel.connect(remote, continuation, continuationHandler)
     }
   }

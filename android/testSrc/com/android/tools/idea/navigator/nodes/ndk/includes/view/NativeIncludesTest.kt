@@ -23,7 +23,7 @@ class NativeIncludesTest {
 
   @Test
   fun testEqualsHash() {
-    val equalsVerifier = EqualsVerifier.forClass<NativeIncludes>(NativeIncludes::class.java)
+    val equalsVerifier = EqualsVerifier.forClass(NativeIncludes::class.java)
     equalsVerifier
       .withIgnoredFields("myFindNativeSettingsFunction")
       .verify()

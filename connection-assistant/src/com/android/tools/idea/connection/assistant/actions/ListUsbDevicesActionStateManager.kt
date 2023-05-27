@@ -69,7 +69,7 @@ class ListUsbDevicesActionStateManager : AssistActionStateManager(), Disposable 
       project,
       actionData,
       UsbDeviceCollectorImpl(),
-      { AndroidDebugBridge.getBridge()?.rawDeviceList?.toCompletionStage() ?: CompletableFuture.completedFuture(emptyList<AdbDevice>()) },
+      { AndroidDebugBridge.getBridge()?.rawDeviceList?.toCompletionStage() ?: CompletableFuture.completedFuture(emptyList()) },
       { AndroidDebugBridge.getBridge()?.devices?.toList() ?: emptyList() }
     )
   }

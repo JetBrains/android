@@ -58,7 +58,7 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffset
  */
 class ResourcePasteProvider : PasteProvider {
 
-  private val IMAGE_LIKE_TYPES = setOf<ResourceType>(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.COLOR)
+  private val IMAGE_LIKE_TYPES: Set<ResourceType> = setOf(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.COLOR)
 
   override fun performPaste(dataContext: DataContext) {
     val caret = CommonDataKeys.CARET.getData(dataContext)!!

@@ -124,9 +124,9 @@ fun <T : Any, PropertyCoreT : ModelPropertyCore<T>>
   project: PsProject,
   module: PsModule?
 ): List<EditorExtensionAction<T, PropertyCoreT>> =
-  listOfNotNull<EditorExtensionAction<T, PropertyCoreT>>(
+  listOfNotNull(
     ExtractNewVariableExtension(project, module),
-    if (this is FileTypePropertyContext<T>) BrowseFilesExtension<T, PropertyCoreT>(project, this) else null
+    if (this is FileTypePropertyContext<T>) BrowseFilesExtension(project, this) else null
   )
 
 fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
@@ -163,7 +163,7 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> l
 ): ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
-  return ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>>(
+  return ListPropertyEditor(
       boundProperty, boundContext,
       { propertyCore, _, variables, cellEditor: TableCellEditor? ->
         simplePropertyEditor(

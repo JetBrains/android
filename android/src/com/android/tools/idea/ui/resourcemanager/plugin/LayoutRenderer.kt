@@ -104,7 +104,7 @@ constructor(
         manager = LayoutRenderer(
           facet,
           ::createRenderTask,
-          ImageFuturesManager<VirtualFile>()
+          ImageFuturesManager()
         )
         setInstance(facet, manager)
       }

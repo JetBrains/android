@@ -143,7 +143,7 @@ class ResourceExplorerToolWindowTest {
     resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
     val content = toolWindow.contentManager.contents[0].component
-    val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
+    val label = UIUtil.findComponentOfType(content, JLabel::class.java)
     assertNotNull(label)
     assertNull(label.icon)
     assertThat(label.text).isEqualTo("Loading...")
@@ -162,7 +162,7 @@ class ResourceExplorerToolWindowTest {
       resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
       assertThat(toolWindow.contentManager.contents).isNotEmpty()
       val content = toolWindow.contentManager.contents[0].component
-      val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
+      val label = UIUtil.findComponentOfType(content, JLabel::class.java)
       assertNotNull(label)
       assertNotNull(label.icon)
       assertThat(label.text).isEqualTo("Waiting for successful sync...")
@@ -180,7 +180,7 @@ class ResourceExplorerToolWindowTest {
     }
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
     val content = toolWindow.contentManager.contents[0].component
-    val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
+    val label = UIUtil.findComponentOfType(content, JLabel::class.java)
     assertNotNull(label)
     assertNull(label.icon)
     assertThat(label.text).isEqualTo("Waiting for build to finish...")

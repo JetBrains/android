@@ -31,7 +31,7 @@ class SparseArray<E> constructor(initialCapacity: Int = 10) {
         } else {
             val idealSize = idealIntArraySize(initialCapacity)
             mKeys = IntArray(idealSize)
-            mValues = arrayOfNulls<Any>(idealSize)
+            mValues = arrayOfNulls(idealSize)
         }
     }
 

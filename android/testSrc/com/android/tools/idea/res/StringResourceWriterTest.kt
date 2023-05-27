@@ -615,7 +615,7 @@ class StringResourceWriterTest {
     (DumbService.getInstance(project) as DumbServiceImpl).isDumb = true
     runBlocking {
       withTimeout(2.seconds) {
-        suspendCancellableCoroutine<Unit> { cont ->
+        suspendCancellableCoroutine { cont ->
           stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
         }
       }
@@ -634,7 +634,7 @@ class StringResourceWriterTest {
     (DumbService.getInstance(project) as DumbServiceImpl).isDumb = false
     runBlocking {
       withTimeout(20.seconds) {
-        suspendCancellableCoroutine<Unit> { cont ->
+        suspendCancellableCoroutine { cont ->
           createModalDialogAndInteractWithIt({
             stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
           }) { dialogInteraction.invoke(it) }

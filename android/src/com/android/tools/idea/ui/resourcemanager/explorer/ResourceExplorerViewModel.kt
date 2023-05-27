@@ -472,7 +472,7 @@ private fun getResourceResolver(
   facet: AndroidFacet,
   configurationFuture: CompletableFuture<Configuration?>
 ): CompletableFuture<ResourceResolver> {
-  return configurationFuture.thenApplyAsync<ResourceResolver>(Function { configuration ->
+  return configurationFuture.thenApplyAsync(Function { configuration ->
     configuration?.let { return@Function it.resourceResolver }
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
     val theme = getApplicationTheme(facet)

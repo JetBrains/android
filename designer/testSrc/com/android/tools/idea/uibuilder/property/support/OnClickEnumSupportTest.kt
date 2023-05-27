@@ -98,14 +98,14 @@ class OnClickEnumSupportTest: AndroidTestCase() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = FRAME_LAYOUT)
     val support = OnClickEnumSupport(util.nlModel)
     val app = ApplicationManager.getApplication()
-    val values = app.executeOnPooledThread(Callable<List<EnumValue>> { support.values }).get()
+    val values = app.executeOnPooledThread(Callable { support.values }).get()
     assertThat(values).isEmpty()
   }
 
   fun testWithFullyQualifiedActivityName() {
     val support = findEnumSupportFor("p1.p2.MainActivity")
     val app = ApplicationManager.getApplication()
-    val allValues = app.executeOnPooledThread(Callable<List<EnumValue>> { support.values }).get()
+    val allValues = app.executeOnPooledThread(Callable { support.values }).get()
     assertThat((allValues[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
     val values = allValues.subList(1, allValues.size)
     assertThat(values.map { it.display }).containsExactly("help", "onClick").inOrder()
@@ -115,7 +115,7 @@ class OnClickEnumSupportTest: AndroidTestCase() {
   fun testWithDotInActivityName() {
     val support = findEnumSupportFor(".MainActivity")
     val app = ApplicationManager.getApplication()
-    val allValues = app.executeOnPooledThread(Callable<List<EnumValue>> { support.values }).get()
+    val allValues = app.executeOnPooledThread(Callable { support.values }).get()
     assertThat((allValues[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
     val values = allValues.subList(1, allValues.size)
     assertThat(values.map { it.display }).containsExactly("help", "onClick").inOrder()
@@ -125,7 +125,7 @@ class OnClickEnumSupportTest: AndroidTestCase() {
   fun testWithNoActivityName() {
     val support = findEnumSupportFor("")
     val app = ApplicationManager.getApplication()
-    val allValues = app.executeOnPooledThread(Callable<List<EnumValue>> { support.values }).get()
+    val allValues = app.executeOnPooledThread(Callable { support.values }).get()
     assertThat((allValues[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
     val mainValues = allValues.subList(1, 3)
     assertThat((allValues[3] as HeaderEnumValue).header).isEqualTo("OtherActivity")

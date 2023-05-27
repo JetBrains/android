@@ -117,12 +117,14 @@ class TypeFiltersModel {
   /**
    * For the given [type], returns a list of the supported [TypeFilter]s.
    */
-  fun getSupportedFilters(type: ResourceType) = resourceTypeToFilter[type]?.keys?.toList() ?: emptyList<TypeFilter>()
+  fun getSupportedFilters(type: ResourceType): List<TypeFilter> =
+    resourceTypeToFilter[type]?.keys?.toList() ?: emptyList()
 
   /**
    * For the given [type], returns the list of [TypeFilter] which are currently enabled (set to true).
    */
-  fun getActiveFilters(type: ResourceType) = resourceTypeToFilter[type]?.filter { it.value }?.keys?.toList() ?: emptyList()
+  fun getActiveFilters(type: ResourceType): List<TypeFilter> =
+    resourceTypeToFilter[type]?.filter { it.value }?.keys?.toList() ?: emptyList()
 
   /**
    * The current state for the given [TypeFilter], returns false if it doesn't exist for the given [ResourceType].

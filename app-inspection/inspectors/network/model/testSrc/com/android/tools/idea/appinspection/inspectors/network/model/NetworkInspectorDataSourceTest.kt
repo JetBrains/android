@@ -172,7 +172,7 @@ class NetworkInspectorDataSourceTest {
   }
 
   @Test
-  fun cleanUpChannelOnDispose() = runBlocking<Unit> {
+  fun cleanUpChannelOnDispose() = runBlocking {
     val testMessenger = TestMessenger(scope, flow { throw ArithmeticException("Something went wrong!") })
     val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
     testMessenger.await()

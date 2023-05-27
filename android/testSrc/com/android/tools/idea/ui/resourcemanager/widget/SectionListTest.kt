@@ -36,8 +36,8 @@ class SectionListTest {
   fun testIndices() {
     val model = SectionListModel()
     val sectionList = SectionList(model)
-    val list1 = JList<String>(arrayOf("1", "2", "3"))
-    val list2 = JList<String>(arrayOf("4", "5", "6"))
+    val list1 = JList(arrayOf("1", "2", "3"))
+    val list2 = JList(arrayOf("4", "5", "6"))
     model.addSection(SimpleSection("Section 1", list1))
     model.addSection(SimpleSection("Section 2", list2))
     sectionList.selectedIndex = 0 to 0

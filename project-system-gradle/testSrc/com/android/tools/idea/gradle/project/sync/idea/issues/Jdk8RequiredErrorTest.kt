@@ -31,7 +31,7 @@ class Jdk8RequiredErrorTest : AndroidGradleTestCase() {
   fun testJdk8RequiredError() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val ideSdks = spy(IdeSdks.getInstance())
-    IdeComponents(project).replaceApplicationService<IdeSdks>(IdeSdks::class.java, ideSdks)
+    IdeComponents(project).replaceApplicationService(IdeSdks::class.java, ideSdks)
     whenever(ideSdks.isUsingJavaHomeJdk).thenReturn(false)
     val usageReporter = replaceSyncMessagesService(project, testRootDisposable)
     SimulatedSyncErrors.registerSyncErrorToSimulate(

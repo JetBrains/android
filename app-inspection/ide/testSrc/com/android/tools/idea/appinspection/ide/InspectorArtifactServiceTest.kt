@@ -38,7 +38,7 @@ class InspectorArtifactServiceTest {
     "tools/adt/idea/app-inspection/ide/testData/libraries/androidx/work/work-runtime/2.5.0-beta01/work-runtime-2.5.0-beta01.aar")
 
   @Test
-  fun getInspectorJar() = runBlocking<Unit> {
+  fun getInspectorJar() = runBlocking {
     val fileService = TestFileService()
     val artifactResolverFactory = object : ArtifactResolverFactory {
       override fun getArtifactResolver(project: Project): ArtifactResolver {

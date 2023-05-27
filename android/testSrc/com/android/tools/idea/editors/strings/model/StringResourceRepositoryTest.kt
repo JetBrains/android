@@ -83,7 +83,7 @@ class StringResourceRepositoryTest {
 
     runBlocking {
       withTimeout(2.seconds) {
-        suspendCoroutine<Unit> {
+        suspendCoroutine {
           localResourceRepository.invokeAfterPendingUpdatesFinish(
               EdtExecutorService.getInstance()) { it.resume(Unit) }
         }

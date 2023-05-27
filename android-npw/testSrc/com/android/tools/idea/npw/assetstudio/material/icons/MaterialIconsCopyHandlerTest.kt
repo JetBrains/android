@@ -143,11 +143,11 @@ private fun createMaterialMetadataIconArray(): Array<MaterialMetadataIcon> = arr
 )
 
 private fun createMaterialVdIcons(dir: File): MaterialVdIcons {
-  val stylesToSortedIcons = mapOf<String, Array<VdIcon>>(
+  val stylesToSortedIcons: Map<String, Array<VdIcon>> = mapOf(
     Pair("Style 1", arrayOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2"))),
     Pair("Style 2", arrayOf(createVdIcon(dir, "my_icon_1"), createVdIcon(dir, "my_icon_2")))
   )
-  val stylesCategoriesToIcons = mapOf<String, HashMap<String, Array<VdIcon>>>(
+  val stylesCategoriesToIcons: Map<String, HashMap<String, Array<VdIcon>>> = mapOf(
     // No need to properly populate.
     Pair("Style 1", HashMap()),
     Pair("Style 2", HashMap())

@@ -617,4 +617,4 @@ class MultiRepresentationPreviewTest {
   }
 }
 
-fun <T> any(): T = Mockito.any<T>()
+fun <T> any(): T = Mockito.any()

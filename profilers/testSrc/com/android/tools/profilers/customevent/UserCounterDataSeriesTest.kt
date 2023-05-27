@@ -42,7 +42,7 @@ class UserCounterDataSeriesTest {
   private val groupId1 = 1L
   private val groupId2 = 2L
 
-  private val USER_EVENTS = ImmutableList.of<Common.Event>(
+  private val USER_EVENTS: ImmutableList<Common.Event> = ImmutableList.of(
     Common.Event.newBuilder()
       .setGroupId(groupId1)
       .setTimestamp(TimeUnit.MILLISECONDS.toNanos(100))

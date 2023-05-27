@@ -186,7 +186,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
 
       assertThat(versionCode.resolved.asTestValue(), equalTo(1))
       assertThat(versionCode.parsedValue.value,
-                 equalTo<ParsedValue<Int>>(ParsedValue.Set.Parsed(1, DslText.Literal)))
+                 equalTo(ParsedValue.Set.Parsed(1, DslText.Literal)))
       // TODO(b/111779356): Uncommented when fixed.
       // assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
     }
@@ -273,7 +273,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : GradleIntegrationTest {
       assertThat(signingConfig.resolved.asTestValue(), nullValue())
       assertThat(
         signingConfig.parsedValue,
-        equalTo<Annotated<ParsedValue<Unit>>>(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
+        equalTo(ParsedValue.Set.Parsed(null, DslText.Reference(mySigningConfigDslText)).annotated()))
       assertThat(targetSdkVersion.parsedValue.asTestValue(), equalTo("21"))
       assertThat(testApplicationId.parsedValue.asTestValue(), equalTo("com.example.psd.sample.app.unpaid.failed_test"))
       assertThat(testInstrumentationRunner.parsedValue.asTestValue(), equalTo("com.runner"))

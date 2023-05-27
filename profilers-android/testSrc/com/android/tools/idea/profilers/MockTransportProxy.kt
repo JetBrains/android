@@ -30,7 +30,7 @@ fun mockTransportProxy(): TransportProxy {
   val channel = NettyChannelBuilder.forTarget("someTarget").usePlaintext().build()
   whenever(mockProxy.transportChannel).thenReturn(channel)
   whenever(mockProxy.bytesCache).thenReturn(mutableMapOf())
-  whenever(mockProxy.eventQueue).thenReturn(LinkedBlockingDeque<Common.Event>())
+  whenever(mockProxy.eventQueue).thenReturn(LinkedBlockingDeque())
 
   val mockDevice: IDevice = mock()
   whenever(mockDevice.serialNumber).thenReturn("Serial")

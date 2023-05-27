@@ -62,14 +62,14 @@ private fun Int.modulo(other: Int): Int {
  */
 class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, private val ui: LookupUI = DefaultLookupUI()) {
   private val listModel = DefaultListModel<String>()
-  private val filteredModel = FilteringListModel<String>(listModel)
+  private val filteredModel = FilteringListModel(listModel)
   private var matcher = Matcher()
   private val condition = { element: String -> matcher.matches(element) }
   private var showBelow = true
   private var dataLoading = false
   private var dataLoaded = false
   private var lookupCancelled = false
-  private var lastCompletionText = AtomicReference<String>("")
+  private var lastCompletionText = AtomicReference("")
 
   /**
    * Is the current value included in the top of the completion popup.

@@ -159,7 +159,7 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository) 
           .invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), callback)
 
   override suspend fun waitForUpdates(key: StringResourceKey) {
-    suspendCoroutine<Unit> { cont ->
+    suspendCoroutine { cont ->
       key.getRepository().invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance()) {
         cont.resume(Unit)
       }

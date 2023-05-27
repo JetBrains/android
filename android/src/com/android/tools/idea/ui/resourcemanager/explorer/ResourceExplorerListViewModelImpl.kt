@@ -255,7 +255,7 @@ class ResourceExplorerListViewModelImpl(
   override fun getResourceConfigurationMap(resourceAssetSet: ResourceAssetSet): CompletableFuture<Map<String, String>> {
     if (resourceAssetSet.assets.size == 1) {
       // Don't use these values if it only contains one configuration entry.
-      return completedFuture(emptyMap<String, String>())
+      return completedFuture(emptyMap())
     }
     return resourceExplorerSupplyAsync {
       return@resourceExplorerSupplyAsync resourceAssetSet.assets.map { asset ->
@@ -290,7 +290,7 @@ class ResourceExplorerListViewModelImpl(
  * thread for long-running operations.
  */
 private fun <T>resourceExplorerSupplyAsync(runnable: () -> T): CompletableFuture<T> =
-  supplyAsync<T>(Supplier<T> {
+  supplyAsync(Supplier {
     runnable()
   }, AppExecutorUtil.getAppExecutorService())
 

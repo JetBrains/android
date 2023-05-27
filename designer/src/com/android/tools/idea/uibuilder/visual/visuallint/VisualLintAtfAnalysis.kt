@@ -65,7 +65,7 @@ class VisualLintAtfAnalysis(
       is ValidatorHierarchy -> {
         if (!validatorResult.isHierarchyBuilt) {
           // Result not available
-          return ArrayList<VisualLintAtfIssue>()
+          return ArrayList()
         }
 
         val policy = ValidatorData.Policy(
@@ -79,7 +79,7 @@ class VisualLintAtfAnalysis(
       }
       else -> {
         // Result not available.
-        return ArrayList<VisualLintAtfIssue>()
+        return ArrayList()
       }
     }
   }

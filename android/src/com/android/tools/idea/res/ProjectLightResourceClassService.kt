@@ -117,7 +117,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     aarsByPackage = CachedValuesManager.getManager(project).createCachedValue({
       val libsWithResources = findAllLibrariesWithResources(project).values
       aarPackageNamesCache.retainAll(libsWithResources) // remove old items that are not needed anymore
-      CachedValueProvider.Result<Multimap<String, ExternalAndroidLibrary>>(
+      CachedValueProvider.Result(
         Multimaps.index(libsWithResources) { getAarPackageName(it!!) },
         ProjectRootManager.getInstance(project)
       )

@@ -401,7 +401,7 @@ private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepA
     val groupLayout = GroupLayout(this)
     layout = groupLayout
     val label = JBLabel("Source Set:")
-    val comboBox = ComboBox<SourceSetResDir>(viewModel.availableResDirs).apply {
+    val comboBox: ComboBox<SourceSetResDir> = ComboBox(viewModel.availableResDirs).apply {
       addItemListener { itemEvent ->
         if (itemEvent.stateChange == ItemEvent.SELECTED) {
           viewModel.selectedResDir = itemEvent.item as SourceSetResDir

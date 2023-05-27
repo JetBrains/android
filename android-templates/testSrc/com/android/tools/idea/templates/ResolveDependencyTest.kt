@@ -54,7 +54,7 @@ class ResolveDependencyTest {
   }
 
   // From mockito-kotlin
-  private fun <T> any(type: Class<T>): T = Mockito.any<T>(type)
+  private fun <T> any(type: Class<T>): T = Mockito.any(type)
 
   private fun doTest(dependency: String, minRevision: String?, resolved: String, expectResultString: String) {
     val mockRepo = Mockito.mock(RepositoryUrlManager::class.java)
