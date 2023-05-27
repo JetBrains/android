@@ -23,6 +23,7 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
@@ -807,6 +808,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         }
         add(Separator.getInstance())
       }
+
+      val remoteDevices = deviceProvisioner.reservedAndStartableDevices()
+      if (remoteDevices.isNotEmpty()) {
+        add(Separator("Remote Devices"))
+        remoteDevices.forEach { add(StartRemoteDeviceAction(it)) }
+        add(Separator.getInstance())
+      }
       add(ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID))
     }
   }
@@ -973,6 +981,16 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
+  private inner class StartRemoteDeviceAction(private val device: DeviceHandle)
+    : DumbAwareAction(device.sourceTemplate?.properties?.title ?: "Unknown") {
+
+    override fun actionPerformed(event: AnActionEvent) {
+      device.scope.launch { device.activationAction?.activate() }
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  }
+
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,
                                   val config: DeviceConfiguration)
 
@@ -997,6 +1015,12 @@ private fun DeviceProvisioner.mirrorableDevicesBySerialNumber(): Flow<Map<String
 private fun DeviceProvisioner.connectedDevices(): Flow<List<ConnectedDevice>> {
   return mapStateNotNull { handle, state -> (state as? DeviceState.Connected)?.let { ConnectedDevice(handle, it) } }
 }
+
+private fun DeviceProvisioner.reservedAndStartableDevices(): List<DeviceHandle> =
+  devices.value.filter { handle ->
+    handle.state.reservation?.state == ReservationState.ACTIVE &&
+    handle.activationAction?.presentation?.value?.enabled == true
+  }
 
 private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
   if (!isOnline()) {
