@@ -18,8 +18,7 @@ package com.android.tools.idea.emulator.actions
 import com.android.tools.idea.emulator.EMULATOR_MAIN_TOOLBAR_ID
 import com.intellij.ide.ui.customization.CustomizableActionGroupProvider
 
-class EmulatorCustomizableActionGroupProvider : CustomizableActionGroupProvider() {
-
+private class EmulatorCustomizableActionGroupProvider : CustomizableActionGroupProvider() {
   override fun registerGroups(registrar: CustomizableActionGroupRegistrar) {
     registrar.addCustomizableActionGroup(EMULATOR_MAIN_TOOLBAR_ID, "Emulator Toolbar")
   }
