@@ -30,7 +30,8 @@ import kotlinx.coroutines.isActive
 import org.junit.Rule
 import org.junit.Test
 
-class DeviceManagerPanelTest {
+/** Tests for the DeviceManagerPanel that use FakeAdb. */
+class DeviceManagerPanelFakeAdbTest {
   private val deviceProvisionerRule = DeviceProvisionerRule()
   private val androidExecutorsRule = AndroidExecutorsRule()
   private val projectRule = ProjectRule()
