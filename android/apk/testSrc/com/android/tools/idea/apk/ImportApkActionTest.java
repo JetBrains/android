@@ -211,11 +211,6 @@ public class ImportApkActionTest extends PlatformTestCase {
     }
 
     @Override
-    public AnAction [] getRecentProjectsActions(boolean addClearListItem, boolean useGroups) {
-      return AnAction.EMPTY_ARRAY;
-    }
-
-    @Override
     public void setActivationTimestamp(@NotNull Project project, long timestamp) {
     }
   }
