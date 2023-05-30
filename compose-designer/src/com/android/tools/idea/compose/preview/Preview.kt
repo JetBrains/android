@@ -75,7 +75,6 @@ import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
-import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.rendering.RenderService
 import com.intellij.ide.ActivityTracker
 import com.intellij.ide.PowerSaveMode
@@ -1334,11 +1333,6 @@ class ComposePreviewRepresentation(
       log.debug("Completed")
       launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
       if (it is CancellationException) {
-        RenderService.getRenderAsyncActionExecutor()
-          .cancelActionsByTopic(
-            listOf(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW),
-            true
-          )
         composeWorkBench.onRefreshCancelledByTheUser()
       } else composeWorkBench.onRefreshCompleted()
 

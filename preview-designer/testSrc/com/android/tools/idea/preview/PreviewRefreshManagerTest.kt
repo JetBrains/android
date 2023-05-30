@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
@@ -40,33 +43,42 @@ private class TestPreviewRefreshRequest(
   val name: String
 ) : PreviewRefreshRequest {
   companion object {
-    lateinit var log: StringBuilder
-    lateinit var expectedLogPrintCount: CountDownLatch
+    // A lock is needed because these properties are shared between all requests
+    val testLock = ReentrantLock()
+    @GuardedBy("testLock") lateinit var log: StringBuilder
+    @GuardedBy("testLock") lateinit var expectedLogPrintCount: CountDownLatch
   }
 
-  private var myJob: Job? = null
-
-  override suspend fun doRefresh() {
-    myJob =
+  override fun doRefresh(): Job {
+    val refreshJob =
       scope.launch {
-        log.appendLine("start $name")
-        expectedLogPrintCount.countDown()
+        testLock.withLock {
+          log.appendLine("start $name")
+          expectedLogPrintCount.countDown()
+        }
         delay(1000)
-        log.appendLine("finish $name")
-        expectedLogPrintCount.countDown()
       }
-    myJob!!.join()
+    return refreshJob
   }
 
-  override fun cancel(cause: String) {
-    log.appendLine("cancel $name")
-    myJob?.cancel()
-    expectedLogPrintCount.countDown()
+  override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) {
+    testLock.withLock {
+      when (result) {
+        RefreshResult.SUCCESS -> log.appendLine("finish $name")
+        RefreshResult.CANCELLED -> log.appendLine("cancel $name")
+        // This should never happen, and if it does the test will fail when doing assertions about
+        // the content of 'log'
+        else -> log.appendLine("unexpected result")
+      }
+      expectedLogPrintCount.countDown()
+    }
   }
 
   override fun onSkip(replacedBy: PreviewRefreshRequest) {
-    log.appendLine("skip $name")
-    expectedLogPrintCount.countDown()
+    testLock.withLock {
+      log.appendLine("skip $name")
+      expectedLogPrintCount.countDown()
+    }
   }
 }
 

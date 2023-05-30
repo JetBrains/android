@@ -19,6 +19,9 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PreviewRefreshRequest
+import com.android.tools.idea.preview.RefreshResult
+import com.android.tools.rendering.RenderAsyncActionExecutor
+import com.android.tools.rendering.RenderService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -60,38 +63,39 @@ enum class RefreshType(internal val priority: Int) {
  */
 class ComposePreviewRefreshRequest(
   override val clientId: String,
-  private val delegateRefresh: suspend (ComposePreviewRefreshRequest) -> Job,
+  private val delegateRefresh: (ComposePreviewRefreshRequest) -> Job,
   private var completableDeferred: CompletableDeferred<Unit>?,
   val type: RefreshType,
   val requestId: String = UUID.randomUUID().toString().substring(0, 5)
 ) : PreviewRefreshRequest {
 
   override val priority: Int = type.priority
-  private var refreshJob: Job? = null
   var requestSources: List<Throwable> = listOf(Throwable())
     private set
 
-  override suspend fun doRefresh() {
-    refreshJob = delegateRefresh(this)
-    // Link refreshJob and the completableDeferred so when one is cancelled the other one
-    // is too.
-    completableDeferred?.let { completableDeferred ->
-      refreshJob!!.invokeOnCompletion { throwable ->
-        if (throwable != null) {
-          completableDeferred.completeExceptionally(throwable)
-        } else completableDeferred.complete(Unit)
-      }
-
-      completableDeferred.invokeOnCompletion {
-        // If the deferred is cancelled, cancel the refresh Job too
-        if (it is CancellationException) refreshJob!!.cancel(it)
-      }
+  override fun doRefresh(): Job {
+    val refreshJob = delegateRefresh(this)
+    // If the deferred is cancelled, cancel the refresh Job too
+    completableDeferred?.invokeOnCompletion {
+      if (it is CancellationException) refreshJob.cancel(it)
     }
-    refreshJob!!.join()
+    return refreshJob
   }
 
-  override fun cancel(cause: String) {
-    refreshJob?.cancel(CancellationException(cause))
+  override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) {
+    completableDeferred?.let {
+      if (throwable == null) it.complete(Unit) else it.completeExceptionally(throwable)
+    }
+
+    if (result == RefreshResult.CANCELLED) {
+      // Force stop any running and pending renders so that everything is ready
+      // for a new refresh that may start right away.
+      RenderService.getRenderAsyncActionExecutor()
+        .cancelActionsByTopic(
+          listOf(RenderAsyncActionExecutor.RenderingTopic.COMPOSE_PREVIEW),
+          true
+        )
+    }
   }
 
   override fun onSkip(replacedBy: PreviewRefreshRequest) {

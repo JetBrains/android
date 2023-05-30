@@ -17,13 +17,22 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.intellij.openapi.diagnostic.Logger
 import java.util.Collections
 import java.util.PriorityQueue
+import java.util.concurrent.CancellationException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+
+enum class RefreshResult {
+  SUCCESS,
+  CANCELLED,
+  FAILED
+}
 
 /**
  * Base interface needed for using a [PreviewRefreshManager].
@@ -38,14 +47,14 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
    * cancellation granularity. For example, a per-file granularity could be implemented by using as
    * [clientId] the fully qualified name of the file for which a refresh is requested.
    *
-   * See [cancel] and [onSkip] for more details.
+   * See [doRefresh] and [onSkip] for more details.
    */
   val clientId: String
 
   /**
    * Priority value used by the [PreviewRefreshManager] to:
    * - Sort the pending requests
-   * - Cancel or skip requests (see [cancel] and [onSkip])
+   * - Cancel or skip requests (see [doRefresh] and [onSkip])
    */
   val priority: Int
 
@@ -56,21 +65,22 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
   /**
    * Method called when it is time for this request to actually be executed.
    *
-   * Note that the [PreviewRefreshManager] assumes that it is safe to execute another request after
-   * this one, exactly when this method finishes.
+   * Note the [PreviewRefreshManager] will cancel this running refresh when a newer request comes in
+   * with the same client id and with higher than or equal priority to this one.
    */
-  suspend fun doRefresh()
+  fun doRefresh(): Job
 
   /**
-   * Method called when the [PreviewRefreshManager] detects that a running request needs to be
-   * cancelled due to a newer request with the same client id and with higher than or equal priority
-   * to this one.
+   * Method called when this refresh has completed (i.e. when the [Job] returned by [doRefresh] has
+   * completed).
    *
-   * Note that the [PreviewRefreshManager] detects the need of cancelling the request, and uses this
-   * [cancel] method to do it. Meaning that this method is responsible for properly cancelling this
-   * running request.
+   * The [PreviewRefreshManager] assumes that it is safe to execute another request right after this
+   * method returns, so here is where the cleanup of shared resources between requests should
+   * probably happen.
+   *
+   * Note that this will never be used on skipped requests.
    */
-  fun cancel(cause: String)
+  fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?)
 
   /**
    * Method called when a request is skipped by the [PreviewRefreshManager] due to another request
@@ -88,10 +98,12 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
  * the following rules:
  * - Group the requests by their [PreviewRefreshRequest.clientId], and keep at most 1 request per
  *   client in the queue (see [PreviewRefreshRequest.onSkip]).
- * - Cancel running requests if outdated (see [PreviewRefreshRequest.cancel])
+ * - Cancel running requests if outdated (see [PreviewRefreshRequest.doRefresh])
  * - Delegate prioritization to the requests (see [PreviewRefreshRequest.compareTo])
  */
 class PreviewRefreshManager(private val scope: CoroutineScope) {
+  private val log = Logger.getInstance(PreviewRefreshManager::class.java)
+
   private val requestsFlow: MutableSharedFlow<Unit> =
     MutableSharedFlow(replay = 1, extraBufferCapacity = 1)
 
@@ -105,22 +117,42 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
     PriorityQueue(Collections.reverseOrder()) // higher first
 
   @GuardedBy("requestsLock") private var runningRequest: PreviewRefreshRequest? = null
+  @GuardedBy("requestsLock") private var runningJob: Job? = null
 
   init {
     scope.launch(AndroidDispatchers.workerThread) {
       requestsFlow.collect {
-        var requestToRun: PreviewRefreshRequest
+        val currentJob: Job
+        val currentRequest: PreviewRefreshRequest
         requestsLock.withLock {
           if (allPendingRequests.isEmpty()) return@collect
-          requestToRun = allPendingRequests.remove()
-          runningRequest = requestToRun
-          pendingRequestsPerClient.remove(requestToRun.clientId)
+          currentRequest = allPendingRequests.remove()
+          pendingRequestsPerClient.remove(currentRequest.clientId)
+          currentJob = currentRequest.doRefresh()
+          runningRequest = currentRequest
+          runningJob = currentJob
         }
 
         try {
-          requestToRun.doRefresh()
+          currentJob.invokeOnCompletion {
+            val result =
+              when (it) {
+                null -> RefreshResult.SUCCESS
+                is CancellationException -> RefreshResult.CANCELLED
+                else -> RefreshResult.FAILED
+              }
+            currentRequest.onRefreshCompleted(result, it)
+            // Log unexpected failures
+            if (result == RefreshResult.FAILED) {
+              log.warn("Failed refresh request ($currentRequest)", it)
+            }
+          }
+          currentJob.join()
         } finally {
-          requestsLock.withLock { runningRequest = null }
+          requestsLock.withLock {
+            runningRequest = null
+            runningJob = null
+          }
           // When a request is found and processed, it is possible that another
           // one is awaiting in the queue, so try to emit to the flow to check.
           requestsFlow.tryEmit(Unit)
@@ -130,14 +162,16 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
   }
 
   fun requestRefresh(request: PreviewRefreshRequest) {
-    var requestToCancel: PreviewRefreshRequest? = null
     requestsLock.withLock {
       // If the running request is of the same client and has lower than
       // or equal priority to the new one, then it should be cancelled.
       runningRequest?.let {
         if (it.clientId == request.clientId && it <= request) {
-          requestToCancel = runningRequest
-          runningRequest = null
+          runningJob!!.cancel(
+            CancellationException(
+              "Outdated, a refresh was replaced by a newer one (${request.clientId})"
+            )
+          )
         }
       }
 
@@ -154,10 +188,7 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
         pendingRequestsPerClient[request.clientId] = request
         allPendingRequests.add(request)
       }
+      requestsFlow.tryEmit(Unit)
     }
-    requestsFlow.tryEmit(Unit)
-    requestToCancel?.cancel(
-      "Outdated, this refresh request was replaced by a newer one (${request.clientId})"
-    )
   }
 }
