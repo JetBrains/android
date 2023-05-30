@@ -22,8 +22,12 @@ import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 enum Category {
-  PHONE("Phone", "Pixel 2", definition -> !definition.getIsDeprecated() && definition.getTagId() == null && !hasTabletScreen(definition)),
-  TABLET("Tablet", "Pixel C", definition -> !definition.getIsDeprecated() && definition.getTagId() == null && hasTabletScreen(definition)),
+  PHONE("Phone", "Pixel Fold", definition ->
+    !definition.getIsDeprecated() && definition.getTagId() == null && !hasTabletScreen(definition)),
+
+  TABLET("Tablet", "Pixel Tablet", definition ->
+    !definition.getIsDeprecated() && definition.getTagId() == null && hasTabletScreen(definition)),
+
   WEAR_OS("Wear OS", "Wear OS Square", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isWear(definition)),
   DESKTOP("Desktop", "Medium Desktop", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isDesktop(definition)),
 
