@@ -445,7 +445,7 @@ open class SingleModule : LightClassesTestBase() {
     // Initialize the light classes code.
     assertThat(myFixture.javaFacade.findClass("p1.p2.R", GlobalSearchScope.everythingScope(project))).isNotNull()
 
-    addAarDependency(myModule, "someLib", "com.example.someLib") { resDir ->
+    addAarDependency(myFixture, myModule, "someLib", "com.example.someLib") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("int string some_lib_string 0x7f010001")
     }
 
@@ -1274,7 +1274,7 @@ class UnrelatedModules : LightClassesTestBase() {
   }
 
   fun testLibraryUseScope() {
-    addAarDependency(myModule, "aarlib", "com.example.aarlib") { resDir ->
+    addAarDependency(myFixture, myModule, "aarlib", "com.example.aarlib") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
         """
         int string aar_lib_string 0x7f010001
@@ -1408,7 +1408,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
 
   override fun setUp() {
     super.setUp()
-    addAarDependency(myModule, "aarLib", "com.example.mylibrary") { resDir ->
+    addAarDependency(myFixture, myModule, "aarLib", "com.example.mylibrary") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
         """
         int string my_aar_string 0x7f010001
@@ -1422,7 +1422,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
         """.trimIndent()
       )
     }
-    addAarDependency(myModule, "anotherLib", "com.example.anotherLib") { resDir ->
+    addAarDependency(myFixture, myModule, "anotherLib", "com.example.anotherLib") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
         """
         int string another_lib_string 0x7f010001
@@ -1682,7 +1682,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
   }
 
   fun testMalformedRTxt_styleables() {
-    addAarDependency(myModule, "brokenLib", "com.example.brokenLib") { resDir ->
+    addAarDependency(myFixture, myModule, "brokenLib", "com.example.brokenLib") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
         """
           int[] styleable FontFamilyFont { notANumber, 0x7f040008, 0x7f040009 }
@@ -1735,7 +1735,7 @@ class NonNamespacedModuleWithAar : LightClassesTestBase() {
   }
 
   fun testMalformedRTxt_completelyWrong() {
-    addAarDependency(myModule, "brokenLib", "com.example.brokenLib") { resDir ->
+    addAarDependency(myFixture, myModule, "brokenLib", "com.example.brokenLib") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("Hello from the internet")
     }
 

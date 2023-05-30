@@ -58,7 +58,7 @@ class LibraryResourceClassLoaderTest {
     resourceIdManger = TestResourceIdManager.getManager(androidProjectRule.module)
     resourceIdManger.setFinalIdsUsed(false)
 
-    addAarDependency(androidProjectRule.module, "aarLib", "com.example.mylibrary") { resDir ->
+    addAarDependency(androidProjectRule.fixture, androidProjectRule.module, "aarLib", "com.example.mylibrary") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
         """
           int string my_aar_string 0x7f010001
@@ -81,7 +81,7 @@ class LibraryResourceClassLoaderTest {
       """.trimIndent()
       )
     }
-    addAarDependency(androidProjectRule.module, "emptyAarLib", "com.example.mylibrary.empty") { resDir ->
+    addAarDependency(androidProjectRule.fixture, androidProjectRule.module, "emptyAarLib", "com.example.mylibrary.empty") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText("")
     }
 

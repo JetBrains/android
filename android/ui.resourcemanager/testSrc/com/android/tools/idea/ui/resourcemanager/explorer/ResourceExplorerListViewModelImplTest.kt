@@ -270,7 +270,7 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getLibrariesResources() {
     val libraryName = "myLibrary"
-    addAarDependency(projectRule.module,
+    addAarDependency(projectRule.fixture, projectRule.module,
                      libraryName, "com.resources.test") { resDir ->
       FileUtil.copyDir(File(getTestDataDirectory() + "/res"), resDir)
       // Have only some of these resources to be public.

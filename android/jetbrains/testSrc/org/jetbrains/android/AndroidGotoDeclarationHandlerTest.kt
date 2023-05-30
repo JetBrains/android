@@ -691,7 +691,7 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
 class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHandlerTestBase() {
 
   override fun addAarDependencyToMyModule() {
-    addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
+    addAarDependency(myFixture, myModule, "aarLib", "com.example.aarLib") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
         """
           int attr libAttr 0x7f010000

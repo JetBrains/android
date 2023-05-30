@@ -2125,7 +2125,7 @@ b/263898646 */
   }
 
   fun testAarVisibilitySensitiveCompletion() {
-    addAarDependency(myModule, "myaar", "com.example.myaar") { resDir ->
+    addAarDependency(myFixture, myModule, "myaar", "com.example.myaar") { resDir ->
       @Language("XML")
       val stringsXml =
           """

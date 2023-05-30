@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.resources.getTestAarRepositoryFromExplodedAar
 import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
 import com.google.common.truth.Truth.assertThat
@@ -38,6 +39,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PsiTestUtil
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
@@ -121,12 +123,13 @@ private fun createAndroidManifest(dir: File, packageName: String) {
  *                        the function is done.
  */
 fun addAarDependency(
+  fixture: CodeInsightTestFixture,
   module: Module,
   libraryName: String,
   packageName: String,
   createResources: (File) -> Unit
 ) {
-  val aarDir = FileUtil.createTempDirectory(libraryName, "_exploded")
+  val aarDir = fixture.tempDirFixture.findOrCreateDir("${libraryName}_exploded").toIoFile()
 
   // Create a manifest file in the right place, so that files inside aarDir are considered resource files.
   // See AndroidResourcesIdeUtil#isResourceDirectory which is called from ResourcesDomFileDescription#isResourcesFile.

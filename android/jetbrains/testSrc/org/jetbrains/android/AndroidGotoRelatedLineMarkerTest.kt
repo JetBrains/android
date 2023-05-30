@@ -113,7 +113,7 @@ class AndroidGotoRelatedLineMarkerTest {
     val layout1 = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout1.xml")
     val layoutLand = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout-land/layout.xml")
     val layout2 = arrayOfNulls<VirtualFile>(1)
-    addAarDependency(myFixture.module, "myLibrary", "com.library") { dir ->
+    addAarDependency(myFixture, myFixture.module, "myLibrary", "com.library") { dir ->
       val destination = File(dir, "res/layout/layout2.xml")
       FileUtil.copy(File(AndroidTestBase.getTestDataPath() + BASE_PATH + "layout1.xml"), destination)
       layout2[0] = findFileByIoFile(destination, true)

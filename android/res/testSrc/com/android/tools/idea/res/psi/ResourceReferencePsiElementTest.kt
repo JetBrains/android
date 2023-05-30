@@ -46,7 +46,7 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
   }
 
   fun testReferencesToAAR_equivalent() {
-    addAarDependency(myModule, "aarLib", "com.example.aarLib") { resDir ->
+    addAarDependency(myFixture, myModule, "aarLib", "com.example.aarLib") { resDir ->
       resDir.parentFile.resolve(SdkConstants.FN_RESOURCE_TEXT).writeText(
         """int color colorPrimary 0x7f010001"""
       )
