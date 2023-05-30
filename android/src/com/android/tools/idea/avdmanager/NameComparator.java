@@ -26,8 +26,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>Small Phone
  *   <li>Medium Phone
  *   <li>Medium Tablet
- *   <li>Names whose first character is a letter (and then reversed natural order)
- *   <li>Names whose first character isn't a letter (and then reversed natural order)
+ *   <li>The other devices (in reversed natural order)
  *   <li>Resizable (Experimental)
  * </ol>
  */
@@ -39,8 +38,7 @@ final class NameComparator implements Comparator<Device> {
 
   private enum SortKey {
     RESIZABLE_EXPERIMENTAL,
-    FIRST_CHAR_ISNT_LETTER,
-    FIRST_CHAR_IS_LETTER,
+    DEVICE,
     MEDIUM_TABLET,
     MEDIUM_PHONE,
     SMALL_PHONE;
@@ -52,7 +50,7 @@ final class NameComparator implements Comparator<Device> {
         case "Medium Tablet" -> MEDIUM_TABLET;
         case "Medium Phone" -> MEDIUM_PHONE;
         case "Small Phone" -> SMALL_PHONE;
-        default -> Character.isLetter(deviceName.charAt(0)) ? FIRST_CHAR_IS_LETTER : FIRST_CHAR_ISNT_LETTER;
+        default -> DEVICE;
       };
     }
   }
