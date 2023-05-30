@@ -30,11 +30,14 @@ import com.android.tools.idea.lint.inspections.AndroidLintGradleGetterInspection
 import com.android.tools.idea.lint.inspections.AndroidLintGradlePluginVersionInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintStringShouldBeIntInspection;
 import com.android.tools.lint.checks.GradleDetector;
+import com.intellij.codeInsight.daemon.ProblemHighlightFilter;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ExtensionTestUtil;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +54,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public static Collection getParameters() {
     return Arrays.asList(new Object[][] {
       {".gradle"},
+      {".gradle.kts"}
     });
   }
 
@@ -58,6 +62,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
+    ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, List.of(), myFixture.getProjectDisposable());
   }
 
   @Test
@@ -98,7 +103,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   @Test
   public void testCompatibility() throws Exception {
     AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
-    doTest(inspection, null);
+      doTest(inspection, null);
   }
 
   @Test
@@ -140,24 +145,28 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   @Test
   public void testMinSdkAssignment() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
   @Test
   public void testMinSdkAssignment2() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
   @Test
   public void testMinSdkAssignment3() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
   @Test
   public void testMinSdkAssignment4() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
@@ -208,12 +217,14 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   @Test
   public void testDataBindingWithoutKaptUsingApplyPlugin() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
     doTest(inspection, null);
   }
 
   @Test
   public void testDataBindingWithKaptUsingApplyPlugin() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
     doTest(inspection, null);
   }

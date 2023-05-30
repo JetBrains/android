@@ -1,0 +1,23 @@
+plugins {
+    id("com.android.application")
+}
+
+fun getVersionName() {
+    "1.0"
+}
+
+fun getVersionCode() {
+    50
+}
+
+android {
+    compileSdkVersion(19)
+    buildToolsVersion("19.0.0")
+
+    defaultConfig {
+        minSdkVersion(7)
+        targetSdkVersion(17)
+        <error descr="Bad method name: pick a unique method name which does not conflict with the implicit getters for the defaultConfig properties. For example, try using the prefix compute- instead of get-.">versionCode = getVersionCode</error>
+        <error descr="Bad method name: pick a unique method name which does not conflict with the implicit getters for the defaultConfig properties. For example, try using the prefix compute- instead of get-.">versionName = getVersionName</error>
+    }
+}
