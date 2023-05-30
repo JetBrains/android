@@ -36,9 +36,7 @@ import com.intellij.openapi.util.JDOMUtil
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.TestCase
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.jdom.Element
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
@@ -48,7 +46,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
 
 class SourceCodeEditorProviderTest {
 
