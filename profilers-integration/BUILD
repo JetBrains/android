@@ -35,14 +35,12 @@ iml_studio_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = [
-        "very_flaky",  # b/282881259
+    tags = [
         "block-network",
-    ],
-    tags_mac = ["manual"],  # b/282881259: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+        "no_crostini",  # Emulator testing not yet supported.
+        "no_windows",  # RBE environment doesn't allow emulation (requires nested virtualization).
+        "qa_smoke",  # b/282881259
+        "very_flaky",
     ],
     test_class = "com.android.tools.profilers.integration.ProfileWithCompleteDataTest",
 )
@@ -54,14 +52,12 @@ iml_studio_test(
         "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = [
-        "very_flaky",  # b/282881259, b/260867011
+    tags = [
         "block-network",
-    ],
-    tags_mac = ["manual"],  # b/282881259, b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
-    tags_windows = [
-        "block-network",
-        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+        "no_crostini",  # Emulator testing not yet supported.
+        "no_windows",  # RBE environment doesn't allow emulation (requires nested virtualization).
+        "qa_smoke",  # b/282881259, b/260867011
+        "very_flaky",
     ],
     test_class = "com.android.tools.profilers.integration.ProfileWithLowOverheadTest",
 )
