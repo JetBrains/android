@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.modes.essentials
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.registry.RegistryManager
 
 object EssentialsMode {
+
+  private val applicationService = ApplicationManager.getApplication().getService(
+    EssentialsModeMessenger::class.java)
   @JvmStatic
   fun isEnabled(): Boolean {
     return RegistryManager.getInstance().`is`("ide.essentials.mode");
@@ -25,6 +29,9 @@ object EssentialsMode {
 
   @JvmStatic
   fun setEnabled(value: Boolean) {
+    val beforeSet = isEnabled()
     RegistryManager.getInstance().get("ide.essentials.mode").setValue(value)
+    // send message if the value changed
+    if (beforeSet != value) applicationService.sendMessage()
   }
 }

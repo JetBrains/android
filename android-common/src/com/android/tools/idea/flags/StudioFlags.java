@@ -1074,6 +1074,12 @@ public final class StudioFlags {
    "limited code inspections and highlighting while editing until a save all action is received e.g. Lint.",
    true);
 
+  public static final Flag<Boolean> ESSENTIALS_MODE_GETS_RECOMMENDED = Flag.create(
+    ESSENTIALS_MODE, "essentials.mode.gets.recommend",
+    "Essentials Mode is able to get recommended to the user",
+    "When enabled this allows Android Studio to drive adoption of Essentials Mode by recommending users should try it out.",
+    false);
+
   //endregion
 
   //region Unified App Bundle

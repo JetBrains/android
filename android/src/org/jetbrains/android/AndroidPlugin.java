@@ -10,6 +10,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -89,7 +90,7 @@ public final class AndroidPlugin {
    * For Android Studio make it non-internal and controlled by server side flag.
    */
   private static void overrideEssentialHighlightingAction(ActionManager actionManager) {
-    ToggleAction studioAction = new EssentialsModeToggleAction(StudioFlags.ESSENTIALS_MODE_VISIBLE, StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE);
+    ToggleAction studioAction = new EssentialsModeToggleAction();
     if (actionManager.getAction("ToggleEssentialHighlighting") != null) {
       Actions.replaceAction(actionManager, "ToggleEssentialHighlighting", studioAction);
     } else {

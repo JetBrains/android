@@ -16,29 +16,23 @@
 package com.android.tools.idea.modes.essentials
 
 import com.android.flags.Flag
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.modes.essentials.EssentialsMode.isEnabled
 import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.ide.actions.ToggleEssentialHighlightingAction
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.application.ApplicationManager
 
 
-class EssentialsModeToggleAction(private val essentialsModeFlag: Flag<Boolean>,
-                                 private val essentialHighlightingEnabled: Flag<Boolean>) : ToggleAction(
+class EssentialsModeToggleAction : ToggleAction(
   "Essentials Mode") {
+
+  private val essentialsModeFlag: Flag<Boolean> = StudioFlags.ESSENTIALS_MODE_VISIBLE
+  private val essentialHighlightingEnabled: Flag<Boolean> = StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE
   // keeping Essential Highlighting separable from Essentials Mode if it's determined at a future
   // date that most users would prefer this feature not bundled with Essentials Mode
   private val essentialHighlightingAction = ToggleEssentialHighlightingAction()
-  private val applicationService = ApplicationManager.getApplication().getService(
-    EssentialsModeMessenger::class.java)
-
-
-  override fun actionPerformed(e: AnActionEvent) {
-    super.actionPerformed(e)
-    applicationService.sendMessage()
-  }
 
   override fun isSelected(e: AnActionEvent): Boolean {
     return isEnabled()
