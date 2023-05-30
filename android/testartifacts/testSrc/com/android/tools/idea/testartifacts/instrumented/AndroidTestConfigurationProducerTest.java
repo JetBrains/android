@@ -281,10 +281,10 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertEquals("google.simpleapplication.SomeTest$InnerClassTest", runConfig.CLASS_NAME);
   }
 
-  public void testCreateAndroidAndroidTestKotlinMultiplatformFromSubDirectory() throws Exception {
+  public void testCreateAndroidInstrumentedTestKotlinMultiplatformFromSubDirectory() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(
-      getProject(), "module2/src/androidAndroidTest/kotlin");
+      getProject(), "module2/src/androidInstrumentedTest/kotlin");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
     assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
@@ -294,10 +294,10 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertThat(runConfig.METHOD_NAME).isEmpty();
   }
 
-  public void testCreateAndroidAndroidTestKotlinMultiplatformFromDirectory() throws Exception {
+  public void testCreateAndroidInstrumentedTestKotlinMultiplatformFromDirectory() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(
-      getProject(), "module2/src/androidAndroidTest");
+      getProject(), "module2/src/androidInstrumentedTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
     assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
@@ -307,7 +307,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertThat(runConfig.METHOD_NAME).isEmpty();
   }
 
-  public void testCreateAndroidAndroidTestKotlinMultiplatfomFromClass() throws Exception {
+  public void testCreateAndroidInstrumentedTestKotlinMultiplatformFromClass() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(
       getProject(), "ExampleInstrumentedTest");

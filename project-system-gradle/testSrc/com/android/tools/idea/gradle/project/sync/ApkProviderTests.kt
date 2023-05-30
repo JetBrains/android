@@ -43,6 +43,8 @@ import com.google.common.truth.Expect
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
+import java.io.PrintWriter
+import java.io.StringWriter
 
 internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
   listOf(
@@ -746,7 +748,16 @@ private data class ApkProviderTest(
       expect.that(validationErrors.joinToString { it.message }).isEqualTo(expectValidate.forVersion())
 
       val apks = runCatching { apkProvider.getApks(device) }
-      expect.that(apks.toTestString { this.toTestString() }).isEqualTo(expectApks.forVersion())
+      expect.withMessage(
+        assembleResult?.invocationResult?.invocations?.let { invocations ->
+          val sb = StringWriter()
+          invocations.mapNotNull { it.buildError }.forEach { error ->
+            sb.appendLine("Build Error Found:")
+            error.printStackTrace(PrintWriter(sb))
+          }
+          sb.toString()
+        }
+      ).that(apks.toTestString { this.toTestString() }).isEqualTo(expectApks.forVersion())
       apks.getOrNull()?.flatMap { it.files }?.forEach { expect.that(it.apkFile.exists()).named("${it.apkFile} exists").isTrue() }
     }
   }

@@ -261,6 +261,7 @@ fun migratePackageAttribute(root: File) {
 
     when (manifestPath.parent.fileName.toString()) {
       "main" -> Unit
+      "androidMain" -> Unit
       "androidTest" -> return@forEach // It is ignored and does not play the role of `testNamespace`.
       else -> return@forEach
     }

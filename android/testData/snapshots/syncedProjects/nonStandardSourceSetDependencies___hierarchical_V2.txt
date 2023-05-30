@@ -173,20 +173,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -314,20 +314,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -446,20 +446,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (1.8)
             UseProjectSettings            : false
             Version                       : 5
@@ -562,7 +562,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/common
             EXCLUDE_FOLDER                : file://<PROJECT>/common/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/common/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/common/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -600,10 +600,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -618,10 +618,10 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalProjectId             : :common
             IsTestModule                  : false
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -680,10 +680,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -698,10 +698,10 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalProjectId             : :common
             IsTestModule                  : true
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -765,10 +765,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -777,16 +777,16 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :common
             IsTestModule                  : false
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -847,10 +847,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -859,16 +859,16 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :common
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -974,10 +974,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -985,15 +985,15 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -1054,10 +1054,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -1065,15 +1065,15 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -1096,8 +1096,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.desktop.main
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.desktop.main
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :desktop:assemble, :desktop:testClasses
@@ -1228,20 +1226,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -1405,20 +1403,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -1552,20 +1550,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -1709,7 +1707,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  :  [-]
@@ -1782,13 +1780,13 @@ PROJECT                       : NonStandardSourceSetDependencies
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidAndroidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidAndroidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/feature-b/build/generated/res/resValues/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1801,10 +1799,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1813,16 +1811,16 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :feature-b
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1835,36 +1833,38 @@ PROJECT                       : NonStandardSourceSetDependencies
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/res/resValues/androidTest/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidAndroidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidAndroidTestDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidDebugAndroidTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/AndroidManifest.xml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/__KotlinMPP__ [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/baselineProfiles [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/java [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug/AndroidManifest.xml [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug/baselineProfiles [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug/java [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidInstrumentedTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
             Generated                     : true
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/build/generated/res/resValues/androidTest/debug [-]
             Generated                     : true
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidAndroidTest/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidAndroidTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidAndroidTest/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidAndroidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidAndroidTest/shaders [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidAndroidTestDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidAndroidTestDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidAndroidTestDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidAndroidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidAndroidTestDebug/shaders [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidDebugAndroidTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidDebugAndroidTest/resources [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTest/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidInstrumentedTestDebug/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/java [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/shaders [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -1932,7 +1932,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/feature-b/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/feature-b/src/androidMain/res [-]
@@ -1951,10 +1951,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1963,16 +1963,16 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :feature-b
             IsTestModule                  : false
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -1986,11 +1986,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/res/resValues/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidDebug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidMain [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidMain
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/commonMain [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/debug [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/main
-            JavaSource                    : file://<PROJECT>/feature-b/src/main/java
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
             Generated                     : true
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/build/generated/res/resValues/debug [-]
@@ -2016,6 +2015,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/debug/shaders [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/baselineProfiles [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/main/java [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/feature-b/src/main/kotlin [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/feature-b/src/main/resources [-]
@@ -2031,8 +2031,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
-        Classes
-            -                             : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :feature-b:createMockableJar, :feature-b:generateDebugAndroidTestSources, :feature-b:generateDebugSources
@@ -2083,7 +2081,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             AllowUserConfiguration        : false
             GenFolderRelativePathApt      : /gen
             GenFolderRelativePathAidl     : /gen
-            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ManifestFileRelativePath      : /src/androidMain/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      :  [-]
             - TestResFoldersRelativePath  :  [-]
@@ -2098,10 +2096,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -2110,16 +2108,16 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :feature-b
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -2128,39 +2126,26 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             Platform                      : JVM (17)
-            - SourceSetName               : NonStandardSourceSetDependencies.feature-b.androidTest
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidDebugUnitTest [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTest/shaders [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug/assets [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug/res [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug/resources [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidTestDebug/shaders [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/commonTest/kotlin [-]
-        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/commonTest/resources [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidUnitTest [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/androidUnitTestDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/commonTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/feature-b/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
             Generated                     : true
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidDebugUnitTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidDebugUnitTest/resources [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTest/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTest/shaders [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/assets [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/kotlin [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/res [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidTestDebug/resources [-]
-        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidTestDebug/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTest/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTest/shaders [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/assets [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTestDebug/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/res [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/androidUnitTestDebug/resources [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/androidUnitTestDebug/shaders [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/feature-b/src/commonTest/kotlin [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/commonTest/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/feature-b/src/test/assets [-]
@@ -2239,7 +2224,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/jarWrapperLib
             EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/jarWrapperLib/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2266,7 +2251,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/javaLibrary
             EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/javaLibrary/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -2303,10 +2288,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -2314,15 +2299,15 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -2390,10 +2375,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -2401,15 +2386,15 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -2439,8 +2424,6 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
-        ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :javaLibrary:assemble, :javaLibrary:testClasses
@@ -2474,10 +2457,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -2485,15 +2468,15 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -2964,10 +2947,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -2982,10 +2965,10 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalProjectId             : :kmp-java:sample
             IsTestModule                  : false
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -3044,10 +3027,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -3062,10 +3045,10 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalProjectId             : :kmp-java:sample
             IsTestModule                  : true
             Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -3129,10 +3112,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -3141,16 +3124,16 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmp-java:sample
             IsTestModule                  : false
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -3213,10 +3196,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -3225,16 +3208,16 @@ PROJECT                       : NonStandardSourceSetDependencies
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmp-java:sample
             IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -3396,7 +3379,7 @@ PROJECT                       : NonStandardSourceSetDependencies
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/lib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/lib/build [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
@@ -3469,20 +3452,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -3624,20 +3607,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
@@ -3744,20 +3727,20 @@ PROJECT                       : NonStandardSourceSetDependencies
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
             Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5

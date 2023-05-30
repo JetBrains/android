@@ -773,7 +773,7 @@ MODULE                        : project
                 group                         : project
                 version                       : unspecified
                 projectDir                    : <ROOT>/ads-sdk
-                buildDir                      : <ROOT>/ads-sdk/build
+                buildDir                      : <ROOT>/ads-sdk/build [-]
                 buildFile                     : <ROOT>/ads-sdk/build.gradle
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
@@ -902,6 +902,7 @@ MODULE                        : project
                     implementation                : <empty>
                     implementationDependenciesMetadata      : <empty>
                     intransitiveDependenciesMetadata        : <empty>
+                    kotlinBuildToolsApiClasspath  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathDebug      : <empty>
@@ -1128,6 +1129,7 @@ MODULE                        : project
                     implementation                : <empty>
                     implementationDependenciesMetadata      : <empty>
                     intransitiveDependenciesMetadata        : <empty>
+                    kotlinBuildToolsApiClasspath  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathDebug      : <empty>
@@ -1351,6 +1353,7 @@ MODULE                        : project
                     implementation                : <empty>
                     implementationDependenciesMetadata      : <empty>
                     intransitiveDependenciesMetadata        : <empty>
+                    kotlinBuildToolsApiClasspath  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathDebug      : <empty>
@@ -1573,6 +1576,7 @@ MODULE                        : project
                     implementation                : <empty>
                     implementationDependenciesMetadata      : <empty>
                     intransitiveDependenciesMetadata        : <empty>
+                    kotlinBuildToolsApiClasspath  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathDebug      : <empty>
@@ -2134,15 +2138,6 @@ MODULE                        : project.ads-sdk-implementation
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
                     jvmTarget                     : 17
@@ -2161,19 +2156,7 @@ MODULE                        : project.ads-sdk-implementation
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugAndroidTest
-                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : ads-sdk-implementation_debugAndroidTest
@@ -2191,19 +2174,7 @@ MODULE                        : project.ads-sdk-implementation
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debugUnitTest
-                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/ads-sdk-implementation/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : ads-sdk-implementation_debugUnitTest
@@ -3400,44 +3371,6 @@ MODULE                        : project.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
-                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
@@ -3456,57 +3389,7 @@ MODULE                        : project.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0-api.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
-                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0-api.jar
-                    - classpath                   : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
-                    - classpath                   : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugAndroidTest
@@ -3524,48 +3407,7 @@ MODULE                        : project.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
-                    - classpath                   : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    - friendPaths                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app_debugUnitTest
@@ -4772,44 +4614,6 @@ MODULE                        : project.app-with-dynamic-feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
-                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
@@ -4828,58 +4632,7 @@ MODULE                        : project.app-with-dynamic-feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0-api.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-api.jar
-                    - classpath                   : <M2>/junit/junit/4.12/junit-4.12.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0-api.jar
-                    - classpath                   : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
-                    - classpath                   : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest
-                    - friendPaths                 : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app-with-dynamic-feature_debugAndroidTest
@@ -4897,48 +4650,7 @@ MODULE                        : project.app-with-dynamic-feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3-api.jar
-                    - classpath                   : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
-                    - classpath                   : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0-api.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-TiramisuPrivacySandbox/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugUnitTest
-                    - friendPaths                 : <ROOT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/app-with-dynamic-feature/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/app-with-dynamic-feature/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 1.8
                     moduleName                    : app-with-dynamic-feature_debugUnitTest
@@ -5356,13 +5068,6 @@ MODULE                        : project.feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
                     jvmTarget                     : 17
@@ -5381,17 +5086,7 @@ MODULE                        : project.feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugAndroidTest
-                    - friendPaths                 : <ROOT>/feature/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/feature/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/feature/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : feature_debugAndroidTest
@@ -5409,17 +5104,7 @@ MODULE                        : project.feature
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature/build/tmp/kotlin-classes/debugUnitTest
-                    - friendPaths                 : <ROOT>/feature/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/feature/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/feature/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
                     jvmTarget                     : 17
                     moduleName                    : feature_debugUnitTest

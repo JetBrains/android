@@ -146,14 +146,14 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -164,19 +164,19 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -409,14 +409,14 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -427,19 +427,19 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -608,14 +608,14 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -626,19 +626,19 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
@@ -920,11 +920,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -938,16 +937,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1156,11 +1154,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1174,16 +1171,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1331,11 +1327,10 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.5
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1349,16 +1344,15 @@ PROJECT                       : project
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.5
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.5
+                languageVersion               : 1.5
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
@@ -1521,7 +1515,7 @@ PROJECT                       : project
             ExternalSource                : GRADLE
         CONENT_ENTRY                  : file://<PROJECT>/contentLib
             EXCLUDE_FOLDER                : file://<PROJECT>/contentLib/.gradle [-]
-            EXCLUDE_FOLDER                : file://<PROJECT>/contentLib/build
+            EXCLUDE_FOLDER                : file://<PROJECT>/contentLib/build [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
@@ -1558,37 +1552,29 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files -verbose
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
@@ -1623,7 +1609,6 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/contentLib/build/classes/java/main
             -                             : file://<PROJECT>/contentLib/build/classes/kotlin/main
-            -                             : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/main
             -                             : file://<PROJECT>/contentLib/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1660,37 +1645,29 @@ PROJECT                       : project
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files
+                additionalArguments           :
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
             Kind                          : DEFAULT
-            LanguageLevel                 : 1.8
+            LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
-                languageVersion               : 1.8
-                - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
+                apiVersion                    : 1.9
+                languageVersion               : 1.9
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
+                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
@@ -1725,12 +1702,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : project.contentLib.main
-        ORDER_ENTRY                   : project.contentLib.main
-            Scope                         : Runtime
         Classes
             -                             : file://<PROJECT>/contentLib/build/classes/java/test
             -                             : file://<PROJECT>/contentLib/build/classes/kotlin/test
-            -                             : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/test
             -                             : file://<PROJECT>/contentLib/build/resources/test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All

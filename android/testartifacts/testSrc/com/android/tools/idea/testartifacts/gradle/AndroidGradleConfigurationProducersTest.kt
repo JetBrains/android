@@ -38,7 +38,6 @@ import com.intellij.coverage.DefaultCoverageFileProvider
 import com.intellij.coverage.IDEACoverageRunner
 import com.intellij.coverage.JavaCoverageEngine
 import com.intellij.execution.actions.ConfigurationFromContextImpl
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -96,8 +95,8 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
   @Throws(Exception::class)
   fun testKotlinMultiplatform() {
     loadProject(TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM)
-    verifyCanCreateKotlinClassGradleConfigurationFromAndroidTest()
-    verifyCanCreateKotlinDirectoryGradleConfigurationFromAndroidTest()
+    verifyCanCreateKotlinClassGradleConfigurationFromAndroidUnitTest()
+    verifyCanCreateKotlinDirectoryGradleConfigurationFromAndroidUnitTest()
   }
 
   @Throws(Exception::class)
@@ -285,8 +284,8 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     assertThat(createAndroidGradleConfigurationFromDirectory(project, "app/src/androidTest/java")).isNull()
   }
 
-  private fun verifyCanCreateKotlinClassGradleConfigurationFromAndroidTest() {
-    val psiFile = getPsiElement(project, "module2/src/androidTest/kotlin/com/example/library/TestUnitTest.kt", false) as PsiFile
+  private fun verifyCanCreateKotlinClassGradleConfigurationFromAndroidUnitTest() {
+    val psiFile = getPsiElement(project, "module2/src/androidUnitTest/kotlin/com/example/library/TestUnitTest.kt", false) as PsiFile
     // Create a runConfiguration context based on the testClass.
     val configurationFromContext = createConfigurationFromContext(psiFile)
     // Make sure that the configuration is created by the testClass gradle provider.
@@ -300,8 +299,8 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     )
   }
 
-  private fun verifyCanCreateKotlinDirectoryGradleConfigurationFromAndroidTest() {
-    val psiFile = getPsiElement(project, "module2/src/androidTest/kotlin/com/example/library", true)
+  private fun verifyCanCreateKotlinDirectoryGradleConfigurationFromAndroidUnitTest() {
+    val psiFile = getPsiElement(project, "module2/src/androidUnitTest/kotlin/com/example/library", true)
     // Create a runConfiguration context based on the testClass.
     val configurationFromContext = createConfigurationFromContext(psiFile)
     // Make sure that the configuration is created by the AllInPackage gradle provider.
