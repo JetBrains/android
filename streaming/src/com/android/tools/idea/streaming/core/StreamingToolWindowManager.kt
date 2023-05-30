@@ -110,8 +110,6 @@ private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.stream
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
 private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.zoom.toolbar.visible"
 private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
-/** The value of the property is a comma separated list of normalized device serial numbers. */
-private const val DEVICES_EXCLUDED_FROM_MIRRORING_PROPERTY = "com.android.tools.idea.streaming.devices.excluded.from.mirroring"
 private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
 
 private val ID_KEY = Key.create<DeviceId>("device-id")
@@ -159,7 +157,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private var mirroredDevices = mutableSetOf<String>()
   /** Handles of devices excluded from mirroring keyed by serial numbers. */
   private var devicesExcludedFromMirroring = mutableMapOf<String, DeviceDescription>()
-  private var persistentDevicesExcludedFromMirroring = PersistentLruStringList(properties, DEVICES_EXCLUDED_FROM_MIRRORING_PROPERTY, 100)
 
   // Serial numbers of devices that recently requested attention.
   private val recentAttentionRequests = CacheBuilder.newBuilder().expireAfterWrite(ATTENTION_REQUEST_EXPIRATION).build<String, String>()
@@ -647,7 +644,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (deviceClient != null) {
       devicesExcludedFromMirroring[serialNumber] =
           DeviceDescription(deviceClient.deviceName, serialNumber, deviceClient.deviceHandle, deviceClient.deviceConfig)
-      persistentDevicesExcludedFromMirroring.add(normalizeDeviceSerialNumber(serialNumber))
       Disposer.dispose(deviceClient)
     }
   }
@@ -700,7 +696,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun startMirroring(serialNumber: String, deviceClient: DeviceClient) {
     devicesExcludedFromMirroring.remove(serialNumber)
-    persistentDevicesExcludedFromMirroring.remove(normalizeDeviceSerialNumber((serialNumber)))
     if (serialNumber in onlineDevices && mirroredDevices.add(serialNumber)) {
       deviceClient.establishAgentConnectionWithoutVideoStreamAsync() // Start the agent and connect to it proactively.
       showLiveIndicator()
@@ -780,7 +775,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     override fun launchingTest(deviceSerialNumber: String, project: Project) {
       val activate =
-        if (isLocalEmulator(deviceSerialNumber)) emulatorSettings.activateOnTestLaunch else deviceMirroringSettings.activateOnTestLaunch
+          if (isLocalEmulator(deviceSerialNumber)) emulatorSettings.activateOnTestLaunch else deviceMirroringSettings.activateOnTestLaunch
       if (activate) {
         userInvolvementRequired(deviceSerialNumber, project)
       }
@@ -838,6 +833,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     private fun onlineDevicesChanged() {
+      devicesExcludedFromMirroring.keys.retainAll(onlineDevices.keys)
       val removed = deviceClients.keys.minus(onlineDevices.keys)
       for (device in removed) {
         removePhysicalDevicePanel(device)
@@ -864,7 +860,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     private fun deviceConnected(serialNumber: String, device: ConnectedDevice, config: DeviceConfiguration) {
       if (serialNumber in onlineDevices) {
-        if (normalizeDeviceSerialNumber(serialNumber) in persistentDevicesExcludedFromMirroring) {
+        if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get() && !deviceMirroringSettings.activateOnConnection) {
           // The device is excluded from mirroring.
           devicesExcludedFromMirroring.computeIfAbsent(serialNumber) {
             DeviceDescription(config.deviceName, serialNumber, device.handle, config)
