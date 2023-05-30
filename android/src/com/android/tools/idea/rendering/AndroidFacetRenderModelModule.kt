@@ -25,6 +25,8 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.module.ModuleDependencies
+import com.android.tools.rendering.ModuleKey
+import com.android.tools.rendering.ModuleKeyManager
 import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.RenderModelManifest
 import com.android.tools.rendering.api.RenderModelModule
@@ -36,6 +38,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -83,6 +86,8 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = getInstance(facet.module)
   override val resourceIdManager: ResourceIdManager
     get() = ResourceIdManager.get(facet.module)
+  override val moduleKey: ModuleKey
+    get() = ModuleKeyManager.getKey(facet.module)
   override val resourcePackage: String?
     get() = facet.module.getModuleSystem().getPackageName()
   override val dependencies: ModuleDependencies = StudioModuleDependencies(facet.module)

@@ -625,7 +625,7 @@ public class RenderTask {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     SessionParams params =
-      new SessionParams(modelParser, myRenderingMode, ModuleKeyManager.INSTANCE.getKey(context.getModule().getIdeaModule()), hardwareConfig, resolver,
+      new SessionParams(modelParser, myRenderingMode, context.getModule().getModuleKey(), hardwareConfig, resolver,
                         myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                         myLogger, simulatedPlatform);
     params.setAssetRepository(context.getModule().getAssetRepository());
@@ -1167,7 +1167,7 @@ public class RenderTask {
     RenderContext context = getContext();
     RenderConfiguration configuration = context.getConfiguration();
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, ModuleKeyManager.INSTANCE.getKey(context.getModule().getIdeaModule()), hardwareConfig, configuration.getResourceResolver(),
+      new DrawableParams(drawableResourceValue, context.getModule().getModuleKey(), hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                          myLogger);
     params.setForceNoDecor();
@@ -1304,7 +1304,7 @@ public class RenderTask {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     SessionParams params = new SessionParams(parser,
                                              RenderingMode.NORMAL,
-                                             ModuleKeyManager.INSTANCE.getKey(context.getModule().getIdeaModule()),
+                                             context.getModule().getModuleKey(),
                                              hardwareConfig,
                                              resolver,
                                              myLayoutlibCallback,
