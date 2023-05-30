@@ -22,16 +22,26 @@ import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestModificationListener
 import com.android.tools.idea.model.TestAndroidModel.Companion.namespaced
-import com.android.tools.idea.project.DefaultModuleSystem
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.LightClassesTestBase.Companion.JAVA_RESOURCES_FILE
+import com.android.tools.idea.res.LightClassesTestBase.Companion.KOTLIN_RESOURCE_FILE
 import com.android.tools.idea.res.LightClassesTestBase.Companion.assertNoElementAtCaret
 import com.android.tools.idea.res.LightClassesTestBase.Companion.resolveReferenceUnderCaret
+import com.android.tools.idea.testing.AndroidModuleDependency
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.AndroidProjectStubBuilder
+import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModuleBuilder
+import com.android.tools.idea.testing.buildAgpProjectFlagsStub
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.findClass
+import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
@@ -691,25 +701,60 @@ class SingleModuleNamespacedLightClassesTest : SingleModuleLightClassesTestBase(
   override val packageNameForNamespacing = "p1.p2"
 }
 
-class AppAndLibModules : LightClassesTestBase() {
-  override fun configureAdditionalModules(
-    projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
-    modules: MutableList<MyAdditionalModuleData>
-  ) {
-    addModuleWithAndroidFacet(
-      projectBuilder,
-      modules,
-      "mylib",
-      AndroidProjectTypes.PROJECT_TYPE_LIBRARY,
-      true
-    )
+@RunWith(JUnit4::class)
+@RunsInEdt
+abstract class AppAndLibModulesLightClassesTestBase {
+
+  abstract fun getAgpProjectFlags(builder: AndroidProjectStubBuilder): IdeAndroidGradlePluginProjectFlagsImpl
+
+  private val appModuleBuilder = AndroidModuleModelBuilder(
+    gradlePath = ":app",
+    selectedBuildVariant = "debug",
+    createAndroidProjectBuilderForDefaultTestProjectStructure(
+      IdeAndroidProjectType.PROJECT_TYPE_APP, "p1.p2")
+      .withAndroidModuleDependencyList { _ ->
+        listOf(AndroidModuleDependency(":mylib", "debug"))
+      }
+      .withAgpProjectFlags { getAgpProjectFlags(this) },
+  )
+
+  private val libModuleBuilder = AndroidModuleModelBuilder(
+    gradlePath = ":mylib",
+    selectedBuildVariant = "debug",
+    createAndroidProjectBuilderForDefaultTestProjectStructure(
+      IdeAndroidProjectType.PROJECT_TYPE_LIBRARY, "com.example.mylib")
+      .withAgpProjectFlags { getAgpProjectFlags(this) })
+
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.withAndroidModels(
+    { dir ->
+      assertThat(dir.resolve("app/src").mkdirs()).isTrue()
+      assertThat(dir.resolve("app/res").mkdirs()).isTrue()
+      assertThat(dir.resolve("mylib/src").mkdirs()).isTrue()
+      assertThat(dir.resolve("mylib/res").mkdirs()).isTrue()
+    },
+    rootModuleBuilder,
+    appModuleBuilder,
+    libModuleBuilder
+  ).initAndroid(true).onEdt()
+
+  protected val myFixture by lazy {
+    androidProjectRule.fixture.apply {
+      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    } as JavaCodeInsightTestFixture
   }
+  protected val project by lazy { myFixture.project }
 
-  override fun setUp() {
-    super.setUp()
+  protected val appModule by lazy { project.gradleModule(":app", IdeModuleWellKnownSourceSet.MAIN)!! }
+  protected val libModule by lazy { project.gradleModule(":mylib", IdeModuleWellKnownSourceSet.MAIN)!! }
 
+  @Before
+  fun setUp() {
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "app/${SdkConstants.FN_ANDROID_MANIFEST_XML}")
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "mylib/${SdkConstants.FN_ANDROID_MANIFEST_XML}")
     myFixture.addFileToProject(
-      "/res/values/values.xml",
+      "/app/res/values/values.xml",
       // language=xml
       """
       <resources>
@@ -721,8 +766,6 @@ class AppAndLibModules : LightClassesTestBase() {
       """.trimIndent()
     )
 
-    val libModule = getAdditionalModuleByName("mylib")!!
-
     runWriteCommandAction(project) {
       libModule
         .let(AndroidFacet::getInstance)!!
@@ -732,7 +775,7 @@ class AppAndLibModules : LightClassesTestBase() {
     }
 
     myFixture.addFileToProject(
-      "${getAdditionalModulePath("mylib")}/res/values/values.xml",
+      "mylib/res/values/values.xml",
       // language=xml
       """
       <resources>
@@ -745,13 +788,19 @@ class AppAndLibModules : LightClassesTestBase() {
       """.trimIndent()
     )
   }
+}
+
+class AppAndLibModulesTransitiveLightClassesTest : AppAndLibModulesLightClassesTestBase() {
+
+  override fun getAgpProjectFlags(builder: AndroidProjectStubBuilder) = builder.buildAgpProjectFlagsStub()
 
   /**
    *  Regression test for b/191952219.
    */
-  fun testKotlinFlattenedResources() {
+  @Test
+  fun kotlinFlattenedResources() {
     val activity = myFixture.addFileToProject(
-      "/src/p1/p2/MainActivity.kt",
+      "/app/src/p1/p2/MainActivity.kt",
       // language=kotlin
       """
       package p1.p2
@@ -786,9 +835,10 @@ class AppAndLibModules : LightClassesTestBase() {
   /**
    *  Regression test for b/191952219. In Java, fully qualified resources did not resolve from library modules.
    */
-  fun testJavaFlattenedResources() {
+  @Test
+  fun javaFlattenedResources() {
     val activity = myFixture.addFileToProject(
-      "/src/p1/p2/MainActivity.java",
+      "/app/src/p1/p2/MainActivity.java",
       // language=java
       """
       package p1.p2;
@@ -821,13 +871,51 @@ class AppAndLibModules : LightClassesTestBase() {
     assertThat(lookupStrings).containsAllOf("libString", "lib_String", "lib_String_Bar")
   }
 
+  @Test
+  fun useScope() {
+    val activity = myFixture.loadNewFile(
+      "/app/src/p1/p2/MainActivity.java",
+      // language=java
+      """
+    package p1.p2;
+
+    import android.app.Activity;
+    import android.os.Bundle;
+
+    public class MainActivity extends Activity {
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            getResources().getString(R.string.${caret}app_string);
+        }
+    }
+    """.trimIndent()
+    )
+    val appClassUseScope = myFixture.findClass("p1.p2.R", activity)!!.useScope as GlobalSearchScope
+    assertThat(appClassUseScope.isSearchInLibraries).isFalse()
+    assertThat(appClassUseScope.isSearchInModuleContent(libModule)).isFalse()
+    assertThat(appClassUseScope.isSearchInModuleContent(appModule)).isTrue()
+    assertThat(appClassUseScope.isSearchInModuleContent(appModule, true)).isTrue()
+
+    val libClassUseScope = myFixture.findClass("com.example.mylib.R", activity)!!.useScope as GlobalSearchScope
+    assertThat(libClassUseScope.isSearchInLibraries).isFalse()
+    assertThat(libClassUseScope.isSearchInModuleContent(libModule)).isTrue()
+    assertThat(libClassUseScope.isSearchInModuleContent(appModule)).isTrue()
+    assertThat(libClassUseScope.isSearchInModuleContent(appModule, true)).isTrue()
+  }
+}
+
+class AppAndLibModulesNonTransitiveLightClassesTest : AppAndLibModulesLightClassesTestBase() {
+
+  override fun getAgpProjectFlags(builder: AndroidProjectStubBuilder) =
+    builder.buildAgpProjectFlagsStub().copy(transitiveRClasses = false)
+
   /**
    * Testing completion elements provided via [AndroidNonTransitiveRClassKotlinCompletionContributor]
    */
-  fun testNonTransitiveKotlinCompletion() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-
-    val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.kt", KOTLIN_RESOURCE_FILE)
+  @Test
+  fun nonTransitiveKotlinCompletion() {
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.kt", KOTLIN_RESOURCE_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
@@ -867,7 +955,7 @@ class AppAndLibModules : LightClassesTestBase() {
     myFixture.completeBasic()
 
     myFixture.checkResult(
-      "/src/p1/p2/RClassAndroidTest.kt",
+      "/app/src/p1/p2/RClassAndroidTest.kt",
       // language=kotlin
       """
         package p1.p2
@@ -895,7 +983,7 @@ class AppAndLibModules : LightClassesTestBase() {
     // Test for same module, different package
     val otherPackage = createFile(
       project.guessProjectDir()!!,
-      "/src/p3/p4/RClassAndroidTest.kt",
+      "/app/src/p3/p4/RClassAndroidTest.kt",
       // language=kotlin
       """
       package p3.p4
@@ -935,7 +1023,7 @@ class AppAndLibModules : LightClassesTestBase() {
     myFixture.completeBasic()
 
     myFixture.checkResult(
-      "/src/p3/p4/RClassAndroidTest.kt",
+      "/app/src/p3/p4/RClassAndroidTest.kt",
       // language=kotlin
       """
       package p3.p4
@@ -959,10 +1047,9 @@ class AppAndLibModules : LightClassesTestBase() {
    * Testing completion elements provided via [AndroidNonTransitiveRClassJavaCompletionContributor]
    */
 
-  fun testNonTransitiveJavaCompletionWithPrefix() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-
-    val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+  @Test
+  fun nonTransitiveJavaCompletionWithPrefix() {
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
@@ -976,10 +1063,9 @@ class AppAndLibModules : LightClassesTestBase() {
     assertThat(myFixture.lookupElementStrings).containsAllIn(ResourceType.values().filter { it.hasInnerClass }.map { it.getName() })
   }
 
-  fun testNonTransitiveJavaCompletionLibraryResources() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-
-    val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+  @Test
+  fun nonTransitiveJavaCompletionLibraryResources() {
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
@@ -989,10 +1075,9 @@ class AppAndLibModules : LightClassesTestBase() {
     assertThat(myFixture.lookupElementStrings).containsAllIn(arrayOf("anotherLibString", "libString"))
   }
 
-  fun testNonTransitiveJavaCompletionExtraElements() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-
-    val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+  @Test
+  fun nonTransitiveJavaCompletionExtraElements() {
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
@@ -1004,10 +1089,9 @@ class AppAndLibModules : LightClassesTestBase() {
       .containsAllIn(arrayOf("anotherLibString", "libString", "anotherAppString", "appString"))
   }
 
-  fun testNonTransitiveJavaCompletionInsertHandler() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-
-    val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+  @Test
+  fun nonTransitiveJavaCompletionInsertHandler() {
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
@@ -1020,7 +1104,7 @@ class AppAndLibModules : LightClassesTestBase() {
     myFixture.completeBasic()
 
     myFixture.checkResult(
-      "/src/p1/p2/RClassAndroidTest.java",
+      "/app/src/p1/p2/RClassAndroidTest.java",
       // language=Java
       """
         package p1.p2;
@@ -1044,17 +1128,16 @@ class AppAndLibModules : LightClassesTestBase() {
 
   }
 
-  fun testNonTransitiveJavaCompletionDifferentPackage() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-
-    val androidTest = createFile(project.guessProjectDir()!!, "/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
+  @Test
+  fun nonTransitiveJavaCompletionDifferentPackage() {
+    val androidTest = createFile(project.guessProjectDir()!!, "/app/src/p1/p2/RClassAndroidTest.java", JAVA_RESOURCES_FILE)
 
     myFixture.configureFromExistingVirtualFile(androidTest)
 
     // Test for same module, different package
     val otherPackage = createFile(
       project.guessProjectDir()!!,
-      "/src/p3/p4/RClassAndroidTest.java",
+      "/app/src/p3/p4/RClassAndroidTest.java",
       // language=Java
       """
       package p3.p4;
@@ -1091,7 +1174,7 @@ class AppAndLibModules : LightClassesTestBase() {
     myFixture.completeBasic()
 
     myFixture.checkResult(
-      "/src/p3/p4/RClassAndroidTest.java",
+      "/app/src/p3/p4/RClassAndroidTest.java",
       // language=Java
       """
       package p3.p4;
@@ -1108,11 +1191,10 @@ class AppAndLibModules : LightClassesTestBase() {
       }""".trimIndent(), true)
   }
 
-  fun testNonTransitive() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
-
+  @Test
+  fun nonTransitive() {
     myFixture.loadNewFile(
-      "/src/p1/p2/MainActivity.java",
+      "/app/src/p1/p2/MainActivity.java",
       // language=java
       """
     package p1.p2;
@@ -1141,13 +1223,19 @@ class AppAndLibModules : LightClassesTestBase() {
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsAllOf("libString", "anotherLibString", "class")
   }
+}
 
-  fun testNonFinalResourceIds() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).applicationRClassConstantIds = false
-    myFixture.addFileToProject("res/drawable/foo.xml", "<vector-drawable />")
+class AppAndLibModulesNonFinalResourceIdsLightClassesTest : AppAndLibModulesLightClassesTestBase() {
+
+  override fun getAgpProjectFlags(builder: AndroidProjectStubBuilder) =
+    builder.buildAgpProjectFlagsStub().copy(applicationRClassConstantIds = false)
+
+  @Test
+  fun nonFinalResourceIds() {
+    myFixture.addFileToProject("app/res/drawable/foo.xml", "<vector-drawable />")
 
     myFixture.loadNewFile(
-      "/src/p1/p2/MainActivity.java",
+      "/app/src/p1/p2/MainActivity.java",
       // language=java
       """
     package p1.p2;
@@ -1176,13 +1264,19 @@ class AppAndLibModules : LightClassesTestBase() {
     assertThat(elementAtCaret).isInstanceOf(ResourceLightField::class.java)
     assertThat((elementAtCaret as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isFalse()
   }
+}
 
-  fun testFinalResourceIds() {
-    (myModule.getModuleSystem() as DefaultModuleSystem).applicationRClassConstantIds = true
-    myFixture.addFileToProject("res/drawable/foo.xml", "<vector-drawable />")
+class AppAndLibModulesFinalResourceIdsLightClassesTest : AppAndLibModulesLightClassesTestBase() {
+
+  override fun getAgpProjectFlags(builder: AndroidProjectStubBuilder) =
+    builder.buildAgpProjectFlagsStub().copy(applicationRClassConstantIds = true)
+
+  @Test
+  fun finalResourceIds() {
+    myFixture.addFileToProject("app/res/drawable/foo.xml", "<vector-drawable />")
 
     myFixture.loadNewFile(
-      "/src/p1/p2/MainActivity.java",
+      "/app/src/p1/p2/MainActivity.java",
       // language=java
       """
     package p1.p2;
@@ -1219,38 +1313,6 @@ class AppAndLibModules : LightClassesTestBase() {
       assertThat((this as ResourceLightField).resourceName).isEqualTo("appString")
       assertThat((this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
     }
-  }
-
-  fun testUseScope() {
-    val activity = myFixture.loadNewFile(
-      "/src/p1/p2/MainActivity.java",
-      // language=java
-      """
-    package p1.p2;
-
-    import android.app.Activity;
-    import android.os.Bundle;
-
-    public class MainActivity extends Activity {
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            getResources().getString(R.string.${caret}app_string);
-        }
-    }
-    """.trimIndent()
-    )
-    val appClassUseScope = myFixture.findClass("p1.p2.R", activity)!!.useScope as GlobalSearchScope
-    assertFalse(appClassUseScope.isSearchInLibraries)
-    assertFalse(appClassUseScope.isSearchInModuleContent(getAdditionalModuleByName("mylib")!!))
-    assertTrue(appClassUseScope.isSearchInModuleContent(myFixture.module))
-    assertTrue(appClassUseScope.isSearchInModuleContent(myFixture.module, true))
-
-    val libClassUseScope = myFixture.findClass("com.example.mylib.R", activity)!!.useScope as GlobalSearchScope
-    assertFalse(libClassUseScope.isSearchInLibraries)
-    assertTrue(libClassUseScope.isSearchInModuleContent(getAdditionalModuleByName("mylib")!!))
-    assertTrue(libClassUseScope.isSearchInModuleContent(myFixture.module))
-    assertTrue(libClassUseScope.isSearchInModuleContent(myFixture.module, true))
   }
 }
 
