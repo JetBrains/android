@@ -34,6 +34,7 @@ enum class ColorBlindMode(val displayName: String) {
   DEUTERANOPES("Deuteranopes"), // Missing M
   DEUTERANOMALY("Deuteranomaly"), // Mutated M
   TRITANOPES("Tritanopes"), // Missing S
+  TRITANOMALY("Tritanomaly"), // Mutated S
 }
 
 /**

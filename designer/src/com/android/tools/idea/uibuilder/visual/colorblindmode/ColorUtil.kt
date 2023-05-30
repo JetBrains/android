@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
-import kotlin.math.pow
 import java.util.function.Function
+import kotlin.math.pow
 
 /**
  * All the numbers, math and explanation on how things work is documented in:
@@ -59,6 +59,7 @@ private fun getMat3D(mode: ColorBlindMode): Mat3D {
     ColorBlindMode.DEUTERANOPES -> buildLms2Lmsd()
     ColorBlindMode.DEUTERANOMALY -> buildLms2Lmsd(MUTATED_FACTOR)
     ColorBlindMode.TRITANOPES -> buildLms2Lmst()
+    ColorBlindMode.TRITANOMALY -> buildLms2Lmst(MUTATED_FACTOR)
   }
 }
 

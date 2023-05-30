@@ -109,6 +109,7 @@ class ComposeViewControlActionTest {
         Deuteranopes
         Deuteranomaly
         Tritanopes
+        Tritanomaly
 """
 
     val actionContent = prettyPrintActions(viewControlAction)
@@ -160,6 +161,7 @@ class ComposeViewControlActionTest {
         Deuteranopes
         Deuteranomaly
         Tritanopes
+        Tritanomaly
 """
 
     val actionContent = prettyPrintActions(viewControlAction)
@@ -214,6 +216,7 @@ class ComposeViewControlActionTest {
         Deuteranopes
         Deuteranomaly
         Tritanopes
+        Tritanomaly
 """
 
     val actionContent = prettyPrintActions(viewControlAction)
