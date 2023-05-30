@@ -1359,15 +1359,36 @@ class UnrelatedModules : LightClassesTestBase() {
   }
 }
 
-class NamespacedModuleWithAar : LightClassesTestBase() {
+@RunWith(JUnit4::class)
+@RunsInEdt
+class NamespacedModuleWithAarLightClassesTest {
 
-  override fun setUp() {
-    super.setUp()
-    enableNamespacing("p1.p2")
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.withSdk().onEdt()
+
+  private val myFixture by lazy {
+    androidProjectRule.fixture.apply {
+      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    }
+  }
+  private val project by lazy { myFixture.project }
+  private val myModule by lazy { myFixture.module }
+  private val myFacet by lazy { myModule.androidFacet!! }
+
+  @Before
+  fun setUp() {
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
+
+    AndroidModel.set(myFacet, namespaced(myFacet))
+    runWriteCommandAction(project) {
+      Manifest.getMainManifest(myFacet)!!.getPackage().setValue("p1.p2")
+    }
+    LocalResourceManager.getInstance(myFacet.getModule())!!.invalidateAttributeDefinitions()
     addBinaryAarDependency(myModule)
   }
 
-  fun testTopLevelClass() {
+  @Test
+  fun topLevelClass() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -1389,12 +1410,13 @@ class NamespacedModuleWithAar : LightClassesTestBase() {
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
     myFixture.checkHighlighting()
-    assertThat(resolveReferenceUnderCaret()).isInstanceOf(SmallAarRClass::class.java)
+    assertThat(resolveReferenceUnderCaret(myFixture)).isInstanceOf(SmallAarRClass::class.java)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("R", "BuildConfig")
   }
 
-  fun testResourceNames() {
+  @Test
+  fun resourceNames() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -1415,12 +1437,13 @@ class NamespacedModuleWithAar : LightClassesTestBase() {
     )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
-    assertThat(resolveReferenceUnderCaret()).isInstanceOf(LightElement::class.java)
+    assertThat(resolveReferenceUnderCaret(myFixture)).isInstanceOf(LightElement::class.java)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("my_aar_string", "class")
   }
 
-  fun testContainingClass() {
+  @Test
+  fun containingClass() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -1441,10 +1464,11 @@ class NamespacedModuleWithAar : LightClassesTestBase() {
     )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
-    assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
+    assertThat((resolveReferenceUnderCaret(myFixture) as? PsiField)?.containingClass?.name).isEqualTo("string")
   }
 
-  fun testUsageInfos() {
+  @Test
+  fun usageInfos() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -1466,11 +1490,11 @@ class NamespacedModuleWithAar : LightClassesTestBase() {
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
     myFixture.moveCaret("|R.string.my_aar_string")
-    UsageInfo(resolveReferenceUnderCaret())
+    UsageInfo(resolveReferenceUnderCaret(myFixture))
     myFixture.moveCaret("R.|string.my_aar_string")
-    UsageInfo(resolveReferenceUnderCaret())
+    UsageInfo(resolveReferenceUnderCaret(myFixture))
     myFixture.moveCaret("R.string.|my_aar_string")
-    UsageInfo(resolveReferenceUnderCaret())
+    UsageInfo(resolveReferenceUnderCaret(myFixture))
   }
 }
 
