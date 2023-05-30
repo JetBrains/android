@@ -33,15 +33,23 @@ const val NAMESPACE_INTERNAL = "internal"
 const val ATTR_X = "x"
 const val ATTR_Y = "y"
 
+fun interface ResultListener {
+  fun onResult(propertiesProvider: PropertiesProvider, viewNode: ViewNode, propertiesTable:  PropertiesTable<InspectorPropertyItem>)
+}
 /**
  * A [PropertiesProvider] provides properties to registered listeners..
  */
 interface PropertiesProvider {
 
   /**
-   * Listeners for [PropertiesProvider] results.
+   * Add listener for [PropertiesProvider] results.
    */
-  val resultListeners: MutableList<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>
+  fun addResultListener(listener: ResultListener)
+
+  /**
+   * Remove listener for [PropertiesProvider] results.
+   */
+  fun removeResultListener(listener: ResultListener)
 
   /**
    * Requests properties for the specified [view].
@@ -54,7 +62,9 @@ interface PropertiesProvider {
 
 object EmptyPropertiesProvider : PropertiesProvider {
 
-  override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
+  override fun addResultListener(listener: ResultListener) {}
+
+  override fun removeResultListener(listener: ResultListener) {}
 
   override fun requestProperties(view: ViewNode): Future<*> {
     return Futures.immediateFuture(null)

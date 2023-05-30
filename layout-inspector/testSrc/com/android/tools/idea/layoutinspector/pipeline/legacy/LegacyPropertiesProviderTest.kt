@@ -109,7 +109,7 @@ class LegacyPropertiesProviderTest {
     propertyLoader.parseProperties(root, example)
     propertyLoader.apply(provider)
     var properties = PropertiesTable.emptyTable<InspectorPropertyItem>()
-    provider.resultListeners.add { _, _, table -> properties = table}
+    provider.addResultListener { _, _, table -> properties = table}
     provider.requestProperties(root)
     assertThat(root.drawId).isEqualTo(1234)
     assertThat(root.layoutBounds.x).isEqualTo(4)

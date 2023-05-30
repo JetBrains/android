@@ -78,7 +78,7 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   @Suppress("UNUSED_PARAMETER")
   private fun handleNewSelection(oldView: ViewNode?, newView: ViewNode?, origin: SelectionOrigin) {
     val currentProvider = provider
-    if (newView != null && currentProvider != null) {
+    if (newView != null && currentProvider != null && currentProvider != EmptyPropertiesProvider) {
       currentProvider.requestProperties(newView)
     }
     else {
@@ -96,9 +96,9 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   private fun handleConnectionChange(client: InspectorClient?) {
-    provider?.resultListeners?.remove(propertiesListener)
+    provider?.removeResultListener(propertiesListener)
     provider = client?.provider
-    provider?.resultListeners?.add(propertiesListener)
+    provider?.addResultListener(propertiesListener)
   }
 
   private fun updateProperties(from: PropertiesProvider, view: ViewNode, table: PropertiesTable<InspectorPropertyItem>) {

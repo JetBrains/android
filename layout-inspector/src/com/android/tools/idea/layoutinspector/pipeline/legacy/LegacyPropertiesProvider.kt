@@ -23,15 +23,17 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.ResultListener
+import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.google.common.util.concurrent.Futures
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Future
 
 internal const val ATTR_TOP = "top"
@@ -53,11 +55,19 @@ internal const val ATTR_Z = "z"
 class LegacyPropertiesProvider : PropertiesProvider {
   private var properties = mapOf<Long, PropertiesTable<InspectorPropertyItem>>()
 
-  override val resultListeners = mutableListOf<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
+  private val resultListeners = CopyOnWriteArrayList<ResultListener>()
+
+  override fun addResultListener(listener: ResultListener) {
+    resultListeners.add(listener)
+  }
+
+  override fun removeResultListener(listener: ResultListener) {
+    resultListeners.remove(listener)
+  }
 
   override fun requestProperties(view: ViewNode): Future<*> {
     val viewProperties = properties[view.drawId] ?: PropertiesTable.emptyTable()
-    resultListeners.forEach { it(this, view, viewProperties) }
+    resultListeners.forEach { it.onResult(this, view, viewProperties) }
     return Futures.immediateFuture(null)
   }
 

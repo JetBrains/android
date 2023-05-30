@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyI
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.NAMESPACE_INTERNAL
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.properties.ResultListener
 import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertiesTable
@@ -44,10 +45,18 @@ import java.util.concurrent.Future
 class AppInspectionPropertiesProvider(
   private val propertiesCache: ViewPropertiesCache,
   private val parametersCache: ComposeParametersCache?,
-  private val model: InspectorModel)
-  : PropertiesProvider {
+  private val model: InspectorModel
+) : PropertiesProvider {
 
-  override val resultListeners = CopyOnWriteArrayList<(PropertiesProvider, ViewNode, PropertiesTable<InspectorPropertyItem>) -> Unit>()
+  private val resultListeners = CopyOnWriteArrayList<ResultListener>()
+
+  override fun addResultListener(listener: ResultListener) {
+    resultListeners.add(listener)
+  }
+
+  override fun removeResultListener(listener: ResultListener) {
+    resultListeners.remove(listener)
+  }
 
   override fun requestProperties(view: ViewNode): Future<*> {
     val future = CompletableFuture<Unit>()
@@ -72,7 +81,7 @@ class AppInspectionPropertiesProvider(
 
       if (propertiesTable != null) {
         for (listener in resultListeners) {
-          listener(self, view, propertiesTable)
+          listener.onResult(self, view, propertiesTable)
         }
       }
       future.complete(Unit)

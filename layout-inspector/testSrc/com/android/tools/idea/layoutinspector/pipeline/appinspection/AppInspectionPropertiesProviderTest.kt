@@ -126,7 +126,7 @@ class AppInspectionPropertiesProviderTest {
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
-    provider.resultListeners.add { _, view, table ->
+    provider.addResultListener { _, view, table ->
       resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
@@ -197,7 +197,7 @@ class AppInspectionPropertiesProviderTest {
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
-    provider.resultListeners.add { _, view, table ->
+    provider.addResultListener { _, view, table ->
       resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
@@ -229,7 +229,7 @@ class AppInspectionPropertiesProviderTest {
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
-    provider.resultListeners.add { _, view, table ->
+    provider.addResultListener { _, view, table ->
       resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
@@ -322,7 +322,7 @@ class AppInspectionPropertiesProviderTest {
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
-    provider.resultListeners.add { _, view, table ->
+    provider.addResultListener { _, view, table ->
       resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
@@ -351,7 +351,7 @@ class AppInspectionPropertiesProviderTest {
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
-    provider.resultListeners.add { _, view, table ->
+    provider.addResultListener { _, view, table ->
       resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 
@@ -579,7 +579,7 @@ class AppInspectionPropertiesProviderTest {
 
     val provider = inspectorRule.inspectorClient.provider
     val resultQueue = ArrayBlockingQueue<ProviderResult>(1)
-    provider.resultListeners.add { _, view, table ->
+    provider.addResultListener { _, view, table ->
       resultQueue.add(ProviderResult(view, table, inspectorRule.inspectorModel, inspectorRule.parametersCache))
     }
 

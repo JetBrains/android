@@ -266,7 +266,7 @@ class AppInspectionSnapshotSupportTest {
       }
     })
     var checkedProperties = false
-    snapshotLoader.propertiesProvider.resultListeners.add { _, node, table ->
+    snapshotLoader.propertiesProvider.addResultListener { _, node, table ->
       assertThat(node.drawId).isEqualTo(VIEW2)
       val item = table["http://schemas.android.com/apk/res/myapp", "myInt"]
       assertThat(item.value).isEqualTo("12345")
