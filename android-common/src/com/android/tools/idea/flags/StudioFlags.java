@@ -809,8 +809,8 @@ public final class StudioFlags {
     GRADLE_IDE,
     "gradle.heap.analysis.lightweight.mode",
     "Gradle heap analysis lightweight mode",
-    "If set, the analysis will only run after sync once and will only collect the strongly connected object info. This makes the " +
-    "analysis faster at the cost of losing some information.",
+    "If set, the analysis will just get a histogram using standard JVM APIs. It's suggested to use -XX:SoftRefLRUPolicyMSPerMB=0 in gradle " +
+    "jvm args to reduce the variance in these readings.",
     false
   );
 

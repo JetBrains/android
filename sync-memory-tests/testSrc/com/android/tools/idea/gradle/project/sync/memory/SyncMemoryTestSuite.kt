@@ -30,49 +30,49 @@ import com.android.tools.idea.gradle.project.sync.createBenchmarkTestRule
 
 class Benchmark50MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_50_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
   @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
 }
 class Benchmark100MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_100_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
   @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
 }
 
 class Benchmark200MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
   @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
 }
 
 class Benchmark500MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_500_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
   @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
 }
 
 class Benchmark1000MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
+  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
+
   @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
 }
 
 class Benchmark2000MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_2000_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
-  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark4200MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_4200_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(lightweightMode = false)
-  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark200Repeated20TimesMemoryTest  {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME)
   @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(
-    lightweightMode = false,
     // Turn off measurements in repeated syncs before the measured one
     disableInitialMeasurements = true
   )

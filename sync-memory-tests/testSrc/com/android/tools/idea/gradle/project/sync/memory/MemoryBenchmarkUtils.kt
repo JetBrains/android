@@ -17,11 +17,17 @@ package com.android.tools.idea.gradle.project.sync.memory
 
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
+import com.intellij.util.io.createDirectories
+import java.io.File
 import java.time.Instant
 
 val MEMORY_BENCHMARK = Benchmark.Builder("Retained heap size")
   .setProject("Android Studio Sync Test")
   .build()
+
+val OUTPUT_DIRECTORY: String = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
+  it.toPath().createDirectories()
+}.absolutePath
 
 internal fun recordMemoryMeasurement(metricName: String, value: Long) {
   val currentTime = Instant.now().toEpochMilli()

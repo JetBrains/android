@@ -68,12 +68,14 @@ private class BuildModelsAndMap(val models: Set<GradleBuild>, val map: IdeCompos
  */
 private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionOptions) {
   init {
-    if (!syncOptions.flags.studioHeapAnalysisLightweightMode) {
-      if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
-        captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "before_sync")
-      }
-      if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
-        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "before_sync", false)
+    if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
+      captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "before_sync")
+    }
+    if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
+      if (syncOptions.flags.studioHeapAnalysisLightweightMode) {
+        captureHeapHistogramOfCurrentProcess(syncOptions.flags.studioHeapAnalysisOutputDirectory, "before_sync")
+      } else {
+        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "before_sync")
       }
     }
   }
@@ -126,7 +128,11 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
         captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "after_sync")
       }
       if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
-        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "after_sync", syncOptions.flags.studioHeapAnalysisLightweightMode)
+        if (syncOptions.flags.studioHeapAnalysisLightweightMode) {
+          captureHeapHistogramOfCurrentProcess(syncOptions.flags.studioHeapAnalysisOutputDirectory, "after_sync")
+        } else {
+          analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "after_sync")
+        }
       }
       if (syncOptions.flags.studioDebugMode) {
         populateDebugInfo(buildModel, consumer)

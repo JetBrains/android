@@ -33,12 +33,8 @@ import java.time.Duration
 import kotlin.system.measureTimeMillis
 
 class MeasureSyncMemoryUsageRule (
-  private val lightweightMode: Boolean,
   disableInitialMeasurements: Boolean = false
 ) : ExternalResource() {
-  private val outputDirectory = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
-    it.toPath().createDirectories()
-  }.absolutePath
   private val memoryAgentPath = System.getProperty("memory.agent.path")
   private val analysisFlag =
   // This can be specified via --jvmopt="-Dkeep_snapshots=true" in bazel test invocation and  will collect hprofs in the bazel output.
@@ -49,22 +45,20 @@ class MeasureSyncMemoryUsageRule (
       StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY
   init {
     if (!disableInitialMeasurements) {
-      analysisFlag.override(outputDirectory)
+      analysisFlag.override(OUTPUT_DIRECTORY)
     }
   }
 
   override fun before() {
-    StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.override(lightweightMode)
     mutateGradleProperties {
-      setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath} -XX:SoftRefLRUPolicyMSPerMB=0")
+      setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath}")
     }
   }
 
   override fun after() {
-    collectHprofs(outputDirectory)
-    StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.clearOverride()
+    collectHprofs()
     analysisFlag.clearOverride()
-    File(outputDirectory).delete()
+    File(OUTPUT_DIRECTORY).delete()
   }
 
 
@@ -82,7 +76,7 @@ class MeasureSyncMemoryUsageRule (
       project.requestSyncAndWait()
     }
     // Start measured sync
-    analysisFlag.override(outputDirectory)
+    analysisFlag.override(OUTPUT_DIRECTORY)
     project.requestSyncAndWait()
 
     recordMeasurements("${projectName}_Post_${repeatCount}_Repeats")
@@ -113,11 +107,10 @@ class MeasureSyncMemoryUsageRule (
 
   private fun recordGradleMeasurements(projectName: String) {
     recordAgentValues(projectName)
-    recordHistogramValues(projectName)
   }
 
   private fun recordAgentValues(projectName: String) {
-    for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
+    for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory }.asIterable()) {
       when {
         metricFilePath.name.endsWith("before_sync_strong") -> "Before_Sync"
         metricFilePath.name.endsWith("before_sync_total") -> "Before_Sync_Total"
@@ -127,28 +120,10 @@ class MeasureSyncMemoryUsageRule (
       }?.let { recordMemoryMeasurement("${projectName}_$it", metricFilePath.readText().toLong()) }
     }
   }
-
-  private fun recordHistogramValues(projectName: String) {
-    for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
-      when {
-        metricFilePath.name.endsWith("before_sync_histogram") -> "Before_Sync_Histogram_Experimental"
-        metricFilePath.name.endsWith("after_sync_histogram") -> "After_Sync_Histogram_Experimental"
-        else -> null
-      }?.let {
-        val total = metricFilePath.readLines()
-          .last()
-          .trim()
-          .split("\\s+".toRegex())[2]
-          .toLong()
-        recordMemoryMeasurement("${projectName}_$it", total)
-        Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
-      }
-    }
-  }
 }
 
-private fun collectHprofs(outputDirectory: String) {
-  File(outputDirectory).walk().filter { !it.isDirectory && it.name.endsWith(".hprof") }.forEach {
+private fun collectHprofs() {
+  File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.name.endsWith(".hprof") }.forEach {
     Files.move(it.toPath(), TestUtils.getTestOutputDir().resolve(it.name))
   }
 }
