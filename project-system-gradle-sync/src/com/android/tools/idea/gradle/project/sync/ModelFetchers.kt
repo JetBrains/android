@@ -26,6 +26,7 @@ import com.android.builder.model.v2.ide.Edge
 import com.android.builder.model.v2.ide.GraphItem
 import com.android.builder.model.v2.ide.Library
 import com.android.builder.model.v2.ide.UnresolvedDependency
+import com.android.builder.model.v2.models.ClasspathParameterConfig
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
@@ -95,22 +96,26 @@ internal fun BuildController.findVariantDependenciesV2Model(
   skipRuntimeClasspathForLibraries: Boolean,
   useNewDependencyGraphModel: Boolean
 ): VariantDependenciesCompat? {
-  val shouldSkipRuntimeClasspath = skipRuntimeClasspathForLibraries && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
-  fun <T> findModel(clazz: Class<T>) = findModel(
+  fun <T> findModel(clazz: Class<T>, classpathConfig: ClasspathParameterConfig) = findModel(
     project,
     clazz,
     com.android.builder.model.v2.models.ModelBuilderParameter::class.java
   ) {
     it.variantName = variantName
-    it.dontBuildRuntimeClasspath = shouldSkipRuntimeClasspath
+    classpathConfig.applyTo(it)
   }
 
+  val classpathConfig = if (skipRuntimeClasspathForLibraries && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
+    ClasspathParameterConfig.ANDROID_TEST_ONLY
+  } else {
+    ClasspathParameterConfig.ALL
+  }
   return if (useNewDependencyGraphModel) {
-    findModel(VariantDependenciesAdjacencyList::class.java)?.let {
+    findModel(VariantDependenciesAdjacencyList::class.java, classpathConfig)?.let {
       VariantDependenciesCompat.AdjacencyList(it)
     }
   } else {
-    findModel(VariantDependencies::class.java)?.let {
+    findModel(VariantDependencies::class.java, classpathConfig)?.let {
       VariantDependenciesCompat.GraphItemList(it)
     }
   }
