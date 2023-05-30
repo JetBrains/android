@@ -201,11 +201,6 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     }
 
     @Override
-    public AnAction @NotNull [] getRecentProjectsActions(boolean addClearListItem, boolean useGroups) {
-      return AnAction.EMPTY_ARRAY;
-    }
-
-    @Override
     public @Nullable Object reopenLastProjectsOnStart(@NotNull Continuation<? super Boolean> $completion) {
       return null;
     }
