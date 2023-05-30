@@ -304,6 +304,17 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
+  /**
+   * Counts the current number of simultaneous executions of [refresh] method. Being inside the
+   * [refresh] indicates that the this preview is being refreshed. Even though [requestRefresh]
+   * guarantees that only at most a single refresh happens at any point in time, there might be
+   * several simultaneous calls to [refresh] method and therefore we need a counter instead of
+   * boolean flag.
+   */
+  private val refreshCallsCount = AtomicInteger(0)
+
+  @Volatile private var interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+
   private val refreshManager = ComposePreviewRefreshManager.getInstance(project)
 
   private val lifecycleManager =
@@ -437,7 +448,6 @@ class ComposePreviewRepresentation(
 
   @Volatile override var availableGroups: Set<PreviewGroup> = emptySet()
 
-  @Volatile private var interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
   private val navigationHandler = ComposePreviewNavigationHandler()
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
@@ -693,15 +703,6 @@ class ComposePreviewRepresentation(
 
   /** List of [ComposePreviewElement] being rendered by this editor */
   private var renderedElements: List<ComposePreviewElement> = emptyList()
-
-  /**
-   * Counts the current number of simultaneous executions of [refresh] method. Being inside the
-   * [refresh] indicates that the this preview is being refreshed. Even though [requestRefresh]
-   * guarantees that only at most a single refresh happens at any point in time, there might be
-   * several simultaneous calls to [refresh] method and therefore we need a counter instead of
-   * boolean flag.
-   */
-  private val refreshCallsCount = AtomicInteger(0)
 
   /**
    * Callback first time after the preview has loaded the initial state and it's ready to restore
