@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection
@@ -39,6 +40,7 @@ import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -101,13 +103,11 @@ class VisualLintServiceTest {
     visualLintExecutorService.waitForTasksToComplete()
 
     val atfIssues = visualLintIssueModel.issues
-    assertEquals(2, atfIssues.size)
+    assertEquals(1, atfIssues.size)
     atfIssues.forEach {
       assertEquals("Visual Lint Issue", it.category)
+      assertFalse((it as VisualLintRenderIssue).type == VisualLintErrorType.ATF)
     }
-    val clickIssue = atfIssues.filterIsInstance<VisualLintRenderIssue>()
-      .filter { it.type == VisualLintErrorType.ATF }
-    assertEquals(1, clickIssue.size)
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
@@ -170,6 +170,29 @@ class VisualLintServiceTest {
         val issues = visualLintIssueModel.issues
         assertEquals(1, issues.size)
         assertEquals("Visual Lint Issue", issues[0].category)
+      }
+      catch (ex: Exception) {
+        throw RuntimeException(ex)
+      }
+    }
+
+    val atfLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/atf_layout.xml")!!
+    val atfModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, null, facet, atfLayout, phoneConfig)
+    RenderTestUtil.withRenderTask(facet, atfLayout, phoneConfig) { task: RenderTask ->
+      task.setDecorations(false)
+      task.setEnableLayoutScanner(true)
+      try {
+        val result = task.render().get()
+        NlModelHierarchyUpdater.updateHierarchy(result, atfModel)
+        visualLintService.runVisualLintAnalysis(projectRule.fixture.testRootDisposable,
+                                                VisualLintIssueProvider(projectRule.fixture.testRootDisposable), emptyList(),
+                                                mapOf(result to atfModel), visualLintExecutorService)
+        visualLintExecutorService.waitForTasksToComplete()
+        val issues = visualLintIssueModel.issues
+        assertEquals(2, issues.size)
+        val clickIssue = issues.filterIsInstance<VisualLintRenderIssue>()
+          .filter { it.type == VisualLintErrorType.ATF }
+        assertEquals(1, clickIssue.size)
       }
       catch (ex: Exception) {
         throw RuntimeException(ex)

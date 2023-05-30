@@ -181,8 +181,8 @@ class VisualLintService(val project: Project): Disposable {
       val latch = CountDownLatch(modelsToAnalyze.size)
       val hasTimedOut = AtomicBoolean(false)
       for (model in modelsToAnalyze) {
-        val requireRender = StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes
-        createRenderResult(model, requireRender).handleAsync(
+        val runAtfChecks = StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes
+        createRenderResult(model, runAtfChecks).handleAsync(
           { result, _ ->
             try {
               if (!hasTimedOut.get() && result != null) {
@@ -273,28 +273,27 @@ class VisualLintService(val project: Project): Disposable {
 }
 
 /**
- * Inflates or renders a model, then returns the completable future with render result.
+ * Inflates a model, then returns the completable future with render result.
  */
-fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFuture<RenderResult> {
+fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture<RenderResult> {
   val renderService = StudioRenderService.getInstance(model.project)
   val logger = renderService.createLogger(model.project)
 
   return renderService.taskBuilder(model.facet, model.configuration, logger)
     .withPsiFile(PsiXmlFile(model.file))
-    .withLayoutScanner(requireRender)
+    .withLayoutScanner(runAtfChecks)
     .withTopic(RenderingTopic.VISUAL_LINT)
     .withMinDownscalingFactor(0.25f)
     .withQuality(0f)
     .build().thenCompose { newTask ->
       if (newTask == null) {
         logger.error("INFLATE", "Error inflating view for visual lint on background. No RenderTask Created.",
-        null, null, null)
+                     null, null, null)
         return@thenCompose CompletableFuture.failedFuture(IllegalArgumentException())
       }
 
       // TODO: Potentially save this task for future?
-      val renderResult = if (requireRender) newTask.render() else newTask.inflate()
-      return@thenCompose renderResult.whenComplete { result, inflateException ->
+      return@thenCompose newTask.inflate().whenComplete { result, inflateException ->
         val exception: Throwable? = inflateException ?: result.renderResult.exception
         if (exception != null || result == null) {
           logger.error("INFLATE", "Error inflating views for visual lint on background", exception, null, null)
