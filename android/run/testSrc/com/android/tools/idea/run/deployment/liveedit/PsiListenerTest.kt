@@ -17,16 +17,24 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.PsiTreeChangeEventImpl
 import com.intellij.psi.impl.source.tree.LeafElement
+import com.intellij.testFramework.utils.vfs.getPsiFile
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
+
+@Rule
+public var tempDir: TemporaryFolder = TemporaryFolder()
 
 class PsiListenerTest {
   private lateinit var myProject: Project
@@ -110,5 +118,24 @@ class PsiListenerTest {
 
     assert(collector.editEvents[0].file == file)
     assert(collector.editEvents[0].unsupportedPsiEvents[0] == UnsupportedPsiEvent.CONSTRUCTORS)
+  }
+
+  @Test
+  fun fileOutsideOfProject() {
+    var collector = EditEventCollector()
+    var listener = collector.startListening()
+
+    PsiManager.getInstance(myProject).addPsiTreeChangeListener(listener, projectRule.testRootDisposable)
+    tempDir.create()
+    var file = tempDir.newFile()
+    var vFile = VirtualFileWrapper(file).virtualFile!!
+    var event = PsiTreeChangeEventImpl(PsiManager.getInstance(myProject))
+
+    WriteCommandAction.runWriteCommandAction(myProject) {
+      FileEditorManager.getInstance(myProject).openFile(vFile)
+      event.file = vFile.getPsiFile(myProject)
+      listener.beforeChildrenChange(event)
+    }
+    assert(collector.editEvents.isEmpty())
   }
 }
