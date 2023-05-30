@@ -222,7 +222,7 @@ class ViewContextMenuFactoryLegacyTest {
     model.hideSubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW3]!!)
     showViewContextMenu(listOf(), model, source!!, 123, 456)
-    assertThat(createdGroup?.getChildren(event)).isEmpty()
+    assertThat(createdGroup?.getChildren(event)?.map { it.templateText }).containsExactly("Go To Declaration")
 
     verify(popupMenuComponent!!).show(source, 123, 456)
   }
@@ -232,7 +232,7 @@ class ViewContextMenuFactoryLegacyTest {
     val model = inspectorModel!!
     showViewContextMenu(model.root.flattenedList().filter { it.drawId in listOf(ROOT, VIEW2, VIEW3) }.toList(),
                         model, source!!, 0, 0)
-    assertThat(createdGroup?.getChildren(event)?.map { it.templateText }).containsExactly("Select View").inOrder()
+    assertThat(createdGroup?.getChildren(event)?.map { it.templateText }).containsExactly("Select View", "Go To Declaration").inOrder()
 
     val selectView = createdGroup?.getChildren(event)?.get(0)!!
     val views = (selectView as DropDownAction).getChildren(event)

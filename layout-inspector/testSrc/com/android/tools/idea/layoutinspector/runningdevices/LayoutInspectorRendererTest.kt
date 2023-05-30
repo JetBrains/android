@@ -380,7 +380,7 @@ class LayoutInspectorRendererTest {
 
     // Right click on VIEW1 when system views are showing:
     fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15, FakeMouse.Button.RIGHT)
-    latestPopup!!.assertSelectViewAction(ROOT, VIEW1)
+    latestPopup!!.assertSelectViewActionAndGotoDeclaration(ROOT, VIEW1)
   }
 
   @Test
@@ -576,14 +576,15 @@ private class FakeActionPopupMenu(private val group: ActionGroup): ActionPopupMe
   override fun getPlace(): String = error("Not implemented")
   override fun setTargetComponent(component: JComponent) = error("Not implemented")
   override fun setDataContext(dataProvider: Supplier<out DataContext>) = error("Not implemented")
-  fun assertSelectViewAction(vararg expected: Long) {
+  fun assertSelectViewActionAndGotoDeclaration(vararg expected: Long) {
     val event: AnActionEvent = MockitoKt.mock()
     whenever(event.actionManager).thenReturn(ActionManager.getInstance())
     val actions = group.getChildren(event)
-    assertThat(actions.size).isEqualTo(1)
+    assertThat(actions.size).isEqualTo(2)
     assertThat(actions[0]).isInstanceOf(DropDownAction::class.java)
     val selectActions = (actions[0] as DropDownAction).getChildren(event)
     val selectedViewsIds = selectActions.toList().filterIsInstance(SelectViewAction::class.java).map { it.view.drawId }
     assertThat(selectedViewsIds).containsExactlyElementsIn(expected.toList())
+    assertThat(actions[1]).isEqualTo(GotoDeclarationAction)
   }
 }

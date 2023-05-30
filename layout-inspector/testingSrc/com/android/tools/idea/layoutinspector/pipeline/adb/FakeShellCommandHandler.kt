@@ -21,6 +21,11 @@ import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import kotlinx.coroutines.CoroutineScope
 import java.net.Socket
 import java.util.ArrayDeque
+import java.util.Deque
+
+class SimpleCommand(val args: List<String>, val result: String?) {
+  constructor(command: String, result: String?) : this(command.split(' '), result)
+}
 
 /**
  * A fake handler that intercepts ADB shell commands used at various points by the layout
@@ -30,6 +35,7 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
   override var debugViewAttributes: String? = null
   override var debugViewAttributesApplicationPackage: String? = null
   override var debugViewAttributesChangesCount: Int = 0
+  val extraCommands = mutableListOf<SimpleCommand>()
 
   override fun accept(
     server: FakeAdbServer,
@@ -49,16 +55,18 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
   }
 
   private fun handleShellCommand(argsAsString: String): String? {
-    val args = ArrayDeque(argsAsString.split(' '))
-    val command = args.poll()
+    val args = argsAsString.split(' ')
     // DebugViewAttributes spawns a blocking subshell on a background thread in production; this flow is not easily testable so just
     // treat it like a no-op.
-    if (command == "sh") return ""
-    if (command == "echo") return args.joinToString(" ")
-
-    if (command != "settings") {
-      return null
+    return when (args.firstOrNull()) {
+      "sh" -> ""
+      "echo" -> args.subList(1, args.size).joinToString(" ")
+      "settings" -> handleSettingsCommand(ArrayDeque(args.subList(1, args.size)))
+      else -> extraCommands.find { it.args == args }?.result
     }
+  }
+
+  private fun handleSettingsCommand(args: Deque<String>): String? {
     val operation = args.poll()
     if (args.poll() != "global") {
       return null

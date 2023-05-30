@@ -16,23 +16,36 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.configurations.getAppThemeName
+import com.android.tools.idea.configurations.getThemeNameForActivity
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.ComponentTreeData
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
+import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.resource.data.createReference
+import com.android.tools.idea.projectsystem.isMainModule
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import com.intellij.openapi.project.modules
+import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+
+private val CONFIGURATION_REGEX = Regex("config: (.*)")
+private val ACTIVITY_REGEX = Regex("mFocusedActivity: ActivityRecord\\{[^ ]+ [^ ]+ ([^ ]+) [^ ]+}")
 
 /**
  * A [TreeLoader] that can handle pre-api 29 devices. Loads the view hierarchy and screenshot using DDM, and parses it into [ViewNode]s
@@ -70,7 +83,7 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
     val ddmClient = client.selectedDdmClient ?: return null
     val hierarchyHandler = CaptureByteArrayHandler()
     ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
-    propertiesUpdater.lookup.resourceLookup.updateConfiguration(ddmClient.device.density)
+    updateConfiguration(ddmClient)
     val hierarchyData = hierarchyHandler.getData() ?: return null
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     client.latestData[windowName] = hierarchyData
@@ -93,6 +106,53 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
 
     return LegacyAndroidWindow(client, rootNode, windowName)
+  }
+
+  private fun updateConfiguration(ddmClient: Client) {
+    val adb = AdbUtils.getAdbFuture(client.model.project).get()
+    val folderConfiguration = adb?.let { findConfiguration(it) }
+    val theme = adb?.let { findTheme(it) }
+    if (folderConfiguration != null) {
+      client.model.resourceLookup.updateConfiguration(folderConfiguration, theme, client.process, fontScaleFromConfig = 1f)
+    }
+    else {
+      client.model.resourceLookup.updateConfiguration(ddmClient.device.density)
+    }
+  }
+
+  /**
+   * Find the folder configuration for the current device.
+   */
+  private fun findConfiguration(adb: AndroidDebugBridge): FolderConfiguration? {
+    val configurations = adb.executeShellCommand(client.process.device, "am get-config")
+    val result = CONFIGURATION_REGEX.find(configurations) ?: return null
+    if (result.groupValues.size < 2) {
+      return null
+    }
+    return FolderConfiguration.getConfigForQualifierString(result.groupValues[1])
+  }
+
+  /**
+   * Find the theme reference for the current activity.
+   * If this fails: fallback to the application theme.
+   */
+  private fun findTheme(adb: AndroidDebugBridge): ResourceReference? {
+    val activity = findCurrentActivity(adb)
+    val module = client.model.project.modules.find { it.isAndroidModule() && it.isMainModule() } ?: return null
+    val themeString = activity?.let { module.getThemeNameForActivity(it) } ?: module.getAppThemeName() ?: return null
+    return createReference(themeString, client.process.packageName)
+  }
+
+  /**
+   * Find the current activity.
+   */
+  private fun findCurrentActivity(adb: AndroidDebugBridge): String? {
+    val activities = adb.executeShellCommand(client.process.device, "dumpsys activity activities")
+    val result = ACTIVITY_REGEX.find(activities) ?: return null
+    if (result.groupValues.size < 2) {
+      return null
+    }
+    return result.groupValues[1].replace("/", "")
   }
 
   private class CaptureByteArrayHandler : DebugViewDumpHandler() {

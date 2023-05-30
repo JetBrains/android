@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.resource
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -82,6 +83,10 @@ class ResourceLookup(private val project: Project) {
 
   var displayOrientation: Int? = null
     @VisibleForTesting set
+
+  @VisibleForTesting
+  val defaultTheme: StyleResourceValue?
+    get() = resolver?.defaultTheme
 
   /**
    * Updates the configuration after a possible configuration change detected on the device.

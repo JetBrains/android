@@ -37,12 +37,18 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
+import com.android.tools.idea.layoutinspector.pipeline.adb.SimpleCommand
+import com.android.tools.idea.layoutinspector.pipeline.adb.findDevice
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits
 import com.android.tools.idea.layoutinspector.properties.PropertiesSettings
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.android.tools.idea.layoutinspector.view
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -50,8 +56,9 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.util.io.readBytes
+import org.intellij.lang.annotations.Language
+import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -59,7 +66,6 @@ import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.eq
-import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.verify
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -70,15 +76,12 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class LegacyTreeLoaderTest {
   private val disposableRule = DisposableRule()
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val commandHandler = FakeShellCommandHandler()
+  private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
 
   @get:Rule
-  val chain = RuleChain.outerRule(FakeAdbRule()).around(MockitoCleanerRule()).around(disposableRule)!!
-
-  companion object {
-    @JvmField
-    @ClassRule
-    val rule = com.intellij.testFramework.ApplicationRule()
-  }
+  val chain = RuleChain.outerRule(projectRule).around(adbRule).around(MockitoCleanerRule()).around(disposableRule)!!
 
   @Before
   fun init() {
@@ -86,7 +89,40 @@ class LegacyTreeLoaderTest {
     val application = ApplicationManager.getApplication()
     application.registerServiceInstance(PropertiesComponent::class.java, propertiesComponent, disposableRule.disposable)
     PropertiesSettings.dimensionUnits = DimensionUnits.PIXELS
+    val device = LEGACY_DEVICE
+    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
+    commandHandler.extraCommands.add(SimpleCommand("am get-config", configSample))
+    commandHandler.extraCommands.add(SimpleCommand("dumpsys activity activities", activitiesSample))
+    projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)
+    projectRule.fixture.addFileToProject("res/values/themes.xml", themes)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel("com.example"))
   }
+
+  @Language("XML")
+  private val manifest = """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example">
+        <application
+            android:theme="@style/App.Dark.Theme">
+            <activity
+                android:name=".MainActivity"
+                android:exported="true"
+                android:theme="@style/App.Dark.Theme" />
+            <activity
+                android:name=".LoginActivity"
+                android:exported="true"
+                android:theme="@style/Login.Dark.Theme" />
+        </application>
+      </manifest>
+    """.trimIndent()
+
+  private val themes = """
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="App.Dark.Theme" parent="android:Theme.Dark" />
+    <style name="Login.Dark.Theme" parent="Base.Theme.DeviceDefault"/>
+</resources>
+  """.trimIndent()
 
   private val treeSample = """
 com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
@@ -109,6 +145,22 @@ DONE.
 com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
   !
 """.trim().replace("!", "") // This avoids the warning for a line intentional left with trailing spaces
+
+  private val configSample = """
+config: mcc310-mnc260-en-rUS-ldltr-sw411dp-w411dp-h842dp-normal-long-notround-port-notnight-420dpi-finger-keysexposed-nokeys-navexposed-dpad-v23
+abi: x86
+""".trim()
+
+  private val activitiesSample = """
+Display #0 (activities from top to bottom):
+  Stack #11:
+    Task id #14
+    * TaskRecord{5f879ed #14 A=com.example U=0 sz=5}
+      userId=0 effectiveUid=u0a61 mCallingUid=0 mCallingPackage=null
+  mFocusedActivity: ActivityRecord{9432e85 u0 com.example/.LoginActivity t14}
+  mFocusedStack=ActivityStack{218aab3 stackId=11, 1 tasks} mLastFocusedStack=ActivityStack{218aab3 stackId=11, 1 tasks}
+  mSleepTimeout=false
+  """.trimIndent()
 
   /**
    * Creates a real [LegacyClient] that's good enough for most tests and provides access to an
@@ -141,6 +193,9 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
     whenever(legacyClient.process).thenReturn(LEGACY_DEVICE.createProcess())
     whenever(legacyClient.launchMonitor).thenReturn(mock())
     whenever(legacyClient.isConnected).thenReturn(connected)
+    whenever(legacyClient.model).thenReturn(mock())
+    whenever(legacyClient.model.project).thenReturn(projectRule.project)
+    whenever(legacyClient.model.resourceLookup).thenReturn(ResourceLookup(projectRule.project))
     return legacyClient
   }
 
@@ -222,13 +277,9 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
   @Test
   fun testLoadComponentTree() {
     val imageBytes = TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/image1.png").readBytes()
-    val lookup = mock<ViewNodeAndResourceLookup>()
-    val resourceLookup = mock<ResourceLookup>()
     val legacyClient = createMockLegacyClient()
-    val device = mock<IDevice>()
+    val device = adbRule.bridge.findDevice(LEGACY_DEVICE)
     val client = mock<Client>()
-    whenever(lookup.resourceLookup).thenReturn(resourceLookup)
-    whenever(device.density).thenReturn(560)
     whenever(client.device).thenReturn(device)
     whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
                                     any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
@@ -245,8 +296,8 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
     }
     legacyClient.treeLoader.ddmClientOverride = client
     val window = legacyClient.treeLoader.loadComponentTree(
-      LegacyEvent("window1", LegacyPropertiesProvider.Updater(lookup), listOf("window1")),
-      resourceLookup,
+      LegacyEvent("window1", LegacyPropertiesProvider.Updater(legacyClient.model), listOf("window1")),
+      legacyClient.model.resourceLookup,
       legacyClient.process
     )!!.window!!
     window.refreshImages(1.0)
@@ -272,8 +323,12 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
       }
       view(0x3d2ff9c)
     }
+    val lookup = legacyClient.model.resourceLookup
     assertDrawTreesEqual(expected, window.root)
-    verify(resourceLookup).updateConfiguration(eq(560), isNull(), isNull())
+    assertThat(lookup.hasResolver).isTrue()
+    assertThat(lookup.defaultTheme?.resourceUrl?.toString()).isEqualTo("@style/Login.Dark.Theme")
+    assertThat(lookup.dpi).isEqualTo(420)
+    assertThat(lookup.screenDimension).isNull()
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
   }

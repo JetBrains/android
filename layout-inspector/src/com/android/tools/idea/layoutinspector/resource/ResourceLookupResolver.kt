@@ -43,6 +43,8 @@ import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinitions
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -53,8 +55,8 @@ import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.res.ResourceNamespaceContext
-import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.StateList
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.getItemPsiFile
 import com.android.tools.idea.res.getItemTag
@@ -65,6 +67,7 @@ import com.android.tools.idea.res.resolveLayout
 import com.android.tools.idea.res.resolveStateList
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.util.toVirtualFile
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.util.EditSourceUtil
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -81,8 +84,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.AttributeProcessingUtil
-import com.android.tools.dom.attrs.AttributeDefinition
-import com.android.tools.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import javax.swing.Icon
@@ -153,6 +154,10 @@ class ResourceLookupResolver(
     localAttrDefs = localResourceManager.attributeDefinitions
     systemAttrDefs = frameworkResourceManager?.attributeDefinitions
   }
+
+  @VisibleForTesting
+  val defaultTheme: StyleResourceValue?
+    get() = resolver.defaultTheme
 
   /**
    * Find the attribute value from resource reference.
@@ -496,20 +501,32 @@ class ResourceLookupResolver(
   }
 
   private fun findLayoutAttribute(property: InspectorPropertyItem, view: ViewNode, layout: ResourceReference): XmlAttribute? {
-    val tag = findViewTagInFile(view, layout)
+    val tag = findViewTagInFile(view, layout, isViewLayout = false)
     val attrNamespace = mapNamespace(ResourceNamespace.fromNamespaceUri(property.namespace) ?: ResourceNamespace.ANDROID)
     return tag?.getAttribute(property.attrName, attrNamespace.xmlNamespaceUri)
   }
 
-  private fun findViewTagInFile(view: ViewNode, layout: ResourceReference?): XmlTag? {
-    val isViewLayout = view.layout == layout
+  private fun findViewTagInFile(view: ViewNode, layout: ResourceReference?, isViewLayout: Boolean = true): XmlTag? {
     if (isViewLayout) {
       view.tag?.let { return it }
     }
 
-    val reference = mapReference(layout) ?: return null
-    val layoutValue = resolver.getUnresolvedResource(reference)
-    val file = resolver.resolveLayout(layoutValue) ?: return null
+    val file = when {
+      layout != null -> {
+        val reference = mapReference(layout) ?: return null
+        val layoutValue = resolver.getUnresolvedResource(reference)
+        resolver.resolveLayout(layoutValue)
+      }
+      isViewLayout -> {
+        // If we do not have the view layout but we do have the id: search for the id:
+        val id = view.viewId ?: return null
+        val idValue = resolver.getResolvedResource(id) ?: return null
+        val item = convertToResourceItem(idValue) ?: return null
+        item.originalSource.toVirtualFile()
+      }
+      else -> null
+    } ?: return null
+
     val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return null
     val locator = ViewLocator(view)
     val rootTag = xmlFile.rootTag ?: return null

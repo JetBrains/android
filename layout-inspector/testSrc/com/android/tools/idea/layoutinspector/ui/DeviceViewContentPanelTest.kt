@@ -684,12 +684,12 @@ class DeviceViewContentPanelTest {
 
     // Right click on VIEW4 when system views are showing:
     fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
-    latestPopup!!.assertSelectViewAction(5, 4, 3, 2, 1)
+    latestPopup!!.assertSelectViewActionAndGotoDeclaration(5, 4, 3, 2, 1)
 
     // Right click on VIEW4 when system views are hidden:
     treeSettings.hideSystemNodes = true
     fakeUi.mouse.click(40, 50, FakeMouse.Button.RIGHT)
-    latestPopup!!.assertSelectViewAction(5, 2)
+    latestPopup!!.assertSelectViewActionAndGotoDeclaration(5, 2)
   }
 
   @Test
@@ -1146,15 +1146,16 @@ class DeviceViewContentPanelTest {
     override fun setTargetComponent(component: JComponent) = error("Not implemented")
     override fun setDataContext(dataProvider: Supplier<out DataContext>) = error("Not implemented")
 
-    fun assertSelectViewAction(vararg expected: Long) {
+    fun assertSelectViewActionAndGotoDeclaration(vararg expected: Long) {
       val event: AnActionEvent = mock()
       whenever(event.actionManager).thenReturn(ActionManager.getInstance())
       val actions = group.getChildren(event)
-      assertThat(actions.size).isEqualTo(1)
+      assertThat(actions.size).isEqualTo(2)
       assertThat(actions[0]).isInstanceOf(DropDownAction::class.java)
       val selectActions = (actions[0] as DropDownAction).getChildren(event)
       assertThat(selectActions.toList().filterIsInstance(SelectViewAction::class.java).map { it.view.drawId  })
         .containsExactlyElementsIn(expected.toList())
+      assertThat(actions[1]).isEqualTo(GotoDeclarationAction)
     }
   }
 

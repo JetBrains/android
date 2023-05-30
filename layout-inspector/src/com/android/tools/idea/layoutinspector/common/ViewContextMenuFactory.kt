@@ -71,8 +71,8 @@ fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, s
           result.add(ShowOnlyParentsAction(inspectorModel, client, topView))
         }
         result.add(showAllAction)
-        result.add(GotoDeclarationAction)
       }
+      result.add(GotoDeclarationAction)
       return result.toTypedArray()
     }
   }
