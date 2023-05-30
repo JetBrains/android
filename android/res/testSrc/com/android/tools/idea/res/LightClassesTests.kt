@@ -21,15 +21,24 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.testutils.TestUtils
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.MergedManifestModificationListener
+import com.android.tools.idea.model.TestAndroidModel.Companion.namespaced
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.res.LightClassesTestBase.Companion.assertNoElementAtCaret
+import com.android.tools.idea.res.LightClassesTestBase.Companion.resolveReferenceUnderCaret
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.testing.updatePrimaryManifest
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
+import com.android.tools.idea.util.androidFacet
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
@@ -46,8 +55,11 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.impl.ElementPresentationUtil
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.VfsTestUtil.createFile
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.AndroidNonTransitiveRClassJavaCompletionContributor
@@ -58,6 +70,13 @@ import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.LocalResourceManager
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -69,18 +88,10 @@ import kotlin.time.Duration.Companion.seconds
  */
 sealed class LightClassesTestBase : AndroidTestCase() {
 
-  protected fun resolveReferenceUnderCaret(): PsiElement {
-    // This method is occasionally throwing, causing test flakiness. Nothing in the logs indicates any errors; there's just no element under
-    // the caret. It's unclear whether this is because something's gone wrong with reference resolution, or whether we just needed to wait.
-    // This is clearly a sub-optimal solution, but will help distinguish between the two cases. If it does turn out that we need to wait,
-    // we can investigate further if there's a better trigger to wait for than just looping and retrying.
-    return executeWithRetries<AssertionError, PsiElement>(duration = 2.seconds, sleepBetweenRetries = 100.milliseconds) {
-      myFixture.elementAtCaret
-    }
-  }
+  fun resolveReferenceUnderCaret() = resolveReferenceUnderCaret(myFixture)
 
-  protected fun assertNoElementAtCaret() {
-    assertThrows(AssertionError::class.java) { myFixture.elementAtCaret }
+  fun assertNoElementAtCaret() {
+    assertNoElementAtCaret(myFixture)
   }
 
   companion object {
@@ -127,13 +138,45 @@ sealed class LightClassesTestBase : AndroidTestCase() {
                 }
             }
         }""".trimIndent()
+
+    fun resolveReferenceUnderCaret(fixture: CodeInsightTestFixture): PsiElement {
+      // This method is occasionally throwing, causing test flakiness. Nothing in the logs indicates any errors; there's just no element under
+      // the caret. It's unclear whether this is because something's gone wrong with reference resolution, or whether we just needed to wait.
+      // This is clearly a sub-optimal solution, but will help distinguish between the two cases. If it does turn out that we need to wait,
+      // we can investigate further if there's a better trigger to wait for than just looping and retrying.
+      return executeWithRetries<AssertionError, PsiElement>(duration = 2.seconds, sleepBetweenRetries = 100.milliseconds) {
+        fixture.elementAtCaret
+      }
+    }
+
+    fun assertNoElementAtCaret(fixture: CodeInsightTestFixture) {
+      assertFailsWith<AssertionError> { fixture.elementAtCaret }
+    }
   }
 }
 
-open class SingleModule : LightClassesTestBase() {
-  override fun setUp() {
-    super.setUp()
+@RunWith(JUnit4::class)
+@RunsInEdt
+abstract class SingleModuleLightClassesTestBase {
+
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.withSdk().onEdt()
+
+  private val myFixture by lazy {
+    androidProjectRule.fixture.apply {
+      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    } as JavaCodeInsightTestFixture
+  }
+  private val project by lazy { myFixture.project }
+  private val myModule by lazy { myFixture.module }
+  private val myFacet by lazy { myModule.androidFacet!! }
+
+  abstract val packageNameForNamespacing: String?
+
+  @Before
+  fun setUp() {
     MergedManifestModificationListener.ensureSubscribed(project)
+    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, SdkConstants.FN_ANDROID_MANIFEST_XML)
     myFixture.addFileToProject(
       "/res/values/values.xml",
       // language=xml
@@ -143,9 +186,18 @@ open class SingleModule : LightClassesTestBase() {
       </resources>
       """.trimIndent()
     )
+
+    if (packageNameForNamespacing != null) {
+      AndroidModel.set(myFacet, namespaced(myFacet))
+      runWriteCommandAction(project) {
+        Manifest.getMainManifest(myFacet)!!.getPackage().setValue(packageNameForNamespacing)
+      }
+      LocalResourceManager.getInstance(myFacet.getModule())!!.invalidateAttributeDefinitions()
+    }
   }
 
-  fun testHighlighting_java() {
+  @Test
+  fun highlighting_java() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -169,7 +221,8 @@ open class SingleModule : LightClassesTestBase() {
     myFixture.checkHighlighting()
   }
 
-  fun testHighlighting_kotlin() {
+  @Test
+  fun highlighting_kotlin() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
       // language=kotlin
@@ -192,7 +245,8 @@ open class SingleModule : LightClassesTestBase() {
     myFixture.checkHighlighting()
   }
 
-  fun testTopLevelClassCompletion_java() {
+  @Test
+  fun topLevelClassCompletion_java() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -218,7 +272,8 @@ open class SingleModule : LightClassesTestBase() {
     assertThat(myFixture.lookupElementStrings).containsExactly("R", "MainActivity")
   }
 
-  fun testTopLevelClassCompletion_kotlin() {
+  @Test
+  fun topLevelClassCompletion_kotlin() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
       // language=kotlin
@@ -243,8 +298,9 @@ open class SingleModule : LightClassesTestBase() {
     assertThat(myFixture.lookupElementStrings).containsExactly("R", "MainActivity")
   }
 
-  fun testInnerClassesCompletion_java() {
-    myFixture.configureByText(
+  @Test
+  fun innerClassesCompletion_java() {
+    val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
       """
@@ -263,12 +319,14 @@ open class SingleModule : LightClassesTestBase() {
       """.trimIndent()
     )
 
+    myFixture.configureFromExistingVirtualFile(activity.virtualFile)
     myFixture.completeBasic()
 
     assertThat(myFixture.lookupElementStrings).containsExactly("class", "string")
   }
 
-  fun testInnerClassesCompletion_kotlin() {
+  @Test
+  fun innerClassesCompletion_kotlin() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
       // language=kotlin
@@ -293,7 +351,8 @@ open class SingleModule : LightClassesTestBase() {
     assertThat(myFixture.lookupElementStrings).containsExactly("string")
   }
 
-  fun testResourceNamesCompletion_java() {
+  @Test
+  fun resourceNamesCompletion_java() {
     myFixture.configureByText(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -318,7 +377,8 @@ open class SingleModule : LightClassesTestBase() {
     assertThat(myFixture.lookupElementStrings).containsExactly("appString", "class")
   }
 
-  fun testResourceNamesCompletion_kotlin() {
+  @Test
+  fun resourceNamesCompletion_kotlin() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
       // language=kotlin
@@ -343,7 +403,8 @@ open class SingleModule : LightClassesTestBase() {
     assertThat(myFixture.lookupElementStrings).containsExactly("appString")
   }
 
-  fun testStyleableAttrResourceNamesCompletion_java() {
+  @Test
+  fun styleableAttrResourceNamesCompletion_java() {
     myFixture.addFileToProject(
       "/res/values/styles.xml",
       // language=xml
@@ -380,7 +441,8 @@ open class SingleModule : LightClassesTestBase() {
     assertThat(myFixture.lookupElementStrings).containsExactly("LabelView_android_maxHeight", "LabelView_foo", "LabelView", "class")
   }
 
-  fun testManifestClass_java() {
+  @Test
+  fun manifestClass_java() {
     myFixture.loadNewFile(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -401,17 +463,18 @@ open class SingleModule : LightClassesTestBase() {
       """.trimIndent()
     )
 
-    assertNoElementAtCaret()
+    assertNoElementAtCaret(myFixture)
 
     runWriteCommandAction(project) {
       Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
     }
 
-    assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
+    assertThat(resolveReferenceUnderCaret(myFixture)).isInstanceOf(AndroidLightField::class.java)
     myFixture.checkHighlighting()
   }
 
-  fun testManifestClass_kotlin() {
+  @Test
+  fun manifestClass_kotlin() {
     myFixture.loadNewFile(
       "/src/p1/p2/MainActivity.kt",
       // language=kotlin
@@ -431,17 +494,18 @@ open class SingleModule : LightClassesTestBase() {
       """.trimIndent()
     )
 
-    assertNoElementAtCaret()
+    assertNoElementAtCaret(myFixture)
 
     runWriteCommandAction(project) {
       Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
     }
 
-    assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
+    assertThat(resolveReferenceUnderCaret(myFixture)).isInstanceOf(AndroidLightField::class.java)
     myFixture.checkHighlighting()
   }
 
-  fun testAddingAar() {
+  @Test
+  fun addingAar() {
     // Initialize the light classes code.
     assertThat(myFixture.javaFacade.findClass("p1.p2.R", GlobalSearchScope.everythingScope(project))).isNotNull()
 
@@ -453,7 +517,8 @@ open class SingleModule : LightClassesTestBase() {
       .isNotNull()
   }
 
-  fun testResourceRename() {
+  @Test
+  fun resourceRename() {
     val strings = myFixture.addFileToProject(
       "/res/values/strings.xml",
       // language=xml
@@ -473,7 +538,7 @@ open class SingleModule : LightClassesTestBase() {
     ).containsExactly("appString", "foo")
 
     myFixture.renameElementAtCaretUsingHandler("bar")
-    waitForResourceRepositoryUpdates()
+    waitForResourceRepositoryUpdates(myFacet, 2)
 
     assertThat(
       myFixture.javaFacade
@@ -483,7 +548,8 @@ open class SingleModule : LightClassesTestBase() {
     ).containsExactly("appString", "bar")
   }
 
-  fun testModificationTracking() {
+  @Test
+  fun modificationTracking() {
     myFixture.addFileToProject("res/drawable/foo.xml", "<vector-drawable />")
 
     myFixture.loadNewFile(
@@ -511,18 +577,19 @@ open class SingleModule : LightClassesTestBase() {
 
     // Make sure light classes pick up changes to repositories:
     val barXml = myFixture.addFileToProject("res/drawable/bar.xml", "<vector-drawable />")
-    waitForResourceRepositoryUpdates()
+    waitForResourceRepositoryUpdates(myFacet)
     assertThat(myFixture.doHighlighting(ERROR)).isEmpty()
 
     // Regression test for b/144585792. Caches in ResourceRepositoryManager can be dropped for various reasons, we need to make sure we
     // keep track of changes even after new repository instances are created.
     StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
     runWriteAction { barXml.delete() }
-    waitForResourceRepositoryUpdates()
+    waitForResourceRepositoryUpdates(myFacet)
     assertThat(myFixture.doHighlighting(ERROR)).hasSize(1)
   }
 
-  fun testContainingClass() {
+  @Test
+  fun containingClass() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -543,10 +610,11 @@ open class SingleModule : LightClassesTestBase() {
     )
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
-    assertThat((resolveReferenceUnderCaret() as? PsiField)?.containingClass?.name).isEqualTo("string")
+    assertThat((resolveReferenceUnderCaret(myFixture) as? PsiField)?.containingClass?.name).isEqualTo("string")
   }
 
-  fun testUsageInfos() {
+  @Test
+  fun usageInfos() {
     val activity = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
       // language=java
@@ -568,14 +636,15 @@ open class SingleModule : LightClassesTestBase() {
 
     myFixture.configureFromExistingVirtualFile(activity.virtualFile)
     myFixture.moveCaret("|R.string.appString")
-    UsageInfo(resolveReferenceUnderCaret())
+    UsageInfo(resolveReferenceUnderCaret(myFixture))
     myFixture.moveCaret("R.|string.appString")
-    UsageInfo(resolveReferenceUnderCaret())
+    UsageInfo(resolveReferenceUnderCaret(myFixture))
     myFixture.moveCaret("R.string.|appString")
-    UsageInfo(resolveReferenceUnderCaret())
+    UsageInfo(resolveReferenceUnderCaret(myFixture))
   }
 
-  fun testInvalidManifest() {
+  @Test
+  fun invalidManifest() {
     updatePrimaryManifest(myFacet) {
       `package`.value = "."
     }
@@ -608,17 +677,18 @@ open class SingleModule : LightClassesTestBase() {
 
     // The first call to checkHighlighting removes error markers from the Document, so this makes sure there are no errors.
     myFixture.checkHighlighting()
-    val rClass = resolveReferenceUnderCaret()
+    val rClass = resolveReferenceUnderCaret(myFixture)
     assertThat(rClass).isInstanceOf(ModuleRClass::class.java)
     assertThat((rClass as ModuleRClass).qualifiedName).isEqualTo("p1.p2.R")
   }
 }
 
-class SingleModuleNamespaced : SingleModule() {
-  override fun setUp() {
-    super.setUp()
-    enableNamespacing("p1.p2")
-  }
+class SingleModuleLightClassesTest : SingleModuleLightClassesTestBase() {
+  override val packageNameForNamespacing = null
+}
+
+class SingleModuleNamespacedLightClassesTest : SingleModuleLightClassesTestBase() {
+  override val packageNameForNamespacing = "p1.p2"
 }
 
 class AppAndLibModules : LightClassesTestBase() {
