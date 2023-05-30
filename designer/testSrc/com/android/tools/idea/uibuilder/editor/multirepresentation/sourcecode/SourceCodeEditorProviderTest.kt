@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Facets
@@ -35,7 +36,9 @@ import com.intellij.openapi.util.JDOMUtil
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.TestCase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.jdom.Element
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
@@ -45,6 +48,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 class SourceCodeEditorProviderTest {
 
@@ -197,11 +201,12 @@ class SourceCodeEditorProviderTest {
     dumbService.waitForSmartMode()
 
     runBlocking {
-      preview.awaitForRepresentationsUpdated()
+      // The representations update can be scheduled at some point in the future after the smart mode switch so we wait for them to update.
+      delayUntilCondition(delayPerIterationMs = 250) {
+        preview.awaitForRepresentationsUpdated()
+        preview.representationNames.singleOrNull() == "Representation1"
+      }
     }
-/* b/284511036
-    assertThat(preview.representationNames).containsExactly("Representation1")
-b/284511036 */
   }
 
   // Regression test for b/232045613
