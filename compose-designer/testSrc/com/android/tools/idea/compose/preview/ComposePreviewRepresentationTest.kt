@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.error.NlComponentIssueSource
@@ -25,7 +26,6 @@ import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.delayUntilCondition
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue

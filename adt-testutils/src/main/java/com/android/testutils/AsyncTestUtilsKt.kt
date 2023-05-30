@@ -18,9 +18,12 @@ package com.android.testutils
 
 import com.intellij.util.ui.EDT
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @JvmSynthetic
 fun waitForCondition(timeout: Duration, condition: () -> Boolean) {
@@ -47,4 +50,20 @@ fun waitForCondition(timeout: Long, unit: TimeUnit, condition: () -> Boolean) {
     waitUnit = waitUnit.coerceAtMost(deadline - System.currentTimeMillis())
   }
   throw TimeoutException()
+}
+
+/**
+ * Helper function that will loop until a [condition] is met or a [timeout] is exceeded. In each
+ * iteration, the function will delay for a given time and then a given callback will be executed.
+ */
+suspend inline fun delayUntilCondition(
+  delayPerIterationMs: Long,
+  timeout: Duration = 30.seconds,
+  crossinline condition: suspend () -> Boolean
+) {
+  withTimeout(timeout) {
+    while (!condition()) {
+      delay(delayPerIterationMs)
+    }
+  }
 }

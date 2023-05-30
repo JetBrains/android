@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.rendering.RenderLogger
@@ -32,11 +33,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
@@ -102,22 +99,6 @@ internal fun getRepresentationForFile(
 
   runBlocking { multiRepresentationPreview.onInit() }
   return multiRepresentationPreview.currentRepresentation!!
-}
-
-/**
- * Helper function that will loop until a [condition] is met or a [timeout] is exceeded. In each
- * iteration, the function will delay for a given time and then a given callback will be executed.
- */
-internal suspend fun delayUntilCondition(
-  delayPerIterationMs: Long,
-  timeout: Duration = 30.seconds,
-  condition: () -> Boolean
-) {
-  withTimeout(timeout) {
-    while (!condition()) {
-      delay(delayPerIterationMs)
-    }
-  }
 }
 
 /** Suspendable version of [DumbService.waitForSmartMode]. */
