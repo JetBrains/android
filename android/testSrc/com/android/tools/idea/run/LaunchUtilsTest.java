@@ -17,12 +17,8 @@ package com.android.tools.idea.run;
 
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.idea.Bombed;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.util.concurrency.AppExecutorUtil;
-
-import java.util.Calendar;
-
 import static com.android.tools.idea.testing.TestProjectPaths.*;
 
 public class LaunchUtilsTest extends AndroidGradleTestCase {
@@ -38,8 +34,6 @@ public class LaunchUtilsTest extends AndroidGradleTestCase {
     assertFalse(result);
   }
 
-  @Bombed(year = 2023, month = Calendar.JUNE, day = 30, user = "Nebojsa Viksic",
-  description = "Timed out due to: 'Calling invokeAndWait from read-action leads to possible deadlock.' exception")
   public void testWatchFaceService() throws Exception {
     loadProject(RUN_CONFIG_WATCHFACE);
     boolean result = ReadAction.nonBlocking(() -> LaunchUtils.isWatchFeatureRequired(myAndroidFacet)).submit(AppExecutorUtil.getAppExecutorService()).get();
