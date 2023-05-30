@@ -302,14 +302,6 @@ public class Configuration implements Disposable, ModificationTracker {
     return null;
   }
 
-  /**
-   * Returns the PSI file associated with the configuration, if any
-   */
-  @Nullable
-  public PsiFile getPsiFile() {
-    return null;
-  }
-
   @Nullable
   protected String calculateActivity() {
     return null;

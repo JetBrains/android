@@ -42,13 +42,6 @@ class ConfigurationForFile(
 
   override fun getFile(): VirtualFile = file
 
-  override fun getPsiFile(): PsiFile? {
-    if (psiFile == null) {
-      psiFile = AndroidPsiUtils.getPsiFileSafely(myManager.project, file)
-    }
-    return psiFile
-  }
-
   override fun calculateActivity(): String? {
     return ApplicationManager.getApplication().runReadAction(
         Computable {
