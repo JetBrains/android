@@ -86,6 +86,55 @@ public final class NameComparatorTest {
   }
 
   @Test
+  public void compareWearOs() {
+    // Arrange
+    var expectedDevices = List.of(mockDevice("Wear OS Large Round"),
+                                  mockDevice("Wear OS Rectangular"),
+                                  mockDevice("Wear OS Small Round"),
+                                  mockDevice("Wear OS Square"));
+
+    var actualDevices = shuffle(expectedDevices);
+
+    // Act
+    actualDevices.sort(myComparator);
+
+    // Assert
+    assertEquals(expectedDevices, actualDevices);
+  }
+
+  @Test
+  public void compareDesktop() {
+    // Arrange
+    var expectedDevices = List.of(mockDevice("Large Desktop"),
+                                  mockDevice("Medium Desktop"),
+                                  mockDevice("Small Desktop"));
+
+    var actualDevices = shuffle(expectedDevices);
+
+    // Act
+    actualDevices.sort(myComparator);
+
+    // Assert
+    assertEquals(expectedDevices, actualDevices);
+  }
+
+  @Test
+  public void compareTv() {
+    // Arrange
+    var expectedDevices = List.of(mockDevice("Television (1080p)"),
+                                  mockDevice("Television (4K)"),
+                                  mockDevice("Television (720p)"));
+
+    var actualDevices = shuffle(expectedDevices);
+
+    // Act
+    actualDevices.sort(myComparator);
+
+    // Assert
+    assertEquals(expectedDevices, actualDevices);
+  }
+
+  @Test
   public void compareLegacy() {
     var expectedDevices = List.of(mockDevice("10.1\" WXGA (Tablet)"),
                                   mockDevice("13.5\" Freeform"),
