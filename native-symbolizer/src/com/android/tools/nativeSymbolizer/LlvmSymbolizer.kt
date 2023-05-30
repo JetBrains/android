@@ -16,15 +16,8 @@
 package com.android.tools.nativeSymbolizer
 
 import com.intellij.openapi.Disposable
-import java.io.BufferedReader
-import java.io.File
-import java.io.IOException
-import java.time.Duration
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.io.*
+import java.util.concurrent.*
 
 /**
  * Implementation of NativeSymbolizer that uses llvm-symbolizer.
@@ -44,9 +37,9 @@ import java.util.concurrent.TimeoutException
  */
 class LlvmSymbolizer(private val symbolizerExe: String,
                      private val symLocator: SymbolFilesLocator,
-                     private val timeout : Duration = Duration.ofSeconds(5)) : NativeSymbolizer {
+                     private val timeoutMsc: Long = 5000) : NativeSymbolizer {
 
-  private var activeProcess : ProcessWrapper? = null
+  private var procHolder : ProcessHolder? = null
   private val executor : ExecutorService = Executors.newSingleThreadExecutor()
 
   /**
@@ -55,87 +48,55 @@ class LlvmSymbolizer(private val symbolizerExe: String,
    * @param offset - The starting byte address in the module of the symbol.
    */
   override fun symbolize(abiArch: String, module: File, offset: Long): Symbol? {
-    // Sort the symbol files to ensure consistent ordering between runs.
-    val symbolFiles = symLocator.getFiles(abiArch).filter { it.nameWithoutExtension == module.nameWithoutExtension }.sorted()
-    val requests = symbolFiles.map { formatRequest(it, offset) }
+    val symFiles = symLocator.getFiles(abiArch)
 
-    for (request in requests) {
-      val future = executor.submit<Symbol?> {
-        try {
-          // Get the process within the future to ensure that if it dies executing this call, it can recover for the next.
-          val process = getProcess()
+    for (symFile in symFiles.filter { it.nameWithoutExtension == module.nameWithoutExtension }) {
+      val request = formatRequest(symFile, offset)
 
-          process.stdin.write(request)
-          process.stdin.flush()
+      val holder = getProcHolder()
+      val future = executor.submit( Callable<List<String>> {
+        holder.stdin.write(request)
+        holder.stdin.flush()
 
-          parseResponse(readToEnd(process.stdout), module)
-        } catch (e : Exception){
-          // Restart the process since it could be in a broken state right now. We do it here so that we don't run into race conditions
-          // between runs freeing and starting processes.
-          stop()
-
-          throw e
+        val response: MutableList<String> = mutableListOf()
+        var responseLine: String?
+        while (true) {
+          responseLine = holder.stdout.readLine()
+          if (responseLine.isNullOrEmpty()) {
+            break
+          }
+          response.add(responseLine)
         }
-      }
-
+        response
+      })
+      val response : List<String>
       try {
-        try {
-          future.get(timeout.toMillis(), TimeUnit.MILLISECONDS)?.let { return it }
-        } catch (e: TimeoutException) {
-          throw e // Pass the timeout up level so it can be handle with the other expected exceptions.
-        } catch (e: ExecutionException) {
-          // If the future throws an exception, it will be wrapped as an ExecutionException. Rethrow the cause so we can handle it
-          // correctly.
-          e.cause?.let { throw it }
-        }
-      } catch (e: NoSymbolizerException) {
-        getLogger().warn(e.message, e)
-        throw e // If we could not find the symbolizer, there is no point trying other requests.}
+        response = future.get(timeoutMsc, TimeUnit.MILLISECONDS)
       } catch (e: TimeoutException) {
         getLogger().warn("llvm-symbolizer timed out", e)
+        stop()
+        continue
       } catch (e: ExecutionException) {
         getLogger().warn("llvm-symbolizer communication failed", e)
-      } catch (e: Exception) {
-        getLogger().warn("Unexpected exception while running llvm-symbolizer", e)
+        stop()
+        continue
       }
+
+      val result = parseResponse(response, module)
+      if (result != null)
+        return result
     }
 
     return null
   }
 
-  // We can't use the built-in "read to end" function on the buffered reader class because it will close the stream.
-  private fun readToEnd(reader: BufferedReader) : List<String> {
-    val response = mutableListOf<String>()
-
-    while (true) {
-      val line = reader.readLine()
-
-      if (line.isNullOrEmpty()) {
-        return response
-      }
-
-      response.add(line)
+  private fun getProcHolder() : ProcessHolder {
+    var holder = procHolder
+    if (holder == null || !holder.process.isAlive) {
+      start()
+      holder = procHolder!! // procHolder must't be null after start()
     }
-  }
-
-  /**
-   * Gets the current process or start a new process if the process is not running.
-   */
-  private fun getProcess() : ProcessWrapper {
-    if (activeProcess != null && activeProcess!!.isAlive) {
-      return activeProcess!!
-    }
-
-    // If the process fails to start, start() will throw an IOException.
-    activeProcess?.dispose()
-
-    try {
-      activeProcess = ProcessWrapper(ProcessBuilder(symbolizerExe).start())
-    } catch (e: IOException) {
-      throw NoSymbolizerException(e)  // Wrap the exception so we can catch it elsewhere.
-    }
-
-    return activeProcess!!
+    return holder
   }
 
   private fun formatRequest(symFile: File, offset: Long): String {
@@ -170,22 +131,31 @@ class LlvmSymbolizer(private val symbolizerExe: String,
     return Symbol(name, module.absolutePath, sourceFile, lineNumber)
   }
 
-  override fun stop() {
-    activeProcess?.dispose()
-    activeProcess = null
+  private fun start() {
+    if (procHolder != null)
+      stop()
+
+    val builder = ProcessBuilder(symbolizerExe)
+    val process = builder.start()
+    if (!process.isAlive) {
+      throw IOException("Symbolizer process is not alive. Executable: $symbolizerExe")
+    }
+
+    val stdin = OutputStreamWriter(process.outputStream, Charsets.UTF_8)
+    val stdout = BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8))
+    procHolder = ProcessHolder(process, stdout, stdin)
   }
 
-  private class ProcessWrapper(private val process: Process) : Disposable {
-    val stdin = process.outputWriter(Charsets.UTF_8)!!
-    val stdout =process.inputReader(Charsets.UTF_8)!!
+  override fun stop() {
+    procHolder?.dispose()
+    procHolder = null
+  }
 
-    val isAlive: Boolean
-      get() = process.isAlive
-
+  private class ProcessHolder(val process: Process,
+                              val stdout: BufferedReader,
+                              val stdin: OutputStreamWriter) : Disposable {
     override fun dispose() {
       process.destroy()
     }
   }
-
-  private class NoSymbolizerException(e: IOException) : IOException(e.message, e) { }
 }
