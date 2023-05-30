@@ -214,6 +214,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
 
   @Throws(IncorrectOperationException::class)
   private fun handleKotlin(element: PsiElement) {
+
+    if (element.isKotlinScript()) return handleKotlinScript(element)
     val target = findKotlinSuppressElement(element) ?: return
 
     if (!IntentionPreviewUtils.prepareElementForWrite(target)) {
@@ -237,6 +239,17 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         addNoInspectionComment(file.project, file, offset)
       }
     }
+  }
+
+  @Throws(IncorrectOperationException::class)
+  private fun handleKotlinScript(element: PsiElement) {
+    val file = if (element is PsiFile) element else element.containingFile ?: return
+    if (!IntentionPreviewUtils.prepareElementForWrite(file)) {
+      return
+    }
+    val project = file.project
+    val offset = element.textOffset
+    addNoInspectionComment(project, file, offset)
   }
 
   override fun startInWriteAction(): Boolean {
@@ -379,6 +392,10 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           ?: element.getParentOfType<PsiPackageStatement>(false)
     }
 
+    private fun PsiElement.isKotlinScript(): Boolean {
+      return this.containingFile?.name?.endsWith(".kts") ?: false
+    }
+
     private fun findKotlinSuppressElement(element: PsiElement): PsiElement? {
       return PsiTreeUtil.findFirstParent(element, true) { it.isSuppressLintTarget() }
     }
@@ -405,7 +422,9 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
         }
         KotlinLanguage.INSTANCE -> {
           val target = findKotlinSuppressElement(element)
-          if (target is KtDeclaration)
+          if (element.isKotlinScript())
+            LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
+          else if (target is KtDeclaration)
             LintBundle.message("android.lint.fix.suppress.lint.api.annotation", id)
           else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
