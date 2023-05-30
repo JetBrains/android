@@ -25,7 +25,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
@@ -62,7 +61,7 @@ private constructor(
       scope: CoroutineScope,
       handle: DeviceHandle,
       devicesFlow: Flow<List<DeviceHandle>>,
-      pairedDevicesFlow: Flow<Map<String, ImmutableList<PairingStatus>>>
+      pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>
     ): DeviceDetailsPanel {
       val deviceInfoPanel = DeviceInfoPanel()
       scope.launch { populateDeviceInfo(deviceInfoPanel, handle) }
