@@ -30,6 +30,7 @@ import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils;
@@ -113,6 +114,8 @@ public class StageNavigationToolbarTest {
                                                 ProfilersTestData.SESSION_DATA.getSessionId()));
     myStageNavigationToolbar.getBackButton().doClick();
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
+    assertThat(((CpuProfilerStage)(myProfilers.getStage())).getEntryPoint()).isEqualTo(
+      CpuCaptureMetadata.CpuProfilerEntryPoint.CHILD_STAGE_BACK_BTN_OR_FAILURE);
     myStageNavigationToolbar.getBackButton().doClick();
     assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
   }

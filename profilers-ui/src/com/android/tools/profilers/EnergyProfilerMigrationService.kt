@@ -31,6 +31,7 @@ import java.awt.Cursor
 import java.awt.Dimension
 import javax.swing.JPanel
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.profilers.cpu.CpuCaptureMetadata
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 
 class EnergyProfilerMigrationService(val profilers: StudioProfilers) {
@@ -80,7 +81,7 @@ class EnergyProfilerMigrationService(val profilers: StudioProfilers) {
   }
 
   private fun openCpuProfilerWithSystemTraceEnabled() {
-    val stage = CpuProfilerStage(profilers)
+    val stage = CpuProfilerStage(profilers, CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_DEPRECATION_LINK)
     // The 'updateProfilingConfigurations' method populates the default profiling configurations.
     // It is called on entering the CpuProfilerStage, but to have access to the configs now, we
     // will prematurely call it. The method has no side effects and thus can be called multiple times.

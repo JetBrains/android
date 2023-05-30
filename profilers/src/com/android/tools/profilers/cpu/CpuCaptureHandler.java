@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -42,10 +43,22 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
   private boolean myIsParsing = false;
 
 
+  @VisibleForTesting
   public CpuCaptureHandler(@NotNull IdeProfilerServices services,
                            @NotNull File captureFile,
                            long traceId,
                            @NotNull ProfilingConfiguration configuration,
+                           @Nullable String captureProcessNameHint,
+                           int captureProcessIdHint) {
+    this(services, captureFile, traceId, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, captureProcessNameHint,
+         captureProcessIdHint);
+  }
+
+  public CpuCaptureHandler(@NotNull IdeProfilerServices services,
+                           @NotNull File captureFile,
+                           long traceId,
+                           @NotNull ProfilingConfiguration configuration,
+                           CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
                            @Nullable String captureProcessNameHint,
                            int captureProcessIdHint) {
     myCaptureParser = new CpuCaptureParser(services);
@@ -56,7 +69,9 @@ public class CpuCaptureHandler implements Updatable, StatusPanelModel {
     myCaptureProcessIdHint = captureProcessIdHint;
     myCaptureProcessNameHint = captureProcessNameHint;
 
-    myCaptureParser.trackCaptureMetadata(traceId, new CpuCaptureMetadata(configuration));
+    CpuCaptureMetadata metadata = new CpuCaptureMetadata(configuration);
+    metadata.setCpuProfilerEntryPoint(entryPoint);
+    myCaptureParser.trackCaptureMetadata(traceId, metadata);
   }
 
   /**

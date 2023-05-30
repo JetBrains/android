@@ -34,6 +34,7 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
@@ -664,6 +665,8 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getProcess().getPid()).isEqualTo(20);
     assertThat(myProfilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
     assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
+    assertThat(((CpuProfilerStage)(myProfilers.getStage())).getEntryPoint()).isEqualTo(
+      CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING);
   }
 
   @Test

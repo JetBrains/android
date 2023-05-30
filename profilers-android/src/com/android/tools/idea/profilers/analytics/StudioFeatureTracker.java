@@ -178,6 +178,26 @@ public final class StudioFeatureTracker implements FeatureTracker {
            CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN)
       .build();
 
+  private final static ImmutableMap<com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint,
+    CpuCaptureMetadata.CpuProfilerEntryPoint> CPU_PROFILER_ENTRY_POINT_MAP =
+    ImmutableMap.<com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint,
+        CpuCaptureMetadata.CpuProfilerEntryPoint>builder()
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.CPU_MONITOR,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.CPU_MONITOR)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_DEPRECATION_LINK,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_DEPRECATION_LINK)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.ONGOING_SESSION_SELECTION,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.ONGOING_SESSION_SELECTION)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.CHILD_STAGE_BACK_BTN_OR_FAILURE,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.CHILD_STAGE_BACK_BTN_OR_FAILURE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_TASK,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_TASK)
+      .build();
+
   private final ImmutableMap<Class<? extends CaptureObjectInstanceFilter>, MemoryInstanceFilterMetadata.FilterType>
     MEMORY_INSTANCE_FILTER_MAP =
     ImmutableMap.<Class<? extends CaptureObjectInstanceFilter>, MemoryInstanceFilterMetadata.FilterType>builder()
@@ -1053,6 +1073,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
           .setTraceFileSizeBytes(myCpuCaptureMetadata.getTraceFileSizeBytes())
           .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs())
           .setStoppingTimeMs(myCpuCaptureMetadata.getStoppingTimeMs())
+          .setCpuProfilerEntryPoint(CPU_PROFILER_ENTRY_POINT_MAP.getOrDefault(myCpuCaptureMetadata.getCpuProfilerEntryPoint(),
+                                                                              CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN))
           .setCaptureStatus(
             CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
 

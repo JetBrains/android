@@ -41,6 +41,7 @@ import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
+import com.android.tools.profilers.cpu.CpuCaptureMetadata;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfiler;
@@ -254,7 +255,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         myTimeline.reset(mySelectedSession.getStartTimestamp(), timeResponse.getTimestampNs());
         if (startupCpuProfilingStarted()) {
-          setStage(new CpuProfilerStage(this));
+          setStage(new CpuProfilerStage(this, CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING));
         }
         else if (startupMemoryProfilingStarted()) {
           setStage(new MainMemoryProfilerStage(this));

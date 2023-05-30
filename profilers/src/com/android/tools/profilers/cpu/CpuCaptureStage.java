@@ -204,19 +204,32 @@ public class CpuCaptureStage extends Stage<Timeline> {
   /**
    * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
    */
+  @VisibleForTesting
   @Nullable
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull ProfilingConfiguration configuration, long traceId) {
+    return create(profilers, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, traceId);
+  }
+
+  /**
+   * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
+   * Takes in the entry point as a parameter to track how the user got to the CpuProfilerStage. The entry
+   * point is tracked only when a recording is being captured.
+   */
+  @Nullable
+  public static CpuCaptureStage create(@NotNull StudioProfilers profilers,
+                                       @NotNull ProfilingConfiguration configuration,
+                                       CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
+                                       long traceId) {
     File captureFile = getAndSaveCapture(profilers, traceId);
     if (captureFile == null) {
       return null;
     }
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
-    return new CpuCaptureStage(profilers, configuration, captureFile, traceId, captureProcessNameHint, profilers.getSession().getPid());
+    return new CpuCaptureStage(profilers, configuration, entryPoint, captureFile, traceId, captureProcessNameHint,
+                               profilers.getSession().getPid());
   }
 
-  /**
-   * Create a capture stage based on a file, this is used for importing traces. In the absence of a trace ID, the session ID is used.
-   */
+  @VisibleForTesting
   @NotNull
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers,
                                        @NotNull ProfilingConfiguration configuration,
@@ -235,9 +248,24 @@ public class CpuCaptureStage extends Stage<Timeline> {
                          long traceId,
                          @Nullable String captureProcessNameHint,
                          int captureProcessIdHint) {
+    this(profilers, configuration, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, captureFile, traceId, captureProcessNameHint,
+         captureProcessIdHint);
+  }
+
+  /**
+   * Create a capture stage that loads a given file. Takes in the entry point as a parameter
+   * to track how the user got to the CpuProfilerStage.
+   */
+  public CpuCaptureStage(@NotNull StudioProfilers profilers,
+                         @NotNull ProfilingConfiguration configuration,
+                         CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
+                         @NotNull File captureFile,
+                         long traceId,
+                         @Nullable String captureProcessNameHint,
+                         int captureProcessIdHint) {
     super(profilers);
     myCpuCaptureHandler = new CpuCaptureHandler(
-      profilers.getIdeServices(), captureFile, traceId, configuration, captureProcessNameHint, captureProcessIdHint);
+      profilers.getIdeServices(), captureFile, traceId, configuration, entryPoint, captureProcessNameHint, captureProcessIdHint);
 
     getMultiSelectionModel().addDependency(this)
       .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, this::onSelectionChanged)
@@ -364,7 +392,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   @NotNull
   @Override
   public Stage<?> getParentStage() {
-    return new CpuProfilerStage(getStudioProfilers());
+    return new CpuProfilerStage(getStudioProfilers(), CpuCaptureMetadata.CpuProfilerEntryPoint.CHILD_STAGE_BACK_BTN_OR_FAILURE);
   }
 
   @NotNull
