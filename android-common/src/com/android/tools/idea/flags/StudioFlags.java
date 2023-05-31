@@ -1474,7 +1474,7 @@ public final class StudioFlags {
     "unified.device.manager.enabled",
     "Enable unified device manager",
     "Enable new Device Manager UI with unified device list",
-    false);
+    true);
 
   public static final Flag<Boolean> DUAL_DEVICE_MANAGER_ENABLED = Flag.create(
     DEVICE_MANAGER,

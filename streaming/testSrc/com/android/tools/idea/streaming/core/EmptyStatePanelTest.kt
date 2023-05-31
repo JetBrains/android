@@ -123,7 +123,8 @@ class EmptyStatePanelTest {
         " <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>" +
         " or run your app while targeting a virtual device.")
     htmlComponent.clickOnHyperlink("DeviceManager")
-    assertThat(executedActions).containsExactly("Android.DeviceManager")
+    assertThat(executedActions).containsAnyOf("Android.DeviceManager", "Android.DeviceManager2")
+    assertThat(executedActions).hasSize(1)
   }
 
   @Test
@@ -178,7 +179,8 @@ class EmptyStatePanelTest {
         "To launch a virtual device, click <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select the device from the list," +
         " or use the <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>.")
     htmlComponent.clickOnHyperlink("DeviceManager")
-    assertThat(executedActions).containsExactly("Android.DeviceManager")
+    assertThat(executedActions).containsAnyOf("Android.DeviceManager", "Android.DeviceManager2")
+    assertThat(executedActions).hasSize(1)
   }
 
   @Test
