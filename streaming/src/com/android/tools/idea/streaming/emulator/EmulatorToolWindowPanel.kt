@@ -20,6 +20,7 @@ import com.android.emulator.control.DisplayConfiguration
 import com.android.emulator.control.DisplayConfigurations
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
@@ -29,6 +30,7 @@ import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.icon
 import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.core.sizeWithoutInsets
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
@@ -60,10 +62,10 @@ import java.awt.KeyboardFocusManager
 import java.beans.PropertyChangeListener
 import java.nio.file.Path
 import java.util.function.IntFunction
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
 
 /**
@@ -109,10 +111,14 @@ internal class EmulatorToolWindowPanel(
   override val title
     get() = emulatorId.avdName
 
-  override val icon
-    get() = ICON
+  override val icon: Icon
+    get() {
+      val avd = AvdManagerConnection.getDefaultAvdManagerConnection().findAvd(emulatorId.avdId)
+      val icon = avd?.icon ?: StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+      return ExecutionUtil.getLiveIndicator(icon)
+    }
 
-  override val isClosable = true
+  override val isClosable: Boolean = true
 
   override val preferredFocusableComponent: JComponent
     get() = primaryEmulatorView ?: this

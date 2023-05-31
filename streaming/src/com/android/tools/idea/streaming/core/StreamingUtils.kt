@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.actionSystem.ActionButtonComponent
@@ -23,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionHolder
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.concurrency.SameThreadExecutor
+import icons.StudioIcons
 import kotlinx.coroutines.cancelFutureOnCancellation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.awt.Component
@@ -31,6 +35,7 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.abs
@@ -112,6 +117,27 @@ private fun Component.findComponentForAction(action: AnAction): Component? {
 
 private fun Component.isComponentForAction(action: AnAction): Boolean =
     this is AnActionHolder && this.action === action
+
+
+internal val AvdInfo.icon: Icon
+  get() {
+    return when (tag) {
+      SystemImage.ANDROID_TV_TAG, SystemImage.GOOGLE_TV_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
+      SystemImage.AUTOMOTIVE_TAG, SystemImage.AUTOMOTIVE_PLAY_STORE_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+      SystemImage.WEAR_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+      else -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+    }
+  }
+
+internal val DeviceType.icon: Icon
+  get() {
+    return when (this) {
+      DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
+      DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
+      DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
+      DeviceType.HANDHELD -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+    }
+  }
 
 /**
  * If the device is connected by WiFi, extracts the device's own serial number from the serial

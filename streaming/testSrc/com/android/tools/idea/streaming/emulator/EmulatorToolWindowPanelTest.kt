@@ -59,6 +59,8 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.LayeredIcon
+import icons.StudioIcons
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -139,6 +141,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
@@ -246,6 +249,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR)
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber

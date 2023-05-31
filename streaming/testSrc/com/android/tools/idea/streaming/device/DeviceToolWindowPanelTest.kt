@@ -49,6 +49,8 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
+import com.intellij.ui.LayeredIcon
+import icons.StudioIcons
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -108,6 +110,7 @@ class DeviceToolWindowPanelTest {
 
     panel.createContent(false)
     assertThat(panel.deviceView).isNotNull()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
     fakeUi.layoutAndDispatchEvents()
     waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
@@ -191,7 +194,7 @@ class DeviceToolWindowPanelTest {
     else {
       assertThat(panel.isClosable).isFalse()
     }
-    assertThat(panel.icon).isNotNull()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
 
     // Check push button actions.
     val pushButtonCases = listOf(

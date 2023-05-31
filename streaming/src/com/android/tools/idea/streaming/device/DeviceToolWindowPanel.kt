@@ -24,6 +24,7 @@ import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.icon
 import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
@@ -38,9 +39,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import icons.StudioIcons
 import java.awt.EventQueue
+import javax.swing.Icon
 import javax.swing.JComponent
-
-private val ICON = ExecutionUtil.getLiveIndicator(StudioIcons.Avd.DEVICE_PHONE)
 
 /**
  * Provides view of one physical device in the Running Devices tool window.
@@ -56,10 +56,13 @@ internal class DeviceToolWindowPanel(
   override val title: String
     get() = deviceClient.deviceName
 
-  override val icon
-    get() = ICON
+  override val icon: Icon
+    get() {
+      val icon = deviceConfig.deviceProperties.deviceType?.icon ?: StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      return ExecutionUtil.getLiveIndicator(icon)
+    }
 
-  override val isClosable = StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()
+  override val isClosable: Boolean = StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()
 
   val component: JComponent
     get() = this
