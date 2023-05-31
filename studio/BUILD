@@ -670,11 +670,11 @@ android_studio(
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.16",
+    version_micro_patch = "1.17",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 5,
-    version_type = "Beta",
+    version_release_number = 1,
+    version_type = "RC",
     visibility = ["//visibility:public"],
 )
 
