@@ -41,5 +41,6 @@ iml_module(
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
     ],
 )
