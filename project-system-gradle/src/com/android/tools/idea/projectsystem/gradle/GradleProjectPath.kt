@@ -29,7 +29,7 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.text.nullize
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.plugins.gradle.execution.GradleRunnerUtil
+import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -100,6 +100,11 @@ fun createGradleProjectPath(
   else {
     GradleHolderProjectPath(buildRoot, gradlePath)
   }
+}
+
+fun Module.getGradleIdentityPath(): String? {
+  @Suppress("UnstableApiUsage")
+  return CachedModuleDataFinder.getGradleModuleData(this)?.gradleIdentityPath
 }
 
 fun Module.getGradleProjectPath(): GradleProjectPath? {
