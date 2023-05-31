@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
@@ -282,6 +283,7 @@ class CategoryTableTest {
     val table = CategoryTable(CategoryTableDemo.columns, colors = colors)
     val scrollPane = createScrollPane(table)
     val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
 
     CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
     fakeUi.layout()
@@ -299,6 +301,7 @@ class CategoryTableTest {
     fakeUi.clickOn(rowToSelect)
 
     assertThat(table.selection.selectedKeys()).contains(rowToSelect.rowKey)
+    assertThat(rowToSelect.isFocusOwner).isTrue()
 
     IdeEventQueue.getInstance().flushQueue()
 

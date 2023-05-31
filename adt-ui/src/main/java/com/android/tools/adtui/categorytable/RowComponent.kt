@@ -44,7 +44,7 @@ sealed interface RowKey<T> {
 /** A UI component for a row in a CategoryTable that is either a category or a value. */
 internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableComponent {
   init {
-    isFocusable = true
+    isFocusCycleRoot = true
     addFocusListener { updateBorder() }
   }
 
