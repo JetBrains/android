@@ -33,7 +33,7 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
     mutateGradleProperties {
       setJvmArgs("$jvmArgs -XX:SoftRefLRUPolicyMSPerMB=0")
     }
-    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY)
+    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureHistograms = true)
   }
 
   override fun after() {

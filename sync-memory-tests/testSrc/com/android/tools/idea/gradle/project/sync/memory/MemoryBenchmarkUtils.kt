@@ -26,6 +26,7 @@ val MEMORY_BENCHMARK = Benchmark.Builder("Retained heap size")
   .build()
 
 val OUTPUT_DIRECTORY: String = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
+  it.deleteRecursively()
   it.toPath().createDirectories()
 }.absolutePath
 

@@ -58,7 +58,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
     studioFlagUseV2BuilderModels = StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),
     studioFlagDisableForcedUpgrades = AndroidGradleProjectResolver.shouldDisableForceUpgrades(),
-    studioFlagOutputSyncStats = StudioFlags.GRADLE_SYNC_OUTPUT_SYNC_STATS.get(),
+    studioFlagSyncStatsOutputDirectory = StudioFlags.SYNC_STATS_OUTPUT_DIRECTORY.get(),
     studioHprofOutputDirectory = StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.get(),
     studioHeapAnalysisOutputDirectory = StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.get(),
     studioHeapAnalysisLightweightMode = StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.get(),

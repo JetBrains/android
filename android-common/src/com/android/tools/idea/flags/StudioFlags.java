@@ -700,10 +700,10 @@ public final class StudioFlags {
     "This allows the IDE to pre-fetch models for the currently selected variants in parallel before resolving the " +
     "new variant selection (which is less parallelizable process).", false);
 
-  public static final Flag<Boolean> GRADLE_SYNC_OUTPUT_SYNC_STATS = Flag.create(
-    GRADLE_IDE, "gradle.sync.output.sync.stats", "Enables printing sync stats to build output",
-    "When enabled sync execution stats for models requested by Android Studio are printed to the build output tool window when" +
-    "sync completes.", false);
+  public static final Flag<String> SYNC_STATS_OUTPUT_DIRECTORY = Flag.create(
+    GRADLE_IDE, "sync.stats.output.directory", "Enables printing sync stats to a file",
+    "If not empty, sync execution stats for models requested by Android Studio are printed to a file in the given directory when" +
+    "sync completes.", "");
 
   public static final Flag<Boolean> GRADLE_SYNC_ENABLE_CACHED_VARIANTS = Flag.create(
     GRADLE_IDE, "gradle.sync.enable.cached.variants", "Enables caching of build variants",

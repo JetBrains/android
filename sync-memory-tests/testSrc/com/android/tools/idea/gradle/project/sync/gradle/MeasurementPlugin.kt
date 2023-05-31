@@ -39,10 +39,14 @@ enum class MeasurementCheckpoint {
 // Functions and variables can't be top level and has to be static to keep Gradle happy.
 object MeasurementPluginConfig {
   var outputPath: String = ""
+  var captureHistograms: Boolean = false
+
   /** Call this from a benchmark test to configure and apply the plugin globally via init script in Gradle home. */
   @JvmStatic
   fun configureAndApply(
     outputPath: String,
+    // If false, will only create an empty file with the name containing the timestamp of the event
+    captureHistograms: Boolean,
   ) {
 
     val src = File("tools/adt/idea/sync-memory-tests/testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt")
@@ -50,6 +54,7 @@ object MeasurementPluginConfig {
     src.copyTo(initScript, overwrite = true)
     initScript.appendText("""
       ${this::class.simpleName}.${this::outputPath.name} = "$outputPath"
+      ${this::class.simpleName}.${this::captureHistograms.name} = $captureHistograms
       apply<${MeasurementPlugin::class.simpleName}>()
     """.trimIndent())
   }
@@ -57,7 +62,6 @@ object MeasurementPluginConfig {
 
 class MeasurementPlugin @Inject constructor(private val registry: BuildEventsListenerRegistry): Plugin<Gradle>, BuildAdapter() {
   override fun apply(gradle: Gradle) {
-    println("test plugin ${gradle}")
     gradle.addBuildListener(this)
     registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent("histogram-capture", HistogramService::class.java) {}
     )
@@ -82,7 +86,19 @@ object EventRecorder {
   @JvmStatic
   fun recordEvent(checkpoint: MeasurementCheckpoint) {
     println("Recording event ${checkpoint.name}")
-    captureHeapHistogramOfCurrentProcess(checkpoint)
+    if (MeasurementPluginConfig.captureHistograms) {
+      captureHeapHistogramOfCurrentProcess(checkpoint)
+    } else {
+      captureEventTimestamp(checkpoint)
+    }
+  }
+
+  @JvmStatic
+  private fun captureEventTimestamp(checkpoint: MeasurementCheckpoint) {
+    val name = checkpoint.name
+    val now = Instant.now()
+    val fileHistogram = File(MeasurementPluginConfig.outputPath).resolve("${now.toEpochMilli()}_$name")
+    fileHistogram.writeText(now.toString())
   }
 
   @JvmStatic
