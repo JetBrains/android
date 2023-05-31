@@ -28,7 +28,13 @@ import javax.management.MBeanServer
 import javax.management.ObjectName
 import kotlin.system.measureTimeMillis
 
-fun captureSnapshot(outputPath: String, name: String) {
+enum class MeasurementCheckpoint {
+  ANDROID_STARTED,
+  ANDROID_FINISHED,
+}
+
+fun captureSnapshot(outputPath: String, checkpoint: MeasurementCheckpoint) {
+  val name = checkpoint.name
   try {
     val file = File(outputPath).resolve("${getTimestamp()}-$name.hprof")
     println("Capturing memory snapshot at: ${file.absolutePath}")
@@ -41,7 +47,8 @@ fun captureSnapshot(outputPath: String, name: String) {
   }
 }
 
-fun analyzeCurrentProcessHeap(outputPath: String, name: String) {
+fun analyzeCurrentProcessHeap(outputPath: String, checkpoint: MeasurementCheckpoint) {
+  val name = checkpoint.name
   println("Starting heap traversal for $name")
   var result: LightweightTraverseResult?
   val elapsedTime = measureTimeMillis {
@@ -60,12 +67,13 @@ fun analyzeCurrentProcessHeap(outputPath: String, name: String) {
   fileStrong.writeText(result!!.totalStrongReferencedObjectsSizeBytes.toString())
 }
 
-fun captureHeapHistogramOfCurrentProcess(outputPath: String, name: String) {
+fun captureHeapHistogramOfCurrentProcess(outputPath: String, checkpoint: MeasurementCheckpoint) {
+  val name = checkpoint.name
+  println("Recording event $name")
   val server = ManagementFactory.getPlatformMBeanServer()
   val histogram = server.execute("gcClassHistogram").toString()
-  val fileHistogram = File(outputPath).resolve("${getTimestamp()}_${name}_histogram")
+  val fileHistogram = File(outputPath).resolve("${getTimestamp()}_$name")
   fileHistogram.writeText(histogram)
-  println("Histogram $name\n $histogram")
 }
 
 private fun MBeanServer.execute(name: String) = invoke(
@@ -75,7 +83,4 @@ private fun MBeanServer.execute(name: String) = invoke(
   arrayOf(Array<String>::class.java.name)
 )
 
-private fun getTimestamp() = DateTimeFormatter
-  .ofPattern("yyyy.MM.dd-HH:mm")
-  .withZone(ZoneOffset.UTC)
-  .format(Instant.now())
+private fun getTimestamp() = Instant.now().toEpochMilli()

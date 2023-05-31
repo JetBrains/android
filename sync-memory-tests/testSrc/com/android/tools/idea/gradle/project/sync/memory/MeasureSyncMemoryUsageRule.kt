@@ -23,12 +23,11 @@ import com.android.tools.memory.usage.LightweightHeapTraverse
 import com.android.tools.memory.usage.LightweightHeapTraverseConfig
 import com.android.tools.memory.usage.LightweightTraverseResult
 import com.intellij.openapi.project.Project
-import com.intellij.util.io.createDirectories
+import kotlinx.datetime.Clock
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.junit.rules.ExternalResource
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.Duration
 import kotlin.system.measureTimeMillis
 
@@ -96,8 +95,12 @@ class MeasureSyncMemoryUsageRule (
     }
     println("Heap traversal for IDE after sync finished in $elapsedTimeAfterSync milliseconds")
 
-    recordMemoryMeasurement("${projectName}_IDE_After_Sync_Total", result!!.totalReachableObjectsSizeBytes)
-    recordMemoryMeasurement("${projectName}_IDE_After_Sync", result!!.totalStrongReferencedObjectsSizeBytes)
+    recordMemoryMeasurement("${projectName}_IDE_Sync_Finished_Total", TimestampedMeasurement(
+      Clock.System.now(),
+      result!!.totalReachableObjectsSizeBytes))
+    recordMemoryMeasurement("${projectName}_IDE_Sync_Finished_Strong", TimestampedMeasurement(
+      Clock.System.now(),
+      result!!.totalStrongReferencedObjectsSizeBytes))
 
     println("IDE total size MBs: ${result!!.totalReachableObjectsSizeBytes shr 20} ")
     println("IDE total object count: ${result!!.totalReachableObjectsNumber} ")
@@ -111,13 +114,8 @@ class MeasureSyncMemoryUsageRule (
 
   private fun recordAgentValues(projectName: String) {
     for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory }.asIterable()) {
-      when {
-        metricFilePath.name.endsWith("before_sync_strong") -> "Before_Sync"
-        metricFilePath.name.endsWith("before_sync_total") -> "Before_Sync_Total"
-        metricFilePath.name.endsWith("after_sync_strong") -> "After_Sync"
-        metricFilePath.name.endsWith("after_sync_total") -> "After_Sync_Total"
-        else -> null
-      }?.let { recordMemoryMeasurement("${projectName}_$it", metricFilePath.readText().toLong()) }
+      recordMemoryMeasurement("${projectName}_${metricFilePath.toMetricName()}",
+                              TimestampedMeasurement(metricFilePath.toTimestamp(), metricFilePath.readText().toLong()))
     }
   }
 }

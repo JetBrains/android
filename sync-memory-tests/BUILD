@@ -56,6 +56,7 @@ iml_module(
         },
     },
     test_data = [
+        "testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt",
         "//prebuilts/studio/buildbenchmarks:ExtraLarge2022_project",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
@@ -97,6 +98,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/memory-usage[module, test]",
+        "//tools/adt/idea/.idea/libraries:javax-inject[test]",
     ],
 )
 

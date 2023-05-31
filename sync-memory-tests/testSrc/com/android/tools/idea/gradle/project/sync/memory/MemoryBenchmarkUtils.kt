@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.project.sync.memory
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.intellij.util.io.createDirectories
+import kotlinx.datetime.Instant
 import java.io.File
-import java.time.Instant
 
 val MEMORY_BENCHMARK = Benchmark.Builder("Retained heap size")
   .setProject("Android Studio Sync Test")
@@ -29,10 +29,25 @@ val OUTPUT_DIRECTORY: String = File(System.getenv("TEST_TMPDIR"), "snapshots").a
   it.toPath().createDirectories()
 }.absolutePath
 
-internal fun recordMemoryMeasurement(metricName: String, value: Long) {
-  val currentTime = Instant.now().toEpochMilli()
+internal typealias Bytes = Long
+internal typealias TimestampedMeasurement = Pair<Instant, Bytes>
+
+internal fun recordMemoryMeasurement(metricName: String, measurement: TimestampedMeasurement) {
   Metric(metricName).apply {
-    addSamples(MEMORY_BENCHMARK, Metric.MetricSample(currentTime, value))
+    addSamples(MEMORY_BENCHMARK, Metric.MetricSample(
+      measurement.first.toEpochMilliseconds(),
+      measurement.second
+    ))
     commit() // There is only one measurement per type, so we can commit immediately.
   }
+}
+
+internal fun File.toTimestamp() = Instant.fromEpochMilliseconds(name.substringBefore('_').toLong())
+
+internal fun File.toMetricName() = name.substringAfter("_").lowercaseEnumName()
+
+private fun String.lowercaseEnumName(): String {
+  return this.fold(StringBuilder()) { result, char ->
+    result.append(if (result.isEmpty() || result.last() == '_') char.uppercaseChar() else char.lowercaseChar())
+  }.toString()
 }

@@ -30,8 +30,8 @@ import com.android.tools.idea.gradle.project.sync.createBenchmarkTestRule
 
 class Benchmark50MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_50_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
-  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 class Benchmark100MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_100_NAME)

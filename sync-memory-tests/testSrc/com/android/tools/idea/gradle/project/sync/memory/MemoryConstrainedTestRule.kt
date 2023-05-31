@@ -27,6 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
+import kotlinx.datetime.Clock
 import org.junit.rules.ExternalResource
 import java.io.File
 import java.time.Duration
@@ -53,7 +54,10 @@ class MemoryConstrainedTestRule(
       setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
     }
     startMemoryPolling()
-    recordMemoryMeasurement("${projectName}_Max_Heap", value = memoryLimitMb.toLong() shl 20)
+    recordMemoryMeasurement("${projectName}_Max_Heap", TimestampedMeasurement(
+      Clock.System.now(),
+      memoryLimitMb.toLong() shl 20
+    ))
   }
 
   private fun startMemoryPolling() {

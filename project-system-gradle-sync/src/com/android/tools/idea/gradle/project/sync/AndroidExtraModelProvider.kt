@@ -69,13 +69,13 @@ private class BuildModelsAndMap(val models: Set<GradleBuild>, val map: IdeCompos
 private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionOptions) {
   init {
     if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
-      captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "before_sync")
+      captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, MeasurementCheckpoint.ANDROID_STARTED)
     }
     if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
       if (syncOptions.flags.studioHeapAnalysisLightweightMode) {
-        captureHeapHistogramOfCurrentProcess(syncOptions.flags.studioHeapAnalysisOutputDirectory, "before_sync")
+        captureHeapHistogramOfCurrentProcess(syncOptions.flags.studioHeapAnalysisOutputDirectory, MeasurementCheckpoint.ANDROID_STARTED)
       } else {
-        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "before_sync")
+        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, MeasurementCheckpoint.ANDROID_STARTED)
       }
     }
   }
@@ -125,13 +125,13 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
         println(syncCounters)
       }
       if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
-        captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "after_sync")
+        captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, MeasurementCheckpoint.ANDROID_FINISHED)
       }
       if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
         if (syncOptions.flags.studioHeapAnalysisLightweightMode) {
-          captureHeapHistogramOfCurrentProcess(syncOptions.flags.studioHeapAnalysisOutputDirectory, "after_sync")
+          captureHeapHistogramOfCurrentProcess(syncOptions.flags.studioHeapAnalysisOutputDirectory, MeasurementCheckpoint.ANDROID_FINISHED)
         } else {
-          analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "after_sync")
+          analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, MeasurementCheckpoint.ANDROID_FINISHED)
         }
       }
       if (syncOptions.flags.studioDebugMode) {

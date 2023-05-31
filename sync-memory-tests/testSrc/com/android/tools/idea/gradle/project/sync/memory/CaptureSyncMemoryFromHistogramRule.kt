@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.memory
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
 import org.junit.rules.ExternalResource
 import java.io.File
@@ -32,6 +33,7 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
     mutateGradleProperties {
       setJvmArgs("$jvmArgs -XX:SoftRefLRUPolicyMSPerMB=0")
     }
+    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY)
   }
 
   override fun after() {
@@ -43,20 +45,16 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
 
   private fun recordHistogramValues(projectName: String) {
     for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory }.asIterable()) {
-      when {
-        metricFilePath.name.endsWith("before_sync_histogram") -> "Before_Sync_Histogram_Experimental"
-        metricFilePath.name.endsWith("after_sync_histogram") -> "After_Sync_Histogram_Experimental"
-        else -> null
-      }?.let {
-        val total = metricFilePath.readLines()
+        val bytes = metricFilePath.readLines()
           .last()
           .trim()
           .split("\\s+".toRegex())[2]
           .toLong()
-        recordMemoryMeasurement("${projectName}_$it", total)
+        recordMemoryMeasurement("${projectName}_${metricFilePath.toMetricName()}", TimestampedMeasurement(
+          metricFilePath.toTimestamp(),
+          bytes
+        ))
         Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
-      }
     }
   }
-
 }
