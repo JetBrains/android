@@ -350,9 +350,10 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   public JComponent getSceneViewLeftBar(@NotNull SceneView sceneView) {
     if (OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
       DefaultActionGroup group = new DefaultActionGroup();
-      group.add(new OverlayMenuAction.ToggleCachedOverlayAction(sceneView.getSurface()));
-      group.add(new OverlayMenuAction.UpdateOverlayAction(sceneView.getSurface()));
-      group.add(new OverlayMenuAction.CancelOverlayAction(sceneView.getSurface()));
+      OverlayConfiguration overlayConfiguration = sceneView.getSurface().getOverlayConfiguration();
+      group.add(new OverlayMenuAction.ToggleCachedOverlayAction(overlayConfiguration, sceneView.getSurface()::repaint));
+      group.add(new OverlayMenuAction.UpdateOverlayAction(overlayConfiguration));
+      group.add(new OverlayMenuAction.CancelOverlayAction(overlayConfiguration, sceneView.getSurface()::repaint));
 
       ActionToolbar actionToolbar = com.intellij.openapi.actionSystem.ActionManager.getInstance()
         .createActionToolbar("SceneView", group, false);

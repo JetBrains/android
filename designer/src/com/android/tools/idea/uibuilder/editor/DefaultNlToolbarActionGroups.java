@@ -104,7 +104,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     if (StudioFlags.NELE_OVERLAY_PROVIDER.get()
         && OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
       group.addSeparator();
-      OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface);
+      OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface.getOverlayConfiguration(), mySurface::repaint);
       group.add(overlayAction);
     }
 

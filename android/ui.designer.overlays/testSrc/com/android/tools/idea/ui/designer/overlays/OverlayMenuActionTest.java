@@ -24,7 +24,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -42,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.concurrency.AsyncPromise;
 
 public class OverlayMenuActionTest extends AndroidTestCase {
-  private EditorDesignSurface mySurface;
+  private Runnable repaint;
   private OverlayProvider myProvider;
   private OverlayData myData;
   private OverlayConfiguration myOverlayConfiguration;
@@ -57,23 +56,11 @@ public class OverlayMenuActionTest extends AndroidTestCase {
 
     myEvent = mock(AnActionEvent.class);
     myProvider = mock(OverlayProvider.class);
-    mySurface = mock(EditorDesignSurface.class);
+    repaint = mock(Runnable.class);
     myOverlayConfiguration = mock(OverlayConfiguration.class);
     myData = new OverlayData(new OverlayEntry(DATA_ID, myProvider), DATA_ID, null);
-
-    when(mySurface.getOverlayConfiguration()).thenReturn(myOverlayConfiguration);
     when(myProvider.getPluginIcon()).thenReturn(mock(Icon.class));
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(true);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      mySurface = null;
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   private static void checkAction(@NotNull AnAction action,
@@ -87,7 +74,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     Extensions.getRootArea().getExtensionPoint(OverlayConfiguration.EP_NAME)
       .registerExtension(mock(OverlayProvider.class), getTestRootDisposable());
 
-    OverlayMenuAction action = new OverlayMenuAction(mySurface);
+    OverlayMenuAction action = new OverlayMenuAction(myOverlayConfiguration, repaint);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     checkAction(actions[0], ActionGroup.class, "Overlays");
@@ -103,7 +90,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
   public void testAddOverlayActionSuccess() {
     AsyncPromise<OverlayData> result = new AsyncPromise<>();
     OverlayMenuAction.AddOverlayAction action =
-      new OverlayMenuAction.AddOverlayAction(mySurface, myProvider);
+      new OverlayMenuAction.AddOverlayAction(myOverlayConfiguration, myProvider);
 
     when(myProvider.addOverlay()).thenReturn(result);
 
@@ -117,7 +104,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
   public void testAddOverlayActionFailed() {
     AsyncPromise<OverlayData> result = new AsyncPromise<>();
     OverlayMenuAction.AddOverlayAction action =
-      new OverlayMenuAction.AddOverlayAction(mySurface, myProvider);
+      new OverlayMenuAction.AddOverlayAction(myOverlayConfiguration, myProvider);
 
     when(myProvider.addOverlay()).thenReturn(result);
 
@@ -132,9 +119,9 @@ public class OverlayMenuActionTest extends AndroidTestCase {
   public void testAddOverlayActionCancelled() {
     AsyncPromise<OverlayData> result = new AsyncPromise<>();
     OverlayMenuAction.AddOverlayAction action =
-      new OverlayMenuAction.AddOverlayAction(mySurface, myProvider);
+      new OverlayMenuAction.AddOverlayAction(myOverlayConfiguration, myProvider);
     OverlayMenuAction.CancelOverlayAction cancelAction =
-      new OverlayMenuAction.CancelOverlayAction(mySurface);
+      new OverlayMenuAction.CancelOverlayAction(myOverlayConfiguration, repaint);
 
     when(myProvider.addOverlay()).thenReturn(result);
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(false);
@@ -157,7 +144,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     when(myProvider.getOverlay(eq(DATA_ID))).thenReturn(result);
 
     OverlayMenuAction.ToggleOverlayAction action =
-      new OverlayMenuAction.ToggleOverlayAction(mySurface,
+      new OverlayMenuAction.ToggleOverlayAction(myOverlayConfiguration,
                                                 myData.getOverlayName(),
                                                 myData.getOverlayEntry(),
                                                 true);
@@ -179,9 +166,9 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     when(myProvider.getOverlay(eq(DATA_ID))).thenReturn(result);
 
     OverlayMenuAction.CancelOverlayAction cancelAction =
-      new OverlayMenuAction.CancelOverlayAction(mySurface);
+      new OverlayMenuAction.CancelOverlayAction(myOverlayConfiguration, repaint);
     OverlayMenuAction.ToggleOverlayAction action =
-      new OverlayMenuAction.ToggleOverlayAction(mySurface,
+      new OverlayMenuAction.ToggleOverlayAction(myOverlayConfiguration,
                                                 myData.getOverlayName(),
                                                 myData.getOverlayEntry(),
                                                 true);
@@ -203,7 +190,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     when(myProvider.getOverlay(eq(DATA_ID))).thenReturn(result);
 
     OverlayMenuAction.ToggleOverlayAction action =
-      new OverlayMenuAction.ToggleOverlayAction(mySurface,
+      new OverlayMenuAction.ToggleOverlayAction(myOverlayConfiguration,
                                                 myData.getOverlayName(),
                                                 myData.getOverlayEntry(),
                                                 true);
@@ -226,7 +213,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     when(myProvider.getOverlay(eq(DATA_ID))).thenReturn(result);
 
     OverlayMenuAction.ToggleOverlayAction action =
-      new OverlayMenuAction.ToggleOverlayAction(mySurface,
+      new OverlayMenuAction.ToggleOverlayAction(myOverlayConfiguration,
                                                 myData.getOverlayName(),
                                                 myData.getOverlayEntry(),
                                                 true);
@@ -245,7 +232,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
       .thenReturn(new OverlayEntry(DATA_ID, myProvider));
 
     OverlayMenuAction.ToggleOverlayAction action =
-      new OverlayMenuAction.ToggleOverlayAction(mySurface,
+      new OverlayMenuAction.ToggleOverlayAction(myOverlayConfiguration,
                                                 myData.getOverlayName(),
                                                 myData.getOverlayEntry(),
                                                 true);
@@ -266,7 +253,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(false);
 
     OverlayMenuAction.UpdateOverlayAction action =
-      new OverlayMenuAction.UpdateOverlayAction(mySurface);
+      new OverlayMenuAction.UpdateOverlayAction(myOverlayConfiguration);
 
     action.actionPerformed(myEvent);
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(true);
@@ -287,7 +274,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(false);
 
     OverlayMenuAction.UpdateOverlayAction action =
-      new OverlayMenuAction.UpdateOverlayAction(mySurface);
+      new OverlayMenuAction.UpdateOverlayAction(myOverlayConfiguration);
 
     action.actionPerformed(myEvent);
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(true);
@@ -308,7 +295,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(false);
 
     OverlayMenuAction.UpdateOverlayAction action =
-      new OverlayMenuAction.UpdateOverlayAction(mySurface);
+      new OverlayMenuAction.UpdateOverlayAction(myOverlayConfiguration);
 
     action.actionPerformed(myEvent);
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(true);
@@ -321,7 +308,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
 
   public void testCancelOverlayAction() {
     OverlayMenuAction.CancelOverlayAction action =
-      new OverlayMenuAction.CancelOverlayAction(mySurface);
+      new OverlayMenuAction.CancelOverlayAction(myOverlayConfiguration, repaint);
 
     when(myOverlayConfiguration.isOverlayPresent()).thenReturn(true);
     action.actionPerformed(myEvent);
@@ -331,7 +318,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
 
   public void testCancelEmptyOverlayAction() {
     OverlayMenuAction.CancelOverlayAction action =
-      new OverlayMenuAction.CancelOverlayAction(mySurface);
+      new OverlayMenuAction.CancelOverlayAction(myOverlayConfiguration, repaint);
 
     when(myOverlayConfiguration.getOverlayVisibility()).thenReturn(false);
     action.actionPerformed(myEvent);
@@ -341,7 +328,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
 
   public void testToggleOnCachedOverlayAction() {
     OverlayMenuAction.ToggleCachedOverlayAction action =
-      new OverlayMenuAction.ToggleCachedOverlayAction(mySurface);
+      new OverlayMenuAction.ToggleCachedOverlayAction(myOverlayConfiguration, repaint);
 
     when(myOverlayConfiguration.getOverlayImage()).thenReturn(mock(BufferedImage.class));
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(false);
@@ -350,12 +337,12 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     action.actionPerformed(mock(AnActionEvent.class));
 
     verify(myOverlayConfiguration, times(1)).showCachedOverlay();
-    verify(mySurface, times(1)).repaint();
+    verify(repaint, times(1)).run();
   }
 
   public void testToggleOffCachedOverlayAction() {
     OverlayMenuAction.ToggleCachedOverlayAction action =
-      new OverlayMenuAction.ToggleCachedOverlayAction(mySurface);
+      new OverlayMenuAction.ToggleCachedOverlayAction(myOverlayConfiguration, repaint);
 
     when(myOverlayConfiguration.getOverlayImage()).thenReturn(mock(BufferedImage.class));
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(false);
@@ -364,12 +351,12 @@ public class OverlayMenuActionTest extends AndroidTestCase {
     action.actionPerformed(mock(AnActionEvent.class));
 
     verify(myOverlayConfiguration, times(1)).hideCachedOverlay();
-    verify(mySurface, times(1)).repaint();
+    verify(repaint, times(1)).run();
   }
 
   public void testToggleCachedOverlayActionNoOverlay() {
     OverlayMenuAction.ToggleCachedOverlayAction action =
-      new OverlayMenuAction.ToggleCachedOverlayAction(mySurface);
+      new OverlayMenuAction.ToggleCachedOverlayAction(myOverlayConfiguration, repaint);
 
     when(myOverlayConfiguration.getOverlayImage()).thenReturn(null);
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(false);
@@ -382,7 +369,7 @@ public class OverlayMenuActionTest extends AndroidTestCase {
 
   public void testToggleCachedOverlayActionWithPlaceholder() {
     OverlayMenuAction.ToggleCachedOverlayAction action =
-      new OverlayMenuAction.ToggleCachedOverlayAction(mySurface);
+      new OverlayMenuAction.ToggleCachedOverlayAction(myOverlayConfiguration, repaint);
 
     when(myOverlayConfiguration.getOverlayImage()).thenReturn(mock(BufferedImage.class));
     when(myOverlayConfiguration.isPlaceholderVisible()).thenReturn(true);
@@ -395,12 +382,12 @@ public class OverlayMenuActionTest extends AndroidTestCase {
 
   public void testDeleteOverlayActionEmptyOverlayList() {
     OverlayMenuAction.DeleteOverlayAction action =
-      new OverlayMenuAction.DeleteOverlayAction(mySurface);
+      new OverlayMenuAction.DeleteOverlayAction(myOverlayConfiguration);
     AnActionEvent event = mock(AnActionEvent.class);
     Presentation presentation = mock(Presentation.class);
 
 
-    when(mySurface.getOverlayConfiguration().getAllOverlays()).thenReturn(new ArrayList<>());
+    when(myOverlayConfiguration.getAllOverlays()).thenReturn(new ArrayList<>());
     when(event.getPresentation()).thenReturn(presentation);
     action.update(event);
 
@@ -416,11 +403,11 @@ public class OverlayMenuActionTest extends AndroidTestCase {
 
   public void testOverlayActionsVisibility() {
     OverlayMenuAction.ToggleCachedOverlayAction toggleAction =
-      new OverlayMenuAction.ToggleCachedOverlayAction(mySurface);
+      new OverlayMenuAction.ToggleCachedOverlayAction(myOverlayConfiguration, repaint);
     OverlayMenuAction.UpdateOverlayAction updateAction =
-      new OverlayMenuAction.UpdateOverlayAction(mySurface);
+      new OverlayMenuAction.UpdateOverlayAction(myOverlayConfiguration);
     OverlayMenuAction.CancelOverlayAction cancelAction =
-      new OverlayMenuAction.CancelOverlayAction(mySurface);
+      new OverlayMenuAction.CancelOverlayAction(myOverlayConfiguration, repaint);
 
     checkVisibility(toggleAction);
     checkVisibility(updateAction);
