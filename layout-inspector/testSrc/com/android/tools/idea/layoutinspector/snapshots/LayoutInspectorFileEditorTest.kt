@@ -27,14 +27,17 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.TestAndroidModel
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 import org.junit.Test
@@ -47,7 +50,7 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 @RunsInEdt
 class LayoutInspectorFileEditorTest {
-  val projectRule = ProjectRule()
+  val projectRule = AndroidProjectRule.inMemory()
   val disposableRule = DisposableRule()
 
   @get:Rule
@@ -78,6 +81,8 @@ class LayoutInspectorFileEditorTest {
 
   @Test
   fun editorCreatesCorrectSettings() {
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel("com.google.samples.apps.sunflower"))
     val editor = LayoutInspectorFileEditor(
       projectRule.project,
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/snapshot.li")
@@ -94,10 +99,13 @@ class LayoutInspectorFileEditorTest {
 
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
     assertThat(inspector.currentClient.capabilities).containsExactly(Capability.SUPPORTS_SYSTEM_NODES)
+    assertThat(inspector.inspectorModel.resourceLookup.hasResolver).isTrue()
   }
 
   @Test
   fun editorCreatesCorrectSettingsForCompose() {
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    AndroidModel.set(facet, TestAndroidModel("com.example.mysemantics"))
     val editor = LayoutInspectorFileEditor(
       projectRule.project,
       TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/compose-snapshot.li")
@@ -115,5 +123,6 @@ class LayoutInspectorFileEditorTest {
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
     assertThat(inspector.currentClient.capabilities).containsExactly(
       Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
+    assertThat(inspector.inspectorModel.resourceLookup.hasResolver).isTrue()
   }
 }

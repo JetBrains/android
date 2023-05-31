@@ -48,6 +48,12 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     navigateToSelectedView(inspector.coroutineScope, inspector.inspectorModel)
   }
 
+  override fun update(event: AnActionEvent) {
+    val inspector = LayoutInspector.get(event)
+    // Finding the navigatable is expensive. Only perform a cheap check on update:
+    event.presentation.isEnabled = inspector?.inspectorModel?.resourceLookup?.hasResolver == true
+  }
+
   fun navigateToSelectedView(coroutineScope: CoroutineScope, inspectorModel: InspectorModel) {
     lastAction = coroutineScope.launch {
       val navigatable = findNavigatable(inspectorModel) ?: return@launch

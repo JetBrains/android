@@ -46,6 +46,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Dimension
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 
@@ -68,6 +69,8 @@ class GotoDeclarationActionTest {
     model.setSelection(model["title"], SelectionOrigin.INTERNAL)
     val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
     val event = createEvent(model, stats)
+    GotoDeclarationAction.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
     GotoDeclarationAction.actionPerformed(event)
     runBlocking { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
@@ -80,6 +83,8 @@ class GotoDeclarationActionTest {
     model.setSelection(model[-2], SelectionOrigin.INTERNAL)
     val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
     val event = createEvent(model, stats, fromShortcut = true)
+    GotoDeclarationAction.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
     GotoDeclarationAction.actionPerformed(event)
     runBlocking { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
@@ -93,10 +98,23 @@ class GotoDeclarationActionTest {
     model.setSelection(model[-5], SelectionOrigin.INTERNAL)
     val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
     val event = createEvent(model, stats)
+    GotoDeclarationAction.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
     GotoDeclarationAction.actionPerformed(event)
     runBlocking { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("MyCompose.kt", 8, "Text(text = \"Hello \$name!\")")
     checkStats(stats, clickCount = 1)
+  }
+
+  @Test
+  fun testGoToDeclarationDisabledWhenNoResolver() {
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[-5], SelectionOrigin.INTERNAL)
+    model.resourceLookup.updateConfiguration(420, 1f, Dimension(1080, 2400))
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val event = createEvent(model, stats)
+    GotoDeclarationAction.update(event)
+    assertThat(event.presentation.isEnabled).isFalse()
   }
 
   private fun loadComposeFiles() {
