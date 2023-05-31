@@ -47,7 +47,7 @@ iml_module(
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
             "exec_properties": LARGE_MACHINE,
-            "tags": ["manual"],
+            "additional_jvm_args": ["-Xmx6g"],
         },
         "Benchmark4200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark4200CpuTest",
