@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresen
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbService.DUMB_MODE
@@ -52,13 +53,16 @@ internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers
         if (afterSyncUpdateScheduled.getAndSet(true)) {
           return
         }
-        project.runWhenSmartAndSynced(
-          parentDisposable = this@SourceCodePreview,
-          callback = {
-            afterSyncUpdateScheduled.set(false)
-            updateRepresentationsAsync()
-          }
-        )
+        // invokeLater required due to IDEA-321276: calling runWhenSmart() inside DumbModeListener does not work properly.
+        invokeLater {
+          project.runWhenSmartAndSynced(
+            parentDisposable = this@SourceCodePreview,
+            callback = {
+              afterSyncUpdateScheduled.set(false)
+              updateRepresentationsAsync()
+            }
+          )
+        }
       }
     })
 
