@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import java.awt.Rectangle
 
 /**
  * Implementation of selection of a single row for [CategoryTable].
@@ -63,6 +64,7 @@ class CategoryTableSingleSelection<T : Any>(val table: CategoryTable<T>) {
       val categoryTableRow = table.rowComponents[i]
       if (categoryTableRow.isVisible) {
         categoryTableRow.requestFocusInWindow()
+        categoryTableRow.scrollRectToVisible(Rectangle(categoryTableRow.size))
         return categoryTableRow.rowKey
       }
     }

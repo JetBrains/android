@@ -17,6 +17,7 @@ package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
+import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
@@ -310,6 +311,27 @@ class CategoryTableTest {
     assertThat(actionColumnComponent.foreground).isEqualTo(colors.selectedForeground)
     assertThat(actionColumnComponent.background).isEqualTo(colors.selectedBackground)
     assertThat(actionButton.foreground).isEqualTo(originalButtonForeground)
+  }
+
+  @Test
+  fun scrollSelection() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
+
+    val scrollPane = createScrollPane(table)
+    scrollPane.setBounds(0, 0, 800, 100)
+    val fakeUi = FakeUi(scrollPane)
+
+    for (row in CategoryTableDemo.devices.indices) {
+      table.selection.selectNextRow()
+      fakeUi.layout()
+
+      val y = scrollPane.viewport.viewPosition.y
+      val visibleRange = Range.closed(y, y + scrollPane.height)
+      val rowComponent = table.rowComponents[row]
+      assertThat(rowComponent.y).isIn(visibleRange)
+      assertThat(rowComponent.y + rowComponent.height).isIn(visibleRange)
+    }
   }
 
   @Test
