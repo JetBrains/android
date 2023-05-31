@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 @UiThread
 class CategoryTable<T : Any>(
   val columns: ColumnList<T>,
-  private val primaryKey: (T) -> Any = { it },
+  val primaryKey: (T) -> Any = { it },
   private val coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,
   colors: Colors = defaultColors,
   private val rowDataProvider: ValueRowDataProvider<T> = NullValueRowDataProvider,
@@ -455,6 +455,8 @@ class CategoryTable<T : Any>(
     rowComponents.forEach { it.invalidate() }
     revalidate()
   }
+
+  fun isRowVisibleByKey(key: Any) = valueRows[key]?.isVisible ?: false
 
   fun setRowVisibleByKey(key: Any, visible: Boolean) {
     when {

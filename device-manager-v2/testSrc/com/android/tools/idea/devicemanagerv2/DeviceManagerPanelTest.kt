@@ -22,6 +22,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
+import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.RowKey
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -78,6 +80,39 @@ class DeviceManagerPanelTest {
       .containsExactly(RowKey.ValueRowKey<DeviceRowData>(pixel5Handle))
   }
 
+  @Test
+  fun templateVisibility() = runTestWithFixture {
+    val pixel4 = createHandle("Pixel 4")
+    val pixel5Template = createTemplate("Pixel 5")
+    val pixel5Handle = createHandle("Pixel 5", pixel5Template)
+    val pixel6 = createHandle("Pixel 6")
+
+    deviceHandles.send(listOf(pixel4, pixel6))
+    deviceTemplates.send(listOf(pixel5Template))
+
+    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4, pixel5Template, pixel6)
+
+    deviceHandles.send(listOf(pixel4, pixel6, pixel5Handle))
+    // Send an update to the state to be more realistic
+    pixel5Handle.stateFlow.update {
+      DeviceState.Disconnected(
+        DeviceProperties.build {
+          manufacturer = "Google"
+          model = "Pixel 5"
+        }
+      )
+    }
+    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4, pixel5Handle, pixel6)
+
+    deviceHandles.send(listOf(pixel4, pixel6))
+    pixel5Handle.scope.cancel()
+
+    assertThat(deviceTable.visibleKeys()).containsExactly(pixel4, pixel5Template, pixel6)
+  }
+
+  fun <T : Any> CategoryTable<T>.visibleKeys() =
+    values.mapNotNull { primaryKey(it).takeIf { isRowVisibleByKey(it) } }
+
   private fun runTestWithFixture(block: suspend Fixture.() -> Unit) = runTest {
     val fixture = Fixture(projectRule.project, this)
     fixture.block()
@@ -108,7 +143,7 @@ class DeviceManagerPanelTest {
     val deviceTable = panel.deviceTable
 
     fun createHandle(name: String, sourceTemplate: DeviceTemplate? = null) =
-      FakeDeviceHandle(scope, name, sourceTemplate)
+      FakeDeviceHandle(scope.createChildScope(isSupervisor = true), name, sourceTemplate)
     fun createTemplate(name: String) = FakeDeviceTemplate(name)
   }
 

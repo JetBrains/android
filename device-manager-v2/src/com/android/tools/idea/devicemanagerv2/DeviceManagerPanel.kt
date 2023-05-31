@@ -208,14 +208,14 @@ constructor(
             }
             .collect {
               withContext(uiDispatcher) {
-                deviceTable.addOrUpdateRow(it, beforeKey = handle.sourceTemplate)
-
-                handle.sourceTemplate?.let {
-                  if (templateInstantiationCount.add(it, 1) == 0) {
-                    if (deviceTable.selection.selectedKeys().contains(RowKey.ValueRowKey(it))) {
-                      deviceTable.selection.selectRow(RowKey.ValueRowKey(handle))
+                if (deviceTable.addOrUpdateRow(it, beforeKey = handle.sourceTemplate)) {
+                  handle.sourceTemplate?.let {
+                    if (templateInstantiationCount.add(it, 1) == 0) {
+                      if (deviceTable.selection.selectedKeys().contains(RowKey.ValueRowKey(it))) {
+                        deviceTable.selection.selectRow(RowKey.ValueRowKey(handle))
+                      }
+                      deviceTable.setRowVisibleByKey(it, false)
                     }
-                    deviceTable.setRowVisibleByKey(it, false)
                   }
                 }
               }
