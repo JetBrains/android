@@ -594,7 +594,7 @@ class StreamingToolWindowManagerTest {
       popup.items.size >= 2
     }
     assertThat(popup.actions.toString()).isEqualTo(
-        "[Separator (Available Devices), ${phone.avdName} (null), " +
+        "[Separator (Virtual Devices), ${phone.avdName} (null), " +
         "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     executeStreamingAction(popup.actions[1], toolWindow.component, project)

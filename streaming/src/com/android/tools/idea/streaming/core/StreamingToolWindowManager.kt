@@ -799,7 +799,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
       val avds = getStartableAvds().sortedBy { it.displayName }
       if (avds.isNotEmpty()) {
-        add(Separator("Available Devices"))
+        add(Separator("Virtual Devices"))
         for (avd in avds) {
           add(StartAvdAction(avd, project))
         }
