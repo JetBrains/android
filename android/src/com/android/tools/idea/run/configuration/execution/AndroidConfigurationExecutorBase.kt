@@ -159,7 +159,7 @@ abstract class AndroidConfigurationExecutorBase(
 
   @Throws(ExecutionException::class)
   open fun getApplicationDeployer(console: ConsoleView): ApplicationDeployer {
-    return ApplicationDeployerImpl(project)
+    return ApplicationDeployerImpl(project, RunStats.from(environment))
   }
 
   private fun createConsole(): ConsoleView {

@@ -49,6 +49,7 @@ import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
+import com.android.tools.idea.stats.track
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -79,7 +80,7 @@ class LaunchTaskRunner(
   override val deviceFutures: DeviceFutures,
   private val apkProvider: ApkProvider,
   private val liveEditService: LiveEditService = LiveEditService.getInstance(env.project),
-  private val applicationDeployer: ApplicationDeployer = ApplicationDeployerImpl(env.project)
+  private val applicationDeployer: ApplicationDeployer = ApplicationDeployerImpl(env.project, RunStats.from(env))
 ) : AndroidConfigurationExecutor {
   val project = env.project
   override val configuration = env.runProfile as AndroidRunConfiguration
@@ -216,7 +217,7 @@ class LaunchTaskRunner(
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
-    RunStats.from(env).runCustomTask("waitForProcessTermination") {
+    RunStats.from(env).track("waitForProcessTermination") {
       waitPreviousProcessTermination(devices, packageName, indicator)
     }
 
@@ -259,7 +260,7 @@ class LaunchTaskRunner(
     }
 
     indicator.text = "Connecting debugger"
-    val session = RunStats.from(env).runCustomTask("startDebuggerSession") {
+    val session = RunStats.from(env).track("startDebuggerSession") {
       val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env)
       debuggerTask.perform(device, packageName, env, indicator, console)
     }
@@ -462,18 +463,6 @@ class LaunchTaskRunner(
       else -> "Launching"
     }
     consoleView.println("$dateFormat: $launchVerb ${configuration.name} on '${env.executionTarget.displayName}.")
-  }
-
-  private inline fun <T> RunStats.runCustomTask(taskId: String, task: () -> T): T {
-    val customTask = beginCustomTask(taskId)
-    return try {
-      task()
-    } catch (t: Throwable) {
-      endCustomTask(customTask, t)
-      throw t
-    }.also {
-      endCustomTask(customTask, null)
-    }
   }
 
   @Throws(ExecutionException::class)

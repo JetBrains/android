@@ -113,6 +113,10 @@ public class RunStats {
     myEvent.getRunEventBuilder().addAllLaunchTaskDetail(task.getSubTaskDetails());
   }
 
+  public void addAllLaunchTaskDetail(Iterable<LaunchTaskDetail> details) {
+    myEvent.getRunEventBuilder().addAllLaunchTaskDetail(details);
+  }
+
   public void beginBeforeRunTasks() {
     Trace.begin("beforeRunktask.");
     myEvent.getRunEventBuilder().setBeginBeforeRunTasksTimestampMs(System.currentTimeMillis());
@@ -153,15 +157,17 @@ public class RunStats {
       myBuilder = builder;
     }
 
-    LaunchTaskDetail.Builder getBuilder() {
+    public LaunchTaskDetail.Builder getBuilder() {
       return myBuilder;
     }
   }
 
+
   public @NotNull CustomTask beginCustomTask(@NotNull String taskId) {
     return new CustomTask(LaunchTaskDetail.newBuilder()
-      .setId(taskId)
-      .setStartTimestampMs(System.currentTimeMillis()));
+                            .setId(taskId)
+                            .setTid((int)Thread.currentThread().getId())
+                            .setStartTimestampMs(System.currentTimeMillis()));
   }
 
   public void endCustomTask(@NotNull CustomTask task, @Nullable Throwable exception) {

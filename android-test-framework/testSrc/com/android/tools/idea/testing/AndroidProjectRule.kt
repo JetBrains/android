@@ -511,6 +511,7 @@ class ProjectEnvironmentRuleImpl(
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib")
     // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor")
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "fake-adb-server-connection-pool")
   }
 
   override fun after(description: Description) {
