@@ -58,6 +58,8 @@ public final class SystemImageDescription {
                                                                             WEAR_TAG, DESKTOP_TAG, CHROMEOS_TAG,
                                                                             AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG);
 
+  public static final Set<IdDisplay> TV_TAGS = ImmutableSet.of(ANDROID_TV_TAG, GOOGLE_TV_TAG);
+
   public SystemImageDescription(@NotNull ISystemImage systemImage) {
     mySystemImage = systemImage;
   }

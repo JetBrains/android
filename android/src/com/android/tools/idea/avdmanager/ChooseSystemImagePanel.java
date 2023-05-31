@@ -208,6 +208,7 @@ public class ChooseSystemImagePanel extends JPanel
     }
     if (SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(tag) &&
         (isArm64HostOs ||
+         SystemImageDescription.TV_TAGS.contains(tag) || // Android TV does not ship x86_64 images at any API level.
          (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) ||
          (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64))
     ) {
