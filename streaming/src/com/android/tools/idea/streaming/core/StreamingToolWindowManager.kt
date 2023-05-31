@@ -775,9 +775,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val actionGroup = createDeviceActions()
 
     val popup = JBPopupFactory.getInstance().createActionGroupPopup(
-        null, actionGroup, dataContext,
-        if (actionGroup.childrenCount > 1) ActionSelectionAid.ALPHA_NUMBERING else ActionSelectionAid.SPEEDSEARCH,
-        true, null, -1, null,
+        null, actionGroup, dataContext, ActionSelectionAid.SPEEDSEARCH, true, null, -1, null,
         ActionPlaces.getActionGroupPopupPlace(ActionPlaces.TOOLWINDOW_TOOLBAR_BAR))
 
     if (anchorComponent == null) {
