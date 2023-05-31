@@ -107,6 +107,8 @@ fun saveAppInspectorSnapshot(
   data: Map<Long, ViewLayoutInspectorClient.Data>,
   properties: Map<Long, LayoutInspectorViewProtocol.PropertiesEvent>,
   composeProperties: Map<Long, GetAllParametersResponse>,
+  configuration: LayoutInspectorViewProtocol.Configuration,
+  appContext: LayoutInspectorViewProtocol.AppContext,
   snapshotMetadata: SnapshotMetadata,
   foldInfo: InspectorModel.FoldInfo?
 ) {
@@ -125,19 +127,22 @@ fun saveAppInspectorSnapshot(
   val composeInfo = composeProperties.mapValues { (id, composePropertyEvent) ->
     data[id]?.composeEvent to composePropertyEvent
   }
-  saveAppInspectorSnapshot(path, response, composeInfo, snapshotMetadata, foldInfo)
+  saveAppInspectorSnapshot(path, response, composeInfo, configuration, appContext, snapshotMetadata, foldInfo)
 }
 
 fun saveAppInspectorSnapshot(
   path: Path,
   data: LayoutInspectorViewProtocol.CaptureSnapshotResponse,
   composeInfo: Map<Long, Pair<GetComposablesResult?, GetAllParametersResponse>>,
+  configuration: LayoutInspectorViewProtocol.Configuration,
+  appContext: LayoutInspectorViewProtocol.AppContext,
   snapshotMetadata: SnapshotMetadata,
   foldInfo: InspectorModel.FoldInfo?
 ) {
+  val dataWithDeviceInfo = addDeviceInfoToLayout(data, configuration, appContext)
   snapshotMetadata.containsCompose = composeInfo.isNotEmpty()
   val snapshot = Snapshot.newBuilder().apply {
-    viewSnapshot = data
+    viewSnapshot = dataWithDeviceInfo
     addAllComposeInfo(composeInfo.map { (viewId, composableAndParameters) ->
       val (composables, composeParameters) = composableAndParameters
       Snapshot.ComposeInfo.newBuilder().apply {
@@ -156,4 +161,22 @@ fun saveAppInspectorSnapshot(
     snapshot.writeDelimitedTo(objectOutput)
   }
   path.write(output.toByteArray())
+}
+
+private fun addDeviceInfoToLayout(
+  data: LayoutInspectorViewProtocol.CaptureSnapshotResponse,
+  configuration: LayoutInspectorViewProtocol.Configuration,
+  appContext: LayoutInspectorViewProtocol.AppContext
+): LayoutInspectorViewProtocol.CaptureSnapshotResponse {
+  val firstWindow = data.windowSnapshotsList.firstOrNull() ?: return data
+  val layout = firstWindow.layout
+  if (layout.hasConfiguration() && layout.hasAppContext()) {
+    return data
+  }
+
+  return data.toBuilder()
+    .setWindowSnapshots(0, firstWindow.toBuilder()
+      .setLayout(layout.toBuilder()
+                   .setConfiguration(configuration)
+                   .setAppContext(appContext))).build()
 }

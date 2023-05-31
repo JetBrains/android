@@ -32,8 +32,10 @@ import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.AppContext
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Configuration
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.DisableBitmapScreenshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
@@ -165,6 +167,8 @@ class ViewLayoutInspectorClient(
   private var lastProperties = ConcurrentHashMap<Long, PropertiesEvent>()
   private var lastComposeParameters = ConcurrentHashMap<Long, GetAllParametersResponse>()
   private val recentLayouts = ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
+  private var lastConfiguration = Configuration.getDefaultInstance()
+  private var lastAppContext = AppContext.getDefaultInstance()
 
   init {
     scope.launch {
@@ -304,6 +308,10 @@ class ViewLayoutInspectorClient(
     if (!isFetchingContinuously) {
       lastData[layoutEvent.rootView.id] = data
     }
+    if (layoutEvent.hasConfiguration() && layoutEvent.hasAppContext()) {
+      lastConfiguration = layoutEvent.configuration
+      lastAppContext = layoutEvent.appContext
+    }
     fireTreeEvent(data)
   }
 
@@ -362,7 +370,7 @@ class ViewLayoutInspectorClient(
     val data = HashMap(lastData)
     val properties = HashMap(lastProperties)
     val composeParameters = HashMap(lastComposeParameters)
-    saveAppInspectorSnapshot(path, data, properties, composeParameters, snapshotMetadata, model.foldInfo)
+    saveAppInspectorSnapshot(path, data, properties, composeParameters, lastConfiguration, lastAppContext, snapshotMetadata, model.foldInfo)
   }
 
   private fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
@@ -413,7 +421,7 @@ class ViewLayoutInspectorClient(
         }
       } ?: mapOf()
 
-      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata, model.foldInfo)
+      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, lastConfiguration, lastAppContext, snapshotMetadata, model.foldInfo)
     } ?: throw Exception()
   }
 }
