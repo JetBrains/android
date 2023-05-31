@@ -19,6 +19,7 @@ import com.android.tools.deployer.DeploymentCacheDatabase;
 import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NotNullLazyValue;
@@ -28,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
 
-public class DeploymentService {
+public class DeploymentService implements Disposable {
 
   private final ExecutorService service;
 
@@ -40,6 +41,11 @@ public class DeploymentService {
   @NotNull
   public static DeploymentService getInstance(@NotNull Project project) {
     return project.getService(DeploymentService.class);
+  }
+
+  @Override
+  public void dispose() {
+    service.shutdownNow();
   }
 
   private DeploymentService() {
