@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.android.tools.idea.vitals.ui.icons.VitalsIcons
 import com.google.gct.login.GoogleLogin
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.components.service
@@ -46,10 +47,20 @@ class VitalsTabProvider : AppInsightsTabProvider {
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
     tabPanel.setComponent(placeholderContent())
     val configManager = project.service<VitalsConfigurationManager>()
+    val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
     AndroidCoroutineScope(tabPanel, AndroidDispatchers.uiThread).launch {
       configManager.configuration.collect { appInsightsModel ->
         when (appInsightsModel) {
           AppInsightsModel.Unauthenticated -> {
+            tracker.logZeroState(
+              AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
+                .apply {
+                  emptyState =
+                    AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
+                      .NO_LOGIN
+                }
+                .build()
+            )
             tabPanel.setComponent(loggedOutErrorStateComponent())
           }
           is AppInsightsModel.Authenticated -> {

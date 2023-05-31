@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsContentPanel
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableCellRenderer
 import com.android.tools.idea.insights.ui.DistributionToolWindow
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -103,7 +104,15 @@ class VitalsContentContainerPanel(
         .distinctUntilChanged()
         .collect { selected ->
           if (selected == null || !selected.isConfigured) {
-            // TODO(b/275438349): track zero state metrics
+            tracker.logZeroState(
+              AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
+                .apply {
+                  emptyState =
+                    AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
+                      .NO_ACCESS
+                }
+                .build()
+            )
             (layout as CardLayout).show(this@VitalsContentContainerPanel, GET_STARTED)
           } else {
             (layout as CardLayout).show(this@VitalsContentContainerPanel, MAIN_CARD)
