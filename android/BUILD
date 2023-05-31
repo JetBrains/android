@@ -404,6 +404,7 @@ filegroup(
         "//tools/base/ddmlib:app-processes-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
+        "//tools/base/kotlin-multiplatform-models/proto:kotlin_multiplatform_android_models_proto",
         "//tools/base/lint:lint-checks-proto",
         "//tools/base/process-monitor/process-tracker-agent:bundle",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
