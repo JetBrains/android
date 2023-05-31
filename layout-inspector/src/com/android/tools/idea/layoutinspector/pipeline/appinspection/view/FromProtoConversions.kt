@@ -110,6 +110,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.FoldEvent.SpecialAngles.NO_FOLD_ANGLE_VALUE
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import java.awt.Dimension
 import java.awt.Polygon
 import java.awt.Shape
 
@@ -137,8 +138,7 @@ fun LayoutInspectorViewProtocol.Locale.convert(): Locale {
 fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
   return AppContext(
     theme.convert(),
-    screenWidth,
-    screenHeight,
+    if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null,
     mainDisplayOrientation
   )
 }

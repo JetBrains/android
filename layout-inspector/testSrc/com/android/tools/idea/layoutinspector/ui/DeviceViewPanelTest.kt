@@ -67,7 +67,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
-import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ICON_LEGACY_PHONE
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
@@ -76,7 +75,6 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.Toggle3dAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
-import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
 import com.android.tools.idea.layoutinspector.window
@@ -390,10 +388,9 @@ class DeviceViewPanelWithFullInspectorTest {
     """.trimIndent())
 
     val model = inspectorRule.inspectorModel
-    val stringTable = TestStringTable()
-    val theme = stringTable.add(ResourceReference.style(appNamespace, "AppTheme"))!!
-    val context = AppContext(theme, screenWidth = 600, screenHeight = 800, mainDisplayOrientation = 90)
-    model.resourceLookup.updateConfiguration(FolderConfiguration(), 1f, context, stringTable, MODERN_PROCESS)
+    val theme = ResourceReference.style(appNamespace, "AppTheme")
+    model.resourceLookup.updateConfiguration(FolderConfiguration(), theme, MODERN_PROCESS,
+                                       fontScaleFromConfig = 1.0f, mainDisplayOrientation = 90, screenSize = Dimension(600, 800))
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
       inspectorRule.inspector,

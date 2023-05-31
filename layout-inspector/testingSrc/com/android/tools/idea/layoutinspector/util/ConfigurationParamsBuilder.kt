@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.runInEdtAndGet
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import java.awt.Dimension
 
 private const val defaultPackageName = "com.example"
 
@@ -36,8 +37,7 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
     val packageName = runInEdtAndGet { getAppPackageName(project) }
     return AppContext(
       theme = strings.add(ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme"))!!,
-      screenWidth = 1080,
-      screenHeight = 1920,
+      screenSize = Dimension(1080, 1920),
       mainDisplayOrientation = 90
     )
   }

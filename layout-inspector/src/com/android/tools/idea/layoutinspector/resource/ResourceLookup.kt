@@ -22,11 +22,9 @@ import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTIO
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
-import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
 import com.google.common.annotations.VisibleForTesting
@@ -91,16 +89,17 @@ class ResourceLookup(private val project: Project) {
   @Slow
   fun updateConfiguration(
     folderConfig: FolderConfiguration,
-    fontScaleFromConfig: Float,
-    appContext: AppContext,
-    stringTable: StringTable,
-    process: ProcessDescriptor
+    theme: ResourceReference?,
+    process: ProcessDescriptor,
+    fontScaleFromConfig: Float = 0f,
+    mainDisplayOrientation: Int = 0,
+    screenSize: Dimension? = null,
   ) {
     dpi = folderConfig.densityQualifier?.value?.dpiValue?.takeIf { it > 0 }
     fontScale = fontScaleFromConfig.takeIf { it > 0f }
-    resolver = createResolver(folderConfig, appContext, stringTable, process)
-    screenDimension = Dimension(appContext.screenWidth, appContext.screenHeight).takeIf { it.height > 0 && it.width > 0 }
-    displayOrientation = appContext.mainDisplayOrientation
+    resolver = createResolver(folderConfig, theme, process)
+    screenDimension = screenSize
+    displayOrientation = mainDisplayOrientation
   }
 
   /**
@@ -116,12 +115,10 @@ class ResourceLookup(private val project: Project) {
   @Slow
   private fun createResolver(
     folderConfig: FolderConfiguration,
-    appContext: AppContext,
-    stringTable: StringTable,
+    theme: ResourceReference?,
     process: ProcessDescriptor
   ): ResourceLookupResolver? {
     val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, process.name) } ?: return null
-    val theme = appContext.theme.createReference(stringTable)
     val themeStyle = mapReference(facet, theme)?.resourceUrl?.toString() ?: return null
     val mgr = ConfigurationManager.getOrCreateInstance(facet.module)
     val cache = mgr.resolverCache

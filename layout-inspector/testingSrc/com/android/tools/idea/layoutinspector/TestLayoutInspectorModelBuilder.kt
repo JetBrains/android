@@ -274,9 +274,12 @@ class InspectorModelDescriptor(val project: Project, private val scheduler: Sche
       val facet = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull()
       facet?.let { AndroidModel.set(facet, TestAndroidModel("com.example")) }
       val strings = TestStringTable()
-      val config = ConfigurationParamsBuilder(strings)
-      model.resourceLookup.updateConfiguration(
-        FolderConfiguration.createDefault(), 0f, config.makeSampleContext(project), strings, config.makeSampleProcess(project))
+      val builder = ConfigurationParamsBuilder(strings)
+      val context = builder.makeSampleContext(project)
+      val theme = context.theme.createReference(strings)
+      val process = builder.makeSampleProcess(project)
+      model.resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), theme, process, screenSize = context.screenSize,
+                                               mainDisplayOrientation = context.mainDisplayOrientation)
     }
     // This is usually added by DeviceViewPanel
     model.modificationListeners.add { _, new, _ ->
