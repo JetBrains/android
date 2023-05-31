@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -25,24 +24,14 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.waitForCondition
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
-import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
-import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
-import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyDeviceRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ProjectRule
 import com.intellij.util.io.readBytes
 import org.junit.Rule
 import org.junit.Test
@@ -55,14 +44,9 @@ import java.util.concurrent.TimeUnit
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class LegacySnapshotSupportTest {
-  @get:Rule
-  val projectRule = ProjectRule()
 
   @get:Rule
-  val adb = FakeAdbRule()
-
-  @get:Rule
-  val disposableRule = DisposableRule()
+  val legacyRule = LegacyDeviceRule()
 
   private val savePath = createInMemoryFileSystemAndFolder("snapshot").resolve("snapshot.li")
 
@@ -86,7 +70,7 @@ DONE.
   @Test
   fun saveAndLoadSnapshot() {
     val imageFile = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/image1.png")
-    val legacyClient = setUpLegacyClient()
+    val legacyClient = legacyRule.client
 
     val windowName = "window1"
     setUpDdmClient(treeSample, windowName, imageFile, legacyClient)
@@ -95,7 +79,7 @@ DONE.
     waitForCondition(5, TimeUnit.SECONDS) { !legacyClient.model.isEmpty }
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
-    val newModel = InspectorModel(projectRule.project)
+    val newModel = InspectorModel(legacyRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     snapshotLoader.loadFile(savePath, newModel, stats)
 
@@ -132,30 +116,11 @@ DONE.
     assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
     val actualImage = ViewNode.readAccess { window.root.drawChildren.filterIsInstance<DrawViewImage>().first().image }
     ImageDiffUtil.assertImageSimilar(imageFile, actualImage as BufferedImage, 0.0)
-    assertThat(newModel.resourceLookup.dpi).isEqualTo(560)
-    assertThat(newModel.resourceLookup.fontScale).isNull()
+    assertThat(newModel.resourceLookup.hasResolver).isTrue()
+    assertThat(newModel.resourceLookup.defaultTheme?.resourceUrl?.toString()).isEqualTo("@style/Login.Dark.Theme")
+    assertThat(newModel.resourceLookup.dpi).isEqualTo(420)
+    assertThat(newModel.resourceLookup.fontScale).isEqualTo(1f)
     assertThat(newModel.resourceLookup.screenDimension).isNull()
-  }
-
-  private fun setUpLegacyClient(): LegacyClient {
-    val model = model(project = projectRule.project) {}
-    val process = LEGACY_DEVICE.createProcess()
-    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
-    val legacyClient = LegacyClient(
-      process,
-      isInstantlyAutoConnected = true,
-      model,
-      LayoutInspectorSessionMetrics(projectRule.project, process),
-      coroutineScope,
-      disposableRule.disposable
-    ).apply {
-      launchMonitor = mock()
-    }
-    // This causes the current client to register its listeners
-    val treeSettings = FakeTreeSettings()
-    LayoutInspector(coroutineScope, InspectorClientSettings(projectRule.project), legacyClient, model, treeSettings)
-    legacyClient.state = InspectorClient.State.CONNECTED
-    return legacyClient
   }
 
   @Suppress("SameParameterValue")

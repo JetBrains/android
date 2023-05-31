@@ -35,7 +35,9 @@ class SnapshotMetadata(
     var loadDuration: Long? = null,
     var dpi: Int? = null,
     var fontScale: Float? = null,
-    var screenDimension: Dimension? = null
+    var screenDimension: Dimension? = null,
+    var folderConfig: String? = null,
+    var theme: String? = null
 ) {
   /**
    * Convert to the proto used by metrics.
@@ -71,6 +73,8 @@ class SnapshotMetadata(
         screenWidth = it.width
         screenHeight = it.height
       }
+      this@SnapshotMetadata.folderConfig?.let { folderConfig = it }
+      this@SnapshotMetadata.theme?.let { theme = it }
     }.build()
 }
 
@@ -87,7 +91,9 @@ fun Metadata.convert(version: ProtocolVersion) = SnapshotMetadata(
   sourceVersion,
   dpi = dpi,
   fontScale = fontScale,
-  screenDimension = if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null
+  screenDimension = if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null,
+  folderConfig = folderConfig,
+  theme = theme
 )
 
 fun ProtocolVersion.toInt() = when(this) {

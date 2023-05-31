@@ -124,12 +124,15 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
    * Find the folder configuration for the current device.
    */
   private fun findConfiguration(adb: AndroidDebugBridge): FolderConfiguration? {
+    client.latestConfig = ""
     val configurations = adb.executeShellCommand(client.process.device, "am get-config")
     val result = CONFIGURATION_REGEX.find(configurations) ?: return null
     if (result.groupValues.size < 2) {
       return null
     }
-    return FolderConfiguration.getConfigForQualifierString(result.groupValues[1])
+    val config = result.groupValues[1]
+    client.latestConfig = config
+    return FolderConfiguration.getConfigForQualifierString(config)
   }
 
   /**
@@ -137,9 +140,11 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
    * If this fails: fallback to the application theme.
    */
   private fun findTheme(adb: AndroidDebugBridge): ResourceReference? {
+    client.latestTheme = ""
     val activity = findCurrentActivity(adb)
     val module = client.model.project.modules.find { it.isAndroidModule() && it.isMainModule() } ?: return null
     val themeString = activity?.let { module.getThemeNameForActivity(it) } ?: module.getAppThemeName() ?: return null
+    client.latestTheme = themeString
     return createReference(themeString, client.process.packageName)
   }
 

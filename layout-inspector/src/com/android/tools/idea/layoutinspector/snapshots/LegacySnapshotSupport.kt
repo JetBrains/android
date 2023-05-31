@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -26,6 +27,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyPropertiesProvider
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeParser
+import com.android.tools.idea.layoutinspector.resource.data.createReference
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.io.write
@@ -67,7 +69,6 @@ class LegacySnapshotLoader : SnapshotLoader {
         SnapshotMetadata(ProtocolVersion.Version1)
       }
 
-
       val windows = mutableListOf<String>()
       while (input.available() > 0) {
         // Parse view node
@@ -100,8 +101,15 @@ class LegacySnapshotLoader : SnapshotLoader {
           }
         }
         model.update(window, windows, 1)
-        model.resourceLookup.updateConfiguration(metadata.dpi)
       }
+    }
+    val theme = createReference(metadata.theme, metadata.processName)
+    val folderConfig = metadata.folderConfig?.let { FolderConfiguration.getConfigForQualifierString(it) }
+    if (theme != null && folderConfig != null) {
+      model.resourceLookup.updateConfiguration(folderConfig, theme, processDescriptor, fontScaleFromConfig = 1f)
+    }
+    else {
+      model.resourceLookup.updateConfiguration(metadata.dpi)
     }
     return metadata
   }
@@ -112,6 +120,8 @@ fun saveLegacySnapshot(
   path: Path,
   data: Map<String, ByteArray>,
   images: Map<String, ByteArray>,
+  config: String,
+  theme: String,
   process: ProcessDescriptor,
   model: InspectorModel
 ): SnapshotMetadata {
@@ -127,7 +137,9 @@ fun saveLegacySnapshot(
       source = Metadata.Source.STUDIO,
       sourceVersion = ApplicationInfo.getInstance().fullVersion,
       liveDuringCapture = false,
-      dpi = model.resourceLookup.dpi
+      dpi = model.resourceLookup.dpi,
+      folderConfig = config,
+      theme = theme
     )
 
     metadata.toProto().writeDelimitedTo(output)

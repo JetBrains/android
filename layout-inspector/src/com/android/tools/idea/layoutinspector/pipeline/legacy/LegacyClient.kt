@@ -83,7 +83,8 @@ class LegacyClient(
 
   val latestScreenshots = mutableMapOf<String, ByteArray>()
   var latestData = mutableMapOf<String, ByteArray>()
-
+  var latestConfig = ""
+  var latestTheme = ""
 
   init {
     loggedInitialRender = false
@@ -119,7 +120,7 @@ class LegacyClient(
   @Slow
   override fun saveSnapshot(path: Path) {
     val startTime = System.currentTimeMillis()
-    val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, process, model)
+    val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, latestConfig, latestTheme, process, model)
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
     val saveMetrics = LayoutInspectorSessionMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
