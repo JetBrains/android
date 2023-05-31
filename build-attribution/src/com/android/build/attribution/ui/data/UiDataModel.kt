@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.data
 
+import com.android.build.attribution.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
@@ -49,6 +50,7 @@ interface BuildAttributionReportUiData {
   val jetifierData: JetifierUsageAnalyzerResult
   val downloadsData: DownloadsAnalyzer.Result
   val showTaskCategoryInfo: Boolean
+  val windowsDefenderWarningData: WindowsDefenderCheckService.WindowsDefenderWarningData
 }
 
 interface BuildSummary {

@@ -23,6 +23,7 @@ import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAnalyzerStorageManager.Listener
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.FailureResult
+import com.android.build.attribution.WindowsDefenderCheckService
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.BuildAnalyzerViewController
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
@@ -150,7 +151,10 @@ class BuildAttributionUiManagerImpl(
 
   @UiThread
   private fun doShowNewSuccessReport(buildAnalysisResult: BuildAnalysisResults) {
-    val reportUiData = BuildAttributionReportBuilder(buildAnalysisResult).build()
+    val reportUiData = BuildAttributionReportBuilder(
+      buildAnalysisResult,
+      WindowsDefenderCheckService.getInstance(project).warningData
+    ).build()
 
     val viewFactory = {
       val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
@@ -206,7 +210,10 @@ class BuildAttributionUiManagerImpl(
     when (buildAnalysisResult) {
       is BuildAnalysisResults -> {
         // If latest build was successful, get data from storage and recreate the normal view.
-        val reportUiData = BuildAttributionReportBuilder(buildAnalysisResult).build()
+        val reportUiData = BuildAttributionReportBuilder(
+          buildAnalysisResult,
+          WindowsDefenderCheckService.getInstance(project).warningData
+        ).build()
         return {
           val issueReporter = TaskIssueReporterImpl(reportUiData, project, uiAnalytics)
           NewViewComponentContainer(reportUiData, project, issueReporter, uiAnalytics)

@@ -15,15 +15,7 @@
  */
 package com.android.build.attribution.ui.view.details
 
-import com.android.build.attribution.analyzers.AGPUpdateRequired
-import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
-import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
-import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
-import com.android.build.attribution.analyzers.IncompatiblePluginWarning
-import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
-import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
-import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks.CONFIGURATION_CACHING
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.createTaskCategoryIssueMessage
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
@@ -32,10 +24,8 @@ import com.android.build.attribution.ui.data.CriticalPathTaskCategoryUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
-import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.build.attribution.ui.durationStringHtml
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
-import com.android.build.attribution.ui.insertBRTags
 import com.android.build.attribution.ui.model.AnnotationProcessorDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.AnnotationProcessorsRootNodeDescriptor
 import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescriptor
@@ -49,6 +39,7 @@ import com.android.build.attribution.ui.model.TaskWarningTypeNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreePresentableNodeDescriptor
+import com.android.build.attribution.ui.model.WindowsDefenderWarningNodeDescriptor
 import com.android.build.attribution.ui.panels.taskDetailsPage
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.warningIcon
@@ -61,14 +52,11 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.BorderLayout
 import java.awt.FlowLayout
-import javax.swing.JButton
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
@@ -115,10 +103,13 @@ class WarningsViewDetailPagesFactory(
     is AnnotationProcessorDetailsNodeDescriptor -> createAnnotationProcessorDetailsPage(nodeDescriptor.annotationProcessorData)
     is ConfigurationCachingRootNodeDescriptor ->
       ConfigurationCacheRootWarningDetailsView(nodeDescriptor.data, nodeDescriptor.projectConfigurationTime, actionHandlers).pagePanel
+
     is ConfigurationCachingWarningNodeDescriptor ->
       ConfigurationCachePluginWarningDetailsView(nodeDescriptor.data, nodeDescriptor.projectConfigurationTime, actionHandlers).pagePanel
+
     is JetifierUsageWarningRootNodeDescriptor -> JetifierWarningDetailsView(nodeDescriptor.data, actionHandlers, disposable).pagePanel
     is TaskCategoryWarningNodeDescriptor -> createTaskCategoryWarningDetailsPage(nodeDescriptor.taskCategoryData)
+    is WindowsDefenderWarningNodeDescriptor -> WindowsDefenderWarningPage(nodeDescriptor.data, actionHandlers)
   }.apply {
     name = nodeDescriptor.pageId.id
   }

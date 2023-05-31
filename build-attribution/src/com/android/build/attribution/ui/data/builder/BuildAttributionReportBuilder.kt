@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.data.builder
 
+import com.android.build.attribution.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.PluginBuildData
@@ -42,7 +43,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
  * The data structure of the report is described in UiDataModel.kt
  */
 class BuildAttributionReportBuilder(
-  val buildAnalysisResult: BuildEventsAnalysisResult
+  val buildAnalysisResult: BuildEventsAnalysisResult,
+  val windowsDefenderCheckData: WindowsDefenderCheckService.WindowsDefenderWarningData = WindowsDefenderCheckService.NO_WARNING
 ) {
 
   private val criticalPathDurationMs: Long = buildAnalysisResult.getTasksDeterminingBuildDuration().sumByLong { it.executionTime }
@@ -78,6 +80,7 @@ class BuildAttributionReportBuilder(
       } else {
         null
       }
+      override val windowsDefenderWarningData: WindowsDefenderCheckService.WindowsDefenderWarningData = windowsDefenderCheckData
     }
   }
 

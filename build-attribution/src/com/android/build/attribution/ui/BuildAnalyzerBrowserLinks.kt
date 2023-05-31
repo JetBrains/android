@@ -64,5 +64,11 @@ enum class BuildAnalyzerBrowserLinks(
   NON_TRANSITIVE_R_CLASS(
     "https://d.android.com/r/tools/build-attribution/non-transitive-r-classes",
     BuildAttributionUiEvent.OutgoingLinkTarget.NON_TRANSITIVE_R_CLASS
+  ),
+  WINDOWS_DEFENDER(
+    //TODO(b/285867050): do we have a redirect already?
+    "https://developer.android.com/studio/intro/studio-config?utm_source=android-studio#antivirus-impact",
+    //TODO(b/285867050): add value to analytics
+    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
   )
 }

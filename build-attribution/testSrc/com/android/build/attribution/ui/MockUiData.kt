@@ -40,8 +40,8 @@ import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.build.attribution.WindowsDefenderCheckService
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import org.mockito.Mockito
 import java.time.Duration
@@ -83,6 +83,7 @@ class MockUiData(
   override var downloadsData: DownloadsAnalyzer.Result = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
   override val showTaskCategoryInfo = createTaskCategoryInfo
   override val criticalPathTaskCategories = mockCriticalPathTaskCategoriesUiData().takeIf { showTaskCategoryInfo }
+  override var windowsDefenderWarningData = WindowsDefenderCheckService.WindowsDefenderWarningData(false, false, emptyList())
 
   fun mockBuildOverviewData(
     javaVersionUsed: Int? = null,

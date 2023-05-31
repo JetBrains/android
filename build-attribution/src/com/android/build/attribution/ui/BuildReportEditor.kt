@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.BuildAnalysisResults
+import com.android.build.attribution.WindowsDefenderCheckService
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporterImpl
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
@@ -63,7 +64,7 @@ class BuildReportFile(
 class BuildReportEditor(private val buildReportFile: BuildReportFile) : FileEditorBase() {
   private val buildResults = buildReportFile.buildResults
   private val project = buildReportFile.project
-  private val reportUiData = BuildAttributionReportBuilder(buildResults).build()
+  private val reportUiData = BuildAttributionReportBuilder(buildResults, WindowsDefenderCheckService.getInstance(project).warningData).build()
   private var newViewComponentContainer: NewViewComponentContainer? = null
   private val uiAnalytics = BuildAttributionUiAnalytics(
     project,

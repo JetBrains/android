@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.model
 
+import com.android.build.attribution.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.AGPUpdateRequired
 import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
@@ -286,6 +287,11 @@ private class WarningsTreeStructure(
       }
     }
 
+    if (reportData.windowsDefenderWarningData.shouldShowWarning) {
+      warningsToAdd.add(treeNode(WindowsDefenderWarningNodeDescriptor(reportData.windowsDefenderWarningData)))
+      treeStats.filteredWarningsCount++
+    }
+
     warningsToAdd.sortedBy {
       it.descriptor
     }.forEach(treeRoot::add)
@@ -320,7 +326,8 @@ enum class WarningsPageType {
   CONFIGURATION_CACHING_ROOT,
   CONFIGURATION_CACHING_WARNING,
   JETIFIER_USAGE_WARNING,
-  TASK_CATEGORY_WARNING
+  TASK_CATEGORY_WARNING,
+  WINDOWS_DEFENDER_WARNING
 }
 
 data class WarningsPageId(
@@ -347,6 +354,7 @@ data class WarningsPageId(
     val annotationProcessorRoot = WarningsPageId(WarningsPageType.ANNOTATION_PROCESSOR_GROUP, "ANNOTATION_PROCESSORS")
     val configurationCachingRoot = WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_ROOT, "CONFIGURATION_CACHING")
     val jetifierUsageWarningRoot = WarningsPageId(WarningsPageType.JETIFIER_USAGE_WARNING, "JETIFIER_USAGE")
+    val windowsDefenderWarning = WarningsPageId(WarningsPageType.WINDOWS_DEFENDER_WARNING, "WINDOWS_DEFENDER_WARNING")
     val emptySelection = WarningsPageId(WarningsPageType.EMPTY_SELECTION, "EMPTY")
   }
 }
@@ -551,6 +559,20 @@ class JetifierUsageWarningRootNodeDescriptor(
   override val executionTimeMs = null
 }
 
+class WindowsDefenderWarningNodeDescriptor(
+  val data: WindowsDefenderCheckService.WindowsDefenderWarningData
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.windowsDefenderWarning
+  override val analyticsPageType: PageType
+    //TODO add page to analytics
+    get() = PageType.UNKNOWN_PAGE
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = "Windows Defender Active Scanning",
+    )
+  override val executionTimeMs = null
+}
+
 private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = when (this) {
   is AGPUpdateRequired -> 1
   is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
@@ -580,4 +602,5 @@ fun BuildAttributionReportUiData.countTotalWarnings(): Int =
   (criticalPathTaskCategories?.entries ?: emptyList()).sumOf { category ->
     category.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size
   } +
-  if (jetifierData.shouldShowWarning()) 1 else 0
+  (if (jetifierData.shouldShowWarning()) 1 else 0) +
+  (if (windowsDefenderWarningData.shouldShowWarning) 1 else 0)
