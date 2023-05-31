@@ -135,6 +135,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private val properties = PropertiesComponent.getInstance(project)
   private val emulatorSettings = EmulatorSettings.getInstance()
   private val deviceMirroringSettings = DeviceMirroringSettings.getInstance()
+  private val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
   private var initialized = false
   private var contentCreated = false
   private var mirroringConfirmationDialogShowing = false
@@ -816,7 +817,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private inner class PhysicalDeviceWatcher(disposableParent: Disposable) : Disposable {
     private val coroutineScope: CoroutineScope
-    private var deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
 
     init {
       Disposer.register(disposableParent, this)
