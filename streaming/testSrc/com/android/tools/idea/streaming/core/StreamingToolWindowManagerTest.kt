@@ -80,6 +80,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
+import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -542,6 +543,8 @@ class StreamingToolWindowManagerTest {
     assertThat(popup.actions.toString()).isEqualTo(
         "[Separator (Connected Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
         "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+    assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
+    assertThat(popup.actions[2].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
     executeStreamingAction(popup.actions[2], toolWindow.component, project)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
@@ -596,6 +599,7 @@ class StreamingToolWindowManagerTest {
     assertThat(popup.actions.toString()).isEqualTo(
         "[Separator (Virtual Devices), ${phone.avdName} (null), " +
         "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+    assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }

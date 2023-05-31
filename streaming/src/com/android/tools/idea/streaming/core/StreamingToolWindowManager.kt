@@ -25,6 +25,7 @@ import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
@@ -105,6 +106,7 @@ import java.awt.EventQueue
 import java.awt.event.KeyEvent
 import java.text.Collator
 import java.time.Duration
+import javax.swing.Icon
 
 private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
@@ -936,7 +938,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
-  private inner class StartMirroringAction(private val device: DeviceDescription) : DumbAwareAction(device.deviceName) {
+  private inner class StartMirroringAction(
+    private val device: DeviceDescription,
+  ) : DumbAwareAction(device.deviceName, null, device.config.deviceProperties.deviceType?.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
       activateMirroring(device)
@@ -945,7 +949,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
-  private inner class StartAvdAction(private val avd: AvdInfo, private val project: Project) : DumbAwareAction(avd.displayName) {
+  private inner class StartAvdAction(
+    private val avd: AvdInfo,
+    private val project: Project,
+  ) : DumbAwareAction(avd.displayName, null, avd.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
       toolWindowScope.launch(Dispatchers.IO) {
@@ -1033,3 +1040,23 @@ private fun isLocalEmulator(deviceSerialNumber: String) =
 
 private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
     commandLine.parametersList.parameters.contains("-qt-hide-window")
+
+private val AvdInfo.icon: Icon
+  get() {
+    return when (tag) {
+      SystemImage.ANDROID_TV_TAG, SystemImage.GOOGLE_TV_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
+      SystemImage.AUTOMOTIVE_TAG, SystemImage.AUTOMOTIVE_PLAY_STORE_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+      SystemImage.WEAR_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
+      else -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+    }
+  }
+
+private val DeviceType.icon: Icon
+  get() {
+    return when (this) {
+      DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
+      DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
+      DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
+      DeviceType.HANDHELD -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+    }
+  }
