@@ -139,9 +139,7 @@ class AndroidGradleProjectViewSnapshotComparisonTest : SnapshotComparisonTest {
     preparedProject.open { project ->
       project.buildAndWait { invoker -> invoker.assemble(TestCompileType.ALL) }
       val text = invokeAndWaitIfNeeded { project.dumpAndroidProjectView(ProjectViewSettings(flattenPackages = true), Unit, { _, _ -> Unit }) }
-/* b/280353179
       assertIsEqualToSnapshot(text)
-b/280353179 */
     }
   }
 
@@ -151,9 +149,7 @@ b/280353179 */
     val preparedProject = projectRule.prepareTestProject(TestProjectOther.JPS_WITH_QUALIFIED_NAMES)
     preparedProject.open { project ->
       val text = project.dumpAndroidProjectView()
-/* b/280353179
       assertIsEqualToSnapshot(text)
-b/280353179 */
     }
   }
 
@@ -167,9 +163,7 @@ b/280353179 */
         project.dumpAndroidProjectView()
       }
 
-/* b/280353179
       assertIsEqualToSnapshot(text)
-b/280353179 */
     } finally {
       restoreJdk()
     }
