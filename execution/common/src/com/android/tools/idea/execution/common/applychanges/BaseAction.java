@@ -35,7 +35,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
-import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -169,12 +168,6 @@ public abstract class BaseAction extends AnAction {
     if (!isApplyChangesRelevant(selectedRunConfig)) {
       return new DisableMessage(DisableMessage.DisableMode.INVISIBLE, "unsupported configuration",
                                 "the selected configuration is not supported");
-    }
-    try {
-      selectedRunConfig.checkConfiguration();
-    }
-    catch (RuntimeConfigurationException e) {
-      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "configuration has errors", "selected configuration contains errors");
     }
 
     if (!(selectedRunConfig instanceof AppRunConfiguration) || ((AppRunConfiguration)selectedRunConfig).getAppId() == null) {
