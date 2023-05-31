@@ -385,6 +385,42 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
+    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
+    deviceMirroringSettings::activateOnAppLaunch.override(true, testRootDisposable)
+    deviceMirroringSettings::activateOnTestLaunch.override(true, testRootDisposable)
+    createToolWindowContent()
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400))
+    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device2.serialNumber, project)
+
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 6 API 32")
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 6 API 32")
+    assertThat(toolWindow.isVisible).isTrue()
+
+    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
+
+    deviceMirroringSettings.activateOnAppLaunch = false
+    project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device2.serialNumber, project)
+    assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
+
+    agentRule.disconnectDevice(device1)
+    agentRule.disconnectDevice(device2)
+    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+  }
+
+  @Test
+  fun testPhysicalDeviceRequestsAttentionWithoutAdvancedTabControl() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()

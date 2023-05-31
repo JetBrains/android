@@ -282,22 +282,30 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun onDeviceHeadsUp(deviceSerialNumber: String) {
-    if (deviceClients.contains(deviceSerialNumber)) {
-      onPhysicalDeviceHeadsUp(deviceSerialNumber)
-    }
-    else {
-      recentAttentionRequests.put(deviceSerialNumber, deviceSerialNumber)
-      alarm.addRequest(recentAttentionRequests::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
-      if (isLocalEmulator(deviceSerialNumber)) {
-        val future = RunningEmulatorCatalog.getInstance().updateNow()
-        future.addCallback(EdtExecutorService.getInstance(),
-                           success = { emulators ->
-                             if (emulators != null) {
-                               onEmulatorHeadsUp(deviceSerialNumber, emulators)
-                             }
-                           },
-                           failure = {})
+    val excludedDevice = devicesExcludedFromMirroring.remove(deviceSerialNumber)
+    when {
+      excludedDevice != null -> {
+        activateMirroring(deviceSerialNumber, excludedDevice.handle, excludedDevice.config, ActivationLevel.SELECT_TAB)
       }
+      deviceSerialNumber in deviceClients -> {
+        onPhysicalDeviceHeadsUp(deviceSerialNumber)
+      }
+      else -> addAttentionRequestAndTriggerEmulatorCatalogUpdate(deviceSerialNumber)
+    }
+  }
+
+  private fun addAttentionRequestAndTriggerEmulatorCatalogUpdate(deviceSerialNumber: String) {
+    recentAttentionRequests.put(deviceSerialNumber, deviceSerialNumber)
+    alarm.addRequest(recentAttentionRequests::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
+    if (isLocalEmulator(deviceSerialNumber)) {
+      val future = RunningEmulatorCatalog.getInstance().updateNow()
+      future.addCallback(EdtExecutorService.getInstance(),
+                         success = { emulators ->
+                           if (emulators != null) {
+                             onEmulatorHeadsUp(deviceSerialNumber, emulators)
+                           }
+                         },
+                         failure = {})
     }
   }
 
@@ -635,7 +643,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun panelClosed(panel: DeviceToolWindowPanel) {
-    val deactivationAction = panel.deviceClient.deviceHandle.deactivationAction
+    val deactivationAction = if (isLocalEmulator(panel.deviceSerialNumber)) null else panel.deviceClient.deviceHandle.deactivationAction
     deactivationAction?.let { CoroutineScope(Dispatchers.IO).launch { it.deactivate() } } ?: stopMirroring(panel.deviceSerialNumber)
   }
 
@@ -662,16 +670,33 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun activateMirroring(deviceDescription: DeviceDescription) {
     val serialNumber = deviceDescription.serialNumber
-    val deviceClient =
-        physicalDeviceWatcher?.getOrCreateDeviceClient(serialNumber, deviceDescription.handle, deviceDescription.config) ?: return
+    val deviceClient = getOrCreateDeviceClient(serialNumber, deviceDescription.handle, deviceDescription.config) ?: return
     if (!mirroredDevices.contains(serialNumber)) {
       startMirroringIfConfirmed(serialNumber, deviceClient)
     }
     onPhysicalDeviceHeadsUp(serialNumber)
   }
 
+  private fun activateMirroring(
+      serialNumber: String, device: DeviceHandle, config: DeviceConfiguration, activationLevel: ActivationLevel) {
+    recentAttentionRequests.invalidate(serialNumber)
+    val deviceClient = getOrCreateDeviceClient(serialNumber, device, config) ?: return
+    if (contentCreated) {
+      activateMirroring(serialNumber, deviceClient)
+      if (activationLevel >= ActivationLevel.SELECT_TAB) {
+        onPhysicalDeviceHeadsUp(serialNumber)
+      }
+    }
+    else if (activationLevel >= ActivationLevel.SHOW_TOOL_WINDOW) {
+      if (activationLevel >= ActivationLevel.SELECT_TAB) {
+        lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
+      }
+      toolWindow.showAndActivate()
+    }
+  }
+
   private fun activateMirroring(serialNumber: String, deviceClient: DeviceClient) {
-    if (!mirroredDevices.contains(serialNumber) && !devicesExcludedFromMirroring.contains(serialNumber)) {
+    if (serialNumber !in mirroredDevices && serialNumber !in devicesExcludedFromMirroring) {
       startMirroringIfConfirmed(serialNumber, deviceClient)
     }
   }
@@ -702,6 +727,42 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       showLiveIndicator()
       if (contentCreated) {
         addPhysicalDevicePanel(deviceClient)
+      }
+    }
+  }
+
+  @AnyThread
+  private fun deviceConnected(serialNumber: String, device: ConnectedDevice) {
+    val config = DeviceConfiguration(device.state.properties, useTitleAsName = isLocalEmulator(serialNumber))
+    UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
+      deviceConnected(serialNumber, device.handle, config)
+    }
+  }
+
+  private fun deviceConnected(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration) {
+    if (serialNumber in onlineDevices) {
+      val startMirroring = deviceMirroringSettings.activateOnConnection || recentAttentionRequests.getIfPresent(serialNumber) != null
+      if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get() || startMirroring) {
+        val activationLevel = when {
+          recentAttentionRequests.getIfPresent(serialNumber) != null -> ActivationLevel.SELECT_TAB
+          startMirroring -> ActivationLevel.SHOW_TOOL_WINDOW
+          else -> ActivationLevel.CREATE_TAB
+        }
+        activateMirroring(serialNumber, deviceHandle, config, activationLevel)
+      }
+      else {
+        // The device is excluded from mirroring.
+        devicesExcludedFromMirroring.computeIfAbsent(serialNumber) {
+          DeviceDescription(config.deviceName, serialNumber, deviceHandle, config)
+        }
+      }
+    }
+  }
+
+  private fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient? {
+    return physicalDeviceWatcher?.let { disposable ->
+      deviceClients.computeIfAbsent(serialNumber) { serial ->
+        DeviceClient(disposable, serial, deviceHandle, config, config.deviceProperties.abi.toString(), project)
       }
     }
   }
@@ -767,19 +828,24 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     override fun launchingApp(deviceSerialNumber: String, project: Project) {
-      val activate =
-          if (isLocalEmulator(deviceSerialNumber)) emulatorSettings.activateOnAppLaunch else deviceMirroringSettings.activateOnAppLaunch
+      val activate = if (isNonMirrorableLocalEmulator(deviceSerialNumber)) emulatorSettings.activateOnAppLaunch
+                     else deviceMirroringSettings.activateOnAppLaunch
       if (activate) {
         userInvolvementRequired(deviceSerialNumber, project)
       }
     }
 
     override fun launchingTest(deviceSerialNumber: String, project: Project) {
-      val activate =
-          if (isLocalEmulator(deviceSerialNumber)) emulatorSettings.activateOnTestLaunch else deviceMirroringSettings.activateOnTestLaunch
+      val activate = if (isNonMirrorableLocalEmulator(deviceSerialNumber)) emulatorSettings.activateOnTestLaunch
+                     else deviceMirroringSettings.activateOnTestLaunch
       if (activate) {
         userInvolvementRequired(deviceSerialNumber, project)
       }
+    }
+
+    private fun isNonMirrorableLocalEmulator(deviceSerialNumber: String): Boolean {
+      return isLocalEmulator(deviceSerialNumber) &&
+             deviceSerialNumber !in deviceClients && deviceSerialNumber !in devicesExcludedFromMirroring
     }
   }
 
@@ -849,47 +915,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         }
       }
     }
-
-    @AnyThread
-    private fun deviceConnected(serialNumber: String, device: ConnectedDevice) {
-      val config = DeviceConfiguration(device.state.properties, useTitleAsName = isLocalEmulator(serialNumber))
-      UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
-        deviceConnected(serialNumber, device, config)
-      }
-    }
-
-    private fun deviceConnected(serialNumber: String, device: ConnectedDevice, config: DeviceConfiguration) {
-      if (serialNumber in onlineDevices) {
-        if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get() && !deviceMirroringSettings.activateOnConnection) {
-          // The device is excluded from mirroring.
-          devicesExcludedFromMirroring.computeIfAbsent(serialNumber) {
-            DeviceDescription(config.deviceName, serialNumber, device.handle, config)
-          }
-          return
-        }
-
-        val deviceClient = getOrCreateDeviceClient(serialNumber, device.handle, config)
-        if (contentCreated) {
-          activateMirroring(serialNumber, deviceClient)
-          if (recentAttentionRequests.getIfPresent(serialNumber) != null) {
-            recentAttentionRequests.invalidate(serialNumber)
-            onPhysicalDeviceHeadsUp(serialNumber)
-          }
-        }
-        else if (deviceMirroringSettings.activateOnConnection || recentAttentionRequests.getIfPresent(serialNumber) != null) {
-          recentAttentionRequests.invalidate(serialNumber)
-          lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
-          toolWindow.showAndActivate()
-        }
-      }
-    }
-
-    fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient {
-      return deviceClients.computeIfAbsent(serialNumber) { serial ->
-        DeviceClient(this, serial, deviceHandle, config, config.deviceProperties.abi.toString(), project)
-      }
-    }
-
     override fun dispose() {
       deviceClients.clear() // The clients have been disposed already.
       removeAllPhysicalDevicePanels()
@@ -943,6 +968,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,
                                   val config: DeviceConfiguration)
+
+  private enum class ActivationLevel {
+    /** Create tab, but don't select it and don't show the tool window if hidden. */
+    CREATE_TAB,
+    /** Create tab and show the tool window if hidden. */
+    SHOW_TOOL_WINDOW,
+    /** Create tab, show the tool window if hidden and select the new tab. */
+    SELECT_TAB,
+  }
 }
 
 private class ConnectedDevice(val handle: DeviceHandle, val state: DeviceState.Connected)
