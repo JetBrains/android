@@ -61,7 +61,6 @@ import com.android.sdklib.devices.State;
 import com.android.tools.configurations.AdaptiveIconShape;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.ResourceUtils;
 import com.android.tools.layoutlib.LayoutlibContext;
 import com.android.tools.layoutlib.LayoutlibFactory;
@@ -1272,7 +1271,7 @@ public class Configuration implements Disposable, ModificationTracker {
     if (activityName != null) {
       String activityFqcn = activityName;
       if (activityName.startsWith(".")) {
-        String packageName = ProjectSystemUtil.getModuleSystem(getModule()).getPackageName();
+        String packageName = myManager.getConfigModule().getResourcePackage();
         activityFqcn = packageName + activityName;
       }
 

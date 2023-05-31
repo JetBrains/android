@@ -48,4 +48,6 @@ interface ConfigurationModelModule : Disposable {
 
   /** Key used to invalidate drawable caches in Layoutlib. See [ModuleKeyManager] and [ResourceHelper]. */
   val moduleKey: ModuleKey
+
+  val resourcePackage: String?
 }
