@@ -40,9 +40,9 @@ class BaselineValidator(
   private val gradleProjectRule: AndroidGradleProjectRule
 ) : ProjectRenderer(template) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
+    checkProjectProperties(projectDir)
     performBuild()
     // TODO: lint
-    checkProjectProperties(projectDir)
   }
 
   /**

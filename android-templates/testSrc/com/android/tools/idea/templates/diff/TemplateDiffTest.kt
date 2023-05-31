@@ -28,14 +28,17 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import kotlin.system.measureTimeMillis
+import kotlin.test.assertFalse
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.junit.runners.Parameterized.*
 
 /**
  * Template test that generates the template files and diffs them against golden files located in
@@ -50,6 +53,9 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @get:Rule val disposableRule = DisposableRule()
 
   companion object {
+    /** Keeps track of whether the previous parameterized test failed */
+    private var validationFailed = false
+
     /**
      * Utilizes parameterized test to decide which modes to run the test in. When DIFFING the
      * template-generated files against golden files, we do not run Gradle sync, to keep the test
@@ -61,7 +67,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
      * have them be diff-able without syncing.
      */
     @JvmStatic
-    @Parameterized.Parameters
+    @Parameters(name = "{0}")
     fun data(): List<TestMode> {
       return if (shouldGenerateGolden()) {
         listOf(TestMode.VALIDATING, TestMode.GENERATING)
@@ -83,6 +89,9 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Before
   fun setUp() {
+    assertFalse("Previous validation failed", validationFailed)
+    validationFailed = true
+
     getPinnedAgpVersion().agpVersion?.let { StudioFlags.AGP_VERSION_TO_USE.override(it) }
     println("Current test mode: $testMode")
   }
@@ -134,6 +143,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
       projectRenderer.renderProject(project, *customizers)
     }
     println("Checked $name successfully in ${msToCheck}ms")
+    validationFailed = false
   }
 
   @MustBeDocumented

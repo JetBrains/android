@@ -149,7 +149,7 @@ internal fun verifyLanguageFiles(projectDir: Path, language: Language) {
     .filter {!it.endsWith("LibrariesForLibs.java") && !it.endsWith("LibrariesForLibsInPluginsBlock.java")}
     .toList()
   val wrongLanguageExtension = if (language == Language.Kotlin) ".java" else ".kt"
-  assertTrue(allPaths.none { it.toString().endsWith(wrongLanguageExtension) })
+  assertTrue("Wrong language extension", allPaths.none { it.toString().endsWith(wrongLanguageExtension) })
 }
 
 internal fun lintIfNeeded(project: Project) {
