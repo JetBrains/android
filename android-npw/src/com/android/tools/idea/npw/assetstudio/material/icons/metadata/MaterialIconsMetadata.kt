@@ -44,7 +44,7 @@ data class MaterialIconsMetadata(
     @Throws(JsonIOException::class, JsonSyntaxException::class)
     fun parse(reader: Reader): MaterialIconsMetadata {
       return with(getMetadataGson()) {
-        fromJson<MaterialIconsMetadata>(reader, MaterialIconsMetadata::class.java)
+        fromJson(reader, MaterialIconsMetadata::class.java)
       }
     }
 
