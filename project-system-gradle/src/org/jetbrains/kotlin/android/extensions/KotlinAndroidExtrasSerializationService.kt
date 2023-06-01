@@ -16,9 +16,11 @@
 package org.jetbrains.kotlin.android.extensions
 
 import com.android.kotlin.multiplatform.ide.models.serialization.AndroidCompilationModelSerializer
+import com.android.kotlin.multiplatform.ide.models.serialization.AndroidDependencyModelSerializer
 import com.android.kotlin.multiplatform.ide.models.serialization.AndroidSourceSetModelSerializer
 import com.android.kotlin.multiplatform.ide.models.serialization.AndroidTargetModelSerializer
 import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilationKey
+import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKey
 import org.jetbrains.kotlin.gradle.idea.serialize.IdeaKotlinExtrasSerializationExtensionBuilder
@@ -30,5 +32,6 @@ class KotlinAndroidExtrasSerializationService: KotlinExtrasSerializationService 
     register(androidTargetKey, AndroidTargetModelSerializer)
     register(androidCompilationKey, AndroidCompilationModelSerializer)
     register(androidSourceSetKey, AndroidSourceSetModelSerializer)
+    register(androidDependencyKey, AndroidDependencyModelSerializer)
   }
 }
