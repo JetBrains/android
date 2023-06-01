@@ -15,25 +15,29 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.tools.idea.io.FilePaths;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
-
-import static com.android.SdkConstants.*;
-import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.SdkConstants.CMAKE_DIR_PROPERTY;
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
+import static com.android.SdkConstants.GRADLE_JDK_DIR_PROPERTY;
+import static com.android.SdkConstants.NDK_DIR_PROPERTY;
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.isAbsolute;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+import com.android.tools.idea.io.FilePaths;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.intellij.openapi.projectRoots.Sdk;
+import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods related to a Gradle project's local.properties file.
@@ -54,18 +58,6 @@ public final class LocalProperties {
 
   @Nullable private File myNewAndroidCmakePath;
   private boolean myAndroidCmakePathModified;
-
-  /**
-   * Creates a new {@link LocalProperties}. If a local.properties file does not exist, a new one will be created when the method
-   * {@link #save()} is invoked.
-   *
-   * @param project the Android project.
-   * @throws IOException              if an I/O error occurs while reading the file.
-   * @throws IllegalArgumentException if there is already a directory called "local.properties" in the given project.
-   */
-  public LocalProperties(@NotNull Project project) throws IOException {
-    this(getBaseDirPath(project));
-  }
 
   /**
    * Creates a new {@link LocalProperties}. If a local.properties file does not exist, a new one will be created when the method

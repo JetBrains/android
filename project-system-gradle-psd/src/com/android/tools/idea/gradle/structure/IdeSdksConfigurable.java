@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.structure;
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink.showGradleSettings;
 import static com.android.tools.idea.gradle.structure.NdkProjectStructureUtilKt.supportsSideBySideNdk;
 import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
@@ -264,7 +265,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     }
 
     try {
-      LocalProperties localProperties = new LocalProperties(myProject);
+      LocalProperties localProperties = new LocalProperties(getBaseDirPath(myProject));
       localProperties.setAndroidNdkPath(getNdkLocation().toFile());
       localProperties.save();
     }
@@ -559,7 +560,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
   private String getIdeNdkPath() {
     if (myProject != null && !myProject.isDefault()) {
       try {
-        File androidNdkPath = new LocalProperties(myProject).getAndroidNdkPath();
+        File androidNdkPath = new LocalProperties(getBaseDirPath(myProject)).getAndroidNdkPath();
         if (androidNdkPath != null) {
           return androidNdkPath.getPath();
         }

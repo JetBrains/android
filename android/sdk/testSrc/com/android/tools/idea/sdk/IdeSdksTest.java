@@ -48,7 +48,6 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.extensions.SdkExtensions;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
@@ -63,7 +62,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -171,17 +169,12 @@ public class IdeSdksTest extends PlatformTestCase {
     assertEquals(sdks.size(), eligibleSdks.size());
   }
 
-  public void testSetAndroidSdkPathUpdatingLocalPropertiesFile() throws IOException {
-    LocalProperties localProperties = new LocalProperties(myProject);
-    localProperties.setAndroidSdkPath("");
-    localProperties.save();
-
+  public void testSetAndroidSdkPath() {
     List<Sdk> sdks =
       ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath));
     assertOneSdkPerAvailableTarget(sdks);
 
-    localProperties = new LocalProperties(myProject);
-    File androidSdkPath = localProperties.getAndroidSdkPath();
+    File androidSdkPath = myIdeSdks.getAndroidSdkPath();
     assertNotNull(androidSdkPath);
     assertEquals(myAndroidSdkPath.getPath(), androidSdkPath.getPath());
   }

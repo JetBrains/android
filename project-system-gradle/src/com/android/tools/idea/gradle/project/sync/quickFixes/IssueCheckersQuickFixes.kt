@@ -22,6 +22,7 @@ import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
+import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -299,7 +300,7 @@ class SetCmakeDirQuickFix(private val myPath: File) : BuildIssueQuickFix {
     val future = CompletableFuture<Any>()
 
     invokeLater {
-      val localProperties = LocalProperties(project)
+      val localProperties = LocalProperties(getBaseDirPath(project))
       localProperties.androidCmakePath = myPath
       localProperties.save()
       GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncStats.Trigger.TRIGGER_QF_CMAKE_INSTALLED)

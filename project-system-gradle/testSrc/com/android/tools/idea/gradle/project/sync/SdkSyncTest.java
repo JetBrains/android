@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
@@ -24,7 +25,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Ref;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
@@ -32,18 +33,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link SdkSync}.
  */
-public class SdkSyncTest extends PlatformTestCase {
+public class SdkSyncTest extends HeavyPlatformTestCase {
   private LocalProperties myLocalProperties;
   private File myAndroidSdkPath;
   private IdeSdks myIdeSdks;
-
   private SdkSync mySdkSync;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myLocalProperties = new LocalProperties(myProject);
+    myLocalProperties = new LocalProperties(getBaseDirPath(getProject()));
     myAndroidSdkPath = TestUtils.getSdk().toFile();
     myIdeSdks = IdeSdks.getInstance();
     ApplicationManager.getApplication().runWriteAction(() -> AndroidSdkPathStore.getInstance().setAndroidSdkPath(null));
@@ -114,7 +113,7 @@ public class SdkSyncTest extends PlatformTestCase {
     };
 
     assertNoLocalPropertiesExists();
-    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
+    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, getProject());
 
     assertEquals("IDEA should not ask users to configure Android SDK in pure java-gradle projects. " +
                  "Android Studio asks users to do so.",
@@ -136,7 +135,7 @@ public class SdkSyncTest extends PlatformTestCase {
     };
 
     createEmptyLocalPropertiesFile();
-    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
+    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, getProject());
 
     assertProjectSdkSet();
     assertDefaultSdkSet();
@@ -151,7 +150,7 @@ public class SdkSyncTest extends PlatformTestCase {
       }
     };
     try {
-      mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
+      mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, getProject());
       assertFalse("Expecting ExternalSystemException in Android Studio", IdeInfo.getInstance().isAndroidStudio());
     }
     catch (ExternalSystemException e) {
@@ -159,7 +158,7 @@ public class SdkSyncTest extends PlatformTestCase {
     }
 
     assertNull(myIdeSdks.getAndroidSdkPath());
-    myLocalProperties = new LocalProperties(myProject);
+    myLocalProperties = new LocalProperties(getBaseDirPath(getProject()));
     assertNull(myLocalProperties.getAndroidSdkPath());
   }
 
@@ -170,7 +169,7 @@ public class SdkSyncTest extends PlatformTestCase {
   }
 
   private void assertProjectSdkSet() throws Exception {
-    myLocalProperties = new LocalProperties(myProject);
+    myLocalProperties = new LocalProperties(getBaseDirPath(getProject()));
     File actual = myLocalProperties.getAndroidSdkPath();
     assertNotNull(actual);
     assertEquals(myAndroidSdkPath.getPath(), actual.getPath());

@@ -240,7 +240,7 @@ public class GradleSyncTest {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     // Change the SDK in the project. We expect the IDE to have the same SDK as the project.
-    LocalProperties localProperties = new LocalProperties(ideFrame.getProject());
+    LocalProperties localProperties = new LocalProperties(ideFrame.getProjectPath());
     localProperties.setAndroidSdkPath(secondSdkPath);
     localProperties.save();
 
@@ -254,7 +254,7 @@ public class GradleSyncTest {
     assertThat(ideSdks.getAndroidSdkPath()).isEqualTo(secondSdkPath);
 
     // Set the project's SDK to be the original one. Now we will choose the IDE's SDK.
-    localProperties = new LocalProperties(ideFrame.getProject());
+    localProperties = new LocalProperties(ideFrame.getProjectPath());
     localProperties.setAndroidSdkPath(originalSdkPath);
     localProperties.save();
 
@@ -265,7 +265,7 @@ public class GradleSyncTest {
       messages.click("Use Android Studio's SDK");
     });
 
-    localProperties = new LocalProperties(ideFrame.getProject());
+    localProperties = new LocalProperties(ideFrame.getProjectPath());
     assertThat(localProperties.getAndroidSdkPath()).isEqualTo(secondSdkPath);
   }
 

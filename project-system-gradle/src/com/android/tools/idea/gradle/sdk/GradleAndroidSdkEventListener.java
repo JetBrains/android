@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.sdk;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_SDK_PATH_CHANGED;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -49,7 +50,7 @@ public class GradleAndroidSdkEventListener implements IdeSdks.AndroidSdkEventLis
     }
     LocalProperties localProperties;
     try {
-      localProperties = new LocalProperties(project);
+      localProperties = new LocalProperties(getBaseDirPath(project));
     }
     catch (IOException e) {
       // Exception thrown when local.properties file exists but cannot be read (e.g. no writing permissions.)

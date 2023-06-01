@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.repository.Revision
+import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -145,7 +146,7 @@ class MissingNdkIssueChecker: GradleIssueChecker {
       ApplicationManager.getApplication().invokeLater {
         try {
           // Remove any value old value from ndk.dir
-          val localProperties = LocalProperties(project)
+          val localProperties = LocalProperties(getBaseDirPath(project))
           localProperties.androidNdkPath = null
           localProperties.save()
 

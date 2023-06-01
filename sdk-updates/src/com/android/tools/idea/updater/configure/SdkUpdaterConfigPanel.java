@@ -32,7 +32,6 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.adapters.AdapterProperty;
 import com.android.tools.idea.observable.core.OptionalValueProperty;
@@ -315,19 +314,6 @@ public class SdkUpdaterConfigPanel implements Disposable {
     // We don't check Projects.isGradleProject(project) because it may return false if the last sync failed, even if it is a
     // Gradle project.
     for (Project project : ProjectManager.getInstance().getOpenProjects()) {
-      try {
-        LocalProperties localProperties = new LocalProperties(project);
-        File androidSdkPath = localProperties.getAndroidSdkPath();
-        if (androidSdkPath != null) {
-          locations.add(androidSdkPath);
-          continue;
-        }
-      }
-      catch (IOException ignored) {
-        Logger.getInstance(SdkUpdaterConfigPanel.class)
-          .info("Unable to read local.properties file from project: " + project.getName(), ignored);
-      }
-
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
 
       for (AndroidFacet facet : facets) {
