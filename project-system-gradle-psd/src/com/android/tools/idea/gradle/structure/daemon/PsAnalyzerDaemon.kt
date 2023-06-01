@@ -252,32 +252,62 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, libraryPath: P
   val versionString = dependencySpec.version ?: return null
   val artifactId = dependencySpec.name
 
-  if (sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)) {
-    val message = sdkIndex.generatePolicyMessage(groupId, artifactId, versionString)
-    return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
+  val isNonCompliant = sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)
+  val isCritical = sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)
+  val isOutdated = sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)
+  val numberOfTypes = setOf(isNonCompliant, isCritical, isOutdated).count { it }
+
+  if (numberOfTypes == 0) {
+    return null
   }
+
   val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
+  val message: String
+  val severity: PsIssue.Severity
   if (isBlocking) {
-    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)) {
-      val message = sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
-      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
+    severity = ERROR
+    message = if (numberOfTypes == 1) {
+      when {
+        isNonCompliant -> sdkIndex.generateBlockingPolicyMessage(groupId, artifactId, versionString)
+        isCritical -> sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
+        isOutdated -> sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
+        else -> sdkIndex.generateBlockingGenericIssueMessage(groupId, artifactId, versionString)
+      }
     }
-    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)) {
-      val message = sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
-      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR)
+    else {
+      sdkIndex.generateBlockingGenericIssueMessage(groupId, artifactId, versionString)
     }
   }
   else {
-    if (sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)) {
-      val message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
-      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING)
+    if (numberOfTypes == 1) {
+      when {
+        isNonCompliant -> {
+          message = sdkIndex.generatePolicyMessage(groupId, artifactId, versionString)
+          severity = WARNING
+        }
+
+        isCritical -> {
+          message = sdkIndex.generateCriticalMessage(groupId, artifactId, versionString)
+          severity = INFO
+        }
+
+        isOutdated -> {
+          message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
+          severity = WARNING
+        }
+
+        else -> {
+          message = sdkIndex.generateGenericIssueMessage(groupId, artifactId, versionString)
+          severity = WARNING
+        }
+      }
     }
-    if (sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)) {
-      val message = sdkIndex.generateCriticalMessage(groupId, artifactId, versionString)
-      return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, INFO)
+    else {
+      message = sdkIndex.generateGenericIssueMessage(groupId, artifactId, versionString)
+      severity = WARNING
     }
   }
-  return null
+  return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, severity)
 }
 
 private fun createIndexIssue(

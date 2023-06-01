@@ -27,16 +27,19 @@ class PolicyIssuesPsdTest : SdkIndexTestBase() {
         openAndClosePSD(studio)
       },
       beforeClose = {
-        // Two errors should appear:
+        // One error and two warnings should appear:
         //   - com.startapp:inapp-sdk:3.9.1 blocking critical
-        //   - com.stripe:stripe-android:9.3.2 policy issue
-        verifyPsdIssues(numErrors = 2)
+        //   - com.stripe:stripe-android:9.3.2 warning (policy issues, not blocking)
+        //   - com.mopub:mopub-sdk:4.16.0 warning (outdated)
+        verifyPsdIssues(numWarnings = 2)
       },
+
       expectedIssues = setOf(
         "com.mopub:mopub-sdk version 4.16.0 has been marked as outdated by its author",
         "com.snowplowanalytics:snowplow-android-tracker version 1.4.1 has an associated message from its author",
         "com.startapp:inapp-sdk version 3.9.1 has been reported as problematic by its author and will block publishing of your app to Play Console",
-        "com.stripe:stripe-android version 9.3.2 has policy issues that will block publishing of your app to Play Console",
+        "com.startapp:inapp-sdk version 3.9.1 has been marked as outdated by its author and will block publishing of your app to Play Console",
+        "com.stripe:stripe-android version 9.3.2 has policy issues that will block publishing of your app to Play Console in the future",
       )
     )
   }

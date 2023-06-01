@@ -59,7 +59,12 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
-    logger.warn(generatePolicyMessage(groupId, artifactId, versionString))
+    val warnMsg =
+      if (isBlocking)
+        generateBlockingPolicyMessage(groupId, artifactId, versionString)
+      else
+        generatePolicyMessage(groupId, artifactId, versionString)
+    logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_NON_COMPLIANT)
   }
 
