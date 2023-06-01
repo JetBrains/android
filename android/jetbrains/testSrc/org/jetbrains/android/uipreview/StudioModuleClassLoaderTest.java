@@ -25,14 +25,11 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.tools.idea.projectsystem.ProjectBuildTracker;
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
-import com.android.tools.rendering.classloading.ModuleClassLoader;
-import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl;
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.projectsystem.gradle.GradleClassFinderUtil;
@@ -44,6 +41,8 @@ import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.JavaModuleModelBuilder;
 import com.android.tools.idea.testing.ModuleModelBuilder;
 import com.android.tools.rendering.ModuleRenderContext;
+import com.android.tools.rendering.classloading.ModuleClassLoader;
+import com.android.tools.rendering.classloading.NopModuleClassLoadedDiagnostics;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.android.tools.res.ids.TestResourceIdManager;
 import com.google.common.collect.ImmutableList;
@@ -65,7 +64,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
@@ -163,13 +161,9 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
 
     StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
     ResourceNamespace namespace = Objects.requireNonNull(repositoryManager).getNamespace();
-    List<ResourceRepository> repositories = repositoryManager.getAppResourcesForNamespace(namespace);
-    // In the namespaced case two repositories are returned. The first one is a module repository,
-    // the second one is an empty repository of user-defined sample data. In the non-namespaced case
-    // the app resource repository is returned.
-    assertFalse(repositories.isEmpty());
+    ResourceRepository moduleResources = repositoryManager.getModuleResources();
     ResourceClassRegistry rClassRegistry = ResourceClassRegistry.get(module.getProject());
-    rClassRegistry.addLibrary(repositories.get(0), ResourceIdManager.get(module), "test", namespace);
+    rClassRegistry.addLibrary(moduleResources, ResourceIdManager.get(module), "test", namespace);
 
     ApplicationManager.getApplication().runReadAction(() -> {
       ModuleClassLoader loader = StudioModuleClassLoaderManager.get().getShared(null, ModuleRenderContext.forModule(module), this);
