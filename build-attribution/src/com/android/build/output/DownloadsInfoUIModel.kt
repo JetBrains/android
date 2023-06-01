@@ -18,9 +18,6 @@ package com.android.build.output
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.formatAvgDownloadSpeed
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.Formats
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
