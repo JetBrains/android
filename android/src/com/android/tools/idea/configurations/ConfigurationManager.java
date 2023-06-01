@@ -412,13 +412,21 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     return platform != null ? platform.getTarget() : null;
   }
 
+  @NotNull
+  private static Locale fromLocaleString(@Nullable String locale) {
+    if (locale == null) {
+      return Locale.ANY;
+    }
+    return Locale.create(locale);
+  }
+
   @Override
   @NotNull
   public Locale getLocale() {
     if (myLocale == null) {
       String localeString = myConfigurationModule.getConfigurationStateManager().getProjectState().getLocale();
       if (localeString != null) {
-        myLocale = ConfigurationProjectState.fromLocaleString(localeString);
+        myLocale = fromLocaleString(localeString);
       }
       else {
         myLocale = Locale.ANY;
@@ -428,12 +436,21 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     return myLocale;
   }
 
+  @Nullable
+  private static String toLocaleString(@Nullable Locale locale) {
+    if (locale == null || locale == Locale.ANY) {
+      return null;
+    } else {
+      return locale.qualifier.getFolderSegment();
+    }
+  }
+
   @Override
   public void setLocale(@NotNull Locale locale) {
     if (!locale.equals(myLocale)) {
       myLocale = locale;
       myStateVersion++;
-      myConfigurationModule.getConfigurationStateManager().getProjectState().setLocale(ConfigurationProjectState.toLocaleString(locale));
+      myConfigurationModule.getConfigurationStateManager().getProjectState().setLocale(toLocaleString(locale));
       for (Configuration configuration : myCache.values()) {
         configuration.updated(CFG_LOCALE);
       }

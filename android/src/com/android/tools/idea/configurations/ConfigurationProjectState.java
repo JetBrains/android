@@ -16,7 +16,6 @@
 package com.android.tools.idea.configurations;
 
 
-import com.android.ide.common.resources.Locale;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.layoutlib.AndroidTargets;
 import com.intellij.util.xmlb.annotations.Property;
@@ -119,23 +118,6 @@ public class ConfigurationProjectState {
     }
 
     return null;
-  }
-
-  @NotNull
-  static Locale fromLocaleString(@Nullable String locale) {
-    if (locale == null) {
-      return Locale.ANY;
-    }
-    return Locale.create(locale);
-  }
-
-  @Nullable
-  static String toLocaleString(@Nullable Locale locale) {
-    if (locale == null || locale == Locale.ANY) {
-      return null;
-    } else {
-      return locale.qualifier.getFolderSegment();
-    }
   }
 
   @Nullable
