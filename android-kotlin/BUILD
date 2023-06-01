@@ -54,7 +54,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common[module]",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
