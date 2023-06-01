@@ -81,8 +81,7 @@ object SchedParser : FunctionHandlerRegistry() {
     }
 
     private fun PreviewReader.readSchedulingState(): SchedulingState {
-        val byte = readByte()
-        return when (byte) {
+        return when (readByte()) {
             'S'.code.toByte() -> SchedulingState.SLEEPING
             'R'.code.toByte() -> SchedulingState.RUNNABLE
             'D'.code.toByte() -> {

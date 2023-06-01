@@ -158,8 +158,6 @@ class StartReattachingDebuggerTest {
 
     deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
       val wholeCommand = args.joinToString(" ")
-
-
       when (wholeCommand) {
         "force-stop $MASTER_PROCESS_NAME" -> latch.countDown()
         "force-stop $APP_ID" -> latch.countDown()

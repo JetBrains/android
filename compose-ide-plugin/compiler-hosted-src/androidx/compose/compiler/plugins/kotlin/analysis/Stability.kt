@@ -363,8 +363,7 @@ class StabilityInferencer(val context: IrPluginContext) {
     ): Stability {
         // if isEnum, return true
         // class hasStableAnnotation()
-        val owner = classifier.owner
-        return when (owner) {
+        return when (val owner = classifier.owner) {
             is IrClass -> stabilityOf(owner, substitutions, currentlyAnalyzing)
             is IrTypeParameter -> Stability.Unstable
             else -> error("Unexpected IrClassifier: $owner")
@@ -448,8 +447,7 @@ class StabilityInferencer(val context: IrPluginContext) {
         val fqName = function.fqNameForIrSerialization
 
         val baseStability = stabilityOf(expr.type)
-        val mask = stableProducingFunctions[fqName.asString()]
-        return when (mask) {
+        return when (val mask = stableProducingFunctions[fqName.asString()]) {
             null -> baseStability
             0 -> Stability.Stable
             else -> Stability.Combined(
@@ -508,14 +506,11 @@ private fun IrType.getInlinedClass(): IrClass? {
     return erased
 }
 
-// From Kotin's InlineClasses.kt
-private tailrec fun erase(type: IrType): IrClass? {
-    val classifier = type.classifierOrFail
-
-    return when (classifier) {
-        is IrClassSymbol -> classifier.owner
-        is IrScriptSymbol -> null // TODO: check if correct
-        is IrTypeParameterSymbol -> erase(classifier.owner.superTypes.first())
-        else -> error(classifier)
-    }
+// From Kotlin's InlineClasses.kt
+private tailrec fun erase(type: IrType): IrClass? =
+  when (val classifier = type.classifierOrFail) {
+    is IrClassSymbol -> classifier.owner
+    is IrScriptSymbol -> null // TODO: check if correct
+    is IrTypeParameterSymbol -> erase(classifier.owner.superTypes.first())
+    else -> error(classifier)
 }

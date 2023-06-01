@@ -2578,8 +2578,7 @@ class ComposableFunctionBodyTransformer(
         when {
             arg.isStatic() -> meta.isStatic = true
             arg is IrGetValue -> {
-                val owner = arg.symbol.owner
-                when (owner) {
+                when (val owner = arg.symbol.owner) {
                     is IrValueParameter -> {
                         extractParamMetaFromScopes(meta, owner)
                     }

@@ -450,8 +450,7 @@ internal fun methodCallBlockName(expression: KtCallExpression): String? {
   // TODO(xof): we should handle injections / resolving here:
   //  buildTypes.getByName("$foo") { ... }
   //  buildTypes.getByName(foo) { ... }
-  val argument = arguments[0].getArgumentExpression()
-  return when (argument) {
+  return when (val argument = arguments[0].getArgumentExpression()) {
     is KtStringTemplateExpression -> argument.literalContents()
     else -> null
   }

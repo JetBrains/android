@@ -369,8 +369,7 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
   nest {
     prop("TypeId") { facet.typeId.toString() }
     prop("ExternalSource") { facet.externalSource?.id }
-    val configuration = facet.configuration
-    when (configuration) {
+    when (val configuration = facet.configuration) {
       is GradleFacetConfiguration -> dump(configuration)
       is AndroidFacetConfiguration -> dump(configuration)
       is NdkFacetConfiguration -> dump(configuration)

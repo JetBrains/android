@@ -1090,8 +1090,7 @@ abstract class AbstractComposeLowering(
             is IrConstructorCall -> isStatic()
             is IrCall -> isStatic()
             is IrGetValue -> {
-                val owner = symbol.owner
-                when (owner) {
+              when (val owner = symbol.owner) {
                     is IrVariable -> {
                         // If we have an immutable variable whose initializer is also static,
                         // then we can determine that the variable reference is also static.

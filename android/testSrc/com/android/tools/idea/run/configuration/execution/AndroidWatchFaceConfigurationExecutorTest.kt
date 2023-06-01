@@ -214,9 +214,8 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
       val wholeCommand = args.joinToString(" ")
-
-      when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout("Broadcast completed: result=1, data=\"3\"")
+      if (wholeCommand == checkVersion) {
+        serviceOutput.writeStdout("Broadcast completed: result=1, data=\"3\"")
       }
     }
 
