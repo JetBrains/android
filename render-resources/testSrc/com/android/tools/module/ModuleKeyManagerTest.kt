@@ -1,4 +1,4 @@
-package com.android.tools.rendering
+package com.android.tools.module
 
 import com.android.testutils.MockitoKt.mock
 import com.intellij.openapi.module.Module

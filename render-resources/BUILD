@@ -56,6 +56,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )
 

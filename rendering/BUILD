@@ -28,7 +28,6 @@ iml_module(
     test_data = [
         "//tools/adt/idea/rendering/testData",
     ],
-    test_friends = ["//tools/adt/idea/rendering:intellij.android.rendering"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -42,7 +41,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
-        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )
 

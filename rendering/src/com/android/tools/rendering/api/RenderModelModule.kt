@@ -18,7 +18,7 @@ package com.android.tools.rendering.api
 import com.android.ide.common.rendering.api.AssetRepository
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
-import com.android.tools.rendering.ModuleKey
+import com.android.tools.module.ModuleKey
 import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.Disposable

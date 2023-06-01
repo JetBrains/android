@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.rendering
+package com.android.tools.module
 
 import com.intellij.openapi.module.Module
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.WeakHashMap
-
-/**
- * A key to use instead of [Module] avoiding direct references from Layoutlib.
- */
-class ModuleKey internal constructor()
 
 /**
  * Class that maintains a 1:1 mapping between a [Module] and a [ModuleKey]. The key can be used as a replacement key
