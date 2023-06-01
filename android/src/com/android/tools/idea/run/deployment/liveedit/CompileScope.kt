@@ -180,6 +180,9 @@ private object CompileScopeImpl : CompileScope {
     val compilerConfiguration = CompilerConfiguration()
     compilerConfiguration.languageVersionSettings = input.first().languageVersionSettings
 
+    // Needed so we can diff changes to method parameters and parameter annotations.
+    compilerConfiguration.put(JVMConfigurationKeys.PARAMETERS_METADATA, true)
+
     // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
     // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform
     // analysis of syntactically incorrect code during the Analysis phrase. The parser will try to continue to build the PSI tree by
