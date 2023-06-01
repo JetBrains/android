@@ -136,8 +136,7 @@ private fun findNavigatableComponent(
   val root = model.components.firstOrNull() ?: return null
   val viewInfo = root.viewInfo ?: return null
   val module = model.module
-  val allViewInfos =
-    parseViewInfo(rootViewInfo = viewInfo, lineNumberMapper = remapInline(module), logger = LOG)
+  val allViewInfos = parseViewInfo(rootViewInfo = viewInfo, logger = LOG)
 
   if (LOG.isDebugEnabled) {
     dumpViewInfosToLog(module, allViewInfos)

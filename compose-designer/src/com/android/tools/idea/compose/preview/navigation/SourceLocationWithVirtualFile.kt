@@ -20,45 +20,10 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClassOwner
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.PsiUtil
 import kotlin.math.absoluteValue
-import org.jetbrains.kotlin.idea.debugger.base.util.KotlinSourceMapCache
-import org.jetbrains.kotlin.idea.debugger.base.util.isInlineFrameLineNumber
-import org.jetbrains.kotlin.idea.debugger.core.SourceLineKind
-import org.jetbrains.kotlin.idea.debugger.core.mapStacktraceLineToSource
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.resolve.jvm.JvmClassName
-
-/**
- * Mapping function used to correct the inline code references. Given a [SourceLocation] it returns
- * a new one that points to the correct place in the source file. The returned [Pair] maps the
- * source [KtFile] to the 1-indexed line information.
- */
-internal fun remapInlineLocation(
-  module: Module,
-  ktFile: KtFile,
-  className: String,
-  line: Int,
-  searchScope: GlobalSearchScope =
-    GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
-): Pair<KtFile, Int> {
-  val virtualFile = PsiUtil.getVirtualFile(ktFile) ?: return Pair(ktFile, line)
-  val internalClassName = JvmClassName.byInternalName(className.replace(".", "/"))
-  val smapData =
-    KotlinSourceMapCache.getInstance(module.project).getSourceMap(virtualFile, internalClassName)
-      ?: return ktFile to line
-
-  val inlineRemapped =
-    mapStacktraceLineToSource(smapData, line, module.project, SourceLineKind.CALL_LINE, searchScope)
-      ?: return ktFile to line
-
-  return inlineRemapped.first to
-    inlineRemapped.second + 1 // Remapped lines are 0 based so add 1 here
-}
 
 /**
  * [SourceLocation] associated to the [VirtualFile] that the location points to. This class is
@@ -66,22 +31,14 @@ internal fun remapInlineLocation(
  */
 internal class SourceLocationWithVirtualFile(
   internal val virtualFile: VirtualFile,
-  override val className: String,
-  override val methodName: String,
   override val lineNumber: Int,
   override val packageHash: Int
 ) : SourceLocation {
   override val fileName: String
     get() = virtualFile.name
 
-  override fun toString(): String {
-    val classNameInformation =
-      if (className.isNotEmpty() || methodName.isNotEmpty()) {
-        "className=$className, methodName=$methodName, "
-      } else ""
-
-    return "SourceLocationWithVirtualFile(${classNameInformation}fileName=${virtualFile.name}, lineNumber=$lineNumber, packageHash=$packageHash)"
-  }
+  override fun toString(): String =
+    "SourceLocationWithVirtualFile(fileName=${virtualFile.name}, lineNumber=$lineNumber, packageHash=$packageHash)"
 }
 
 /**
@@ -136,29 +93,5 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(
     }
       ?: return null
 
-  val remappedLocation =
-    if (isInlineFrameLineNumber(originalPsiFile.virtualFile, lineNumber, module.project)) {
-      // re-map inline
-      remapInlineLocation(module, originalPsiFile as KtFile, className, lineNumber, scope)
-    } else {
-      Pair(originalPsiFile as KtFile, lineNumber)
-    }
-
-  val remappedFile = remappedLocation.first as PsiFile
-  val remappedVirtualFile = PsiUtil.getVirtualFile(remappedFile) ?: return null
-  return SourceLocationWithVirtualFile(
-    remappedVirtualFile,
-    className,
-    methodName,
-    remappedLocation.second,
-    this.packageHash
-  )
-}
-
-/**
- * Returns a [SourceLocation] that maps any inlined references. If the [SourceLocation] does not
- * belong to an inline call, the same [SourceLocation] is returned.
- */
-fun remapInline(module: Module): (SourceLocation) -> SourceLocation = { sourceLocation ->
-  runReadAction { sourceLocation.asSourceLocationWithVirtualFile(module) } ?: sourceLocation
+  return SourceLocationWithVirtualFile(originalPsiFile.virtualFile, lineNumber, this.packageHash)
 }

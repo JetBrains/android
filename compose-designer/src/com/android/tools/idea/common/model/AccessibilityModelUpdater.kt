@@ -18,7 +18,6 @@ package com.android.tools.idea.common.model
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
-import com.android.tools.idea.compose.preview.navigation.remapInline
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -63,7 +62,6 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
       val composeViewInfos =
         parseViewInfo(
           rootViewInfo = viewInfo,
-          lineNumberMapper = remapInline(model.module),
           logger = Logger.getInstance(AccessibilityModelUpdater::class.java)
         )
       createTree(it, composeViewInfos, viewInfo.children, model)

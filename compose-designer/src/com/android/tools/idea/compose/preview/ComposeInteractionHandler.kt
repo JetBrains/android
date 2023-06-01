@@ -51,11 +51,7 @@ open class ComposeNavigationInteractionHandler(
       { sceneView ->
         val info =
           sceneView.scene.root?.nlComponent?.viewInfo ?: return@ComposePreviewInspector emptyList()
-        parseViewInfo(
-          info,
-          { it },
-          Logger.getInstance(ComposeNavigationInteractionHandler::class.java)
-        )
+        parseViewInfo(info, Logger.getInstance(ComposeNavigationInteractionHandler::class.java))
       },
       TooltipPopupCreator(surface)
     )
@@ -136,19 +132,15 @@ open class ComposeNavigationInteractionHandler(
      */
     private fun createTooltipPanel(viewInfo: ComposeViewInfo): JPanel {
       val bounds = viewInfo.bounds
-      val methodName = viewInfo.sourceLocation.methodName
       val size = "${bounds.width} x ${bounds.height}"
       val location = "${bounds.left}, ${bounds.top}"
 
       val htmlBuilder = HtmlBuilder()
-      if (methodName != "") {
-        htmlBuilder.addBold(methodName).addNbsp().coloredText(colorAttributeValue, size)
-      } else {
-        htmlBuilder
-          .coloredText(colorAttributeName, "size")
-          .addNbsp()
-          .coloredText(colorAttributeValue, size)
-      }
+
+      htmlBuilder
+        .coloredText(colorAttributeName, "size")
+        .addNbsp()
+        .coloredText(colorAttributeValue, size)
       htmlBuilder.newline()
       htmlBuilder
         .coloredText(colorAttributeName, "position")

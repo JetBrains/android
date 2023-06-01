@@ -20,11 +20,6 @@ import com.android.tools.idea.compose.preview.util.findComposeViewAdapter
 import com.intellij.openapi.diagnostic.Logger
 
 interface SourceLocation {
-  @Deprecated("This field is not provided by the Compose runtime from dev16+") val className: String
-
-  @Deprecated("This field is not provided by the Compose runtime from dev16+")
-  val methodName: String
-
   val fileName: String
 
   /** 1-indexed line number. */
@@ -37,30 +32,20 @@ interface SourceLocation {
   val packageHash: Int
 
   /** Returns true if there is no source location information */
-  fun isEmpty() = lineNumber == -1 && className == "" && packageHash == -1
+  fun isEmpty() = lineNumber == -1 && packageHash == -1
 }
 
 internal data class SourceLocationImpl(
-  override val className: String,
-  override val methodName: String,
   override val fileName: String,
   override val lineNumber: Int,
   override val packageHash: Int
 ) : SourceLocation
 
-typealias LineNumberMapper = (SourceLocation) -> SourceLocation
-
-private val identifyLineNumberMapper: LineNumberMapper = { sourceLocation -> sourceLocation }
-
 /**
  * Parse the viewObject for ComposeViewAdapter. For now we use reflection to parse these information
  * without much structuring. In the future we hope to change this.
  */
-fun parseViewInfo(
-  rootViewInfo: ViewInfo,
-  lineNumberMapper: LineNumberMapper = identifyLineNumberMapper,
-  logger: Logger
-): List<ComposeViewInfo> {
+fun parseViewInfo(rootViewInfo: ViewInfo, logger: Logger): List<ComposeViewInfo> {
   try {
     val viewObj = findComposeViewAdapter(rootViewInfo.viewObject) ?: return listOf()
     // With JDK 11, Kotlin reflection fails to find the declaredProperties (b/162686073).
@@ -74,59 +59,35 @@ fun parseViewInfo(
         .single { it.name.contains("getViewInfos") }
         .also { it.isAccessible = true }
     val composeViewInfos = viewInfoField.invoke(viewObj) as List<*>
-    return parseBounds(composeViewInfos, lineNumberMapper, logger)
+    return parseBounds(composeViewInfos, logger)
   } catch (e: Exception) {
     logger.debug(e)
     return listOf()
   }
 }
 
-private fun parseBounds(
-  elements: List<Any?>,
-  fileLocationMapper: LineNumberMapper,
-  logger: Logger
-): List<ComposeViewInfo> =
+private fun parseBounds(elements: List<Any?>, logger: Logger): List<ComposeViewInfo> =
   elements.mapNotNull { item ->
     try {
       val fileName = item!!.javaClass.getMethod("getFileName").invoke(item) as String
       val lineNumber = item.javaClass.getMethod("getLineNumber").invoke(item) as Int
-      val method =
-        try {
-          item.javaClass.getMethod("getMethodName").invoke(item) as String
-        } catch (_: Throwable) {
-          // Method name is not used from dev16 on
-          ""
-        }
       val bounds = getBound(item)
       val children = item.javaClass.getMethod("getChildren").invoke(item) as List<Any?>
 
-      // Additional source information was added in dev16 to locate the files and method was
-      // removed.
       val packageHash =
-        if (method.isEmpty()) {
-          try {
-            item.javaClass.getMethod("getLocation").invoke(item)?.let {
-              it.javaClass.getMethod("getPackageHash").invoke(it) as Int
-            }
-          } catch (_: Throwable) {
-            // Package information is not available before dev16
-            null
-          } ?: -1
-        } else -1
+        try {
+          item.javaClass.getMethod("getLocation").invoke(item)?.let {
+            it.javaClass.getMethod("getPackageHash").invoke(it) as Int
+          }
+        } catch (t: Throwable) {
+          logger.warn(t)
+          null
+        } ?: -1
 
-      val sourceLocation =
-        fileLocationMapper(
-          SourceLocationImpl(
-            method.substringBeforeLast("."),
-            method.substringAfterLast("."),
-            fileName,
-            lineNumber,
-            packageHash
-          )
-        )
-      ComposeViewInfo(sourceLocation, bounds, parseBounds(children, fileLocationMapper, logger))
+      val sourceLocation = SourceLocationImpl(fileName, lineNumber, packageHash)
+      ComposeViewInfo(sourceLocation, bounds, parseBounds(children, logger))
     } catch (t: Throwable) {
-      logger.debug(t)
+      logger.warn(t)
       null
     }
   }
