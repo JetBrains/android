@@ -889,7 +889,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-cidr-debugger-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRanking",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangdBridge",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-completionMlRankingModels",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-dev",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-devkit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-debugger-streams",

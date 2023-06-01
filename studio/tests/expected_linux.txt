@@ -1989,11 +1989,11 @@ android-studio/plugins/android/lib/adt-ui.jar
 android-studio/plugins/android/lib/android-base-common.jar
 android-studio/plugins/android/lib/android-common.jar
 android-studio/plugins/android/lib/android-extensions-ide.jar
+android-studio/plugins/android/lib/android-gradle.jar
 android-studio/plugins/android/lib/android-kotlin.jar
 android-studio/plugins/android/lib/android-profilers.jar
-android-studio/plugins/android/lib/android-rt.jar
 android-studio/plugins/android/lib/android-project-system-gradle-models.jar
-android-studio/plugins/android/lib/android-gradle.jar
+android-studio/plugins/android/lib/android-rt.jar
 android-studio/plugins/android/lib/android.jar
 android-studio/plugins/android/lib/animation-core-desktop-1.3.1.jar
 android-studio/plugins/android/lib/animation-desktop-1.3.1.jar
@@ -2475,7 +2475,6 @@ android-studio/plugins/cidr-base-plugin/lib/LICENSE.txt/CIDR_LICENSE.txt
 android-studio/plugins/cidr-base-plugin/lib/cidr-base-plugin.jar
 android-studio/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
-android-studio/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
 android-studio/plugins/copyright/lib/copyright.jar
 android-studio/plugins/design-tools/lib/design-tools.jar
