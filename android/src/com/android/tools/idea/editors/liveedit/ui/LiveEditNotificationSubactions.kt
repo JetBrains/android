@@ -165,7 +165,11 @@ internal class RefreshAction : AnAction("Refresh") {
  */
 internal class ManualLiveEditAction : AnAction("Manual Live Edit") {
   override fun actionPerformed(e: AnActionEvent) {
-    e.project?.let { LiveEditService.manualLiveEdit(it) }
+    e.project?.let {
+      if (LiveEditApplicationConfiguration.getInstance().leTriggerMode == ON_HOTKEY) {
+        LiveEditService.manualLiveEdit(it)
+      }
+    }
   }
 }
 
