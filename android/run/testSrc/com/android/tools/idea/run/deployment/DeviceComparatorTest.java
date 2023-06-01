@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
+import icons.StudioIcons;
 import java.time.Instant;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -90,8 +91,9 @@ public final class DeviceComparatorTest {
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa601"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
+      .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

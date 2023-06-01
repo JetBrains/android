@@ -16,6 +16,8 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.concurrency.CoroutinesUtilsKt;
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
@@ -36,6 +38,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import kotlin.coroutines.EmptyCoroutineContext;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,6 +71,9 @@ final class AsyncDevicesGetter implements Disposable {
   @Nullable
   private LaunchCompatibilityChecker myChecker;
 
+  @NotNull
+  private final ProvisionerHelper myHelper;
+
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
     this(project, new KeyToConnectionTimeMap());
@@ -81,6 +87,9 @@ final class AsyncDevicesGetter implements Disposable {
     myConnectedDevicesWorker = new Worker<>();
     myBridge = new DdmlibAndroidDebugBridge(project);
     myMap = map;
+
+    var scope = CoroutinesUtilsKt.AndroidCoroutineScope(this, EmptyCoroutineContext.INSTANCE);
+    myHelper = new ProvisionerHelper(scope, project.getService(DeviceProvisionerService.class).getDeviceProvisioner());
   }
 
   @Override
@@ -108,7 +117,7 @@ final class AsyncDevicesGetter implements Disposable {
       .build();
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
-    var connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myChecker));
+    var connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myHelper, myChecker));
 
     if (virtualDevices.isEmpty() || connectedDevices.isEmpty()) {
       return Optional.empty();

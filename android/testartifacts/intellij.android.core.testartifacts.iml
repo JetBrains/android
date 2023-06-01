@@ -50,5 +50,6 @@
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.execution.common.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
   </component>
 </module>

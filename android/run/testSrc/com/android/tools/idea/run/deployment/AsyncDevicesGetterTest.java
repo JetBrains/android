@@ -25,6 +25,8 @@ import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.Disposer;
+import icons.StudioIcons;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
@@ -49,6 +51,7 @@ public final class AsyncDevicesGetterTest {
     Mockito.when(clock.instant()).thenReturn(Instant.parse("2018-11-28T01:15:27.000Z"));
 
     myGetter = new AsyncDevicesGetter(myRule.getProject(), new KeyToConnectionTimeMap(clock));
+    Disposer.register(myRule.getTestRootDisposable(), myGetter);
   }
 
   @Test
@@ -75,9 +78,9 @@ public final class AsyncDevicesGetterTest {
     AndroidDevice googlePixel3AndroidDevice = Mockito.mock(AndroidDevice.class);
 
     ConnectedDevice googlePixel3ConnectedDevice = new ConnectedDevice.Builder()
-      .setName("Google Pixel 3")
-      .setType(Type.PHONE)
       .setKey(new SerialNumber("86UX00F4R"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
+      .setName("Google Pixel 3")
       .setAndroidDevice(googlePixel3AndroidDevice)
       .build();
 
@@ -85,9 +88,9 @@ public final class AsyncDevicesGetterTest {
     Mockito.when(pixel3ApiQAndroidDevice.isVirtual()).thenReturn(true);
 
     ConnectedDevice pixel3ApiQConnectedDevice = new ConnectedDevice.Builder()
-      .setName("Virtual Device")
-      .setType(Type.PHONE)
       .setKey(new VirtualDeviceName("Pixel_3_API_Q"))
+      .setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+      .setName("Virtual Device")
       .setAndroidDevice(pixel3ApiQAndroidDevice)
       .build();
 
@@ -107,10 +110,10 @@ public final class AsyncDevicesGetterTest {
       .build();
 
     Object expectedGooglePixel3Device = new PhysicalDevice.Builder()
-      .setName("Google Pixel 3")
-      .setType(Type.PHONE)
       .setKey(new SerialNumber("86UX00F4R"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27.000Z"))
+      .setName("Google Pixel 3")
       .setAndroidDevice(googlePixel3AndroidDevice)
       .build();
 
@@ -132,9 +135,9 @@ public final class AsyncDevicesGetterTest {
     Mockito.when(androidDevice.isVirtual()).thenReturn(true);
 
     ConnectedDevice connectedDevice = new ConnectedDevice.Builder()
-      .setName("Virtual Device")
-      .setType(Type.PHONE)
       .setKey(new SerialNumber("emulator-5554"))
+      .setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+      .setName("Virtual Device")
       .setAndroidDevice(androidDevice)
       .build();
 
@@ -162,9 +165,9 @@ public final class AsyncDevicesGetterTest {
     Mockito.when(androidDevice.isVirtual()).thenReturn(true);
 
     ConnectedDevice connectedDevice = new ConnectedDevice.Builder()
-      .setName("Pixel_4_API_30")
-      .setType(Type.PHONE)
       .setKey(Keys.PIXEL_4_API_30)
+      .setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+      .setName("Pixel_4_API_30")
       .setAndroidDevice(androidDevice)
       .build();
 
@@ -198,9 +201,9 @@ public final class AsyncDevicesGetterTest {
     Mockito.when(androidDevice.isVirtual()).thenReturn(true);
 
     ConnectedDevice connectedDevice = new ConnectedDevice.Builder()
-      .setName("Pixel_4_API_30")
-      .setType(Type.PHONE)
       .setKey(new VirtualDeviceName("Pixel_4_API_30"))
+      .setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
+      .setName("Pixel_4_API_30")
       .setAndroidDevice(androidDevice)
       .build();
 

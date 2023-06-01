@@ -30,6 +30,9 @@ final class ConnectedDevice implements Device {
   private final Key myKey;
 
   @NotNull
+  private final Icon myIcon;
+
+  @NotNull
   private final Type myType;
 
   @NotNull
@@ -48,6 +51,9 @@ final class ConnectedDevice implements Device {
     assert builder.myKey != null;
     myKey = builder.myKey;
 
+    assert builder.myIcon != null;
+    myIcon = builder.myIcon;
+
     myType = builder.myType;
     myLaunchCompatibility = builder.myLaunchCompatibility;
     myConnectionTime = builder.myConnectionTime;
@@ -60,9 +66,18 @@ final class ConnectedDevice implements Device {
   }
 
   static final class Builder extends Device.Builder {
+    @Nullable
+    private Icon myIcon;
+
     @NotNull
     Builder setKey(@NotNull Key key) {
       myKey = key;
+      return this;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    Builder setIcon(@NotNull Icon icon) {
+      myIcon = icon;
       return this;
     }
 
@@ -115,7 +130,7 @@ final class ConnectedDevice implements Device {
   @NotNull
   @Override
   public Icon icon() {
-    throw new UnsupportedOperationException();
+    return myIcon;
   }
 
   @NotNull
@@ -173,7 +188,7 @@ final class ConnectedDevice implements Device {
 
   @Override
   public int hashCode() {
-    return Objects.hash(myKey, myType, myLaunchCompatibility, myConnectionTime, myName, myAndroidDevice);
+    return Objects.hash(myKey, myIcon, myType, myLaunchCompatibility, myConnectionTime, myName, myAndroidDevice);
   }
 
   @Override
@@ -183,6 +198,7 @@ final class ConnectedDevice implements Device {
     }
 
     return myKey.equals(device.myKey) &&
+           myIcon.equals(device.myIcon) &&
            myType.equals(device.myType) &&
            myLaunchCompatibility.equals(device.myLaunchCompatibility) &&
            Objects.equals(myConnectionTime, device.myConnectionTime) &&

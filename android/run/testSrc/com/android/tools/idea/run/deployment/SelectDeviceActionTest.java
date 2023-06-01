@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
+import icons.StudioIcons;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -66,17 +67,17 @@ public final class SelectDeviceActionTest {
   public void updateDeviceNamesAreEqual() {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa601"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
+      .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
       .setKey(new SerialNumber("00fff9d2279fa602"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
+      .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
       .build();
 
     Mockito.when(myComboBoxAction.getDevices(myProject)).thenReturn(Optional.of(Arrays.asList(device1, device2)));

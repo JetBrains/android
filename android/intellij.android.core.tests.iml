@@ -140,6 +140,7 @@
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="module" module-name="analytics" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

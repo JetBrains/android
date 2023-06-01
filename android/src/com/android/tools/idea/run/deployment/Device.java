@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.util.concurrent.ListenableFuture;
+import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Collection;
 import javax.swing.Icon;
@@ -77,7 +78,32 @@ interface Device {
   @NotNull
   Type type();
 
-  enum Type {PHONE, WEAR, TV}
+  enum Type {
+    PHONE(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE),
+    WEAR(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR, StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR),
+    TV(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV, StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
+
+    @NotNull
+    private final Icon myVirtualIcon;
+
+    @NotNull
+    private final Icon myPhysicalIcon;
+
+    Type(@NotNull Icon virtualIcon, @NotNull Icon physicalIcon) {
+      myVirtualIcon = virtualIcon;
+      myPhysicalIcon = physicalIcon;
+    }
+
+    @NotNull
+    final Icon getVirtualIcon() {
+      return myVirtualIcon;
+    }
+
+    @NotNull
+    final Icon getPhysicalIcon() {
+      return myPhysicalIcon;
+    }
+  }
 
   @NotNull
   LaunchCompatibility launchCompatibility();

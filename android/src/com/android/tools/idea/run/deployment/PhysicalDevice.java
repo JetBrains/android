@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 record PhysicalDevice(@NotNull Key key,
+                      @NotNull Icon icon,
                       @NotNull Type type,
                       @NotNull LaunchCompatibility launchCompatibility,
                       @Nullable Instant connectionTime,
@@ -41,6 +42,7 @@ record PhysicalDevice(@NotNull Key key,
                       @NotNull UnaryOperator<Icon> getLiveIndicator) implements Device {
   private PhysicalDevice(@NotNull Builder builder) {
     this(Objects.requireNonNull(builder.myKey),
+         Objects.requireNonNull(builder.myIcon),
          builder.myType,
          builder.myLaunchCompatibility,
          builder.myConnectionTime,
@@ -54,6 +56,7 @@ record PhysicalDevice(@NotNull Key key,
 
     return new Builder()
       .setKey(key)
+      .setIcon(device.icon())
       .setType(device.type())
       .setLaunchCompatibility(device.launchCompatibility())
       .setConnectionTime(map.get(key))
@@ -64,12 +67,22 @@ record PhysicalDevice(@NotNull Key key,
 
   @VisibleForTesting
   static final class Builder extends Device.Builder {
+    @Nullable
+    private Icon myIcon;
+
     private UnaryOperator<Icon> myGetLiveIndicator = ExecutionUtil::getLiveIndicator;
 
     @NotNull
     @VisibleForTesting
     Builder setKey(@NotNull Key key) {
       myKey = key;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setIcon(@NotNull Icon icon) {
+      myIcon = icon;
       return this;
     }
 
@@ -125,16 +138,10 @@ record PhysicalDevice(@NotNull Key key,
   @NotNull
   @Override
   public Icon icon() {
-    var icon = switch (type) {
-      case PHONE -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
-      case WEAR -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
-      case TV -> getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
-    };
-
     return switch (launchCompatibility.getState()) {
-      case ERROR -> new LayeredIcon(icon, StudioIcons.Common.ERROR_DECORATOR);
-      case WARNING -> new LayeredIcon(icon, AllIcons.General.WarningDecorator);
-      case OK -> icon;
+      case ERROR -> new LayeredIcon(getLiveIndicator.apply(icon), StudioIcons.Common.ERROR_DECORATOR);
+      case WARNING -> new LayeredIcon(getLiveIndicator.apply(icon), AllIcons.General.WarningDecorator);
+      case OK -> getLiveIndicator.apply(icon);
     };
   }
 

@@ -32,26 +32,35 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // TODO Add the thread annotations
 final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDevice>> {
   private final @NotNull AndroidDebugBridge myAndroidDebugBridge;
+
+  @NotNull
+  private final ProvisionerHelper myHelper;
+
   private final @Nullable LaunchCompatibilityChecker myLaunchCompatibilityChecker;
 
   @NotNull
   private final Function<IDevice, AndroidDevice> myNewConnectedAndroidDevice;
 
-  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
-    this(androidDebugBridge, launchCompatibilityChecker, ConnectedAndroidDevice::new);
+  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
+                       @NotNull ProvisionerHelper helper,
+                       @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
+    this(androidDebugBridge, helper, launchCompatibilityChecker, ConnectedAndroidDevice::new);
   }
 
   @VisibleForTesting
   ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
+                       @NotNull ProvisionerHelper helper,
                        @Nullable LaunchCompatibilityChecker launchCompatibilityChecker,
                        @NotNull Function<IDevice, AndroidDevice> newConnectedAndroidDevice) {
     myAndroidDebugBridge = androidDebugBridge;
+    myHelper = helper;
     myLaunchCompatibilityChecker = launchCompatibilityChecker;
     myNewConnectedAndroidDevice = newConnectedAndroidDevice;
   }
@@ -80,13 +89,14 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
   private ListenableFuture<ConnectedDevice> buildAsync(@NotNull IDevice device) {
     var androidDevice = myNewConnectedAndroidDevice.apply(device);
 
-    var nameFuture = getNameAsync(device);
     var keyFuture = getKeyAsync(device);
+    var iconFuture = myHelper.getIcon(device);
     var compatibilityFuture = getLaunchCompatibilityAsync(androidDevice);
+    var nameFuture = getNameAsync(device);
 
     // noinspection UnstableApiUsage
-    return Futures.whenAllComplete(nameFuture, keyFuture, compatibilityFuture)
-      .call(() -> build(androidDevice, nameFuture, keyFuture, compatibilityFuture), AppExecutorUtil.getAppExecutorService());
+    return Futures.whenAllComplete(keyFuture, iconFuture, compatibilityFuture, nameFuture)
+      .call(() -> build(keyFuture, iconFuture, compatibilityFuture, nameFuture, androidDevice), AppExecutorUtil.getAppExecutorService());
   }
 
   private static @NotNull ListenableFuture<String> getNameAsync(@NotNull IDevice device) {
@@ -170,17 +180,21 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
   }
 
   @NotNull
-  private static ConnectedDevice build(@NotNull AndroidDevice device,
+  private static ConnectedDevice build(@NotNull Future<Key> keyFuture,
+                                       @NotNull Future<Optional<Icon>> iconFuture,
+                                       @NotNull Future<Optional<LaunchCompatibility>> launchCompatibilityFuture,
                                        @NotNull Future<String> nameFuture,
-                                       @NotNull Future<Key> keyFuture,
-                                       @NotNull Future<Optional<LaunchCompatibility>> compatibilityFuture) throws ExecutionException {
-    var builder = new ConnectedDevice.Builder()
-      .setName(Futures.getDone(nameFuture))
-      .setKey(Futures.getDone(keyFuture))
-      .setAndroidDevice(device)
-      .setType(Tasks.getTypeFromAndroidDevice(device));
+                                       @NotNull AndroidDevice androidDevice) throws ExecutionException {
+    var type = Tasks.getTypeFromAndroidDevice(androidDevice);
 
-    Futures.getDone(compatibilityFuture).ifPresent(builder::setLaunchCompatibility);
+    var builder = new ConnectedDevice.Builder()
+      .setKey(Futures.getDone(keyFuture))
+      .setIcon(Futures.getDone(iconFuture).orElse(androidDevice.isVirtual() ? type.getVirtualIcon() : type.getPhysicalIcon()))
+      .setType(type)
+      .setName(Futures.getDone(nameFuture))
+      .setAndroidDevice(androidDevice);
+
+    Futures.getDone(launchCompatibilityFuture).ifPresent(builder::setLaunchCompatibility);
     return builder.build();
   }
 

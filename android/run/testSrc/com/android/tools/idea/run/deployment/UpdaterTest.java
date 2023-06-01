@@ -456,16 +456,16 @@ public final class UpdaterTest {
   public void getTextDeviceNamesAreEqual() {
     // Arrange
     Device device1 = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
-      .setType(Type.PHONE)
       .setKey(new SerialNumber("00fff9d2279fa601"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
+      .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new PhysicalDevice.Builder()
-      .setName("LGE Nexus 5X")
-      .setType(Type.PHONE)
       .setKey(new SerialNumber("00fff9d2279fa602"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
+      .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

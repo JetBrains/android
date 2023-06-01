@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
+import icons.StudioIcons;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -96,6 +97,7 @@ public final class SelectMultipleDevicesDialogTableTest {
 
     Device device = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("00fff9d2279fa601"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
       .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setGetLiveIndicator(icon -> runningIcon)
@@ -149,6 +151,7 @@ public final class SelectMultipleDevicesDialogTableTest {
 
     Device device1 = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("00fff9d2279fa601"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
       .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setGetLiveIndicator(icon -> runningIcon)
@@ -156,6 +159,7 @@ public final class SelectMultipleDevicesDialogTableTest {
 
     Device device2 = new PhysicalDevice.Builder()
       .setKey(new SerialNumber("00fff9d2279fa602"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
       .setName("LGE Nexus 5X")
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setGetLiveIndicator(icon -> runningIcon)

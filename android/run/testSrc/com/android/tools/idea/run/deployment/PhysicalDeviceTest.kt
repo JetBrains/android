@@ -15,85 +15,69 @@
  */
 package com.android.tools.idea.run.deployment
 
-import com.android.testutils.ImageDiffUtil.assertImageSimilar
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
-import com.intellij.execution.runners.ExecutionUtil
-import com.intellij.icons.AllIcons.General.WarningDecorator
-import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.IconManager
+import com.android.tools.idea.run.LaunchCompatibility.State
+import com.intellij.icons.AllIcons
 import com.intellij.ui.LayeredIcon
-import com.intellij.ui.scale.ScaleContext
-import com.intellij.util.IconUtil
-import com.intellij.util.ui.ImageUtil
-import icons.StudioIcons.Common.ERROR_DECORATOR
-import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
-import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
-import org.junit.After
-import org.junit.Before
+import icons.StudioIcons
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito
+import java.util.function.UnaryOperator
 import javax.swing.Icon
 
 @RunWith(JUnit4::class)
 class PhysicalDeviceTest {
-
-  private fun assertIconSimilar(expectedIcon: Icon, actualIcon: Icon) {
-    val expectedIconImage = ImageUtil.toBufferedImage(IconUtil.toImage(expectedIcon, ScaleContext.createIdentity()))
-    val actualIconImage = ImageUtil.toBufferedImage(IconUtil.toImage(actualIcon, ScaleContext.createIdentity()))
-    assertImageSimilar("icon", expectedIconImage, actualIconImage, 0.0)
-  }
-
-  @Before
-  fun activateIconLoader() {
-    IconManager.activate(null)
-    IconLoader.activate()
-  }
-
-  @After
-  fun deactivateIconLoader() {
-    IconManager.deactivate()
-    IconLoader.deactivate()
-  }
+  private val getLiveIndicator = MockitoKt.mock<UnaryOperator<Icon>>()
+  private val runningIcon = MockitoKt.mock<Icon>()
 
   @Test
   fun testGetPhoneWithoutErrorOrWarningIcon() {
+    MockitoKt.whenever(getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)).thenReturn(runningIcon)
+
     val phoneWithoutErrorOrWarning = PhysicalDevice.Builder()
-      .setName("Pixel 4 API 30")
       .setKey(SerialNumber("86UX00F4R"))
-      .setType(Device.Type.PHONE)
-      .setAndroidDevice(Mockito.mock(AndroidDevice::class.java))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
+      .setName("Pixel 4 API 30")
+      .setAndroidDevice(MockitoKt.mock<AndroidDevice>())
+      .setGetLiveIndicator(getLiveIndicator)
       .build()
 
-    assertIconSimilar(ExecutionUtil.getLiveIndicator(PHYSICAL_DEVICE_PHONE), phoneWithoutErrorOrWarning.icon)
+    assertEquals(runningIcon, phoneWithoutErrorOrWarning.icon())
   }
 
   @Test
   fun testGetWearWithErrorIcon() {
+    MockitoKt.whenever(getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)).thenReturn(runningIcon)
+
     val wearWithError = PhysicalDevice.Builder()
-      .setName("Wear API 30")
       .setKey(SerialNumber("86UX00F4R"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice::class.java))
-      .setType(Device.Type.WEAR)
-      .setLaunchCompatibility(LaunchCompatibility(LaunchCompatibility.State.ERROR, "error"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
+      .setLaunchCompatibility(LaunchCompatibility(State.ERROR, "error"))
+      .setName("Wear API 30")
+      .setAndroidDevice(MockitoKt.mock<AndroidDevice>())
+      .setGetLiveIndicator(getLiveIndicator)
       .build()
 
-    assertIconSimilar(LayeredIcon(ExecutionUtil.getLiveIndicator(PHYSICAL_DEVICE_WEAR), ERROR_DECORATOR), wearWithError.icon)
+    assertEquals(LayeredIcon(runningIcon, StudioIcons.Common.ERROR_DECORATOR), wearWithError.icon())
   }
 
   @Test
   fun testGetTvWithWarningIcon() {
+    MockitoKt.whenever(getLiveIndicator.apply(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV)).thenReturn(runningIcon)
+
     val tvWithWarning = PhysicalDevice.Builder()
-      .setName("TV API 30")
       .setKey(SerialNumber("86UX00F4R"))
-      .setAndroidDevice(Mockito.mock(AndroidDevice::class.java))
-      .setType(Device.Type.TV)
-      .setLaunchCompatibility(LaunchCompatibility(LaunchCompatibility.State.WARNING, "warning"))
+      .setIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV)
+      .setLaunchCompatibility(LaunchCompatibility(State.WARNING, "warning"))
+      .setName("TV API 30")
+      .setAndroidDevice(MockitoKt.mock<AndroidDevice>())
+      .setGetLiveIndicator(getLiveIndicator)
       .build()
 
-    assertIconSimilar(LayeredIcon(ExecutionUtil.getLiveIndicator(PHYSICAL_DEVICE_TV), WarningDecorator), tvWithWarning.icon)
+    assertEquals(LayeredIcon(runningIcon, AllIcons.General.WarningDecorator), tvWithWarning.icon())
   }
 }
