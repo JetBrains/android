@@ -62,5 +62,7 @@ iml_module(
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2[module]",
         "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide[module]",
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide[module]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
     ],
 )

@@ -58,6 +58,5 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/connection-assistant[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
     ],
 )

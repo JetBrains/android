@@ -242,7 +242,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",

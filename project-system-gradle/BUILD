@@ -35,7 +35,6 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
@@ -104,7 +103,12 @@ iml_module(
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
+    ],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",

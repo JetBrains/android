@@ -55,5 +55,7 @@
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ide" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.ide" />
     <orderEntry type="module" module-name="intellij.android.plugin.descriptor" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea" />
   </component>
 </module>

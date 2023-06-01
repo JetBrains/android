@@ -20,7 +20,6 @@ iml_module(
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
     ],
 )
 
@@ -53,6 +52,5 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/whats-new-assistant[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
     ],
 )

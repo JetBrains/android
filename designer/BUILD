@@ -127,7 +127,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",

@@ -103,6 +103,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
         "//tools/base/lint/libs/lint-tests:studio.android.sdktools.lint.testinfrastructure[module, test]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
     ],
 )
 

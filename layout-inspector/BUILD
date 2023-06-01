@@ -104,7 +104,6 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/.idea/libraries:transport-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",

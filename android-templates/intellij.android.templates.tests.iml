@@ -22,7 +22,6 @@
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" scope="TEST" />

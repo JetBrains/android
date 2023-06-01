@@ -30,7 +30,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="intellij.android.artwork" />

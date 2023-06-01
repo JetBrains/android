@@ -86,7 +86,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",

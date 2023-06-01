@@ -89,7 +89,6 @@ iml_module(
         "//tools/base/build-analyzer/common:studio.android.build-analyzer.common[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",

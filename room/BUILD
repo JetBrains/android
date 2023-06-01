@@ -32,7 +32,6 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
