@@ -213,6 +213,7 @@ class LiveEditCompiler(val project: Project) {
       throw internalError("No compiler output.")
     }
 
+    val selectedClasses = mutableMapOf<String, KtFile>()
     for (input in inputs) {
       // The function we are looking at no longer belongs to file. This is mostly an IDE refactor / copy-and-paste action.
       // This should be solved nicely with a ClassDiffer.
@@ -220,40 +221,58 @@ class LiveEditCompiler(val project: Project) {
         continue
       }
 
+      var internalClassName: String
+      var containingFile: KtFile
       when(val element = input.element) {
         // When the edit event was contained in a function
         is KtFunction -> {
-          // When a Composable is a lambda, we actually need to take into account of all the parent groups of that Composable
-          val parentGroup = input.parentGroups.takeIf { element !is KtNamedFunction }
-          val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
-            getGroupKey(compilerOutput, element, parentGroup) else null
-          group?.let { output.addGroupId(group) }
-          getGeneratedMethodCode(compilerOutput, element, generationState, output)
+          val desc = generationState.bindingContext[BindingContext.FUNCTION, element]!!
+          if (desc.hasComposableAnnotation()) {
+            // When a Composable is a lambda, we actually need to take into account of all the parent groups of that Composable
+            val parentGroup = input.parentGroups.takeIf { element !is KtNamedFunction }
+            val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose) {
+              getGroupKey(compilerOutput, element, parentGroup)
+            } else {
+              null
+            }
+            group?.let { output.addGroupId(group) }
+          } else {
+            output.resetState = true
+          }
+          val (name, file) = getClassForMethod(element, desc)
+          internalClassName = name
+          containingFile = file
         }
 
         // When the edit event was at class level
         is KtClass -> {
           val desc = bindingContext[BindingContext.CLASS, element]!!
-          val internalClassName = getInternalClassName(desc.containingPackage(), element.fqName.toString(), input.file)
-          getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput, output)
+          internalClassName = getInternalClassName(desc.containingPackage(), element.fqName.toString(), input.file)
+          containingFile = input.file as KtFile
         }
 
         // When the edit was at top level
         is KtFile -> {
-          val internalClassName = getInternalClassName(element.packageFqName, element.javaFileFacadeFqName.toString(), element)
-          getCompiledClasses(internalClassName, element, compilerOutput, output)
+          internalClassName = getInternalClassName(element.packageFqName, element.javaFileFacadeFqName.toString(), element)
+          containingFile = element
         }
 
         else -> throw compilationError("Event was generated for unsupported kotlin element")
       }
+
+      if (internalClassName !in selectedClasses) {
+        selectedClasses[internalClassName] = containingFile
+      } else if (selectedClasses[internalClassName] !== containingFile) {
+        throw compilationError("Multiple KtFiles for class $internalClassName")
+      }
+    }
+
+    for ((internalClassName, inputFile) in selectedClasses) {
+      getCompiledClasses(internalClassName, inputFile, compilerOutput, output)
     }
   }
 
-  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction,
-                                     generationState: GenerationState, builder : LiveEditCompilerOutput.Builder) {
-    val desc = generationState.bindingContext[BindingContext.FUNCTION, targetFunction]!!
-    val isCompose = desc.hasComposableAnnotation()
-
+  private fun getClassForMethod(targetFunction: KtFunction, desc: SimpleFunctionDescriptor): Pair<String, KtFile> {
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
       if (elem.parent == null) {
@@ -276,13 +295,10 @@ class LiveEditCompiler(val project: Project) {
       className = grandParent.javaFileFacadeFqName.toString()
     }
 
-    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
-    getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput, builder)
-
-    if (!isCompose) {
-      builder.resetState = true
-    }
     checkNonPrivateInline(desc, function.containingFile)
+
+    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
+    return internalClassName to elem.containingFile as KtFile
   }
 
   private inline fun checkNonPrivateInline(desc: SimpleFunctionDescriptor, file: PsiFile) {

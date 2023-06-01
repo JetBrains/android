@@ -96,7 +96,9 @@ class ComposableCompileTest {
       LiveEditCompilerInput(file2!!, findFunction(file2, "composableNested")),
       ))
 
+    Assert.assertEquals(4, output.classes.size)
     Assert.assertEquals(2, output.classesMap.size)
+    Assert.assertEquals(2, output.supportClassesMap.size)
     Assert.assertTrue(output.classesMap.get("ComposeSimpleKt")!!.isNotEmpty())
     Assert.assertTrue(output.classesMap.get("ComposeNestedKt")!!.isNotEmpty())
 
