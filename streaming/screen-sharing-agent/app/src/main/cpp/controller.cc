@@ -84,7 +84,7 @@ void SetReceiveTimeoutMillis(int timeout_millis, int socket_fd) {
 }
 
 bool ContainsMultipleDeviceStates(const string& states_text) {
-  return states_text.find_first_of("DeviceState{") != states_text.find_last_of("DeviceState{");
+  return states_text.find("DeviceState{") != states_text.rfind("DeviceState{");
 }
 
 }  // namespace
