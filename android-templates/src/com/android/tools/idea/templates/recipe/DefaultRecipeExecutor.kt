@@ -20,6 +20,7 @@ import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
@@ -235,7 +236,8 @@ class DefaultRecipeExecutor(
     }
 
     val pluginCoordinate = "$plugin:$plugin.gradle.plugin:$revision"
-    val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).lowerBoundVersion.toString()
+    val component = repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
+    val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
     val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
     if (useVersionCatalog) {

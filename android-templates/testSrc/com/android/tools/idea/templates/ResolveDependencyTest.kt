@@ -17,7 +17,6 @@ package com.android.tools.idea.templates
 
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
@@ -36,6 +35,9 @@ class ResolveDependencyTest {
       doTest("bla", "1.0.0", "com.android:lib:1.0.1", "bla")
     }
     assertFailsWith(InvalidParameterException::class) {
+      doTest("bla:bla", "1.0.0", "com.android:lib:1.0.1", "bla")
+    }
+    assertFailsWith(InvalidParameterException::class) {
       doTest("bla", "1.0.0", "not_found", "bla")
     }
     assertFailsWith(InvalidParameterException::class) {
@@ -50,9 +52,12 @@ class ResolveDependencyTest {
     doTest("com.android:lib:+", "1.0.2", "com.android:lib:1.0.1", "com.android:lib:1.0.2")
     doTest("com.android:lib:+", "1.1.+", "com.android:lib:1.0.1", "com.android:lib:1.1.+")
     doTest("com.android:lib:+", "1.1.+", "com.android:lib:1.1.1", "com.android:lib:1.1.1")
+    doTest("com.android:lib:+", "1.1.+", "com.android:lib:1.2.1", "com.android:lib:1.2.1") // 1.1.+ accepts (but does not contain) 1.2.1
     doTest("com.android:lib:1.0.+", "1.0.2", "com.android:lib:1.0.1", "com.android:lib:1.0.2")
     doTest("com.android:lib:1.0.+", null, "com.android:lib:1.0.1", "com.android:lib:1.0.1")
     doTest("com.android:lib:1.0.2", "1.0.0", "notfound", "com.android:lib:1.0.0") // Not found, return default
+    doTest("com.android:lib:1.0.2", null, "notfound", "com.android:lib:1.0.2") // Not found, no default, return given dependency
+    doTest("com.android:lib:+", null, "notfound", "com.android:lib:+") // Not found, no default, return given dependency
   }
 
   // From mockito-kotlin
@@ -63,7 +68,7 @@ class ResolveDependencyTest {
     whenever(mockRepo.resolveDependency(any(Dependency::class.java), nullable(Project::class.java), nullable(AndroidSdkHandler::class.java)))
       .thenReturn(Component.tryParse(resolved))
 
-    val expectResult = GradleCoordinate.parseCoordinateString(expectResultString)
+    val expectResult = Dependency.parse(expectResultString)
     assertThat(resolveDependency(mockRepo, dependency, minRevision)).isEqualTo(expectResult)
   }
 }
