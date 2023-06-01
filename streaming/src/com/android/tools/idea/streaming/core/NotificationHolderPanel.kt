@@ -46,33 +46,40 @@ private const val TOTAL_FRAMES = 150
 /**
  * A panel that can display a notification at the top.
  */
-class NotificationHolderPanel(contentPanel: Component) : JBLayeredPane() {
-  private val notificationContent = EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
-  private val notificationPopup = NotificationPopup(notificationContent)
+class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPane() {
+  private val fadeOutNotificationContent = EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
+  private val fadeOutNotificationPopup = NotificationPopup(fadeOutNotificationContent)
   private var animator: Animator? = null
-  private var notificationVisible = false
+  private var fadeOutNotificationVisible = false
 
   init {
     border = JBUI.Borders.empty()
     setLayer(contentPanel, DEFAULT_LAYER)
     add(contentPanel)
-    setLayer(notificationPopup, POPUP_LAYER)
-    notificationPopup.isOpaque = false
+    setLayer(fadeOutNotificationPopup, POPUP_LAYER)
+    fadeOutNotificationPopup.isOpaque = false
   }
 
   override fun doLayout() {
-    for (component in components) {
-      component.setBounds(0, 0, width, if (component === notificationPopup) notificationPopup.preferredSize.height else height)
+    var y = 0
+    for (child in components) {
+      if (child === contentPanel) {
+        child.setBounds(0, 0, width, height)
+      }
+      else {
+        val childHeight = child.preferredSize.height
+        child.setBounds(0, y, width, childHeight)
+        y += childHeight
+      }
     }
   }
 
   override fun getPreferredSize(): Dimension {
-    val mainComponent = components.find { it !== notificationPopup }
-    return mainComponent?.preferredSize ?: super.getPreferredSize()
+    return contentPanel.preferredSize ?: super.getPreferredSize()
   }
 
   override fun paintChildren(g: Graphics) {
-    if (notificationVisible) {
+    if (fadeOutNotificationVisible) {
       // Paint off-screen first to prevent flicker.
       val image = UIUtil.createImage(this, width, height, BufferedImage.TYPE_INT_ARGB)
       val g2d: Graphics2D = image.createGraphics()
@@ -86,36 +93,38 @@ class NotificationHolderPanel(contentPanel: Component) : JBLayeredPane() {
     }
   }
 
-  fun showNotification(text: String) {
-    notificationContent.text = text
-    if (!notificationVisible) {
-      add(notificationPopup)
-      notificationVisible = true
+  /** Shows a fade-out notification with the given text. */
+  fun showFadeOutNotification(text: String) {
+    fadeOutNotificationContent.text = text
+    if (!fadeOutNotificationVisible) {
+      add(fadeOutNotificationPopup)
+      fadeOutNotificationVisible = true
     }
-    startAnimation()
+    startFadeOutAnimation()
     revalidate()
   }
 
-  fun hideNotification() {
-    stopAnimation()
-    hideNotificationPopup()
+  /** Hides the fade-out notification if any. */
+  fun hideFadeOutNotification() {
+    stopFadeOutAnimation()
+    hideFadeOutNotificationPopup()
   }
 
-  private fun hideNotificationPopup() {
-    if (notificationVisible) {
-      remove(notificationPopup)
-      notificationVisible = false
+  private fun hideFadeOutNotificationPopup() {
+    if (fadeOutNotificationVisible) {
+      remove(fadeOutNotificationPopup)
+      fadeOutNotificationVisible = false
       revalidate()
     }
   }
 
-  private fun startAnimation() {
+  private fun startFadeOutAnimation() {
     animator?.let(Disposer::dispose)
-    notificationPopup.alpha = 1.0F
+    fadeOutNotificationPopup.alpha = 1.0F
     animator = FadeOutAnimator().apply { resume() }
   }
 
-  private fun stopAnimation() {
+  private fun stopFadeOutAnimation() {
     animator?.let(Disposer::dispose)
     animator = null
   }
@@ -152,9 +161,9 @@ class NotificationHolderPanel(contentPanel: Component) : JBLayeredPane() {
 
     override fun paintNow(frame: Int, totalFrames: Int, cycle: Int) {
       val alpha = cos(0.5 * PI * frame / totalFrames).toFloat()
-      if (abs(alpha - notificationPopup.alpha) >= 0.005) {
-        notificationPopup.alpha = alpha
-        notificationPopup.paintImmediately(0, 0, notificationPopup.width, notificationPopup.height)
+      if (abs(alpha - fadeOutNotificationPopup.alpha) >= 0.005) {
+        fadeOutNotificationPopup.alpha = alpha
+        fadeOutNotificationPopup.paintImmediately(0, 0, fadeOutNotificationPopup.width, fadeOutNotificationPopup.height)
       }
     }
 
@@ -162,7 +171,7 @@ class NotificationHolderPanel(contentPanel: Component) : JBLayeredPane() {
       // In a headless or a test environment paintCycleEnd is called by the Animator's constructor.
       // Don't hide the notification is that case.
       if (!skipAnimation()) {
-        hideNotificationPopup()
+        hideFadeOutNotificationPopup()
       }
       Disposer.dispose(this)
     }
