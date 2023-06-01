@@ -214,9 +214,11 @@ class LiveEditCompiler(val project: Project) {
     }
 
     for (input in inputs) {
-      // The function we are looking at no longer belongs to file. This is mostly an IDE refactor. Make it a recoverable error
-      // to see if the next step of the refactor can fix it. This should be solved nicely with a ClassDiffer.
-      input.element.containingFile?: throw compilationError("Invalid AST. Function no longer belong to any files.")
+      // The function we are looking at no longer belongs to file. This is mostly an IDE refactor / copy-and-paste action.
+      // This should be solved nicely with a ClassDiffer.
+      if (input.element.containingFile == null) {
+        continue
+      }
 
       when(val element = input.element) {
         // When the edit event was contained in a function
