@@ -338,6 +338,7 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
+    deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -347,7 +348,12 @@ class StreamingToolWindowManagerTest {
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
-    assertThat(contentManager.contents[0].isCloseable).isFalse()
+    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      assertThat(contentManager.contents[0].isCloseable).isTrue()
+    }
+    else {
+      assertThat(contentManager.contents[0].isCloseable).isFalse()
+    }
 
     agentRule.disconnectDevice(device)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
@@ -357,8 +363,10 @@ class StreamingToolWindowManagerTest {
     // DisposerExplorer is used because alternative ways of testing this are pretty slow.
     val physicalDeviceWatcherClassName = "com.android.tools.idea.streaming.core.StreamingToolWindowManager\$PhysicalDeviceWatcher"
     assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).hasSize(1)
-    deviceMirroringSettings.deviceMirroringEnabled = false
-    assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).isEmpty()
+    if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      deviceMirroringSettings.deviceMirroringEnabled = false
+      assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).isEmpty()
+    }
   }
 
   @Test
@@ -422,6 +430,7 @@ class StreamingToolWindowManagerTest {
       return
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
+    deviceMirroringSettings::activateOnAppLaunch.override(true, testRootDisposable)
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -473,6 +482,7 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
+    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -615,7 +625,12 @@ class StreamingToolWindowManagerTest {
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
-    toolWindow.show()
+    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
+    }
+    else {
+      toolWindow.show()
+    }
 
     agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
@@ -636,6 +651,7 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
+    deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     createToolWindowContent()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -663,6 +679,29 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
+    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
+    deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
+    createToolWindowContent()
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    deviceMirroringSettings.confirmationDialogShown = false
+
+    createModalDialogAndInteractWithIt({ agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280)) }) { dlg ->
+      val ui = FakeUi(dlg.rootPane)
+      ui.clickOn(ui.getComponent<JButton> { it.text == "Cancel" })
+    }
+
+    assertThat(deviceMirroringSettings.confirmationDialogShown).isTrue()
+  }
+
+  @Test
+  fun testMirroringConfirmationDialogRejectWithoutAdvancedTabControl() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
+    deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
