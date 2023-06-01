@@ -134,8 +134,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
   AtomicReference<Future<?>> myScheduleRef = new AtomicReference<>();
   private DesignerEditorPanel myEditorPanel;
 
-  private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
-
   private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES = ImmutableList.of(
     GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+"),
     GoogleMavenArtifactId.NAVIGATION_UI.getCoordinate("+"));
@@ -753,21 +751,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     }
   }
 
-  @NotNull
-  @Override
-  public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
-    SoftReference<ConfigurationManager> ref = ourConfigurationManagers.get(facet);
-    ConfigurationManager result = null;
-    if (ref != null) {
-      result = ref.get();
-    }
-    if (result == null) {
-      result = new MyConfigurationManager(facet.getModule());
-      ourConfigurationManagers.put(facet, new SoftReference<>(result));
-    }
-    return result;
-  }
-
   @Override
   protected boolean getSupportPinchAndZoom() {
     // TODO: Enable pinch and zoom for navigation editor
@@ -824,18 +807,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
     if (next != null) {
       setCurrentNavigation(next);
-    }
-  }
-
-  private static class MyConfigurationManager extends ConfigurationManager {
-    MyConfigurationManager(@NotNull Module module) {
-      super(module);
-    }
-
-    @Override
-    public ConfigurationStateManager getStateManager() {
-      // Nav editor doesn't want persistent configuration state.
-      return new StudioConfigurationStateManager();
     }
   }
 }

@@ -456,27 +456,6 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(root, component)
   }
 
-  fun testConfiguration() {
-    val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myModule)
-    val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
-    assertNotEquals(defaultConfigurationManager, navConfigurationManager)
-
-    val navFile = findVirtualProjectFile(project, "res/navigation/navigation.xml")!!
-    val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
-    val navConfiguration = navConfigurationManager.getConfiguration(navFile)
-    val navDevice = navConfiguration.device
-    val pixelC = StudioAndroidSdkData.getSdkData(myFacet)!!.deviceManager.getDevice("pixel_c", "Google")!!
-    // in order to unset the cached derived device in the configuration you have to set it to something else first
-    navConfiguration.setDevice(pixelC, false)
-    navConfiguration.setDevice(null, false)
-
-    // Select a device in the default (layout) ConfigurationManager. It shouldn't affect the nav editor device.
-    defaultConfigurationManager.selectDevice(pixelC)
-
-    assertEquals(navDevice, navConfiguration.device)
-    assertEquals(pixelC, defaultConfiguration.device)
-  }
-
   fun testActivateWithSchemaChange() {
     NavigationSchema.createIfNecessary(myModule)
     val editor = mock(DesignerEditorPanel::class.java)
