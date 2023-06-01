@@ -157,7 +157,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     }
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger, adbInstallerMode);
 
-    DeploymentService service = DeploymentService.getInstance(myProject);
+    DeploymentService service = DeploymentService.getInstance();
     IdeService ideService = new IdeService(myProject);
 
     EnumSet<ChangeType> optimisticInstallSupport = EnumSet.noneOf(ChangeType.class);
