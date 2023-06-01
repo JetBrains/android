@@ -25,7 +25,7 @@ import java.nio.file.Paths
  * Generates files from a template and performs checks on them to ensure they're valid and can be
  * checked in as golden files, then copies the validated files to the output directory.
  */
-class BaselineGenerator(template: Template) : ProjectRenderer(template) {
+class BaselineGenerator(template: Template, goldenDirName: String) : ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     val outputDir = getOutputDir(moduleName, goldenDir)
 

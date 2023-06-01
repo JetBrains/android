@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.ProjectStateCustomizer
 import com.android.tools.idea.templates.TemplateStateCustomizer
+import com.android.tools.idea.templates.TemplateTest
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -118,6 +119,8 @@ class TemplateDiffTest(private val testMode: TestMode) {
     AndroidTestBase.ensureSdkManagerAvailable(disposableRule.disposable)
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
+    val goldenDirName = name.replace(' ', '_')
+
     templateStateCustomizer.forEach { (parameterName: String, overrideValue: String) ->
       val p = template.parameters.find { it.name == parameterName }!! as StringParameter
       p.value = overrideValue
@@ -132,10 +135,10 @@ class TemplateDiffTest(private val testMode: TestMode) {
         }
       val projectRenderer: ProjectRenderer =
         when (testMode) {
-          TestMode.DIFFING -> ProjectDiffer(template)
+          TestMode.DIFFING -> ProjectDiffer(template, goldenDirName)
           TestMode.VALIDATING ->
-            BaselineValidator(template, projectRule as AndroidGradleProjectRule)
-          TestMode.GENERATING -> BaselineGenerator(template)
+            BaselineValidator(template, goldenDirName, projectRule as AndroidGradleProjectRule)
+          TestMode.GENERATING -> BaselineGenerator(template, goldenDirName)
         }
 
       // TODO: We need to check more combinations of different moduleData/template params here.
@@ -158,8 +161,14 @@ class TemplateDiffTest(private val testMode: TestMode) {
   // --- Activity templates ---
   @TemplateCheck
   @Test
-  fun testNewEmptyViewActivity() {
+  fun testNewEmptyViewsActivity() {
     checkCreateTemplate("Empty Views Activity")
+  }
+
+  @TemplateCheck
+  @Test
+  fun testNewBasicViewsActivity() {
+    checkCreateTemplate("Basic Views Activity")
   }
 
   enum class TestMode {

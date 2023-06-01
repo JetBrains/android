@@ -37,8 +37,9 @@ import org.junit.Assert.*
  */
 class BaselineValidator(
   template: Template,
+  goldenDirName: String,
   private val gradleProjectRule: AndroidGradleProjectRule
-) : ProjectRenderer(template) {
+) : ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     checkProjectProperties(projectDir)
     performBuild()

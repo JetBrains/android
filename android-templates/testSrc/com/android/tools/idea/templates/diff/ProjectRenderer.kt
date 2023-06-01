@@ -55,7 +55,7 @@ import java.nio.file.Path
 val FILES_TO_IGNORE = emptyArray<String>()
 // val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
 
-abstract class ProjectRenderer(protected val template: Template) {
+abstract class ProjectRenderer(protected val template: Template, val goldenDirName: String) {
   protected lateinit var moduleState: ModuleTemplateDataBuilder
 
   fun renderProject(project: Project, vararg customizers: ProjectStateCustomizer) {
@@ -138,11 +138,9 @@ abstract class ProjectRenderer(protected val template: Template) {
     prepareProject(projectRoot)
     renderTemplate(project, moduleRecipe, context, moduleRecipeExecutor, templateRecipeExecutor)
 
-    // TODO: generify this to use probably the unmodified module name as the golden directory name
     // TODO: make sure it's unique even with different params
-    val templateModuleName = "testNewEmptyViewActivity"
-    val goldenDir = getTestDataRoot().resolve("golden").resolve(templateModuleName)
-    handleDirectories(templateModuleName, goldenDir, projectRoot.toPath())
+    val goldenDir = getTestDataRoot().resolve("golden").resolve(goldenDirName)
+    handleDirectories(goldenDirName, goldenDir, projectRoot.toPath())
   }
 
   protected open fun prepareProject(projectRoot: File) {}
