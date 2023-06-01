@@ -148,7 +148,7 @@ class ManageSnapshotsDialogTest {
     assertThat(coldBootCheckBox.isSelected).isTrue()
 
     emulator.clearGrpcCallLog()
-    val takeSnapshotButton = ui.getComponent<JButton> { it.text == "Take Snapshot" }
+    val takeSnapshotButton = ui.getComponent<JButton> { it.text == "Create Snapshot" }
     // Create a snapshot.
     ui.clickOn(takeSnapshotButton)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)

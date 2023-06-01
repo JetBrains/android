@@ -129,7 +129,7 @@ internal class ManageSnapshotsDialog(
 
   private val snapshotTableModel = SnapshotTableModel()
   private val snapshotTable = SnapshotTable(snapshotTableModel)
-  private val takeSnapshotButton = JButton("Take Snapshot").apply {
+  private val takeSnapshotButton = JButton("Create Snapshot").apply {
     addActionListener { createSnapshot() }
   }
   private val runningOperationLabel = JBLabel().apply {
