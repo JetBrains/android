@@ -61,7 +61,6 @@ import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
-import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.needsBuild
@@ -1299,14 +1298,12 @@ class ComposePreviewRepresentation(
               "No updates on the PreviewElements, just refreshing the existing ones"
             )
             // In this case, there are no new previews. We need to make sure that the surface is
-            // still correctly
-            // configured and that we are showing the right size for components. For example, if the
-            // user switches on/off
-            // decorations, that will not generate/remove new PreviewElements but will change the
-            // surface settings.
+            // still correctly configured and that we are showing the right size for components.
+            // For example, if the user switches on/off decorations, that will not generate/remove
+            // new PreviewElements but will change the surface settings.
             refreshProgressIndicator.text =
               message("refresh.progress.indicator.reusing.existing.previews")
-            surface.refreshExistingPreviewElements(
+            composeWorkBench.refreshExistingPreviewElements(
               refreshProgressIndicator,
               previewElementModelAdapter::modelToElement,
               this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement
