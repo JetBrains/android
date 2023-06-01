@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 
 import com.android.ide.common.resources.Locale;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.layoutlib.AndroidTargets;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
@@ -111,7 +112,7 @@ public class ConfigurationProjectState {
   static IAndroidTarget fromTargetString(@NotNull ConfigurationManager manager, @Nullable String targetString) {
     if (targetString != null) {
       for (IAndroidTarget target : manager.getTargets()) {
-        if (targetString.equals(target.hashString()) && ConfigurationManager.isLayoutLibTarget(target)) {
+        if (targetString.equals(target.hashString()) && AndroidTargets.isLayoutLibTarget(target)) {
           return target;
         }
       }

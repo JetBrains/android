@@ -24,6 +24,7 @@ import com.android.tools.idea.kotlin.evaluateConstant
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.layoutlib.isLayoutLibTarget
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
@@ -439,7 +440,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
       previewAnnotation.module?.let { module ->
         ConfigurationManager.findExistingInstance(module)
           ?.targets
-          ?.filter { ConfigurationManager.isLayoutLibTarget(it) }
+          ?.filter { it.isLayoutLibTarget }
           ?.map { it.version.apiLevel }
           ?.takeIf { it.isNotEmpty() }
       }

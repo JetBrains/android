@@ -29,6 +29,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.PlatformTarget;
+import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -297,7 +298,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
   /**
    * Returns all the {@link IAndroidTarget} instances applicable for the current module.
    * Note that this may include non-rendering targets, so for layout rendering contexts,
-   * check individual members by calling {@link #isLayoutLibTarget(IAndroidTarget)} first.
+   * check individual members by calling {@link AndroidTargets#isLayoutLibTarget} first.
    */
   @Override
   @NotNull
@@ -312,18 +313,13 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     return new IAndroidTarget[0];
   }
 
-  public static boolean isLayoutLibTarget(@NotNull IAndroidTarget target) {
-    return target.isPlatform() && target.hasRenderingLibrary();
-  }
-
-  @Override
   @Nullable
   public IAndroidTarget getHighestApiTarget() {
     // Note: The target list is already sorted in ascending API order.
     IAndroidTarget[] targetList = getTargets();
     for (int i = targetList.length - 1; i >= 0; i--) {
       IAndroidTarget target = targetList[i];
-      if (isLayoutLibTarget(target) && isLayoutLibSupported(target)) {
+      if (AndroidTargets.isLayoutLibTarget(target) && isLayoutLibSupported(target)) {
         return target;
       }
     }
@@ -547,7 +543,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     IAndroidTarget[] targetList = getTargets();
     for (int i = targetList.length - 1; i >= 0; i--) {
       target = targetList[i];
-      if (isLayoutLibTarget(target) && target.getVersion().getFeatureLevel() >= min && isLayoutLibSupported(target)) {
+      if (AndroidTargets.isLayoutLibTarget(target) && target.getVersion().getFeatureLevel() >= min && isLayoutLibSupported(target)) {
         return target;
       }
     }

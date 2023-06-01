@@ -35,6 +35,7 @@ import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.layoutlib.AndroidTargets;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -259,7 +260,7 @@ public class ConfigurationTest extends AndroidTestCase {
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
 
     for (IAndroidTarget target : manager.getTargets()) {
-      if (ConfigurationManager.isLayoutLibTarget(target)) {
+      if (AndroidTargets.isLayoutLibTarget(target)) {
         manager.setTarget(target);
         break;
       }

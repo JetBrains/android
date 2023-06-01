@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.module.AndroidModuleInfo;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -143,7 +144,7 @@ public class TargetMenuAction extends DropDownAction {
 
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
-      if (!ConfigurationManager.isLayoutLibTarget(target)) {
+      if (!AndroidTargets.isLayoutLibTarget(target)) {
         continue;
       }
 
