@@ -62,6 +62,12 @@
     <notificationGroup id="LAYOUT_INSPECTOR_DISCOVERY" displayType="TOOL_WINDOW" toolWindowId="Running Devices"/>
   </extensions>
 
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.getComposeLayoutInspectorJarToken"
+                    interface="com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposeLayoutInspectorJarToken"
+                    area="IDEA_PROJECT"/>
+  </extensionPoints>
+
   <projectListeners>
     <listener class="com.android.tools.idea.layoutinspector.LayoutInspectorExecutionListener"
               topic="com.intellij.execution.ExecutionListener"/>

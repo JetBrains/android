@@ -133,6 +133,8 @@ iml_module(
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )
 
@@ -239,4 +241,24 @@ iml_studio_test(
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorViewIntegrationTest",
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.layout-inspector.gradle",
+    srcs = ["gradle/src"],
+    iml_files = ["gradle/intellij.android.layout-inspector.gradle.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module]",
+        "//tools/adt/idea/app-inspection/api:app-inspection.api[module]",
+        "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
+        "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+    ],
 )

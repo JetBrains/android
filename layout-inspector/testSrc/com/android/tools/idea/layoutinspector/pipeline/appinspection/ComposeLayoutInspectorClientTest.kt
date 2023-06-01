@@ -42,13 +42,15 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COM
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_MAY_CAUSE_APP_CRASH_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient.Companion.resolveFolder
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposeLayoutInspectorJarGradleToken.Companion.determineArtifactId
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INCOMPATIBLE_LIBRARY_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.INSPECTOR_NOT_FOUND_USE_SNAPSHOT_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MAVEN_DOWNLOAD_PROBLEM
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MINIMUM_COMPOSE_COORDINATE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PROGUARDED_LIBRARY_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.VERSION_MISSING_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.determineArtifactId
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportNonExistingFileException
 import com.google.common.truth.Truth.assertThat
@@ -115,6 +117,8 @@ class ComposeLayoutInspectorClientTest {
       "myAvd",
       "/android/avds/myAvd"
     )
+    ProjectSystemService.getInstance(projectRule.project)
+      .replaceProjectSystemForTests(GradleProjectSystem(projectRule.project))
   }
 
   @Test

@@ -12,7 +12,11 @@ iml_module(
         "no_test_mac",  # b/174646037
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
+    ],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",

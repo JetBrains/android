@@ -202,6 +202,7 @@ studio_plugin(
             "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding",
             "//tools/adt/idea/android-lang:intellij.android.lang",
             "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector",
+            "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
             "//tools/adt/idea/layout-ui:intellij.android.layout-ui",
             "//tools/adt/idea/logcat:intellij.android.logcat",
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
