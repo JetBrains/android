@@ -1024,6 +1024,9 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
         Classes
             -                             : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest
             -                             : file://<PROJECT>/kmpFirstLib/build/processedResources/android/instrumentedTest
@@ -1103,9 +1106,12 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.commonMain
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.androidMain
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.commonMain
         Classes
             -                             : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/main
             -                             : file://<PROJECT>/kmpFirstLib/build/processedResources/android/main
@@ -1187,6 +1193,9 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonTest
         Classes
             -                             : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/unitTest
@@ -1267,8 +1276,11 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+        ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.commonMain
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.androidMain
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.commonMain
         Classes
             -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpFirstLib.commonMain
         BUILD_TASKS

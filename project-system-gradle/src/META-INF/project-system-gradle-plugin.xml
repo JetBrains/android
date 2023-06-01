@@ -143,6 +143,9 @@
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea">
     <extrasSerialization implementation="org.jetbrains.kotlin.android.extensions.KotlinAndroidExtrasSerializationService"/>
   </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <mppProjectResolve implementation="org.jetbrains.kotlin.android.extensions.KotlinMppAndroidProjectResolverExtension"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
