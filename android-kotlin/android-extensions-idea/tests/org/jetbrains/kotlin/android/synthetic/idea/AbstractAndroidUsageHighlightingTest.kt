@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.android
+package org.jetbrains.kotlin.android.synthetic.idea
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.codeInsight.highlighting.actions.HighlightUsagesAction
 import com.intellij.testFramework.ExpectedHighlightingData
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 
 
 abstract class AbstractAndroidUsageHighlightingTest : KotlinAndroidTestCase() {

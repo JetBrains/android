@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.android
+package org.jetbrains.kotlin.android.synthetic.idea
 
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.kotlin.android.testCompletion
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import java.io.File
 

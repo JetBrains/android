@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.android
+package org.jetbrains.kotlin.android.synthetic.idea
 
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 
 abstract class AbstractAndroidRenameTest : KotlinAndroidTestCase() {
     private val NEW_NAME = "NEWNAME"

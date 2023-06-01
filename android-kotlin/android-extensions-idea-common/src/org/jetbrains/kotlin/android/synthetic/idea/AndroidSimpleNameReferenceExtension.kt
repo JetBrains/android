@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.android.synthetic.idea
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
 import org.jetbrains.kotlin.android.synthetic.AndroidConst
 import org.jetbrains.kotlin.android.synthetic.androidIdToName
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference

@@ -3,18 +3,17 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.android;
+package org.jetbrains.kotlin.android.synthetic.idea;
 
 import com.intellij.testFramework.TestDataPath;
 import org.jetbrains.kotlin.android.KotlinTestUtils;
-import org.junit.runner.RunWith;
 
 @SuppressWarnings("all")
 @TestDataPath("$PROJECT_ROOT")
-public class AndroidExtractionTestGenerated extends AbstractAndroidExtractionTest {
+public class AndroidUsageHighlightingTestGenerated extends AbstractAndroidUsageHighlightingTest {
 
-    public void testToTopLevelFun() throws Exception {
-        String fileName = KotlinTestUtils.navigationMetadata("android-extensions-idea/testData/android/extraction/toTopLevelFun/");
+    public void testSimple() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("android-extensions-idea/testData/android/usageHighlighting/simple/");
         doTest(fileName);
     }
 }

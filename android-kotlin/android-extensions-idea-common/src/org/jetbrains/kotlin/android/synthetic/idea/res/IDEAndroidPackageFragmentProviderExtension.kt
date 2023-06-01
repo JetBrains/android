@@ -6,7 +6,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ClearableLazyValue
 import org.jetbrains.kotlin.analyzer.ModuleInfo
-import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
+import org.jetbrains.kotlin.android.synthetic.idea.AndroidModuleInfoProvider
 import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsEnabled
 import org.jetbrains.kotlin.android.synthetic.idea.androidExtensionsIsExperimental
 import org.jetbrains.kotlin.android.synthetic.idea.findAndroidModuleInfo

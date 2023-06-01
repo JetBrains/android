@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin
+package org.jetbrains.kotlin.android.synthetic.idea
 
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.psi.PsiElement

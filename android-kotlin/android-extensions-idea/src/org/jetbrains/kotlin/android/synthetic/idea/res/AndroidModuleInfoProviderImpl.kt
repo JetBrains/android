@@ -3,7 +3,7 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.android.model.impl
+package org.jetbrains.kotlin.android.synthetic.idea.res
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
@@ -13,8 +13,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.kotlin.android.model.AndroidModuleInfoProvider
+import org.jetbrains.kotlin.android.synthetic.idea.AndroidModuleInfoProvider
 
+@Deprecated("This is used exclusively by the deprecated Kotlin synthetics code, and it will be deleted soon")
 class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModuleInfoProvider {
     private val androidFacet: AndroidFacet?
         get() = AndroidFacet.getInstance(module)

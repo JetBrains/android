@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.android
+package org.jetbrains.kotlin.android.synthetic.idea
 
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
 import com.intellij.psi.xml.XmlAttributeValue
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.psi.KtElement

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.android
+package org.jetbrains.kotlin.android.synthetic.idea
+
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
 
 
 abstract class AbstractAndroidFindUsagesTest : KotlinAndroidTestCase() {

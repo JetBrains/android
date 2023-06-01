@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.android
+package org.jetbrains.kotlin.android.synthetic.idea
 
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -28,6 +28,9 @@ import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.util.CommonRefactoringUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.SmartFMap
+import org.jetbrains.kotlin.android.InTextDirectivesUtils
+import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.kotlin.android.KotlinTestUtils
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.EXTRACT_FUNCTION
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.ExtractKotlinFunctionHandler
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractableCodeDescriptorWithConflicts
