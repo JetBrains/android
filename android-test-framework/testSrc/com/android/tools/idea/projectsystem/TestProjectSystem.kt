@@ -54,6 +54,7 @@ import java.util.concurrent.CountDownLatch
  * This implementation of AndroidProjectSystem is used during integration tests and includes methods
  * to stub project system functionalities.
  */
+@Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
 class TestProjectSystem @JvmOverloads constructor(
   val project: Project,
   availableDependencies: List<GradleCoordinate> = listOf(),
@@ -69,6 +70,7 @@ class TestProjectSystem @JvmOverloads constructor(
   /**
    * Injects this project system into the [project] it was created for.
    */
+  @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
   fun useInTests() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
   }
