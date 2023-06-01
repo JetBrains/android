@@ -108,9 +108,9 @@ public class ConfigurationProjectState {
   }
 
   @Nullable
-  static IAndroidTarget fromTargetString(@NotNull ConfigurationManager manager, @Nullable String targetString) {
+  static IAndroidTarget fromTargetString(@NotNull ConfigurationSettings settings, @Nullable String targetString) {
     if (targetString != null) {
-      for (IAndroidTarget target : manager.getTargets()) {
+      for (IAndroidTarget target : settings.getTargets()) {
         if (targetString.equals(target.hashString()) && AndroidTargets.isLayoutLibTarget(target)) {
           return target;
         }
