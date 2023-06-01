@@ -323,6 +323,9 @@ internal class DeviceView(
 
     // Draw device display.
     decoder.consumeDisplayFrame { displayFrame ->
+      if (frameNumber == 0) {
+        hideLongRunningOperationIndicatorInstantly()
+      }
       if (displayOrientationQuadrants != displayFrame.orientation ||
           deviceDisplaySize.width != 0 && deviceDisplaySize.width != displayFrame.displaySize.width ||
           deviceDisplaySize.height != 0 && deviceDisplaySize.height != displayFrame.displaySize.height) {

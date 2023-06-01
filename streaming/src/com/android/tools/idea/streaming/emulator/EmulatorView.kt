@@ -442,6 +442,9 @@ class EmulatorView(
     super.paintComponent(graphics)
 
     val screenshot = lastScreenshot ?: return
+    if (frameNumber == 0) {
+      hideLongRunningOperationIndicatorInstantly()
+    }
     val skin = screenshot.skinLayout
     assert(screenshotShape.width != 0)
     assert(screenshotShape.height != 0)

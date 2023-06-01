@@ -23,7 +23,6 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
@@ -73,7 +72,6 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   /** Size of the device's native display. */
   internal abstract val deviceDisplaySize: Dimension
   /** The number of the last rendered display frame. */
-  @get:VisibleForTesting
   var frameNumber: Int = 0
     protected set
 
@@ -204,7 +202,6 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   }
 
   protected fun hideDisconnectedStateMessage() {
-    hideLongRunningOperationIndicatorInstantly()
     disconnectedStatePanel.isVisible = false
     reconnectButton.action = null
     revalidate()
