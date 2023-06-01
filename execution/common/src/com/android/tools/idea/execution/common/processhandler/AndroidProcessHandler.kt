@@ -21,9 +21,6 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.run.DeploymentApplicationService
-import com.intellij.execution.DefaultExecutionTarget
-import com.intellij.execution.ExecutionTargetManager
-import com.intellij.execution.KillableProcess
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
@@ -65,7 +62,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { textEmitter, listener ->
     AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, listener,
                                  finishAndroidProcessCallback)
-  }) : ProcessHandler(), KillableProcess, DeviceAwareProcessHandler {
+  }) : ProcessHandler(), DeviceAwareProcessHandler {
 
   companion object {
     private var LOG = Logger.getInstance(AndroidProcessHandler::class.java)
@@ -192,22 +189,8 @@ class AndroidProcessHandler @JvmOverloads constructor(
   @AnyThread
   override fun getProcessInput(): OutputStream? = null
 
-  /**
-   * We provide a custom implementation to tie the device combo box selector to the global Stop button.
-   * Note the global Stop button prefers the result of this method over content descriptor internal state,
-   * but the tool window Stop button prefers the content descriptor internal state over this method.
-   */
   @AnyThread
-  override fun canKillProcess(): Boolean {
-    val activeTarget = ExecutionTargetManager.getInstance(project).activeTarget
-    if (activeTarget === DefaultExecutionTarget.INSTANCE || activeTarget !is AndroidExecutionTarget) {
-      return false
-    }
-    return areAnyDevicesAssociated(activeTarget)
-  }
-
-  @AnyThread
-  override fun killProcess() {
+  fun killProcess() {
     destroyProcess()
   }
 

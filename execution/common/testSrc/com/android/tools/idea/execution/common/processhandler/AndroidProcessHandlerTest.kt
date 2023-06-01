@@ -23,7 +23,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessListener
@@ -217,38 +216,6 @@ class AndroidProcessHandlerTest {
     assertThat(handler.isProcessTerminated).isTrue()
   }
 
-  @Test
-  fun canKillProcess_returnsFalseWhenNoAssociatedDevices() {
-    assertThat(handler.canKillProcess()).isFalse()
-  }
-
-  @Test
-  fun canKillProcess_returnsTrueWhenThereIsAnyAssociatedDevice() {
-    val nonAssociatedDevice = mock(IDevice::class.java)
-    val associatedDevice = mock(IDevice::class.java)
-
-    whenever(mockExecutionTarget.runningDevices).thenReturn(listOf(nonAssociatedDevice, associatedDevice))
-    whenever(mockMonitorManager.isAssociated(associatedDevice)).thenReturn(true)
-
-    assertThat(handler.canKillProcess()).isTrue()
-  }
-
-  @Test
-  fun canKillProcess_returnsFalseWhenThereAreNoAssociatedDevices() {
-    val nonAssociatedDevice1 = mock(IDevice::class.java)
-    val nonAssociatedDevice2 = mock(IDevice::class.java)
-
-    whenever(mockExecutionTarget.runningDevices).thenReturn(listOf(nonAssociatedDevice1, nonAssociatedDevice2))
-
-    assertThat(handler.canKillProcess()).isFalse()
-  }
-
-  @Test
-  fun canKillProcess_returnsFalseWhenActiveTargetIsNotAndroidTarget() {
-    whenever(mockExecutionTargetManager.activeTarget).thenReturn(mock(ExecutionTarget::class.java))
-
-    assertThat(handler.canKillProcess()).isFalse()
-  }
 
   @Test
   fun processHandlerShouldAutoTerminateWhenAutoTerminateIsEnabled() {
