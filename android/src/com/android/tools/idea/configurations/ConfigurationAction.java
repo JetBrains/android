@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
+import com.android.tools.configurations.ConfigurationListener;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;

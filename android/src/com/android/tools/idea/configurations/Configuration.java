@@ -16,18 +16,18 @@
 package com.android.tools.idea.configurations;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ACTIVITY;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ADAPTIVE_SHAPE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_DEVICE_STATE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_FONT_SCALE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NAME;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NIGHT_MODE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_THEME;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
-import static com.android.tools.idea.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
+import static com.android.tools.configurations.ConfigurationListener.CFG_ACTIVITY;
+import static com.android.tools.configurations.ConfigurationListener.CFG_ADAPTIVE_SHAPE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_DEVICE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_DEVICE_STATE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_FONT_SCALE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_LOCALE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_NAME;
+import static com.android.tools.configurations.ConfigurationListener.CFG_NIGHT_MODE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_TARGET;
+import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
+import static com.android.tools.configurations.ConfigurationListener.CFG_UI_MODE;
+import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -59,6 +59,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.configurations.AdaptiveIconShape;
+import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.configurations.ThemeInfoProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;

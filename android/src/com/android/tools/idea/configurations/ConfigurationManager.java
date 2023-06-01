@@ -16,8 +16,8 @@
 package com.android.tools.idea.configurations;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
+import static com.android.tools.configurations.ConfigurationListener.CFG_LOCALE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_TARGET;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Bridge;

@@ -17,9 +17,8 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationForFile
-import com.android.tools.idea.configurations.ConfigurationListener
+import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType

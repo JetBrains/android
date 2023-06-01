@@ -17,7 +17,7 @@ package com.android.tools.idea.configurations
 
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
 import com.android.resources.LayoutDirection
-import com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE
+import com.android.tools.configurations.ConfigurationListener.CFG_LOCALE
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 

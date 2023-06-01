@@ -29,7 +29,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
+import com.android.tools.configurations.ConfigurationListener;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.notebook.editor.BackedVirtualFile;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.configurations;
 
 /** Interface implemented by clients getting notified about configuration attribute changes */
 public interface ConfigurationListener {

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.configurations;
 
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_ACTIVITY;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_NIGHT_MODE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_THEME;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_UI_MODE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_ACTIVITY;
+import static com.android.tools.configurations.ConfigurationListener.CFG_NIGHT_MODE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
+import static com.android.tools.configurations.ConfigurationListener.CFG_UI_MODE;
 
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.configuration.DensityQualifier;
@@ -35,6 +35,7 @@ import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.layoutlib.AndroidTargets;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;

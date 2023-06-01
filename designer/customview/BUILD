@@ -24,6 +24,7 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationListener
+import com.android.tools.configurations.ConfigurationListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 

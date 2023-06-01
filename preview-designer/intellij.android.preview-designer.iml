@@ -20,5 +20,6 @@
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.rendering" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
   </component>
 </module>
