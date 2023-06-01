@@ -53,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 // TODO(namespaces): Cache AAR contents if namespaces are used.
 public class ResourceResolverCache {
   /** The configuration manager this cache corresponds to. */
-  private final ConfigurationManager myManager;
+  private final ConfigurationSettings mySettings;
   private final Object myLock = new Object();
 
   /** Map from theme and full configuration to the corresponding resource resolver. */
@@ -95,8 +95,8 @@ public class ResourceResolverCache {
   @GuardedBy("myLock")
   private String myCustomResolverKey;
 
-  public ResourceResolverCache(ConfigurationManager manager) {
-    myManager = manager;
+  public ResourceResolverCache(ConfigurationManager settings) {
+    mySettings = settings;
   }
 
   @Slow
@@ -104,7 +104,7 @@ public class ResourceResolverCache {
                                                        @NotNull String themeStyle,
                                                        @NotNull FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
+    ResourceRepositoryManager repositoryManager = mySettings.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }
@@ -133,7 +133,7 @@ public class ResourceResolverCache {
     ResourceResolver resolver = getCachedResolver(resolverKey);
     if (resolver == null) {
       if (target == null) {
-        target = myManager.getTarget();
+        target = mySettings.getTarget();
       }
 
       // Framework resources.
@@ -217,7 +217,7 @@ public class ResourceResolverCache {
 
     AndroidTargetData targetData = getCachedTargetData(apiLevel);
     if (targetData == null) {
-      AndroidPlatform platform = myManager.getConfigModule().getAndroidPlatform();
+      AndroidPlatform platform = mySettings.getConfigModule().getAndroidPlatform();
       if (platform == null) {
         return null;
       }
@@ -227,7 +227,7 @@ public class ResourceResolverCache {
 
     LocaleQualifier locale = configuration.getLocaleQualifier();
     if (locale == null) {
-      locale = myManager.getLocale().qualifier;
+      locale = mySettings.getLocale().qualifier;
     }
     String language = locale.getLanguage();
     Set<String> languages = language == null ? ImmutableSet.of() : ImmutableSet.of(language);
