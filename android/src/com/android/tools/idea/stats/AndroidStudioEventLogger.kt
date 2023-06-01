@@ -18,7 +18,11 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
 import com.google.wireless.android.sdk.stats.DebuggerEvent
+import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated
+import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated.FileTypeInfo
+import com.google.wireless.android.sdk.stats.DebuggerEvent.Type.FRAMES_VIEW_UPDATED
 import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
 import com.google.wireless.android.sdk.stats.KotlinGradlePerformance
@@ -31,8 +35,10 @@ import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
 import com.intellij.internal.statistic.eventLog.EventLogConfiguration
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
+import com.intellij.internal.statistic.eventLog.events.EventFields
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
+import com.intellij.xdebugger.impl.XDebuggerActionsCollector
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.util.Locale
@@ -52,6 +58,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
       "run.configuration.exec" -> logRunConfigurationExec(eventId, data)
       "vfs" -> logVfsEvent(eventId, data)
       "debugger.breakpoints.usage" -> logDebuggerBreakpointsUsage(eventId, data)
+      "xdebugger.actions" -> logDebuggerEvent(eventId, data)
     }
     return CompletableFuture.completedFuture(null)
   }
@@ -242,6 +249,43 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     }
   }
 
+
+  private fun logDebuggerEvent(eventId: String, data: Map<String, Any>) {
+    val event = when (eventId) {
+      XDebuggerActionsCollector.EVENT_FRAMES_UPDATED -> {
+        @Suppress("UnstableApiUsage")
+        val durationMs = data[EventFields.DurationMs.name] as? Long ?: return
+        val totalFrames = data[XDebuggerActionsCollector.TOTAL_FRAMES] as? Int ?: return
+
+        @Suppress("UNCHECKED_CAST")
+        val fileTypes = data[XDebuggerActionsCollector.FILE_TYPES] as? List<String> ?: return
+
+        @Suppress("UNCHECKED_CAST")
+        val framesPerFileType = data[XDebuggerActionsCollector.FRAMES_PER_TYPE] as? List<Int> ?: return
+
+        val fileTypeInfos = fileTypes.zip(framesPerFileType).map { (type, frames) ->
+          FileTypeInfo.newBuilder()
+            .setFileType(type)
+            .setNumFrames(frames)
+            .build()
+        }
+        DebuggerEvent.newBuilder()
+          .setType(FRAMES_VIEW_UPDATED)
+          .setFramesViewUpdated(
+            FramesViewUpdated.newBuilder()
+              .setDurationMs(durationMs)
+              .setTotalFrames(totalFrames)
+              .addAllFileTypeInfos(fileTypeInfos)
+          )
+      }
+
+      else -> return
+    }
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(DEBUGGER_EVENT)
+        .setDebuggerEvent(event))
+  }
 
   /**
    * Adds the associated project from the IntelliJ anonymization project id to the builder
