@@ -26,6 +26,7 @@ import com.android.ide.common.resources.ResourceResolver.THEME_NAME
 import com.android.resources.ScreenSize
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
+import com.android.tools.configurations.ThemeInfoProvider
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
 import com.android.tools.dom.ActivityAttributesSnapshot

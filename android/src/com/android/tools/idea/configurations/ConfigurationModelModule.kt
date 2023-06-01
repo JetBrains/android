@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations
 
 import com.android.sdklib.IAndroidTarget
+import com.android.tools.configurations.ThemeInfoProvider
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
