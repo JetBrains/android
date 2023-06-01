@@ -93,6 +93,17 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
     }
   }
 
+  /** Adds a notification panel that is removed when its close icon is clicked. */
+  fun showNotification(notificationPanel: EditorNotificationPanel) {
+    add(notificationPanel)
+    notificationPanel.setCloseAction { remove(notificationPanel) }
+  }
+
+  /** Removes the given notification panel. */
+  fun hideNotification(notificationPanel: EditorNotificationPanel) {
+    remove(notificationPanel)
+  }
+
   /** Shows a fade-out notification with the given text. */
   fun showFadeOutNotification(text: String) {
     fadeOutNotificationContent.text = text
