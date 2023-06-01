@@ -95,7 +95,7 @@ public class ResourceResolverCache {
   @GuardedBy("myLock")
   private String myCustomResolverKey;
 
-  public ResourceResolverCache(ConfigurationManager settings) {
+  public ResourceResolverCache(ConfigurationSettings settings) {
     mySettings = settings;
   }
 
