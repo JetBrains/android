@@ -62,6 +62,7 @@ internal object PairedDevicesTable {
 
   object Type : Column<PairedDeviceData, Icon?, IconLabel> {
     override val name = DeviceManagerBundle.message("column.title.type")
+    override val columnHeaderName = "" // no room for a name
     override val attribute =
       object : Attribute<PairedDeviceData, Icon?> {
         override val sorter = null

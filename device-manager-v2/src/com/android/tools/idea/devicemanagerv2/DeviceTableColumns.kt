@@ -54,6 +54,7 @@ internal object DeviceTableColumns {
   /** Renders the type of device as an icon. */
   object Type : Column<DeviceRowData, DeviceType, IconLabel> {
     override val name = DeviceManagerBundle.message("column.title.formfactor")
+    override val columnHeaderName = "" // no room for a name
 
     override val attribute = TypeAttribute
 
@@ -104,6 +105,7 @@ internal object DeviceTableColumns {
 
   object Status : Column<DeviceRowData, DeviceRowData.Status, IconLabel> {
     override val name = "Status"
+    override val columnHeaderName = "" // no room for a name
     override val attribute =
       object : Attribute<DeviceRowData, DeviceRowData.Status> {
         override val sorter: Comparator<DeviceRowData.Status> = naturalOrder()

@@ -26,7 +26,12 @@ import javax.swing.JComponent
  * @param U the JComponent used to render this value
  */
 interface Column<T, C, U : JComponent> {
+  /** The name of the column. */
   val name: String
+
+  /** If overridden, an alternative name to be used in column headers. */
+  val columnHeaderName: String
+    get() = name
 
   /** Provides the value of this column for a given row value. */
   val attribute: Attribute<T, C>
