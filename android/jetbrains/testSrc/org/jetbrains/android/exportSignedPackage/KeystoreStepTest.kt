@@ -24,9 +24,12 @@ import com.google.common.truth.Truth
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
+import com.intellij.facet.FacetManager
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
+import com.intellij.mock.MockModule
+import com.intellij.openapi.Disposable
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
@@ -173,7 +176,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     keystoreStep._init()
   }
 
-  fun testModuelDropDownEnabledByDefault() {
+  fun testModuleDropDownEnabledByDefault() {
     val wizard = setupWizardHelper()
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val keystoreStep = KeystoreStep(wizard, true, facets)
@@ -187,6 +190,23 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     assertEquals(false, keystoreStep.myModuleCombo.isEnabled)
+  }
+
+  fun testModuleDropDownOrder() {
+    val wizard = setupWizardHelper()
+    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
+    val unsortedModulesOrder = listOf("appB", "app1", "appD", "xappC", "appA")
+    unsortedModulesOrder.forEach { name ->
+      facets.add(FakeAndroidFacet(name, testRootDisposable))
+    }
+    val keystoreStep = KeystoreStep(wizard, true, facets)
+    keystoreStep._init()
+
+    val expectedModulesOrder = listOf("app1", "appA", "appB", "appD", "xappC")
+    val currentModulesOrder = (0 until keystoreStep.myModuleCombo.itemCount).map {
+      keystoreStep.myModuleCombo.getItemAt(it).module.name
+    }
+    assertEquals(expectedModulesOrder, currentModulesOrder)
   }
 
   fun testUpdatesInvalidSelection() {
@@ -204,27 +224,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
     keystoreStep._init()
     assertEquals(myAndroidFacet2, keystoreStep.myModuleCombo.selectedItem)
-  }
-
-  fun setupWizardHelper(): ExportSignedPackageWizard {
-    val testKeyStorePath = "/test/path/to/keystore"
-    val testKeyAlias = "testkey"
-
-    val settings = GenerateSignedApkSettings()
-    settings.KEY_STORE_PATH = testKeyStorePath
-    settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = true
-
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
-
-    val passwordSafeSettings = PasswordSafeSettings()
-    passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
-    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
-
-    val wizard = mock(ExportSignedPackageWizard::class.java)
-    whenever(wizard.project).thenReturn(project)
-    return wizard
   }
 
   fun testRememberPasswords() {
@@ -532,5 +531,37 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     Truth.assertThat(keystoreStep.helpId).startsWith(AndroidWebHelpProvider.HELP_PREFIX + "studio/publish/app-signing")
+  }
+
+  private class FakeAndroidFacet(
+    moduleName: String,
+    disposable: Disposable
+  ) : AndroidFacet(MockModule(disposable), NAME, AndroidFacetConfiguration()) {
+    init {
+      val module = module as MockModule
+      module.name = moduleName
+      module.addComponent(FacetManager::class.java, mock(FacetManager::class.java))
+    }
+  }
+
+  private fun setupWizardHelper(): ExportSignedPackageWizard {
+    val testKeyStorePath = "/test/path/to/keystore"
+    val testKeyAlias = "testkey"
+
+    val settings = GenerateSignedApkSettings()
+    settings.KEY_STORE_PATH = testKeyStorePath
+    settings.KEY_ALIAS = testKeyAlias
+    settings.REMEMBER_PASSWORDS = true
+
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
+
+    val passwordSafeSettings = PasswordSafeSettings()
+    passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
+    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
+    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
+
+    val wizard = mock(ExportSignedPackageWizard::class.java)
+    whenever(wizard.project).thenReturn(project)
+    return wizard
   }
 }
