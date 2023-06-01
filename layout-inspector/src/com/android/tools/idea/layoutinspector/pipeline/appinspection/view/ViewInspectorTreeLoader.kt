@@ -62,7 +62,7 @@ class ViewInspectorTreeLoader(
         appContext !== LayoutInspectorViewProtocol.AppContext.getDefaultInstance()) {
       folderConfig = configuration.convert(process.device.apiLevel)
       val context = appContext.convert()
-      val theme = context.theme.createReference(viewNodeCreator.strings)
+      val theme = context.createThemeReference(viewNodeCreator.strings, process.packageName)
       resourceLookup.updateConfiguration(
         folderConfig, theme, process, configuration.fontScale, context.mainDisplayOrientation, context.screenSize)
     }

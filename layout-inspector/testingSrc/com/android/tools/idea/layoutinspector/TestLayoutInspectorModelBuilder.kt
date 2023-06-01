@@ -276,7 +276,7 @@ class InspectorModelDescriptor(val project: Project, private val scheduler: Sche
       val strings = TestStringTable()
       val builder = ConfigurationParamsBuilder(strings)
       val context = builder.makeSampleContext(project)
-      val theme = context.theme.createReference(strings)
+      val theme = context.theme?.createReference(strings)
       val process = builder.makeSampleProcess(project)
       model.resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), theme, process, screenSize = context.screenSize,
                                                mainDisplayOrientation = context.mainDisplayOrientation)
