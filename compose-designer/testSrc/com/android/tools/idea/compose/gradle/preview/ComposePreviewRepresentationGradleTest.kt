@@ -271,6 +271,7 @@ class ComposePreviewRepresentationGradleTest {
         TwoElementsPreview
         NavigatablePreview
         OnlyATextNavigation
+        MyPreviewWithInline
       """
         .trimIndent(),
       fakeUi
@@ -317,7 +318,7 @@ class ComposePreviewRepresentationGradleTest {
     withContext(uiThread) { fakeUi.root.validate() }
 
     assertEquals(
-      listOf("DefaultPreview", "OnlyATextNavigation", "TwoElementsPreview"),
+      listOf("DefaultPreview", "MyPreviewWithInline", "OnlyATextNavigation", "TwoElementsPreview"),
       fakeUi
         .findAllComponents<SceneViewPeerPanel>()
         .filter { it.isShowing }
