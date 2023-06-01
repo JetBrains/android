@@ -13,18 +13,20 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.labelTable
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
+import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.GraphicsEnvironment
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JSlider
-import org.jetbrains.android.uipreview.AndroidEditorSettings
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val CONFIGURABLE_ID = "nele.options"
 private val DISPLAY_NAME =
@@ -127,21 +129,50 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
           }
         }
       }
+
       group("Compose Preview") {
-        if (StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
-          row {
-            checkBox("Enable live updates")
-              .bindSelected(fastPreviewState::isEnabled) {
-                fastPreviewState.isEnabled = it
+        if (StudioFlags.COMPOSE_PREVIEW_LITE_MODE.get()) {
+          buttonsGroup("Resource Usage:") {
+            lateinit var defaultModeRadioButton: Cell<JBRadioButton>
+            row {
+              defaultModeRadioButton =
+                radioButton("Default")
+                  .bindSelected({ !state.isComposePreviewLiteModeEnabled }) {
+                    state.isComposePreviewLiteModeEnabled = !it
+                  }
+            }
+            if (StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
+              indent {
+                row {
+                  checkBox("Enable live updates")
+                    .bindSelected(fastPreviewState::isEnabled) {
+                      fastPreviewState.isEnabled = it
+                    }
+                    .enabledIf(defaultModeRadioButton.selected)
+                }
               }
+            }
+            row {
+              val liteModeHint = "When using Essentials Mode, Preview will preserve resources by inflating previews on demand and" +
+                                 " disabling live updates and preview modes. " +
+                                 "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
+
+              radioButton("Essentials")
+                .comment(liteModeHint)
+                .bindSelected(state::isComposePreviewLiteModeEnabled) {
+                  state.isComposePreviewLiteModeEnabled = it
+                }
+            }
           }
         }
-        if (StudioFlags.COMPOSE_PREVIEW_LITE_MODE.get()) {
-          row {
-            checkBox("Enable Compose Preview Essentials Mode")
-              .bindSelected(state::isComposePreviewLiteModeEnabled) {
-                state.isComposePreviewLiteModeEnabled = it
-              }
+        else {
+          if (StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
+            row {
+              checkBox("Enable live updates")
+                .bindSelected(fastPreviewState::isEnabled) {
+                  fastPreviewState.isEnabled = it
+                }
+            }
           }
         }
       }
