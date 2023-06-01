@@ -21,7 +21,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.getAppThemeName
 import com.android.tools.idea.configurations.getDefaultTheme

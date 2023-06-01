@@ -46,5 +46,6 @@ iml_module(
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )

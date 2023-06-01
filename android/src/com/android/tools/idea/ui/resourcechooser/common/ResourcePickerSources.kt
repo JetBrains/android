@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcechooser.common
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 
 /**
  * An enum for the different possible sources where resources could be loaded from for the Resource Picker.

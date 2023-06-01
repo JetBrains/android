@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;

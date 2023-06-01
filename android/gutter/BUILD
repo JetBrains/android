@@ -41,5 +41,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
         "//tools/adt/idea/android:intellij.android.core.tests[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
 )

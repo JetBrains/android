@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.model;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import junit.framework.TestCase;
 
 import static com.android.tools.idea.uibuilder.model.TextDirection.LEFT_TO_RIGHT;

@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations
 import com.android.resources.NightMode
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.selectionBackground
+import com.android.tools.configurations.Configuration
 import com.intellij.ide.ui.laf.darcula.ui.DarculaMenuSeparatorUI
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -54,7 +55,6 @@ import javax.swing.JComponent
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
-import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicMenuItemUI
 
 private const val POPUP_VERTICAL_BORDER = 6

@@ -22,7 +22,7 @@ import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.res.resolveColor
 import com.google.common.annotations.VisibleForTesting
 import org.intellij.lang.annotations.MagicConstant

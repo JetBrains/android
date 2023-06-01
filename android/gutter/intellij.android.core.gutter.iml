@@ -18,5 +18,6 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
   </component>
 </module>

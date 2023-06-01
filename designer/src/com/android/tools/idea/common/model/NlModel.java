@@ -34,7 +34,7 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;

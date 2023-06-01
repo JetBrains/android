@@ -21,7 +21,7 @@ import static com.android.tools.rendering.ProblemSeverity.WARNING;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;

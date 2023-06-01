@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.configurations;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 import static com.android.tools.configurations.ConfigurationListener.CFG_ACTIVITY;
@@ -58,9 +58,6 @@ import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.configurations.AdaptiveIconShape;
-import com.android.tools.configurations.ConfigurationListener;
-import com.android.tools.configurations.ThemeInfoProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.layoutlib.LayoutlibContext;

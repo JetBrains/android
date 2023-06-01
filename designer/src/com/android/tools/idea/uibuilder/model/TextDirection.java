@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 
 import static com.android.SdkConstants.*;
 

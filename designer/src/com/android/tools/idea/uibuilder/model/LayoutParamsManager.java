@@ -27,7 +27,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.tools.dom.attrs.AttributeDefinition;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.res.FloatResources;
 import com.android.tools.res.ids.ResourceIdManager;

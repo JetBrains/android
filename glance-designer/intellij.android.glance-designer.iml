@@ -19,5 +19,6 @@
     <orderEntry type="module" module-name="intellij.android.preview-designer" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
   </component>
 </module>

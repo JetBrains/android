@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.configurations.Configuration
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile

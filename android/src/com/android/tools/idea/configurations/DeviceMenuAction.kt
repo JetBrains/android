@@ -20,6 +20,7 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.avdmanager.AvdWizardUtils

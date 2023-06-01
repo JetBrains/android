@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.ide.common.rendering.api.ResourceValue
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
@@ -37,7 +37,8 @@ import java.util.function.Supplier
 private val FRAMEWORK_DRAWABLE_KEY = Key.create<FrameworkDrawableRenderer>(FrameworkDrawableRenderer::class.java.name)
 
 private fun createRenderTask(facet: AndroidFacet,
-                             configuration: Configuration): CompletableFuture<RenderTask?> {
+                             configuration: Configuration
+): CompletableFuture<RenderTask?> {
   return StudioRenderService.getInstance(facet.module.project)
     .taskBuilder(facet, configuration)
     .build()

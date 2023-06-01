@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.configurations;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
@@ -59,7 +59,7 @@ public class ResourceResolverCache {
   /** Map from theme and full configuration to the corresponding resource resolver. */
   @VisibleForTesting
   @GuardedBy("myLock")
-  final Map<String, ResourceResolver> myResolverMap = new HashMap<>();
+  public final Map<String, ResourceResolver> myResolverMap = new HashMap<>();
 
   /**
    * Map of configured app resources. These are cached separately from the final resource
@@ -69,7 +69,7 @@ public class ResourceResolverCache {
    */
   @VisibleForTesting
   @GuardedBy("myLock")
-  final Map<String, Table<ResourceNamespace, ResourceType, ResourceValueMap>> myAppResourceMap = new HashMap<>();
+  public final Map<String, Table<ResourceNamespace, ResourceType, ResourceValueMap>> myAppResourceMap = new HashMap<>();
 
   /**
    * Map of configured resources from Android framework. These are cached separately from the final resource
@@ -77,7 +77,7 @@ public class ResourceResolverCache {
    */
   @VisibleForTesting
   @GuardedBy("myLock")
-  final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap = new HashMap<>();
+  public final Map<String, Map<ResourceType, ResourceValueMap>> myFrameworkResourceMap = new HashMap<>();
 
   /** The generation timestamp of our most recently cached app resources, used to invalidate on edits. */
   @GuardedBy("myLock")

@@ -21,7 +21,7 @@ import com.android.resources.ResourceFolderType
 import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.getResourceVariations
 import com.android.tools.idea.ui.designer.EditorDesignSurface

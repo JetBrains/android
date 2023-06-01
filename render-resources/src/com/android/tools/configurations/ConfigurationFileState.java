@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations;
+package com.android.tools.configurations;
 
 import com.android.resources.NightMode;
 import com.android.resources.UiMode;
@@ -138,7 +138,7 @@ public class ConfigurationFileState {
    */
   @Contract("!null, _ -> !null")
   @Nullable
-  static State getState(@Nullable Device device, @Nullable String name) {
+  public static State getState(@Nullable Device device, @Nullable String name) {
     if (device == null) {
       return null;
     }

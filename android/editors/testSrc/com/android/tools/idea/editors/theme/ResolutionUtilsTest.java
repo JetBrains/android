@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;

@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;

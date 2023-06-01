@@ -20,7 +20,7 @@ import com.android.resources.ScreenOrientation
 import com.android.resources.UiMode
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.ide.common.resources.Locale

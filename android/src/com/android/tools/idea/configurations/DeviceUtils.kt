@@ -22,6 +22,7 @@ import com.android.ide.common.rendering.HardwareConfigHelper.*
 import com.android.ide.common.rendering.api.HardwareConfig
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
+import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID

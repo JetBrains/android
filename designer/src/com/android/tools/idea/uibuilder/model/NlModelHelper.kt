@@ -24,7 +24,7 @@ import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.util.text.StringUtil

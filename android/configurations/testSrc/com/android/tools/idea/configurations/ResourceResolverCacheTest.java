@@ -21,6 +21,8 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ResourceResolverCache;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.Iterables;

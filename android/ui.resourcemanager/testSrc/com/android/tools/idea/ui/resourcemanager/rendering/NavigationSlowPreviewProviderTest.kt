@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset

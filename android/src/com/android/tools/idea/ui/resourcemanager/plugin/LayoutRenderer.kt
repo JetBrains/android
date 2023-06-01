@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.plugin
 
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
@@ -47,7 +47,8 @@ private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.n
 
 private fun createRenderTask(facet: AndroidFacet,
                              xmlFile: XmlFile,
-                             configuration: Configuration): CompletableFuture<RenderTask?> {
+                             configuration: Configuration
+): CompletableFuture<RenderTask?> {
   return StudioRenderService.getInstance(facet.module.project)
     .taskBuilder(facet, configuration)
     .withPsiFile(PsiXmlFile(xmlFile))

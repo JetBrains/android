@@ -19,7 +19,7 @@ import com.android.resources.NightMode
 import com.android.resources.UiMode
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.configurations.AdaptiveIconShape
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.sdk.CompatibilityRenderTarget

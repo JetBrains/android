@@ -28,7 +28,7 @@ import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -83,7 +83,6 @@ import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.psi.KtExpression;
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
-import org.jetbrains.kotlin.psi.KtPsiFactoryKt;
 import org.xmlpull.v1.XmlPullParser;
 
 /**

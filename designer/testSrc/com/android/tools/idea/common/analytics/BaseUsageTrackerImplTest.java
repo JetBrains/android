@@ -27,7 +27,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.AnalyticsSettingsData;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import java.util.List;
 import java.util.concurrent.Executor;

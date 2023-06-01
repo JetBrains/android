@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.configurations.ConfigurationFileState;
+import com.android.tools.configurations.ConfigurationProjectState;
+import com.android.tools.configurations.ConfigurationStateManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;

@@ -26,7 +26,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.ImageUtils;
 import com.android.testutils.ImageDiffUtil;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;

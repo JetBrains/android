@@ -28,7 +28,7 @@ import com.android.sdklib.devices.State
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.type.typeOf
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.vfs.VirtualFile
 import kotlin.math.sqrt

@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.configurations
+package com.android.tools.configurations
 
 import com.android.sdklib.IAndroidTarget
-import com.android.tools.configurations.ThemeInfoProvider
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies

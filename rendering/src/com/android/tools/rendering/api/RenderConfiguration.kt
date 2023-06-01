@@ -22,7 +22,7 @@ import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.AdaptiveIconShape
 
-/** Facade on decoupling rendering from [com.android.tools.idea.configurations.Configuration]. */
+/** Facade on decoupling rendering from [com.android.tools.configurations.Configuration]. */
 interface RenderConfiguration {
   val activity: String?
 

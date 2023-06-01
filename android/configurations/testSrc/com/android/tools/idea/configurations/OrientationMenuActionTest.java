@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.configurations.Configuration;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DataContext;

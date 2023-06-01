@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.ui.resourcechooser.CompactResourcePicker
 import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder

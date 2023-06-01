@@ -22,7 +22,7 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.idea.rendering.createRenderTaskErrorResult

@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder

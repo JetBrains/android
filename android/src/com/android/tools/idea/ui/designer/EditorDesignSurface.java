@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.designer;
 
 import com.android.tools.adtui.common.AdtPrimaryPanel;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Iterables;

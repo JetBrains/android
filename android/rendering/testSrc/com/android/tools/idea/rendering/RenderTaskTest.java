@@ -37,7 +37,7 @@ import com.android.resources.ResourceType;
 import com.android.testutils.ImageDiffUtil;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.Wallpaper;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;

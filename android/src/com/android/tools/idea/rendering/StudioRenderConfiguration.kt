@@ -21,7 +21,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.AdaptiveIconShape
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.rendering.api.RenderConfiguration
 
 /** [RenderConfiguration] wrapping [Configuration]. */

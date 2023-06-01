@@ -18,6 +18,8 @@ package com.android.tools.idea.configurations
 import com.android.sdklib.devices.Device
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
+import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.ConfigurationModelModule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt

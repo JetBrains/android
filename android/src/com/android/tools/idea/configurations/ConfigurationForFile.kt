@@ -23,6 +23,9 @@ import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
+import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.ConfigurationFileState
+import com.android.tools.configurations.ConfigurationSettings
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.res.getFolderType
 import com.intellij.openapi.application.ApplicationManager
@@ -139,7 +142,7 @@ class ConfigurationForFile(
     @JvmStatic
     fun create(base: Configuration, file: VirtualFile): Configuration {
       // TODO: Figure out whether we need this, or if it should be replaced by a call to ConfigurationManager#createSimilar()
-      val configuration = ConfigurationForFile(file, base.mySettings, FolderConfiguration.copyOf(base.editedConfig))
+      val configuration = ConfigurationForFile(file, base.settings, FolderConfiguration.copyOf(base.editedConfig))
       configuration.copyFrom(base)
 
       configuration.editedConfig.set(FolderConfiguration.getConfigForFolder(file.parent.name))

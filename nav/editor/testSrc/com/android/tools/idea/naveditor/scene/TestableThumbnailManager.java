@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene;
 
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;

@@ -26,8 +26,8 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.sdklib.repository.targets.SystemImage
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.configurations.Configuration
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.DeviceType
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerParameter

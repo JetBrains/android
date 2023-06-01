@@ -26,7 +26,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderUtils;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.google.common.collect.ImmutableList;

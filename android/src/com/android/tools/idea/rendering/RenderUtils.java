@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.StudioConfigurationModelModule;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceClassRegistry;

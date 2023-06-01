@@ -51,7 +51,7 @@ import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
 import com.android.tools.idea.flags.StudioFlags;

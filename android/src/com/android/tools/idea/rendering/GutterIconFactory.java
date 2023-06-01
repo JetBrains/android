@@ -20,7 +20,7 @@ import static com.android.SdkConstants.DOT_XML;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.vectordrawable.VdPreview;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.XmlUtils;

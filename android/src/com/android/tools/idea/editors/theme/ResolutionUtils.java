@@ -33,7 +33,7 @@ import com.android.resources.RClassNaming;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.lint.common.LintIdeClient;

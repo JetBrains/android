@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.SessionParams
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.rendering.RenderTask

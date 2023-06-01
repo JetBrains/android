@@ -16,11 +16,11 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
+import com.android.tools.configurations.Configuration;
 import com.android.xml.AttrNameSplitter;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.res.IdeResourcesUtil;

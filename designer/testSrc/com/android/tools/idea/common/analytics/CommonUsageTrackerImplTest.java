@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.tools.rendering.RenderResult;

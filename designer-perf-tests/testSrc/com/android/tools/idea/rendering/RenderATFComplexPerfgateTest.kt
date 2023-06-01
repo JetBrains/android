@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.rendering.RenderResult

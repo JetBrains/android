@@ -24,7 +24,7 @@ import android.widget.LinearLayout;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.Density;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.google.common.collect.ImmutableMap;
 import java.util.EnumSet;
 import java.util.Map;

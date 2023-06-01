@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService

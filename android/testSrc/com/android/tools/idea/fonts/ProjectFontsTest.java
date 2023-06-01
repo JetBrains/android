@@ -26,7 +26,7 @@ import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.fonts.ProjectFonts;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Joiner;

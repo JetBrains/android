@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 

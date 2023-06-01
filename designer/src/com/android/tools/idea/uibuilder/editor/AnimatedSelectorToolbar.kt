@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.uibuilder.type.TEMP_ANIMATED_SELECTOR_FOLDER
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
@@ -199,7 +199,8 @@ class AnimatedSelectorModel(originalFile: VirtualFile,
                             project: Project,
                             facet: AndroidFacet,
                             componentRegistrar: Consumer<NlComponent>,
-                            config: Configuration) {
+                            config: Configuration
+) {
 
   private var animationTags: Map<String, XmlTag>
   private val tempModelFile: VirtualFile
@@ -249,11 +250,11 @@ class AnimatedSelectorModel(originalFile: VirtualFile,
   }
 
   private fun createModelWithFile(parentDisposable: Disposable,
-                          project: Project,
-                          facet: AndroidFacet,
-                          componentRegistrar: Consumer<NlComponent>,
-                          config: Configuration,
-                          file: VirtualFile): NlModel {
+                                  project: Project,
+                                  facet: AndroidFacet,
+                                  componentRegistrar: Consumer<NlComponent>,
+                                  config: Configuration,
+                                  file: VirtualFile): NlModel {
     val psiXmlFile = file.toPsiFile(project) as XmlFile
     psiXmlFile.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
 

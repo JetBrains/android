@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.sdklib.IAndroidTarget
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.RenderingException

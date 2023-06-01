@@ -29,7 +29,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.JBInsets;

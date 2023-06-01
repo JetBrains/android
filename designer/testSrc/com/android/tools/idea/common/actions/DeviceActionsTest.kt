@@ -17,7 +17,7 @@ package com.android.tools.idea.common.actions
 
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.surface.TestDesignSurface
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceChangeListener
 import com.android.tools.idea.configurations.DeviceMenuAction

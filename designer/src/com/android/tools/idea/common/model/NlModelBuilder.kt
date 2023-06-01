@@ -17,7 +17,7 @@ package com.android.tools.idea.common.model
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
