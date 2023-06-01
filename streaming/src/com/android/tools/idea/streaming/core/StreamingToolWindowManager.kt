@@ -44,6 +44,7 @@ import com.android.tools.idea.streaming.core.RunningDevicePanel.UiState
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
+import com.android.tools.idea.streaming.device.composeDeviceName
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
@@ -800,6 +801,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         add(Separator.getInstance())
       }
 
+      val remoteDevices = deviceProvisioner.reservedAndStartableDevices()
+      if (remoteDevices.isNotEmpty()) {
+        add(Separator("Remote Devices"))
+        for (device in remoteDevices) {
+          add(StartRemoteDeviceAction(device))
+        }
+        add(Separator.getInstance())
+      }
+
       val avds = getStartableAvds().sortedBy { it.displayName }
       if (avds.isNotEmpty()) {
         add(Separator("Virtual Devices"))
@@ -809,12 +819,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         add(Separator.getInstance())
       }
 
-      val remoteDevices = deviceProvisioner.reservedAndStartableDevices()
-      if (remoteDevices.isNotEmpty()) {
-        add(Separator("Remote Devices"))
-        remoteDevices.forEach { add(StartRemoteDeviceAction(it)) }
-        add(Separator.getInstance())
-      }
       add(ActionManager.getInstance().getAction(PairDevicesUsingWiFiAction.ID))
     }
   }
@@ -957,6 +961,17 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
+  private inner class StartRemoteDeviceAction(
+    private val device: DeviceHandle,
+  ) : DumbAwareAction(device.sourceTemplate?.properties?.composeDeviceName(), null, device.sourceTemplate?.properties?.deviceType?.icon) {
+
+    override fun actionPerformed(event: AnActionEvent) {
+      device.scope.launch { device.activationAction?.activate() }
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  }
+
   private inner class StartAvdAction(
     private val avd: AvdInfo,
     private val project: Project,
@@ -976,16 +991,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
           }
         }
       }
-    }
-
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-  }
-
-  private inner class StartRemoteDeviceAction(private val device: DeviceHandle)
-    : DumbAwareAction(device.sourceTemplate?.properties?.title ?: "Unknown") {
-
-    override fun actionPerformed(event: AnActionEvent) {
-      device.scope.launch { device.activationAction?.activate() }
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -1016,11 +1021,11 @@ private fun DeviceProvisioner.connectedDevices(): Flow<List<ConnectedDevice>> {
   return mapStateNotNull { handle, state -> (state as? DeviceState.Connected)?.let { ConnectedDevice(handle, it) } }
 }
 
-private fun DeviceProvisioner.reservedAndStartableDevices(): List<DeviceHandle> =
-  devices.value.filter { handle ->
-    handle.state.reservation?.state == ReservationState.ACTIVE &&
-    handle.activationAction?.presentation?.value?.enabled == true
+private fun DeviceProvisioner.reservedAndStartableDevices(): List<DeviceHandle> {
+  return devices.value.filter {
+    it.state.reservation?.state == ReservationState.ACTIVE && it.activationAction?.presentation?.value?.enabled == true
   }
+}
 
 private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
   if (!isOnline()) {

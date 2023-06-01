@@ -40,34 +40,40 @@ class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName
   val isAutomotive: Boolean
     get() = deviceProperties.deviceType == DeviceType.AUTOMOTIVE
 
-  val deviceName: String
+  val deviceName: String = deviceProperties.composeDeviceName(useTitleAsName)
 
   val hasOrientationSensors: Boolean = true // TODO Obtain sensor info from the device.
-
-  init {
-    deviceName = if (useTitleAsName) {
-      deviceProperties.title
-    } else {
-      val name = StringBuilder()
-      val model = deviceModel
-      if (!model.isNullOrBlank()) {
-        if (!model.startsWith("Pixel")) {
-          val manufacturer = deviceProperties.manufacturer
-          if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
-            name.append(StringUtil.capitalize(manufacturer)).append(' ')
-          }
-        }
-        name.append(deviceModel)
-      }
-      else {
-        name.append("unknown")
-      }
-      name.append(" API ").append(apiLevel)
-      name.toString()
-    }
-  }
 }
 
 fun DeviceInfo.Builder.fillFrom(deviceConfiguration: DeviceConfiguration): DeviceInfo.Builder {
   return fillFrom(deviceConfiguration.deviceProperties)
+}
+
+internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false): String {
+  if (this == null) {
+    return "Unknown"
+  }
+  if (useTitleAsName) {
+    return title
+  }
+
+  val name = StringBuilder()
+  val model = model
+  if (!model.isNullOrBlank()) {
+    if (!model.startsWith("Pixel")) {
+      val manufacturer = manufacturer
+      if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
+        name.append(StringUtil.capitalize(manufacturer)).append(' ')
+      }
+    }
+    name.append(model)
+  }
+  else {
+    name.append("unknown")
+  }
+  val apiLevel = androidVersion?.apiLevel
+  if (apiLevel != null) {
+    name.append(" API ").append(apiLevel)
+  }
+  return name.toString()
 }
