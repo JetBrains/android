@@ -49,8 +49,7 @@ sealed class TestTabProvider(override val displayName: String) : AppInsightsTabP
       override val offlineStatusManager = OfflineStatusManagerImpl()
     }
 
-  override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) =
-    TODO("Not yet implemented")
+  override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) = Unit
 
   override fun getConfigurationManager(project: Project) = configManager
 

@@ -16,10 +16,11 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.AppInsightsPersistentStateComponent
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.popup.Balloon
@@ -72,8 +73,7 @@ class ActionToolbarListenerForOfflineBalloon(
             override fun hyperlinkActivated(e: HyperlinkEvent) {
               balloon.hide()
               if (e.description == DISMISS_OFFLINE_NOTIFICATION_KEY) {
-                AppInsightsPersistentStateComponent.getInstance(project)
-                  .isOfflineNotificationDismissed = true
+                project.service<AppInsightsSettings>().isOfflineNotificationDismissed = true
               }
             }
           }
@@ -102,8 +102,7 @@ class ActionToolbarListenerForOfflineBalloon(
           actionButton.isVisible = mode == ConnectionMode.OFFLINE
           if (
             mode == ConnectionMode.OFFLINE &&
-              !AppInsightsPersistentStateComponent.getInstance(project)
-                .isOfflineNotificationDismissed
+              !project.service<AppInsightsSettings>().isOfflineNotificationDismissed
           ) {
             showOfflineNotificationBalloon(actionButton)
           }

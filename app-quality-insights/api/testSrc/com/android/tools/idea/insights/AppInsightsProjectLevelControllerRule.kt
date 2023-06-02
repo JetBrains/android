@@ -133,8 +133,6 @@ class AppInsightsProjectLevelControllerRule(
       assertThat(consumeNext().mode == ConnectionMode.ONLINE).isTrue()
     }
     var resultState = consumeNext()
-    assertThat(resultState.filters.versions)
-      .isEqualTo(MultiSelection(state.value.versions.toSet(), state.value.versions))
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeDetailsCallWith(detailsState)
@@ -188,7 +186,7 @@ class AppInsightsProjectLevelControllerRule(
   fun selectVersions(values: Set<Version>) = controller.selectVersions(values)
   fun selectTimeInterval(value: TimeIntervalFilter) = controller.selectTimeInterval(value)
   fun selectSignal(value: SignalType) = controller.selectSignal(value)
-
+  fun selectOsVersion(value: Set<OperatingSystemInfo>) = controller.selectOperatingSystems(value)
   fun selectDevices(values: Set<Device>) = controller.selectDevices(values)
   fun selectFirebaseConnection(value: Connection) = controller.selectConnection(value)
   fun toggleFatality(value: FailureType) = controller.toggleFailureType(value)

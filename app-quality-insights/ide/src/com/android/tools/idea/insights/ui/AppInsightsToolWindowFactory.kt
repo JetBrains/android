@@ -16,8 +16,10 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -27,7 +29,10 @@ import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.serviceContainer.AlreadyDisposedException
+import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
+import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import icons.StudioIcons
 import javax.swing.event.HyperlinkListener
 import org.jetbrains.annotations.VisibleForTesting
@@ -81,6 +86,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   @VisibleForTesting
   fun createTabs(project: Project, toolWindow: ToolWindow) {
     val contentFactory = ContentFactory.getInstance()
+    var selectedTab: Content? = null
 
     AppInsightsTabProvider.EP_NAME.extensionList
       .filter { it.isApplicable() }
@@ -94,7 +100,20 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
           }
         tabContent.setDisposer(tabPanel)
         toolWindow.contentManager.addContent(tabContent)
+        if (tabProvider.displayName == project.service<AppInsightsSettings>().selectedTabId) {
+          selectedTab = tabContent
+        }
       }
+    if (selectedTab != null) {
+      toolWindow.contentManager.setSelectedContent(selectedTab!!)
+    }
+    toolWindow.contentManager.addContentManagerListener(
+      object : ContentManagerListener {
+        override fun selectionChanged(event: ContentManagerEvent) {
+          project.service<AppInsightsSettings>().selectedTabId = event.content.tabName
+        }
+      }
+    )
 
     toolWindow.setContentUiType(ToolWindowContentUiType.TABBED, null)
     toolWindow.show()

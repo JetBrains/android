@@ -36,6 +36,7 @@ import com.android.tools.idea.insights.events.FatalityToggleChanged
 import com.android.tools.idea.insights.events.IntervalChanged
 import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.OSesChanged
+import com.android.tools.idea.insights.events.PersistSettingsAdapter
 import com.android.tools.idea.insights.events.ResetSnapshot
 import com.android.tools.idea.insights.events.SafeFiltersAdapter
 import com.android.tools.idea.insights.events.SelectedIssueChanged
@@ -45,10 +46,13 @@ import com.android.tools.idea.insights.events.VisibilityChanged
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueue
+import com.android.tools.idea.insights.persistence.AppInsightsSettings
+import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableSetMultimap
 import com.google.common.collect.SetMultimap
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -65,6 +69,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
@@ -130,6 +135,24 @@ class AppInsightsProjectLevelControllerImpl(
   private val mutableIssuesPerFilename: AtomicReference<SetMultimap<String, IssueInFrame>> =
     AtomicReference(ImmutableSetMultimap.of())
 
+  private val settings: InsightsFilterSettings?
+    get() = project.service<AppInsightsSettings>().tabSettings[key.displayName]
+
+  /** Restores persisted settings on the first non empty connections list. */
+  private val connectionsFlow = flow {
+    var shouldRestorePreviousConfig = true
+    appConnection.collect { connections ->
+      val (filters, savedConnection) =
+        if (shouldRestorePreviousConfig && connections.isNotEmpty()) {
+          shouldRestorePreviousConfig = false
+          Pair(settings?.overwriteFilters(defaultFilters) ?: defaultFilters, settings?.connection)
+        } else {
+          Pair(defaultFilters, null)
+        }
+      emit(wrapAdapters(ConnectionsChanged(connections, filters, savedConnection)))
+    }
+  }
+
   init {
     val initialState =
       ProjectState(
@@ -148,8 +171,8 @@ class AppInsightsProjectLevelControllerImpl(
     @Suppress("RequiredOptIn")
     state =
       merge(
-          eventFlow.map { SafeFiltersAdapter(it) },
-          appConnection.map { SafeFiltersAdapter(ConnectionsChanged(it, defaultFilters)) },
+          eventFlow.map { wrapAdapters(it) },
+          connectionsFlow,
           offlineStatusManager.offlineStatus.map { it.toEvent() }
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
@@ -326,6 +349,9 @@ class AppInsightsProjectLevelControllerImpl(
       "Found ${issues.size} issues related to ${file.name} [\n${formattedIssues}], analyzing..."
     )
   }
+
+  private fun wrapAdapters(event: ChangeEvent) =
+    PersistSettingsAdapter(SafeFiltersAdapter(event), project, key)
 }
 
 data class IssueInFrame(val crashFrame: CrashFrame, val issue: AppInsightsIssue)
