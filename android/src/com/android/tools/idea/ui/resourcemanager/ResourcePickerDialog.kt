@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.getResourceUrlFromQualifiedName
+import com.android.tools.res.getResourceUrlFromQualifiedName
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressIndicator

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("ResourceUtils")
-package com.android.tools.idea.res
+package com.android.tools.res
 
 import com.android.SdkConstants
 import com.intellij.openapi.util.text.StringUtil

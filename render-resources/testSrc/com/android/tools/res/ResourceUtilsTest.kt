@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res
+package com.android.tools.res
 
-import junit.framework.TestCase
+import com.android.tools.res.getStyleResourceUrl
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
-class ResourceUtilsTest : TestCase(){
+class ResourceUtilsTest {
 
   /**
    * Tests [ResolutionUtils.getStyleResourceUrl]
    */
+  @Test
   fun testGetStyleResourceUrl() {
     assertEquals("@android:style/Theme", getStyleResourceUrl("android:Theme"))
     assertEquals("@namespace:style/Theme", getStyleResourceUrl("namespace:Theme"))
