@@ -82,6 +82,9 @@ class ResourceLookup(private val project: Project) {
   var screenDimension: Dimension? = null
     @VisibleForTesting set
 
+  var displayOrientation: Int? = null
+    private set
+
   /**
    * Updates the configuration after a possible configuration change detected on the device.
    */
@@ -97,6 +100,7 @@ class ResourceLookup(private val project: Project) {
     fontScale = fontScaleFromConfig.takeIf { it > 0f }
     resolver = createResolver(folderConfig, appContext, stringTable, process)
     screenDimension = Dimension(appContext.screenWidth, appContext.screenHeight).takeIf { it.height > 0 && it.width > 0 }
+    displayOrientation = appContext.mainDisplayOrientation
   }
 
   /**

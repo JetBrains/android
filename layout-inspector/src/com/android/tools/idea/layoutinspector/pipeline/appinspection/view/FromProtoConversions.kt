@@ -138,7 +138,8 @@ fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
   return AppContext(
     theme.convert(),
     screenWidth,
-    screenHeight
+    screenHeight,
+    mainDisplayOrientation
   )
 }
 

@@ -392,7 +392,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val model = inspectorRule.inspectorModel
     val stringTable = TestStringTable()
     val theme = stringTable.add(ResourceReference.style(appNamespace, "AppTheme"))!!
-    val context = AppContext(theme, screenWidth = 600, screenHeight = 800)
+    val context = AppContext(theme, screenWidth = 600, screenHeight = 800, mainDisplayOrientation = 90)
     model.resourceLookup.updateConfiguration(FolderConfiguration(), 1f, context, stringTable, MODERN_PROCESS)
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(

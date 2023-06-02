@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.util.TestStringTable
@@ -41,7 +42,6 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
 import java.awt.Rectangle
-import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 class ResourceLookupTest {
 
@@ -56,10 +56,11 @@ class ResourceLookupTest {
     val resourceLookup = ResourceLookup(projectRule.project)
     val table = TestStringTable()
     val theme = table.add(ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light"))!!
-    val appContext = AppContext(theme, 1440, 3120)
+    val appContext = AppContext(theme, 1440, 3120, 90)
     val process = MODERN_DEVICE.createProcess("com.example.test")
     resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), 1.0f, appContext, table, process)
     assertThat(resourceLookup.resolver).isNotNull()
+    assertThat(resourceLookup.displayOrientation).isEqualTo(90)
   }
 
   @Test
@@ -69,7 +70,7 @@ class ResourceLookupTest {
     val resourceLookup = ResourceLookup(projectRule.project)
     val table = TestStringTable()
     val theme = table.add(ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light"))!!
-    val appContext = AppContext(theme, 1440, 3120)
+    val appContext = AppContext(theme, 1440, 3120, 90)
     val process = MODERN_DEVICE.createProcess("com.example.test.debug")
     resourceLookup.updateConfiguration(FolderConfiguration.createDefault(), 1.0f, appContext, table, process)
     assertThat(resourceLookup.resolver).isNotNull()

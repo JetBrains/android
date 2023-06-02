@@ -37,7 +37,8 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
     return AppContext(
       theme = strings.add(ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme"))!!,
       screenWidth = 1080,
-      screenHeight = 1920
+      screenHeight = 1920,
+      mainDisplayOrientation = 90
     )
   }
 
