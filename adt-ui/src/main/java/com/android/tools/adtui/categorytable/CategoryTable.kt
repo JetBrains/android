@@ -70,6 +70,14 @@ class CategoryTable<T : Any>(
   private val rowDataProvider: ValueRowDataProvider<T> = NullValueRowDataProvider,
 ) : JBPanel<CategoryTable<T>>(), Scrollable {
 
+  /** The listener called when a category row is clicked. */
+  var categoryRowMouseClickListener: CategoryRowMouseClickListener<T> =
+    DefaultCategoryRowMouseClickListener()
+
+  /** The listener called when a column header is clicked. */
+  var categoryTableHeaderClickListener: CategoryTableHeaderClickListener<T> =
+    DefaultCategoryTableHeaderClickListener()
+
   internal val header =
     CategoryTableHeader(columns, { columnSorters.firstOrNull() }, ::mouseClickedOnHeader).also {
       it.reorderingAllowed = false
@@ -211,18 +219,10 @@ class CategoryTable<T : Any>(
   }
 
   private fun mouseClickedOnHeader(e: MouseEvent) {
-    if (SwingUtilities.isLeftMouseButton(e)) {
-      val columnIndex = header.columnAtPoint(e.point)
-      if (columnIndex != -1) {
-        val column = columns[header.viewIndexToModelIndex(columnIndex)]
-        if (e.clickCount == 1) {
-          toggleSortOrder(column.attribute)
-        } else if (e.clickCount == 2) {
-          if (column.attribute.isGroupable) {
-            addGrouping(column.attribute)
-          }
-        }
-      }
+    val columnIndex = header.columnAtPoint(e.point)
+    if (columnIndex != -1) {
+      val column = columns[header.viewIndexToModelIndex(columnIndex)]
+      categoryTableHeaderClickListener.columnHeaderClicked(e, this, column)
     }
   }
 
@@ -416,13 +416,8 @@ class CategoryTable<T : Any>(
       it.addMouseListener(
         object : MouseAdapter() {
           override fun mouseClicked(e: MouseEvent) {
-            if (SwingUtilities.isLeftMouseButton(e)) {
-              when (e.clickCount) {
-                1 -> toggleCollapsed(categoryList)
-                2 -> removeGrouping(categoryList.last().attribute)
-                else -> {}
-              }
-            }
+            categoryRowMouseClickListener.categoryRowClicked(e, this@CategoryTable, categoryList)
+
             // Forward the event to the Table, whose mouse handler will select the row clicked.
             e.forward(from = it, to = this@CategoryTable)
           }
@@ -607,6 +602,36 @@ class CategoryTable<T : Any>(
     val unselectedForeground: Color,
     val unselectedBackground: Color
   )
+}
+
+interface CategoryRowMouseClickListener<T : Any> {
+  fun categoryRowClicked(e: MouseEvent, table: CategoryTable<T>, path: CategoryList<T>)
+}
+
+/** Toggles expanding / collapsing the category when clicked. */
+open class DefaultCategoryRowMouseClickListener<T : Any> : CategoryRowMouseClickListener<T> {
+  override fun categoryRowClicked(e: MouseEvent, table: CategoryTable<T>, path: CategoryList<T>) {
+    if (SwingUtilities.isLeftMouseButton(e)) {
+      table.toggleCollapsed(path)
+    }
+  }
+}
+
+interface CategoryTableHeaderClickListener<T : Any> {
+  fun columnHeaderClicked(e: MouseEvent, table: CategoryTable<T>, column: Column<T, *, *>)
+}
+
+/** Sorts the column when clicked. */
+open class DefaultCategoryTableHeaderClickListener<T : Any> : CategoryTableHeaderClickListener<T> {
+  override fun columnHeaderClicked(
+    e: MouseEvent,
+    table: CategoryTable<T>,
+    column: Column<T, *, *>
+  ) {
+    if (SwingUtilities.isLeftMouseButton(e)) {
+      table.toggleSortOrder(column.attribute)
+    }
+  }
 }
 
 /**
