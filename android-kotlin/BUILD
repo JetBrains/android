@@ -55,6 +55,11 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
     ],
     test_srcs = ["android-extensions-idea/tests"],
+    test_tags = [
+        # Kotlin synthetics are deprecated and will not be supported with Kotlin K2.
+        # See https://android-developers.googleblog.com/2022/02/discontinuing-kotlin-synthetics-for-views.html
+        "no_k2",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common"],
     # do not sort: must match IML order
