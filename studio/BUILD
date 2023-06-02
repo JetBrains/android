@@ -651,6 +651,27 @@ studio_plugin(
     ],
 )
 
+studio_plugin(
+    name = "com.android.tools.declarativegradle.focus",
+    directory = "declarative-gradle-focus",
+    libs = [
+        "//tools/adt/idea/.idea/libraries:tomlj",
+    ],
+    modules = {
+        "declarative-gradle-focus.jar": [
+            "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
+            "//tools/base/declarative-gradle/model:studio.declarative-gradle.model",
+        ],
+    },
+    visibility = ["//visibility:public"],
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+    ],
+)
+
 exports_files([
     "codesign/entitlements.xml",
 ])
@@ -692,6 +713,7 @@ android_studio(
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",
         ":com.google.targetsdkversionassistant",
+        ":com.android.tools.declarativegradle.focus",
     ],
     properties = select({
         "//conditions:default": [],
@@ -880,6 +902,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin[module]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module]",
         "//tools/vendor/google/android-apk[module]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module]",

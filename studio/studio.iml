@@ -8,6 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-gradle" level="project" />
+    <orderEntry type="module" module-name="declarative-gradle.focus-plugin" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.plugin" />
     <orderEntry type="module" module-name="android-apk" />
