@@ -108,7 +108,7 @@ else {
 }
 
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType` and `KtTypeRenderer`.
-private fun KtAnalysisSession.asFqName(type: KtType) = type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
+internal fun KtAnalysisSession.asFqName(type: KtType) = type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
 
 internal fun KtFunction.hasComposableAnnotation() = if (isK2Plugin()) {
   findAnnotation(ComposeFqNames.Composable) != null

@@ -16,6 +16,7 @@
 package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.COMPOSE_MODIFIER_FQN
+import com.android.tools.compose.asFqName
 import com.android.tools.compose.callReturnTypeFqName
 import com.android.tools.compose.isComposeEnabled
 import com.android.tools.compose.matchingParamTypeFqName
@@ -35,14 +36,22 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.fir.utils.addImportToFile
+import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.markers.KtNamedSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolWithVisibility
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
+import org.jetbrains.kotlin.idea.base.fir.codeInsight.HLIndexHelper
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
@@ -52,9 +61,12 @@ import org.jetbrains.kotlin.idea.completion.CollectRequiredTypesContextVariables
 import org.jetbrains.kotlin.idea.completion.CompletionSession
 import org.jetbrains.kotlin.idea.completion.InsertHandlerProvider
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
+import org.jetbrains.kotlin.idea.completion.impl.k2.ImportStrategyDetector
+import org.jetbrains.kotlin.idea.completion.lookups.factories.KotlinFirLookupElementFactory
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.core.isVisible
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
@@ -67,6 +79,7 @@ import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -93,6 +106,40 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
  * @see COMPOSE_MODIFIER_FQN
  */
 class ComposeModifierCompletionContributor : CompletionContributor() {
+  @Suppress("UnstableApiUsage")
+  private fun KtAnalysisSession.fillCompletionVariants(
+    parameters: CompletionParameters,
+    nameExpression: KtSimpleNameExpression,
+    isMethodCalledOnImportedModifier: Boolean,
+    resultSet: CompletionResultSet,
+  ) {
+    val originalPosition = parameters.position
+    val extensionFunctionSymbols = getExtensionFunctionsForModifier(nameExpression, originalPosition, resultSet.prefixMatcher)
+
+    ProgressManager.checkCanceled()
+    val (returnsModifier, others) = extensionFunctionSymbols.partition { asFqName(it.returnType)?.asString() == COMPOSE_MODIFIER_FQN }
+    val lookupElementFactory = KotlinFirLookupElementFactory()
+    val importStrategyDetector = ImportStrategyDetector(nameExpression.containingKtFile, nameExpression.project)
+
+    val isNewModifier = !isMethodCalledOnImportedModifier && originalPosition.parentOfType<KtDotQualifiedExpression>() == null
+    //Prioritise functions that return Modifier over other extension function.
+    resultSet.addAllElements(
+      toLookupElements(returnsModifier, lookupElementFactory, importStrategyDetector, 2.0, insertModifier = isNewModifier))
+    //If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
+    if (isMethodCalledOnImportedModifier) {
+      resultSet.addAllElements(toLookupElements(others, lookupElementFactory, importStrategyDetector, 0.0, insertModifier = isNewModifier))
+    }
+
+    ProgressManager.checkCanceled()
+
+    //If method is called on modifier [KotlinCompletionContributor] will add extensions function one more time, we need to filter them out.
+    if (isMethodCalledOnImportedModifier) {
+      val extensionFunctionsNames = extensionFunctionSymbols.mapNotNull { (it as? KtNamedSymbol)?.name?.asString() }.toSet()
+      resultSet.runRemainingContributors(parameters) { completionResult ->
+        consumerCompletionResultFromRemainingContributor(completionResult, extensionFunctionsNames, originalPosition, resultSet)
+      }
+    }
+  }
 
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
     val element = parameters.position
@@ -110,6 +157,14 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val nameExpression = createNameExpression(element)
 
+    if (isK2Plugin()) {
+      analyze(nameExpression) {
+        fillCompletionVariants(parameters, nameExpression, isMethodCalledOnImportedModifier, resultSet)
+      }
+      return
+    }
+
+    // For K1
     val extensionFunctions = getExtensionFunctionsForModifier(nameExpression, element, resultSet.prefixMatcher)
 
     ProgressManager.checkCanceled()
@@ -189,6 +244,20 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
   }
 
+  @Suppress("UnstableApiUsage")
+  private fun KtAnalysisSession.toLookupElements(
+    functionSymbols: List<KtCallableSymbol>,
+    lookupElementFactory: KotlinFirLookupElementFactory,
+    importStrategyDetector: ImportStrategyDetector,
+    weight: Double,
+    insertModifier: Boolean
+  ) = functionSymbols.map { symbol ->
+    with(lookupElementFactory) {
+      val lookupElement = createLookupElement(symbol as KtNamedSymbol, importStrategyDetector)
+      PrioritizedLookupElement.withPriority(ModifierLookupElement(lookupElement, insertModifier), weight)
+    }
+  }
+
   /**
    * Creates LookupElementFactory that is similar to the one kotlin-plugin uses during completion session.
    * Code partially copied from [CompletionSession].
@@ -230,6 +299,33 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val file = KtPsiFactory.contextual(originalFile).createFile("temp.kt", "val x = $COMPOSE_MODIFIER_FQN.call")
     return file.getChildOfType<KtProperty>()!!.getChildOfType<KtDotQualifiedExpression>()!!.lastChild as KtSimpleNameExpression
+  }
+
+  private fun KtAnalysisSession.findReceiverSymbol(element: KtElement): KtClassOrObjectSymbol? {
+    val namedReferenceExpression =
+      when (element) {
+        is KtNameReferenceExpression -> element
+        else -> element.childrenOfType<KtNameReferenceExpression>().singleOrNull()
+      } ?: return null
+    val reference = namedReferenceExpression.mainReference as? KtSimpleNameReference ?: return null
+    return reference.resolveToSymbol() as? KtClassOrObjectSymbol
+  }
+
+  private fun KtAnalysisSession.getExtensionFunctionsForModifier(
+    nameExpression: KtSimpleNameExpression,
+    originalPosition: PsiElement,
+    prefixMatcher: PrefixMatcher
+  ): Collection<KtCallableSymbol> {
+    val file = nameExpression.containingFile as KtFile
+    val fileSymbol = file.getFileSymbol()
+    val searchScope = getResolveScope(file)
+    val callTypeAndReceiver = CallTypeAndReceiver.detect(nameExpression)
+    val receiverSymbol = callTypeAndReceiver.receiver?.let { findReceiverSymbol(it) }
+    return HLIndexHelper(nameExpression.project, searchScope).getTopLevelExtensions(
+      { name -> prefixMatcher.prefixMatches(name.asString()) }, setOfNotNull(
+      receiverSymbol?.classIdIfNonLocal?.shortClassName?.identifier)).mapNotNull { it.getSymbol() as? KtCallableSymbol }.filter {
+      isVisible(it as KtSymbolWithVisibility, fileSymbol, callTypeAndReceiver.receiver as? KtExpression, originalPosition)
+    }
   }
 
   private fun getExtensionFunctionsForModifier(
@@ -332,8 +428,12 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
       }
       val ktFile = context.file as KtFile
-      val modifierDescriptor = ktFile.resolveImportReference(FqName(COMPOSE_MODIFIER_FQN)).singleOrNull()
-      modifierDescriptor?.let { ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, it) }
+      if (isK2Plugin()) {
+        addImportToFile(context.project, ktFile, FqName(COMPOSE_MODIFIER_FQN))
+      } else {
+        val modifierDescriptor = ktFile.resolveImportReference(FqName(COMPOSE_MODIFIER_FQN)).singleOrNull()
+        modifierDescriptor?.let { ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, it) }
+      }
       psiDocumentManager.commitAllDocuments()
       psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
       super.handleInsert(context)
