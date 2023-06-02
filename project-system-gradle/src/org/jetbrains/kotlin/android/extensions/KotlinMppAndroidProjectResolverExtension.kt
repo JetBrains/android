@@ -17,9 +17,12 @@ package org.jetbrains.kotlin.android.extensions
 
 import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilationKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
+import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKey
 import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.AbstractDependencyData
+import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
@@ -31,6 +34,7 @@ import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinComponent
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
 class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverExtension {
@@ -90,5 +94,15 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
         node.data.target.addPath(LibraryPathType.BINARY, it.path)
       }
     }
+  }
+
+  override fun afterPopulateContentRoots(context: Context,
+                                         sourceSetDataNode: DataNode<GradleSourceSetData>,
+                                         sourceSet: KotlinSourceSet) {
+    val sourceSetInfo = sourceSet.extras[androidSourceSetKey]?.invoke() ?: return
+    sourceSetDataNode.createChild(
+      ProjectKeys.CONTENT_ROOT,
+      ContentRootData(GradleConstants.SYSTEM_ID, sourceSetInfo.sourceProvider.manifestFile.absolutePath)
+    )
   }
 }
