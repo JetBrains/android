@@ -117,6 +117,7 @@
     <completion.confidence language="TOML"
                            id="EnableAutoPopupInTomlVersionCatalogCompletion"
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInTomlVersionCatalogCompletion" />
+    <useScopeEnlarger implementation="com.android.tools.idea.gradle.navigation.GradleTomlUseScopeEnlarger"/>
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.refactoring.VersionCatalogGoToDeclarationHandler"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
     <renameInputValidator implementation="com.android.tools.idea.gradle.refactoring.GradleAwareSourceRootRenameValidator"/>
