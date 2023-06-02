@@ -52,8 +52,8 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.workspaceModel.ide.getInstance
-import com.intellij.workspaceModel.storage.impl.url.toVirtualFileUrl
-import com.intellij.workspaceModel.storage.url.VirtualFileUrlManager
+import com.intellij.platform.workspaceModel.storage.impl.url.toVirtualFileUrl
+import com.intellij.platform.workspaceModel.storage.url.VirtualFileUrlManager
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
