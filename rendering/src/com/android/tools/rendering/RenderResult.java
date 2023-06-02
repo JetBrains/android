@@ -210,13 +210,15 @@ public class RenderResult {
   }
 
   @NotNull
-  public static RenderResult createRenderTaskErrorResult(
-    @NotNull RenderModelModule renderModule, @NotNull Supplier<PsiFile> file, @Nullable Throwable throwable) {
+  public static RenderResult createRenderTaskErrorResult(@NotNull RenderModelModule renderModule,
+                                                         @NotNull Supplier<PsiFile> file,
+                                                         @Nullable Throwable throwable,
+                                                         @Nullable RenderLogger logger) {
     RenderResult result = new RenderResult(
       createSourceFileProvider(renderModule.getEnvironment(), file),
       renderModule.getProject(),
       renderModule,
-      new RenderLogger(renderModule.getProject()),
+      logger != null ? logger : new RenderLogger(renderModule.getProject()),
       null,
       false,
       Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable),

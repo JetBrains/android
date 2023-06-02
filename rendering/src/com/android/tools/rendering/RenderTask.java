@@ -906,7 +906,7 @@ public class RenderTask {
         }
         else {
           if (xmlFile.isValid()) {
-            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex);
+            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex, myLogger);
           }
           else {
             LOG.warn("Invalid file " + xmlFile);
@@ -1091,7 +1091,7 @@ public class RenderTask {
         RenderModelModule module = myContext.getModule();
         RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
         myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(module, xmlFile, e));
+        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(module, xmlFile, e, myLogger));
       }
     });
   }
