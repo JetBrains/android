@@ -105,8 +105,9 @@ object DebugSessionStarter {
     consoleView: ConsoleView? = null,
     timeout: Long = 300
   ): XDebugSessionImpl {
-    val masterProcessHandler = AndroidProcessHandler(environment.project, masterProcessName,
-                                                     finishAndroidProcessCallback = destroyRunningProcess)
+    val masterProcessHandler = AndroidProcessHandler(
+      masterProcessName,
+      finishAndroidProcessCallback = destroyRunningProcess)
     masterProcessHandler.addTargetDevice(device)
     return attachReattachingDebuggerToStartedProcess(device, appId, masterProcessHandler, environment, androidDebugger,
                                                      androidDebuggerState, indicator, consoleView, timeout)

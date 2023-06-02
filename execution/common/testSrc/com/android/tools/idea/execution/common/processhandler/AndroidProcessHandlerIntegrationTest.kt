@@ -52,7 +52,7 @@ class AndroidProcessHandlerIntegrationTest {
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, false)
     val callbackCalled = CountDownLatch(1)
 
-    val handler = AndroidProcessHandler(projectRule.project, FakeAdbTestRule.CLIENT_PACKAGE_NAME, { callbackCalled.countDown() })
+    val handler = AndroidProcessHandler(FakeAdbTestRule.CLIENT_PACKAGE_NAME, { callbackCalled.countDown() })
 
     handler.addTargetDevice(device)
     handler.startNotify()
@@ -78,7 +78,7 @@ class AndroidProcessHandlerIntegrationTest {
         callbackCalled.countDown()
       }
     }
-    val handler = AndroidProcessHandler(projectRule.project, FakeAdbTestRule.CLIENT_PACKAGE_NAME)
+    val handler = AndroidProcessHandler(FakeAdbTestRule.CLIENT_PACKAGE_NAME)
 
     handler.addTargetDevice(device)
     handler.startNotify()

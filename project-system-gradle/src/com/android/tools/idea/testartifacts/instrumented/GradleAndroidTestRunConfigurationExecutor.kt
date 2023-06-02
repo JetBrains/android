@@ -100,7 +100,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
     // instrumentation tests, the target application may be killed in between test cases by test runner. Only test
     // runner knows when all test run completes.
     val shouldAutoTerminate = false
-    val processHandler = AndroidProcessHandler(project, processId, autoTerminate = shouldAutoTerminate)
+    val processHandler = AndroidProcessHandler(processId, autoTerminate = shouldAutoTerminate)
     devices.forEach { device -> processHandler.addTargetDevice(device) }
 
     createRunContentDescriptor(processHandler, console, env)

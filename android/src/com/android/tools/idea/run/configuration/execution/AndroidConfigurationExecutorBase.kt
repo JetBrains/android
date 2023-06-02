@@ -66,7 +66,7 @@ abstract class AndroidConfigurationExecutorBase(
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
     val console = createConsole()
-    val processHandler = AndroidProcessHandler(project, appId, getStopCallback(console, false))
+    val processHandler = AndroidProcessHandler(appId, getStopCallback(console, false))
 
     val applicationInstaller = getApplicationDeployer(console)
 

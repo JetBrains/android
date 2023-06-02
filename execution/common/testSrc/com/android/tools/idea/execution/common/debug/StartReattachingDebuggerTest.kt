@@ -79,7 +79,7 @@ class StartReattachingDebuggerTest {
 
   @Test
   fun testStartReattachingDebuggerForOneClient() {
-    val masterProcessHandler = AndroidProcessHandler(executionEnvironment.project, MASTER_PROCESS_NAME,{})
+    val masterProcessHandler = AndroidProcessHandler(MASTER_PROCESS_NAME, {})
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
     val firstSession = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,

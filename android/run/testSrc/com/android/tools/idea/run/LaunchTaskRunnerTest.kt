@@ -27,7 +27,6 @@ import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveEditServiceImpl
-import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
@@ -420,7 +419,7 @@ class LaunchTaskRunnerTest {
   private fun setSwapInfo(env: ExecutionEnvironment): AndroidProcessHandler {
     env.putUserData(SwapInfo.SWAP_INFO_KEY, SwapInfo(SwapInfo.SwapType.APPLY_CHANGES))
 
-    val processHandlerForSwap = AndroidProcessHandler(projectRule.project, APPLICATION_ID)
+    val processHandlerForSwap = AndroidProcessHandler(APPLICATION_ID)
     processHandlerForSwap.startNotify()
     Disposer.register(projectRule.project) {
       processHandlerForSwap.detachProcess()

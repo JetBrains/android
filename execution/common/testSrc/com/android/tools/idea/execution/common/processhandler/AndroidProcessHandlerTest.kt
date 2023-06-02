@@ -20,16 +20,13 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.util.Key
 import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -62,12 +59,6 @@ class AndroidProcessHandlerTest {
     get() = projectRule.project
 
   @Mock
-  lateinit var mockExecutionTargetManager: ExecutionTargetManager
-
-  @Mock
-  lateinit var mockExecutionTarget: AndroidExecutionTarget
-
-  @Mock
   lateinit var mockDeploymentAppService: DeploymentApplicationService
 
   @Mock
@@ -82,7 +73,6 @@ class AndroidProcessHandlerTest {
 
   val handler: AndroidProcessHandler by lazy {
     AndroidProcessHandler(
-      project,
       TARGET_APP_NAME,
       { device -> device.forceStop(TARGET_APP_NAME) },
       autoTerminate,
@@ -104,9 +94,6 @@ class AndroidProcessHandlerTest {
   fun setUp() {
     initMocks(this)
 
-    project.replaceService(ExecutionTargetManager::class.java, mockExecutionTargetManager, projectRule.project.earlyDisposable)
-
-    whenever(mockExecutionTargetManager.activeTarget).thenReturn(mockExecutionTarget)
     whenever(mockAnsiEscapeDecoder.escapeText(any(), any(), any())).then { invocation ->
       val (text, attributes, textAcceptor) = invocation.arguments
       text as String

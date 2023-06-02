@@ -55,7 +55,7 @@ class AppInspectionExecutionListenerTest {
           putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
         }
 
-    val handler1 = AndroidProcessHandler(project, "com.example.p1")
+    val handler1 = AndroidProcessHandler("com.example.p1")
 
     run { // Start process "p1"
       val env = env("com.example.p1")
@@ -73,7 +73,7 @@ class AppInspectionExecutionListenerTest {
     run {
       val env = env("com.example.p2")
 
-      val handler2 = AndroidProcessHandler(project, "com.example.p2")
+      val handler2 = AndroidProcessHandler("com.example.p2")
       project.messageBus
         .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
         .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)

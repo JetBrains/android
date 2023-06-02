@@ -70,7 +70,7 @@ class LayoutInspectorExecutionListenerTest {
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = false
 
     // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME)
+    val handler = AndroidProcessHandler(PROCESS_NAME)
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
@@ -88,7 +88,7 @@ class LayoutInspectorExecutionListenerTest {
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are set.
@@ -110,7 +110,7 @@ class LayoutInspectorExecutionListenerTest {
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
@@ -130,7 +130,7 @@ class LayoutInspectorExecutionListenerTest {
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
@@ -148,7 +148,7 @@ class LayoutInspectorExecutionListenerTest {
     (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    val handler = AndroidProcessHandler(PROCESS_NAME).apply { startNotify() }
     LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are set.

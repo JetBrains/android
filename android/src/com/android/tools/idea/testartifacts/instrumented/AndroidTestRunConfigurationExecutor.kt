@@ -60,9 +60,9 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.Deferred
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -116,7 +116,7 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     // instrumentation tests, the target application may be killed in between test cases by test runner. Only test
     // runner knows when all test run completes.
     val shouldAutoTerminate = false
-    val processHandler = AndroidProcessHandler(project, processId, { it.forceStop(processId) }, shouldAutoTerminate)
+    val processHandler = AndroidProcessHandler(processId, { it.forceStop(processId) }, shouldAutoTerminate)
 
     val console = createAndroidTestSuiteView()
     processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, console)

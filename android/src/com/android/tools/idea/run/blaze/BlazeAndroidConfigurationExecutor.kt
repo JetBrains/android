@@ -82,7 +82,7 @@ class BlazeAndroidConfigurationExecutor(
     val packageName = applicationIdProvider.packageName
     waitPreviousProcessTermination(devices, packageName, indicator)
 
-    val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
+    val processHandler = AndroidProcessHandler(packageName, { it.forceStop(packageName) })
 
     val console = createConsole(processHandler)
     doRun(devices, processHandler, false, indicator, console)

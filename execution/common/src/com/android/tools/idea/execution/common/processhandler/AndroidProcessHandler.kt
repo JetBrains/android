@@ -24,7 +24,6 @@ import com.android.tools.idea.run.DeploymentApplicationService
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.annotations.VisibleForTesting
@@ -46,14 +45,12 @@ import java.io.OutputStream
  * running target processes and moves to destroy state. Second, when all target processes terminate and [autoTerminate] is true,
  * this process handler automatically terminate.
  *
- * @param project IDE project which uses this process handler
  * @param targetApplicationId a target application id to be monitored
  * @param finishAndroidProcessCallback custom way to finish a started process, used by AndroidProcessMonitorManager.
  * @param deploymentApplicationService a service to be used to look up running processes on a device
  * @param androidProcessMonitorManagerFactory a factory method to construct [AndroidProcessMonitorManager]
  */
 class AndroidProcessHandler @JvmOverloads constructor(
-  private val project: Project,
   @VisibleForTesting val targetApplicationId: String,
   finishAndroidProcessCallback: (IDevice) -> Unit = { device -> device.forceStop(targetApplicationId) },
   val autoTerminate: Boolean = true,

@@ -97,7 +97,7 @@ class LaunchTaskRunner(
 
     waitPreviousProcessTermination(devices, packageName, indicator)
 
-    val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
+    val processHandler = AndroidProcessHandler(packageName, { it.forceStop(packageName) })
     val console = createConsole()
 
     fillStats(RunStats.from(env), packageName)
@@ -290,7 +290,7 @@ class LaunchTaskRunner(
       }
     }.firstOrNull()
 
-    val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(project, packageName).apply {
+    val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(packageName).apply {
       devices.forEach { addTargetDevice(it) }
     }
     fillStats(RunStats.from(env), packageName)
@@ -371,7 +371,7 @@ class LaunchTaskRunner(
       }
     }.firstOrNull()
 
-    val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(project, packageName).apply {
+    val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(packageName).apply {
       devices.forEach { addTargetDevice(it) }
     }
     fillStats(RunStats.from(env), packageName)
