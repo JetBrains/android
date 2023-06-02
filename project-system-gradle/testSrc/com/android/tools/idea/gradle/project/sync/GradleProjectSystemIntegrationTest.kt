@@ -141,8 +141,11 @@ data class GradleProjectSystemIntegrationTest(
             "com.example",
             "com.example.alruiz",
             "com.example.alruiz.transitive_dependencies",
+            "com.example.alruiz.transitive_dependencies.test",
             "com.example.library1",
+            "com.example.library1.test",
             "com.example.library2",
+            "com.example.library2.test",
           ).forEach { packageName ->
             expect.that(projectSystem.isNamespaceOrParentPackage(packageName))
               .named("projectSystem.isValidAndroidManifestPackage(\"$packageName\")")

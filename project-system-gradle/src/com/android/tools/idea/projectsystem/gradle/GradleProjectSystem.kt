@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.AndroidProjectTypes
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
@@ -35,9 +34,7 @@ import com.android.tools.idea.gradle.util.OutputType
 import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.ClassJarProvider
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
@@ -53,10 +50,8 @@ import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.androidFacetsForNonHolderModules
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -244,36 +239,50 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   /**
    * Stores information about all the gradle projects.
    *
-   * [packageToAndroidFacets] stores mapping information from package name to [AndroidFacet]s that have that package name.
+   * [packageToModule] stores mapping information from package name to [Module]s that have that package name.
    */
   internal class GradleProjectCensus(
-    val packageToAndroidFacets: Map<String, List<AndroidFacet>>,
+    val packageToModule: Map<String, Collection<Module>>,
     val namespacesWithPrefixes: Set<String>,
-    val applicationIdsToFacet: Map<String, List<AndroidFacet>>
+    val applicationIdToModule: Map<String, Collection<Module>>
   )
 
   private fun getGradleProjectCensus(project: Project): GradleProjectCensus {
     return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
-      val packageToAndroidFacets = mutableMapOf<String, MutableList<AndroidFacet>>()
-      val applicationIdsToFacet = mutableMapOf<String, MutableList<AndroidFacet>>()
+      val packageToModule = mutableMapOf<String, MutableList<Module>>()
+      val applicationIdsToModule = mutableMapOf<String, MutableList<Module>>()
 
-      for (androidFacet in project.androidFacetsForNonHolderModules()) {
+      for (androidFacet in project.getAndroidFacets()) {
         val model = GradleAndroidModel.get(androidFacet) ?: continue
+        val mainModule = androidFacet.mainModule
+        val androidTestModule = androidFacet.androidTestModule
         model.androidProject.namespace?.let { namespace ->
-          packageToAndroidFacets.getOrPut(namespace) { mutableListOf() }.add(androidFacet)
+          packageToModule.getOrPut(namespace) { mutableListOf() }.add(mainModule)
+
         }
+        if (androidTestModule != null) {
+          model.androidProject.testNamespace?.let { namespace ->
+              packageToModule.getOrPut(namespace) { mutableListOf() }.add(androidTestModule)
+          }
+        }
+        // Collect application IDs into sets as they might be duplicated
+        val mainApplicationIds = mutableSetOf<String>()
+        val testApplicationIds = mutableSetOf<String>()
         for (variant in model.androidProject.basicVariants) {
-          when {
-            androidFacet.module.isAndroidTestModule() -> variant.testApplicationId
-            androidFacet.module.isMainModule() -> variant.applicationId
-            else -> null
-          }?.let { applicationId ->
-            applicationIdsToFacet.getOrPut(applicationId) { mutableListOf() }.add(androidFacet)
+          variant.applicationId?.let { mainApplicationIds.add(it) }
+          variant.testApplicationId?.let { testApplicationIds.add(it) }
+        }
+        for (applicationId in mainApplicationIds) {
+          applicationIdsToModule.getOrPut(applicationId) { mutableListOf() }.add(mainModule)
+        }
+        if (androidTestModule != null) {
+          for (applicationId in testApplicationIds) {
+            applicationIdsToModule.getOrPut(applicationId) { mutableListOf() }.add(androidTestModule)
           }
         }
       }
       val namespacesWithPrefixes = HashSet<String>()
-      for (namespace in packageToAndroidFacets.keys) {
+      for (namespace in packageToModule.keys) {
         var packageName = namespace
         while (true) {
           if (!namespacesWithPrefixes.add(packageName)) break
@@ -282,14 +291,14 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
         }
       }
       return@CachedValueProvider CachedValueProvider.Result(
-        GradleProjectCensus(packageToAndroidFacets, namespacesWithPrefixes, applicationIdsToFacet), ProjectSyncModificationTracker.getInstance(project)
+        GradleProjectCensus(packageToModule, namespacesWithPrefixes, applicationIdsToModule), ProjectSyncModificationTracker.getInstance(project)
       )
     })
   }
 
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
     val census = getGradleProjectCensus(project)
-    return census.packageToAndroidFacets[packageName] ?: emptyList()
+    return census.packageToModule[packageName]?.mapNotNull { it.androidFacet } ?: emptyList()
   }
 
   override fun isNamespaceOrParentPackage(packageName: String): Boolean {
@@ -299,7 +308,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun getKnownApplicationIds(project: Project): Set<String> {
     val census = getGradleProjectCensus(project)
-    return census.applicationIdsToFacet.keys
+    return census.applicationIdToModule.keys
   }
 
   /**
