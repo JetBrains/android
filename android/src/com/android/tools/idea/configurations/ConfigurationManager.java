@@ -525,6 +525,19 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     }
   }
 
+  @Nullable
+  private static IAndroidTarget fromTargetString(@NotNull ConfigurationSettings settings, @Nullable String targetString) {
+    if (targetString != null) {
+      for (IAndroidTarget target : settings.getTargets()) {
+        if (targetString.equals(target.hashString()) && AndroidTargets.isLayoutLibTarget(target)) {
+          return target;
+        }
+      }
+    }
+
+    return null;
+  }
+
   @Override
   @Nullable
   public IAndroidTarget getTarget() {
@@ -535,7 +548,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
       }
       else {
         String targetString = projectState.getTarget();
-        myTarget = ConfigurationProjectState.fromTargetString(this, targetString);
+        myTarget = fromTargetString(this, targetString);
         if (myTarget == null) {
           myTarget = getDefaultTarget();
         }
@@ -568,6 +581,11 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     return null;
   }
 
+  @Nullable
+  private static String toTargetString(@Nullable IAndroidTarget target) {
+    return target != null ? target.hashString() : null;
+  }
+
   @Override
   public void setTarget(@Nullable IAndroidTarget target) {
     if (target != myTarget) {
@@ -585,7 +603,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
 
       myTarget = target;
       if (target != null) {
-        myConfigurationModule.getConfigurationStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
+        myConfigurationModule.getConfigurationStateManager().getProjectState().setTarget(toTargetString(target));
         myStateVersion++;
         for (Configuration configuration : myCache.values()) {
           configuration.updated(CFG_TARGET);

@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.configurations;
 
-
-import com.android.sdklib.IAndroidTarget;
-import com.android.tools.layoutlib.AndroidTargets;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
@@ -105,23 +102,5 @@ public class ConfigurationProjectState {
   public void setNonWearDeviceLastSelectedStateName(@Nullable String nonWearDeviceLastState, boolean nonWearDeviceDefaultState) {
     myNonWearDeviceLastSelectedStateName = nonWearDeviceLastState;
     myNonWearDeviceDefaultStateName = nonWearDeviceDefaultState;
-  }
-
-  @Nullable
-  static IAndroidTarget fromTargetString(@NotNull ConfigurationSettings settings, @Nullable String targetString) {
-    if (targetString != null) {
-      for (IAndroidTarget target : settings.getTargets()) {
-        if (targetString.equals(target.hashString()) && AndroidTargets.isLayoutLibTarget(target)) {
-          return target;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  static String toTargetString(@Nullable IAndroidTarget target) {
-    return target != null ? target.hashString() : null;
   }
 }
