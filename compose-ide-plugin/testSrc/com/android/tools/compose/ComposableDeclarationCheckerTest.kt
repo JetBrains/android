@@ -194,7 +194,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
       """
             import androidx.compose.runtime.Composable
 
-            fun print(<warning descr="[UNUSED_PARAMETER] Parameter 'message' is never used">message</warning>: Any?) {}
+            fun print(message: Any?) {}
 
             @Composable fun <error descr="[COMPOSABLE_FUN_MAIN] Composable main functions are not currently supported">main</error>(args: Array<String>) {
                 print(args)
@@ -208,7 +208,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
       """
             import androidx.compose.runtime.Composable
 
-            fun print(<warning descr="[UNUSED_PARAMETER] Parameter 'message' is never used">message</warning>: Any?) {}
+            fun print(message: Any?) {}
 
             class Foo
 
@@ -245,8 +245,8 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     val file = addFileToProject(
       "src/com/example/test.kt",
       """
+      $suppressAnnotation
       package com.example
-
       $expectedText
       """.trimIndent()
     )
