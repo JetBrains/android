@@ -27,13 +27,13 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
 /**
-This is the base test class for all unit tests in this project.
-It provides common functionality for all profiler integration tests,
-such as setting up the android studio, starting and waiting for emulator boot-up,
-syncing and building project and some common profiler specific reusable execute actions
-and log verifications.
-
-All Profiler integration tests should extend this class.
+ * This is the base test class for all unit tests in this project.
+ * It provides common functionality for all profiler integration tests,
+ * such as setting up the android studio, starting and waiting for emulator boot-up,
+ * syncing and building project and some common profiler specific reusable execute actions
+ * and log verifications.
+ *
+ * All Profiler integration tests should extend this class.
  */
 open class ProfilersTestBase {
 
@@ -62,12 +62,11 @@ open class ProfilersTestBase {
     system.runAdb { adb ->
       system.runEmulator(systemImage) { emulator ->
         system.runStudio(project, watcher.dashboardName) { studio ->
-          //Waiting for sync and build.
+          // Waiting for sync and build.
           studio.waitForSync()
           studio.waitForIndex()
-          studio.executeAction("MakeGradleProject")
-          studio.waitForBuild()
-          //Waiting for emulator to boot up
+          // Assume project build will be triggered by `testFunction` if needed.
+          // Waiting for emulator to boot up.
           emulator.waitForBoot()
           adb.waitForDevice(emulator)
 
@@ -87,6 +86,10 @@ open class ProfilersTestBase {
 
   protected fun profileWithCompleteData(studio: AndroidStudio) {
     studio.executeAction("Android.ProfileWithCompleteData")
+  }
+
+  protected fun profileWithLowOverhead(studio: AndroidStudio) {
+    studio.executeAction("Android.ProfileWithLowOverhead")
   }
 
   protected fun stopProfilingSession(studio: AndroidStudio) {

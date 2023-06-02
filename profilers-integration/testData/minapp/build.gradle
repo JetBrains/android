@@ -14,4 +14,7 @@ android {
         applicationId "com.example.minapp"
         minSdk 29
     }
+    lintOptions {
+      checkReleaseBuilds false
+    }
 }

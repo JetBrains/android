@@ -18,38 +18,43 @@ package com.android.tools.profilers.integration
 import com.android.tools.asdriver.tests.Emulator
 import org.junit.Test
 
-class ProfileWithCompleteDataTest : ProfilersTestBase() {
+class ProfileWithLowOverheadTest: ProfilersTestBase() {
 
   /**
-   * Validate “Profile ‘app’ with complete data” is  working.
+   * Validate “Profile ‘app’ with LowOverhead” is  working.
    * <p>
-   * This is run to qualify releases. Please involve the test team in substantial changes.
+   *  This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>
-   * TT ID: 0ed907de-b0d9-414e-9677-41949626a434
+   *  TT ID: e79493c3-9b2b-4e61-b629-93421a3b2fb9
    * <p>
-   *   <pre>
+   *  <pre>
    *   Test Steps:
    *   1. Import minapp in the testData directory of this module.
-   *   2. Start profile 'app' with complete data.
+   *   2. Start profile 'app' with lowOverhead.
    *   3. Stop profile session.
    *   Verify:
-   *   1. Verify if the complete data session started.
+   *   1. Verify if the low overhead session started.
    *   2. Verify UI Components in profiler tool window.
    *   3. Verify if the session is stopped.
-   *   </pre>
+   *  </pre>
    * <p>
    */
   @Test
-  fun testProfileAppWithComplete() {
+  fun testLowOverheadSession() {
     profileApp(
-      systemImage = Emulator.SystemImage.API_29,
+      systemImage = Emulator.SystemImage.API_33_PlayStore,
       testFunction = { studio, _ ->
-        profileWithCompleteData(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
+        // Since there is no definitive way to tell that the emulator is ready
+        // TODO(b/260867011): Remove the wait, once there is a definitive way to tell that the emulator is ready to deploy the app.
+        println("Waiting for 20 seconds before running the app so that the emulator is ready")
+        Thread.sleep(20000)
+
+        profileWithLowOverhead(studio)
+        // TODO(b/260296636): Reduce the time-out to 180, once the performance issue b/260296636 is fixed.
+        verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=PROFILEABLE\$", 480)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 300)
 
         studio.waitForComponentByClass("TooltipLayeredPane", "StreamingScrollbar")
-        studio.waitForComponentByClass("TooltipLayeredPane", "InstructionsPanel", "InstructionsComponent") // Specific to profiling with complete data
 
         stopProfilingSession(studio)
       }
