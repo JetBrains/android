@@ -90,7 +90,8 @@ internal data class DeviceRowData(
 
   enum class Status {
     OFFLINE,
-    ONLINE,
+    ONLINE;
+    override fun toString() = name.titlecase()
   }
 }
 
@@ -102,3 +103,5 @@ internal fun provideRowData(dataId: String, row: DeviceRowData): Any? =
     DEVICE_HANDLE_KEY.`is`(dataId) -> row.handle
     else -> null
   }
+
+internal fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }

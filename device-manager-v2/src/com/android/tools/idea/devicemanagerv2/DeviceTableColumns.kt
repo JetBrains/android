@@ -46,9 +46,6 @@ internal object DeviceTableColumns {
     override val sorter: Comparator<DeviceType> = compareBy { it.name }
 
     override fun value(t: DeviceRowData): DeviceType = t.type
-
-    // TODO: CategoryRow uses DeviceType.toString() which renders the category
-    //  in uppercase; we need a way to make this titlecase.
   }
 
   /** Renders the type of device as an icon. */

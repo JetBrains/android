@@ -88,11 +88,7 @@ internal class CategoryRowComponent<T>(val path: CategoryList<T>) : RowComponent
     add(iconLabel)
     add(Box.createHorizontalStrut(JBUI.scale(4)))
     // TODO: Support custom UI here?
-    add(
-      JBLabel("<html><b>${path.last().value}</b></html>").also {
-        it.horizontalAlignment = SwingConstants.LEFT
-      }
-    )
+    add(JBLabel(path.last().value.toString()).also { it.horizontalAlignment = SwingConstants.LEFT })
     add(Box.createHorizontalGlue())
   }
 
