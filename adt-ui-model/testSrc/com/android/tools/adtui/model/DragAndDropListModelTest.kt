@@ -107,8 +107,8 @@ class DragAndDropListModelTest {
   }
 
   private fun addElements(model: DragAndDropListModel<SimpleListModelElement>, values: Array<SimpleListModelElement>) {
-    for (i in 0 until values.size) {
-      model.insertOrderedElement(values[i])
+    for (element in values) {
+      model.insertOrderedElement(element)
     }
   }
 
