@@ -88,10 +88,6 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
 
-    // Create the iml file for a module on disk. This is necessary for correct Kotlin resolution of light classes,
-    // see AndroidResolveScopeEnlarger.
-    VfsTestUtil.createFile(LocalFileSystem.getInstance().findFileByPath("/"), myModule.getModuleFilePath());
-
     // Must be done before addAndroidFacet, and must always be done, even if a test provides
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
