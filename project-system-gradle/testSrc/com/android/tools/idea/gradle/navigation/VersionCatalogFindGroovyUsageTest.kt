@@ -23,7 +23,6 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.Computable
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFileBase
@@ -70,18 +69,47 @@ class VersionCatalogFindGroovyUsageTest {
     }
   }
 
+  @Test
+  fun testHasUsagesWithUnderscoreAlias(){
+    testVersionCatalogFindUsagesInSubmodule("""
+      [libraries]
+      groov${caret}y_core = { group="org.codehaus.groovy", name = "groovy", version ="2.7.3"}
+    """.trimIndent(), """
+      dependencies {
+        implementation libs.groovy.core
+      }
+    """.trimIndent()) {
+      assertThat(it).hasSize(1)
+      assertThat(it.first().file ).isInstanceOf(GroovyFileBase::class.java)
+    }
+  }
+
+  @Test
+  fun testHasUsagesWithDotAlias() {
+    testVersionCatalogFindUsagesInSubmodule("""
+      [libraries]
+      groov${caret}y.core = { group="org.codehaus.groovy", name = "groovy", version ="2.7.3"}
+    """.trimIndent(), """
+      dependencies {
+        implementation libs.groovy.core
+      }
+    """.trimIndent()) {
+      assertThat(it).hasSize(1)
+      assertThat(it.first().file).isInstanceOf(GroovyFileBase::class.java)
+    }
+  }
+
   private fun testVersionCatalogFindUsagesInSubmodule(versionCatalogText: String, buildGradleText: String,
                                                       checker: (Collection<UsageInfo>) -> Unit) {
     projectRule.load(SIMPLE_APPLICATION_VERSION_CATALOG)
     val path = myProject.guessProjectDir()!!
-    val versionCatalogFile =
-      createFile(path, "gradle/libs.versions.toml", versionCatalogText)
+    val versionCatalogFile = createFile(path, "gradle/libs.versions.toml", versionCatalogText)
     createFile(path, "app/build.gradle", buildGradleText)
 
     myFixture.configureFromExistingVirtualFile(versionCatalogFile)
 
     runReadAction {
-      ProgressManager.getInstance().runProcess(Computable {
+      ProgressManager.getInstance().runProcess({
         val usages = myFixture.findUsages(myFixture.elementAtCaret)
         checker(usages)
       }, EmptyProgressIndicator())
