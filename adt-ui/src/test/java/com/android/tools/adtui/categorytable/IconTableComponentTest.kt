@@ -21,6 +21,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.AnimatedIcon
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
@@ -51,7 +52,12 @@ class IconTableComponentTest {
     assertThat(label.icon).isEqualTo(icon)
 
     label.updateTablePresentation(presentationManager, selected)
-    assertSameImage(render(label, label.icon), render(label, icon.applyColor(JBColor.BLUE)))
+    if (ExperimentalUI.isNewUI()) {
+      // We don't change the icon colors in the new UI
+      assertThat(label.icon).isEqualTo(icon)
+    } else {
+      assertSameImage(render(label, label.icon), render(label, icon.applyColor(JBColor.BLUE)))
+    }
 
     label.updateTablePresentation(presentationManager, unselected)
     assertThat(label.icon).isEqualTo(icon)

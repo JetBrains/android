@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import static com.intellij.ui.ExperimentalUI.isNewUI;
+
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -29,7 +31,7 @@ final class TableCellRenderers {
     if (icon == null) {
       label.setIcon(null);
     }
-    else if (selected) {
+    else if (selected && !isNewUI()) {
       label.setIcon(ColoredIconGenerator.INSTANCE.generateColoredIcon(icon, label.getForeground()));
     }
     else {
