@@ -20,6 +20,7 @@ import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTooltip
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.POWER_RAIL_UNIT
 import com.google.common.annotations.VisibleForTesting
 import kotlinx.html.body
 import kotlinx.html.classes
@@ -62,11 +63,10 @@ class PowerRailTooltipView(parent: JComponent, val tooltip: PowerRailTooltip) : 
    */
   @VisibleForTesting
   fun getFormattedTooltipValueText(primaryValueText: String, secondaryValueText: String): String {
-    val rawPowerRailUnit = "µWs"
     val spaceBetweenTitleAndValuePx = 50
 
-    val cumulativeValueTitle = getFormattedValueTitle(trackName = tooltip.counterName, valueType = "Cumulative", unit = rawPowerRailUnit)
-    val deltaValueTitle = getFormattedValueTitle(trackName = tooltip.counterName, valueType = "Delta", unit = rawPowerRailUnit)
+    val cumulativeValueTitle = getFormattedValueTitle(trackName = tooltip.counterName, valueType = "Cumulative", unit = POWER_RAIL_UNIT)
+    val deltaValueTitle = getFormattedValueTitle(trackName = tooltip.counterName, valueType = "Delta", unit = POWER_RAIL_UNIT)
 
     // Note: The else conditions cover the PowerProfilerDisplayMode.HIDE case, but
     // the HIDE mode will not even be displayed, so this selection does not matter.

@@ -69,6 +69,10 @@ class PowerRailTrackModel(dataSeries: PowerCounterData,
   }
 
   companion object {
+    // The power rails show consumed energy. Therefore, the
+    // unit of a power rail is microwatt-seconds (µWs).
+    const val POWER_RAIL_UNIT = "µWs"
+
     // There are some naming discrepancies perfetto has between recorded
     // power rail data names and the displayable name. For those
     // exceptions we do a quick translation.

@@ -22,9 +22,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profilers.StudioProfilersView
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingConstants
 
 /**
  * Base view class for summary tab details.
@@ -65,6 +67,17 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profile
     commonSection.add(value, TabularLayout.Constraint(rows, 1))
   }
 
+  protected fun addRowToCommonSectionWithInfoIcon(name: String, value: JComponent, tooltipMessage: String) {
+    val rows = commonSection.componentCount / 2
+    val label = JLabel(name)
+    label.icon = StudioIcons.Common.INFO_INLINE
+    label.toolTipText = tooltipMessage
+    // Set the icon to be to the right of the text
+    label.horizontalTextPosition = SwingConstants.LEADING
+    commonSection.add(label, TabularLayout.Constraint(rows, 0))
+    commonSection.add(value, TabularLayout.Constraint(rows, 1))
+  }
+
   /**
    * Add a section to the Summary Tab.
    */
@@ -72,16 +85,18 @@ open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profile
     add(section, TabularLayout.Constraint(componentCount, 0))
   }
 
-  /**
-   * @return string representation of the time range, relative to capture range.
-   */
-  protected fun formatTimeRangeAsString(range: Range): String {
-    return String.format("%s - %s",
-                         TimeFormatter.getSemiSimplifiedClockString(range.min.toLong() - tabModel.captureRange.min.toLong()),
-                         TimeFormatter.getSemiSimplifiedClockString(range.max.toLong() - tabModel.captureRange.min.toLong()))
-  }
-
   companion object {
+
+    /**
+     * @return string representation of the time range, relative to capture range.
+     */
+    @JvmStatic
+    fun formatTimeRangeAsString(selectionRange: Range, relativeZeroPoint: Long, separator: Char = '-'): String {
+      return String.format("%s $separator %s",
+                           TimeFormatter.getSemiSimplifiedClockString(selectionRange.min.toLong() - relativeZeroPoint),
+                           TimeFormatter.getSemiSimplifiedClockString(selectionRange.max.toLong() - relativeZeroPoint))
+    }
+
     const val SECTION_PADDING_PX = 24
     const val COMMON_SECTION_ROW_PADDING_PX = 8
   }

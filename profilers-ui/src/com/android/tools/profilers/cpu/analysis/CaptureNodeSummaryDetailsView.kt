@@ -41,8 +41,9 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
   val dataTypeLabel = JLabel()
 
   init {
-    val range = tabModel.selectionRange
-    timeRangeLabel.text = formatTimeRangeAsString(range)
+    val selectionRange = tabModel.selectionRange
+    val captureRange = tabModel.captureRange
+    timeRangeLabel.text = formatTimeRangeAsString(selectionRange = selectionRange, relativeZeroPoint = captureRange.min.toLong())
     dataTypeLabel.text = tabModel.label
 
     addRowToCommonSection("Time Range", timeRangeLabel)
