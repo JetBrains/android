@@ -111,7 +111,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @NotNull
   protected final FolderConfiguration myFullConfig = new FolderConfiguration();
 
-  /** The associated {@link ConfigurationManager} */
+  /** The associated {@link ConfigurationSettings} */
   @NotNull
   protected final ConfigurationSettings mySettings;
 
@@ -241,8 +241,8 @@ public class Configuration implements Disposable, ModificationTracker {
    * @return a new configuration
    */
   @NotNull
-  public static Configuration create(@NotNull ConfigurationManager manager, @NotNull FolderConfiguration editedConfig) {
-    return new Configuration(manager, editedConfig);
+  public static Configuration create(@NotNull ConfigurationSettings settings, @NotNull FolderConfiguration editedConfig) {
+    return new Configuration(settings, editedConfig);
   }
 
   protected void copyFrom(@NotNull Configuration from) {
@@ -282,9 +282,9 @@ public class Configuration implements Disposable, ModificationTracker {
   public void save() { }
 
   /**
-   * Returns the associated {@link ConfigurationManager}
+   * Returns the associated {@link ConfigurationSettings}
    *
-   * @return the manager
+   * @return the settings
    */
   @NotNull
   public ConfigurationSettings getSettings() {
