@@ -17,6 +17,7 @@ package com.android.tools.idea.editors.liveedit.ui
 
 import com.android.tools.adtui.compose.POPUP_ACTION
 import com.android.tools.adtui.compose.REFRESH_BUTTON
+import com.android.tools.idea.editors.literals.LiveEditAnActionListener
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
@@ -40,6 +41,7 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
@@ -217,7 +219,15 @@ internal class ConfigureLiveEditAction : DefaultActionGroup(), DataProvider {
       })
     )
     add(ConfigureLiveEditActionOption(
-      "Push Edits Manually",
+      "Push Edits Manually${
+        ActionManager.getInstance()
+          .getAction(MANUAL_LIVE_EDIT_ACTION_ID)
+          .shortcutSet
+          .shortcuts
+          .firstOrNull()
+          ?.let { " (${KeymapUtil.getShortcutText(it)})" }
+          ?: ""
+        }",
       {
         config.leTriggerMode = ON_HOTKEY
         config.mode = LIVE_EDIT
@@ -227,7 +237,7 @@ internal class ConfigureLiveEditAction : DefaultActionGroup(), DataProvider {
       })
     )
     add(ConfigureLiveEditActionOption(
-      "Push Edits Manually on Save",
+      "Push Edits Manually on Save (${LiveEditAnActionListener.getLiveEditTriggerShortCutString()})",
       {
         config.leTriggerMode = ON_SAVE
         config.mode = LIVE_EDIT
