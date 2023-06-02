@@ -422,11 +422,6 @@ public final class StudioFlags {
     "Requires applychanges.optimisticswap to be true.",
     true);
 
-  public static final Flag<Boolean> NEW_EXECUTION_FLOW_ENABLED = Flag.create(
-    RUNDEBUG, "android.new.execution.flow.enabled", "Enable new Execution flow",
-    "If enabled, AS executes Run Configuration via new.AndroidRunProfileState",
-    false);
-
   /**
    * The level of APK change that will be supported by the deployment pipeline's optimistic
    * "deploy-without-installing" path. Deploying changes that exceed the level of support
@@ -519,26 +514,11 @@ public final class StudioFlags {
     "Changing the value of this flag requires restarting Android Studio.",
     true);
 
-  public static final Flag<Boolean> ADBLIB_MIGRATION_DEVICE_EXPLORER = Flag.create(
-    RUNDEBUG,
-    "adblib.migration.device.explorer",
-    "Use adblib in Device Explorer",
-    "Use adblib instead of ddmlib for Device Explorer",
-    true);
-
   public static final Flag<Boolean> ADBLIB_MIGRATION_WIFI_PAIRING = Flag.create(
     RUNDEBUG,
     "adblib.migration.wifi.pairing",
     "Use adblib in Pair Device over Wi-Fi",
     "Use adblib instead of ddmlib for Pair Device over Wi-Fi",
-    true);
-
-  /** b/262404780: forces the use of legacy shell to collect ps output. */
-  public static final Flag<Boolean> ADBLIB_LEGACY_SHELL_FOR_PS_MONITOR = Flag.create(
-    RUNDEBUG,
-    "adblib.legacy.shell.for.psname.monitor",
-    "Use adblib's legacy shell connection to monitor process names",
-    "Use adblib's legacy shell instead of shell-v2 to monitor process names",
     true);
 
   public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER = Flag.create(
@@ -580,14 +560,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> ASWB_RUN_WEAR_ENABLE = Flag.create(
-    RUNDEBUG,
-    "aswb.run.wear",
-    "Enable launching wear surfaces in ASwB.",
-    "Enable launching wear surfaces in ASwB, by enabling the UI option in the Blaze Android Binary Editor.",
-    false
-  );
-
   public static final Flag<Boolean> DEBUG_ATTEMPT_SUSPENDED_START = Flag.create(
     RUNDEBUG,
     "debug.app.suspend.upon.start.enable",
@@ -608,14 +580,6 @@ public final class StudioFlags {
 
   //region Logcat
   private static final FlagGroup LOGCAT = new FlagGroup(FLAGS, "logcat", "Logcat");
-
-  public static final Flag<Boolean> LOGCAT_CUSTOM_FORMAT_ACTION = Flag.create(
-    LOGCAT,
-    "custom.format.action",
-    "Enable Logcat custom format action",
-    "Enables the custom format action in the Logcat tool window action bar",
-    false
-  );
 
   public static final Flag<Boolean> LOGCAT_CLICK_TO_ADD_FILTER = Flag.create(
     LOGCAT,
@@ -750,11 +714,6 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> GRADLE_SYNC_RECREATE_JDK = Flag.create(
     GRADLE_IDE, "gradle.sync.recreate.jdk", "Recreate JDK on sync", "Recreate Gradle JDK when syncing if there are changed roots.", true);
-
-  // TODO(b/200280395): when deleting this flag, check whether the dependencies associated with flags can be removed from the gradle-dsl
-  //  modules.
-  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT = Flag.create(
-    GRADLE_IDE, "gradle.extended.version.catalog", "Gradle version catalog support", "Multiple TOML files, catalog variables in PSD", true);
 
   public static final Flag<Boolean> GRADLE_VERSION_CATALOG_DISPLAY_BANNERS =
     Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
@@ -992,9 +951,6 @@ public final class StudioFlags {
 
   //region NDK
   private static final FlagGroup NDK = new FlagGroup(FLAGS, "ndk", "Native code features");
-  public static final Flag<Boolean> CMAKE_ENABLE_FEATURES_FROM_CLION = Flag.create(
-    NDK, "cmakeclionfeatures", "Enable CMake language support from CLion",
-    "If enabled, language support features (e.g. syntax highlighting) currently present in CLion will be turned on.", true);
 
   public static final Flag<Boolean> APK_DEBUG_BUILD_ID_CHECK = Flag.create(
     NDK, "apkdebugbuildidcheck", "Enable build ID check in APK debugging",
@@ -1177,12 +1133,6 @@ public final class StudioFlags {
     SYSTEM_HEALTH, "antivirus.metrics.enabled", "Enable antivirus metrics collection",
     "If enabled, metrics about the status of antivirus realtime scanning and excluded directories will be collected",
     true);
-
-  public static final Flag<Boolean> ANTIVIRUS_CHECK_USE_REGISTRY = Flag.create(
-    SYSTEM_HEALTH, "antivirus.check.registry", "Use registry instead of PowerShell for checking antivirus status",
-    "If enabled, the antivirus status checker will use the Windows registry instead of PowerShell commands",
-    true);
-
   //endregion
 
   //region Compose
@@ -1490,15 +1440,6 @@ public final class StudioFlags {
     false
   );
   // endregion DDMLIB
-
-  //region SERVER_FLAGS
-  private static final FlagGroup SERVER_FLAGS = new FlagGroup(FLAGS, "serverflags", "Server Flags");
-  public static final Flag<Boolean> TEST_SERVER_FLAG = Flag.create(
-    SERVER_FLAGS, "test", "Test Server Enabled Flag",
-    "Creates a sample studio flag that can be set using a server flag",
-    false
-  );
-  // endregion SERVER_FLAGS
 
   // region Firebase Test Lab
   private static final FlagGroup FIREBASE_TEST_LAB = new FlagGroup(FLAGS, "firebasetestlab", "Firebase Test Lab");
