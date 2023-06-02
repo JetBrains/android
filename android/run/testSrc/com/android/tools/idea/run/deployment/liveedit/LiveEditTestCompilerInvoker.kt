@@ -24,14 +24,13 @@ import org.jetbrains.kotlin.idea.util.psi.patternMatching.matches
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
-internal fun compile(file: PsiFile?, functionName: String, useInliner: Boolean = false) =
-  compile(file!!, findFunction(file, functionName), useInliner)
+internal fun compile(file: PsiFile?, functionName: String) =
+  compile(file!!, findFunction(file, functionName))
 
-internal fun compile(file: PsiFile, function: KtNamedFunction, useInliner: Boolean = false) =
-  compile(listOf(LiveEditCompilerInput(file, function)), useInliner)
+internal fun compile(file: PsiFile, function: KtNamedFunction) =
+  compile(listOf(LiveEditCompilerInput(file, function)))
 
-internal fun compile(inputs: List<LiveEditCompilerInput>, useInliner: Boolean = false) : LiveEditCompilerOutput {
-  LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = useInliner
+internal fun compile(inputs: List<LiveEditCompilerInput>) : LiveEditCompilerOutput {
   LiveEditAdvancedConfiguration.getInstance().usePartialRecompose = true
 
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.

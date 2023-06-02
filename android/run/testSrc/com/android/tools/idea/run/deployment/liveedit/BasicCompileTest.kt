@@ -129,13 +129,7 @@ class BasicCompileTest {
 
   @Test
   fun inlineTarget() {
-    try {
-      compile(files["CallInlineTarget.kt"], "callInlineTarget", useInliner = false)
-      Assert.fail("Expecting LiveEditUpdateException")
-    } catch (e: LiveEditUpdateException) {
-      Assert.assertEquals(LiveEditUpdateException.Error.UNABLE_TO_INLINE, e.error)
-    }
-    var output = compile(files["CallInlineTarget.kt"], "callInlineTarget", useInliner = true)
+    var output = compile(files["CallInlineTarget.kt"], "callInlineTarget")
     var returnedValue = invokeStatic("callInlineTarget", loadClass(output))
     Assert.assertEquals("I am foo", returnedValue)
   }
