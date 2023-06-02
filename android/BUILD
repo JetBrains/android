@@ -190,10 +190,7 @@ iml_module(
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    runtime_deps = [
-        "//tools/adt/idea/databinding:intellij.android.databinding",
-        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
-    ],
+    runtime_deps = ["//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",

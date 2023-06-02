@@ -68,7 +68,6 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="app-inspection.inspectors.database" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
