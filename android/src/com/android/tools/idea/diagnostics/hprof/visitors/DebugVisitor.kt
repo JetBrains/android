@@ -179,10 +179,10 @@ class DebugVisitor(private val printer: (String) -> Unit) : HProfVisitor() {
 
   private fun LongArray.arrayToString(): String = buildString {
     append('[')
-    for (i in 0 until size) {
+    for (i in this@arrayToString.indices) {
       if (i > 0)
         append(", ")
-      append(this[i])
+      append(this@arrayToString[i])
     }
     append(']')
   }
