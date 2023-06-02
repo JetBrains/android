@@ -171,8 +171,9 @@ class StreamingToolWindowManagerTest {
 
     project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.DIRECT_DEVICE_MANAGER, project)
     dispatchAllInvocationEvents()
-    // The Running Devices tool is opened when an embedded emulator is launched by a direct request.
-    assertThat(toolWindow.isVisible).isTrue()
+    // The Running Devices tool is opened and activated when an embedded emulator is launched by a direct request.
+    waitForCondition(2, TimeUnit.SECONDS) { toolWindow.isVisible }
+    assertThat(toolWindow.isActive).isTrue()
 
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
@@ -400,6 +401,7 @@ class StreamingToolWindowManagerTest {
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
+    assertThat(toolWindow.isActive).isFalse()
 
     val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400))
@@ -409,6 +411,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 6 API 32")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 6 API 32")
     assertThat(toolWindow.isVisible).isTrue()
+    assertThat(toolWindow.isActive).isFalse()
 
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
@@ -434,6 +437,7 @@ class StreamingToolWindowManagerTest {
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
+    assertThat(toolWindow.isActive).isFalse()
 
     val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400))
@@ -444,6 +448,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 6 API 32")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 6 API 32")
     assertThat(toolWindow.isVisible).isTrue()
+    assertThat(toolWindow.isActive).isFalse()
 
     deviceMirroringSettings.activateOnTestLaunch = true
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
@@ -830,6 +835,7 @@ class StreamingToolWindowManagerTest {
       private set
     private var available = true
     private var visible = false
+    private var active = false
     private var type = ToolWindowType.DOCKED
 
     override fun setAvailable(available: Boolean) {
@@ -844,6 +850,7 @@ class StreamingToolWindowManagerTest {
       if (!visible) {
         visible = true
         notifyStateChanged()
+        runnable?.run()
       }
     }
 
@@ -851,10 +858,18 @@ class StreamingToolWindowManagerTest {
       if (visible) {
         visible = false
         notifyStateChanged()
+        runnable?.run()
       }
     }
 
+    override fun activate(runnable: Runnable?) {
+      active = true
+      super.activate(runnable)
+    }
+
     override fun isVisible() = visible
+
+    override fun isActive() = active
 
     override fun setTabActions(vararg actions: AnAction) {
       tabActions = listOf(*actions)
