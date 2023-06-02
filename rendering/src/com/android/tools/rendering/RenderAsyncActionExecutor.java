@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -174,7 +175,7 @@ public interface RenderAsyncActionExecutor {
     return cancelActionsByTopic(
       Arrays.stream(RenderingTopic.values()).filter(
         (topic) -> topic.getPriority() <= minPriority
-      ).toList(),
+      ).collect(Collectors.toList()),
       mayInterruptIfRunning
     );
   }

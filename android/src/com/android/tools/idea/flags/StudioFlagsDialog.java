@@ -68,6 +68,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -188,7 +189,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
       .sorted(Comparator.comparing(entry -> entry.getKey().getDisplayName()))
       .forEach(entry -> {
         FlagGroup group = entry.getKey();
-        List<Flag<?>> flagMatches = entry.getValue().stream().filter(flag -> showFlag(flag, searchText)).toList();
+        List<Flag<?>> flagMatches = entry.getValue().stream().filter(flag -> showFlag(flag, searchText)).collect(Collectors.toList());
         if (flagMatches.isEmpty()) {
           return;
         }
