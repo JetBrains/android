@@ -221,6 +221,7 @@ private val FOLDING_STATE_ICONS = mapOf(
   "Flipped" to StudioIcons.Emulator.Menu.POSTURE_FLIPPED,
   "Half-Open" to StudioIcons.Emulator.Menu.POSTURE_HALF_FOLDED,
   "Open" to StudioIcons.Emulator.Menu.POSTURE_OPEN,
+  "Rear Display" to StudioIcons.Emulator.Menu.POSTURE_REAR_DISPLAY,
   "Tent" to StudioIcons.Emulator.Menu.POSTURE_TENT,
 )
 
