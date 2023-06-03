@@ -19,9 +19,12 @@ import static com.intellij.codeInsight.navigation.NavigationUtil.openFileWithPsi
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
 
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
+import com.android.tools.idea.smali.psi.SmaliClassName;
+import com.android.tools.idea.smali.psi.SmaliClassSpec;
 import com.android.tools.idea.smali.psi.SmaliFile;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.module.Module;
@@ -58,7 +61,7 @@ public final class SmaliFileNotificationProvider implements EditorNotificationPr
 
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (psiFile instanceof SmaliFile) {
-          classFqn = dexSourceFiles.findJavaClassName((SmaliFile)psiFile);
+          classFqn = findJavaClassName((SmaliFile)psiFile);
           if (isNotEmpty(classFqn)) {
             PsiClass javaPsiClass = dexSourceFiles.findJavaPsiClass(classFqn);
             psiClassAnchor = javaPsiClass != null ? PsiAnchor.create(javaPsiClass) : null;
@@ -71,6 +74,16 @@ public final class SmaliFileNotificationProvider implements EditorNotificationPr
       }
     }
 
+    return null;
+  }
+
+  @Nullable
+  public static String findJavaClassName(@NotNull SmaliFile smaliFile) {
+    SmaliClassSpec classSpec = findChildOfType(smaliFile, SmaliClassSpec.class);
+    if (classSpec != null) {
+      SmaliClassName className = classSpec.getClassName();
+      return className != null ? className.getJavaClassName() : null;
+    }
     return null;
   }
 

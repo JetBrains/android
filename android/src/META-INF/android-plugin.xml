@@ -21,7 +21,6 @@
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.intellij.groovy</depends>
-  <depends>com.android.tools.idea.smali</depends>
   <depends>org.jetbrains.kotlin</depends>
   <depends>org.toml.lang</depends>
   <depends>org.jetbrains.idea.gradle.dsl</depends>
@@ -29,6 +28,7 @@
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
   <depends optional="true" config-file="android-webp.xml">intellij.webp</depends>
+  <depends optional="true" config-file="android-smali.xml">com.android.tools.idea.smali</depends>
 
   <xi:include href="android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/org/jetbrains/android/dom/android-xml.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -601,8 +601,6 @@
 
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectNamespacingStatusService" />
 
-
-    <editorNotificationProvider implementation="com.android.tools.idea.apk.debugging.editor.SmaliFileNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.manifest.StaleManifestNotificationProvider"/>
     <editorNotificationProvider implementation="com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider"/>
 
