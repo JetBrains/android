@@ -41,3 +41,8 @@ val SIMPLEPERF_RELEASE_DIR = "plugins/android/resources/simpleperf"
 val PERFETTO_DEV_DIR = "prebuilts/tools/common/perfetto"
 @JvmField
 val PERFETTO_RELEASE_DIR = "plugins/android/resources/perfetto"
+
+@JvmField
+val TRACEBOX_DEV_DIR = "prebuilts/tools/common/tracebox"
+@JvmField
+val TRACEBOX_RELEASE_DIR = "plugins/android/resources/tracebox"

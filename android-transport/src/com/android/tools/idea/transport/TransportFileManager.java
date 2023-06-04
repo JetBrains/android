@@ -26,6 +26,7 @@ import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
 import com.android.tools.idea.run.profiler.ProfilingMode;
@@ -104,6 +105,13 @@ public final class TransportFileManager implements TransportFileCopier {
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_probes_%s") // e.g traced_probe_arm64
       .build();
+
+    @NotNull static final DeployableFile TRACEBOX = new DeployableFile.Builder("tracebox")
+      .setReleaseDir(Constants.TRACEBOX_RELEASE_DIR)
+      .setDevDir(Constants.TRACEBOX_DEV_DIR)
+      .setExecutable(true)
+      .setOnDeviceAbiFileNameFormat("tracebox_%s") // e.g tracebox_arm64
+      .build();
   }
 
   private static Logger getLogger() {
@@ -137,7 +145,12 @@ public final class TransportFileManager implements TransportFileCopier {
       // TODO: In case of simpleperf, remember the device doesn't support it, so we don't try to use it to profile the device.
       copyFileToDevice(HostFiles.SIMPLEPERF);
     }
-    if (isAtLeastP(myDevice)) {
+    if (StudioFlags.PROFILER_TRACEBOX.get()) {
+      if(isBetweenMAndP(myDevice)) {
+        copyFileToDevice(HostFiles.TRACEBOX);
+      }
+    }
+    else if (isAtLeastP(myDevice)) {
       copyFileToDevice(HostFiles.PERFETTO);
       copyFileToDevice(HostFiles.PERFETTO_SO);
       copyFileToDevice(HostFiles.TRACED);
@@ -180,6 +193,14 @@ public final class TransportFileManager implements TransportFileCopier {
 
   private static boolean isAtLeastP(IDevice device) {
     return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.P;
+  }
+
+  /**
+   * Whether the device is running version between M and P with both ends (M and P) inclusive
+   */
+  private static boolean isBetweenMAndP(IDevice device) {
+    return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.M &&
+           device.getVersion().getFeatureLevel() <= AndroidVersion.VersionCodes.P;
   }
 
   /**
