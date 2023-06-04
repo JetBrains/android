@@ -1210,11 +1210,13 @@
     <option name="clipboard" hit="Enable clipboard sharing" />
     <option name="enable" hit="Enable clipboard sharing" />
     <option name="sharing" hit="Enable clipboard sharing" />
-    <option name="a" hit="Launch in a tool window" />
-    <option name="in" hit="Launch in a tool window" />
-    <option name="launch" hit="Launch in a tool window" />
-    <option name="tool" hit="Launch in a tool window" />
-    <option name="window" hit="Launch in a tool window" />
+    <option name="devices" hit="Launch in the Running Devices tool window" />
+    <option name="in" hit="Launch in the Running Devices tool window" />
+    <option name="launch" hit="Launch in the Running Devices tool window" />
+    <option name="running" hit="Launch in the Running Devices tool window" />
+    <option name="the" hit="Launch in the Running Devices tool window" />
+    <option name="tool" hit="Launch in the Running Devices tool window" />
+    <option name="window" hit="Launch in the Running Devices tool window" />
     <option name="a" hit="Open the Running Devices tool window when launching a test" />
     <option name="devices" hit="Open the Running Devices tool window when launching a test" />
     <option name="launching" hit="Open the Running Devices tool window when launching a test" />

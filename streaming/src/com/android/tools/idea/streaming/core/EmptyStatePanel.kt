@@ -177,7 +177,7 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
 
         else ->
           "To launch a&nbsp;virtual device, click $plusSign and select a virtual device, or select " +
-          "the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option in&nbsp;the&nbsp;" +
+          "the&nbsp;<i>Launch in the&nbsp;Running&nbsp;Devices tool window</i> option in&nbsp;the&nbsp;" +
           "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>."
       }
       physicalFragment = when {
@@ -204,8 +204,8 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
           "or run your app while targeting a&nbsp;virtual device."
 
         else ->
-          "To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option in&nbsp;the&nbsp;" +
-          "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>."
+          "To launch virtual devices in this window, select the&nbsp;<i>Launch in the&nbsp;Running&nbsp;Devices tool window</i> option " +
+          "in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>."
       }
       physicalFragment = when {
         deviceMirroringEnabled -> "To mirror a&nbsp;physical device, connect it via USB cable or over WiFi."

@@ -133,7 +133,7 @@ class EmptyStatePanelTest {
     EmulatorSettings.getInstance().launchInToolWindow = false
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(
-        "To launch virtual devices in this window, select the <i>Launch in a tool window</i> option" +
+        "To launch virtual devices in this window, select the <i>Launch in the Running Devices tool window</i> option" +
         " in the <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>.")
   }
 
@@ -190,7 +190,7 @@ class EmptyStatePanelTest {
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(
         "To launch a virtual device, click <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select a virtual device," +
-        " or select the <i>Launch in a tool window</i> option in the" +
+        " or select the <i>Launch in the Running Devices tool window</i> option in the" +
         " <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>.")
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator.settings
 
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.CameraVelocityControls
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
@@ -58,7 +59,7 @@ class EmulatorSettingsPageTest {
     assertThat(provider.canCreateConfigurable()).isTrue()
     val settingsUi = provider.createConfigurable()
     val ui = FakeUi(settingsUi.createComponent()!!)
-    val launchInToolWindowCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Launch in a tool window" }
+    val launchInToolWindowCheckBox = ui.getComponent<JCheckBox> { c -> c.text == "Launch in the Running Devices tool window" }
     val activateOnAppLaunchCheckBox = ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching an app" }
     val activateOnTestLaunchCheckBox =
         ui.getComponent<JCheckBox> { it.text == "Open the Running Devices tool window when launching a test" }
@@ -117,12 +118,22 @@ class EmulatorSettingsPageTest {
     assertThat(settingsUi.isModified).isFalse()
 
     launchInToolWindowCheckBox.isSelected = false
-    assertThat(activateOnAppLaunchCheckBox.isEnabled).isFalse()
-    assertThat(activateOnTestLaunchCheckBox.isEnabled).isFalse()
-    assertThat(synchronizeClipboardCheckBox.isEnabled).isFalse()
-    assertThat(showCameraControlPromptsCheckBox.isEnabled).isFalse()
-    assertThat(cameraVelocityControlComboBox.isEnabled).isFalse()
-    assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isFalse()
+    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      assertThat(activateOnAppLaunchCheckBox.isEnabled).isTrue()
+      assertThat(activateOnTestLaunchCheckBox.isEnabled).isTrue()
+      assertThat(synchronizeClipboardCheckBox.isEnabled).isTrue()
+      assertThat(showCameraControlPromptsCheckBox.isEnabled).isTrue()
+      assertThat(cameraVelocityControlComboBox.isEnabled).isTrue()
+      assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
+    }
+    else {
+      assertThat(activateOnAppLaunchCheckBox.isEnabled).isFalse()
+      assertThat(activateOnTestLaunchCheckBox.isEnabled).isFalse()
+      assertThat(synchronizeClipboardCheckBox.isEnabled).isFalse()
+      assertThat(showCameraControlPromptsCheckBox.isEnabled).isFalse()
+      assertThat(cameraVelocityControlComboBox.isEnabled).isFalse()
+      assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isFalse()
+    }
     assertThat(settingsUi.isModified).isTrue()
     settingsUi.apply()
     assertThat(settings.launchInToolWindow).isFalse()
