@@ -41,7 +41,6 @@ import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
@@ -105,8 +104,7 @@ internal fun KtElement.callReturnTypeFqName() = if (isK2Plugin()) {
   }
 }
 else {
-  // TODO(jaebaek): `getReturnType()` uses IJ JS parts. Replace it with `resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName`.
-  resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName
+  resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName
 }
 
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType` and `KtTypeRenderer`.
