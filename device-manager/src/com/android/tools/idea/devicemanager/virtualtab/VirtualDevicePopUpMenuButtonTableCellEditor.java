@@ -100,10 +100,6 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
   }
 
   private void addPairDeviceItems(@NotNull Collection<JComponent> items) {
-    if (!StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
-      return;
-    }
-
     if (!getDevice().isPairable()) {
       return;
     }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wearpairing
 
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.computeFullApiName
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.AdtUiUtils.allComponents
@@ -31,7 +30,6 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.execution.runners.ExecutionUtil
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.ProgressManager
@@ -55,7 +53,6 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -274,24 +271,6 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
               gridy = 2
             }
           )
-
-          val rightIcon = when {
-            StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() -> null
-            WearPairingManager.getInstance().isPaired(value.deviceID) -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
-            value.isDisabled() -> AllIcons.General.ShowInfos
-            else -> null
-          }
-          if (rightIcon != null) {
-            add(
-              JBLabel(getIcon(rightIcon, isSelected)).apply {
-                border = empty(0, 0, 0, 16)
-              },
-              GridBagConstraints().apply {
-                gridx = 2
-                gridy = 2
-              }
-            )
-          }
 
           // For accessibility purposes, pick the first visible label in this cell and use the text from
           // it for the screen reader.

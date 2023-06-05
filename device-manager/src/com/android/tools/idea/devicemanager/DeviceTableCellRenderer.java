@@ -121,13 +121,11 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
     myPairedLabel.setForeground(foreground);
 
-    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
-      Optional<Icon> icon = getPairedLabelIcon(device);
+    Optional<Icon> icon = getPairedLabelIcon(device);
 
-      TableCellRenderers.setIcon(myPairedLabel, icon.orElse(null), selected);
-      myPairedLabel.setVisible(icon.isPresent());
-      myPanel.setToolTipText(getPairedTooltip(device));
-    }
+    TableCellRenderers.setIcon(myPairedLabel, icon.orElse(null), selected);
+    myPairedLabel.setVisible(icon.isPresent());
+    myPanel.setToolTipText(getPairedTooltip(device));
 
     myPanel.setBackground(Tables.getBackground(table, selected));
     myPanel.setBorder(Tables.getBorder(selected, focused));

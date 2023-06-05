@@ -1406,13 +1406,6 @@ public final class StudioFlags {
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
 
-  public static final Flag<Boolean> WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED = Flag.create(
-    DEVICE_MANAGER,
-    "wear.os.virtual.device.pairing.assistant.enabled",
-    "Enable the Wear OS virtual device pairing assistant",
-    "Enable the Wear OS virtual device pairing assistant",
-    true);
-
   public static final Flag<Boolean> PAIRED_DEVICES_TAB_ENABLED = Flag.create(
     DEVICE_MANAGER,
     "paired.devices.tab.enabled",
