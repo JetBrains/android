@@ -25,27 +25,29 @@ import org.jetbrains.plugins.gradle.service.resolve.GradleCommonClassNames
 */
 class SyntheticVersionCatalogAccessor(project: Project, scope: GlobalSearchScope, model: GradleVersionCatalogsModel, className: String) :
   LightClass(JavaPsiFacade.getInstance(project).findClass(CommonClassNames.JAVA_LANG_OBJECT, scope)!!) {
-
+  init{
+    assert(className in model.catalogNames())
+  }
   private val libraries: Array<PsiMethod> =
     SyntheticAccessorBuilder(project, scope, className, Kind.LIBRARY)
       .buildMethods(this,
-                    model.catalogNames().flatMap { model.libraries(it)!!.properties }.map(Companion::PropertyModelGraphNode),
+                    model.libraries(className)!!.properties.map(Companion::PropertyModelGraphNode),
                     "")
       .toTypedArray()
 
   private val plugins: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.PLUGIN)
     .buildEnclosingMethod(this,
-                          model.catalogNames().flatMap { model.plugins(it)!!.properties },
+                          model.plugins(className)!!.properties,
                           "plugins")
 
   private val versions: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.VERSION)
     .buildEnclosingMethod(this,
-                          model.catalogNames().flatMap { model.versions(it)!!.properties },
+                          model.versions(className)!!.properties,
                           "versions")
 
   private val bundles: PsiMethod = SyntheticAccessorBuilder(project, scope, className, Kind.BUNDLE)
     .buildEnclosingMethod(this,
-                          model.catalogNames().flatMap { model.bundles(it)!!.properties },
+                          model.bundles(className)!!.properties,
                           "bundles")
 
 
