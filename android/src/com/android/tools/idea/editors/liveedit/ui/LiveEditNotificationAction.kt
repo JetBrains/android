@@ -25,9 +25,13 @@ import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEdi
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
@@ -35,6 +39,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
@@ -92,6 +97,22 @@ internal fun defaultCreateInformationPopup(
       AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)
     }
 
+    val upgradeAssistant =
+      if (status.title == LiveEditStatus.OutOfDate.title &&
+          status.description.contains(LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR.message))
+        AnActionLink("View Upgrade Assistant", object : AnAction() {
+          override fun actionPerformed(e: AnActionEvent) {
+            ActionUtil.invokeAction(
+              ActionManager.getInstance().getAction("AgpUpgrade"),
+              dataContext,
+              RUNNING_DEVICES_TOOL_WINDOW_ID,
+              null,
+              null)
+          }
+        })
+      else
+        null
+
     val configureLiveEditAction = ConfigureLiveEditAction()
     return@let InformationPopupImpl(
       null,
@@ -99,6 +120,7 @@ internal fun defaultCreateInformationPopup(
       emptyList(),
       listOfNotNull(
         link,
+        upgradeAssistant,
         AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/iterative-development#live-edit")),
         object: AnActionLink("Configure Live Edit", configureLiveEditAction) {
         }.apply {
