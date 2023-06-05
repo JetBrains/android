@@ -79,8 +79,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull private ImmutableList<LocalResourceRepository> myLocalResources = ImmutableList.of();
-  @GuardedBy("ITEM_MAP_LOCK")
-  @NotNull private ImmutableList<AarResourceRepository> myLibraryResources = ImmutableList.of();
   /** A concatenation of {@link #myLocalResources} and {@link #myLibraryResources}. */
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull private ImmutableList<ResourceRepository> myChildren = ImmutableList.of();
@@ -131,10 +129,9 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
       }
       setModificationCount(ourModificationCounter.incrementAndGet());
       myLocalResources = ImmutableList.copyOf(localResources);
-      myLibraryResources = ImmutableList.copyOf(libraryResources);
-      int size = myLocalResources.size() + myLibraryResources.size() + otherResources.size();
+      int size = myLocalResources.size() + libraryResources.size() + otherResources.size();
       myChildren = ImmutableList.<ResourceRepository>builderWithExpectedSize(size)
-          .addAll(myLocalResources).addAll(myLibraryResources).addAll(otherResources).build();
+          .addAll(myLocalResources).addAll(libraryResources).addAll(otherResources).build();
 
       ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> mapBuilder = ImmutableListMultimap.builder();
       computeLeafs(this, mapBuilder);
@@ -197,12 +194,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   public ImmutableList<LocalResourceRepository> getLocalResources() {
     synchronized (ITEM_MAP_LOCK) {
       return myLocalResources;
-    }
-  }
-
-  public ImmutableList<AarResourceRepository> getLibraryResources() {
-    synchronized (ITEM_MAP_LOCK) {
-      return myLibraryResources;
     }
   }
 
