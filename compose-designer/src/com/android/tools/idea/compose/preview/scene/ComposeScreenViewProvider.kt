@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.scene
 
 import com.android.flags.ifEnabled
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY
@@ -33,6 +34,7 @@ import com.android.tools.idea.uibuilder.surface.layer.BorderColor
 import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
 import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer
+import com.android.tools.idea.uibuilder.surface.layer.WarningLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
@@ -71,6 +73,13 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
                     (!StudioFlags.COMPOSE_PREVIEW_SELECTION.get() ||
                       sceneView.isRootComponentSelected())
                 }
+              }
+            )
+            add(
+              WarningLayer(it) {
+                if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get())
+                  IssuePanelService.getInstance(surface.project).getSelectedIssues()
+                else listOfNotNull(surface.issuePanel.selectedIssue)
               }
             )
             StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {

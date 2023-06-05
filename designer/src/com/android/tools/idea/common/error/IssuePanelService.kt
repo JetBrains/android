@@ -63,6 +63,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import javax.swing.event.TreeModelEvent
+import javax.swing.event.TreeSelectionListener
 
 private const val DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME = "Designer"
 
@@ -521,6 +522,14 @@ class IssuePanelService(private val project: Project) {
    */
   fun setSelectedNode(nodeVisitor: TreeVisitor) {
     sharedIssuePanel?.setSelectedNode(nodeVisitor)
+  }
+
+  fun addIssueSelectionListener(listener: TreeSelectionListener) {
+    sharedIssuePanel?.addIssueSelectionListener(listener)
+  }
+
+  fun removeIssueSelectionListener(listener: TreeSelectionListener) {
+    sharedIssuePanel?.removeIssueSelectionListener(listener)
   }
 
   companion object {

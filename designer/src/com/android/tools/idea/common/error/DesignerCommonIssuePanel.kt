@@ -53,6 +53,7 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.TreeModelEvent
+import javax.swing.event.TreeSelectionListener
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
@@ -235,6 +236,14 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
       splitter.secondComponent = null
     }
     splitter.revalidate()
+  }
+
+  fun addIssueSelectionListener(listener: TreeSelectionListener) {
+    tree.addTreeSelectionListener(listener)
+  }
+
+  fun removeIssueSelectionListener(listener: TreeSelectionListener) {
+    tree.removeTreeSelectionListener(listener)
   }
 
   override fun dispose() = Unit
