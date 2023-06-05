@@ -52,23 +52,11 @@ public class SyncIssuesReporter {
 
   @SuppressWarnings("unused") // Instantiated by IDEA
   public SyncIssuesReporter() {
-    this(
-      new UnresolvedDependenciesReporter(),
-      new UnsupportedGradleReporter(),
-      new BuildToolsTooLowReporter(),
-      new MissingSdkPackageSyncIssuesReporter(),
-      new MinSdkInManifestIssuesReporter(),
-      new TargetSdkInManifestIssuesReporter(),
-      new DeprecatedConfigurationReporter(),
-      new MissingSdkIssueReporter(),
-      new OutOfDateThirdPartyPluginIssueReporter(),
-      new CxxConfigurationIssuesReporter(),
-      new AndroidXUsedReporter(),
-      new JcenterDeprecatedReporter(),
-      new AgpUsedJavaTooLowReporter(),
-      new ExceptionSyncIssuesReporter(),
-      new CompileSdkVersionTooHighReporter()
-    );
+    this(new UnresolvedDependenciesReporter(), new UnsupportedGradleReporter(),
+         new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
+         new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
+         new OutOfDateThirdPartyPluginIssueReporter(), new CxxConfigurationIssuesReporter(), new AndroidXUsedReporter(),
+         new JcenterDeprecatedReporter(), new AgpUsedJavaTooLowReporter(), new ExceptionSyncIssuesReporter());
   }
 
   @NonInjectable

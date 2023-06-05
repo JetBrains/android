@@ -20,7 +20,6 @@ import static com.android.builder.model.SyncIssue.SEVERITY_WARNING;
 import static com.android.builder.model.SyncIssue.TYPE_AGP_USED_JAVA_VERSION_TOO_LOW;
 import static com.android.builder.model.SyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED;
 import static com.android.builder.model.SyncIssue.TYPE_BUILD_TOOLS_TOO_LOW;
-import static com.android.builder.model.SyncIssue.TYPE_COMPILE_SDK_VERSION_TOO_HIGH;
 import static com.android.builder.model.SyncIssue.TYPE_DEPENDENCY_INTERNAL_CONFLICT;
 import static com.android.builder.model.SyncIssue.TYPE_DEPRECATED_CONFIGURATION;
 import static com.android.builder.model.SyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION;
@@ -227,10 +226,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(15);
-
-    strategy = strategies.get(TYPE_COMPILE_SDK_VERSION_TOO_HIGH);
-    assertThat(strategy).isInstanceOf(CompileSdkVersionTooHighReporter.class);
+    assertThat(strategies).hasSize(14);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
@@ -270,7 +266,6 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     strategy = strategies.get(TYPE_AGP_USED_JAVA_VERSION_TOO_LOW);
     assertThat(strategy).isInstanceOf(AgpUsedJavaTooLowReporter.class);
-
     strategy = strategies.get(IdeSyncIssue.TYPE_EXCEPTION);
     assertThat(strategy).isInstanceOf(ExceptionSyncIssuesReporter.class);
   }
