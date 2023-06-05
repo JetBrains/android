@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
@@ -51,13 +55,19 @@ class ShowLayoutInspectorAction : DumbAwareAction(
 
   private fun showLayoutInspectorDiscoveryPopUp(project: Project) {
     val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("LAYOUT_INSPECTOR_DISCOVERY")
-    notificationGroup
+    val notification = notificationGroup
       .createNotification(
         LayoutInspectorBundle.message("layout.inspector.discovery.title"),
         LayoutInspectorBundle.message("layout.inspector.discovery.description"),
         NotificationType.INFORMATION
       )
-      .notify(project)
+    notification.addAction(object : NotificationAction(LayoutInspectorBundle.message("opt.out")) {
+        override fun actionPerformed(e: AnActionEvent, notification: Notification) {
+          notification.expire()
+          ShowSettingsUtil.getInstance().showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+        }
+      })
+    notification.notify(project)
   }
 
   private fun activateToolWindow(project: Project, toolWindowId: String) {
