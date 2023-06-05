@@ -17,10 +17,8 @@ package com.android.tools.idea.ui;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.Key;
-import org.jetbrains.annotations.NotNull;
 
 public class GuiTestingService {
   public static final Key<Runnable> EXECUTE_BEFORE_PROJECT_BUILD_IN_GUI_TEST_KEY = Key.create("gui.test.execute.before.build");
