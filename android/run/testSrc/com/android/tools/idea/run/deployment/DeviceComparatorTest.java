@@ -114,4 +114,24 @@ public final class DeviceComparatorTest {
 
     assertTrue(new DeviceComparator().compare(device1, device2) < 0);
   }
+
+  @Test
+  public void testValidityPrecedesConnectionTime() {
+    var device1 = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Pixel_3_API_28"))
+      .setConnectionTime(Instant.parse("2019-06-03T20:56:58.176Z"))
+      .setName("Pixel 3 API 28")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    var device2 = new VirtualDevice.Builder()
+      .setKey(new VirtualDeviceName("Pixel_2_XL_API_28"))
+      .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "reason"))
+      .setConnectionTime(Instant.parse("2019-06-03T20:57:00.687Z"))
+      .setName("Pixel 2 XL API 28")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    assertTrue(new DeviceComparator().compare(device1, device2) < 0);
+  }
 }
