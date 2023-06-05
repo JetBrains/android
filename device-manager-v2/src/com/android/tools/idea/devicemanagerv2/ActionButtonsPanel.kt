@@ -26,12 +26,12 @@ import javax.swing.BoxLayout
 import kotlinx.coroutines.CoroutineScope
 
 internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
-  protected fun setUp(vararg buttons: IconButton) {
+  protected fun setUp(vararg buttons: IconButton?) {
     layout = BoxLayout(this, BoxLayout.X_AXIS)
     isOpaque = false
 
     val size = JBDimension(22, 22)
-    for (button in buttons) {
+    for (button in buttons.filterNotNull()) {
       button.constrainSize(size)
       add(button)
     }
@@ -40,10 +40,10 @@ internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
   open fun updateState(state: DeviceRowData) {}
 }
 
-internal class DeviceHandleButtonsPanel(val project: Project, handle: DeviceHandle) :
+internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHandle) :
   ActionButtonsPanel() {
 
-  val openDeviceExplorer = OpenDeviceExplorerButton(project, handle)
+  val openDeviceExplorer = project?.let { OpenDeviceExplorerButton(it, handle) }
   val overflowButton = OverflowButton()
 
   init {
@@ -60,7 +60,7 @@ internal class DeviceHandleButtonsPanel(val project: Project, handle: DeviceHand
   }
 
   override fun updateState(state: DeviceRowData) {
-    openDeviceExplorer.updateState(state)
+    openDeviceExplorer?.updateState(state)
   }
 }
 

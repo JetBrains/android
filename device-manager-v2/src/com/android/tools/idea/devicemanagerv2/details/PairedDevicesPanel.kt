@@ -182,7 +182,7 @@ private constructor(
     suspend fun removeDevice(phonePairingId: String, wearPairingId: String)
   }
 
-  class StudioPairingManager(val project: Project) : PairingManager {
+  class StudioPairingManager(val project: Project?) : PairingManager {
     override fun showPairDeviceWizard(pairingId: String) {
       WearDevicePairingWizard().show(project, pairingId)
     }

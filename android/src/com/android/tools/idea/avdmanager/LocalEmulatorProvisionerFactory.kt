@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager
 
+import com.android.adblib.AdbSession
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.internal.avd.AvdInfo
@@ -38,7 +39,14 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
   override val isEnabled: Boolean
     get() = true
 
-  override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin {
+  override fun create(coroutineScope: CoroutineScope, project: Project) =
+    create(coroutineScope, AdbLibService.getSession(project), project)
+
+  fun create(
+    coroutineScope: CoroutineScope,
+    adbSession: AdbSession,
+    project: Project?
+  ): DeviceProvisionerPlugin {
     val avdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection()
     val avdManager =
       object : LocalEmulatorProvisionerPlugin.AvdManager {
@@ -60,8 +68,14 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
           // @Slow methods so switch
           withContext(workerThread) {
             when {
-              coldBoot -> avdManagerConnection.coldBoot(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
-              else -> avdManagerConnection.startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
+              coldBoot ->
+                avdManagerConnection.startAvdWithColdBoot(
+                  project,
+                  avdInfo,
+                  RequestType.DIRECT_DEVICE_MANAGER
+                )
+              else ->
+                avdManagerConnection.startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
             }
           }
         }
@@ -120,7 +134,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
 
     return LocalEmulatorProvisionerPlugin(
       coroutineScope,
-      AdbLibService.getSession(project),
+      adbSession,
       avdManager,
       defaultPresentation = StudioDefaultDeviceActionPresentation,
     )

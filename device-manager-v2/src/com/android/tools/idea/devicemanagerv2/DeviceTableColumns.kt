@@ -132,7 +132,7 @@ internal object DeviceTableColumns {
       IconLabel(null).apply { size = JBDimension(24, 24) }
   }
 
-  class Actions(private val project: Project, val coroutineScope: CoroutineScope) :
+  class Actions(private val project: Project?, val coroutineScope: CoroutineScope) :
     Column<DeviceRowData, Unit, ActionButtonsPanel> {
     override val name = DeviceManagerBundle.message("column.title.actions")
     override val attribute = Attribute.Unit
@@ -154,6 +154,6 @@ internal object DeviceTableColumns {
       Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 3)
   }
 
-  fun columns(project: Project, coroutineScope: CoroutineScope) =
+  fun columns(project: Project?, coroutineScope: CoroutineScope) =
     listOf(Status, Type, Name, Api, IsVirtual, Actions(project, coroutineScope))
 }

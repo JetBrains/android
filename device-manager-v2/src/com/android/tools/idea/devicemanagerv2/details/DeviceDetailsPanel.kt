@@ -57,7 +57,7 @@ private constructor(
 
   companion object {
     fun create(
-      project: Project,
+      project: Project?,
       scope: CoroutineScope,
       handle: DeviceHandle,
       devicesFlow: Flow<List<DeviceHandle>>,

@@ -122,6 +122,12 @@
             icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER">
       <add-to-group group-id="WelcomeScreen.QuickStart"/>
     </action>
+    <action id="WelcomeScreen.RunDeviceManager2"
+            text="Virtual Device Manager"
+            class="com.android.tools.idea.devicemanagerv2.DeviceManagerWelcomeScreenAction"
+            icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER">
+      <add-to-group group-id="WelcomeScreen.QuickStart"/>
+    </action>
 
     <group id="Android.NavBarToolBar">
       <reference id="Android.SyncProject" />

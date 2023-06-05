@@ -74,7 +74,7 @@ import org.jetbrains.android.AndroidPluginDisposable
 internal class DeviceManagerPanel
 @VisibleForTesting
 constructor(
-  val project: Project,
+  val project: Project?,
   val panelScope: CoroutineScope,
   val uiDispatcher: CoroutineDispatcher,
   private val devices: StateFlow<List<DeviceHandle>>,
@@ -91,6 +91,20 @@ constructor(
   ) : this(
     project,
     AndroidCoroutineScope(AndroidPluginDisposable.getProjectInstance(project)),
+    uiThread,
+    deviceProvisioner.devices,
+    deviceProvisioner.templates,
+    deviceProvisioner.createDeviceActions(),
+    deviceProvisioner.createTemplateActions(),
+    WearPairingManager.getInstance().pairedDevicesFlow()
+  )
+
+  constructor(
+    parentScope: CoroutineScope,
+    deviceProvisioner: DeviceProvisioner,
+  ) : this(
+    null,
+    parentScope.createChildScope(isSupervisor = true),
     uiThread,
     deviceProvisioner.devices,
     deviceProvisioner.templates,
