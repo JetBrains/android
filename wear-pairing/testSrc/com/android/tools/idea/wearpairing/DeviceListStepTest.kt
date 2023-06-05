@@ -242,28 +242,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   }
 
   @Test
-  fun rightClickOnPairedDeviceShouldOfferPopupToDisconnect() {
-    assumeFalse(StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get())
-
-    val fakeUi = createDeviceListStepUi()
-    val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking { WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
-
-    model.phoneList.set(listOf(phoneDevice))
-    fakeUi.layoutAndDispatchEvents()
-
-    val phoneList = Mockito.spy(fakeUi.getPhoneList())
-    Mockito.doReturn(Point(0, 0)).whenever(phoneList).locationOnScreen // Work around for headless UI
-
-    val cellRect = phoneList.getCellBounds(0, 0)
-
-    val popupFactory = TestPopupFactory().install()
-    FakeUi(phoneList).mouse.rightClick(cellRect.width / 2, cellRect.height / 2)
-
-    assertThat(popupFactory.getMenuItemAndHide(0)).isEqualTo("Forget Round Watch connection")
-  }
-
-  @Test
   fun showTooltipIfDeviceNotAllowed() {
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
@@ -304,9 +282,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     }
 
     assertThat(getListItemTooltip(0)).isNull() // Non emulators are always OK
-    if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-      assertThat(getListItemTooltip(1)).contains("Paired with Round Watch")
-    }
     assertThat(getListItemTooltip(2)).contains("Wear pairing requires API level >= 30")
     assertThat(getListItemTooltip(3)).contains("Wear pairing requires Google Play")
     assertThat(getListItemTooltip(4)).contains("Wear pairing requires API level >= 28")

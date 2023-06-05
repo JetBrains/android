@@ -246,9 +246,6 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
                                        wearDevice: IDevice,
                                        connect: Boolean = true): PhoneWearPair {
     LOG.warn("Starting device bridge {connect = $connect}")
-    if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-      removeAllPairedDevices(phone.deviceID, restartWearGmsCore = false)
-    }
     removeAllPairedDevices(wear.deviceID, restartWearGmsCore = false)
 
     val hostPort = NetUtils.tryToFindAvailableSocketPort(5602)

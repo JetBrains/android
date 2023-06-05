@@ -89,13 +89,11 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initScreenDiagram();
     initPropertiesSection();
 
-    InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
-
     if (myPropertiesSection != null) {
       myInfoSections.add(myPropertiesSection);
     }
 
-    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.isPairable()) {
+    if (device.isPairable()) {
       myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject());
     }
 

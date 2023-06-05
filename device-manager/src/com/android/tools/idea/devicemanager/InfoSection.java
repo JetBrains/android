@@ -90,44 +90,6 @@ public class InfoSection extends JBPanel<InfoSection> {
     setLayout(layout);
   }
 
-  public static @NotNull Optional<InfoSection> newPairedDeviceSection(@NotNull Device device,
-                                                                               @NotNull WearPairingManager manager) {
-    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-      return Optional.empty();
-    }
-    String key = device.getKey().toString();
-    List<PhoneWearPair> pairList = manager.getPairsForDevice(key);
-
-    if (pairList.isEmpty()) {
-      return Optional.empty();
-    }
-
-    PhoneWearPair pair = pairList.get(0);
-    InfoSection section = new InfoSection("Paired device");
-    setText(section.addNameAndValueLabels("Paired with"), pair.getPeerDevice(key).getDisplayName());
-    String paringStatus;
-    switch (pair.getPairingStatus()) {
-      case OFFLINE:
-        paringStatus = "Offline";
-        break;
-      case CONNECTING:
-        paringStatus = "Connecting";
-        break;
-      case CONNECTED:
-        paringStatus = "Connected";
-        break;
-      case PAIRING_FAILED:
-        paringStatus = "Error pairing";
-        break;
-      default:
-        throw new AssertionError(pair.getPairingStatus());
-    }
-    setText(section.addNameAndValueLabels("Status"), paringStatus);
-    section.setLayout();
-
-    return Optional.of(section);
-  }
-
   public static void setText(@NotNull JLabel label, @Nullable Object value) {
     if (value == null) {
       return;

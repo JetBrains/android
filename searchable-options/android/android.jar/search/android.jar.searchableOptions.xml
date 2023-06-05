@@ -554,13 +554,6 @@
     <option name="resource" path="ActionManager" hit="Open the Resource Manager" />
     <option name="the" path="ActionManager" hit="Open the Resource Manager" />
     <option name="open" path="ActionManager" hit="Open..." />
-    <option name="assistant" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
-    <option name="emulator" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
-    <option name="opens" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
-    <option name="os" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
-    <option name="pairing" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
-    <option name="the" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
-    <option name="wear" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="overview" path="ActionManager" hit="Overview" />
     <option name="devices" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="pair" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
@@ -876,11 +869,6 @@
     <option name="volume" path="ActionManager" hit="Volume Down" />
     <option name="up" path="ActionManager" hit="Volume Up" />
     <option name="volume" path="ActionManager" hit="Volume Up" />
-    <option name="assistant" path="ActionManager" hit="Wear OS emulator pairing assistant" />
-    <option name="emulator" path="ActionManager" hit="Wear OS emulator pairing assistant" />
-    <option name="os" path="ActionManager" hit="Wear OS emulator pairing assistant" />
-    <option name="pairing" path="ActionManager" hit="Wear OS emulator pairing assistant" />
-    <option name="wear" path="ActionManager" hit="Wear OS emulator pairing assistant" />
   </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Android Logcat" configurable_name="Android Logcat">
     <option name="android" hit="Android Logcat" />

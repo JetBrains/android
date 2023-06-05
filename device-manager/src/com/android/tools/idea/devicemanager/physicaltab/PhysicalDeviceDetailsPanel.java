@@ -89,9 +89,8 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       myNewSummarySectionCallback = newSummarySectionCallback;
 
       Futures.addCallback(myFuture, newScreenDiagramCallback(), EdtExecutorService.getInstance());
-      InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
-      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
+      if (device.getType().equals(DeviceType.PHONE)) {
         myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject(), manager);
       }
     }

@@ -14,13 +14,6 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <actions>
-    <action id="Android.WearDevicePairing"
-            class="com.android.tools.idea.wearpairing.actions.WearDevicePairingAction"
-            icon="StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN"
-            text="Wear OS emulator pairing assistant"
-            description="Opens the Wear OS emulator pairing assistant" />
-  </actions>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.wearpairing.WearPairingSettings"/>
   </extensions>

@@ -20,8 +20,6 @@ import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.AdtUiUtils.allComponents
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
 import com.android.tools.adtui.util.HelpTooltipForList
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -30,12 +28,7 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.execution.runners.ExecutionUtil
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.JBMenuItem
-import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.CollectionListModel
@@ -53,17 +46,11 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
 import java.net.URL
 import javax.swing.BoxLayout
 import javax.swing.DefaultListSelectionModel
@@ -77,7 +64,6 @@ import javax.swing.ListSelectionModel
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingConstants
-import javax.swing.SwingUtilities.isRightMouseButton
 import javax.swing.event.HyperlinkEvent.EventType.ACTIVATED
 
 internal const val WEAR_DOCS_LINK = "https://developer.android.com/training/wearables/apps/creating#pairing-assistant"
@@ -294,10 +280,6 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
           updateGoForward()
         }
       }
-
-      if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-        addRightClickAction()
-      }
     }
   }
 
@@ -344,54 +326,6 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
   private fun getIcon(icon: Icon, isSelected: Boolean): Icon = when {
     isSelected && !isNewUI() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
     else -> icon
-  }
-
-  private fun JBList<PairingDevice>.addRightClickAction() {
-    val listener: MouseListener = object : MouseAdapter() {
-      override fun mousePressed(e: MouseEvent) {
-        val row = locationToIndex(e.point)
-        if (row >= 0 && isRightMouseButton(e)) {
-          val listDevice = model.getElementAt(row)
-          val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(listDevice.deviceID).firstOrNull()
-          if (phoneWearPair != null) {
-            val peerDevice = phoneWearPair.getPeerDevice(listDevice.deviceID)
-            val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
-            item.addActionListener {
-              val process = Runnable {
-                val cloudSyncIsEnabled = runBlocking(context = Dispatchers.IO) {
-                  withTimeoutOrNull(5_000) {
-                    WearPairingManager.getInstance().checkCloudSyncIsEnabled(phoneWearPair.phone)
-                  }
-                }
-                if (cloudSyncIsEnabled == true) {
-                  ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(phoneWearPair.phone) }, ModalityState.any())
-                }
-                AndroidCoroutineScope(this@DeviceListStep).launch(Dispatchers.IO) {
-                  WearPairingManager.getInstance().removeAllPairedDevices(listDevice.deviceID)
-                  // Update pairing icon
-                  ApplicationManager.getApplication().invokeLater(
-                    {
-                      phoneListPanel.list.cleanCache()
-                      wearListPanel.list.cleanCache()
-                      phoneListPanel.showList()
-                      wearListPanel.showList()
-                    }, ModalityState.any()
-                  )
-                }
-              }
-              val progressTitle = message("wear.assistant.device.list.forget.connection", peerDevice.displayName)
-              ProgressManager.getInstance().runProcessWithProgressSynchronously(
-                process, progressTitle, true, project, this@addRightClickAction
-              )
-            }
-            val menu = JBPopupMenu()
-            menu.add(item)
-            JBPopupMenu.showByEvent(e, menu)
-          }
-        }
-      }
-    }
-    addMouseListener(listener)
   }
 
   private fun showCloudSyncDialog(pairedPhone: PairingDevice) {
@@ -441,12 +375,6 @@ private fun PairingDevice.isDisabled(): Boolean {
 }
 
 private fun PairingDevice.getTooltip(): String? {
-  if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-    WearPairingManager.getInstance().getPairsForDevice(deviceID).firstOrNull()?.apply {
-      return "Paired with ${getPeerDevice(deviceID).displayName}"
-    }
-  }
-
   return when {
     isEmulator && isWearDevice && apiLevel < 28 -> message("wear.assistant.device.list.tooltip.requires.api", 28)
     isEmulator && !isWearDevice && apiLevel < 30 -> message("wear.assistant.device.list.tooltip.requires.api", 30)

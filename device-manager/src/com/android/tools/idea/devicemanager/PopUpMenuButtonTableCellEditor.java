@@ -89,8 +89,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
       return Optional.empty();
     }
 
-    boolean enabled = StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get();
-    AbstractButton item = new JBMenuItem(enabled ? "View Paired Device(s)" : "Unpair Device");
+    AbstractButton item = new JBMenuItem("View Paired Device(s)");
 
     item.addActionListener(actionEvent -> {
       DeviceManagerEvent deviceManagerEvent = DeviceManagerEvent.newBuilder()
@@ -99,15 +98,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
 
       DeviceManagerUsageTracker.log(deviceManagerEvent);
 
-      if (enabled) {
-        myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
-      }
-      else {
-        Object name = pairs.get(0).getPeerDevice(key).getDisplayName();
-        item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", name));
-
-        WearPairingManagerKt.removeAllPairedDevicesAsync(myManager, key, true);
-      }
+      myPanel.viewDetails(DetailsPanel.PAIRED_DEVICES_TAB_INDEX);
     });
 
     return Optional.of(item);

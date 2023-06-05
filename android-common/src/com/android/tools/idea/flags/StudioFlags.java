@@ -1406,13 +1406,6 @@ public final class StudioFlags {
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
 
-  public static final Flag<Boolean> PAIRED_DEVICES_TAB_ENABLED = Flag.create(
-    DEVICE_MANAGER,
-    "paired.devices.tab.enabled",
-    "Enable the Paired devices tab",
-    "Enable the Paired devices tab in the details panel",
-    true);
-
   public static final Flag<Boolean> VIRTUAL_DEVICE_WATCHER_ENABLED = Flag.create(
     DEVICE_MANAGER,
     "virtual.device.watcher.enabled",
