@@ -52,7 +52,7 @@ import java.awt.datatransfer.UnsupportedFlavorException
 private val DEFAULT_RESOURCE_URL = ResourceUrl.create("namespace", ResourceType.DRAWABLE,
                                                       "my_resource")
 
-@Language("Kotlin")
+@Language("kotlin")
 private const val DEFAULT_KOTLIN_FILE_CONTENT = "package com.example.myapplication\n" +
                                           "\n" +
                                           "import android.os.Bundle\n" +
