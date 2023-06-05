@@ -36,11 +36,11 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
-import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
@@ -69,6 +69,7 @@ private const val DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME = "Designer"
 /**
  * A service to help to show the issues of Design Tools in IJ's Problems panel.
  */
+@Service(Service.Level.PROJECT)
 class IssuePanelService(private val project: Project) {
 
   /**
