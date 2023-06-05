@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.checkVersion
@@ -184,7 +186,14 @@ class ComposeLayoutInspectorClient(
         checkComposeVersion(project, version)
 
         try {
-          InspectorArtifactService.instance.getOrResolveInspectorJar(project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
+          InspectorArtifactService.instance.getOrResolveInspectorJar(
+            project,
+            MINIMUM_COMPOSE_COORDINATE.copy(
+              // TODO: workaround for kmp migration at 1.5.0-beta01 where the artifact id became "ui-android"
+              artifactId = determineArtifactId(version),
+              version = version
+            )
+          )
         }
         catch (exception: AppInspectionArtifactNotFoundException) {
           return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, exception.errorCode)
@@ -457,4 +466,16 @@ private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Build
   // Increase this limit for the compose inspector because we typically get a deep recursion response.
   val inputStream = CodedInputStream.newInstance(bytes, 0, bytes.size).apply { setRecursionLimit(Integer.MAX_VALUE) }
   return Response.parseFrom(inputStream)
+}
+
+private val KMP_MIGRATION_VERSION = GradleCoordinate.parseVersionOnly("1.5.0-beta01")
+
+@VisibleForTesting
+fun determineArtifactId(version: String): String {
+  val coordinate = GradleCoordinate.parseVersionOnly(version)
+  return if (COMPARE_PLUS_HIGHER.compare(coordinate, KMP_MIGRATION_VERSION) < 0) {
+    "ui"
+  } else {
+    "ui-android"
+  }
 }

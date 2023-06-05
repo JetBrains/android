@@ -47,6 +47,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MAV
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MINIMUM_COMPOSE_COORDINATE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PROGUARDED_LIBRARY_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.VERSION_MISSING_MESSAGE_KEY
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.determineArtifactId
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportNonExistingFileException
@@ -322,6 +323,21 @@ class ComposeLayoutInspectorClientTest {
       "/usr/local/google/home/jlauridsen/internal/androidx-main/frameworks/support/studio/android-studio-2022.2.1.5-linux/android-studio",
       "#studio/../../../out/some-folder")
     ).isEqualTo("../../../../../out/some-folder".replace("/", File.separator))
+  }
+
+  @Test
+  fun `determine artifact id of compose coordinates around kmp migration version`() {
+    assertThat(determineArtifactId("0.9.9")).isEqualTo("ui")
+    assertThat(determineArtifactId("1.4.0-alpha01")).isEqualTo("ui")
+    assertThat(determineArtifactId("1.4.0")).isEqualTo("ui")
+    assertThat(determineArtifactId("1.5.0-alpha01")).isEqualTo("ui")
+    assertThat(determineArtifactId("1.5.0-beta01")).isEqualTo("ui-android")
+    assertThat(determineArtifactId("1.5.0-beta02")).isEqualTo("ui-android")
+    assertThat(determineArtifactId("1.5.0-rc01")).isEqualTo("ui-android")
+    assertThat(determineArtifactId("1.5.0")).isEqualTo("ui-android")
+    assertThat(determineArtifactId("1.5.1-alpha01")).isEqualTo("ui-android")
+    assertThat(determineArtifactId("1.5.1")).isEqualTo("ui-android")
+    assertThat(determineArtifactId("2.0.0-alpha01")).isEqualTo("ui-android")
   }
 
   private suspend fun checkLaunch(
