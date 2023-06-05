@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.findAppModule
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
@@ -202,6 +203,7 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
             public static final String BUILD_TYPE = "debug";
           }
         """.trimIndent())
+    VfsUtil.markDirtyAndRefresh(false, true, true, buildConfigDir)
     return this
   }
 
@@ -220,18 +222,23 @@ class BuildConfigDefaultRefactoringProcessorSyncedTest {
             }
           }
       """.trimIndent())
+    VfsUtil.markDirtyAndRefresh(false, true, true, simpleApplicationJavaSrcDir)
     return this
   }
 
   private fun PreparedTestProject.addBuildConfigFlagInGradleProperties(flag: Boolean): PreparedTestProject {
-    root.resolve("gradle.properties")
-      .appendText("android.defaults.buildfeatures.buildconfig=$flag\n")
+    root.resolve("gradle.properties").run {
+      appendText("android.defaults.buildfeatures.buildconfig=$flag\n")
+      VfsUtil.markDirtyAndRefresh(false, false, false, this)
+    }
     return this
   }
 
   private fun PreparedTestProject.patchBuildConfigFlagInBuildFeatures(flag: Boolean): PreparedTestProject {
-    root.resolve("app/build.gradle")
-      .appendText("\nandroid.buildFeatures.buildConfig $flag\n")
+    root.resolve("app/build.gradle").run {
+      appendText("\nandroid.buildFeatures.buildConfig $flag\n")
+      VfsUtil.markDirtyAndRefresh(false, false, false, this)
+    }
     return this
   }
 
