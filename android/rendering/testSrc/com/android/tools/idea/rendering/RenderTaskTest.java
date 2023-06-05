@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.projectsystem.ProjectSystemBuildUtil.PROJECT_SYSTEM_BUILD_TOPIC;
 import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static com.android.tools.idea.rendering.RenderTestUtil.createRenderTask;
 import static com.android.tools.idea.rendering.RenderTestUtil.getHighPriorityRenderingTopicForTest;
@@ -39,6 +40,7 @@ import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.Wallpaper;
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
@@ -47,6 +49,7 @@ import com.android.tools.rendering.RenderTask;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.SourceFolder;
@@ -56,6 +59,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PsiTestUtil;
+import com.sun.tools.javac.api.JavacTool;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -73,6 +77,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.imageio.ImageIO;
+import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -192,7 +197,7 @@ public class RenderTaskTest extends AndroidTestCase {
                                          "}");
     ApplicationManager.getApplication().runWriteAction(
       (Computable<SourceFolder>)() -> PsiTestUtil.addSourceRoot(myModule, VfsUtil.findFileByIoFile(srcDir, true)));
-    ToolProvider.getSystemJavaCompiler().run(null, null, null, customDrawable.getAbsolutePath());
+    getJavac().run(null, null, null, customDrawable.getAbsolutePath());
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
     CompilerProjectExtension.getInstance(getProject()).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
     FileUtil.copy(new File(srcDir, "com/google/test/CustomDrawable.class"), new File(outputDir, "com/google/test/CustomDrawable.class"));
@@ -237,7 +242,7 @@ public class RenderTaskTest extends AndroidTestCase {
     ApplicationManager.getApplication().runWriteAction(
       (Computable<SourceFolder>)() ->
         PsiTestUtil.addSourceRoot(myModule, Objects.requireNonNull(VfsUtil.findFileByIoFile(srcDir, true))));
-    ToolProvider.getSystemJavaCompiler().run(null, null, null, customView.getAbsolutePath());
+    getJavac().run(null, null, null, customView.getAbsolutePath());
     File outputDir = new File(tmpDir, CompilerModuleExtension.PRODUCTION + "/" + myModule.getName());
     File outputFile = new File(outputDir, "com/google/test/CustomView.class");
     Objects.requireNonNull(CompilerProjectExtension.getInstance(getProject())).setCompilerOutputUrl(pathToIdeaUrl(tmpDir));
@@ -268,7 +273,7 @@ public class RenderTaskTest extends AndroidTestCase {
 
         // Drop PSI cache
         ApplicationManager.getApplication().invokeAndWait(() -> PsiManager.getInstance(getProject()).dropPsiCaches());
-        ToolProvider.getSystemJavaCompiler().run(null, null, null, customView.getAbsolutePath());
+        getJavac().run(null, null, null, customView.getAbsolutePath());
         FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
         VfsUtil.findFileByIoFile(outputFile, true);
 
@@ -943,5 +948,16 @@ public class RenderTaskTest extends AndroidTestCase {
     catch (Exception e) {
       fail("RenderTask dispose not happening before low priority render tasks.");
     }
+  }
+
+  @NotNull
+  private static JavaCompiler getJavac() {
+    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+    if (javac == null) {
+      // http://b/285585692
+      // PathClassLoader does not support modules yet so ToolProvider will not be able to locate the JavaCompiler.
+      javac = JavacTool.create();
+    }
+    return javac;
   }
 }

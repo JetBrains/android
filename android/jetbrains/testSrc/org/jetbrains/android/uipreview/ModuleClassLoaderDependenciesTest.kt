@@ -28,12 +28,12 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.uipreview.JavacUtil.getJavac
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager.Companion.get
 import org.junit.Test
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
-import javax.tools.ToolProvider
 
 // Regression test for b/229997303
 class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
@@ -77,7 +77,7 @@ class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
                                   VfsUtil.findFileByIoFile(srcDir.toFile(), true)!!)
       } as Computable<SourceFolder>)
 
-    val javac = ToolProvider.getSystemJavaCompiler()
+    val javac = getJavac()
     javac.run(null, null, null, "-cp", "${classes.absolutePath}",  "${dSrc.toAbsolutePath()}")
 
     val dClass = VfsUtil.findFileByIoFile(File(dSrc.getParent().toFile(), "D.class"), true)

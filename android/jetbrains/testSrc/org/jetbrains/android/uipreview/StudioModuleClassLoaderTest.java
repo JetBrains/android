@@ -22,6 +22,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModu
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.updateTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
+import static org.jetbrains.android.uipreview.JavacUtil.getJavac;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
@@ -67,7 +68,6 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.annotations.NotNull;
@@ -420,7 +420,7 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
    * Builds the given file using javac.
    */
   private static void buildFile(@NotNull Project project, @NotNull String javaFilePath) {
-    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+    JavaCompiler javac = getJavac();
     javac.run(null, System.out, System.err, javaFilePath);
     project.getMessageBus().syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildCompleted(new ProjectSystemBuildManager.BuildResult(
       ProjectSystemBuildManager.BuildMode.COMPILE, ProjectSystemBuildManager.BuildStatus.SUCCESS, System.currentTimeMillis()));
