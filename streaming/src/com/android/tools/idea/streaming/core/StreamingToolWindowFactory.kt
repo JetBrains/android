@@ -22,6 +22,7 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToolWindowWindowAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -35,7 +36,9 @@ import com.intellij.openapi.wm.ToolWindowType
 class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
+    if (!ApplicationManager.getApplication().isUnitTestMode) { // Workaround for NPE in UI tests.
+      toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
+    }
 
     if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
       toolWindow.hide()
