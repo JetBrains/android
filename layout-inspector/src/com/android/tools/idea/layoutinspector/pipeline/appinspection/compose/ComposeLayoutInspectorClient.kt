@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -180,7 +181,14 @@ class ComposeLayoutInspectorClient(
         checkComposeVersion(project, version)
 
         try {
-          InspectorArtifactService.instance.getOrResolveInspectorJar(project, MINIMUM_COMPOSE_COORDINATE.copy(version = version))
+          InspectorArtifactService.instance.getOrResolveInspectorJar(
+            project,
+            MINIMUM_COMPOSE_COORDINATE.copy(
+              // TODO: workaround for kmp migration at 1.5.0-beta01 where the artifact id became "ui-android"
+              artifactId = determineArtifactId(version),
+              version = version
+            )
+          )
         }
         catch (exception: AppInspectionArtifactNotFoundException) {
           return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, exception.errorCode)
@@ -426,3 +434,9 @@ private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Build
   val inputStream = CodedInputStream.newInstance(bytes, 0, bytes.size).apply { setRecursionLimit(Integer.MAX_VALUE) }
   return Response.parseFrom(inputStream)
 }
+
+private val KMP_MIGRATION_VERSION = Version.parse("1.5.0-beta01")
+
+@VisibleForTesting
+fun determineArtifactId(versionIdentifier: String) =
+  Version.parse(versionIdentifier).let { if (it < KMP_MIGRATION_VERSION) "ui" else "ui-android" }
