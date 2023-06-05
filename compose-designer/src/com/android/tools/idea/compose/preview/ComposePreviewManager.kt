@@ -138,10 +138,15 @@ interface ComposePreviewManager : Disposable {
   /** Flag to indicate whether Visual Lint checks should be run on the preview. */
   var visualLintingEnabled: Boolean
 
-  val isInStaticAndNonAnimationMode: Boolean
+  /**
+   * Indicates whether the preview is in its default mode by opposition to one of the special modes
+   * (interactive, animation, UI check).
+   */
+  val isInNormalMode: Boolean
     get() =
       animationInspectionPreviewElementInstance == null &&
-        status().interactiveMode == InteractiveMode.DISABLED
+        status().interactiveMode == InteractiveMode.DISABLED &&
+        !isUiCheckPreview
 
   var isUiCheckPreview: Boolean
 

@@ -34,9 +34,7 @@ private class ComposePreviewNonInteractiveActionWrapper(actions: List<AnAction>)
   override fun update(e: AnActionEvent) {
     super.update(e)
 
-    e.getData(COMPOSE_PREVIEW_MANAGER)?.let {
-      e.presentation.isVisible = it.isInStaticAndNonAnimationMode
-    }
+    e.getData(COMPOSE_PREVIEW_MANAGER)?.let { e.presentation.isVisible = it.isInNormalMode }
   }
 }
 
