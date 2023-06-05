@@ -102,6 +102,7 @@ public class StartUpTest {
         "JetBrains maven model api classes",
         "Jetpack Compose",
         "Kotlin",
+        "Lombok",
         "Machine Learning Code Completion",
         "Machine Learning Code Completion Models",
         "Markdown",

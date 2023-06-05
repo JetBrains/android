@@ -38,6 +38,7 @@
     <orderEntry type="library" name="studio-plugin-java-ide-customization" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="studio-plugin-lombok" level="project" />
     <orderEntry type="library" name="studio-plugin-maven-model" level="project" />
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />

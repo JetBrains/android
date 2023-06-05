@@ -915,6 +915,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-ide-customization",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-junit",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-lombok",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-maven-model",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",

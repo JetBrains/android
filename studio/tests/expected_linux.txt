@@ -2766,6 +2766,7 @@ android-studio/plugins/junit/lib/junit5-rt.jar
 android-studio/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
+android-studio/plugins/lombok/lib/lombok.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/maven-server/lib/maven-server.jar
