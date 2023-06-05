@@ -40,6 +40,8 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE),
     UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false, Status.UNSUPPORTED_TEST_SRC_CHANGE),
     UNABLE_TO_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNABLE_TO_DESUGAR),
+    UNSUPPORTED_BUILD_LIBRARY_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNSUPPORTED_BUILD_LIBRARY_DESUGAR),
+    BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
 
     INTERNAL_ERROR("Internal Error", "%", false, Status.INTERNAL_ERROR),
     KNOWN_ISSUE("Known Issue", "%", true, Status.KNOWN_ISSUE),
@@ -92,6 +94,14 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
 
     fun desugarFailure(details: String, cause: Throwable? = null) {
       throw LiveEditUpdateException(Error.UNABLE_TO_DESUGAR, details, null, cause)
+    }
+
+    fun buildLibraryDesugarFailure(details: String, cause: Throwable? = null) {
+      throw LiveEditUpdateException(Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR, details, null, cause)
+    }
+
+    fun badMinAPIError(details: String, cause: Throwable? = null) {
+      throw LiveEditUpdateException(Error.BAD_MIN_API, details, null, cause)
     }
   }
 }

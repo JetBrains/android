@@ -64,6 +64,8 @@ private fun Throwable?.isCompilationError(): Boolean =
     LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE,
     LiveEditUpdateException.Error.UNSUPPORTED_TEST_SRC_CHANGE,
     LiveEditUpdateException.Error.UNABLE_TO_DESUGAR,
+    LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR,
+    LiveEditUpdateException.Error.BAD_MIN_API,
     LiveEditUpdateException.Error.KNOWN_ISSUE -> false
   }
 

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.badMinAPIError
 import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.android.tools.r8.ExtractMarker
 import com.android.tools.r8.ExtractMarkerCommand
 import java.nio.file.Path
-import kotlin.io.path.absolute
 
 // We store here all information we need when an app is deployed to a device.
 class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiLevel) {
@@ -43,7 +42,7 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiL
     }
 
     if (minApis.size > 1) {
-      desugarFailure("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
+      badMinAPIError("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
     }
 
     if (minApis.isEmpty()) {
