@@ -69,12 +69,12 @@ import org.jetbrains.annotations.Nullable;
  * Lists the available device definitions by category
  */
 public class DeviceDefinitionList extends JPanel implements ListSelectionListener, DocumentListener, DeviceUiAction.DeviceProvider {
+  private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
+  private static final int NAME_MODEL_COLUMN_INDEX = 0;
   private static final String SEARCH_RESULTS = "Search Results";
+  private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
 
   private final Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
-  private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
-
-  private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
   private final ListTableModel<Device> myModel = new ListTableModel<>();
   private TableView<Device> myTable;
   private final ListTableModel<String> myCategoryModel = new ListTableModel<>();
@@ -323,6 +323,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       for (Device listItem : myModel.getItems()) {
         if (listItem.getId().equals(device.getId())) {
           myTable.setSelection(ImmutableSet.of(listItem));
+
+          var viewColumnIndex = myTable.convertColumnIndexToView(NAME_MODEL_COLUMN_INDEX);
+          myTable.scrollRectToVisible(myTable.getCellRect(myTable.getSelectedRow(), viewColumnIndex, true));
         }
       }
       myCategoryList.setSelection(ImmutableSet.of(category));
