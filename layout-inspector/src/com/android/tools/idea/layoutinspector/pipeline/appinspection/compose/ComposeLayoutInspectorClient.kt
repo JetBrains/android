@@ -468,14 +468,8 @@ private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Build
   return Response.parseFrom(inputStream)
 }
 
-private val KMP_MIGRATION_VERSION = GradleCoordinate.parseVersionOnly("1.5.0-beta01")
+private val KMP_MIGRATION_VERSION = Version.parse("1.5.0-beta01")
 
 @VisibleForTesting
-fun determineArtifactId(version: String): String {
-  val coordinate = GradleCoordinate.parseVersionOnly(version)
-  return if (COMPARE_PLUS_HIGHER.compare(coordinate, KMP_MIGRATION_VERSION) < 0) {
-    "ui"
-  } else {
-    "ui-android"
-  }
-}
+fun determineArtifactId(versionIdentifier: String) =
+  Version.parse(versionIdentifier).let { if (it < KMP_MIGRATION_VERSION) "ui" else "ui-android" }
