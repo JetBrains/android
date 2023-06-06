@@ -312,8 +312,15 @@ void DisplayStreamer::Run() {
       scoped_lock lock(mutex_);
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
+      if (display_info.rotation == 2 && rotation_correction == 0) {
+        // Simulated rotation is not capable of distinguishing between regular and upside down
+        // display orientation. Compensate for that using rotation_correction.
+        display_info.rotation = 0;
+        rotation_correction = 2;
+      }
       Size video_size = ConfigureCodec(codec, *codec_info_, max_video_resolution_.Rotated(rotation_correction), media_format, display_info);
-      Log::D("rotation_correction = %d video_size = %dx%d", rotation_correction, video_size.width, video_size.height);
+      Log::D("rotation=%d rotation_correction = %d video_size = %dx%d",
+             display_info.rotation, rotation_correction, video_size.width, video_size.height);
       media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
         Log::Fatal("AMediaCodec_createInputSurface returned %d", status);
