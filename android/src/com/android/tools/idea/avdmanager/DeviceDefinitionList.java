@@ -19,6 +19,9 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Multimaps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -74,7 +77,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String SEARCH_RESULTS = "Search Results";
   private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
 
-  private final Map<String, List<Device>> myDeviceCategoryMap = Maps.newHashMap();
+  private Multimap<Category, Device> myCategoryToDefinitionMultimap;
   private final ListTableModel<Device> myModel = new ListTableModel<>();
   private TableView<Device> myTable;
   private final ListTableModel<String> myCategoryModel = new ListTableModel<>();
@@ -240,19 +243,12 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void putDefaultDefinition(@NotNull Category category) {
-    var categoryName = category.getName();
-    var definitions = myDeviceCategoryMap.get(categoryName);
+    var definition = category.getDefaultDefinitionName();
 
-    if (definitions == null) {
-      return;
-    }
-
-    var definitionName = category.getDefaultDefinitionName();
-
-    definitions.stream()
-      .filter(definition -> definition.getDisplayName().equals(definitionName))
+    myCategoryToDefinitionMultimap.get(category).stream()
+      .filter(d -> d.getDisplayName().equals(definition))
       .findFirst()
-      .ifPresent(definition -> myDefaultCategoryDeviceMap.put(categoryName, definition));
+      .ifPresent(d -> myDefaultCategoryDeviceMap.put(category.getName(), d));
   }
 
   @NotNull
@@ -282,7 +278,11 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   @Override
   public void valueChanged(ListSelectionEvent e) {
     if (e.getSource().equals(myCategoryList.getSelectionModel())) {
-      setCategory(myCategoryList.getSelectedObject());
+      var category = myCategoryList.getSelectedObject();
+
+      if (category != null) {
+        setCategory(category);
+      }
     }
     else if (e.getSource().equals(myTable.getSelectionModel())) {
       onSelectionSet(myTable.getSelectedObject());
@@ -348,18 +348,21 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   /**
    * Update our list to display the given category.
    */
-  public void setCategory(@Nullable String selectedCategory) {
-    if (myDeviceCategoryMap.containsKey(selectedCategory)) {
-      List<Device> newItems = myDeviceCategoryMap.get(selectedCategory);
-      if (!myModel.getItems().equals(newItems)) {
-        myModel.setItems(newItems);
-        setSelectedDevice(myDefaultCategoryDeviceMap.get(selectedCategory));
-        notifyCategoryListeners(selectedCategory, newItems);
-      }
-    }
-    else if (Objects.equals(selectedCategory, SEARCH_RESULTS)) {
+  private void setCategory(@NotNull String category) {
+    if (category.equals(SEARCH_RESULTS)) {
       updateSearchResults(mySearchTextField.getText());
+      return;
     }
+
+    var definitions = List.copyOf(myCategoryToDefinitionMultimap.get(Category.valueOfName(category)));
+
+    if (myModel.getItems().equals(definitions)) {
+      return;
+    }
+
+    myModel.setItems(definitions);
+    setSelectedDevice(myDefaultCategoryDeviceMap.get(category));
+    notifyCategoryListeners(category, definitions);
   }
 
   private void notifyCategoryListeners(@Nullable String selectedCategory, @Nullable List<Device> items) {
@@ -370,16 +373,16 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   private void refreshDeviceProfiles() {
     myDevices = new DeviceSupplier().get();
-    myDeviceCategoryMap.clear();
-    for (Device d : myDevices) {
-      var category = Category.valueOfDefinition(d).getName();
-      if (!myDeviceCategoryMap.containsKey(category)) {
-        myDeviceCategoryMap.put(category, new ArrayList<>(1));
-      }
-      myDeviceCategoryMap.get(category).add(d);
-    }
-    var categories = new ArrayList<>(myDeviceCategoryMap.keySet());
-    categories.sort(Comparator.comparing(Category::valueOfName));
+
+    myCategoryToDefinitionMultimap = myDevices.stream()
+      .collect(Multimaps.toMultimap(Category::valueOfDefinition,
+                                    device -> device,
+                                    MultimapBuilder.enumKeys(Category.class).arrayListValues()::build));
+
+    var categories = Arrays.stream(Category.values())
+      .map(Category::getName)
+      .collect(Collectors.toList());
+
     Collection<String> selection = myCategoryList.getSelection();
     myCategoryModel.setItems(categories);
     myCategoryList.setSelection(selection);
