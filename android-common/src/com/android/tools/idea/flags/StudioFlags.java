@@ -1569,8 +1569,8 @@ public final class StudioFlags {
   private static final FlagGroup GOOGLE_PLAY_SDK_INDEX = new FlagGroup(FLAGS, "google.play.sdk.index", "Google Play SDK Index");
   public static final Flag<Boolean> SHOW_SDK_INDEX_POLICY_ISSUES = Flag.create(
     GOOGLE_PLAY_SDK_INDEX, "show.sdk.policy.issues", "Show SDK Index policy issues",
-    "Whether or not show issues when libraries are not policy complaint",
-    false
+    "Whether or not SDK Index policy issues should be shown",
+    true
   );
   // endregion GOOGLE_PLAY_SDK_INDEX
 
