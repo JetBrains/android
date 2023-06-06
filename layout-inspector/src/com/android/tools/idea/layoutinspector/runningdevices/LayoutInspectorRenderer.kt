@@ -239,7 +239,7 @@ class LayoutInspectorRenderer(
       renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
       // Navigate to sources on double click.
       // TODO(b/265150325) move to RenderModel for consistency
-      GotoDeclarationAction.navigateToSelectedView(coroutineScope, renderModel.model)
+      GotoDeclarationAction.navigateToSelectedView(coroutineScope, renderModel.model, renderModel.notificationModel)
       currentSessionStatistics().gotoSourceFromRenderDoubleClick()
       return true
     }

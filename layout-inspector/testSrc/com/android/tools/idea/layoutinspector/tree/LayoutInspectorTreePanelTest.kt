@@ -626,7 +626,7 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testSystemNodeWithMultipleChildren() {
     val mockLauncher = mock<InspectorClientLauncher>()
-    MockitoKt.whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
+    whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
     val model = InspectorModel(projectRule.project)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val clientSettings = InspectorClientSettings(projectRule.project)
@@ -638,6 +638,7 @@ class LayoutInspectorTreePanelTest {
       clientSettings,
       mockLauncher,
       model,
+      mock(),
       FakeTreeSettings(),
       MoreExecutors.directExecutor()
     )
@@ -687,6 +688,7 @@ class LayoutInspectorTreePanelTest {
       clientSettings,
       mockLauncher,
       model,
+      mock(),
       FakeTreeSettings(),
       MoreExecutors.directExecutor()
     )

@@ -24,7 +24,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -61,9 +61,9 @@ class ComposeWarningTest {
     val moduleSystem = Mockito.spy(DefaultModuleSystem(projectRule.module))
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
-    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("No banner")
-    bannerService.notificationListeners.add { lastNotification = bannerService.notifications.lastOrNull() }
-    composeWarning = ComposeWarning(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
+    notificationModel.notificationListeners.add { lastNotification = notificationModel.notifications.lastOrNull() }
+    composeWarning = ComposeWarning(projectRule.project, notificationModel)
   }
 
   @Test

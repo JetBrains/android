@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.UIUtil
 import javax.swing.BoxLayout
@@ -26,8 +26,7 @@ import javax.swing.JPanel
 /**
  * A banner for showing notifications in the Layout Inspector.
  */
-class InspectorBanner(project: Project) : JPanel() {
-  private val bannerService = InspectorBannerService.getInstance(project)
+class InspectorBanner(private val notificationModel: NotificationModel) : JPanel() {
   private var notifications: List<StatusNotification> = emptyList()
 
   init {
@@ -35,14 +34,14 @@ class InspectorBanner(project: Project) : JPanel() {
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
-    bannerService?.notificationListeners?.add(::updateNotifications)
+    notificationModel.notificationListeners.add(::updateNotifications)
   }
 
   private fun updateNotifications() {
     // fire the data changed on the UI thread:
     ApplicationManager.getApplication().invokeLater {
       removeAll()
-      notifications = bannerService?.notifications ?: emptyList()
+      notifications = notificationModel.notifications
       isVisible = notifications.isNotEmpty()
       notifications.forEach { notification ->
         val panel = EditorNotificationPanel(notification.status)

@@ -19,6 +19,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.gson.JsonObject
@@ -58,7 +59,7 @@ interface SnapshotLoader {
 
   val capabilities: MutableCollection<InspectorClient.Capability>
 
-  fun loadFile(file: Path, model: InspectorModel, stats: SessionStatistics): SnapshotMetadata?
+  fun loadFile(file: Path, model: InspectorModel, notificationModel: NotificationModel, stats: SessionStatistics): SnapshotMetadata?
 
   companion object {
     fun createSnapshotLoader(file: Path): SnapshotLoader? {

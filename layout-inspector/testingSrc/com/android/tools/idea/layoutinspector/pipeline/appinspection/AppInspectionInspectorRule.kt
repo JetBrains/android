@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.VIEW_LAYOUT_INSPECTOR_ID
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -42,11 +43,10 @@ import com.android.tools.idea.util.ListenerCollection
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.Disposable
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 
 /**
  * An [InspectorClientProvider] for creating an app inspection-based client.
@@ -65,6 +65,7 @@ fun AppInspectionClientProvider(
     process = params.process,
     isInstantlyAutoConnected = params.isInstantlyAutoConnected,
     model = inspector.inspectorModel,
+    notificationModel = inspector.notificationModel,
     metrics = LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
     treeSettings = inspector.treeSettings,
     inspectorClientSettings = getClientSettings(),
@@ -151,7 +152,8 @@ class AppInspectionInspectorRule(
   }
 
   private fun defaultMonitor(client: AbstractInspectorClient): InspectorClientLaunchMonitor {
-    return InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), client.stats)
+    return InspectorClientLaunchMonitor(
+      projectRule.project, client.notificationModel, ListenerCollection.createWithDirectExecutor(), client.stats)
   }
 
   private fun defaultInspectorClientSettings(): InspectorClientSettings {

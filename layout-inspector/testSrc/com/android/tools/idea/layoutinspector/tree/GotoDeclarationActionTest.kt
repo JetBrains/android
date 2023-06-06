@@ -141,7 +141,7 @@ class GotoDeclarationActionTest {
     whenever(client.stats).thenReturn(stats)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val clientSettings = InspectorClientSettings(projectRule.project)
-    val inspector = LayoutInspector(coroutineScope, clientSettings, client, model, mock())
+    val inspector = LayoutInspector(coroutineScope, clientSettings, client, model, mock(), mock())
     val dataContext: DataContext = mock()
     whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
     val actionManager: ActionManager = mock()

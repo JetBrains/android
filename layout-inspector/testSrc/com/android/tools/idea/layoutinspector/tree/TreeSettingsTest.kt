@@ -68,7 +68,8 @@ class InspectorTreeSettingsTest {
     val model = InspectorModel( projectRule.project)
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
-    inspector = LayoutInspector(mock(), mock(), mock(), mock(), mock(), mockLauncher, model, settings, MoreExecutors.directExecutor())
+    inspector =
+      LayoutInspector(mock(), mock(), mock(), mock(), mock(), mockLauncher, model, mock(), settings, MoreExecutors.directExecutor())
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
   }

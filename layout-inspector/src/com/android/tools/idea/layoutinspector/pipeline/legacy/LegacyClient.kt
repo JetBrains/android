@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
@@ -38,6 +39,7 @@ class LegacyClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
+  notificationModel: NotificationModel,
   private val metrics: LayoutInspectorSessionMetrics,
   coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
@@ -45,6 +47,7 @@ class LegacyClient(
 ) : AbstractInspectorClient(
   LEGACY_CLIENT,
   model.project,
+  notificationModel,
   process,
   isInstantlyAutoConnected,
   SessionStatisticsImpl(LEGACY_CLIENT),
@@ -60,7 +63,7 @@ class LegacyClient(
 
   private var loggedInitialRender = false
 
-  private val composeWarning = ComposeWarning(model.project)
+  private val composeWarning = ComposeWarning(model.project, notificationModel)
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {

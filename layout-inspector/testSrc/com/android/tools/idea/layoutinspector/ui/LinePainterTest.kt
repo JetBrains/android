@@ -64,6 +64,7 @@ class LinePainterTest {
       clientSettings,
       mockLauncher,
       model,
+      mock(),
       treeSettings,
       MoreExecutors.directExecutor()
     )

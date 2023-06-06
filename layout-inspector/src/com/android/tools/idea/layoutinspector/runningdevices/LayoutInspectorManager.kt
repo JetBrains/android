@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepI
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
@@ -289,7 +288,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         mainPanel.add(toolbar.component, BorderLayout.NORTH)
         mainPanel.add(subPanel, BorderLayout.CENTER)
 
-        subPanel.add(InspectorBanner(project), BorderLayout.NORTH)
+        subPanel.add(InspectorBanner(layoutInspector.notificationModel), BorderLayout.NORTH)
         subPanel.add(centerPanel, BorderLayout.CENTER)
 
         createLayoutInspectorWorkbench(project, disposable, layoutInspector, mainPanel)
@@ -314,20 +313,21 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   }
 
   private fun showExperimentalWarning() {
+    val notificationModel = project.getLayoutInspector().notificationModel
     val defaultValue = true
     val shouldShowWarning = { PropertiesComponent.getInstance().getBoolean(SHOW_EXPERIMENTAL_WARNING_KEY, defaultValue) }
     val setValue: (Boolean) -> Unit = { PropertiesComponent.getInstance().setValue(SHOW_EXPERIMENTAL_WARNING_KEY, it, defaultValue) }
     val notificationText = LayoutInspectorBundle.message("embedded.inspector.experimental.notification.message")
 
     if (shouldShowWarning()) {
-      InspectorBannerService.getInstance(project)?.addNotification(
+      notificationModel.addNotification(
         text = notificationText,
         status = Status.Info,
         sticky = true,
         actions = listOf(
           StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification ->
             setValue(false)
-            InspectorBannerService.getInstance(project)?.removeNotification(notification.message)
+            notificationModel.removeNotification(notification.message)
           },
           StatusNotificationAction(LayoutInspectorBundle.message("opt.out")) {
             ShowSettingsUtil.getInstance().showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
@@ -336,7 +336,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       )
     }
     else {
-      InspectorBannerService.getInstance(project)?.removeNotification(notificationText)
+      notificationModel.removeNotification(notificationText)
     }
   }
 

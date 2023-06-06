@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -39,6 +40,7 @@ import org.jetbrains.annotations.VisibleForTesting
 abstract class AbstractInspectorClient(
   final override val clientType: ClientType,
   val project: Project,
+  val notificationModel: NotificationModel,
   final override val process: ProcessDescriptor,
   final override val isInstantlyAutoConnected: Boolean,
   final override val stats: SessionStatistics,
@@ -64,7 +66,7 @@ abstract class AbstractInspectorClient(
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
   private val attachStateListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
-  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(project, attachStateListeners, stats)
+  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(project, notificationModel, attachStateListeners, stats)
     @TestOnly set
 
   override fun dispose() {

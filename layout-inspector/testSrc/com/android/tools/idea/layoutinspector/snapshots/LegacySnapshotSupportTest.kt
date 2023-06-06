@@ -27,6 +27,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyDeviceRule
@@ -80,8 +81,9 @@ DONE.
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(legacyRule.project)
+    val newNotificationModel = NotificationModel(legacyRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
-    snapshotLoader.loadFile(savePath, newModel, stats)
+    snapshotLoader.loadFile(savePath, newModel, newNotificationModel, stats)
 
     val window = newModel.windows[windowName]!!
     window.refreshImages(1.0)

@@ -31,7 +31,6 @@ import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -66,8 +65,13 @@ class LegacyInspectorMetricsTest {
       windowIds
     }
     val client = LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector) as LegacyClient
-    client.launchMonitor =
-      InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), client.stats, scheduler)
+    client.launchMonitor = InspectorClientLaunchMonitor(
+      projectRule.project,
+      inspector.notificationModel,
+      ListenerCollection.createWithDirectExecutor(),
+      client.stats,
+      scheduler
+    )
     client
   }
 
@@ -128,11 +132,11 @@ class LegacyInspectorMetricsTest {
 
     // Launch monitor will set a banner
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-    val banner = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    val notificationModel = inspectorRule.notificationModel
+    assertThat(notificationModel.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:
-    banner.notifications.single().actions.last().invoke(mock())
+    notificationModel.notifications.single().actions.last().invoke(mock())
     connectThread.join()
     val usages = waitFor3Events()
     var studioEvent = usages[0].studioEvent

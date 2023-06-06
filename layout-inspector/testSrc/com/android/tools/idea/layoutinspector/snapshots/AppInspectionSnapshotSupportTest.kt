@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
@@ -124,7 +125,7 @@ class AppInspectionSnapshotSupportTest {
 
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.notificationModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
 
     assertThat(newModel.resourceLookup.dpi).isEqualTo(640)
@@ -149,7 +150,8 @@ class AppInspectionSnapshotSupportTest {
 
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
+    val newNotificationModel = NotificationModel(inspectorRule.project)
+    snapshotLoader.loadFile(savePath, newModel, newNotificationModel, inspectorRule.inspectorClient.stats)
 
     // Verify we have all 126 composables
     for (id in -300L downTo -425L) {
@@ -198,7 +200,8 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.inspectorClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
+    val newNotificationModel = NotificationModel(inspectorRule.project)
+    snapshotLoader.loadFile(savePath, newModel, newNotificationModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
 
     assertThat(newModel.resourceLookup.dpi).isEqualTo(640)
@@ -285,7 +288,8 @@ class AppInspectionSnapshotSupportTest {
     // Ensure the snapshot was saved correctly
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
-    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
+    val newNotificationModel = NotificationModel(inspectorRule.project)
+    snapshotLoader.loadFile(savePath, newModel, newNotificationModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
   }
 

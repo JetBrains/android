@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.transport.FailedToStartServerException
 import com.android.tools.idea.transport.TransportDeviceManager
@@ -36,6 +36,7 @@ import com.intellij.ui.EditorNotificationPanel.Status
  */
 class TransportErrorListener(
   private val project: Project,
+  private val notificationModel: NotificationModel,
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
   private val disposable: Disposable
   ) : TransportDeviceManager.TransportDeviceManagerListener {
@@ -44,14 +45,13 @@ class TransportErrorListener(
   private var hasStartServerFailed = false
     set(value) {
       field = value
-      val bannerService = InspectorBannerService.getInstance(project)
       if (hasStartServerFailed) {
         // the banner can't be dismissed. It will automatically be dismissed when the Transport tries to start again.
-        bannerService?.addNotification(errorMessage, Status.Error, emptyList())
+        notificationModel.addNotification(errorMessage, Status.Error, emptyList())
         // TODO(b/258453315) log to metrics
       }
       else {
-        bannerService?.removeNotification(errorMessage)
+        notificationModel.removeNotification(errorMessage)
       }
     }
 

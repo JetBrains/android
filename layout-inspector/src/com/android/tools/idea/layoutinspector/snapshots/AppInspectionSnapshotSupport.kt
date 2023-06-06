@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionPropertiesProvider
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
@@ -54,7 +55,12 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
 
   override val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
 
-  override fun loadFile(file: Path, model: InspectorModel, stats: SessionStatistics): SnapshotMetadata? {
+  override fun loadFile(
+    file: Path,
+    model: InspectorModel,
+    notificationModel: NotificationModel,
+    stats: SessionStatistics
+  ): SnapshotMetadata? {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
     val composeParametersCache = ComposeParametersCache(null, model)
     propertiesProvider = AppInspectionPropertiesProvider(viewPropertiesCache, composeParametersCache, model)
@@ -81,7 +87,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
           val composeResult = composeInfo?.let { GetComposablesResult(it.composables, false) }
           val data = ViewLayoutInspectorClient.Data(0, rootIds, windowInfo.layout, composeResult)
 
-          val treeLoader = AppInspectionTreeLoader(model.project, ::logEvent, SkiaParserImpl({}))
+          val treeLoader = AppInspectionTreeLoader(notificationModel, ::logEvent, SkiaParserImpl({}))
           val treeData = treeLoader.loadComponentTree(data, model.resourceLookup, processDescriptor) ?: throw Exception()
           capabilities.addAll(treeData.dynamicCapabilities)
           model.update(treeData.window, rootIds, treeData.generation)

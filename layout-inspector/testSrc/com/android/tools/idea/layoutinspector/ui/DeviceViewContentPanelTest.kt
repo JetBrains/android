@@ -1180,7 +1180,7 @@ class DeviceViewContentPanelTest {
     }
 
     val window = ViewAndroidWindow(
-      projectRule.project, mock(),
+      mock(), mock(),
       view(1, 0, 0, 454, 454) {
         view(2, 10, 10, 100, 100)
         view(3, 300, 400, 50, 50)
@@ -1319,7 +1319,7 @@ private fun createDeviceViewContentPanel(
   renderSettings: RenderSettings,
   clientProvider: () -> InspectorClient = { DisconnectedClient },
   selectTargetAction: DropDownActionWithButton? = mock(),
-  renderModel: RenderModel = RenderModel(model, treeSettings, clientProvider),
+  renderModel: RenderModel = RenderModel(model, mock(), treeSettings, clientProvider),
   renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings)
 ): DeviceViewContentPanel {
   return DeviceViewContentPanel(

@@ -25,6 +25,7 @@ import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -118,6 +119,7 @@ class LayoutInspectorTest {
       mockClientSettings,
       mockLauncher,
       inspectorModel,
+      NotificationModel(projectRule.project),
       mockTreeSettings,
       renderModel = mockRenderModel
     )
@@ -178,6 +180,7 @@ class LayoutInspectorTest {
       mockClientSettings,
       mockLauncher,
       inspectorModel,
+      NotificationModel(projectRule.project),
       mockTreeSettings
     )
 

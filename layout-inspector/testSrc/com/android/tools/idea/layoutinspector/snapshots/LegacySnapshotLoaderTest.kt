@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.util.CheckUtil.ANY_DRAW_ID
 import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqual
 import com.google.common.truth.Truth.assertThat
@@ -41,8 +42,10 @@ class LegacySnapshotLoaderTest {
   @Test
   fun loadV1Snapshot() {
     val model = InspectorModel(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
-    val snapshotMetadata = LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v1.li"), model, stats)
+    val snapshotMetadata =
+      LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v1.li"), model, notificationModel, stats)
     // We don't get any metadata from V1, so just verify the version
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version1)
 
@@ -52,8 +55,10 @@ class LegacySnapshotLoaderTest {
   @Test
   fun loadV3Snapshot() {
     val model = InspectorModel(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
-    val snapshotMetadata = LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v3.li"), model, stats)
+    val snapshotMetadata =
+      LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v3.li"), model, notificationModel, stats)
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version3)
     assertThat(snapshotMetadata.apiLevel).isEqualTo(27)
     assertThat(snapshotMetadata.processName).isEqualTo("com.example.myapplication")

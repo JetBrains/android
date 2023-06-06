@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.google.common.truth.Truth.assertThat
@@ -71,6 +72,7 @@ class InspectorClientLauncherTest {
       processes,
       listOf(),
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
@@ -86,6 +88,7 @@ class InspectorClientLauncherTest {
       processes,
       listOf(),
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
@@ -111,6 +114,7 @@ class InspectorClientLauncherTest {
         else null
       },
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
@@ -146,6 +150,7 @@ class InspectorClientLauncherTest {
         client
       },
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       launcherDisposable,
       executor = MoreExecutors.directExecutor())
@@ -189,6 +194,7 @@ class InspectorClientLauncherTest {
         }
       ),
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
@@ -240,6 +246,7 @@ class InspectorClientLauncherTest {
         }
       ),
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
@@ -278,6 +285,7 @@ class InspectorClientLauncherTest {
         }
       ),
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
@@ -306,6 +314,7 @@ class InspectorClientLauncherTest {
       processes,
       listOf { params -> FakeInspectorClient("Unused", projectRule.project, params.process, disposableRule.disposable) },
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
@@ -398,6 +407,7 @@ class InspectorClientLauncherTest {
         }
       ),
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable
     )
@@ -467,6 +477,7 @@ class InspectorClientLauncherMetricsTest {
         }
       ),
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       metrics,
@@ -519,6 +530,7 @@ class InspectorClientLauncherMetricsTest {
         }
       },
       projectRule.project,
+      NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       metrics)
@@ -548,6 +560,7 @@ private open class FakeInspectorClient(
 ) : AbstractInspectorClient(
   ClientType.UNKNOWN_CLIENT_TYPE,
   project,
+  NotificationModel(project),
   process,
   isInstantlyAutoConnected = false,
   DisconnectedClient.stats,

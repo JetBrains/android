@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMoni
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -87,7 +88,8 @@ class AbstractInspectorClientTest {
   fun clientWithAdbResponseConnects() {
     shouldEcho = true
     adbRule.withDeviceCommandHandler(FakeShellCommandHandler())
-    val client = MyClient(projectRule.project, disposableRule.disposable)
+    val project = projectRule.project
+    val client = MyClient(project, NotificationModel(project), disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
     runBlocking { client.connect (projectRule.project) }
@@ -99,7 +101,8 @@ class AbstractInspectorClientTest {
   fun clientWithNoAdbResponseFailsToConnect() {
     shouldEcho = false
     adbRule.withDeviceCommandHandler(FakeShellCommandHandler())
-    val client = MyClient(projectRule.project, disposableRule.disposable)
+    val project = projectRule.project
+    val client = MyClient(project, NotificationModel(project), disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
     runBlocking { client.connect (projectRule.project) }
@@ -109,10 +112,12 @@ class AbstractInspectorClientTest {
 
   class MyClient(
     project: Project,
+    notificationModel: NotificationModel,
     disposable: Disposable
   ) : AbstractInspectorClient(
     ClientType.UNKNOWN_CLIENT_TYPE,
     project,
+    notificationModel,
     MODERN_DEVICE.createProcess(),
     true,
     DisconnectedClient.stats,

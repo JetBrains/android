@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.actions.DropDownAction
@@ -30,6 +31,7 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -122,7 +124,7 @@ class LayoutInspectorRendererTest {
 
   @Before
   fun setUp() {
-    renderModel = RenderModel(inspectorModel, treeSettings) { DisconnectedClient }
+    renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     renderLogic = RenderLogic(renderModel, renderSettings)
     sessionStats = SessionStatisticsImpl(DisconnectedClient.clientType)
   }
@@ -147,7 +149,7 @@ class LayoutInspectorRendererTest {
     }
     inspectorModelWithLeftBorder.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel = RenderModel(inspectorModelWithLeftBorder, treeSettings) { DisconnectedClient }
+    val renderModel = RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
     val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
 
     val renderImage = createRenderImage()
@@ -166,7 +168,7 @@ class LayoutInspectorRendererTest {
     }
     inspectorModelWithRightBorder.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel = RenderModel(inspectorModelWithRightBorder, treeSettings) { DisconnectedClient }
+    val renderModel = RenderModel(inspectorModelWithRightBorder, mock(), treeSettings) { DisconnectedClient }
     val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
 
     val renderImage = createRenderImage()
@@ -185,7 +187,7 @@ class LayoutInspectorRendererTest {
     }
     inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel = RenderModel(inspectorModelWithTopBorder, treeSettings) { DisconnectedClient }
+    val renderModel = RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
     val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
 
     val renderImage = createRenderImage()
@@ -204,7 +206,7 @@ class LayoutInspectorRendererTest {
     }
     inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel = RenderModel(inspectorModelWithTopBorder, treeSettings) { DisconnectedClient }
+    val renderModel = RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
     val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
 
     val renderImage = createRenderImage()
@@ -250,7 +252,7 @@ class LayoutInspectorRendererTest {
       }
       inspectorModel.resourceLookup.screenDimension = deviceScreenDimension
 
-      val renderModel = RenderModel(inspectorModelWithTopBorder, treeSettings) { DisconnectedClient }
+      val renderModel = RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
       val layoutInspectorRenderer = createRenderer(renderModel = renderModel, displayOrientation = displayQuadrant)
 
       val renderImage = createRenderImage()
@@ -330,7 +332,7 @@ class LayoutInspectorRendererTest {
   fun testMouseDoubleClick() {
     loadComposeFiles()
     val inspectorModel = createModel()
-    val renderModel = RenderModel(inspectorModel, treeSettings) { DisconnectedClient }
+    val renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     renderSettings.drawLabel = false
     val layoutInspectorRenderer = createRenderer(renderModel)
     val parent = BorderLayoutPanel()

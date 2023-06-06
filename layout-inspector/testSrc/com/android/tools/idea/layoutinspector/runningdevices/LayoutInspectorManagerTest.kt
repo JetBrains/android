@@ -33,7 +33,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
@@ -67,6 +67,7 @@ class LayoutInspectorManagerTest {
   val displayViewRule = EmulatorViewRule()
 
   private lateinit var layoutInspector: LayoutInspector
+  private lateinit var notificationModel: NotificationModel
 
   private lateinit var tab1: TabInfo
   private lateinit var tab2: TabInfo
@@ -90,12 +91,14 @@ class LayoutInspectorManagerTest {
 
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(displayViewRule.disposable, processModel)
+    notificationModel = NotificationModel(displayViewRule.project)
 
     val coroutineScope = AndroidCoroutineScope(displayViewRule.disposable)
     val launcher = InspectorClientLauncher(
       processModel,
       emptyList(),
       displayViewRule.project,
+      notificationModel,
       coroutineScope,
       displayViewRule.disposable,
     )
@@ -108,6 +111,7 @@ class LayoutInspectorManagerTest {
       inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
       launcher = launcher,
       layoutInspectorModel = model { },
+      notificationModel = notificationModel,
       treeSettings = FakeTreeSettings()
     )
 
@@ -301,7 +305,7 @@ class LayoutInspectorManagerTest {
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
 
     assertHasWorkbench(tab1)
-    val notifications1 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
+    val notifications1 = notificationModel.notifications
     assertThat(notifications1).hasSize(1)
     val firstNotification = notifications1.single()
     assertThat(firstNotification.message).isEqualTo("(Experimental) Layout Inspector is now embedded within Running Devices window")
@@ -313,20 +317,20 @@ class LayoutInspectorManagerTest {
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
 
     assertHasWorkbench(tab1)
-    val notifications2 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
+    val notifications2 = notificationModel.notifications
     assertThat(notifications2).hasSize(1)
 
     val doNotShowAgain = firstNotification.actions[0]
     doNotShowAgain.invoke(firstNotification)
 
-    val notifications3 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
+    val notifications3 = notificationModel.notifications
     assertThat(notifications3).hasSize(0)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
 
-    val notifications4 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
+    val notifications4 = notificationModel.notifications
     assertThat(notifications4).hasSize(0)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)

@@ -23,8 +23,8 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewIn
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -32,13 +32,13 @@ import org.jetbrains.annotations.VisibleForTesting
  * [ViewNode]s.
  */
 class AppInspectionTreeLoader(
-  private val project: Project,
+  private val notificationModel: NotificationModel,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
   @VisibleForTesting var skiaParser: SkiaParser) : TreeLoader {
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? {
     if (data is ViewLayoutInspectorClient.Data) {
       val treeLoader = ViewInspectorTreeLoader(
-        project,
+        notificationModel,
         skiaParser,
         data.viewEvent,
         resourceLookup,

@@ -35,6 +35,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_INSPECTION_NOT_AVAILABLE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_JAR_FOUND_FOUND_KEY
@@ -48,7 +49,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MIN
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PROGUARDED_LIBRARY_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.VERSION_MISSING_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.determineArtifactId
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.TransportNonExistingFileException
 import com.google.common.truth.Truth.assertThat
@@ -349,8 +349,10 @@ class ComposeLayoutInspectorClientTest {
   ) {
     var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
     val capabilities = EnumSet.noneOf(InspectorClient.Capability::class.java)
-    val client = ComposeLayoutInspectorClient.launch(apiServices, processDescriptor, model(projectRule.project) {}, mock(), capabilities,
-                                                     mock(), { errorCode = it }, isRunningFromSources)
+    val model = model(projectRule.project) {}
+    val notificationModel = NotificationModel(projectRule.project)
+    val client = ComposeLayoutInspectorClient.launch(apiServices, processDescriptor, model, notificationModel, mock(), capabilities, mock(),
+                                                     { errorCode = it }, isRunningFromSources)
     if (expectClient) {
       assertThat(client).isNotNull()
     } else {
@@ -358,18 +360,17 @@ class ComposeLayoutInspectorClientTest {
     }
 
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("No banner")
     if (expectedMessage.isEmpty()) {
-      assertThat(bannerService.notifications)
-        .named("expected to be empty but has: ${bannerService.notifications.firstOrNull()?.message}")
+      assertThat(notificationModel.notifications)
+        .named("expected to be empty but has: ${notificationModel.notifications.firstOrNull()?.message}")
         .isEmpty()
     } else {
-      val notification1 = bannerService.notifications.single()
+      val notification1 = notificationModel.notifications.single()
       assertThat(notification1.message).isEqualTo(expectedMessage)
       assertThat(errorCode).isEqualTo(expectedError)
 
       // Clear the banner for the next invocation:
-      bannerService.clear()
+      notificationModel.clear()
     }
   }
 }

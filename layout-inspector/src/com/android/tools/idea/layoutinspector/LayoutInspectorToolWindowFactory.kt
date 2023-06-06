@@ -65,7 +65,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
 
     val contentPanel = JPanel(BorderLayout()).apply {
-      add(InspectorBanner(project), BorderLayout.NORTH)
+      add(InspectorBanner(layoutInspector.notificationModel), BorderLayout.NORTH)
       add(workbench, BorderLayout.CENTER)
     }
 

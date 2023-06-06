@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
@@ -56,7 +57,6 @@ import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
 import com.android.tools.idea.model.AndroidModel
@@ -298,7 +298,7 @@ class AppInspectionTreeLoaderTest {
 
     var loggedEvent: DynamicLayoutInspectorEventType? = null
     val treeLoader = AppInspectionTreeLoader(
-      projectRule.project,
+      NotificationModel(projectRule.project),
       // Initial event is only ever logged one time
       logEvent = { assertThat(loggedEvent).isNull(); loggedEvent = it },
       skiaParser
@@ -413,8 +413,9 @@ class AppInspectionTreeLoaderTest {
     val skiaParser: SkiaParser = mock()
     whenever(skiaParser.getViewTree(eq(sample565.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
 
+    val notificationModel = NotificationModel(projectRule.project)
     val treeLoader = AppInspectionTreeLoader(
-      projectRule.project,
+      notificationModel,
       logEvent = { fail() }, // Metrics shouldn't be logged until we come back with a screenshot
       skiaParser
     )
@@ -424,7 +425,7 @@ class AppInspectionTreeLoaderTest {
       UIUtil.dispatchAllInvocationEvents()
     }
 
-    val notification1 = InspectorBannerService.getInstance(projectRule.project)!!.notifications.single()
+    val notification1 = notificationModel.notifications.single()
     assertThat(notification1.message).isEqualTo(msg)
   }
 
@@ -461,7 +462,7 @@ class AppInspectionTreeLoaderTest {
     val skiaParser: SkiaParser = mock()
     whenever(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
     val treeLoader = AppInspectionTreeLoader(
-      projectRule.project,
+      NotificationModel(projectRule.project),
       logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
       skiaParser
     )
@@ -487,7 +488,7 @@ class AppInspectionTreeLoaderTest {
     val skiaParser: SkiaParser = mock()
     whenever(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
     val treeLoader = AppInspectionTreeLoader(
-      projectRule.project,
+      NotificationModel(projectRule.project),
       logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
       skiaParser
     )

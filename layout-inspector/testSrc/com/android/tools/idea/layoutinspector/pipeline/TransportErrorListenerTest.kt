@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
@@ -51,13 +51,13 @@ class TransportErrorListenerTest {
 
   @Test
   fun testErrorShowsBanner() {
-    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
+    val notificationModel = NotificationModel(projectRule.project)
     val mockMetrics = mock<LayoutInspectorMetrics>()
-    val transportErrorListener = TransportErrorListener(projectRule.project, mockMetrics, disposableRule.disposable)
+    val transportErrorListener = TransportErrorListener(projectRule.project, notificationModel, mockMetrics, disposableRule.disposable)
 
     transportErrorListener.onStartTransportDaemonServerFail(device1, mock())
 
-    val notification1 = bannerService.notifications.single()
+    val notification1 = notificationModel.notifications.single()
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message("two.versions.of.studio.running"))
     assertThat(notification1.actions).isEmpty()
     verify(mockMetrics).logTransportError(
@@ -67,6 +67,6 @@ class TransportErrorListenerTest {
 
     transportErrorListener.onPreTransportDaemonStart(mock())
 
-    assertThat(bannerService.notifications).isEmpty()
+    assertThat(notificationModel.notifications).isEmpty()
   }
 }

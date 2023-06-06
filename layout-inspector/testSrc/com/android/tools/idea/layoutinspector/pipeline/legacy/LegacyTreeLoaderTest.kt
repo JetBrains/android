@@ -28,8 +28,11 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
+import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.adb.findDevice
 import com.android.tools.idea.layoutinspector.properties.DimensionUnits

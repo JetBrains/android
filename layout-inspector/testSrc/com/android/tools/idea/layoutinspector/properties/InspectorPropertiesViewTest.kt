@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.FLAG_IS_INLINED
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -211,7 +212,8 @@ class InspectorPropertiesViewTest {
   private fun createView(
     properties: List<InspectorPropertyItem>,
     customize: (InspectorPropertiesModel) -> Unit = {},
-    model: InspectorModel = model {}
+    model: InspectorModel = model {},
+    notificationModel: NotificationModel = NotificationModel(mock())
   ): InspectorPropertiesView {
     val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
     properties.forEach { table.addProperty(it) }
@@ -221,7 +223,7 @@ class InspectorPropertiesViewTest {
     val settings = FakeTreeSettings()
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(mock())
-    val layoutInspector = LayoutInspector(mock(), mock(), client, model, settings)
+    val layoutInspector = LayoutInspector(mock(), mock(), client, model, notificationModel, settings)
     propertiesModel.layoutInspector = layoutInspector
     customize(propertiesModel)
     return propertiesView

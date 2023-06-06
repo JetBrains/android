@@ -109,7 +109,7 @@ class RenderModelTest {
     }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panelModel = RenderModel(model, treeSettings) { DisconnectedClient }
+    val panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     panelModel.rotate(0.1, 0.2)
     assertEqualAffineTransform(AffineTransform(0.995, -0.010, -0.010, 0.980, -15.0, -30.0), panelModel.hitRects[0].transform)
 
@@ -136,7 +136,7 @@ class RenderModelTest {
 
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panelModel = RenderModel(model, treeSettings) { DisconnectedClient }
+    val panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     panelModel.rotate(0.1, 0.2)
     // Only the bounds of the roots themselves should be taken into account.
     assertThat(model.root.layoutBounds).isEqualTo(Rectangle(-10, 0, 110, 200))
@@ -159,7 +159,7 @@ class RenderModelTest {
     whenever(client.capabilities).thenReturn(capabilities)
     whenever(client.stats).thenAnswer { mock<SessionStatistics>() }
 
-    val panelModel = RenderModel(model, treeSettings) { client }
+    val panelModel = RenderModel(model, mock(), treeSettings) { client }
     panelModel.rotate(0.1, 0.2)
     assertThat(panelModel.isRotated).isTrue()
 
@@ -193,7 +193,7 @@ class RenderModelTest {
       }
     }
     val treeSettings = FakeTreeSettings()
-    var panelModel = RenderModel(model, treeSettings) { DisconnectedClient }
+    var panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     assertThat(panelModel.findViewsAt(5.0, 5.0).map { it.drawId }.toList()).containsExactly(VIEW2, VIEW1, ROOT)
     assertThat(panelModel.findViewsAt(99.0, 99.0).map { it.drawId }.toList()).containsExactly(ROOT)
     assertThat(panelModel.findViewsAt(60.0, 60.0).map { it.drawId }.toList()).containsExactly(VIEW3, ROOT)
@@ -206,7 +206,7 @@ class RenderModelTest {
         view(VIEW3, 0, 0, 100, 100)
       }
     }
-    panelModel = RenderModel(model, treeSettings) { DisconnectedClient }
+    panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     assertThat(panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList()).containsExactly(VIEW3, VIEW2, VIEW1, ROOT)
   }
 
@@ -221,7 +221,7 @@ class RenderModelTest {
       }
     }
     val treeSettings = FakeTreeSettings()
-    val panelModel = RenderModel(model, treeSettings) { DisconnectedClient }
+    val panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     panelModel.layerSpacing = 0
     model.showOnlySubtree(model[VIEW1]!!)
     model.hideSubtree(model[VIEW1]!!)
@@ -242,7 +242,7 @@ class RenderModelTest {
     val p1 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(5, -5, 80, 120), 4)
     val p2 = Polygon(intArrayOf(80, 120, 5, -5), intArrayOf(-5, 5, 20, 10), 4)
     val p3 = Polygon(intArrayOf(-5, 5, 80, 80), intArrayOf(200, 180, 380, 420), 4)
-    val model = RenderModel(model {}, FakeTreeSettings()) { DisconnectedClient }
+    val model = RenderModel(model {}, mock(), FakeTreeSettings()) { DisconnectedClient }
     assertThat(model.testOverlap(r1, r2)).isTrue()
     assertThat(model.testOverlap(r1, r3)).isFalse()
     assertThat(model.testOverlap(p1, r1)).isTrue()
@@ -267,7 +267,7 @@ class RenderModelTest {
     val mockStats = mock<SessionStatistics>()
     val mockClient = mock<InspectorClient>()
     whenever(mockClient.stats).thenAnswer { mockStats }
-    val renderModel = RenderModel(model, treeSettings) { mockClient }
+    val renderModel = RenderModel(model, mock(), treeSettings) { mockClient }
     val selectedView = renderModel.selectView(0.0, 0.0)
     assertThat(selectedView!!.drawId).isEqualTo(VIEW3)
     assertThat(model.selection).isEqualTo(model[VIEW3])
@@ -305,7 +305,7 @@ class RenderModelTest {
   ) {
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = hideSystemNodes
-    val panelModel = RenderModel(model, treeSettings) { DisconnectedClient }
+    val panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     panelModel.rotate(xOff, yOff)
 
     val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }

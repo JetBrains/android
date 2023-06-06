@@ -29,7 +29,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -69,35 +69,35 @@ class InspectorClientLaunchMonitorTest {
   fun monitorOffersUserToStopsStuckConnection() {
     val project = projectRule.project
     val scheduler = VirtualTimeScheduler()
-    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val model = NotificationModel(project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
       assertThat(stats.currentProgress).isEqualTo(AttachErrorState.NOT_STARTED)
-      banner.clear()
+      model.clear()
     }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
       monitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
-      assertThat(banner.notifications).isEmpty()
+      assertThat(model.notifications).isEmpty()
       assertThat(stats.currentProgress).isEqualTo(AttachErrorState.START_REQUEST_SENT)
       scheduler.advanceBy(2, TimeUnit.SECONDS)
-      assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
-      banner.clear()
+      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      model.clear()
     }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       monitor.updateProgress(CONNECTED_STATE)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(banner.notifications).isEmpty()
+      assertThat(model.notifications).isEmpty()
     }
   }
 
@@ -107,8 +107,9 @@ class InspectorClientLaunchMonitorTest {
     val mockListener = mock<(AttachErrorState) -> Unit>()
     listeners.add(mockListener)
 
+    val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(projectRule.project, listeners, stats)
+    val monitor = InspectorClientLaunchMonitor(projectRule.project, model, listeners, stats)
     monitor.updateProgress(AttachErrorState.ADB_PING)
 
     verify(mockListener).invoke(AttachErrorState.ADB_PING)
@@ -136,43 +137,43 @@ class InspectorClientLaunchMonitorTest {
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
 
-    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val model = NotificationModel(projectRule.project)
     val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+    val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
     monitor.start(client)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
-    val notification1 = banner.notifications.single()
+    val notification1 = model.notifications.single()
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
     assertThat(notification1.actions.first().name).isEqualTo("Continue Waiting")
     assertThat(notification1.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
     // Continue waiting:
     notification1.actions.first().invoke(mock())
-    assertThat(banner.notifications).isEmpty()
+    assertThat(model.notifications).isEmpty()
 
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
-    val notification2 = banner.notifications.single()
+    val notification2 = model.notifications.single()
     assertThat(notification2.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
     assertThat(notification2.actions.first().name).isEqualTo("Continue Waiting")
     assertThat(notification2.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
     // Continue waiting:
     notification2.actions.first().invoke(mock())
-    assertThat(banner.notifications).isEmpty()
+    assertThat(model.notifications).isEmpty()
 
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
-    val notification3 = banner.notifications.single()
+    val notification3 = model.notifications.single()
     assertThat(notification3.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
     assertThat(notification3.actions.first().name).isEqualTo("Continue Waiting")
     assertThat(notification3.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
     // Disconnect:
     notification3.actions.last().invoke(mock())
-    assertThat(banner.notifications).isEmpty()
+    assertThat(model.notifications).isEmpty()
     verify(client).disconnect()
   }
 
@@ -184,21 +185,21 @@ class InspectorClientLaunchMonitorTest {
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
 
-    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val model = NotificationModel(projectRule.project)
     val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+    val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
     val client = mock<InspectorClient>()
     monitor.start(client)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
-    val notification1 = banner.notifications.single()
+    val notification1 = model.notifications.single()
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
     assertThat(notification1.actions.first().name).isEqualTo("Continue Waiting")
     assertThat(notification1.actions.last().name).isEqualTo("Disconnect")
 
     monitor.updateProgress(CONNECTED_STATE)
-    assertThat(banner.notifications).isEmpty()
+    assertThat(model.notifications).isEmpty()
     assertThat(stats.currentProgress).isEqualTo(AttachErrorState.MODEL_UPDATED)
   }
 
@@ -210,16 +211,16 @@ class InspectorClientLaunchMonitorTest {
     projectSystem.setModuleSystem(moduleSystem.module, moduleSystem)
     moduleSystem.usesCompose = true
 
-    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val model = NotificationModel(projectRule.project)
     val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+    val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
     val client = mock<InspectorClient>()
     monitor.start(client)
     monitor.stop()
     monitor.updateProgress(AttachErrorState.ADB_PING)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-    assertThat(banner.notifications).isEmpty()
+    assertThat(model.notifications).isEmpty()
     assertThat(stats.currentProgress).isEqualTo(AttachErrorState.ADB_PING)
   }
 
@@ -228,22 +229,22 @@ class InspectorClientLaunchMonitorTest {
     val client = setupDebuggingProcess(DebuggerType.JAVA, pausedInJava = true)
     val project = projectRule.project
     val scheduler = VirtualTimeScheduler()
-    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       monitor.start(client)
       scheduler.advanceBy(DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Check that the timeout warning is not shown when the debugger warning is shown
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
-      assertThat(banner.notifications.single().actions.first().name).isEqualTo("Resume Debugger")
-      assertThat(banner.notifications.single().actions.last().name).isEqualTo("Disconnect")
+      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      assertThat(model.notifications.single().actions.first().name).isEqualTo("Resume Debugger")
+      assertThat(model.notifications.single().actions.last().name).isEqualTo("Disconnect")
 
       // Resume the debugger:
-      banner.notifications.single().actions.first().invoke(mock())
+      model.notifications.single().actions.first().invoke(mock())
       val manager = XDebuggerManager.getInstance(projectRule.project)
       verify(manager.debugSessions.single()).resume()
       verify(client, never()).disconnect()
@@ -261,20 +262,20 @@ class InspectorClientLaunchMonitorTest {
     val client = setupDebuggingProcess(DebuggerType.HYBRID, pausedInJava = false)
     val project = projectRule.project
     val scheduler = VirtualTimeScheduler()
-    val banner = InspectorBannerService.getInstance(project) ?: error("no banner")
+    val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
       monitor.start(client)
       scheduler.advanceBy(DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Check that the timeout warning is not shown when the debugger warning is shown
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Resume the debugger:
-      banner.notifications.single().actions.first().invoke(mock())
+      model.notifications.single().actions.first().invoke(mock())
       val manager = XDebuggerManager.getInstance(projectRule.project)
       verify(manager.debugSessions.filter { it.isPaused }.single()).resume()
       verify(manager.debugSessions.filter { !it.isPaused }.single(), never()).resume()

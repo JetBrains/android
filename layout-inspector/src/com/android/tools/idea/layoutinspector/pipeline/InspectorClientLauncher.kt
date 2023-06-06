@@ -24,7 +24,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.Disposable
@@ -54,6 +54,7 @@ class InspectorClientLauncher(
   private val processes: ProcessesModel,
   private val clientCreators: List<(Params) -> InspectorClient?>,
   private val project: Project,
+  private val notificationModel: NotificationModel,
   private val scope: CoroutineScope,
   private val parentDisposable: Disposable,
   private val metrics: LayoutInspectorSessionMetrics? = null,
@@ -67,6 +68,7 @@ class InspectorClientLauncher(
     fun createDefaultLauncher(
       processes: ProcessesModel,
       model: InspectorModel,
+      notificationModel: NotificationModel,
       metrics: LayoutInspectorSessionMetrics,
       treeSettings: TreeSettings,
       inspectorClientSettings: InspectorClientSettings,
@@ -83,6 +85,7 @@ class InspectorClientLauncher(
                 params.process,
                 params.isInstantlyAutoConnected,
                 model,
+                notificationModel,
                 metrics,
                 treeSettings,
                 inspectorClientSettings,
@@ -94,9 +97,20 @@ class InspectorClientLauncher(
               null
             }
           },
-          { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, metrics, coroutineScope, parentDisposable) }
+          { params ->
+            LegacyClient(
+              params.process,
+              params.isInstantlyAutoConnected,
+              model,
+              notificationModel,
+              metrics,
+              coroutineScope,
+              parentDisposable
+            )
+          }
         ),
         model.project,
+        notificationModel,
         coroutineScope,
         parentDisposable,
         metrics)
@@ -232,16 +246,15 @@ class InspectorClientLauncher(
     }
 
     if (!validClientConnected) {
-      val bannerService = InspectorBannerService.getInstance(project) ?: return
       // Save the banner so we can put it back after it's cleared by the client change, to show the error that made us disconnect.
-      val notifications = bannerService.notifications
+      val notifications = notificationModel.notifications
       activeClient = DisconnectedClient
       if (enabled) {
         // If we're enabled, don't show the process as selected anymore. If we're not (the window is minimized), we'll try to reconnect
         // when we're reenabled, so leave the process selected.
         processes.selectedProcess = null
       }
-      notifications.forEach { bannerService.addNotification(it.message, it.status, it.actions, it.sticky) }
+      notifications.forEach { notificationModel.addNotification(it.message, it.status, it.actions, it.sticky) }
     }
   }
 

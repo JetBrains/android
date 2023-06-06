@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.ui
+package com.android.tools.idea.layoutinspector.model
 
-import com.android.tools.idea.layoutinspector.model.StatusNotification
-import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
@@ -24,7 +22,10 @@ import com.jetbrains.rd.util.AtomicReference
 
 fun learnMoreAction(url: String) = StatusNotificationAction("Learn More") { BrowserUtil.browse(url) }
 
-class InspectorBannerService {
+/**
+ * Holds the currently active notifications in a Layout Inspector session.
+ */
+class NotificationModel(val project: Project) {
 
   val dismissAction = StatusNotificationAction("Dismiss") { notification ->
     removeNotification(notification.message)
@@ -51,10 +52,13 @@ class InspectorBannerService {
    * A copy of [notificationData] is made to avoid modifications in the middle of an extern usage.
    */
   var notifications: List<StatusNotification>
-    get() = notificationList.get()
+    get() = if (!isDisposed) notificationList.get() else emptyList()
     private set(value) {
       notificationList.getAndSet(value.toList())
     }
+
+  private val isDisposed: Boolean
+    get() = project.isDisposed
 
   /**
    * Adds a new notification.
@@ -69,7 +73,7 @@ class InspectorBannerService {
     actions: List<StatusNotificationAction> = listOf(dismissAction),
     sticky: Boolean = false
   ) {
-    if (notificationData.any { it.message == text }) {
+    if (isDisposed || notificationData.any { it.message == text }) {
       return
     }
     notificationData.add(StatusNotification(status, text, sticky, actions))
@@ -77,6 +81,9 @@ class InspectorBannerService {
   }
 
   fun removeNotification(text: String) {
+    if (isDisposed) {
+      return
+    }
     if (notificationData.removeIf { it.message == text }) {
       notifyChanges()
     }
@@ -88,12 +95,10 @@ class InspectorBannerService {
   }
 
   private fun notifyChanges() {
+    if (isDisposed) {
+      return
+    }
     notifications = notificationData
     notificationListeners.forEach { it() }
-  }
-
-  companion object {
-    fun getInstance(project: Project): InspectorBannerService? =
-      if (project.isDisposed) null else project.getService(InspectorBannerService::class.java)
   }
 }

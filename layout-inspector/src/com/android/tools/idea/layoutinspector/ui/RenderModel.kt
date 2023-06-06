@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.DrawViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -52,6 +53,7 @@ private data class LevelListItem(val node: DrawViewNode, val isCollapsed: Boolea
  */
 class RenderModel(
   val model: InspectorModel,
+  val notificationModel: NotificationModel,
   val treeSettings: TreeSettings,
   private val currentClientProvider: () -> InspectorClient
 ) {

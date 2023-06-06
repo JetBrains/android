@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
@@ -89,15 +90,16 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
     val startTime = System.currentTimeMillis()
     var metadata: SnapshotMetadata? = null
     try {
+      val notificationModel = NotificationModel(project)
       val contentPanel = JPanel(BorderLayout())
-      contentPanel.add(InspectorBanner(project), BorderLayout.NORTH)
+      contentPanel.add(InspectorBanner(notificationModel), BorderLayout.NORTH)
       contentPanel.add(workbench, BorderLayout.CENTER)
 
       // TODO: error handling
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
       val model = InspectorModel(project)
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
-      metadata = snapshotLoader?.loadFile(path, model, stats) ?: throw Exception()
+      metadata = snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()
       val client = object : InspectorClient by DisconnectedClient {
         override val provider: PropertiesProvider
           get() = snapshotLoader.propertiesProvider
@@ -129,6 +131,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
         inspectorClientSettings,
         client,
         model,
+        notificationModel,
         treeSettings
       )
       val deviceViewPanel = DeviceViewPanel(

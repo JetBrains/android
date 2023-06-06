@@ -55,6 +55,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.ROOT2
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -179,7 +180,7 @@ class DeviceViewPanelWithFullInspectorTest {
       inspectorRule.inspector,
       projectRule.fixture.testRootDisposable
     )
-    val banner = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
+    val notificationModel = inspectorRule.notificationModel
     val renderModel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     delegateDataProvider(panel)
     panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
@@ -206,25 +207,25 @@ class DeviceViewPanelWithFullInspectorTest {
     assertThat(scheduler.isShutdown).isTrue()
     assertThat(renderModel.isRotated).isTrue()
     UIUtil.dispatchAllInvocationEvents()
-    val notification1 = banner.notifications.single()
+    val notification1 = notificationModel.notifications.single()
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))
 
     // Turn 3D mode off:
     toggle.click()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(banner.notifications).isEmpty()
+    assertThat(notificationModel.notifications).isEmpty()
 
     // Hide VIEW2:
     val view2 = inspectorRule.inspectorModel[VIEW2]!!
     inspectorRule.inspectorModel.hideSubtree(view2)
     UIUtil.dispatchAllInvocationEvents()
-    val notification2 = banner.notifications.single()
+    val notification2 = notificationModel.notifications.single()
     assertThat(notification2.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_HIDDEN))
 
     // Show all:
     inspectorRule.inspectorModel.showAll()
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(banner.notifications).isEmpty()
+    assertThat(notificationModel.notifications).isEmpty()
   }
 
   private fun delegateDataProvider(panel: DeviceViewPanel) {
@@ -368,7 +369,7 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testGotoDeclarationOfViewWithoutAnId() {
     gotoDeclaration(VIEW3)
     fileOpenCaptureRule.checkNoNavigation()
-    val notification1 = InspectorBannerService.getInstance(inspectorRule.project)!!.notifications.single()
+    val notification1 = inspectorRule.notificationModel.notifications.single()
     assertThat(notification1.message).isEqualTo("It appears that the v3 in the layout demo.xml doesnt have an id.")
   }
 
@@ -487,6 +488,7 @@ class DeviceViewPanelTest {
       processModel,
       listOf(),
       projectRule.project,
+      mock(),
       coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
@@ -501,6 +503,7 @@ class DeviceViewPanelTest {
       clientSettings,
       launcher,
       model,
+      NotificationModel(projectRule.project),
       treeSettings,
       MoreExecutors.directExecutor()
     )
@@ -543,6 +546,7 @@ class DeviceViewPanelTest {
   @Test
   fun testZoomOnConnectWithFiltering() {
     val model = InspectorModel(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
@@ -550,6 +554,7 @@ class DeviceViewPanelTest {
       processModel,
       listOf(),
       projectRule.project,
+      notificationModel,
       coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
@@ -564,6 +569,7 @@ class DeviceViewPanelTest {
       clientSettings,
       launcher,
       model,
+      notificationModel,
       treeSettings,
       MoreExecutors.directExecutor()
     )
@@ -593,6 +599,7 @@ class DeviceViewPanelTest {
   @Test
   fun testZoomOnConnectWithFilteringAndScreenSizeFromAppContext() {
     val model = InspectorModel(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
@@ -600,6 +607,7 @@ class DeviceViewPanelTest {
       processModel,
       listOf(),
       projectRule.project,
+      notificationModel,
       coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
@@ -614,6 +622,7 @@ class DeviceViewPanelTest {
       clientSettings,
       launcher,
       model,
+      notificationModel,
       treeSettings,
       MoreExecutors.directExecutor()
     )
@@ -644,6 +653,7 @@ class DeviceViewPanelTest {
   @Test
   fun testDrawNewWindow() {
     val model = InspectorModel(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
@@ -651,6 +661,7 @@ class DeviceViewPanelTest {
       processModel,
       listOf(),
       projectRule.project,
+      notificationModel,
       coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
@@ -665,6 +676,7 @@ class DeviceViewPanelTest {
       clientSettings,
       launcher,
       model,
+      notificationModel,
       treeSettings,
       MoreExecutors.directExecutor()
     )
@@ -704,6 +716,7 @@ class DeviceViewPanelTest {
   @Test
   fun testNewWindowDoesntResetZoom() {
     val model = InspectorModel(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
@@ -723,6 +736,7 @@ class DeviceViewPanelTest {
       clientSettings,
       launcher,
       model,
+      notificationModel,
       treeSettings,
       MoreExecutors.directExecutor()
     )
@@ -811,6 +825,7 @@ class DeviceViewPanelTest {
       }
     }
 
+    val notificationModel = NotificationModel(projectRule.project)
     val launcher: InspectorClientLauncher = mock()
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val client: InspectorClient = mock()
@@ -827,7 +842,7 @@ class DeviceViewPanelTest {
     if (fromSnapshot) {
       deviceModel = null
       processes = null
-      inspector = LayoutInspector(coroutineScope, clientSettings, client, model, treeSettings)
+      inspector = LayoutInspector(coroutineScope, clientSettings, client, model, notificationModel, treeSettings)
     }
     else {
       val fakeProcess = createFakeStream().createFakeProcess()
@@ -849,6 +864,7 @@ class DeviceViewPanelTest {
         clientSettings,
         launcher,
         model,
+        notificationModel,
         treeSettings,
         MoreExecutors.directExecutor()
       )

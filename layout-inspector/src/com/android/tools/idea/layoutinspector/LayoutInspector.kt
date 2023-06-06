@@ -19,6 +19,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.common.MostRecentExecutor
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -31,7 +32,6 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
@@ -75,6 +75,7 @@ private val logger = Logger.getInstance(LayoutInspector::class.java)
  */
 class LayoutInspector private constructor(
   val inspectorModel: InspectorModel,
+  val notificationModel: NotificationModel,
   val coroutineScope: CoroutineScope,
   val processModel: ProcessesModel?,
   val deviceModel: DeviceModel?,
@@ -100,12 +101,14 @@ class LayoutInspector private constructor(
     inspectorClientSettings: InspectorClientSettings,
     launcher: InspectorClientLauncher,
     layoutInspectorModel: InspectorModel,
+    notificationModel: NotificationModel,
     treeSettings: TreeSettings,
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-    renderModel: RenderModel = RenderModel(layoutInspectorModel, treeSettings) { launcher.activeClient },
+    renderModel: RenderModel = RenderModel(layoutInspectorModel, notificationModel, treeSettings) { launcher.activeClient },
     renderLogic: RenderLogic = RenderLogic(renderModel, InspectorRenderSettings()),
   ) : this(
     layoutInspectorModel,
+    notificationModel,
     coroutineScope,
     processModel,
     deviceModel,
@@ -130,12 +133,14 @@ class LayoutInspector private constructor(
     layoutInspectorClientSettings: InspectorClientSettings,
     client: InspectorClient,
     layoutInspectorModel: InspectorModel,
+    notificationModel: NotificationModel,
     treeSettings: TreeSettings,
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-    renderModel: RenderModel = RenderModel(layoutInspectorModel, treeSettings) { client },
+    renderModel: RenderModel = RenderModel(layoutInspectorModel, notificationModel, treeSettings) { client },
     renderLogic: RenderLogic = RenderLogic(renderModel, EditorRenderSettings()),
   ) : this(
     inspectorModel = layoutInspectorModel,
+    notificationModel = notificationModel,
     coroutineScope = coroutineScope,
     processModel = null,
     deviceModel = null,
@@ -286,7 +291,7 @@ class LayoutInspector private constructor(
       else -> return
     }
     if (message != null) {
-      InspectorBannerService.getInstance(inspectorModel.project)?.addNotification(message, Status.Error)
+      notificationModel.addNotification(message, Status.Error)
 
       if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
         ApplicationManager.getApplication().invokeLater {

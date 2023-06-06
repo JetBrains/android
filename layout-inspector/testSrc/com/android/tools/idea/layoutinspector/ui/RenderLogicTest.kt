@@ -691,7 +691,7 @@ class RenderLogicTest {
    * Re-used to generate all configs starting from an [InspectorModel] and [Dimension].
    */
   private fun createPaintConfig(inspectorModel: InspectorModel, renderDimension: Dimension): TestConfig {
-    val renderModel = RenderModel(inspectorModel, treeSettings) { DisconnectedClient }
+    val renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
     val renderLogic = RenderLogic(renderModel, renderSettings)
 
     val centerTransform = AffineTransform().apply {
@@ -898,7 +898,7 @@ class RenderLogicTest {
     }
 
     val window = ViewAndroidWindow(
-      projectRule.project, mock(),
+      mock(), mock(),
       view(1, 0, 0, 454, 454) {
         view(2, 10, 10, 100, 100)
         view(3, 300, 400, 50, 50)

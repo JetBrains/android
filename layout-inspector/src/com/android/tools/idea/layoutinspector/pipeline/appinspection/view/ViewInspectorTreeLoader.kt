@@ -22,16 +22,16 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
 
 /**
  * View-inspector specific logic supporting [AppInspectionTreeLoader].
  */
 class ViewInspectorTreeLoader(
-  private val project: Project,
+  private val notificationModel: NotificationModel,
   private val skiaParser: SkiaParser,
   private val viewEvent: LayoutInspectorViewProtocol.LayoutEvent,
   private val resourceLookup: ResourceLookup,
@@ -67,6 +67,6 @@ class ViewInspectorTreeLoader(
         folderConfig, theme, process, configuration.fontScale, context.mainDisplayOrientation, context.screenSize)
     }
     val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
-    return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, folderConfig, { isInterrupted }, logEvent)
+    return ViewAndroidWindow(notificationModel, skiaParser, rootView, viewEvent, folderConfig, { isInterrupted }, logEvent)
   }
 }

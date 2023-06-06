@@ -32,7 +32,7 @@ import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
@@ -59,8 +59,9 @@ class LegacyClientTest {
     val loader = mock(LegacyTreeLoader::class.java)
     doAnswer { windowIds }.whenever(loader).getAllWindowIds(ArgumentMatchers.any())
     val client = LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector) as LegacyClient
-    client.launchMonitor =
-      InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), client.stats, scheduler)
+    val notificationModel = inspector.notificationModel
+    client.launchMonitor = InspectorClientLaunchMonitor(
+      projectRule.project, notificationModel, ListenerCollection.createWithDirectExecutor(), client.stats, scheduler)
     client
   }
   private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider), projectRule)
@@ -114,8 +115,8 @@ class LegacyClientTest {
     waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.timeoutHandlerScheduled }
     assertThat(client.reloadAllWindows()).isFalse()
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-    val banner = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    val notification1 = banner.notifications.single()
+    val notificationModel = inspectorRule.notificationModel
+    val notification1 = notificationModel.notifications.single()
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:

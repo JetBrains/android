@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
@@ -147,12 +148,14 @@ class LegacyDeviceRule(
    */
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model(project) {}
+    val notificationModel = NotificationModel(project)
     val process = LEGACY_DEVICE.createProcess()
     val scope = AndroidCoroutineScope(disposableRule.disposable)
     val client = LegacyClient(
       process,
       isInstantlyAutoConnected = false,
       model,
+      notificationModel,
       LayoutInspectorSessionMetrics(model.project, process),
       scope,
       disposableRule.disposable
@@ -161,7 +164,7 @@ class LegacyDeviceRule(
     }
     // This causes the current client to register its listeners
     val treeSettings = FakeTreeSettings()
-    LayoutInspector(scope, InspectorClientSettings(projectRule.project), client, model, treeSettings)
+    LayoutInspector(scope, InspectorClientSettings(projectRule.project), client, model, notificationModel, treeSettings)
     client.state = InspectorClient.State.CONNECTED
     return client
   }

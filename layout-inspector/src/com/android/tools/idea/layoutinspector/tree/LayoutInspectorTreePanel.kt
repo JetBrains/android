@@ -263,7 +263,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private fun doubleClick(item: Any) {
     layoutInspector?.let {
       it.currentClient.stats.gotoSourceFromTreeDoubleClick()
-      GotoDeclarationAction.navigateToSelectedView(it.coroutineScope, it.inspectorModel)
+      GotoDeclarationAction.navigateToSelectedView(it.coroutineScope, it.inspectorModel, it.notificationModel)
     }
   }
 

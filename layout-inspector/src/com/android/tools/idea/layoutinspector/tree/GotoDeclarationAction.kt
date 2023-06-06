@@ -21,7 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -45,7 +45,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
     inspector.currentClient.stats.gotoSourceFromTreeActionMenu(event)
-    navigateToSelectedView(inspector.coroutineScope, inspector.inspectorModel)
+    navigateToSelectedView(inspector.coroutineScope, inspector.inspectorModel, inspector.notificationModel)
   }
 
   override fun update(event: AnActionEvent) {
@@ -54,9 +54,9 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     event.presentation.isEnabled = inspector?.inspectorModel?.resourceLookup?.hasResolver == true
   }
 
-  fun navigateToSelectedView(coroutineScope: CoroutineScope, inspectorModel: InspectorModel) {
+  fun navigateToSelectedView(coroutineScope: CoroutineScope, inspectorModel: InspectorModel, notificationModel: NotificationModel) {
     lastAction = coroutineScope.launch {
-      val navigatable = findNavigatable(inspectorModel) ?: return@launch
+      val navigatable = findNavigatable(inspectorModel, notificationModel) ?: return@launch
       withContext(AndroidDispatchers.uiThread) {
         navigatable.navigate(true)
       }
@@ -64,7 +64,10 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
   }
 
   @Slow
-  private suspend fun findNavigatable(model: InspectorModel): Navigatable? = withContext(AndroidDispatchers.workerThread) {
+  private suspend fun findNavigatable(
+    model: InspectorModel,
+    notificationModel: NotificationModel
+  ): Navigatable? = withContext(AndroidDispatchers.workerThread) {
     val resourceLookup = model.resourceLookup
     val node = model.selection ?: return@withContext null
     if (node is ComposeViewNode) {
@@ -74,8 +77,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
       val navigatable = withContext(AndroidDispatchers.uiThread) { resourceLookup.findFileLocation (node)?.navigatable }
       val layout = node.layout?.name
       if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
-        val banner = InspectorBannerService.getInstance(model.project)
-        banner?.addNotification(LayoutInspectorBundle.message(VIEW_NOT_FOUND, node.unqualifiedName, layout), Status.Warning)
+        notificationModel.addNotification(LayoutInspectorBundle.message(VIEW_NOT_FOUND, node.unqualifiedName, layout), Status.Warning)
       }
       navigatable
     }

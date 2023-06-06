@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ProjectRule
@@ -32,15 +32,16 @@ class InspectorBannerTest {
 
   @Test
   fun testInitiallyHidden() {
-    val banner = InspectorBanner(projectRule.project)
+    val notificationModel = NotificationModel(projectRule.project)
+    val banner = InspectorBanner(notificationModel)
     assertThat(banner.isVisible).isFalse()
   }
 
   @Test
   fun testVisibleWithStatus() {
-    val banner = InspectorBanner(projectRule.project)
-    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    bannerService.addNotification("There is an error somewhere", Status.Error, emptyList())
+    val notificationModel = NotificationModel(projectRule.project)
+    val banner = InspectorBanner(notificationModel)
+    notificationModel.addNotification("There is an error somewhere", Status.Error, emptyList())
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }
@@ -49,10 +50,10 @@ class InspectorBannerTest {
 
   @Test
   fun testInvisibleAfterEmptyStatus() {
-    val banner = InspectorBanner(projectRule.project)
-    val bannerService = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    bannerService.addNotification("There is an error somewhere", Status.Error, emptyList())
-    bannerService.clear()
+    val notificationModel = NotificationModel(projectRule.project)
+    val banner = InspectorBanner(notificationModel)
+    notificationModel.addNotification("There is an error somewhere", Status.Error, emptyList())
+    notificationModel.clear()
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }

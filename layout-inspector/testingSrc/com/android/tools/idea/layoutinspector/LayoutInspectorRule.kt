@@ -25,6 +25,7 @@ import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
@@ -124,6 +125,7 @@ fun LegacyClientProvider(
     params.process,
     params.isInstantlyAutoConnected,
     inspector.inspectorModel,
+    inspector.notificationModel,
     LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
     AndroidCoroutineScope(getDisposable()),
     getDisposable(),
@@ -228,6 +230,8 @@ class LayoutInspectorRule(
     private set
   lateinit var inspectorModel: InspectorModel
     private set
+  lateinit var notificationModel: NotificationModel
+    private set
 
   val parametersCache: ComposeParametersCache?
     get() = (inspectorClient as? AppInspectionInspectorClient)?.composeInspector?.parametersCache
@@ -250,11 +254,13 @@ class LayoutInspectorRule(
     val layoutInspectorCoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
 
     deviceModel = DeviceModel(disposable, processes)
-    inspectorModel = InspectorModel(projectRule.project)
+    inspectorModel = InspectorModel(project)
+    notificationModel = NotificationModel(project)
     launcher = InspectorClientLauncher(
       processes,
       clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
       project,
+      notificationModel,
       layoutInspectorCoroutineScope,
       launcherDisposable,
       executor = launcherExecutor
@@ -285,6 +291,7 @@ class LayoutInspectorRule(
       inspectorClientSettings = InspectorClientSettings(project),
       launcher = launcher,
       layoutInspectorModel = inspectorModel,
+      notificationModel = notificationModel,
       treeSettings = treeSettings,
       executor = MoreExecutors.directExecutor()
     )

@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -43,7 +44,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLa
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
@@ -89,6 +89,7 @@ class AppInspectionInspectorClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
+  notificationModel: NotificationModel,
   private val metrics: LayoutInspectorSessionMetrics,
   private val treeSettings: TreeSettings,
   private val inspectorClientSettings: InspectorClientSettings,
@@ -99,6 +100,7 @@ class AppInspectionInspectorClient(
 ) : AbstractInspectorClient(
   APP_INSPECTION_CLIENT,
   model.project,
+  notificationModel,
   process,
   isInstantlyAutoConnected,
   SessionStatisticsImpl(APP_INSPECTION_CLIENT),
@@ -132,7 +134,7 @@ class AppInspectionInspectorClient(
     })
 
   override val treeLoader: TreeLoader = AppInspectionTreeLoader(
-    model.project,
+    notificationModel,
     logEvent = ::logEvent,
     skiaParser
   )
@@ -154,7 +156,7 @@ class AppInspectionInspectorClient(
       launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
 
       composeInspector = ComposeLayoutInspectorClient.launch(
-        apiServices, process, model, treeSettings, capabilities, launchMonitor, ::logComposeAttachError
+        apiServices, process, model, notificationModel, treeSettings, capabilities, launchMonitor, ::logComposeAttachError
       )
       val viewIns = ViewLayoutInspectorClient.launch(
         apiServices, process, model, stats, coroutineScope, composeInspector, ::fireError, ::fireRootsEvent, ::fireTreeEvent, launchMonitor
@@ -166,7 +168,7 @@ class AppInspectionInspectorClient(
 
       debugViewAttributesChanged = DebugViewAttributes.getInstance().set(model.project, process)
       if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
-        showActivityRestartedInBanner(model.project, process)
+        showActivityRestartedInBanner(model.project, notificationModel, process)
       }
 
       val completableDeferred = CompletableDeferred<Unit>()
@@ -311,8 +313,6 @@ class AppInspectionInspectorClient(
     }
 
     val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
-
-    val bannerService = InspectorBannerService.getInstance(project) ?: return
     if (tags.contains(SystemImage.GOOGLE_APIS_TAG) || tags.contains(SystemImage.DEFAULT_TAG)) {
       val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
       val showBanner = RepoManager.RepoLoadedListener { packages ->
@@ -327,20 +327,20 @@ class AppInspectionInspectorClient(
             if (SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))?.showAndGet() == true) {
               Messages.showInfoMessage(project, "Please restart the emulator for update to take effect.", "Restart Required")
             }
-          }, bannerService.dismissAction)
+          }, notificationModel.dismissAction)
         }
         else {
           message = API_29_BUG_MESSAGE
-          actions = listOf(bannerService.dismissAction)
+          actions = listOf(notificationModel.dismissAction)
         }
-        bannerService.addNotification(message, Status.Warning, actions)
+        notificationModel.addNotification(message, Status.Warning, actions)
       }
       sdkHandler.getSdkManager(logger).load(0, null, listOf(showBanner), null,
                                             StudioProgressRunner(false, false, "Checking available system images", null),
                                             StudioDownloader(), StudioSettingsController.getInstance())
     }
     else {
-      bannerService.addNotification(API_29_BUG_MESSAGE, Status.Warning, listOf(bannerService.dismissAction))
+      notificationModel.addNotification(API_29_BUG_MESSAGE, Status.Warning, listOf(notificationModel.dismissAction))
     }
     throw ConnectionFailedException("Unsupported system image revision", AttachErrorCode.LOW_API_LEVEL)
   }

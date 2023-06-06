@@ -28,7 +28,7 @@ import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
 import com.android.tools.layoutinspector.BitmapType
@@ -38,7 +38,6 @@ import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.toInt
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
 import java.awt.Rectangle
 import java.awt.geom.Ellipse2D
@@ -54,7 +53,7 @@ import java.util.zip.Inflater
  *    will abort our image processing at the earliest chance.
  */
 class ViewAndroidWindow(
-  private val project: Project,
+  private val notificationModel: NotificationModel,
   private val skiaParser: SkiaParser,
   root: ViewNode,
   private val event: LayoutInspectorViewProtocol.LayoutEvent,
@@ -100,7 +99,7 @@ class ViewAndroidWindow(
                 createDrawChildren(bufferedImage)
                 logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
               }
-              ImageType.SKP, ImageType.SKP_PENDING -> processSkp(immutableScreenshotBytes, skiaParser, project, scale)
+              ImageType.SKP, ImageType.SKP_PENDING -> processSkp(immutableScreenshotBytes, skiaParser, scale)
               else -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
             }
         }
@@ -112,12 +111,7 @@ class ViewAndroidWindow(
     }
   }
 
-  private fun processSkp(
-    bytes: ByteArray,
-    skiaParser: SkiaParser,
-    project: Project,
-    scale: Double
-  ) {
+  private fun processSkp(bytes: ByteArray, skiaParser: SkiaParser, scale: Double) {
     val (nodeMap, requestedNodeInfo) = ViewNode.readAccess {
       val allNodes = root.flatten().filter { it.drawId != 0L }
       val nodeMap = allNodes.associateBy { it.drawId }
@@ -137,7 +131,7 @@ class ViewAndroidWindow(
     val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
 
     if (errorMessage != null) {
-      InspectorBannerService.getInstance(project)?.addNotification(errorMessage, Status.Warning)
+      notificationModel.addNotification(errorMessage, Status.Warning)
     }
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)

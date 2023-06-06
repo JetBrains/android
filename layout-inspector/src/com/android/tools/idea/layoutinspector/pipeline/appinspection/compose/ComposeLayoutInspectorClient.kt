@@ -43,8 +43,8 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
-import com.android.tools.idea.layoutinspector.ui.learnMoreAction
+import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.learnMoreAction
 import com.android.tools.idea.protobuf.CodedInputStream
 import com.android.tools.idea.transport.TransportException
 import com.android.tools.idea.util.StudioPathManager
@@ -53,7 +53,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.text.nullize
 import kotlinx.coroutines.cancel
@@ -129,7 +128,7 @@ class GetComposablesResult(
  * @param capabilities Of the containing [InspectorClient]. Some capabilities may be added by this class.
  */
 class ComposeLayoutInspectorClient(
-  model: InspectorModel,
+  private val model: InspectorModel,
   private val treeSettings: TreeSettings,
   private val messenger: AppInspectorMessenger,
   private val capabilities: EnumSet<Capability>,
@@ -145,6 +144,7 @@ class ComposeLayoutInspectorClient(
       apiServices: AppInspectionApiServices,
       process: ProcessDescriptor,
       model: InspectorModel,
+      notificationModel: NotificationModel,
       treeSettings: TreeSettings,
       capabilities: EnumSet<Capability>,
       launchMonitor: InspectorClientLaunchMonitor,
@@ -173,17 +173,17 @@ class ComposeLayoutInspectorClient(
           InspectorArtifactService.instance.getOrResolveInspectorJar(project, requiredCompatibility.coordinate)
         }
         catch (exception: AppInspectionArtifactNotFoundException) {
-          return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, exception.errorCode)
+          return handleError(notificationModel, logErrorToMetrics, isRunningFromSourcesInTests, exception.errorCode)
         }
       }
       else {
         requiredCompatibility = COMPOSE_INSPECTION_COMPATIBILITY
         val compatibility = apiServices.checkVersion(project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId,
                                                      MINIMUM_COMPOSE_COORDINATE.artifactId, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
-        val version = compatibility?.version?.takeIf { compatibility.status == Status.COMPATIBLE && it.isNotBlank () }
-                      ?: return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, compatibility?.status.errorCode)
+        val version = compatibility?.version?.takeIf { compatibility.status == Status.COMPATIBLE && it.isNotBlank() } ?: return handleError(
+          notificationModel, logErrorToMetrics, isRunningFromSourcesInTests, compatibility?.status.errorCode)
 
-        checkComposeVersion(project, version)
+        checkComposeVersion(notificationModel, version)
 
         try {
           InspectorArtifactService.instance.getOrResolveInspectorJar(
@@ -196,7 +196,7 @@ class ComposeLayoutInspectorClient(
           )
         }
         catch (exception: AppInspectionArtifactNotFoundException) {
-          return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, exception.errorCode)
+          return handleError(notificationModel, logErrorToMetrics, isRunningFromSourcesInTests, exception.errorCode)
         }
       }
 
@@ -210,10 +210,10 @@ class ComposeLayoutInspectorClient(
         client
       }
       catch (unexpected: AppInspectionException) {
-        handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.errorCode)
+        handleError(notificationModel, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.errorCode)
       }
       catch (unexpected: TransportException) {
-        handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.errorCode)
+        handleError(notificationModel, logErrorToMetrics, isRunningFromSourcesInTests, unexpected.errorCode)
       }
     }
 
@@ -265,7 +265,7 @@ class ComposeLayoutInspectorClient(
     }
 
     private fun handleError(
-      project: Project,
+      notificationModel: NotificationModel,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
       isRunningFromSourcesInTests: Boolean?,
       error: ErrorInfo
@@ -301,9 +301,8 @@ class ComposeLayoutInspectorClient(
           return null
         }
       }
-      val banner = InspectorBannerService.getInstance(project) ?: return null
-      actions.add(banner.dismissAction)
-      banner.addNotification(message, EditorNotificationPanel.Status.Warning, actions)
+      actions.add(notificationModel.dismissAction)
+      notificationModel.addNotification(message, EditorNotificationPanel.Status.Warning, actions)
       logDiagnostics(ComposeLayoutInspectorClient::class.java, "Launch error: %s, message: %s", error, message)
       logErrorToMetrics(error.code)
       return null
@@ -313,16 +312,15 @@ class ComposeLayoutInspectorClient(
      * Check for problems with the specified compose version.
      * @return false if the compose inspector should not be started for this version.
      */
-    private fun checkComposeVersion(project: Project, versionString: String) {
+    private fun checkComposeVersion(notificationModel: NotificationModel, versionString: String) {
       val version = Version.parse(versionString)
       // b/237987764 App crash while fetching parameters with empty lambda was fixed in 1.3.0-alpha03 and in 1.2.1
       // b/235526153 App crash while fetching component tree with certain Borders was fixed in 1.3.0-alpha03 and in 1.2.1
       if (version >= Version.parse("1.3.0-alpha03") || version.minor == 2 && version >= Version.parse("1.2.1")) return
       val versionUpgrade = if (version.minor == 3) "1.3.0" else "1.2.1"
-      val banner = InspectorBannerService.getInstance(project) ?: return
       val message = LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, versionString, versionUpgrade)
       logDiagnostics(ComposeLayoutInspectorClient::class.java, "Compose version warning, message: %s", message)
-      banner.addNotification(message, EditorNotificationPanel.Status.Warning)
+      notificationModel.addNotification(message, EditorNotificationPanel.Status.Warning)
       // Allow the user to connect and inspect compose elements because:
       // - b/235526153 is uncommon
       // - b/237987764 only happens if the kotlin compiler version is at least 1.6.20 (which we cannot reliably detect)

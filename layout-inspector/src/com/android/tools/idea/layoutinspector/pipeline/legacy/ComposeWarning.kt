@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
@@ -28,7 +28,7 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Supply a warning banner if a LegacyClient is used for a compose application.
  */
-class ComposeWarning(private val project: Project) {
+class ComposeWarning(private val project: Project, private val notificationModel: NotificationModel) {
   fun performCheck(client: InspectorClient) {
     if (isRunningCurrentProject(client) && isUsingCompose()) {
       val apiLevel = client.process.device.apiLevel
@@ -37,8 +37,7 @@ class ComposeWarning(private val project: Project) {
       } else {
         "Cannot display compose nodes, try restarting the application"
       }
-      val bannerService = InspectorBannerService.getInstance(project)
-      bannerService?.addNotification(message, Status.Warning, listOf(bannerService.dismissAction))
+      notificationModel.addNotification(message, Status.Warning, listOf(notificationModel.dismissAction))
     }
   }
 

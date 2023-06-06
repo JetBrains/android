@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyPropertiesProvider
@@ -50,7 +51,12 @@ class LegacySnapshotLoader : SnapshotLoader {
 
   override val capabilities = mutableSetOf<InspectorClient.Capability>()
 
-  override fun loadFile(file: Path, model: InspectorModel, stats: SessionStatistics): SnapshotMetadata {
+  override fun loadFile(
+    file: Path,
+    model: InspectorModel,
+    notificationModel: NotificationModel,
+    stats: SessionStatistics
+  ): SnapshotMetadata {
     val options = LayoutInspectorCaptureOptions()
 
     ObjectInputStream(Files.newInputStream(file)).use { input ->

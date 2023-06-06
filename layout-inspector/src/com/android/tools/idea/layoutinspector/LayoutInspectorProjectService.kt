@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.TransportErrorListener
@@ -33,7 +34,6 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -95,7 +95,8 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
 
     val edtExecutor = EdtExecutorService.getInstance()
 
-    TransportErrorListener(project, LayoutInspectorMetrics, disposable)
+    val notificationModel = NotificationModel(project)
+    TransportErrorListener(project, notificationModel, LayoutInspectorMetrics, disposable)
 
     val processesModel = createProcessesModel(
       project,
@@ -109,7 +110,7 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
     processesModel.addSelectedProcessListeners {
       // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
       // encountered during a previous run.
-      InspectorBannerService.getInstance(project)?.clear()
+      notificationModel.clear()
     }
 
     lateinit var launcher: InspectorClientLauncher
@@ -118,6 +119,7 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
     launcher = InspectorClientLauncher.createDefaultLauncher(
       processesModel,
       model,
+      notificationModel,
       metrics,
       treeSettings,
       inspectorClientSettings,
@@ -138,6 +140,7 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
       inspectorClientSettings = inspectorClientSettings,
       launcher = launcher,
       layoutInspectorModel = model,
+      notificationModel = notificationModel,
       treeSettings = treeSettings
     )
   }
