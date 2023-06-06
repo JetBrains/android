@@ -42,13 +42,11 @@ import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImp
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
+import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
-import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask
-import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.RunInstantApp
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
-import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.stats.track
 import com.android.tools.idea.util.androidFacet
@@ -113,7 +111,7 @@ class LaunchTaskRunner(
       LaunchUtils.initiateDismissKeyguard(it)
     }
 
-    printLaunchTaskStartedMessage(console)
+    console.printLaunchTaskStartedMessage("Launching")
 
     if (shouldDeployAsInstant()) {
       deployAsInstantApp(devices, console)
@@ -231,7 +229,7 @@ class LaunchTaskRunner(
     }
     LaunchUtils.initiateDismissKeyguard(device)
 
-    printLaunchTaskStartedMessage(console)
+    console.printLaunchTaskStartedMessage("Launching")
 
     if (shouldDeployAsInstant()) {
       deployAsInstantApp(devices, console)
@@ -258,14 +256,18 @@ class LaunchTaskRunner(
     }
 
     indicator.text = "Connecting debugger"
-    val session = RunStats.from(env).track("startDebuggerSession") {
-      val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env)
-      debuggerTask.perform(device, packageName, env, indicator, console)
-    }
+    val session = startDebugSession(device, packageName, indicator, console)
     if (configuration.SHOW_LOGCAT_AUTOMATICALLY) {
       project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, packageName)
     }
     session.runContentDescriptor
+  }
+
+  private fun startDebugSession(
+    device: IDevice, packageName: String, indicator: ProgressIndicator, console: ConsoleView
+  ) = RunStats.from(env).track("startDebuggerSession") {
+    val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env)
+    debuggerTask.perform(device, packageName, env, indicator, console)
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
@@ -288,20 +290,18 @@ class LaunchTaskRunner(
       }
     }.firstOrNull()
 
-    val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(packageName).apply {
-      devices.forEach { addTargetDevice(it) }
-    }
+    var needsNewRunContentDescriptor = existingRunContentDescriptor == null
+
     fillStats(RunStats.from(env), packageName)
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
-    printLaunchTaskStartedMessage(console)
+    console.printLaunchTaskStartedMessage("Applying changes to")
 
     // A list of devices that we have launched application successfully.
     indicator.text = "Launching on devices"
     devices.map { device ->
       async {
         LOG.info("Launching on device ${device.name}")
-        val launchContext = LaunchContext(env, device, console, processHandler, indicator)
 
         //Deploy
         val apks = apkInfosSafe(device)
@@ -313,34 +313,22 @@ class LaunchTaskRunner(
         notifyLiveEditService(device, packageName)
 
         if (deployResults.any { it.needsRestart }) {
-          KillAndRestartAppLaunchTask(packageName).run(launchContext)
           val mainApp = deployResults.find { it.app.appId == packageName }
             ?: throw RuntimeException("No app installed matching packageName provided by ApplicationIdProvider")
+          RunConfigurationNotifier.notifyInfo(project, configuration.name, "Swap failed, needs restart")
+          waitPreviousProcessTermination(listOf(device), packageName, indicator)
           launch(mainApp.app, device, console, isDebug = false)
+          needsNewRunContentDescriptor = true
         }
       }
     }.awaitAll()
 
-    withContext(uiThread) {
-      val attachedContent = existingRunContentDescriptor?.attachedContent
-      if (attachedContent == null) {
-        createRunContentDescriptor(processHandler, console, env)
-      } else {
-        object : RunContentDescriptor(
-          existingRunContentDescriptor.executionConsole,
-          existingRunContentDescriptor.processHandler,
-          existingRunContentDescriptor.component,
-          existingRunContentDescriptor.displayName,
-          existingRunContentDescriptor.icon,
-          null as Runnable?,
-          existingRunContentDescriptor.restartActions
-        ) {
-          override fun isHiddenContent() = true
-        }.apply {
-          setAttachedContent(attachedContent)
-          Disposer.register(project, this)
-        }
-      }
+    if (needsNewRunContentDescriptor || existingRunContentDescriptor?.processHandler == null || existingRunContentDescriptor.processHandler?.isProcessTerminated == true) {
+      existingRunContentDescriptor?.processHandler?.detachProcess()
+      val processHandler = AndroidProcessHandler(packageName).apply { devices.forEach { addTargetDevice(it) } }
+      withContext(uiThread) { createRunContentDescriptor(processHandler, createConsole(), env) }
+    } else {
+      HiddenRunContentDescriptor(existingRunContentDescriptor)
     }
   }
 
@@ -370,18 +358,16 @@ class LaunchTaskRunner(
       }
     }.firstOrNull()
 
-    val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(packageName).apply {
-      devices.forEach { addTargetDevice(it) }
-    }
+    var needsNewRunContentDescriptor = existingRunContentDescriptor == null
+
     fillStats(RunStats.from(env), packageName)
 
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
-    printLaunchTaskStartedMessage(console)
+    console.printLaunchTaskStartedMessage("Applying code changes to")
 
     devices.map { device ->
       async {
         LOG.info("Launching on device ${device.name}")
-        val launchContext = LaunchContext(env, device, console, processHandler, indicator)
         val apks = apkInfosSafe(device)
         val deployResults = deployAndHandleError(
           env,
@@ -392,34 +378,42 @@ class LaunchTaskRunner(
         notifyLiveEditService(device, packageName)
 
         if (deployResults.any { it.needsRestart }) {
-          KillAndRestartAppLaunchTask(packageName).run(launchContext)
           val mainApp = deployResults.find { it.app.appId == packageName }
             ?: throw RuntimeException("No app installed matching packageName provided by ApplicationIdProvider")
-          launch(mainApp.app, device, console, isDebug = false)
+
+          RunConfigurationNotifier.notifyInfo(project, configuration.name, "Swap failed, needs restart")
+          waitPreviousProcessTermination(listOf(device), packageName, indicator)
+          launch(mainApp.app, device, console, isDebug = env.executor.isDebug)
+          needsNewRunContentDescriptor = true
         }
       }
     }.awaitAll()
 
-    withContext(uiThread) {
-      val attachedContent = existingRunContentDescriptor?.attachedContent
-      if (attachedContent == null) {
-        createRunContentDescriptor(processHandler, console, env)
+    if (needsNewRunContentDescriptor ||
+      existingRunContentDescriptor?.processHandler == null ||
+      existingRunContentDescriptor.processHandler?.isProcessTerminated == true) {
+      existingRunContentDescriptor?.processHandler?.detachProcess()
+      if (env.executor.isDebug) {
+        startDebugSession(devices.single(), packageName, indicator, createConsole()).runContentDescriptor
       } else {
-        object : RunContentDescriptor(
-          existingRunContentDescriptor.executionConsole,
-          existingRunContentDescriptor.processHandler,
-          existingRunContentDescriptor.component,
-          existingRunContentDescriptor.displayName,
-          existingRunContentDescriptor.icon,
-          null as Runnable?,
-          existingRunContentDescriptor.restartActions
-        ) {
-          override fun isHiddenContent() = true
-        }.apply<RunContentDescriptor> {
-          setAttachedContent(attachedContent) // Same as [RunContentBuilder.showRunContent]
-          Disposer.register(project, this)
-        }
+        val processHandler = AndroidProcessHandler(packageName).apply { devices.forEach { addTargetDevice(it) } }
+        withContext(uiThread) { createRunContentDescriptor(processHandler, createConsole(), env) }
       }
+    } else {
+      HiddenRunContentDescriptor(existingRunContentDescriptor)
+    }
+  }
+
+  inner class HiddenRunContentDescriptor(existingRunContentDescriptor: RunContentDescriptor) : RunContentDescriptor(
+    existingRunContentDescriptor.executionConsole,
+    existingRunContentDescriptor.processHandler,
+    existingRunContentDescriptor.component,
+    existingRunContentDescriptor.displayName
+  ) {
+    override fun isHiddenContent() = true
+
+    init {
+      Disposer.register(project, this)
     }
   }
 
@@ -457,14 +451,9 @@ class LaunchTaskRunner(
     return DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN
   }
 
-  private fun printLaunchTaskStartedMessage(consoleView: ConsoleView) {
+  private fun ConsoleView.printLaunchTaskStartedMessage(launchVerb: String) {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())
-    val launchVerb = when (env.getUserData(SwapInfo.SWAP_INFO_KEY)?.type) {
-      SwapInfo.SwapType.APPLY_CHANGES -> "Applying changes to"
-      SwapInfo.SwapType.APPLY_CODE_CHANGES -> "Applying code changes to"
-      else -> "Launching"
-    }
-    consoleView.println("$dateFormat: $launchVerb ${configuration.name} on '${env.executionTarget.displayName}.")
+    println("$dateFormat: $launchVerb ${configuration.name} on '${env.executionTarget.displayName}'.")
   }
 
   @Throws(ExecutionException::class)

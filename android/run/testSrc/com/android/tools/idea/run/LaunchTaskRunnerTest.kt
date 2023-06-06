@@ -37,7 +37,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
-import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.flags.override
@@ -54,6 +53,7 @@ import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.runners.showRunContent
+import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
@@ -187,8 +187,8 @@ class LaunchTaskRunnerTest {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
-    val runningProcessHandler = setSwapInfo(env)
-    runningProcessHandler.addTargetDevice(device)
+    val runningDescriptor = setSwapInfo(env, device)
+    val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
 
     var liveEditServiceNotified = false
     val liveEditServiceImpl = LiveEditServiceImpl(projectRule.project).apply { Disposer.register(projectRule.testRootDisposable, this) }
@@ -220,6 +220,9 @@ class LaunchTaskRunnerTest {
     val processHandler = runContentDescriptor.processHandler
 
     assertThat(processHandler).isEqualTo(runningProcessHandler)
+    assertThat(runContentDescriptor.executionConsole).isEqualTo(runningDescriptor.executionConsole)
+    val printedMessage = (runContentDescriptor.executionConsole as EmptyTestConsoleView).printedMessages.map { it.first }.first()
+    assertThat(printedMessage).endsWith("Applying changes to app on 'TestTarget'.\n")
     assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(APPLICATION_ID)
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
@@ -232,7 +235,8 @@ class LaunchTaskRunnerTest {
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
-    val runningProcessHandler = setSwapInfo(env)
+    val runningDescriptor = setSwapInfo(env, device)
+    val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
 
     var liveEditServiceNotified = false
@@ -267,6 +271,9 @@ class LaunchTaskRunnerTest {
     val processHandler = runContentDescriptor.processHandler
 
     assertThat(processHandler).isEqualTo(runningProcessHandler)
+    assertThat(runContentDescriptor.executionConsole).isEqualTo(runningDescriptor.executionConsole)
+    val printedMessage = (runContentDescriptor.executionConsole as EmptyTestConsoleView).printedMessages.map { it.first }.first()
+    assertThat(printedMessage).endsWith("Applying code changes to app on 'TestTarget'.\n")
     assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(APPLICATION_ID)
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
@@ -348,7 +355,8 @@ class LaunchTaskRunnerTest {
     val env = getExecutionEnvironment(listOf(device))
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
-    val runningProcessHandler = setSwapInfo(env)
+    val runningDescriptor = setSwapInfo(env, device)
+    val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
     val runner = LaunchTaskRunner(configuration.applicationIdProvider!!, env, deviceFutures, { throw ApkProvisionException("Exception") })
 
@@ -360,7 +368,118 @@ class LaunchTaskRunnerTest {
     assertThat(runningProcessHandler.isProcessTerminating).isEqualTo(false)
   }
 
-  private fun testApplicationDeployer(device: IDevice, expectedMethod: String) = object : ApplicationDeployer {
+  @Test
+  fun applyChangesNeedsRestart() {
+    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val restartHappened = CountDownLatch(1)
+    deviceState.setActivityManager { args, _ ->
+      val command = args.joinToString(" ")
+      if (command == "start -n google.simpleapplication/google.simpleapplication.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER") {
+        deviceState.startClient(1234, 1235, APPLICATION_ID, false)
+        restartHappened.countDown()
+      }
+    }
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+
+    val env = getExecutionEnvironment(listOf(device))
+    val configuration = env.runProfile as AndroidRunConfiguration
+    configuration.executeMakeBeforeRunStepInTest(device)
+    val runningDescriptor = setSwapInfo(env, device)
+    val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
+    runningProcessHandler.addTargetDevice(device)
+
+
+    val result =
+      Deployer.Result(false, /*needsRestart */ true, false, createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
+    val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyChangesDeploy.name, result)
+
+    val runner = LaunchTaskRunner(
+      configuration.applicationIdProvider!!,
+      env,
+      deviceFutures,
+      configuration.apkProvider!!,
+      applicationDeployer = applicationDeployer
+    )
+
+    val newProcessHandler = runner.applyChanges(EmptyProgressIndicator()).processHandler
+
+    if (!restartHappened.await(10, TimeUnit.SECONDS)) {
+      fail("Activity is not restarted")
+    }
+
+    // New process handler should be created if we restarted Activity
+    assertThat(newProcessHandler).isNotEqualTo(runningProcessHandler)
+    assertThat((newProcessHandler as AndroidProcessHandler).isAssociated(device)).isEqualTo(true)
+  }
+
+  @Test
+  fun applyCodeChangesNeedsRestartForDebug() {
+
+    //TODO: write handler in fakeAdb for "am capabilities --protobuf"
+    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.override(false, projectRule.testRootDisposable)
+
+    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val restartHappened = CountDownLatch(1)
+    deviceState.setActivityManager { args, output ->
+      val command = args.joinToString(" ")
+      if (command == "start -n google.simpleapplication/google.simpleapplication.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D") {
+        deviceState.startClient(1234, 1235, APPLICATION_ID, true)
+        restartHappened.countDown()
+      }
+    }
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+
+    val env = getExecutionEnvironment(listOf(device))
+    val configuration = env.runProfile as AndroidRunConfiguration
+    configuration.executeMakeBeforeRunStepInTest(device)
+    val runningDescriptor = setSwapInfo(env, device)
+    val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
+    runningProcessHandler.addTargetDevice(device)
+
+
+    val result =
+      Deployer.Result(false, /*needsRestart */ true, false, createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
+    val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyCodeChangesDeploy.name, result)
+
+    val runner = LaunchTaskRunner(
+      configuration.applicationIdProvider!!,
+      env,
+      deviceFutures,
+      configuration.apkProvider!!,
+      applicationDeployer = applicationDeployer
+    )
+
+    val newProcessHandler =
+      ProgressManager.getInstance()
+        .runProcess(Computable { runner.applyCodeChanges(EmptyProgressIndicator()) }, EmptyProgressIndicator()).processHandler
+
+    if (!restartHappened.await(10, TimeUnit.SECONDS)) {
+      fail("Activity is not restarted")
+    }
+
+    // New process handler should be created if we restarted Activity
+    assertThat(newProcessHandler).isNotEqualTo(runningProcessHandler)
+    assertThat(newProcessHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
+    assertThat((newProcessHandler as AndroidRemoteDebugProcessHandler).isAssociated(device)).isEqualTo(true)
+
+    deviceState.stopClient(1234)
+    if (!newProcessHandler.waitFor(5000)) {
+      fail("Process handler didn't stop when debug process terminated")
+    }
+  }
+
+  private fun testApplicationDeployer(
+    device: IDevice,
+    expectedMethod: String,
+    result: Deployer.Result = Deployer.Result(
+      false,
+      false,
+      false,
+      createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME))
+    )
+  ) = object : ApplicationDeployer {
     override fun fullDeploy(
       deviceToInstall: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator
     ): Deployer.Result {
@@ -368,7 +487,7 @@ class LaunchTaskRunnerTest {
         throw RuntimeException("Method invocation is not expected")
       }
       if (deviceToInstall == device) {
-        return Deployer.Result(false, false, false, createApp(deviceToInstall, app.applicationId, activitiesName = listOf(ACTIVITY_NAME)))
+        return result
       }
       throw RuntimeException("Unexpected device")
     }
@@ -380,7 +499,7 @@ class LaunchTaskRunnerTest {
         throw RuntimeException("Method invocation is not expected")
       }
       if (deviceToInstall == device) {
-        return Deployer.Result(false, false, false, createApp(deviceToInstall, app.applicationId, activitiesName = listOf(ACTIVITY_NAME)))
+        return result
       }
       throw RuntimeException("Unexpected device")
     }
@@ -392,7 +511,7 @@ class LaunchTaskRunnerTest {
         throw RuntimeException("Method invocation is not expected")
       }
       if (deviceToInstall == device) {
-        return Deployer.Result(false, false, false, createApp(deviceToInstall, app.applicationId, activitiesName = listOf(ACTIVITY_NAME)))
+        return result
       }
       throw RuntimeException("Unexpected device")
     }
@@ -416,16 +535,15 @@ class LaunchTaskRunnerTest {
     return executionEnvironment
   }
 
-  private fun setSwapInfo(env: ExecutionEnvironment): AndroidProcessHandler {
-    env.putUserData(SwapInfo.SWAP_INFO_KEY, SwapInfo(SwapInfo.SwapType.APPLY_CHANGES))
-
-    val processHandlerForSwap = AndroidProcessHandler(APPLICATION_ID)
+  private fun setSwapInfo(env: ExecutionEnvironment, device: IDevice): RunContentDescriptor {
+    val processHandlerForSwap = AndroidProcessHandler(APPLICATION_ID).apply { addTargetDevice(device) }
     processHandlerForSwap.startNotify()
     Disposer.register(projectRule.project) {
       processHandlerForSwap.detachProcess()
     }
+    var runContentDescriptor: RunContentDescriptor? = null
     runInEdtAndWait {
-      val runContentDescriptor = showRunContent(DefaultExecutionResult(EmptyTestConsoleView(), processHandlerForSwap), env)!!.apply {
+      runContentDescriptor = showRunContent(DefaultExecutionResult(EmptyTestConsoleView(), processHandlerForSwap), env)!!.apply {
         setAttachedContent(mock(Content::class.java))
       }
 
@@ -434,11 +552,10 @@ class LaunchTaskRunnerTest {
       projectRule.project.replaceService(RunContentManager::class.java, mockRunContentManager, projectRule.testRootDisposable)
 
       val mockExecutionManager = mock(ExecutionManagerImpl::class.java)
-      whenever(mockExecutionManager.getRunningDescriptors(any())).thenReturn(listOf(runContentDescriptor))
+      whenever(mockExecutionManager.getRunningDescriptors(any())).thenReturn(listOf(runContentDescriptor!!))
       projectRule.project.replaceService(ExecutionManager::class.java, mockExecutionManager, projectRule.testRootDisposable)
     }
-
-    return processHandlerForSwap
+    return runContentDescriptor!!
   }
 }
 

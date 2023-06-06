@@ -24,7 +24,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.JComponent
 
 class EmptyTestConsoleView : ConsoleView {
-  override fun print(s: String, contentType: ConsoleViewContentType) {}
+  val printedMessages = mutableListOf<Pair<String, ConsoleViewContentType>>()
+  override fun print(s: String, contentType: ConsoleViewContentType) {
+    printedMessages.add(Pair(s, contentType))
+  }
   override fun clear() {}
   override fun scrollTo(offset: Int) {}
   override fun attachToProcess(processHandler: ProcessHandler) {}
