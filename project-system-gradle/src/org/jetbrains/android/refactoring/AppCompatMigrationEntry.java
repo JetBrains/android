@@ -15,8 +15,11 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static org.apache.commons.lang3.ObjectUtils.max;
+
 import com.android.annotations.NonNull;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.Version;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
@@ -356,19 +359,13 @@ public class AppCompatMigrationEntry {
     @NotNull
     public String toCompactNotation(@NotNull String withVersion) {
       String newVersionString = getNewBaseVersion();
-      GradleCoordinate newVersion = GradleCoordinate.parseVersionOnly(withVersion);
-      GradleCoordinate baseVersion = GradleCoordinate.parseVersionOnly(newVersionString);
-
-      String useVersion;
-      if (GradleCoordinate.COMPARE_PLUS_HIGHER.compare(newVersion, baseVersion) < 0) {
-        // The given version is lower than the base version, use the baseVersion
-        useVersion = newVersionString;
-      }
-      else {
-        useVersion = withVersion;
-      }
-
-      return new GradleCoordinate(getNewGroupName(), getNewArtifactName(), useVersion).toString();
+      Version newVersion = Version.Companion.parse(withVersion);
+      Version baseVersion = Version.Companion.parse(newVersionString);
+      Component component = new Component(getNewGroupName(), getNewArtifactName(), max(newVersion, baseVersion));
+      String compactNotation = component.toIdentifier();
+      if (compactNotation != null) return compactNotation;
+      // something has gone wrong, but we don't know what.  The non-identifier string will hopefully make it obvious.
+      return component.toString();
     }
 
     @NotNull

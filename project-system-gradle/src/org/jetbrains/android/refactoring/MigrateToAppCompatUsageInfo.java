@@ -15,7 +15,11 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static org.apache.commons.lang3.ObjectUtils.max;
+
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.RichVersion;
+import com.android.ide.common.gradle.Version;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -633,22 +637,9 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
     @VisibleForTesting
     @Nullable
     static String getHighestVersion(@Nullable String a, @NotNull String defaultVersion) {
-      if (a == null) {
-        return defaultVersion;
-      }
-
-      if (a.startsWith("$")) {
-        // This is a variable, can not compute the highest version
-        return null;
-      }
-
-      GradleCoordinate versionA = GradleCoordinate.parseVersionOnly(a);
-      GradleCoordinate versionB = GradleCoordinate.parseVersionOnly(defaultVersion);
-      if (GradleCoordinate.COMPARE_PLUS_HIGHER.compare(versionA, versionB) >= 0) {
-        return a;
-      }
-
-      return defaultVersion;
+      if (a == null) return defaultVersion;
+      if (a.startsWith("$")) return null;
+      return max(RichVersion.Companion.parse(a).getLowerBound(), Version.Companion.parse(defaultVersion)).toString();
     }
 
     /**

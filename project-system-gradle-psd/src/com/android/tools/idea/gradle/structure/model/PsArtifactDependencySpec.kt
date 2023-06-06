@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.ide.common.gradle.RichVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
@@ -59,12 +60,7 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
                           override val version: String?) : PsArtifactDependencySpec {
 
     override fun compareTo(other: PsArtifactDependencySpec): Int =
-      compareValuesBy(this, other, { it.group }, { it.name })
-        .takeUnless { it == 0 }
-      ?: GradleCoordinate.COMPARE_PLUS_LOWER.compare(
-        GradleCoordinate.parseVersionOnly(this.version.orEmpty()),
-        GradleCoordinate.parseVersionOnly(other.version.orEmpty()))
-
+      compareValuesBy(this, other, { it.group }, { it.name }, { RichVersion.parse(it.version.orEmpty()).lowerBound })
 
     override fun toString(): String = compactNotation()
   }
