@@ -17,7 +17,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Device Explorer" displayType="BALLOON"/>
 
-    <applicationConfigurable groupId="tools" id="device.file.explorer"
+    <applicationConfigurable groupId="tools" id="device.explorer"
                              provider="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerConfigurableProvider"/>
 
     <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService"/>

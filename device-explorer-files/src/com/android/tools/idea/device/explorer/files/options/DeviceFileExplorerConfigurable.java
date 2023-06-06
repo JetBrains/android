@@ -44,7 +44,7 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
   @NotNull
   @Override
   public String getId() {
-    return "device.file.explorer";
+    return "device.explorer";
   }
 
   @Nullable

@@ -1373,17 +1373,9 @@
     <option name="the" hit="Use most-recently-used filter as the default" />
     <option name="use" hit="Use most-recently-used filter as the default" />
   </configurable>
-  <configurable id="device.file.explorer" configurable_name="Device File Explorer">
-    <option name="device" hit="Device File Explorer" />
-    <option name="explorer" hit="Device File Explorer" />
-    <option name="file" hit="Device File Explorer" />
-    <option name="download" hit="Download location" />
-    <option name="location" hit="Download location" />
-  </configurable>
-  <configurable id="device.file.explorer" configurable_name="Device File Explorer">
-    <option name="device" hit="Device File Explorer" />
-    <option name="explorer" hit="Device File Explorer" />
-    <option name="file" hit="Device File Explorer" />
+  <configurable id="device.explorer" configurable_name="Device Explorer">
+    <option name="device" hit="Device Explorer" />
+    <option name="explorer" hit="Device Explorer" />
     <option name="download" hit="Download location" />
     <option name="location" hit="Download location" />
   </configurable>
