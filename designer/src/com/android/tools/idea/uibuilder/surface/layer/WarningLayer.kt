@@ -30,6 +30,7 @@ import com.intellij.ui.JBColor
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.Shape
+import java.awt.geom.Area
 
 class WarningLayer(private val screenView: ScreenView, private val issuesProvider: () -> List<Issue>) : Layer() {
 
@@ -54,12 +55,13 @@ class WarningLayer(private val screenView: ScreenView, private val issuesProvide
       gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
       gc.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
       gc.draw(screenShape)
-      gc.clip = screenShape
+      val screenShapeClip = Area(screenShape).apply { intersect(Area(clip)) }
+      gc.clip = screenShapeClip
     }
     else {
       val sceneSize = screenView.scaledContentSize
       gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
-      gc.setClip(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
+      gc.clipRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
     }
     relevantComponents.forEach {
       gc.drawRect(
