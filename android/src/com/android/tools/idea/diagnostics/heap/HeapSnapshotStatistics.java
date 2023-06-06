@@ -398,7 +398,8 @@ final class HeapSnapshotStatistics {
       builder.addComponentStats(
         MemoryUsageReportEvent.ClusterMemoryUsage.newBuilder()
           .setLabel(componentStat.getComponent().getComponentLabel())
-          .setStats(buildClusterObjectsStatistics(componentStat)));
+          .setStats(buildClusterObjectsStatistics(componentStat))
+          .putAllInstanceCountPerClassName(componentStat.getTrackedFQNInstanceCounter()));
     }
 
     maskToSharedComponentStats.values().stream()
@@ -412,7 +413,8 @@ final class HeapSnapshotStatistics {
       builder.addComponentCategoryStats(
         MemoryUsageReportEvent.ClusterMemoryUsage.newBuilder()
           .setLabel(categoryStat.getComponentCategory().getComponentCategoryLabel())
-          .setStats(buildClusterObjectsStatistics(categoryStat)));
+          .setStats(buildClusterObjectsStatistics(categoryStat))
+          .putAllInstanceCountPerClassName(categoryStat.getTrackedFQNInstanceCounter()));
     }
 
     builder.setMetadata(
