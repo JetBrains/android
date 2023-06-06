@@ -182,6 +182,7 @@ void Controller::Run() {
       if (device_supports_multiple_states_) {
         int32_t device_state = TakeChangedDeviceState();
         if (device_state >= 0) {
+          Log::D("Controller::Run: device_state=%d", device_state);
           SendDeviceStateNotification(device_state);
         }
       }
@@ -327,7 +328,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
   if (event.action == AMOTION_EVENT_ACTION_UP) {
     // This event may have started an app. Update the app-level display orientation.
-    Agent::SetVideoOrientation(-1);
+    Agent::SetVideoOrientation(DisplayStreamer::CURRENT_VIDEO_ORIENTATION);
   }
 }
 
@@ -460,10 +461,17 @@ void Controller::OnPrimaryClipChanged() {
 
 void Controller::OnDeviceStateChanged(int32_t device_state) {
   Log::D("Controller::OnDeviceStateChanged(%d)", device_state);
-  scoped_lock lock(device_state_mutex_);
-  if (device_state_ != device_state) {
-    device_state_ = device_state;
-    device_state_changed_ = true;
+  bool changed = false;
+  {
+    scoped_lock lock(device_state_mutex_);
+    if (device_state_ != device_state) {
+      changed = true;
+      device_state_ = device_state;
+      device_state_changed_ = true;
+    }
+  }
+  if (changed) {
+    Agent::SetVideoOrientation(DisplayStreamer::CURRENT_DISPLAY_ORIENTATION);
   }
 }
 

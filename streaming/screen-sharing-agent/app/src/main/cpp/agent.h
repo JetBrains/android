@@ -40,10 +40,11 @@ public:
 
   static void Shutdown();
 
-  // Sets orientation of the device display. A negative value tells the agent to update
-  // the app-level orientation according to the previously set display orientation.
+  // Calls DisplayStreamer::SetVideoOrientation.
   static void SetVideoOrientation(int32_t orientation);
+  // Calls DisplayStreamer::SetMaxVideoResolution.
   static void SetMaxVideoResolution(Size max_video_resolution);
+  // Calls DisplayStreamer::GetDisplayInfo.
   static DisplayInfo GetDisplayInfo();
 
   // Modifies system settings for the screen sharing session. May be called on any thread.

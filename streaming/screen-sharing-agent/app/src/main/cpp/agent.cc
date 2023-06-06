@@ -147,12 +147,16 @@ void Agent::Run(const vector<string>& args) {
 }
 
 void Agent::SetVideoOrientation(int32_t orientation) {
-  display_streamer_->SetVideoOrientation(orientation);
+  if (display_streamer_ != nullptr) {
+    display_streamer_->SetVideoOrientation(orientation);
+  }
 }
 
 void Agent::SetMaxVideoResolution(Size max_video_resolution) {
   max_video_resolution_ = max_video_resolution;
-  display_streamer_->SetMaxVideoResolution(max_video_resolution);
+  if (display_streamer_ != nullptr) {
+    display_streamer_->SetMaxVideoResolution(max_video_resolution);
+  }
 }
 
 DisplayInfo Agent::GetDisplayInfo() {

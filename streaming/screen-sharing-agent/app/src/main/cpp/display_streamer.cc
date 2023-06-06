@@ -420,11 +420,21 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
 }
 
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
+  Log::D("DisplayStreamer::SetVideoOrientation(%d)", orientation);
+  if (orientation == CURRENT_DISPLAY_ORIENTATION) {
+    scoped_lock lock(mutex_);
+    if (video_orientation_ >= 0) {
+      video_orientation_ = -1;
+      StopCodecUnlocked();
+    }
+    return;
+  }
+
   Jni jni = Jvm::GetJni();
   bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni);
 
   scoped_lock lock(mutex_);
-  if (orientation < 0) {
+  if (orientation == CURRENT_VIDEO_ORIENTATION) {
     orientation = video_orientation_;
   }
   if (orientation >= 0) {

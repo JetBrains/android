@@ -37,6 +37,10 @@ struct CodecInfo;
 // Processes control socket commands.
 class DisplayStreamer : public DisplayManager::DisplayListener {
 public:
+  enum OrientationReset {
+    CURRENT_VIDEO_ORIENTATION = -1, CURRENT_DISPLAY_ORIENTATION = -2
+  };
+
   // The display streamer takes ownership of the socket file descriptor and closes it when destroyed.
   DisplayStreamer(
       int display_id, std::string codec_name, Size max_video_resolution, int initial_video_orientation, int max_bitrate, int socket_fd);
@@ -50,20 +54,16 @@ public:
   // Shuts down the streamer.  Waits for the streamer's thread. Once shut down, the streamer cannot be restarted.
   void Shutdown();
 
-  // Sets orientation of the device display. A negative value tells the agent to update
-  // the app-level orientation according to the previously set display orientation.
+  // Sets orientation of the device display. The orientation parameter may have a negative value
+  // equal to one of the OrientationReset values.
   void SetVideoOrientation(int32_t orientation);
-
   // Sets the maximum resolution of the display video stream.
   void SetMaxVideoResolution(Size max_video_resolution);
-
   // Returns the cached version of DisplayInfo.
   DisplayInfo GetDisplayInfo();
 
   virtual void OnDisplayAdded(int32_t display_id);
-
   virtual void OnDisplayRemoved(int32_t display_id);
-
   virtual void OnDisplayChanged(int32_t display_id);
 
 private:

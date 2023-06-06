@@ -79,12 +79,13 @@ int WindowManager::GetDefaultDisplayRotation(Jni jni) {
 }
 
 void WindowManager::FreezeRotation(Jni jni, int32_t rotation) {
-  WindowManager& instance = GetInstance(jni);
   Log::D("WindowManager::FreezeRotation: setting display orientation to %d", rotation);
+  WindowManager& instance = GetInstance(jni);
   instance.window_manager_.CallVoidMethod(jni, instance.freeze_rotation_method_, rotation);
 }
 
 void WindowManager::ThawRotation(Jni jni) {
+  Log::D("WindowManager::ThawRotation");
   WindowManager& instance = GetInstance(jni);
   instance.window_manager_.CallVoidMethod(jni, instance.thaw_rotation_method_);
 }
