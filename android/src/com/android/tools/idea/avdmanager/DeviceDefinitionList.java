@@ -18,7 +18,6 @@ package com.android.tools.idea.avdmanager;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
@@ -74,7 +73,6 @@ import org.jetbrains.annotations.Nullable;
  * Lists the available device definitions by category
  */
 public class DeviceDefinitionList extends JPanel implements ListSelectionListener, DocumentListener, DeviceUiAction.DeviceProvider {
-  private static final Map<String, Device> myDefaultCategoryDeviceMap = Maps.newHashMap();
   private static final int NAME_MODEL_COLUMN_INDEX = 0;
   private static final String SEARCH_RESULTS = "Search Results";
   private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
@@ -86,6 +84,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private TableView<String> myCategoryList;
   private JButton myCreateProfileButton;
   private JButton myImportProfileButton;
+  private Map<Category, Device> myCategoryToSelectedDefinitionMap;
   private JButton myRefreshButton;
   private JPanel myPanel;
   private SearchTextField mySearchTextField;
@@ -238,17 +237,20 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void setDefaultDevices() {
-    Arrays.asList(Category.values()).forEach(this::putDefaultDefinition);
-    myDefaultDevice = myDefaultCategoryDeviceMap.get(Category.PHONE.getName());
+    myCategoryToSelectedDefinitionMap = Arrays.stream(Category.values())
+      .collect(Collectors.toMap(category -> category, this::getDefaultDefinition));
+
+    myDefaultDevice = myCategoryToSelectedDefinitionMap.get(Category.PHONE);
   }
 
-  private void putDefaultDefinition(@NotNull Category category) {
+  @NotNull
+  private Device getDefaultDefinition(@NotNull Category category) {
     var definition = category.getDefaultDefinitionName();
 
-    myCategoryToDefinitionMultimap.get(category).stream()
+    return myCategoryToDefinitionMultimap.get(category).stream()
       .filter(d -> d.getDisplayName().equals(definition))
       .findFirst()
-      .ifPresent(d -> myDefaultCategoryDeviceMap.put(category.getName(), d));
+      .orElseThrow();
   }
 
   @NotNull
@@ -338,7 +340,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    */
   private void onSelectionSet(@Nullable Device selectedObject) {
     if (selectedObject != null) {
-      myDefaultCategoryDeviceMap.put(Category.valueOfDefinition(selectedObject).getName(), selectedObject);
+      myCategoryToSelectedDefinitionMap.put(Category.valueOfDefinition(selectedObject), selectedObject);
     }
     for (DeviceDefinitionSelectionListener listener : myListeners) {
       listener.onDeviceSelectionChanged(selectedObject);
@@ -348,21 +350,22 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   /**
    * Update our list to display the given category.
    */
-  private void setCategory(@NotNull String category) {
-    if (category.equals(SEARCH_RESULTS)) {
+  private void setCategory(@NotNull String name) {
+    if (name.equals(SEARCH_RESULTS)) {
       updateSearchResults(mySearchTextField.getText());
       return;
     }
 
-    var definitions = List.copyOf(myCategoryToDefinitionMultimap.get(Category.valueOfName(category)));
+    var category = Category.valueOfName(name);
+    var definitions = List.copyOf(myCategoryToDefinitionMultimap.get(category));
 
     if (myModel.getItems().equals(definitions)) {
       return;
     }
 
     myModel.setItems(definitions);
-    setSelectedDevice(myDefaultCategoryDeviceMap.get(category));
-    notifyCategoryListeners(category, definitions);
+    setSelectedDevice(myCategoryToSelectedDefinitionMap.get(category));
+    notifyCategoryListeners(name, definitions);
   }
 
   private void notifyCategoryListeners(@Nullable String selectedCategory, @Nullable List<Device> items) {
