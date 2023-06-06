@@ -88,6 +88,37 @@ class BindingXmlIndexTest {
   }
 
   @Test
+  fun indexDataBindingLayout_nullValue() {
+    // regression for b/284046638
+    val file = fixture.configureByText("layout.xml", """
+      <layout>
+        <data class= >
+        </data>
+      </layout>
+    """.trimIndent()).virtualFile
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+    val data = map.values.first()
+    assertThat(data.customBindingName).isEqualTo(null)
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
+  fun indexDataBindingLayout_emptyValue() {
+    val file = fixture.configureByText("layout.xml", """
+      <layout>
+        <data class="">
+        </data>
+      </layout>
+    """.trimIndent()).virtualFile
+    val bindingXmlIndex = BindingXmlIndex()
+    val map = bindingXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+    val data = map.values.first()
+    assertThat(data.customBindingName).isEqualTo("")
+    verifySerializationLogic(bindingXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
   fun indexViewBindingLayout() {
     val file = fixture.configureByText("layout.xml", """
       <constraint_layout xmlns:android="http://schemas.android.com/apk/res/android">
@@ -238,6 +269,7 @@ class BindingXmlIndexTest {
     )
   }
 
+  @Test
   fun indexViewBindingTypeOverride() {
     val file = fixture.configureByText("layout.xml", """
       <constraint_layout
