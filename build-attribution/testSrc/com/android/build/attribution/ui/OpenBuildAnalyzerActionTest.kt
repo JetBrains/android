@@ -113,13 +113,15 @@ class OpenBuildAnalyzerActionTest {
   }
 
   private fun storeDefaultData(buildSessionID : String) {
-    BuildAnalyzerStorageManager.getInstance(projectRule.project).storeNewBuildResults(
-      BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer()),
-      buildSessionID,
-      BuildRequestHolder(
-        GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug")
-          .build()
+    BuildAnalyzerStorageManager.getInstance(projectRule.project).let { storage ->
+      storage.storeNewBuildResults(
+        BuildEventsAnalyzersProxy(TaskContainer(), PluginContainer(), storage),
+        buildSessionID,
+        BuildRequestHolder(
+          GradleBuildInvoker.Request.builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug")
+            .build()
+        )
       )
-    )
+    }
   }
 }

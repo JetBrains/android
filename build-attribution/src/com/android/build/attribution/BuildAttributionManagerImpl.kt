@@ -57,24 +57,27 @@ class BuildAttributionManagerImpl(
   val project: Project
 ) : BuildAttributionManager {
   private val log: Logger get() = Logger.getInstance("Build Analyzer")
-  private val taskContainer = TaskContainer()
-  private val pluginContainer = PluginContainer()
 
   private var eventsProcessingFailedFlag: Boolean = false
   private var myCurrentBuildInvocationType: BuildInvocationType = BuildInvocationType.REGULAR_BUILD
 
   @get:VisibleForTesting
-  val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+  lateinit var analyzersProxy: BuildEventsAnalyzersProxy
   @get:VisibleForTesting
   lateinit var currentBuildRequest: GradleBuildInvoker.Request
   private var currentBuildDisposable: CheckedDisposable? = null
-  private val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
+  private lateinit var analyzersWrapper: BuildAnalyzersWrapper
 
   override fun onBuildStart(request: GradleBuildInvoker.Request) {
     currentBuildRequest = request
     currentBuildDisposable = Disposer.newCheckedDisposable("BuildAnalyzer disposable for ${request.taskId}")
     eventsProcessingFailedFlag = false
     myCurrentBuildInvocationType = detectBuildType(request)
+
+    val taskContainer = TaskContainer()
+    val pluginContainer = PluginContainer()
+    analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer, BuildAnalyzerStorageManager.getInstance(project))
+    analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
     analyzersWrapper.onBuildStart()
     ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
     analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
