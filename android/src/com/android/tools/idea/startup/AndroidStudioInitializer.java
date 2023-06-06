@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.startup;
 
+import com.android.prefs.AndroidLocationsSingleton;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.adtui.webp.WebpMetadata;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.analytics.IdeBrandProviderKt;
+import com.android.tools.idea.analytics.SystemInfoStatsMonitor;
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor;
+import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
 import com.intellij.analytics.AndroidStudioAnalytics;
@@ -51,6 +56,17 @@ public class AndroidStudioInitializer implements ApplicationInitializedListener 
     // because of a race condition in the creation of IIORegistry.
     // Trying again here ensures that the WebP support is correctly registered.
     WebpMetadata.ensureWebpRegistered();
+
+    if (IdeSdks.getInstance().getAndroidSdkPath() != null) {
+      AndroidSdkHandler handler =
+        AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, IdeSdks.getInstance().getAndroidSdkPath().toPath());
+      new PatchInstallingRestarter(handler).restartAndInstallIfNecessary();
+      // We need to start the system info monitoring even in case when user never
+      // runs a single emulator instance: e.g., incompatible hypervisor might be
+      // the reason why emulator is never run, and that's exactly the data
+      // SystemInfoStatsMonitor collects
+      new SystemInfoStatsMonitor().start();
+    }
   }
 
   /** Sets up collection of Android Studio specific analytics. */

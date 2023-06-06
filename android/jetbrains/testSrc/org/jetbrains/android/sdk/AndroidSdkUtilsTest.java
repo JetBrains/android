@@ -24,13 +24,11 @@ import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.util.EnvironmentUtil;
 import java.io.File;
@@ -42,12 +40,10 @@ import org.mockito.Mockito;
  * Tests for {@link AndroidSdkUtils}.
  */
 public class AndroidSdkUtilsTest extends PlatformTestCase {
-  private File mySdkPath;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mySdkPath = TestUtils.getSdk().toFile();
     ApplicationManager.getApplication().runWriteAction(AndroidSdkUtilsTest::removeAllExistingSdks);
   }
 
@@ -63,13 +59,6 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
       table.removeJdk(sdk);
     }
     AndroidSdkPathStore.getInstance().setAndroidSdkPath(null);
-  }
-
-  public void DISABLEDtestCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
-    Sdk sdk = AndroidSdkUtils.createNewAndroidPlatform(mySdkPath.getPath(), false);
-    System.out.println("Creating new android platform from: " + mySdkPath + " -> " + sdk);
-    assertNotNull(sdk);
-    assertTrue(FileUtil.pathsEqual(mySdkPath.getPath(), sdk.getHomePath()));
   }
 
   public void testGetTargetLabel() throws Exception {
