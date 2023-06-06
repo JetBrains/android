@@ -18,26 +18,70 @@ package com.android.tools.idea.sqlite.annotator
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
-import com.intellij.lang.annotation.AnnotationHolder
-import com.intellij.lang.annotation.Annotator
-import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
+import com.intellij.codeInsight.daemon.LineMarkerInfo
+import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
+import com.intellij.codeInsight.hint.HintUtil
 import com.intellij.lang.injection.InjectedLanguageManager
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.ui.popup.Balloon
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
-import com.intellij.util.ui.EmptyIcon
+import com.intellij.psi.PsiLanguageInjectionHost
+import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
-import javax.swing.Icon
+import javax.swing.JLabel
+
+private const val ROOM_ENTITY: String = "androidx.room.Entity"
 
 /**
- * Annotator that adds a run action to instances of SQL language in the editor, so that they can be
- * executed in the Sqlite Inspector.
+ * Shows an icon in the gutter when a SQLite statement is recognized. e.g. Room @Query annotations.
  */
-class RunSqliteStatementAnnotator : Annotator {
-  override fun annotate(element: PsiElement, holder: AnnotationHolder) {
+internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
+  override fun getId(): String = "RunSqliteStatement"
+  override fun getName(): String = "Run Sqlite statement"
+  override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
+
+  override fun collectSlowLineMarkers(
+    elements: List<PsiElement>,
+    result: MutableCollection<in LineMarkerInfo<*>>
+  ) {
+    val first = elements.firstOrNull() ?: return
+    val module = ModuleUtilCore.findModuleForPsiElement(first) ?: return
+
+    // TODO(b/287298598): Use JavaLibraryUtil.hasLibraryClass once it's available in the studio
+    // codebase.
+    if (
+      JavaPsiFacade.getInstance(module.project)
+        .findClass(ROOM_ENTITY, module.moduleWithLibrariesScope) == null
+    )
+      return
+
+    val injectedLanguageManager = InjectedLanguageManager.getInstance(first.project)
+    for (element in elements) {
+      collectRunMarkers(injectedLanguageManager, element, result)
+    }
+  }
+
+  private fun collectRunMarkers(
+    injectedLanguageManager: InjectedLanguageManager,
+    element: PsiElement,
+    result: MutableCollection<in LineMarkerInfo<*>>
+  ) {
+    if (element.children.isNotEmpty()) return // not leaf element
+
+    val targetElement =
+      if (element is PsiLanguageInjectionHost) element
+      else element.parent as? PsiLanguageInjectionHost
+    if (targetElement == null) return
+
     val injectedPsiFile =
-      InjectedLanguageManager.getInstance(element.project)
-        .getInjectedPsiFiles(element)
+      injectedLanguageManager
+        .getInjectedPsiFiles(targetElement)
         .orEmpty()
         .map { it.first }
         .filter { it.language == AndroidSqlLanguage.INSTANCE }
@@ -51,44 +95,45 @@ class RunSqliteStatementAnnotator : Annotator {
     // different elements ("select ", "*", " from users") correspond to the same injection host
     // ("select ").
     // We don't want to add multiple annotations for these sql statements.
-    if (element != injectionHost) return
+    if (targetElement != injectionHost) return
 
-    holder
-      .newSilentAnnotation(HighlightSeverity.INFORMATION)
-      .gutterIconRenderer(RunSqliteStatementGutterIconRenderer(element))
-      .create()
-  }
-}
-
-/**
- * Shows an icon in the gutter when a SQLite statement is recognized. eg. Room @Query annotations.
- */
-private data class RunSqliteStatementGutterIconRenderer(private val element: PsiElement) :
-  GutterIconRenderer() {
-  private val sqliteExplorerProjectService =
-    DatabaseInspectorProjectService.getInstance(element.project)
-
-  override fun getIcon(): Icon {
-    return if (sqliteExplorerProjectService.hasOpenDatabase()) {
-      StudioIcons.DatabaseInspector.NEW_QUERY
-    } else {
-      EmptyIcon.ICON_0
-    }
-  }
-
-  override fun getTooltipText(): String {
-    return "Run Sqlite statement in Database Inspector"
-  }
-
-  override fun isNavigateAction(): Boolean {
-    return sqliteExplorerProjectService.hasOpenDatabase()
-  }
-
-  override fun getClickAction(): AnAction? {
-    return RunSqliteStatementGutterIconAction(
-      element.project,
-      element,
-      DatabaseInspectorViewsFactoryImpl.getInstance()
+    // it is much easier to always show icon and fallback to warning balloon if no database
+    result.add(
+      LineMarkerInfo(
+        element,
+        element.textRange,
+        StudioIcons.DatabaseInspector.NEW_QUERY,
+        { "Run Sqlite statement in Database Inspector" },
+        getNavHandler(),
+        Alignment.CENTER,
+        { "Run Sqlite statement in Database Inspector" }
+      )
     )
+  }
+
+  private fun getNavHandler(): GutterIconNavigationHandler<PsiElement> {
+    return GutterIconNavigationHandler { event, element ->
+      val sqliteExplorerProjectService =
+        DatabaseInspectorProjectService.getInstance(element.project)
+      if (!sqliteExplorerProjectService.hasOpenDatabase()) {
+        JBPopupFactory.getInstance()
+          .createBalloonBuilder(JLabel("No Room database in Database Inspector"))
+          .setFillColor(HintUtil.getWarningColor())
+          .createBalloon()
+          .show(RelativePoint(event), Balloon.Position.above)
+
+        return@GutterIconNavigationHandler
+      }
+
+      val action =
+        RunSqliteStatementGutterIconAction(
+          element.project,
+          element,
+          DatabaseInspectorViewsFactoryImpl.getInstance()
+        )
+      action.actionPerformed(
+        AnActionEvent.createFromAnAction(action, event, "", DataContext.EMPTY_CONTEXT)
+      )
+    }
   }
 }
