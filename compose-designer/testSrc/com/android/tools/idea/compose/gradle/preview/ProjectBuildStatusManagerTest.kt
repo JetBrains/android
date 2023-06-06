@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.fast.DisableReason
+import com.android.tools.idea.editors.fast.FastPreviewConfiguration
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.intellij.openapi.application.WriteAction
@@ -50,8 +51,6 @@ import org.junit.Test
 class ProjectBuildStatusManagerTest {
   @get:Rule val edtRule = EdtRule()
 
-  @get:Rule val fastPreviewFlagRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
-
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
   val project: Project
     get() = projectRule.project
@@ -60,11 +59,14 @@ class ProjectBuildStatusManagerTest {
   fun setup() {
     LiveEditApplicationConfiguration.getInstance().mode =
       LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
+    FastPreviewManager.getInstance(project)
+      .disable(DisableReason("Disabled for Live Literals testing"))
   }
 
   @After
   fun tearDown() {
     LiveEditApplicationConfiguration.getInstance().resetDefault()
+    FastPreviewConfiguration.getInstance().resetDefault()
   }
 
   @RunsInEdt

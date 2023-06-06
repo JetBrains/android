@@ -1,12 +1,12 @@
 package com.android.tools.idea.editors.literals
 
-import com.android.flags.junit.FlagRule
+import com.android.tools.idea.editors.fast.DisableReason
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
@@ -38,9 +38,6 @@ internal class LiveLiteralsServiceTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val liveEditFlagRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
-
   private val project: Project
     get() = projectRule.project
   lateinit var file1: PsiFile
@@ -53,6 +50,7 @@ internal class LiveLiteralsServiceTest {
 
   @Before
   fun setup() {
+    FastPreviewManager.getInstance(project).disable(DisableReason("Disabled for LiveLiterals test"))
     Logger.getInstance(LiveLiteralsService::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(LiteralsManager::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(LiveLiteralsFinder::class.java).setLevel(LogLevel.ALL)

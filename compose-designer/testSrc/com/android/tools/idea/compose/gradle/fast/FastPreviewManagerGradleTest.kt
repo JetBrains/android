@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.fast
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
@@ -31,7 +30,6 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.toFileNameSet
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.testing.moveCaret
@@ -102,8 +100,6 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   }
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-
-  @get:Rule val fastPreviewFlagRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, true)
 
   private lateinit var psiMainFile: PsiFile
   private lateinit var fastPreviewManager: FastPreviewManager

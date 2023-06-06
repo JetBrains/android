@@ -141,15 +141,13 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                     state.isComposePreviewLiteModeEnabled = !it
                   }
             }
-            if (StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
-              indent {
-                row {
-                  checkBox("Enable live updates")
-                    .bindSelected(fastPreviewState::isEnabled) {
-                      fastPreviewState.isEnabled = it
-                    }
-                    .enabledIf(defaultModeRadioButton.selected)
-                }
+            indent {
+              row {
+                checkBox("Enable live updates")
+                  .bindSelected(fastPreviewState::isEnabled) {
+                    fastPreviewState.isEnabled = it
+                  }
+                  .enabledIf(defaultModeRadioButton.selected)
               }
             }
             row {
@@ -166,13 +164,11 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
           }
         }
         else {
-          if (StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
-            row {
-              checkBox("Enable live updates")
-                .bindSelected(fastPreviewState::isEnabled) {
-                  fastPreviewState.isEnabled = it
-                }
-            }
+          row {
+            checkBox("Enable live updates")
+              .bindSelected(fastPreviewState::isEnabled) {
+                fastPreviewState.isEnabled = it
+              }
           }
         }
       }

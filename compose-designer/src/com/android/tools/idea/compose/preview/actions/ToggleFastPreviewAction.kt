@@ -22,7 +22,6 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.EditorNotifications
@@ -47,12 +46,6 @@ class ToggleFastPreviewAction : AnAction(null, null, null) {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-
-    if (!StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
-      // No Fast Preview available
-      e.presentation.isEnabledAndVisible = false
-      return
-    }
 
     val presentation = e.presentation
     val project = e.project

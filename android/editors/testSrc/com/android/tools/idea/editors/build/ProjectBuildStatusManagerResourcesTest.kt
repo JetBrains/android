@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.build
 
-import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.simulateProjectSystemBuild
 import com.android.tools.idea.editors.fast.simulateResourcesChange
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -30,18 +29,13 @@ import org.hamcrest.CoreMatchers
 import org.junit.Assert.assertThat
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.util.concurrent.Executor
 
 class ProjectBuildStatusManagerResourcesTest {
+  @get:Rule
   val projectRule = AndroidProjectRule.withAndroidModel()
   val project: Project
     get() = projectRule.project
-
-  @get:Rule
-  val chainRule: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(FastPreviewRule())
 
   @Test
   fun testResourcesMakeTheProjectOutOfDate() {

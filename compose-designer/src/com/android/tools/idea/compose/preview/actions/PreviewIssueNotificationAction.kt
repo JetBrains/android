@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.flags.ifEnabled
 import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.compose.IssueNotificationAction
@@ -166,8 +165,7 @@ fun defaultCreateInformationPopup(
       return@let InformationPopupImpl(
           title = null,
           description = previewStatusNotification.description,
-          additionalActions =
-            listOfNotNull(StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }),
+          additionalActions = listOf(ToggleFastPreviewAction()),
           links = linksList
         )
         .also { newPopup ->

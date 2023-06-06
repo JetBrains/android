@@ -35,7 +35,7 @@ class FastPreviewConfiguration : SimplePersistentStateComponent<FastPreviewConfi
   }
 
   var isEnabled
-    get() = StudioFlags.COMPOSE_FAST_PREVIEW.get() && state.fastPreviewEnabled
+    get() = state.fastPreviewEnabled
     set(value) {
       if (state.fastPreviewEnabled != value) {
         state.fastPreviewEnabled = value

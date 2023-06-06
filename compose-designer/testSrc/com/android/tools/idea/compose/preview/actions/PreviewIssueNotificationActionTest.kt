@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -44,8 +43,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TestRule
 
 /** Use this method when [PreviewIssueNotificationAction] should not create a popup. */
 @Suppress("UNUSED_PARAMETER")
@@ -53,9 +50,7 @@ private fun noPopupFactor(project: Project, dataContext: DataContext): Informati
   throw IllegalStateException("Unexpected popup created")
 
 internal class PreviewIssueNotificationActionTest {
-  val projectRule = AndroidProjectRule.inMemory()
-
-  @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val composePreviewManager = TestComposePreviewManager()
 

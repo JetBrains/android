@@ -87,7 +87,6 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
   protected void tearDown() throws Exception {
     testResourceIdManager.resetFinalIdsUsed();
     super.tearDown();
-    StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride();
     FastPreviewConfiguration.Companion.getInstance().resetDefault();
   }
 
@@ -183,8 +182,6 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testIsSourceModifiedWithOverlay() throws IOException, ClassNotFoundException {
-    StudioFlags.COMPOSE_FAST_PREVIEW.override(true);
-    FastPreviewConfiguration.Companion.getInstance().setEnabled(true);
     setupTestProjectFromAndroidModel(
       getProject(),
       new File(Objects.requireNonNull(getProject().getBasePath())),

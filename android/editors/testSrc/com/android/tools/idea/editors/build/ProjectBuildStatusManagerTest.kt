@@ -21,7 +21,6 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.simulateProjectSystemBuild
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
@@ -35,8 +34,6 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
@@ -45,7 +42,8 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -60,11 +58,9 @@ private fun ProjectBuildStatusManager.awaitOutOfDate(message: String? = null, ti
 }
 
 class ProjectBuildStatusManagerTest {
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
   val project: Project
     get() = projectRule.project
-
-  @get:Rule val chainRule: RuleChain = RuleChain.outerRule(projectRule).around(FastPreviewRule())
 
   @Before
   fun setUp() {

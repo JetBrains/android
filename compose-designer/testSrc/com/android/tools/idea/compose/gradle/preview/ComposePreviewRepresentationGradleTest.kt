@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
@@ -30,10 +29,11 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.fast.CompilationResult
+import com.android.tools.idea.editors.fast.DisableReason
+import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.deleteLine
 import com.android.tools.idea.testing.executeAndSave
@@ -83,6 +83,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -93,12 +94,13 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+private val DISABLED_FOR_A_TEST = DisableReason("Disabled for a test")
+
 class ComposePreviewRepresentationGradleTest {
   // The logger must be initialized later since at this point the logger framework is not ready yet
   private lateinit var logger: Logger
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule val resetFastPreviewFlag = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW)
 
   private val project: Project
     get() = projectRule.project
@@ -158,6 +160,11 @@ class ComposePreviewRepresentationGradleTest {
 
     withContext(uiThread) { validate() }
     logger.info("setUp completed")
+  }
+
+  @After
+  fun tearDown() {
+    FastPreviewConfiguration.getInstance().resetDefault()
   }
 
   /** Wait for any running refreshes to complete. */
@@ -331,7 +338,7 @@ class ComposePreviewRepresentationGradleTest {
   fun `changes to code are reflected in the preview`() = runBlocking {
     // This test only makes sense when fast preview is disabled,
     // as some build related logic is being tested.
-    StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
+    FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
     val firstRender = findSceneViewRenderWithName("TwoElementsPreview")
 
     // Make a change to the preview
@@ -372,7 +379,7 @@ class ComposePreviewRepresentationGradleTest {
     runBlocking {
       // This test only makes sense when fast preview is disabled,
       // as some build related logic is being tested.
-      StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
+      FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
       val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
       // Add an annotation class annotated with Preview in OtherPreviews.kt
@@ -473,7 +480,7 @@ class ComposePreviewRepresentationGradleTest {
   fun `updating different file triggers needs refresh`() = runBlocking {
     // This test only makes sense when fast preview is disabled,
     // as some build related logic is being tested.
-    StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
+    FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
     val otherFile =
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path,
@@ -502,7 +509,7 @@ class ComposePreviewRepresentationGradleTest {
   fun `second build doesn't trigger refresh on first nor second activation`() = runBlocking {
     // This test only makes sense when fast preview is disabled,
     // as some build related logic is being tested.
-    StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
+    FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
     repeat(2) {
       runWriteActionAndWait {
         projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
@@ -558,8 +565,6 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `fast preview request`() {
-    // This test only makes sense when fast preview is enabled
-    StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
     val requestCompleted = CompletableDeferred<Unit>()
     val testTracker = TestFastPreviewTrackerManager { requestCompleted.complete(Unit) }
 
@@ -593,8 +598,6 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `fast preview cancellation`() {
-    // This test only makes sense when fast preview is enabled
-    StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
     val requestCompleted = CompletableDeferred<Unit>()
     val completedRequestsCount = AtomicInteger(0)
     val testTracker = TestFastPreviewTrackerManager {
@@ -648,8 +651,6 @@ class ComposePreviewRepresentationGradleTest {
 
   @Test
   fun `fast preview fixing syntax error triggers compilation`() {
-    // This test only makes sense when fast preview is enabled
-    StudioFlags.COMPOSE_FAST_PREVIEW.override(true)
     runAndWaitForFastRefresh {
       // Mark the file as invalid so the fast preview triggers a compilation when the problems
       // dissapear
@@ -663,7 +664,7 @@ class ComposePreviewRepresentationGradleTest {
   @Test
   fun `file modification triggers refresh on other active preview representations`() = runBlocking {
     // This test only makes sense when fast preview is disabled
-    StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
+    FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
 
     val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
     val otherPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)
@@ -690,7 +691,7 @@ class ComposePreviewRepresentationGradleTest {
   fun `file modification don't trigger refresh on inactive preview representations`(): Unit =
     runBlocking {
       // This test only makes sense when fast preview is disabled
-      StudioFlags.COMPOSE_FAST_PREVIEW.override(false)
+      FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
 
       val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
       val otherPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)

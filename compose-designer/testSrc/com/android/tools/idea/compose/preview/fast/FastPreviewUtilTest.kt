@@ -19,7 +19,6 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.runReadAction
@@ -37,13 +36,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TestRule
 
 class FastPreviewUtilTest {
-  val projectRule = AndroidProjectRule.inMemory()
-
-  @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var testFile: PsiFile
 

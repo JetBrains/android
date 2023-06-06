@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -35,14 +34,10 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TestRule
 import org.mockito.Mockito
 
 class ComposePreviewStatusIconActionTest {
-  val projectRule = AndroidProjectRule.inMemory()
-
-  @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val composePreviewManager = TestComposePreviewManager()
 

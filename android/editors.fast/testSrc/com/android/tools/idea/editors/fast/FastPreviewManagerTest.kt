@@ -18,7 +18,6 @@ package com.android.tools.idea.editors.fast
 import com.android.flags.junit.FlagRule
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
@@ -44,7 +43,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutionException
@@ -70,14 +68,10 @@ fun nopCompileDaemonFactory(onCalled: (String) -> Unit): (String, Project, Logge
 }
 
 internal class FastPreviewManagerTest {
+  @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
-
-  @get:Rule
-  val chainRule: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(FastPreviewRule())
 
   @get:Rule
   val autoDisableFlagRule = FlagRule(COMPOSE_FAST_PREVIEW_AUTO_DISABLE)

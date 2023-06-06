@@ -519,7 +519,7 @@ class FastPreviewManager private constructor(
     disableReason = null
     disableForThisSession = false
     FastPreviewTrackerManager.getInstance(project).userEnabled()
-    FastPreviewConfiguration.getInstance().isEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
+    FastPreviewConfiguration.getInstance().isEnabled = true
 
     if (!wasEnabled && isEnabled) {
       project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onFastPreviewStatusChanged(isEnabled)

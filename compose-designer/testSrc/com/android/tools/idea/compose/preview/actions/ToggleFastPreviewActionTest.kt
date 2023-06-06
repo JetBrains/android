@@ -16,9 +16,6 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewRule
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertEquals
@@ -26,30 +23,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
 internal class ToggleFastPreviewActionTest {
-  val projectRule = AndroidProjectRule.inMemory()
-
-  @get:Rule val chainRule: RuleChain = RuleChain.outerRule(projectRule).around(FastPreviewRule())
-
-  @Test
-  fun `is action visible when Fast Preview depending on the flag values`() {
-    try {
-      listOf(false, true).forEach {
-        StudioFlags.COMPOSE_FAST_PREVIEW.override(it)
-
-        val action = ToggleFastPreviewAction()
-        val event = TestActionEvent.createTestEvent()
-        action.update(event)
-
-        assertEquals(it, event.presentation.isVisible)
-      }
-    } finally {
-      StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride()
-      LiveEditApplicationConfiguration.getInstance().resetDefault()
-    }
-  }
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun `action toggles FastPreviewManager enabled state`() {
