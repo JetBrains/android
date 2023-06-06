@@ -537,6 +537,15 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       .getInt("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
     Assert.assertEquals(1, statistics.getComponentStats().get(1).getTrackedFQNInstanceCounter()
       .getInt("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+    MemoryUsageReportEvent event =
+      statistics.buildMemoryUsageReportEvent(StatusCode.NO_ERROR, 1500, 1000, 200);
+    Assert.assertEquals(3, event.getComponentStats(1)
+      .getInstanceCountPerClassNameOrThrow("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+    Assert.assertEquals(1, event.getComponentStats(1)
+      .getInstanceCountPerClassNameOrThrow("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+    Assert.assertTrue(event.getComponentStats(0).getInstanceCountPerClassNameMap().isEmpty());
+    Assert.assertTrue(event.getComponentCategoryStats(0).getInstanceCountPerClassNameMap().isEmpty());
+    Assert.assertTrue(event.getComponentCategoryStats(1).getInstanceCountPerClassNameMap().isEmpty());
   }
 
   @Test
