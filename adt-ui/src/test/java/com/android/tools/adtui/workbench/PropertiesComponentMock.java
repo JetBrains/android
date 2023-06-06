@@ -32,6 +32,12 @@ public class PropertiesComponentMock extends PropertiesComponent {
   }
 
   @Override
+  public boolean updateValue(@NotNull String name, boolean newValue) {
+    String s = Boolean.toString(newValue);
+    return s != myProperties.setProperty(name, s);
+  }
+
+  @Override
   public void unsetValue(@NotNull String name) {
     myProperties.remove(name);
   }
