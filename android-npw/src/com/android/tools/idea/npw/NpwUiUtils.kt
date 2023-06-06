@@ -21,7 +21,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ContextHelpLabel
-import com.intellij.ui.layout.LayoutBuilder
 import java.net.MalformedURLException
 import java.net.URL
 import javax.swing.JLabel
@@ -35,13 +34,6 @@ internal fun contextLabel(text: String, contextHelpText: String): JLabel {
   return ContextHelpLabel.create(contextHelpText).apply {
     setText(text)
     horizontalTextPosition = SwingConstants.LEFT
-  }
-}
-
-@Deprecated("Use Kotlin UI DSL Version 2")
-internal fun LayoutBuilder.verticalGap() {
-  row {
-    label("")
   }
 }
 
