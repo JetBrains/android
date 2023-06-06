@@ -34,8 +34,6 @@ import com.android.tools.idea.run.configuration.execution.createRunContentDescri
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.ConnectDebuggerTask
-import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
@@ -202,12 +200,6 @@ interface BlazeLaunchTasksProvider {
 interface BlazeLaunchTask {
   @Throws(ExecutionException::class)
   fun run(launchContext: BlazeLaunchContext)
-}
-
-class BlazeLaunchTaskWrapper(private val launchTask: LaunchTask):BlazeLaunchTask {
-  override fun run(launchContext: BlazeLaunchContext) {
-    launchTask.run(LaunchContext(launchContext.env, launchContext.device, launchContext.consoleView, launchContext.processHandler, launchContext.progressIndicator))
-  }
 }
 
 class BlazeLaunchContext(val env: ExecutionEnvironment,

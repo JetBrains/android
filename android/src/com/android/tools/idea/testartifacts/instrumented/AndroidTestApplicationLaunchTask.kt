@@ -23,7 +23,6 @@ import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.configuration.execution.printlnError
-import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInModuleTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInPackageTest
@@ -38,7 +37,7 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * A [LaunchTask] which runs an instrumentation test asynchronously.
+ * Runs an instrumentation test asynchronously.
  *
  * Use one of [allInModuleTest], [allInPackageTest], [classTest], or [methodTest] to instantiate an object of this class.
  */

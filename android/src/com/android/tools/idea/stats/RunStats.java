@@ -20,7 +20,6 @@ import com.android.tools.analytics.UsageTracker;
 import com.android.tools.deployer.model.component.ComponentType;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.tracer.Trace;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.ArtifactDetail;
@@ -91,26 +90,6 @@ public class RunStats {
   }
 
   public void markStateCreated() {
-  }
-
-  public LaunchTaskDetail.Builder beginLaunchTask(LaunchTask task) {
-    Trace.begin("begingLaunchtask" + task.getId());
-    LaunchTaskDetail.Builder details = LaunchTaskDetail.newBuilder()
-                                                       .setId(task.getId())
-                                                       .setStartTimestampMs(System.currentTimeMillis());
-    for (ApkInfo apk : task.getApkInfos()) {
-      for (ApkFileUnit unit : apk.getFiles()) {
-        details.addArtifact(ArtifactDetail.newBuilder().setSize(unit.getApkFile().length()));
-      }
-    }
-    return details;
-  }
-
-  public void endLaunchTask(LaunchTask task, LaunchTaskDetail.Builder detail, boolean success) {
-    Trace.end();
-    detail.setEndTimestampMs(System.currentTimeMillis());
-    myEvent.getRunEventBuilder().addLaunchTaskDetail(detail);
-    myEvent.getRunEventBuilder().addAllLaunchTaskDetail(task.getSubTaskDetails());
   }
 
   public void addAllLaunchTaskDetail(Iterable<LaunchTaskDetail> details) {
