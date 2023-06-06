@@ -49,8 +49,6 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
     : accelerometer_rotation_(Settings::Table::SYSTEM, "accelerometer_rotation"),
       stay_on_(Settings::Table::GLOBAL, "stay_on_while_plugged_in"),
       restore_normal_display_power_mode_(false) {
-  // Turn off "Auto-rotate screen".
-  accelerometer_rotation_.Set("0");
   // Keep the screen on as long as the device has power.
   stay_on_.Set(num_to_string<BATTERY_PLUGGED_AC | BATTERY_PLUGGED_USB | BATTERY_PLUGGED_WIRELESS>::value);
 

@@ -30,6 +30,15 @@ public:
   SessionEnvironment(bool turn_off_display);
   ~SessionEnvironment();
 
+  // Turns off "Auto-rotate screen".
+  void DisableAccelerometerRotation() {
+    accelerometer_rotation_.Set("0");
+  }
+  // Restores the original "Auto-rotate screen" setting.
+  void RestoreAccelerometerRotation() {
+    accelerometer_rotation_.Restore();
+  }
+
 private:
   ScopedSetting accelerometer_rotation_;
   ScopedSetting stay_on_;

@@ -64,6 +64,8 @@ public:
 
   inline static int32_t api_level() { return api_level_; }
 
+  static SessionEnvironment& session_environment() { return *session_environment_; }
+
 private:
   static void Initialize(const std::vector<std::string>& args);
 
