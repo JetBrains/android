@@ -67,11 +67,11 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
     val data =
       (view.accessibilityObject as? AccessibilityNodeInfo)?.extras?.getParcelableArray(EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY, RectF::class.java)
     if (!data.isNullOrEmpty()) {
-      var lineBottom = data[0].bottom
+      var lineBottom = data[0]?.bottom ?: return false
       var charCount = 1
       var index = 1
       while (index < data.size) {
-        val currentBottom = data[index].bottom
+        val currentBottom = data[index]?.bottom ?: break
         if (currentBottom == lineBottom) {
           charCount++
           if (charCount > MAX_LENGTH) {
