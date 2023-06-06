@@ -324,8 +324,13 @@ internal class ComposePreviewViewImpl(
     workbench.init(issueErrorSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
     if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
-      log.debug("Project needs build")
-      showNeedsToBuildErrorPanel()
+      if (psiFilePointer.virtualFile.fileSystem.isReadOnly) {
+        log.debug("Preview not supported in read-only files")
+        showModalErrorMessage(message("panel.read.only.file"))
+      } else {
+        log.debug("Project needs build")
+        showNeedsToBuildErrorPanel()
+      }
     } else {
       val message =
         when {
@@ -352,7 +357,7 @@ internal class ComposePreviewViewImpl(
       }
     }
 
-  private fun showModalErrorMessage(message: String, actionData: ActionData?) =
+  private fun showModalErrorMessage(message: String, actionData: ActionData? = null) =
     UIUtil.invokeLaterIfNeeded {
       log.debug("showModelErrorMessage: $message")
       workbench.loadingStopped(message, actionData)
@@ -407,8 +412,12 @@ internal class ComposePreviewViewImpl(
       if (
         workbench.isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild
       ) {
-        log.debug("Needs successful build")
-        showNeedsToBuildErrorPanel()
+        if (psiFilePointer.virtualFile.fileSystem.isReadOnly) {
+          showModalErrorMessage(message("panel.read.only.file"))
+        } else {
+          log.debug("Needs successful build")
+          showNeedsToBuildErrorPanel()
+        }
       } else {
         if (hasRendered) {
           log.debug("Show content")
