@@ -36,13 +36,3 @@ abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) :
      */
     abstract val isUserCodeUpToDate: Boolean
   }
-
-object NopModuleClassLoader: ModuleClassLoader(null, NopLoader) {
-  override val stats: ModuleClassLoaderDiagnosticsRead
-    get() = NopModuleClassLoadedDiagnostics
-  override val isDisposed: Boolean
-    get() = true
-  override val isUserCodeUpToDate: Boolean
-    get() = false
-
-}
