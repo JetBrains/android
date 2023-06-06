@@ -30,8 +30,6 @@ public:
   SessionEnvironment(bool turn_off_display);
   ~SessionEnvironment();
 
-  void Restore();
-
 private:
   ScopedSetting accelerometer_rotation_;
   ScopedSetting stay_on_;
