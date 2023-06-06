@@ -22,6 +22,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
+import com.ibm.icu.text.Collator;
+import com.ibm.icu.util.ULocale;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -114,7 +116,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         @NotNull
         @Override
         public Comparator<Device> getComparator() {
-          return new NameComparator();
+          return Comparator.comparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT));
         }
       },
       new PlayStoreColumnInfo(),
@@ -187,8 +189,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     refreshDeviceProfiles();
     setDefaultDevices();
     myTable.setModelAndUpdateColumns(myModel);
-    myTable.getRowSorter().toggleSortOrder(0);
-    myTable.getRowSorter().toggleSortOrder(0);
     myTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTable.setRowSelectionAllowed(true);
 
@@ -377,7 +377,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myCategoryToDefinitionMultimap = myDevices.stream()
       .collect(Multimaps.toMultimap(Category::valueOfDefinition,
                                     device -> device,
-                                    MultimapBuilder.enumKeys(Category.class).arrayListValues()::build));
+                                    MultimapBuilder.enumKeys(Category.class).treeSetValues(new NameComparator())::build));
 
     var categories = Arrays.stream(Category.values())
       .map(Category::getName)
