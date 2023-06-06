@@ -16,9 +16,12 @@
 package com.android.tools.idea.modes.essentials
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorNotification
+import com.google.wireless.android.sdk.stats.MemorySettings
 import com.intellij.ide.IdeBundle
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
@@ -27,8 +30,12 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.ProjectActivity
+import kotlinx.coroutines.delay
 
-class EssentialsModeRecommender {
+
+class EssentialsModeRecommender : ProjectActivity {
   val ignoreEssentialsMode = "ignore.essentials.mode"
   val notificationGroup = "Essentials Mode"
 
@@ -79,6 +86,15 @@ class EssentialsModeRecommender {
   inner class EssentialsModeResponseNotNow : NotificationAction("Not right now") {
     override fun actionPerformed(e: AnActionEvent, notification: Notification) {
       notification.expire()
+    }
+  }
+
+  override suspend fun execute(project: Project) {
+    // recommend to users with <= 8 GB of RAM 5 minutes after startup
+    val memoryInGB = MemorySettingsUtil.getMachineMem() shr 10
+    if (IdeInfo.getInstance().isAndroidStudio && memoryInGB <= 8 && !ApplicationManager.getApplication().isUnitTestMode) {
+      delay(1000L * 60 * 5)
+      recommendEssentialsMode()
     }
   }
 }

@@ -1083,7 +1083,7 @@ public final class StudioFlags {
     ESSENTIALS_MODE, "essentials.mode.gets.recommend",
     "Essentials Mode is able to get recommended to the user",
     "When enabled this allows Android Studio to drive adoption of Essentials Mode by recommending users should try it out.",
-    false);
+    true);
 
   //endregion
 
