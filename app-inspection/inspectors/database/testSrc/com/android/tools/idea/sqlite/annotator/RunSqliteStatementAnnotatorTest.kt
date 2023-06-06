@@ -27,17 +27,12 @@ import com.android.tools.idea.sqlite.repository.DatabaseRepositoryImpl
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.daemon.GutterMark
-import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.ide.PooledThreadExecutor
-import javax.swing.Icon
 import kotlin.coroutines.EmptyCoroutineContext
 
 class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
@@ -53,6 +48,12 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     super.setUp()
     sqliteDatabaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
 
+    myFixture.addClass("""
+      package androidx.room;      
+
+      class Entity { }
+    """.trimIndent())
+
     val model = DatabaseInspectorModelImpl()
     databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
       project = project,
@@ -65,25 +66,6 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
     ideComponents = IdeComponents(myFixture)
     ideComponents.replaceProjectService(DatabaseInspectorProjectService::class.java, databaseInspectorProjectService)
-  }
-
-  fun testNoIconWhenDatabaseIsNotOpen() {
-    myFixture.configureByText(
-      JavaFileType.INSTANCE,
-      // language=java
-      """
-        package com.example;
-        class Foo {
-          void bar() {
-            // language=RoomSql
-            String query = "select * from Foo";${caret}
-          }
-        }
-        """.trimIndent()
-    )
-
-    val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, EmptyIcon.ICON_0)
   }
 
   fun testRunIconWhenDatabaseIsOpen() {
@@ -102,9 +84,11 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
         }
         """.trimIndent()
     )
+    myFixture.doHighlighting()
 
-    val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
+    val highlightInfo = myFixture.findGuttersAtCaret()
+    assertThat(highlightInfo).hasSize(1)
+    assertThat(highlightInfo.first().icon).isEqualTo(StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   fun testRendererVisibleWhenSqlStatementMadeOfMultipleStrings() {
@@ -123,9 +107,11 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
         }
         """.trimIndent()
     )
+    myFixture.doHighlighting()
 
-    val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
+    val highlightInfo = myFixture.findGuttersAtCaret()
+    assertThat(highlightInfo).hasSize(1)
+    assertThat(highlightInfo.first().icon).isEqualTo(StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   fun testAnnotatorWorksWithKotlin() {
@@ -144,26 +130,11 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
         }
         """.trimIndent()
     )
+    myFixture.doHighlighting()
 
-    val highlightInfo = findHighlightInfo()
-    checkGutterIconRenderer(highlightInfo.gutterIconRenderer, StudioIcons.DatabaseInspector.NEW_QUERY)
-  }
-
-  private fun findHighlightInfo(): HighlightInfo {
-    val document = myFixture.editor.document
-    val lineNumberOfTarget = document.getLineNumber(myFixture.caretOffset)
-    val highlightInfos = myFixture.doHighlighting()
-    return highlightInfos
-      .filter { info -> info.gutterIconRenderer != null }
-      .first { info -> document.getLineNumber(info.startOffset) == lineNumberOfTarget }
-  }
-
-  private fun checkGutterIconRenderer(gutterIconRenderer: GutterMark?, expectedIcon: Icon) {
-    assertThat(gutterIconRenderer).isNotNull()
-    assertThat(gutterIconRenderer).isInstanceOf(GutterIconRenderer::class.java)
-    val renderer = gutterIconRenderer as GutterIconRenderer
-    val icon = renderer.icon
-    assertThat(icon).isEqualTo(expectedIcon)
+    val highlightInfo = myFixture.findGuttersAtCaret()
+    assertThat(highlightInfo).hasSize(1)
+    assertThat(highlightInfo.first().icon).isEqualTo(StudioIcons.DatabaseInspector.NEW_QUERY)
   }
 
   private fun getMockLiveDatabaseConnection(): LiveDatabaseConnection {

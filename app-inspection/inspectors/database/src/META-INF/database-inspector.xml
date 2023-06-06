@@ -20,8 +20,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.AndroidSqlFakePsiElementDescriptionProvider"/>
 
-    <annotator language="JAVA" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
-    <annotator language="kotlin" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
+    <codeInsight.lineMarkerProvider language="JAVA" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
+    <codeInsight.lineMarkerProvider language="kotlin" implementationClass="com.android.tools.idea.sqlite.annotator.RunSqliteStatementAnnotator"/>
 
     <projectService
         serviceInterface="com.android.tools.idea.sqlite.DatabaseInspectorProjectService"
