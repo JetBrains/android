@@ -17,11 +17,12 @@
   <id>com.android.tools.idea.smali</id>
   <name>Smali Support</name>
   <category>Android</category>
-  <vendor url="https://www.google.com">Google, Inc.</vendor>
+  <vendor>JetBrains, Google</vendor>
 
   <description><![CDATA[Adds support for <em>smali</em> files produced by Android disassembler]]></description>
 
   <depends>com.intellij.modules.lang</depends>
+  <depends>com.intellij.modules.idea</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <fileType name="Smali" implementationClass="com.android.tools.idea.smali.SmaliFileType" fieldName="INSTANCE"
