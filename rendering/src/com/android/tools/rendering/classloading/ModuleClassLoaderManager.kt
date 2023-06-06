@@ -19,6 +19,7 @@ import com.android.tools.rendering.ModuleRenderContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import java.io.Closeable
+import java.lang.ref.WeakReference
 
 inline fun <T: ModuleClassLoader, R> ModuleClassLoaderManager.Reference<T>.useWithClassLoader(block: (T) -> R) = use {
   block(classLoader)
@@ -40,14 +41,10 @@ interface ModuleClassLoaderManager<T: ModuleClassLoader> {
    *
    * Released references should not be used after the release call.
    */
-  interface Reference<T: ModuleClassLoader>: Closeable {
-    /** Returns the [ModuleClassLoader] being referenced by this [Reference]. */
-    val classLoader: T
+  class Reference<T: ModuleClassLoader>(manager: ModuleClassLoaderManager<T>, val classLoader: T): Closeable {
+    private val managerOwnerRef = WeakReference(manager)
 
-    override fun close() {
-      @Suppress("RemoveRedundantQualifierName")
-      ModuleClassLoaderManager.get().release(this)
-    }
+    override fun close() { managerOwnerRef.get()?.release(this) }
   }
 
   companion object {

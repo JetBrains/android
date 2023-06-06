@@ -54,15 +54,6 @@ import org.jetbrains.android.uipreview.StudioModuleClassLoader.PROJECT_DEFAULT_T
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
-
-private data class SharedModuleClassLoaderReferenceImpl(
-  override val classLoader: StudioModuleClassLoader
-): ModuleClassLoaderManager.Reference<StudioModuleClassLoader>
-
-private data class PrivateModuleClassLoaderReferenceImpl(
-  override val classLoader: StudioModuleClassLoader
-): ModuleClassLoaderManager.Reference<StudioModuleClassLoader>
-
 private fun throwIfNotUnitTest(e: Exception) =
   if (!ApplicationManager.getApplication().isUnitTestMode) {
     throw e
@@ -326,7 +317,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
         it.dispose()
       }
     }
-    val newModuleClassLoaderReference = SharedModuleClassLoaderReferenceImpl(moduleClassLoader).also {
+    val newModuleClassLoaderReference = ModuleClassLoaderManager.Reference(this, moduleClassLoader).also {
       LOG.debug { "New ModuleClassLoader reference $it to $moduleClassLoader" }
     }
     holders.putValue(moduleClassLoader, newModuleClassLoaderReference)
@@ -359,7 +350,7 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
                                                             combinedNonProjectTransformations,
                                                             createDiagnostics()))
       .let {
-        val newModuleClassLoaderReference = PrivateModuleClassLoaderReferenceImpl(it)
+        val newModuleClassLoaderReference = ModuleClassLoaderManager.Reference(this, it)
         LOG.debug { "New ModuleClassLoader reference $newModuleClassLoaderReference to $it" }
         holders.putValue(it, newModuleClassLoaderReference)
         newModuleClassLoaderReference
