@@ -3102,6 +3102,22 @@ java_test(
 )
 
 java_test(
+    name = "AgpUpgradeJava8ProjTest",
+    size = "enormous",
+    timeout = "long",
+    data = COMMON_DATA + glob([
+        "testData/CodeGeneration/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.AgpUpgradeJava8ProjTest"],
+    tags = COMMON_TAGS + [
+        "no_windows",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "CreateAPKProjectTest",
     size = "enormous",
     timeout = "long",
