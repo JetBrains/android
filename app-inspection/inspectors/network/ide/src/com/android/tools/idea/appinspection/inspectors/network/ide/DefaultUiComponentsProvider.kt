@@ -22,9 +22,13 @@ import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.android.tools.inspectors.common.ui.dataviewer.IntellijDataViewer
 import com.android.tools.inspectors.common.ui.dataviewer.IntellijImageDataViewer
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 
-class DefaultUiComponentsProvider(private val project: Project) : UiComponentsProvider {
+class DefaultUiComponentsProvider(
+  private val project: Project,
+  private val parentDisposable: Disposable
+) : UiComponentsProvider {
   override fun createDataViewer(
     bytes: ByteArray,
     contentType: ContentType,
@@ -44,7 +48,8 @@ class DefaultUiComponentsProvider(private val project: Project) : UiComponentsPr
           project,
           bytes,
           contentType.fileType,
-          formatted
+          formatted,
+          parentDisposable
         )
       }
       else -> {

@@ -68,7 +68,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
     messenger: AppInspectorMessenger,
     parentDisposable: Disposable
   ): AppInspectorTab {
-    val componentsProvider = DefaultUiComponentsProvider(project)
+    val componentsProvider = DefaultUiComponentsProvider(project, parentDisposable)
     val codeNavigationProvider = DefaultCodeNavigationProvider(project)
     val scope = AndroidCoroutineScope(parentDisposable)
     val dataSource = NetworkInspectorDataSourceImpl(messenger, scope)
