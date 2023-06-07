@@ -32,7 +32,7 @@ import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
-import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.StudioIcons;
@@ -54,10 +54,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -210,7 +210,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         @NotNull
         @Override
         public TableCellRenderer getRenderer(@NotNull Object category) {
-          return myRenderer;
+          return new MyTableCellRenderer();
         }
       }};
     myCategoryModel.setColumnInfos(categoryInfo);
@@ -490,23 +490,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     refreshDeviceProfiles();
   }
 
-  private final Border myBorder = JBUI.Borders.empty(10);
-
-  /**
-   * Renders a simple text field.
-   */
-  private final TableCellRenderer myRenderer = (table, value, isSelected, hasFocus, row, column) -> {
-    var label = new JBLabel(value.toString());
-    label.setBorder(myBorder);
-    if (table.getSelectedRow() == row) {
-      label.setBackground(table.getSelectionBackground());
-      label.setForeground(table.getSelectionForeground());
-      label.setOpaque(true);
-    }
-    return label;
-  };
-
-  private abstract class DeviceColumnInfo extends ColumnInfo<Device, String> {
+  private abstract static class DeviceColumnInfo extends ColumnInfo<Device, String> {
     @Nullable
     @Override
     public Comparator<Device> getComparator() {
@@ -520,7 +504,23 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     @Nullable
     @Override
     public TableCellRenderer getRenderer(Device device) {
-      return myRenderer;
+      return new MyTableCellRenderer();
+    }
+  }
+
+  private static final class MyTableCellRenderer extends DefaultTableCellRenderer {
+    @NotNull
+    @Override
+    public Component getTableCellRendererComponent(@NotNull JTable table,
+                                                   @NotNull Object value,
+                                                   boolean selected,
+                                                   boolean focused,
+                                                   int viewRowIndex,
+                                                   int viewColumnIndex) {
+      var component = (JComponent)super.getTableCellRendererComponent(table, value, selected, focused, viewRowIndex, viewColumnIndex);
+      component.setBorder(Borders.empty(10));
+
+      return component;
     }
   }
 
