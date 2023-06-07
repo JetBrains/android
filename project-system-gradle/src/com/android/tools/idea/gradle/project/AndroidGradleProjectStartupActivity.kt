@@ -20,7 +20,6 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -32,6 +31,7 @@ import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidMod
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.IDE_LIBRARY_TABLE
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.KMP_ANDROID_LIBRARY_TABLE
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCachedVariantData
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
@@ -245,7 +245,8 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     projectDataNodes.flatMap { projectData ->
       val libraries =
         ExternalSystemApiUtil.find(projectData, IDE_LIBRARY_TABLE)?.data ?: run { requestSync("IDE library table not found"); return }
-      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(libraries)
+      val kmpLibraries = ExternalSystemApiUtil.find(projectData, KMP_ANDROID_LIBRARY_TABLE)?.data
+      val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(libraries, kmpLibraries)
       val modelFactory = GradleAndroidModel.createFactory(project, libraryResolver)
       projectData
         .modules()

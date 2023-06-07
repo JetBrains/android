@@ -33,7 +33,7 @@ import com.android.tools.idea.gradle.model.IdeDebugInfo
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeVariantCore
-import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTable
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTables
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
@@ -234,7 +234,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)
     val moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode) ?: return null
-    createAndAttachModelsToDataNode(projectDataNode, moduleDataNode, gradleModule, androidModels)
+    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidModels)
     ideAndroidSyncIssuesAndExceptions?.process(moduleDataNode)
     patchLanguageLevels(moduleDataNode, gradleModule, androidModels?.androidProject)
     registerModuleData(gradleModule, moduleDataNode)
@@ -333,13 +333,11 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
    *  * JavaModuleModel
    *
    *
-   * @param projectDataNode the project node
    * @param moduleNode      the module node to attach the models to
    * @param gradleModule    the module in question
    * @param androidModels   the android project models obtained from this module (null is none found)
    */
   private fun createAndAttachModelsToDataNode(
-    projectDataNode: DataNode<ProjectData>,
     moduleNode: DataNode<ModuleData>,
     gradleModule: IdeaModule,
     androidModels: IdeAndroidModels?
@@ -355,7 +353,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     var androidModel: GradleAndroidModelData? = null
     var ndkModuleModel: NdkModuleModel? = null
     var gradleModel: GradleModuleModel? = null
-    var issueData: Collection<IdeSyncIssue>? = null
     if (androidModels != null) {
       androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels, mppModel)
       val ndkModuleName = moduleName + "." + getModuleName(androidModel.mainArtifactCore.name)
@@ -511,7 +508,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         myResolvedLibraryTable!!
       )
     }
-    val libraryResolver = fromLibraryTable(myResolvedLibraryTable!!)
+    val libraryResolver = fromLibraryTables(myResolvedLibraryTable!!, null)
 
     // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
     nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject)

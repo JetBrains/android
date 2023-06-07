@@ -19,17 +19,19 @@ import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilat
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKey
+import com.android.tools.idea.gradle.model.LibraryReference
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.AbstractDependencyData
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
+import org.jetbrains.kotlin.android.models.KotlinModelConverter
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver.Context
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinMppGradleProjectResolverExtension
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinProjectArtifactDependencyResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.findLibraryDependencyNode
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver.Context
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinComponent
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
@@ -38,7 +40,10 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
 class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverExtension {
+  private val modelConverter = KotlinModelConverter()
+
   private val sourceSetResolver = KotlinMppAndroidSourceSetResolver()
+  private val sourceSetDependenciesMap = mutableMapOf<String, MutableMap<String, Set<LibraryReference>>>()
 
   override fun provideAdditionalProjectArtifactDependencyResolvers(): List<KotlinProjectArtifactDependencyResolver> {
     return listOf(
@@ -65,6 +70,11 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
                                                   sourceSet: KotlinSourceSet,
                                                   dependencies: Set<IdeaKotlinDependency>,
                                                   dependencyNodes: List<DataNode<out AbstractDependencyData<*>>>) {
+    if (sourceSet.extras[androidSourceSetKey] != null) {
+      val sourceSetDependenciesMap = sourceSetDependenciesMap.getOrPut(context.moduleDataNode.data.id) { mutableMapOf() }
+      sourceSetDependenciesMap.putIfAbsent(sourceSet.name, dependencies.mapNotNull { modelConverter.recordDependency(it) }.toSet())
+    }
+
     dependencies.filterIsInstance<IdeaKotlinBinaryDependency>().forEach { ideaKotlinDependency ->
       val androidLibInfo = ideaKotlinDependency.extras[androidDependencyKey] ?: return@forEach
 
@@ -103,6 +113,12 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     sourceSetDataNode.createChild(
       ProjectKeys.CONTENT_ROOT,
       ContentRootData(GradleConstants.SYSTEM_ID, sourceSetInfo.sourceProvider.manifestFile.absolutePath)
+    )
+  }
+
+  override fun afterResolveFinished(context: Context) {
+    modelConverter.maybeCreateLibraryTable(
+      context.projectDataNode
     )
   }
 }

@@ -20,6 +20,7 @@ import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPE
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable;
+import com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData;
@@ -73,8 +74,12 @@ public final class AndroidProjectKeys {
     Key.create(IdeResolvedLibraryTable.class, ANDROID_MODEL.getProcessingWeight() + 10);
 
   @NotNull
+  public static final Key<KotlinMultiplatformIdeLibraryTable> KMP_ANDROID_LIBRARY_TABLE =
+    Key.create(KotlinMultiplatformIdeLibraryTable.class, IDE_LIBRARY_TABLE.getProcessingWeight() + 10);
+
+  @NotNull
   public static final Key<IdeCompositeBuildMap> IDE_COMPOSITE_BUILD_MAP =
-    Key.create(IdeCompositeBuildMap.class, IDE_LIBRARY_TABLE.getProcessingWeight() + 10);
+    Key.create(IdeCompositeBuildMap.class, KMP_ANDROID_LIBRARY_TABLE.getProcessingWeight() + 10);
 
   @NotNull
   public static final Key<IdeSyncIssue> SYNC_ISSUE = Key.create(IdeSyncIssue.class, IDE_COMPOSITE_BUILD_MAP.getProcessingWeight() + 10);

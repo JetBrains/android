@@ -1529,7 +1529,7 @@ private fun setupTestProjectFromAndroidModelCore(
     resolveArtifact = { null },
     resolveKmpAndroidMainSourceSet = { null }
   ).buildResolvedLibraryTable(unresolvedTable)
-  val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(resolvedTable)
+  val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(resolvedTable, null)
   projectDataNode.createChild(
     AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP,
     IdeCompositeBuildMapImpl(

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTable
+import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTables
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
@@ -109,7 +109,9 @@ class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
       additionalRoots = mapOf("ROOT" to File(project.basePath!!)),
       projectJdk = ProjectRootManager.getInstance(project).projectSdk,
     )
-    val modelFactory = GradleAndroidModel.createFactory(project, fromLibraryTable(gradleModules.libraries!!))
+    val modelFactory = GradleAndroidModel.createFactory(
+      project, fromLibraryTables(gradleModules.libraries!!, null)
+    )
     dumper.dumpAllVariantsSyncAndroidModuleModel(
       modelFactory(allVariantsSyncAndroidModel),
       project.basePath!!
