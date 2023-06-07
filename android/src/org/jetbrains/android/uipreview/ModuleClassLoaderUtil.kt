@@ -288,7 +288,7 @@ internal class ModuleClassLoaderImpl(module: Module,
     }
     else {
       MultiLoader(
-        createOptionalOverlayLoader(module, onClassRewrite),
+        createOptionalOverlayLoader(module, nonProjectLoader, onClassRewrite),
         createProjectLoader(projectSystemLoader, nonProjectLoader, onClassRewrite)
       )
     }
@@ -310,10 +310,10 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Creates an overlay loader. See [OverlayLoader].
    */
-  private fun createOptionalOverlayLoader(module: Module, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
+  private fun createOptionalOverlayLoader(module: Module, dependenciesLoader: DelegatingClassLoader.Loader?, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     return createProjectLoader(ListeningLoader(OverlayLoader(overlayManager), onAfterLoad = { fqcn, _ ->
       recordOverlayLoadedClass(fqcn)
-    }), null, onClassRewrite)
+    }), dependenciesLoader, onClassRewrite)
   }
 
   override fun loadClass(fqcn: String): ByteArray? {
