@@ -80,8 +80,13 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private Multimap<Category, Device> myCategoryToDefinitionMultimap;
   private final ListTableModel<Device> myModel = new ListTableModel<>();
   private TableView<Device> myTable;
-  private final ListTableModel<String> myCategoryModel = new ListTableModel<>();
-  private TableView<String> myCategoryList;
+
+  /**
+   * myCategoryModel usually contains all the {@link Category Categories.} When the user searches for definitions, it contains
+   * {@link #SEARCH_RESULTS} as well.
+   */
+  private final ListTableModel<Object> myCategoryModel = new ListTableModel<>();
+  private TableView<Object> myCategoryList;
   private JButton myCreateProfileButton;
   private JButton myImportProfileButton;
   private Map<Category, Device> myCategoryToSelectedDefinitionMap;
@@ -195,16 +200,16 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myTable.getSelectionModel().addListSelectionListener(this);
     // The singular column that serves as the header for our category list
     ColumnInfo[] categoryInfo = {
-      new ColumnInfo<String, String>("Category") {
-        @Nullable
+      new ColumnInfo<Object, String>("Category") {
+        @NotNull
         @Override
-        public String valueOf(String category) {
-          return category;
+        public String valueOf(@NotNull Object category) {
+          return category.toString();
         }
 
         @NotNull
         @Override
-        public TableCellRenderer getRenderer(String s) {
+        public TableCellRenderer getRenderer(@NotNull Object category) {
           return myRenderer;
         }
       }};
@@ -321,7 +326,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     }
     onSelectionSet(device);
     if (device != null) {
-      var category = Category.valueOfDefinition(device).getName();
+      var category = Category.valueOfDefinition(device);
       for (Device listItem : myModel.getItems()) {
         if (listItem.getId().equals(device.getId())) {
           myTable.setSelection(ImmutableSet.of(listItem));
@@ -350,13 +355,16 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   /**
    * Update our list to display the given category.
    */
-  private void setCategory(@NotNull String name) {
+  private void setCategory(@NotNull Object name) {
     if (name.equals(SEARCH_RESULTS)) {
       updateSearchResults(mySearchTextField.getText());
       return;
     }
 
-    var category = Category.valueOfName(name);
+    if (!(name instanceof Category category)) {
+      throw new IllegalArgumentException(name.getClass().toString());
+    }
+
     var definitions = List.copyOf(myCategoryToDefinitionMultimap.get(category));
 
     if (myModel.getItems().equals(definitions)) {
@@ -365,7 +373,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
     myModel.setItems(definitions);
     setSelectedDevice(myCategoryToSelectedDefinitionMap.get(category));
-    notifyCategoryListeners(name, definitions);
+    notifyCategoryListeners(name.toString(), definitions);
   }
 
   private void notifyCategoryListeners(@Nullable String selectedCategory, @Nullable List<Device> items) {
@@ -382,12 +390,8 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
                                     device -> device,
                                     MultimapBuilder.enumKeys(Category.class).treeSetValues(new NameComparator())::build));
 
-    var categories = Arrays.stream(Category.values())
-      .map(Category::getName)
-      .collect(Collectors.toList());
-
-    Collection<String> selection = myCategoryList.getSelection();
-    myCategoryModel.setItems(categories);
+    var selection = myCategoryList.getSelection();
+    myCategoryModel.setItems(new ArrayList<>(Arrays.asList(Category.values())));
     myCategoryList.setSelection(selection);
   }
 
@@ -492,7 +496,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
    * Renders a simple text field.
    */
   private final TableCellRenderer myRenderer = (table, value, isSelected, hasFocus, row, column) -> {
-    JBLabel label = new JBLabel((String)value);
+    var label = new JBLabel(value.toString());
     label.setBorder(myBorder);
     if (table.getSelectedRow() == row) {
       label.setBackground(table.getSelectionBackground());

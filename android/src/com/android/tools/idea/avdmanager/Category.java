@@ -64,30 +64,21 @@ enum Category {
   }
 
   @NotNull
-  final String getName() {
-    return myName;
-  }
-
-  @NotNull
   final String getDefaultDefinitionName() {
     return myDefaultDefinitionName;
   }
 
   @NotNull
   static Category valueOfDefinition(@NotNull Device definition) {
-    return valueOfObject(definition, category -> category.myPredicate.test(definition));
-  }
-
-  @NotNull
-  static Category valueOfName(@NotNull String name) {
-    return valueOfObject(name, category -> category.myName.equals(name));
-  }
-
-  @NotNull
-  private static Category valueOfObject(@NotNull Object object, @NotNull Predicate<Category> predicate) {
     return Arrays.stream(values())
-      .filter(predicate)
+      .filter(category -> category.myPredicate.test(definition))
       .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(object.toString()));
+      .orElseThrow(() -> new IllegalArgumentException(definition.toString()));
+  }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return myName;
   }
 }
