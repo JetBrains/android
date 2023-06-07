@@ -51,7 +51,7 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
    *
    * Note that the [ResourceClassRegistry] is a project-level component, so the same R class may be generated in different ways
    * depending on the repository used. In non-namespaced project, the repository is the full [AppResourceRepository] of the module
-   * in question. In namespaced projects the repository is a [com.android.ide.common.resources.aar.AarResourceRepository] of just
+   * in question. In namespaced projects the repository is a [com.android.resources.aar.AarResourceRepository] of just
    * the AAR contents.
    */
   fun addLibrary(repo: ResourceRepository, idManager: ResourceIdManager, packageName: String?, namespace: ResourceNamespace) {
@@ -77,8 +77,8 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
   }
 
   /**
-   * Ideally, this method would not exist. But there are potential bugs in the caching mechanism. So, the method should be called when
-   * rendering fails due to hard to explain causes: like NoSuchFieldError.
+   * Ideally, this method would not exist. But there are potential bugs in the caching mechanism.
+   * So, the method should be called when rendering fails due to hard-to-explain causes like NoSuchFieldError.
    *
    * @see ResourceIdManager.resetDynamicIds
    */
