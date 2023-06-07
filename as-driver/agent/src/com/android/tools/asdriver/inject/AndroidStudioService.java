@@ -138,7 +138,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
 
       String projectName = request.hasProjectName() ? request.getProjectName() : null;
-      DataContext dataContext = getDataContext(projectName);
+      DataContext dataContext = getDataContext(projectName, request.getDataContextSource());
       if (dataContext == null) {
         System.err.println("Could not get a DataContext for executeAction.");
         builder.setResult(ASDriver.ExecuteActionResponse.Result.ERROR);
@@ -163,7 +163,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
    * For more information, see b/238922776.
    * @param projectName optional project name.
    */
-  private DataContext getDataContext(String projectName) {
+  private DataContext getDataContext(String projectName, ASDriver.ExecuteActionRequest.DataContextSource dataContextSource) {
     Project[] projects = ProjectManager.getInstance().getOpenProjects();
     int numProjects = projects.length;
     if (numProjects == 0) {
@@ -201,16 +201,30 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       projectForContext = findProjectByName(projectName);
     }
 
-    // Attempting to create a DataContext via DataManager.getInstance.getDataContext(Component c)
-    // causes all sorts of strange issues depending on which component is used. If it's a project,
-    // then editor-specific actions like ToggleLineBreakpoint won't work. If it's an editor, then
-    // the editor has to be showing or else performDumbAwareWithCallbacks will suppress the action.
-    //
-    // ...so instead, we create our own DataContext rather than getting one from a component.
-    MapDataContext dataContext = new MapDataContext();
-    dataContext.put(CommonDataKeys.PROJECT, projectForContext);
-    dataContext.put(CommonDataKeys.EDITOR, FileEditorManager.getInstance(projectForContext).getSelectedTextEditor());
-    return dataContext;
+    Editor selectedTextEditor = FileEditorManager.getInstance(projectForContext).getSelectedTextEditor();
+
+    switch (dataContextSource) {
+      case SELECTED_TEXT_EDITOR -> {
+        if (selectedTextEditor == null) {
+          System.err.print("Editor was specified as DataContextSource, but no currently selected text editor was found.");
+          return null;
+        }
+        return DataManager.getInstance().getDataContext(selectedTextEditor.getComponent());
+      }
+      case DEFAULT -> {
+        // Attempting to create a DataContext via DataManager.getInstance.getDataContext(Component c)
+        // causes all sorts of strange issues depending on which component is used. If it's a project,
+        // then editor-specific actions like ToggleLineBreakpoint won't work. If it's an editor, then
+        // the editor has to be showing or else performDumbAwareWithCallbacks will suppress the action.
+        //
+        // ...so by default, we create our own DataContext rather than getting one from a component.
+        MapDataContext dataContext = new MapDataContext();
+        dataContext.put(CommonDataKeys.PROJECT, projectForContext);
+        dataContext.put(CommonDataKeys.EDITOR, selectedTextEditor);
+        return dataContext;
+      }
+      default -> throw new IllegalArgumentException("Invalid DataContextSource provided with ExecuteActionRequest.");
+    }
   }
 
   @Override

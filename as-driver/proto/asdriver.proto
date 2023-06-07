@@ -43,9 +43,16 @@ message QuitRequest {
 message QuitResponse {}
 
 message ExecuteActionRequest {
+  enum DataContextSource {
+    DEFAULT = 0;
+    SELECTED_TEXT_EDITOR = 1;
+  }
+
   string action_id = 1;
 
   optional string project_name = 2;
+
+  optional DataContextSource data_context_source = 3;
 }
 
 message ExecuteActionResponse {
