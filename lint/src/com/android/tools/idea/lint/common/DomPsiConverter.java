@@ -297,6 +297,7 @@ public class DomPsiConverter {
 
     @Override
     void add(@NotNull DomNode node) {
+      throw new UnsupportedOperationException("The shared EMPTY instance of DomNodeList isn't supposed to be modified.");
     }
   };
 
