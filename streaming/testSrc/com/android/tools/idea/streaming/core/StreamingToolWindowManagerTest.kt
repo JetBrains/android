@@ -765,7 +765,7 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testWindowViewModeActionSetTypeWhenPerformed() {
-    windowFactory.init(toolWindow)
+    createToolWindowContent()
     toolWindow.setType(ToolWindowType.DOCKED) {}
 
     val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
@@ -776,7 +776,7 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testWindowViewModeActionUnavailableWhenTypeIsWindowedOrFloat() {
-    windowFactory.init(toolWindow)
+    createToolWindowContent()
     val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
 
     toolWindow.setType(ToolWindowType.FLOATING) {}

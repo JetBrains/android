@@ -19,7 +19,6 @@ import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAnd
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.streaming.DeviceMirroringSettings
-import com.android.tools.idea.ui.GuiTestingService
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToolWindowWindowAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,18 +35,13 @@ import com.intellij.openapi.wm.ToolWindowType
 class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    if (!GuiTestingService.isInTestingMode()) { // Workaround for NPE in UI tests.
-      toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
-    }
+    toolWindow.setTitleActions(listOf(MoveToWindowAction(toolWindow)))
+    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
+    StreamingToolWindowManager(toolWindow)
 
     if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
       toolWindow.hide()
     }
-  }
-
-  override fun init(toolWindow: ToolWindow) {
-    StreamingToolWindowManager(toolWindow)
-    toolWindow.setTitleActions(listOf(MoveToWindowAction(toolWindow)))
   }
 
   override fun isApplicable(project: Project): Boolean {

@@ -63,7 +63,7 @@ import java.util.concurrent.Executor
 /**
  * Allows any component to listen to all method body edits of a project.
  */
-@Service
+@Service(Service.Level.PROJECT)
 class LiveEditServiceImpl(val project: Project,
                           var executor: Executor,
                           override val adbEventsListener: LiveEditAdbEventsListener) : Disposable, LiveEditService {
@@ -88,29 +88,26 @@ class LiveEditServiceImpl(val project: Project,
     LiveEditIssueNotificationAction.registerProject(project, adapter)
     Disposer.register(this) { LiveEditIssueNotificationAction.unregisterProject(project) }
     ApplicationManager.getApplication().invokeLater {
-      val contentManager = project.getServiceIfCreated(ToolWindowManager::class.java)
-        ?.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
-        ?.contentManager
-      contentManager?.addContentManagerListener(object : ContentManagerListener {
-        override fun contentAdded(event: ContentManagerEvent) {
-          if (event.content.component !is DataProvider) {
-            return
+      val toolWindowManager = project.getServiceIfCreated(ToolWindowManager::class.java)
+      toolWindowManager?.invokeLater {
+        val runningDevicesWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
+        runningDevicesWindow?.addContentManagerListener(object : ContentManagerListener {
+          override fun contentAdded(event: ContentManagerEvent) {
+            val dataProvider = event.content.component as? DataProvider ?: return
+            val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
+            serial?.let { adapter.register(it) }
           }
-          val serial = (event.content.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) as String?
-          serial?.let { adapter.register(it) }
-        }
 
-        override fun contentRemoveQuery(event: ContentManagerEvent) {
-          if (event.content.component !is DataProvider) {
-            return
+          override fun contentRemoveQuery(event: ContentManagerEvent) {
+            val dataProvider = event.content.component as? DataProvider ?: return
+            val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
+            serial?.let { adapter.unregister(it) }
           }
-          val serial = (event.content.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) as String?
-          serial?.let { adapter.unregister(it) }
-        }
-      })
-      contentManager?.contents?.forEach {
-        if (it.component is DataProvider) {
-          val serial = (it.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) as String?
+        })
+
+        runningDevicesWindow?.contentManagerIfCreated?.contents?.forEach {
+          val dataProvider = it.component as? DataProvider ?: return@forEach
+          val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
           serial?.let { s -> adapter.register(s) }
         }
       }
