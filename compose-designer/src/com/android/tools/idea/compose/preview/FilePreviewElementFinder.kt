@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onStart
@@ -80,28 +81,29 @@ suspend fun previewElementFlowForFile(
       lang.`is`(KotlinLanguage.INSTANCE)
     }
   return channelFlow {
-    coroutineScope {
-      psiFileChangeFlow(psiFilePointer.project, this@coroutineScope)
-        .onStart {
-          // After the flow is connected, emit a forced notification to ensure the listener
-          // gets the latest change.
-          psiFilePointer.element?.let { emit(it) }
-        }
-        // filter only by Kotlin changes. We care about any Kotlin changes since Multi-preview can
-        // trigger changes from any file.
-        .filter { it.fileType == KotlinFileType.INSTANCE }
-        // do not generate events if there has not been modifications to the file since the last
-        // time
-        .distinctUntilChangedBy { kotlinPsiTracker.modificationCount }
-        // debounce to avoid many equality comparisons of the set
-        .debounce(250)
-        .collectLatest {
-          send(
-            filePreviewElementProvider()
-              .findPreviewMethods(psiFilePointer.project, psiFilePointer.virtualFile)
-              .toSet()
-          )
-        }
+      coroutineScope {
+        psiFileChangeFlow(psiFilePointer.project, this@coroutineScope)
+          .onStart {
+            // After the flow is connected, emit a forced notification to ensure the listener
+            // gets the latest change.
+            psiFilePointer.element?.let { emit(it) }
+          }
+          // filter only by Kotlin changes. We care about any Kotlin changes since Multi-preview can
+          // trigger changes from any file.
+          .filter { it.fileType == KotlinFileType.INSTANCE }
+          // do not generate events if there has not been modifications to the file since the last
+          // time
+          .distinctUntilChangedBy { kotlinPsiTracker.modificationCount }
+          // debounce to avoid many equality comparisons of the set
+          .debounce(250)
+          .collectLatest {
+            send(
+              filePreviewElementProvider()
+                .findPreviewMethods(psiFilePointer.project, psiFilePointer.virtualFile)
+                .toSet()
+            )
+          }
+      }
     }
-  }
+    .distinctUntilChanged()
 }
