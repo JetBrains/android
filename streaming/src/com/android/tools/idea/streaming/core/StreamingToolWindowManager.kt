@@ -129,7 +129,7 @@ private val PANEL_COMPARATOR = compareBy<RunningDevicePanel, Any?>(COLLATOR) { i
  */
 @UiThread
 internal class StreamingToolWindowManager @AnyThread constructor(
-  private val toolWindow: ToolWindow
+  private val toolWindow: ToolWindow,
 ) : RunningEmulatorCatalog.Listener, DeviceMirroringSettingsListener, DumbAware, Disposable {
 
   private val project
@@ -273,11 +273,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, this)
 
     if (deviceMirroringSettings.deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()) {
-      UIUtil.invokeLaterIfNeeded {
-        if (!toolWindow.isDisposed) {
-          physicalDeviceWatcher = PhysicalDeviceWatcher(this)
-        }
-      }
+      physicalDeviceWatcher = PhysicalDeviceWatcher(this)
     }
   }
 
