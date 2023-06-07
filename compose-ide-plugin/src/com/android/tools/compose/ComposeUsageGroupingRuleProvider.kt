@@ -16,6 +16,7 @@
 package com.android.tools.compose
 
 import com.android.tools.idea.kotlin.findAnnotation
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
@@ -74,6 +75,13 @@ private object PreviewUsageGroupingRule : UsageGroupingRuleEx {
   override fun getTitle() = ComposeBundle.message("separate.preview.usages")
 
   override fun getParentGroupsFor(usage: Usage, targets: Array<out UsageTarget>): List<UsageGroup> {
+    // This block exists to faciliate end-to-end testing for ShowUsages. When ShowUsages is invoked, irrespective of whether anything
+    // related to compose is happening, this code will execute for each Usage seen, logging something to idea.log we can look for in our
+    // end-to-end test, provided we turn on debugging for this class.
+    if (java.lang.Boolean.getBoolean("studio.run.under.integration.test")) {
+      Logger.getInstance(ComposeUsageGroupingRuleProvider::class.java).debug("Saw usage: ${usage.presentation.plainText.trim()}")
+    }
+
     val element = (usage as? PsiElementUsage)?.element ?: return emptyList()
     return when {
       !targets.containsComposable() -> emptyList()
