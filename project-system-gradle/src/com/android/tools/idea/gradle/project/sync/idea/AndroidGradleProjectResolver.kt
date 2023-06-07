@@ -789,7 +789,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   private fun cleanUpHttpProxySettings() {
     val project = project
     if (project != null) {
-      ApplicationManager.getApplication().invokeAndWait { HttpProxySettingsCleanUp.cleanUp(project) }
+      HttpProxySettingsCleanUp.cleanUp(project)
     }
   }
 
