@@ -304,8 +304,19 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         Project project = findProjectByName(projectName);
         VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(new File(fileName));
         if (virtualFile == null) {
-          System.err.println("File does not exist on filesystem with path: " + fileName);
-          return;
+          // Fall back to interpreting the file name as project-relative.
+          String basePath = project.getBasePath();
+          if (basePath == null) {
+            System.err.println("File does not exist on filesystem with path: " + fileName +
+                               ". Base path for project \"" + projectName + "\" not found.");
+            return;
+          }
+          File relativeFile = Path.of(basePath, fileName).toFile().getCanonicalFile();
+          virtualFile = LocalFileSystem.getInstance().findFileByIoFile(relativeFile);
+          if (virtualFile == null) {
+            System.err.println("File does not exist on filesystem with any path in: [" + fileName + ", " + relativeFile.getPath() + "]");
+            return;
+          }
         }
 
         FileEditorManager manager = FileEditorManager.getInstance(project);

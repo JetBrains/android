@@ -277,6 +277,8 @@ public class AndroidStudio implements AutoCloseable {
   /**
    * Opens a file and then goes to a specific line and column in the first open project's selected
    * text editor.
+   * @param file the name of the file, interpreted initially as an absolute file path, but subsequently as a project-relative file path
+   *            if no file is initially found.
    * @param line 0-indexed line number.
    * @param column 0-indexed column number.
    * @see com.intellij.openapi.editor.LogicalPosition
