@@ -643,6 +643,13 @@ public final class StudioFlags {
   //region Gradle Project System
   private static final FlagGroup GRADLE_IDE = new FlagGroup(FLAGS, "gradle.ide", "Gradle Project System");
 
+  public static final Flag<Boolean> ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES = Flag.create(
+    GRADLE_IDE, "android.sdk.ide.compatibility.rules",
+    "Enable compatibility rules support between IDE version and compile SDK version",
+    "Enable compatibility rules support between IDE version and compile SDK version",
+    false
+  );
+
   public static final Flag<Boolean> API_OPTIMIZATION_ENABLE = Flag.create(
     GRADLE_IDE, "build.injection.device.api.enabled",
     "Enable injection of device api level optimization from IDE",

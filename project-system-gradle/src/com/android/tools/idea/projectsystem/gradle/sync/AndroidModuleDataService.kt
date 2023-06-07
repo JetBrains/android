@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem.gradle.sync
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
+import com.android.tools.idea.flags.StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeVariant
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
+import com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
@@ -224,6 +226,13 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
 
     ProjectStructure.getInstance(project).analyzeProjectStructure()
+
+    if (ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.get()) {
+      AndroidSdkCompatibilityChecker.getInstance().checkAndroidSdkVersion(
+        imported,
+        project
+      )
+    }
   }
 
   override fun postProcess(
