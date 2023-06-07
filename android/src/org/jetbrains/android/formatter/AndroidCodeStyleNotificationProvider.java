@@ -12,20 +12,21 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.ui.EditorNotifications;
+import java.util.function.Function;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Provider<AndroidCodeStyleNotificationProvider.MyPanel> {
-  private static final Key<MyPanel> KEY = Key.create("android.xml.code.style.notification");
+public class AndroidCodeStyleNotificationProvider implements EditorNotificationProvider {
 
   @NonNls private static final String ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP = "Android XML code style notification";
 
@@ -37,17 +38,9 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
     myNotifications = EditorNotifications.getInstance(project);
   }
 
-  @NotNull
   @Override
-  public Key<MyPanel> getKey() {
-    return KEY;
-  }
-
-  @Nullable
-  @Override
-  public MyPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE) ||
-        !(fileEditor instanceof TextEditor)) {
+  public @Nullable Function<FileEditor, JComponent> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
+    if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)) {
       return null;
     }
     final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
@@ -72,12 +65,21 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
     if (androidSettings.USE_CUSTOM_SETTINGS) {
       return null;
     }
-    if (NotificationsConfigurationImpl.getSettings(ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP).
-      getDisplayType() == NotificationDisplayType.NONE) {
+    if (NotificationsConfigurationImpl.getSettings(ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP).getDisplayType() ==
+        NotificationDisplayType.NONE) {
       return null;
     }
-    NotificationsConfiguration.getNotificationsConfiguration().register(
-      ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP, NotificationDisplayType.BALLOON, false);
+
+    return this::createNotificationPanel;
+  }
+
+  @Nullable
+  private MyPanel createNotificationPanel(FileEditor fileEditor) {
+    if (!(fileEditor instanceof TextEditor)) {
+      return null;
+    }
+    NotificationsConfiguration.getNotificationsConfiguration()
+      .register(ANDROID_XML_CODE_STYLE_NOTIFICATION_GROUP, NotificationDisplayType.BALLOON, false);
     return new MyPanel(fileEditor);
   }
 
