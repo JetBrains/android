@@ -67,6 +67,7 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
+  override val refreshNeeded: () -> Unit = { mainSurface.requestRender() }
 
   override fun updateNotifications(parentEditor: FileEditor) {}
 
@@ -157,7 +158,8 @@ class ComposePreviewRepresentationTest {
 
       val composeView = TestComposePreviewView(mainSurface)
       val preview =
-        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _
+          ->
           composeView
         }
       Disposer.register(fixture.testRootDisposable, preview)
@@ -239,7 +241,8 @@ class ComposePreviewRepresentationTest {
 
       val composeView = TestComposePreviewView(mainSurface)
       val preview =
-        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _
+          ->
           composeView
         }
       Disposer.register(fixture.testRootDisposable, preview)

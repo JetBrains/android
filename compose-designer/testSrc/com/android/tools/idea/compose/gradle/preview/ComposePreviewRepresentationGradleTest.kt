@@ -791,7 +791,9 @@ class ComposePreviewRepresentationGradleTest {
     view: TestComposePreviewView
   ): ComposePreviewRepresentation {
     val previewRepresentation =
-      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
+      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _ ->
+        view
+      }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
   }

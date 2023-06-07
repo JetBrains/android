@@ -283,7 +283,7 @@ class PreviewNavigationTest {
     val previewView =
       TestComposePreviewView(fixture.testRootDisposable, project, myNavigationHandler)
     val composePreviewRepresentation =
-      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _ ->
         previewView
       }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
@@ -332,7 +332,7 @@ class PreviewNavigationTest {
         myNavigationHandler,
       )
     val composePreviewRepresentation =
-      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _ ->
         previewView
       }
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)

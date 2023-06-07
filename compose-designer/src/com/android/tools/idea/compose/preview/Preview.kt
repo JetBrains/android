@@ -685,6 +685,7 @@ class ComposePreviewRepresentation(
             project,
             psiFilePointer,
             projectBuildStatusManager,
+            ::requestRefresh,
             dataProvider,
             createMainDesignSurfaceBuilder(
               project,

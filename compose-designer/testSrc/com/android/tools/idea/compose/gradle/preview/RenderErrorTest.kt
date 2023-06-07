@@ -89,7 +89,7 @@ class RenderErrorTest {
 
     val previewView = TestComposePreviewView(fixture.testRootDisposable, project)
     composePreviewRepresentation =
-      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+      ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _, _ ->
         previewView
       }
     composePreviewRepresentation.atfChecksEnabled = true

@@ -164,4 +164,27 @@ class PreviewFiltersTest {
       )
       assertArrayEquals(arrayOf("GroupA"), previewFilters.filteredGroupNamesArray())
     }
+
+  @Test
+  fun instanceFilterIsApplied() = runBlocking {
+    val previewElement = SingleComposePreviewElementInstance.forTesting("A1", groupName = "GroupA")
+    val previewElements =
+      listOf(
+        previewElement,
+        SingleComposePreviewElementInstance.forTesting("A2", groupName = "GroupA"),
+        SingleComposePreviewElementInstance.forTesting("B1", groupName = "GroupB"),
+        SingleComposePreviewElementInstance.forTesting("C1", groupName = "GroupC")
+      )
+    val previewFilters = PreviewFilters(StaticPreviewProvider(previewElements))
+
+    previewFilters.instanceFilter = previewElement
+    assertArrayEquals(
+      previewElements.toTypedArray(),
+      previewFilters.allAvailablePreviewElements().toList().toTypedArray()
+    )
+    assertArrayEquals(
+      arrayOf(previewElement),
+      previewFilters.previewElements().toList().toTypedArray()
+    )
+  }
 }

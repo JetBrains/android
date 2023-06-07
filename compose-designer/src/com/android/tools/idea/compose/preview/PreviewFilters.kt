@@ -76,4 +76,9 @@ class PreviewFilters(
   @Slow
   override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
     singleElementFilteredProvider.previewElements()
+
+  /** Returns all available preview elements even if filter is applied. */
+  @Slow
+  suspend fun allAvailablePreviewElements(): Sequence<ComposePreviewElement> =
+    instantiatedElementProvider.previewElements()
 }

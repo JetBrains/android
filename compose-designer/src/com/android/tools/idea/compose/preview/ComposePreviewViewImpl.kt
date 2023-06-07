@@ -28,6 +28,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
+import com.android.tools.idea.compose.preview.lite.ComposeGallery
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -92,6 +94,9 @@ interface ComposePreviewView {
 
   /** If true, the contents have been at least rendered once. */
   var hasRendered: Boolean
+
+  /** Let the owner of this component know what the refresh is needed. */
+  val refreshNeeded: () -> Unit
 
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)
@@ -180,6 +185,7 @@ fun interface ComposePreviewViewProvider {
     project: Project,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     projectBuildStatusManager: ProjectBuildStatusManager,
+    refreshNeeded: () -> Unit,
     dataProvider: DataProvider,
     mainDesignSurfaceBuilder: NlDesignSurface.Builder,
     parentDisposable: Disposable
@@ -213,6 +219,7 @@ fun interface ComposePreviewViewProvider {
  *   panel. Used to handle which notifications should be displayed.
  * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build
  *   status and show/hide the correct loading message.
+ * @param refreshNeeded let the owner of this component know what the refresh is needed.
  * @param dataProvider the [DataProvider] to be used by the [mainSurface] panel.
  * @param mainDesignSurfaceBuilder a builder to create main design surface
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
@@ -221,6 +228,7 @@ internal class ComposePreviewViewImpl(
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val projectBuildStatusManager: ProjectBuildStatusManager,
+  override val refreshNeeded: () -> Unit,
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlDesignSurface.Builder,
   parentDisposable: Disposable
@@ -293,8 +301,23 @@ internal class ComposePreviewViewImpl(
     }
   private val actionsToolbar: ActionsToolbar
 
+  /**
+   * If lite mode is enabled, one preview at a time is available with tabs to select between them.
+   */
+  private var gallery: ComposeGallery? = null
+
   init {
     mainSurface.name = "Compose"
+
+    // Initialize gallery if isLiteModeEnabled.
+    if (ComposePreviewLiteModeManager.isLiteModeEnabled) {
+      gallery =
+        ComposeGallery(
+          content = mainSurface,
+          rootComponent = mainSurface,
+          refreshNeeded = refreshNeeded
+        )
+    }
 
     val contentPanel =
       JPanel(BorderLayout()).apply {
@@ -311,7 +334,10 @@ internal class ComposePreviewViewImpl(
 
         val content = JPanel(BorderLayout())
         content.add(topPanel, BorderLayout.NORTH)
-        content.add(mainSurface, BorderLayout.CENTER)
+        // TODO(b/286416832) If lite mode is enabled when file is opened - content should be
+        // switched here and
+        //  gallery is disabled.
+        content.add(gallery?.component ?: mainSurface, BorderLayout.CENTER)
 
         add(content, BorderLayout.CENTER)
       }
@@ -370,6 +396,35 @@ internal class ComposePreviewViewImpl(
 
       notificationPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
     }
+
+  override suspend fun updatePreviewsAndRefresh(
+    reinflate: Boolean,
+    previewElementProvider: PreviewFilters,
+    psiFile: PsiFile,
+    progressIndicator: ProgressIndicator,
+    onRenderCompleted: () -> Unit,
+    previewElementModelAdapter: ComposePreviewElementModelAdapter,
+    modelUpdater: NlModel.NlModelUpdaterInterface,
+    configureLayoutlibSceneManager:
+      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
+  ): List<ComposePreviewElement> {
+    gallery?.let {
+      val elements = previewElementProvider.allAvailablePreviewElements()
+      previewElementProvider.instanceFilter = it.updateAndGetSelected(elements)
+    }
+    return mainSurface.updatePreviewsAndRefresh(
+      reinflate,
+      previewElementProvider,
+      Logger.getInstance(ComposePreviewView::class.java),
+      psiFile,
+      mainSurface,
+      progressIndicator,
+      onRenderCompleted,
+      previewElementModelAdapter,
+      modelUpdater,
+      configureLayoutlibSceneManager
+    )
+  }
 
   /** Method called to ask all notifications to update. */
   private fun updateNotifications() =
