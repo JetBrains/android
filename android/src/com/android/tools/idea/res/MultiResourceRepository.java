@@ -25,7 +25,6 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.aar.AarResourceRepository;
-import com.android.utils.TraceUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -79,7 +78,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
 
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull private ImmutableList<LocalResourceRepository> myLocalResources = ImmutableList.of();
-  /** A concatenation of {@link #myLocalResources} and {@link #myLibraryResources}. */
+  /** A concatenation of {@link #myLocalResources} and library resources. */
   @GuardedBy("ITEM_MAP_LOCK")
   @NotNull private ImmutableList<ResourceRepository> myChildren = ImmutableList.of();
   /** Leaf resource repositories keyed by namespace. */
@@ -114,15 +113,11 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
     LowMemoryWatcher.register(this::onLowMemory, this);
-    ResourceUpdateTracer.logDirect(() -> "Created " + TraceUtils.getSimpleId(this) + " " + displayName);
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
                              @NotNull Collection<? extends AarResourceRepository> libraryResources,
                              @NotNull Collection<? extends ResourceRepository> otherResources) {
-    ResourceUpdateTracer.logDirect(() ->
-        TraceUtils.getSimpleId(this) + ".setChildren([" + TraceUtils.getSimpleIds(localResources) + "], ...)");
-
     synchronized (ITEM_MAP_LOCK) {
       for (LocalResourceRepository child : myLocalResources) {
         child.removeParent(this);
