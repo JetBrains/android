@@ -82,7 +82,6 @@ class ProjectBuildStatusManagerTest {
       ProjectBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         psiFile,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
       )
 
     runBlocking {
@@ -117,7 +116,6 @@ class ProjectBuildStatusManagerTest {
       ProjectBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         psiFile,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
       )
 
     try {
@@ -146,7 +144,6 @@ class ProjectBuildStatusManagerTest {
       ProjectBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         psiFile,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
       )
 
     try {
@@ -175,7 +172,6 @@ class ProjectBuildStatusManagerTest {
       ProjectBuildStatusManager.create(
         projectRule.fixture.testRootDisposable,
         psiFile,
-        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
       )
 
     try {
