@@ -109,7 +109,8 @@ public abstract class AndroidResourceExternalAnnotatorBase
         // Inline color
         assert (element.getColor() != null);
         Color color = element.getColor();
-        gutterIconRenderer = new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, resolver, null, true);
+        gutterIconRenderer =
+          new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, resolver, null, true, facet);
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
@@ -194,7 +195,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     // For java and kotlin files, it opens color resource picker only and set R.color.[resource_name] or android.R.color.[resource_name].
     // For xml files, it opens custom color palette and color resource picker. (which shows as 2 tabs)
     boolean withCustomColorPalette = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, resourceValue, withCustomColorPalette);
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, resourceValue, withCustomColorPalette, facet);
   }
 
   @Override

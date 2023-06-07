@@ -319,16 +319,19 @@ public class AndroidAnnotatorUtil {
     private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
     private final boolean myHasCustomColor;
+    private final AndroidFacet myFacet;
 
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
                          @NotNull ResourceResolver resolver,
                          @Nullable ResourceValue resourceValue,
-                         boolean hasCustomColor) {
+                         boolean hasCustomColor,
+                         @NotNull AndroidFacet facet) {
       myElement = element;
       myColor = color;
       myResolver = resolver;
       myResourceValue = resourceValue;
+      myFacet = facet;
 
       myIncludeClickAction = true;
       myHasCustomColor = hasCustomColor;
@@ -339,19 +342,16 @@ public class AndroidAnnotatorUtil {
     @Override
     public Icon getIcon() {
       if (myResourceValue != null && myElement.isValid()) {
-        AndroidFacet facet = AndroidFacet.getInstance(myElement);
-        if (facet != null) {
-          List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, myResourceValue, facet.getModule().getProject());
-          if (!colors.isEmpty()) {
-            MultipleColorIcon icon = new MultipleColorIcon();
-            icon.setColors(colors);
-            int scaledIconSize = JBUIScale.scale(ICON_SIZE);
-            icon.setWidth(scaledIconSize);
-            icon.setHeight(scaledIconSize);
-            return icon;
-          }
-          return JBUIScale.scaleIcon(EmptyIcon.create(ICON_SIZE));
+        List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, myResourceValue, myFacet.getModule().getProject());
+        if (!colors.isEmpty()) {
+          MultipleColorIcon icon = new MultipleColorIcon();
+          icon.setColors(colors);
+          int scaledIconSize = JBUIScale.scale(ICON_SIZE);
+          icon.setWidth(scaledIconSize);
+          icon.setHeight(scaledIconSize);
+          return icon;
         }
+        return JBUIScale.scaleIcon(EmptyIcon.create(ICON_SIZE));
       }
 
       Color color = getCurrentColor();
