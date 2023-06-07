@@ -58,7 +58,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.collect.ImmutableMap;

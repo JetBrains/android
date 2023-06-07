@@ -27,6 +27,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.utils.DataBindingUtils;
 import com.android.utils.HashCodes;
 import com.google.common.collect.ImmutableSet;

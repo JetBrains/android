@@ -31,6 +31,8 @@ import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.AarTestUtils;
 import com.android.resources.ResourceType;
 import com.android.resources.aar.AarSourceResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.res.MultiResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;

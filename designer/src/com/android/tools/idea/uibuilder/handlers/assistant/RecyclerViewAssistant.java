@@ -33,7 +33,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.HorizontalSpinner;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel;
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory.Context;

@@ -28,7 +28,7 @@ import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeRequest;
 import com.android.tools.idea.lint.common.LintIdeSupport;
 import com.android.tools.idea.lint.common.LintProblemData;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
 import com.android.tools.lint.client.api.LintRequest;

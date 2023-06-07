@@ -24,7 +24,7 @@ import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.res.DynamicValueResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;

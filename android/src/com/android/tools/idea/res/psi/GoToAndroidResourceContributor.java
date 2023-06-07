@@ -19,7 +19,7 @@ import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule
 
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.navigation.NavigationItem;

@@ -20,7 +20,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
-import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask

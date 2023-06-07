@@ -34,7 +34,7 @@ import com.android.tools.idea.editors.strings.action.RemoveKeysAction
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.FIXED_COLUMN_COUNT
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.RESOURCE_FOLDER_COLUMN
-import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.createTestModuleRepository
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet

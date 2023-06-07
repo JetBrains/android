@@ -38,7 +38,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;

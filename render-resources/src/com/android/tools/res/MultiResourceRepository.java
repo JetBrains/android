@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.res;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -110,7 +110,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   private final Table<ResourceNamespace, ResourceType, Set<SingleNamespaceResourceRepository>> myUnreconciledResources =
       Tables.newCustomTable(new HashMap<>(), () -> Maps.newEnumMap(ResourceType.class));
 
-  MultiResourceRepository(@NotNull String displayName) {
+  protected MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
     LowMemoryWatcher.register(this::onLowMemory, this);
   }

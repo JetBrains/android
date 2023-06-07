@@ -21,6 +21,7 @@ import com.android.tools.idea.res.ModuleRClass.SourceSet.MAIN
 import com.android.tools.idea.res.ModuleRClass.SourceSet.TEST
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.TRANSITIVE
+import com.android.tools.res.LocalResourceRepository
 import com.intellij.openapi.module.ModulePointerManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner

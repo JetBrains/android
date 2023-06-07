@@ -29,7 +29,7 @@ import com.android.tools.idea.projectsystem.containsFile
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getManifestFiles
-import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.findResourceFieldsForFileResource
 import com.android.tools.idea.res.findResourceFieldsForValueResource
@@ -369,7 +369,8 @@ class AndroidModularizeHandler : RefactoringActionHandler {
     private fun commonVisitReferenceExpression(reference: PsiElement,
                                                element: PsiElement,
                                                mySource: PsiElement,
-                                               myResourceRepository: LocalResourceRepository) {
+                                               myResourceRepository: LocalResourceRepository
+    ) {
       if (element is PsiField || element is KtProperty) {
         if (isAppResource(element)) {
           // This is a resource we might be able to move

@@ -28,6 +28,7 @@ import com.android.resources.AarTestUtils;
 import com.android.resources.ResourceType;
 import com.android.resources.aar.AarSourceResourceRepository;
 import com.android.testutils.TestUtils;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.ids.ResourceClassGenerator;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.google.common.collect.ImmutableList;

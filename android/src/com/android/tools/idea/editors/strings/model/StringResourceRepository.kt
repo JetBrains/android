@@ -21,9 +21,9 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.Configurable
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository
-import com.android.tools.idea.res.MultiResourceRepository
+import com.android.tools.res.LocalResourceRepository
+import com.android.tools.res.LocalResourceRepository.EmptyRepository
+import com.android.tools.res.MultiResourceRepository
 import com.android.tools.idea.res.PsiResourceItem
 import com.android.tools.idea.res.ResourceFolderRepository
 import com.android.tools.idea.util.toVirtualFile

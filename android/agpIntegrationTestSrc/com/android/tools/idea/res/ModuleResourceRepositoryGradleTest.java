@@ -24,6 +24,7 @@ import static com.intellij.testFramework.VfsTestUtil.createFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.ProjectUtil;

@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collections;

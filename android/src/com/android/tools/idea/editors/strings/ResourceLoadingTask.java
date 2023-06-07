@@ -17,7 +17,7 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.progress.ProgressIndicator;

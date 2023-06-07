@@ -24,7 +24,7 @@ import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowFilter;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourcesTestsUtil;
 import com.android.tools.idea.res.StringResourceWriter;
 import com.intellij.openapi.vfs.VirtualFile;

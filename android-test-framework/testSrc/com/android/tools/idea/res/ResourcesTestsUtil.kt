@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.res.LocalResourceRepository
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.runWriteAction

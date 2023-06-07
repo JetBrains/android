@@ -21,7 +21,7 @@ import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.res.DynamicValueResourceRepository
-import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.createTestModuleRepository
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat

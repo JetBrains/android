@@ -23,7 +23,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ResourceResolverCache;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.command.WriteCommandAction;

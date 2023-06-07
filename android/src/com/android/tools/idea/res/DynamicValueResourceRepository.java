@@ -25,6 +25,7 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;

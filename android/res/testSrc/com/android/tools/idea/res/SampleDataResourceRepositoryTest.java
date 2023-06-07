@@ -42,6 +42,7 @@ import com.android.tools.idea.testing.AndroidModuleDependency;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;

@@ -37,7 +37,7 @@ import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;

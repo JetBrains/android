@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.SampleDataResourceValue
 import com.android.resources.ResourceType
+import com.android.tools.res.LocalResourceRepository
 
 /**
  * Return all the [SampleDataResourceItem] representing images in all namespaces

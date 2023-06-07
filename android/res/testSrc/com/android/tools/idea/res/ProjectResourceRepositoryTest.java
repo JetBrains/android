@@ -27,6 +27,8 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.testing.TestModuleUtil;
+import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.res.MultiResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;

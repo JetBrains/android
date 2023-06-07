@@ -67,6 +67,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.module.ModuleKeyManager;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.utils.Base128InputStream;
 import com.android.utils.SdkUtils;
 import com.android.utils.TraceUtils;

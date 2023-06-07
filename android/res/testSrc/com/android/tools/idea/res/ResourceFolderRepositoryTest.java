@@ -57,6 +57,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;

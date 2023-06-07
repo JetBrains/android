@@ -23,7 +23,7 @@ import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.ui.TextFieldWithBooleanBoxKt;
 import com.android.tools.idea.ui.TextFieldWithColorPickerKt;

@@ -18,7 +18,7 @@
 package com.android.tools.idea.testing
 
 import com.android.testutils.waitForCondition
-import com.android.tools.idea.res.LocalResourceRepository
+import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate

@@ -20,6 +20,7 @@ import static com.android.tools.idea.testing.AndroidTestUtils.waitForUpdates;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
+import com.android.tools.res.LocalResourceRepository;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.res.MultiResourceRepository;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import java.util.ArrayList;
