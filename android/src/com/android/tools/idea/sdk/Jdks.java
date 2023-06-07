@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.IdeInfo;
@@ -24,15 +23,21 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread;
+import com.intellij.util.concurrency.annotations.RequiresReadLockAbsence;
 import com.intellij.util.system.CpuArch;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NonNls;
@@ -76,14 +81,20 @@ public class Jdks {
     return isEmpty(version) ? null : JavaSdkVersion.fromVersionString(version);
   }
 
-  @Nullable
-  public Sdk createAndAddJdk(@NotNull String jdkHomePath) {
-    Sdk jdk = ExternalSystemApiUtil.executeOnEdt(() -> createAndAddSDK(jdkHomePath, JavaSdk.getInstance()));
-    if (jdk == null) {
-      String msg = String.format("Unable to create JDK from path '%1$s'", jdkHomePath);
-      LOG.error(msg);
+  @RequiresBackgroundThread
+  @RequiresReadLockAbsence
+  public @Nullable Sdk createAndAddJdk(@NotNull String jdkHomePath) {
+    VirtualFile sdkHome = LocalFileSystem.getInstance().refreshAndFindFileByPath(FileUtil.toSystemIndependentName(jdkHomePath));
+    if (sdkHome == null) {
+      LOG.error(String.format("Unable to create JDK from path '%1$s'", jdkHomePath));
+      return null;
     }
-    return jdk;
+    Sdk newSdk = SdkConfigurationUtil.setupSdk(
+      ProjectJdkTable.getInstance().getAllJdks(), sdkHome, JavaSdk.getInstance(), true, null, null);
+    if (newSdk != null) {
+      ApplicationManager.getApplication().invokeAndWait(() -> SdkConfigurationUtil.addSdk(newSdk));
+    }
+    return newSdk;
   }
 
   @Nullable

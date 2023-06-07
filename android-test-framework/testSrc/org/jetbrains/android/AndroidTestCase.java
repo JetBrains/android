@@ -11,6 +11,7 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
@@ -200,7 +201,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     assert path.isAbsolute() : "JDK path should be an absolute path: " + path;
 
     VfsRootAccess.allowRootAccess(getTestRootDisposable(), path.toString());
-    @Nullable Sdk addedSdk = SdkConfigurationUtil.createAndAddSDK(path.toString(), JavaSdk.getInstance());
+    @Nullable Sdk addedSdk = Jdks.getInstance().createAndAddJdk(path.toString());
     if (addedSdk != null) {
       Disposer.register(getTestRootDisposable(), () -> {
         WriteAction.runAndWait(() -> ProjectJdkTable.getInstance().removeJdk(addedSdk));
