@@ -235,7 +235,7 @@ fun configureLayoutlibSceneManager(
     setShrinkRendering(!showDecorations)
     interactive = isInteractive
     isUsePrivateClassLoader = requestPrivateClassLoader
-    setQuality(if (PreviewPowerSaveManager.isInPowerSaveMode) 0.5f else 0.7f)
+    setQuality(if (PreviewPowerSaveManager.isInPowerSaveMode) 0.75f else 0.95f)
     setShowDecorations(showDecorations)
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene
     // Manager to not

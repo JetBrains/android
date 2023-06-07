@@ -310,8 +310,10 @@ public class RenderTaskTest extends AndroidTestCase {
     }
   }
 
-  private static void checkSimpleLayoutResult(@NotNull CompletableFuture<RenderResult> futureResult) {
-    checkSimpleLayoutResult(Futures.getUnchecked(futureResult));
+  private static RenderResult checkSimpleLayoutResult(@NotNull CompletableFuture<RenderResult> futureResult) {
+    RenderResult result = Futures.getUnchecked(futureResult);
+    checkSimpleLayoutResult(result);
+    return result;
   }
 
   public void testRender() {
@@ -342,6 +344,46 @@ public class RenderTaskTest extends AndroidTestCase {
     // layout without inflate should return null
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       assertNull(Futures.getUnchecked((task.layout())));
+    });
+  }
+
+  public void testRenderQuality() {
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      long expectedHeight = 1280;
+      long expectedWidth = 768;
+
+      RenderResult result;
+      result = checkSimpleLayoutResult(task.render());
+      assertEquals(expectedHeight, result.getRenderedImage().getHeight());
+      assertEquals(expectedWidth, result.getRenderedImage().getWidth());
+
+      // Rendered image should scale down according to the quality
+      task.setQuality(9 / 16f);
+      result = checkSimpleLayoutResult(task.render());
+      assertEquals(expectedHeight * 3 / 4, result.getRenderedImage().getHeight());
+      assertEquals(expectedWidth * 3 / 4, result.getRenderedImage().getWidth());
+
+      task.setQuality(1 / 4f);
+      result = checkSimpleLayoutResult(task.render());
+      assertEquals(expectedHeight / 2, result.getRenderedImage().getHeight());
+      assertEquals(expectedWidth / 2, result.getRenderedImage().getWidth());
+
+      // Using 0% quality doesn't make much sense, but the image should
+      // be of size 1x1 in such unexpected cases
+      task.setQuality(0f);
+      result = checkSimpleLayoutResult(task.render());
+      assertEquals(1, result.getRenderedImage().getHeight());
+      assertEquals(1, result.getRenderedImage().getWidth());
+
+      // Setting the quality back to 100%
+      task.setQuality(1f);
+      result = checkSimpleLayoutResult(task.render());
+      assertEquals(expectedHeight, result.getRenderedImage().getHeight());
+      assertEquals(expectedWidth, result.getRenderedImage().getWidth());
     });
   }
 

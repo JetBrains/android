@@ -283,8 +283,7 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
     .withPsiFile(PsiXmlFile(model.file))
     .withLayoutScanner(runAtfChecks)
     .withTopic(RenderingTopic.VISUAL_LINT)
-    .withMinDownscalingFactor(0.25f)
-    .withQuality(0f)
+    .withQuality(0.25f)
     .build().thenCompose { newTask ->
       if (newTask == null) {
         logger.error("INFLATE", "Error inflating view for visual lint on background. No RenderTask Created.",

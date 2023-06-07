@@ -40,9 +40,6 @@ const val MAX_RENDER_WIDTH = 768
 @VisibleForTesting
 const val MAX_RENDER_HEIGHT = 1024
 
-@VisibleForTesting
-const val QUALITY = 0.25f
-
 private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.name)
 
 private fun createRenderTask(facet: AndroidFacet,
@@ -52,7 +49,6 @@ private fun createRenderTask(facet: AndroidFacet,
   return StudioRenderService.getInstance(facet.module.project)
     .taskBuilder(facet, configuration)
     .withPsiFile(PsiXmlFile(xmlFile))
-    .withQuality(QUALITY)
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
     .build()

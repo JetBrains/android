@@ -82,12 +82,13 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
-    qualityLabels.put(0, new JLabel("Fastest"));
+    qualityLabels.put(20, new JLabel("Fastest"));
     qualityLabels.put(100, new JLabel("Slowest"));
+    myLayoutEditorQualitySlider.setMinimum(20);
     myLayoutEditorQualitySlider.setLabelTable(qualityLabels);
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
-    myLayoutEditorQualitySlider.setMajorTickSpacing(25);
+    myLayoutEditorQualitySlider.setMajorTickSpacing(20);
     myPreviewPickerCheckBox.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     myPreviewPickerLabel.setVisible(StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.get());
     initTraceComponents();

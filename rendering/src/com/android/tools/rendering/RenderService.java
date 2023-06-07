@@ -293,7 +293,6 @@ final public class RenderService implements Disposable {
      * Enum value to specify the context or tool in which a render is happening and its priority
      */
     @NotNull private RenderingTopic myTopic = RenderingTopic.NOT_SPECIFIED;
-    private float myMinDownscalingFactor = 0.5f;
 
     private RenderTaskBuilder(@NotNull RenderModelModule module,
                               @NotNull RenderConfiguration configuration,
@@ -468,16 +467,6 @@ final public class RenderService implements Disposable {
     }
 
     /**
-     * Sets a minimum downscaling for rendered images. This is to ensure the quality cannot go below a certain level.
-     * By default, it is set at 0.5.
-     */
-    @NotNull
-    public RenderTaskBuilder withMinDownscalingFactor(float downscalingFactor) {
-      myMinDownscalingFactor = downscalingFactor;
-      return this;
-    }
-
-    /**
      * Sets a custom parser for creating the {@link ViewInfo} hierarchy from the layout root view.
      */
     @NotNull
@@ -541,7 +530,7 @@ final public class RenderService implements Disposable {
                            myCredential, myContext.getModule().getEnvironment().getCrashReporter(), myImagePool,
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, tracker,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
-                           classesToPreload, reportOutOfDateUserClasses, myMinDownscalingFactor, myTopic);
+                           classesToPreload, reportOutOfDateUserClasses, myTopic);
 
           if (myXmlFile != null) {
             task.setXmlFile(myXmlFile);

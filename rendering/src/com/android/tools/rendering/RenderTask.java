@@ -148,7 +148,6 @@ public class RenderTask {
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
   @NotNull private final HardwareConfigHelper myHardwareConfigHelper;
-  private final float myMinDownscalingFactor;
   private final float myDefaultQuality;
   private final long myDownScaledImageMaxBytes;
   @Nullable private IncludeReference myIncludedWithin;
@@ -208,7 +207,6 @@ public class RenderTask {
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
              boolean reportOutOfDateUserClasses,
-             float minDownscalingFactor,
              @NotNull RenderAsyncActionExecutor.RenderingTopic topic) throws NoDeviceException {
     myTracker = tracker;
     myImagePool = imagePool;
@@ -273,7 +271,6 @@ public class RenderTask {
         myLayoutlibCallback.loadAndParseRClass();
       }
       myLocale = renderContext.getConfiguration().getLocale();
-      myMinDownscalingFactor = minDownscalingFactor;
       myDefaultQuality = quality;
       // Some devices need more memory to avoid the blur when rendering. These are special cases.
       // The image looks acceptable after dividing both width and height to half. So we divide memory usage by 4 for these devices.
@@ -300,24 +297,29 @@ public class RenderTask {
   }
 
   public void setQuality(float quality) {
+    quality = Math.max(0f, Math.min(quality, 1f));
     if (quality >= 1.f) {
       myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
       return;
     }
-
-    float actualSamplingFactor = myMinDownscalingFactor + Math.max(Math.min(quality, 1f), 0f) * (1f - myMinDownscalingFactor);
-    long maxSize = (long)((float)myDownScaledImageMaxBytes * actualSamplingFactor);
+    long maxSize = myDownScaledImageMaxBytes;
+    // Each dimension should be scaled using the sqrt(quality), so that
+    // the whole image is scaled with quality as a consequence.
+    double dimensionScale = Math.sqrt(quality);
     myCachingImageFactory = new CachingImageFactory(((width, height) -> {
-      int downscaleWidth = width;
-      int downscaleHeight = height;
-      int size = width * height;
+      double downscaleWidth = width * dimensionScale;
+      double downscaleHeight = height * dimensionScale;
+      double size = width * height;
+      // Use maxSize as absolute upper bound
       if (size > maxSize) {
-        double scale = maxSize / (double)size;
-        downscaleWidth *= scale;
-        downscaleHeight *= scale;
+        double newDimensionScale = Math.sqrt(maxSize / size);
+        downscaleWidth *= newDimensionScale;
+        downscaleHeight *= newDimensionScale;
       }
-
-      return SIMPLE_IMAGE_FACTORY.getImage(downscaleWidth, downscaleHeight);
+      // Make sure both dimensions are positive integers
+      int w = Math.max(1, (int)downscaleWidth);
+      int h = Math.max(1, (int)downscaleHeight);
+      return SIMPLE_IMAGE_FACTORY.getImage(w, h);
     }));
   }
 

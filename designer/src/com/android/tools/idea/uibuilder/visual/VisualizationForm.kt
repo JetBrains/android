@@ -162,8 +162,8 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
         sceneManager.setShowDecorations(VisualizationToolSettings.getInstance().globalState.showDecoration)
         sceneManager.setUpdateAndRenderWhenActivated(false)
         sceneManager.setUseImagePool(false)
-        // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
-        sceneManager.setQuality(0.0f)
+        // 0.5f makes it spend 50% memory.
+        sceneManager.setQuality(0.5f)
         if (StudioFlags.NELE_VISUAL_LINT.get()) {
           sceneManager.setLogRenderErrors(false)
         }
