@@ -94,17 +94,14 @@ class UnpairWearableDeviceAction() : AnAction("Unpair Device") {
 
 /**
  * Updates the presentation for actions that involve a paired device: invisible if the device
- * doesn't support pairing at all, and enabled if the device is paired.
+ * doesn't support pairing at all or is unpaired, and enabled if the device is paired.
  */
 private fun AnActionEvent.updatePairedDeviceActionPresentation() {
-  when (val wearPairingId = wearPairingId(this)) {
-    null -> presentation.isEnabledAndVisible = false
-    else -> {
-      presentation.isVisible = true
-      presentation.isEnabled =
-        WearPairingManager.getInstance().getPairsForDevice(wearPairingId).isNotEmpty()
+  presentation.isEnabledAndVisible =
+    when (val wearPairingId = wearPairingId(this)) {
+      null -> false
+      else -> WearPairingManager.getInstance().getPairsForDevice(wearPairingId).isNotEmpty()
     }
-  }
 }
 
 private fun wearPairingId(e: AnActionEvent): String? =
