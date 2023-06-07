@@ -705,6 +705,11 @@ public final class StudioFlags {
     "This allows the IDE to pre-fetch models for the currently selected variants in parallel before resolving the " +
     "new variant selection (which is less parallelizable process).", false);
 
+  public static final Flag<Boolean> GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL = Flag.create(
+    GRADLE_IDE, "gradle.sync.fetch.kotlin.models.in.parallel", "Enables parallel fetching of Kotlin models",
+    "This allows the IDE to fetch Kotlin models in parallel", true);
+
+
   public static final Flag<String> SYNC_STATS_OUTPUT_DIRECTORY = Flag.create(
     GRADLE_IDE, "sync.stats.output.directory", "Enables printing sync stats to a file",
     "If not empty, sync execution stats for models requested by Android Studio are printed to a file in the given directory when" +

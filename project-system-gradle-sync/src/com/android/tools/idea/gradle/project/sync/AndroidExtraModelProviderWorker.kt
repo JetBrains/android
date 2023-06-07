@@ -87,7 +87,10 @@ internal class AndroidExtraModelProviderWorker(
               v2AndroidGradleModules
                 .all { canUseParallelSync(AgpVersion.tryParse(it.versions.agp), gradleVersion) }
 
-            val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(v2ModelBuildersSupportParallelSync)
+            val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(
+              v2ModelBuildersSupportParallelSync,
+              syncOptions.flags.studioFlagFetchKotlinModelsInParallel
+            )
 
             val models =
               SyncProjectActionWorker(buildInfo, syncCounters, syncOptions, configuredSyncActionRunner)

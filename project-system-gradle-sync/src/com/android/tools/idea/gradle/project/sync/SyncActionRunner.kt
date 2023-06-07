@@ -186,7 +186,6 @@ class SyncActionRunner private constructor(
   private val syncCounters: SyncCounters,
   private val parallelActionsSupported: Boolean,
   private val canFetchV2ModelsInParallel: Boolean = false,
-  private val canFetchPlatformModelsInParallel: Boolean = false,
   private val canFetchKotlinModelsInParallel: Boolean = false,
 ) : GradleInjectedSyncActionRunner {
 
@@ -198,14 +197,13 @@ class SyncActionRunner private constructor(
     ) = SyncActionRunner(controller, syncCounters, parallelActionsSupported)
   }
 
-  fun enableParallelFetchForV2Models(enable: Boolean = true): SyncActionRunner =
+  fun enableParallelFetchForV2Models(fetchV2ModelsInParallel: Boolean, fetchKotlinModelsInParallel: Boolean): SyncActionRunner =
     SyncActionRunner(
       controller = controller,
       syncCounters = syncCounters,
       parallelActionsSupported = parallelActionsSupported,
-      canFetchV2ModelsInParallel = enable,
-      canFetchPlatformModelsInParallel = canFetchPlatformModelsInParallel,
-      canFetchKotlinModelsInParallel = canFetchKotlinModelsInParallel
+      canFetchV2ModelsInParallel = fetchV2ModelsInParallel,
+      canFetchKotlinModelsInParallel = fetchV2ModelsInParallel && fetchKotlinModelsInParallel
     )
 
   val parallelActionsForV2ModelsSupported: Boolean get() = parallelActionsSupported && canFetchV2ModelsInParallel
