@@ -2463,7 +2463,6 @@ android-studio/plugins/android/resources/transport/native/agent/x86/libjvmtiagen
 android-studio/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/x86/transport
 android-studio/plugins/android/resources/transport/x86_64/transport
-android-studio/plugins/c-clangd/bin/clang/linux/x64/clang-tidy
 android-studio/plugins/c-clangd/bin/clang/linux/x64/clangd
 android-studio/plugins/c-clangd/bin/clang/linux/x64/libc++.so.1
 android-studio/plugins/c-clangd/lib/LICENSE.txt/CIDR_LICENSE.txt
