@@ -23,7 +23,7 @@ using namespace std;
 ScopedSetting::ScopedSetting(Settings::Table table, string key)
     : table_(table),
       key_(std::move(key)),
-      restore_required_(false) {
+      current_value_known_(false) {
 }
 
 ScopedSetting::~ScopedSetting() {
@@ -31,25 +31,21 @@ ScopedSetting::~ScopedSetting() {
 }
 
 void ScopedSetting::Restore() {
-  if (restore_required_) {
-    restore_required_ = false;
-    Settings::Put(table_, key_.c_str(), saved_value_.c_str());
+  if (current_value_ != original_value_) {
+    Settings::Put(table_, key_.c_str(), original_value_.c_str());
+    current_value_ = original_value_;
   }
 }
 
 void ScopedSetting::Set(const char* value) {
-  if (restore_required_) {
+  if (!current_value_known_) {
+    current_value_ = Settings::Get(table_, key_.c_str());
+    original_value_ = current_value_;
+    current_value_known_ = true;
+  }
+  if (value != current_value_) {
     Settings::Put(table_, key_.c_str(), value);
-    if (saved_value_ == value) {
-      restore_required_ = false;
-    }
-  } else {
-    auto previous_value = Settings::Get(table_, key_.c_str());
-    if (previous_value != value) {
-      Settings::Put(table_, key_.c_str(), value);
-      saved_value_ = previous_value;
-      restore_required_ = true;
-    }
+    current_value_ = value;
   }
 }
 

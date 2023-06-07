@@ -438,27 +438,15 @@ void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
     return;
   }
 
-  bool default_orientation;
-  {
-    scoped_lock lock(mutex_);
-    if (orientation == CURRENT_VIDEO_ORIENTATION) {
-      orientation = video_orientation_;
-    }
-    default_orientation = orientation < 0 || orientation == display_info_.rotation;
-  }
-
-  if (default_orientation) {
-    Log::D("DisplayStreamer::SetVideoOrientation: restoring accelerometer rotation");
-    Agent::session_environment().RestoreAccelerometerRotation();
-  } else {
-    Log::D("DisplayStreamer::SetVideoOrientation: disabling accelerometer rotation");
-    Agent::session_environment().DisableAccelerometerRotation();
-  }
+  Agent::session_environment().DisableAccelerometerRotation();
 
   Jni jni = Jvm::GetJni();
   bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni);
 
   scoped_lock lock(mutex_);
+  if (orientation == CURRENT_VIDEO_ORIENTATION) {
+    orientation = video_orientation_;
+  }
   if (orientation >= 0) {
     WindowManager::FreezeRotation(jni, orientation);
     // Restore the original state of auto-display_rotation.

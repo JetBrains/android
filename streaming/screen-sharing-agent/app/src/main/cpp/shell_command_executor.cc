@@ -37,6 +37,7 @@ string ExecuteShellCommand(const char* command) {
       Log::E("\"%s\" returned %d", command, retcode);
     }
   }
+  Log::D(R"(Shell command "%s" produced "%s")", command, output.c_str());
   return output;
 }
 
