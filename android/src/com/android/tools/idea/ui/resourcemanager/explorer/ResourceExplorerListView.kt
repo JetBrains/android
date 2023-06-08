@@ -801,7 +801,7 @@ class ResourceExplorerListView(
   /**
    * Button to scale down the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.General.ZoomOut), DumbAware {
+  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.Graph.ZoomOut), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = max(MIN_CELL_WIDTH, (previewSize * 0.9).roundToInt())
@@ -815,7 +815,7 @@ class ResourceExplorerListView(
   /**
    * Button to scale up the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.General.ZoomIn), DumbAware {
+  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.Graph.ZoomIn), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = min(MAX_CELL_WIDTH, (previewSize * 1.1).roundToInt())
