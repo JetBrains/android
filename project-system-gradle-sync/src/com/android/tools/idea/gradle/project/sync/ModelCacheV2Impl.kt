@@ -164,8 +164,8 @@ internal fun modelCacheV2Impl(
    */
   val isAGPVersion8dot1dot0alpha8orLater = agpVersion.isAtLeast(8, 1, 0, "alpha", 8, false)
   val useAdditionalArtifactsFromLibraries = isAGPVersion8dot1dot0alpha8orLater && multiVariantAdditionalArtifactSupport
-  /** If AGP has absolute Gradle build path used in [ProjectInfo.buildId], or it uses just the build name that we need to patch. */
-  val supportsAbsoluteGradleBuildPaths = false  // agpVersion.isAtLeast(8, 2, 0, "alpha", 13, false)
+  /** If AGP has absolute Gradle build path used in [ProjectInfo.buildId], or it uses the Gradle build name that we need to patch. */
+  val supportsAbsoluteGradleBuildPaths = agpVersion.isAtLeast(8, 2, 0, "alpha", 13, false)
 
   fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
     val folder: File? = provider.manifestFile.parentFile?.deduplicateFile()
