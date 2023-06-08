@@ -171,8 +171,10 @@ class StateChart<T : Any>(private val model: StateChartModel<T>,
           if (value != previousValue) { // Ignore repeated values.
             // Don't draw if this block doesn't intersect with [min..max]
             if (x >= min) {
-              // Draw the previous block.
-              addRectangleDelta(previousValue, previousX, x.toDouble())
+              // Draw the previous block if previous value is non-null
+              previousValue?.let {
+                addRectangleDelta(it, previousX, x.toDouble())
+              }
             }
 
             // Start a new block.
