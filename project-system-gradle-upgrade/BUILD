@@ -1,7 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_DATA")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_DATA")
 
 # managed by go/iml_to_build
 iml_module(
@@ -270,6 +270,33 @@ old_agp_test(
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system/previous-versions:7.1.0",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    tags = [
+        "block-network",
+        "no_test_mac",  # b/215483578
+        "no_test_windows",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+)
+
+old_agp_test(
+    name = "ProjectUpgradeTests_From",
+    timeout = "long",
+    agp_version = AGP_7_2,
+    data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
+        "//tools/base/build-system:gradle-distrib-7.3.3",
+    ] + AGP_DATA[AGP_7_2],
+    gradle_version = "7.3.3",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
+    maven_deps = [
+        ":test_deps",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system/previous-versions:7.2.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
     tags = [
