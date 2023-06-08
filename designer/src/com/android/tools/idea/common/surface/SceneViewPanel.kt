@@ -666,6 +666,15 @@ internal class SceneViewPanel(private val sceneViewProvider: () -> Collection<Sc
       .map { it.bounds }
       .firstOrNull()
 
+  fun findSceneViewRectangles(): HashMap<SceneView, Rectangle?> = hashMapOf (
+    *components
+      .filterIsInstance<SceneViewPeerPanel>()
+      .distinctBy { it.sceneView }
+      .map {
+        it.sceneView to it.bounds
+      }.toTypedArray()
+  )
+
   /**
    * Find the predicted rectangle of the [sceneView] when layout manager re-layout the content with the given [content] and [availableSize].
    */

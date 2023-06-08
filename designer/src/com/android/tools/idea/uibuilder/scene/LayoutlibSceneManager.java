@@ -364,6 +364,12 @@ public class LayoutlibSceneManager extends SceneManager {
   private float quality = 1f;
 
   /**
+   * The quality used the last time the content of this scene manager was successfully rendered.
+   * Defaults to 0 until a successful render happens.
+   */
+  private float lastRenderQuality = 0f;
+
+  /**
    * If true, the rendering will report when the user classes used by this {@link SceneManager} are out of date and have been modified
    * after the last build. The reporting will be done via the rendering log.
    * Compose has its own mechanism to track out of date files so it will disable this reporting.
@@ -1026,6 +1032,10 @@ public class LayoutlibSceneManager extends SceneManager {
     this.quality = quality;
   }
 
+  public float getLastRenderQuality() {
+    return this.lastRenderQuality;
+  }
+
   public void setLogRenderErrors(boolean enabled) {
     myLogRenderErrors = enabled;
   }
@@ -1517,7 +1527,13 @@ public class LayoutlibSceneManager extends SceneManager {
           if (elapsedFrameTimeMs != -1) {
             myRenderTask.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(elapsedFrameTimeMs));
           }
+          // Make sure that the task's quality is up-to-date before rendering
+          final float currentQuality = quality;
+          myRenderTask.setQuality(quality);
           return myRenderTask.render().thenApply(result -> {
+            if (result.getRenderResult().isSuccess()) {
+              lastRenderQuality = currentQuality;
+            }
             // When the layout was inflated in this same call, we do not have to update the hierarchy again
             if (result != null && !inflated) {
               reverseUpdate.set(reverseUpdate.get() || updateHierarchy(result));

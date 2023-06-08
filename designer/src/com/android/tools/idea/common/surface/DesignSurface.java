@@ -106,6 +106,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -1051,6 +1052,15 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   public boolean canZoomToActual() {
     double currentScale = getScale();
     return (currentScale > 1 && canZoomOut()) || (currentScale < 1 && canZoomIn());
+  }
+
+  public Map<SceneView, Rectangle> findSceneViewRectangles() {
+    return mySceneViewPanel.findSceneViewRectangles();
+  }
+
+  public Rectangle getCurrentScrollRectangle() {
+    if (myScrollPane == null) return null;
+    return new Rectangle(myScrollPane.getViewport().getViewPosition(), myScrollPane.getViewport().getSize());
   }
 
   /**
