@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.resolve
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -56,6 +57,20 @@ enum class TestProject(
 ) : TemplateBasedTestProject {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
+  APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN(
+    TestProjectToSnapshotPaths.APP_WITH_BUILDSRC,
+    testName = "buildSrcWithSettingsPlugin",
+    patch = {
+      it.resolve("settings.gradle").replaceContent { original ->
+        original.replace("plugins {", """
+          plugins {
+            id("com.android.settings") version "${this.resolve().agpVersion}"
+        """.trimIndent()
+        )
+      }
+    },
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT }
+  ),
   // TODO(b/279759255): disabled while https://youtrack.jetbrains.com/issue/IDEA-310919 is active
   // COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),

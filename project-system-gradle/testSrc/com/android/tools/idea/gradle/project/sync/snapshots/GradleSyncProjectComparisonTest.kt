@@ -103,6 +103,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.TWO_JARS),
       ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC),
+      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS),
