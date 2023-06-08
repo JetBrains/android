@@ -19,7 +19,6 @@ package com.android.tools.idea.stats
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.analytics.recordTestLibrary
 import com.google.common.collect.Iterables
 import com.google.wireless.android.sdk.stats.TestLibraries

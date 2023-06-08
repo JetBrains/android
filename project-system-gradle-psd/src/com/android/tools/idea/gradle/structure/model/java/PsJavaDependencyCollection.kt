@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.java
 
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
@@ -153,10 +152,7 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
     val parsedDependencies = parent.dependencies
     val group = library.group
     val name = library.module
-    val version = library.version
-    val coordinates = GradleCoordinate(group, name, version)
-    val matchingDeclaredDependencies = parsedDependencies
-      .findLibraryDependencies(coordinates.groupId, coordinates.artifactId)
+    val matchingDeclaredDependencies = parsedDependencies.findLibraryDependencies(group, name)
     val resolvedDependencies = library.dependencies
       .map { if (it is ReferenceNode) dependencyNodeMap[it.id] else it }
       .filterIsInstance<ArtifactDependencyNode>()

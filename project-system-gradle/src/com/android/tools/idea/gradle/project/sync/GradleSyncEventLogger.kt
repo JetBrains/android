@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
