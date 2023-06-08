@@ -116,6 +116,8 @@
     <debugger.kotlinStackFrameValueContributor implementation="com.android.tools.compose.debug.recomposition.ComposeValueContributor"/>
     <debuggerClassFilterProvider implementation="com.android.tools.compose.debug.ComposeDebuggerClassesFilterProvider"/>
     <xdebugger.settings implementation="com.android.tools.compose.debug.ComposeDebuggerSettings"/>
+    <xdebugger.breakpointType implementation="com.android.tools.compose.debug.ComposeFunctionBreakpointType"/>
+    <debugger.javaBreakpointHandlerFactory implementation="com.android.tools.compose.debug.ComposeFunctionBreakpointHandlerFactory"/>
     <debugger.compoundRendererProvider id="SnapshotMutableStateImplRenderer"
                                        implementation="com.android.tools.compose.debug.render.SnapshotMutableStateImplRendererProvider"
                                        order="first"/>
