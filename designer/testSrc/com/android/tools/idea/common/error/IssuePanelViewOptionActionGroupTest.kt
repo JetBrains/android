@@ -89,16 +89,8 @@ class IssuePanelViewOptionActionGroupTest {
     }
     assertFalse(severityIterator.hasNext())
 
-    showVisualProblemAction.let {
-      assertEquals("Show Screen Size Problem", it.templateText)
-    }
-
-    sortedBySeverityAction.let {
-      assertEquals("Sort By Severity", it.templateText)
-    }
-
-    sortedByNameAction.let {
-      assertEquals("Sort By Name", it.templateText)
-    }
+    assertEquals("Show Screen Size Problem", showVisualProblemAction.templateText)
+    assertEquals("Sort By Severity", sortedBySeverityAction.templateText)
+    assertEquals("Sort By Name", sortedByNameAction.templateText)
   }
 }
