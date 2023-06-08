@@ -148,7 +148,17 @@ public class RenderTask {
   @NotNull private final LayoutlibCallbackImpl myLayoutlibCallback;
   @NotNull private final LayoutLibrary myLayoutLib;
   @NotNull private final HardwareConfigHelper myHardwareConfigHelper;
-  private final float myDefaultQuality;
+  /**
+   *  Indicates the quality value expected to be used the next time a render is executed
+   *  using this render task. It can be updated while setting up the render task using
+   *  {@link RenderTask#setQuality(float)}
+   */
+  private float myTargetQuality = 1f;
+  /**
+   *  Indicates the quality value used in the last {@link RenderTask#render(IImageFactory)},
+   *  or in the current one when a render is being executed.
+   */
+  private float myCurrentQuality = 1f;
   private final long myDownScaledImageMaxBytes;
   @Nullable private IncludeReference myIncludedWithin;
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
@@ -271,7 +281,6 @@ public class RenderTask {
         myLayoutlibCallback.loadAndParseRClass();
       }
       myLocale = renderContext.getConfiguration().getLocale();
-      myDefaultQuality = quality;
       // Some devices need more memory to avoid the blur when rendering. These are special cases.
       // The image looks acceptable after dividing both width and height to half. So we divide memory usage by 4 for these devices.
       if (DEVICE_CLASS_DESKTOP_ID.equals(device.getId())) {
@@ -287,7 +296,7 @@ public class RenderTask {
       else {
         myDownScaledImageMaxBytes = DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES;
       }
-      restoreDefaultQuality();
+      setQuality(quality);
 
       stackTraceCaptureElement.bind(this);
     } catch (Exception ex) {
@@ -298,6 +307,8 @@ public class RenderTask {
 
   public void setQuality(float quality) {
     quality = Math.max(0f, Math.min(quality, 1f));
+    if (quality == myTargetQuality) return;
+    myTargetQuality = quality;
     if (quality >= 1.f) {
       myCachingImageFactory = SIMPLE_IMAGE_FACTORY;
       return;
@@ -321,10 +332,6 @@ public class RenderTask {
       int h = Math.max(1, (int)downscaleHeight);
       return SIMPLE_IMAGE_FACTORY.getImage(w, h);
     }));
-  }
-
-  public void restoreDefaultQuality() {
-    setQuality(myDefaultQuality);
   }
 
   public void setXmlFile(@NotNull RenderXmlFile file) {
@@ -1023,9 +1030,12 @@ public class RenderTask {
 
   /**
    * Renders the layout to the current {@link IImageFactory} set in {@link #myImageFactoryDelegate}
+   *
+   * @param forceMeasure indicates whether it is necessary to re-measure before rendering. This is
+   *                     needed for example when re-rendering after changing the quality up.
    */
   @NotNull
-  private CompletableFuture<RenderResult> renderInner() {
+  private CompletableFuture<RenderResult> renderInner(boolean forceMeasure) {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
@@ -1056,7 +1066,7 @@ public class RenderTask {
       try {
         long startRenderTimeMs = System.currentTimeMillis();
         return runAsyncRenderAction(() -> {
-          myRenderSession.render();
+          myRenderSession.render(forceMeasure);
           RenderResult result =
             RenderResult.create(myContext, myRenderSession, xmlFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
@@ -1108,8 +1118,11 @@ public class RenderTask {
   @NotNull
   public CompletableFuture<RenderResult> render(@NotNull IImageFactory factory) {
     myImageFactoryDelegate = factory;
-
-    return renderInner();
+    // If a re-render is happening after changing the quality up, then we need to re-measure
+    // to avoid the rendered image to show things out of place.
+    boolean forceMeasure = myTargetQuality > myCurrentQuality;
+    myCurrentQuality = myTargetQuality;
+    return renderInner(forceMeasure);
   }
 
   /**

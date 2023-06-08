@@ -360,6 +360,7 @@ public class RenderTaskTest extends AndroidTestCase {
       result = checkSimpleLayoutResult(task.render());
       assertEquals(expectedHeight, result.getRenderedImage().getHeight());
       assertEquals(expectedWidth, result.getRenderedImage().getWidth());
+      BufferedImage initialImage = result.getRenderedImage().getCopy();
 
       // Rendered image should scale down according to the quality
       task.setQuality(9 / 16f);
@@ -384,6 +385,12 @@ public class RenderTaskTest extends AndroidTestCase {
       result = checkSimpleLayoutResult(task.render());
       assertEquals(expectedHeight, result.getRenderedImage().getHeight());
       assertEquals(expectedWidth, result.getRenderedImage().getWidth());
+      try {
+        ImageDiffUtil.assertImageSimilar("Reused render task", initialImage, result.getRenderedImage().getCopy(), IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
     });
   }
 
