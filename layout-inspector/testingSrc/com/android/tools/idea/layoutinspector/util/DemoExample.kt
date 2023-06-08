@@ -16,6 +16,9 @@
 package com.android.tools.idea.layoutinspector.util
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.SdkConstants.FQCN_BUTTON
+import com.android.SdkConstants.FQCN_FRAME_LAYOUT
+import com.android.SdkConstants.FQCN_LINEAR_LAYOUT
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
@@ -58,11 +61,19 @@ object DemoExample {
     val layout = ResourceReference(namespace, ResourceType.LAYOUT, "demo")
     val relativeLayoutId = ResourceReference(namespace, ResourceType.ID, "relativeLayout")
     val textViewId = ResourceReference(namespace, ResourceType.ID, "title")
+    val buttonId = ResourceReference(namespace, ResourceType.ID, "button")
+    val frameId = ResourceReference(namespace, ResourceType.ID, "frame")
     this.also {
       view(1, 0, 0, 1200, 1600, qualifiedName = DECOR_VIEW) {
         view(2, 0, 0, 1200, 1600, qualifiedName = FQCN_RELATIVE_LAYOUT, viewId = relativeLayoutId, layout = layout) {
           view(3, 200, 400, 400, 100, qualifiedName = FQCN_TEXT_VIEW, viewId = textViewId, textValue = "@drawable/battery", layout = layout,
                body = body)
+          view(4, 200, 500, 400, 100, qualifiedName = FQCN_BUTTON, viewId = buttonId, textValue = "@string/hello", layout = layout)
+          view(5, 200, 500, 400, 100, qualifiedName = FQCN_TEXT_VIEW, textValue = "TextView without an ID", layout = layout)
+          view(6, 200, 500, 400, 100, qualifiedName = FQCN_FRAME_LAYOUT, viewId = frameId, textValue = "@string/hello", layout = layout) {
+            view(7, 200, 500, 400, 100, qualifiedName = FQCN_TEXT_VIEW, textValue = "TextView without an ID", layout = layout)
+          }
+          view(8, 200, 500, 400, 100, qualifiedName = FQCN_LINEAR_LAYOUT, layout = layout)
         }
       }
     }

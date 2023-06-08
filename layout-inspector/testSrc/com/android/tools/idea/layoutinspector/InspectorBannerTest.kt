@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ProjectRule
@@ -41,7 +41,7 @@ class InspectorBannerTest {
   fun testVisibleWithStatus() {
     val notificationModel = NotificationModel(projectRule.project)
     val banner = InspectorBanner(notificationModel)
-    notificationModel.addNotification("There is an error somewhere", Status.Error, emptyList())
+    notificationModel.addNotification("key1", "There is an error somewhere", Status.Error, emptyList())
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()
     }
@@ -52,7 +52,7 @@ class InspectorBannerTest {
   fun testInvisibleAfterEmptyStatus() {
     val notificationModel = NotificationModel(projectRule.project)
     val banner = InspectorBanner(notificationModel)
-    notificationModel.addNotification("There is an error somewhere", Status.Error, emptyList())
+    notificationModel.addNotification("key1", "There is an error somewhere", Status.Error, emptyList())
     notificationModel.clear()
     invokeAndWaitIfNeeded {
       UIUtil.dispatchAllInvocationEvents()

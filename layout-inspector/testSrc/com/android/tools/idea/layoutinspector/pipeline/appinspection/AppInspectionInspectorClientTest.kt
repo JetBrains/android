@@ -63,6 +63,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -77,7 +78,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.metrics.MetricsTrackerRule
@@ -1132,7 +1132,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
       val notification1 = notificationModel.notifications.single()
-      assertThat(notification1.message).isEqualTo(API_29_BUG_MESSAGE)
+      assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY))
     })
     notificationModel.clear()
 
@@ -1161,9 +1161,10 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
       waitForCondition(1, TimeUnit.SECONDS) { client.state == InspectorClient.State.DISCONNECTED }
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
       val notification2 = notificationModel.notifications.single()
-      assertThat(notification2.message).isEqualTo("$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE")
+      assertThat(notification2.message)
+        .isEqualTo("${LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)} ${LayoutInspectorBundle.message(API_29_BUG_UPGRADE_KEY)}")
+      notificationModel.clear()
     })
-    notificationModel.clear()
   }
 
   private suspend fun setUpAvdManagerAndRun(sdkHandler: AndroidSdkHandler, avdInfo: AvdInfo, body: suspend () -> Unit) {

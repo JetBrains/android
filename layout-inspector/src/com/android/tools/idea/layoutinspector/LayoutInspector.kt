@@ -291,7 +291,7 @@ class LayoutInspector private constructor(
       else -> return
     }
     if (message != null) {
-      notificationModel.addNotification(message, Status.Error)
+      notificationModel.addNotification(message, message, Status.Error)
 
       if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
         ApplicationManager.getApplication().invokeLater {

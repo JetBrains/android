@@ -19,16 +19,17 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ScreenRound
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComponentImageLoader
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.layoutinspector.BITMAP_HEADER_SIZE
 import com.android.tools.layoutinspector.BitmapType
@@ -38,13 +39,16 @@ import com.android.tools.layoutinspector.SkiaViewNode
 import com.android.tools.layoutinspector.toInt
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.ui.EditorNotificationPanel.Status
 import java.awt.Rectangle
 import java.awt.geom.Ellipse2D
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.zip.Inflater
+
+private const val INVALID_SKP_KEY = "skp.invalid"
+private const val UNSUPPORTED_SKP_VERSION_KEY = "skp.unsupported"
+private const val CANNOT_LAUNCH_SKP_RENDERER_KEY = "skp.renderer.launch.error"
 
 /**
  * An [AndroidWindow] used by the app inspection view inspector.
@@ -128,11 +132,8 @@ class ViewAndroidWindow(
     if (requestedNodeInfo.isEmpty()) {
       return
     }
-    val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
+    val rootViewFromSkiaImage = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
 
-    if (errorMessage != null) {
-      notificationModel.addNotification(errorMessage, Status.Warning)
-    }
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
       ComponentImageLoader(nodeMap, rootViewFromSkiaImage).loadImages(this)
@@ -181,30 +182,30 @@ class ViewAndroidWindow(
     requestedNodes: Iterable<RequestedNodeInfo>,
     skiaParser: SkiaParser,
     scale: Double
-  ): Pair<SkiaViewNode?, String?> {
-    var errorMessage: String? = null
+  ): SkiaViewNode? {
     val inspectorView = try {
       skiaParser.getViewTree(bytes, requestedNodes, scale, isInterrupted)
     }
     catch (ex: InvalidPictureException) {
       // It looks like what we got wasn't an SKP at all.
-      errorMessage = "Invalid picture data received from device. Rotation disabled."
+      notificationModel.addNotification(INVALID_SKP_KEY, LayoutInspectorBundle.message(INVALID_SKP_KEY))
       null
     }
     catch (ex: ParsingFailedException) {
       // It looked like a valid picture, but we were unable to parse it.
-      errorMessage = "Invalid picture data received from device. Rotation disabled."
+      notificationModel.addNotification(INVALID_SKP_KEY, LayoutInspectorBundle.message(INVALID_SKP_KEY))
       null
     }
     catch (ex: UnsupportedPictureVersionException) {
-      errorMessage = "No renderer supporting SKP version ${ex.version} found. Rotation disabled."
+      notificationModel.addNotification(UNSUPPORTED_SKP_VERSION_KEY,
+                                        LayoutInspectorBundle.message(UNSUPPORTED_SKP_VERSION_KEY, ex.version.toString()))
       null
     }
     catch (ex: Exception) {
-      errorMessage = "Problem launching renderer. Rotation disabled."
+      notificationModel.addNotification(CANNOT_LAUNCH_SKP_RENDERER_KEY, LayoutInspectorBundle.message(CANNOT_LAUNCH_SKP_RENDERER_KEY))
       Logger.getInstance(ViewAndroidWindow::class.java).warn(ex)
       null
     }
-    return Pair(inspectorView, errorMessage)
+    return inspectorView
   }
 }

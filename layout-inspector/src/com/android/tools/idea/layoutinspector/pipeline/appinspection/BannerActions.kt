@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
-import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
@@ -45,6 +45,8 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
+
+const val ACTIVITY_RESTART_KEY = "activity.restart"
 
 @VisibleForTesting
 const val KEY_HIDE_ACTIVITY_RESTART_BANNER = "live.layout.inspector.activity.restart.banner.hide"
@@ -110,7 +112,7 @@ fun showActivityRestartedInBanner(project: Project, notificationModel: Notificat
   if (showEnableAction) {
     actions.add(0, enableInRunConfigAction)
   }
-  notificationModel.addNotification(LayoutInspectorBundle.message("activity.restart"), Status.Info, actions)
+  notificationModel.addNotification(ACTIVITY_RESTART_KEY, LayoutInspectorBundle.message(ACTIVITY_RESTART_KEY), Status.Info, actions)
 }
 
 private fun moduleFromCurrentProjectBeingInspected(project: Project, process: ProcessDescriptor): Module? =

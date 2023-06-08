@@ -16,8 +16,6 @@
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_HIGHER
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.checkVersion
@@ -36,15 +34,15 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.logDiagnostics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
+import com.android.tools.idea.layoutinspector.model.learnMoreAction
 import com.android.tools.idea.layoutinspector.pipeline.ErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.model.learnMoreAction
 import com.android.tools.idea.protobuf.CodedInputStream
 import com.android.tools.idea.transport.TransportException
 import com.android.tools.idea.util.StudioPathManager
@@ -302,7 +300,7 @@ class ComposeLayoutInspectorClient(
         }
       }
       actions.add(notificationModel.dismissAction)
-      notificationModel.addNotification(message, EditorNotificationPanel.Status.Warning, actions)
+      notificationModel.addNotification(error.code.name, message, EditorNotificationPanel.Status.Warning, actions)
       logDiagnostics(ComposeLayoutInspectorClient::class.java, "Launch error: %s, message: %s", error, message)
       logErrorToMetrics(error.code)
       return null
@@ -320,7 +318,7 @@ class ComposeLayoutInspectorClient(
       val versionUpgrade = if (version.minor == 3) "1.3.0" else "1.2.1"
       val message = LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, versionString, versionUpgrade)
       logDiagnostics(ComposeLayoutInspectorClient::class.java, "Compose version warning, message: %s", message)
-      notificationModel.addNotification(message, EditorNotificationPanel.Status.Warning)
+      notificationModel.addNotification(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, message, EditorNotificationPanel.Status.Warning)
       // Allow the user to connect and inspect compose elements because:
       // - b/235526153 is uncommon
       // - b/237987764 only happens if the kotlin compiler version is at least 1.6.20 (which we cannot reliably detect)

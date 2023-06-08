@@ -22,6 +22,7 @@ import com.intellij.ui.EditorNotificationPanel
  */
 class StatusNotification(
   val status: EditorNotificationPanel.Status,
+  val id: String,
   val message: String,
   val sticky: Boolean,
   val actions: List<StatusNotificationAction>

@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
@@ -24,6 +25,9 @@ import com.intellij.openapi.project.modules
 import com.intellij.ui.EditorNotificationPanel.Status
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+
+private const val COMPOSE_WARNING_KEY = "compose.warning"
+private const val COMPOSE_WARNING_V29_KEY = "compose.warning.v29"
 
 /**
  * Supply a warning banner if a LegacyClient is used for a compose application.
@@ -33,11 +37,11 @@ class ComposeWarning(private val project: Project, private val notificationModel
     if (isRunningCurrentProject(client) && isUsingCompose()) {
       val apiLevel = client.process.device.apiLevel
       val message = if (apiLevel < 29) {
-        "To see compose nodes in the inspector please use a device with API >= 29"
+        LayoutInspectorBundle.message(COMPOSE_WARNING_V29_KEY)
       } else {
-        "Cannot display compose nodes, try restarting the application"
+        LayoutInspectorBundle.message(COMPOSE_WARNING_KEY)
       }
-      notificationModel.addNotification(message, Status.Warning, listOf(notificationModel.dismissAction))
+      notificationModel.addNotification(COMPOSE_WARNING_KEY, message, Status.Warning, listOf(notificationModel.dismissAction))
     }
   }
 

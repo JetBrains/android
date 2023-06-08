@@ -370,7 +370,7 @@ class DeviceViewPanelWithFullInspectorTest {
     gotoDeclaration(VIEW3)
     fileOpenCaptureRule.checkNoNavigation()
     val notification1 = inspectorRule.notificationModel.notifications.single()
-    assertThat(notification1.message).isEqualTo("It appears that the v3 in the layout demo.xml doesnt have an id.")
+    assertThat(notification1.message).isEqualTo("Cannot navigate to source because v3 in the layout demo.xml doesn't have an id.")
   }
 
   private fun gotoDeclaration(selectedView: Long) {

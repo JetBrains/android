@@ -25,7 +25,9 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.util.DemoExample
@@ -75,6 +77,26 @@ class GotoDeclarationActionTest {
     runBlocking { GotoDeclarationAction.lastAction?.join() }
     fileOpenCaptureRule.checkEditor("demo.xml", 9, "<TextView")
     checkStats(stats, clickCount = 1)
+  }
+
+  @Test
+  fun testOnlyOneNotFoundMessage() {
+    val model = runInEdtAndGet { createModel() }
+    model.setSelection(model[8], SelectionOrigin.INTERNAL)
+    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
+    val notificationModel = NotificationModel(projectRule.project)
+    val event = createEvent(model, stats, notificationModel)
+    GotoDeclarationAction.actionPerformed(event)
+    runBlocking { GotoDeclarationAction.lastAction?.join() }
+    assertThat(notificationModel.notifications).hasSize(1)
+    assertThat(notificationModel.notifications.first().message)
+      .isEqualTo("Cannot navigate to source because LinearLayout in the layout demo.xml doesn't have an id.")
+    model.setSelection(model[5], SelectionOrigin.INTERNAL)
+    GotoDeclarationAction.actionPerformed(event)
+    runBlocking { GotoDeclarationAction.lastAction?.join() }
+    assertThat(notificationModel.notifications).hasSize(1)
+    assertThat(notificationModel.notifications.first().message)
+      .isEqualTo("Cannot navigate to source because TextView in the layout demo.xml doesn't have an id.")
   }
 
   @Test
@@ -136,12 +158,17 @@ class GotoDeclarationActionTest {
       }
     })
 
-  private fun createEvent(model: InspectorModel, stats: SessionStatistics, fromShortcut: Boolean = false): AnActionEvent {
+  private fun createEvent(
+    model: InspectorModel,
+    stats: SessionStatistics,
+    notificationModel: NotificationModel = mock(),
+    fromShortcut: Boolean = false
+  ): AnActionEvent {
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(stats)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val clientSettings = InspectorClientSettings(projectRule.project)
-    val inspector = LayoutInspector(coroutineScope, clientSettings, client, model, mock(), mock())
+    val inspector = LayoutInspector(coroutineScope, clientSettings, client, model, notificationModel, mock())
     val dataContext: DataContext = mock()
     whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
     val actionManager: ActionManager = mock()
@@ -155,4 +182,7 @@ class GotoDeclarationActionTest {
     assertThat(data.gotoDeclaration.clicksMenuAction).isEqualTo(clickCount)
     assertThat(data.gotoDeclaration.keyStrokesShortcut).isEqualTo(keyStrokeCount)
   }
+
+  private fun InspectorModel.findByTagName(tagName: String): ViewNode? =
+    ViewNode.readAccess { root.flatten().firstOrNull { it.qualifiedName == tagName } }
 }

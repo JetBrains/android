@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
@@ -70,10 +71,11 @@ import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 
+const val SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY = "system.image.live.unsupported"
 @com.google.common.annotations.VisibleForTesting
-const val API_29_BUG_MESSAGE = "Live Inspection not available on this system image revision."
+const val API_29_BUG_MESSAGE_KEY = "api29.message"
 @com.google.common.annotations.VisibleForTesting
-const val API_29_BUG_UPGRADE = "Please update to the latest revision."
+const val API_29_BUG_UPGRADE_KEY = "api29.upgrade.message"
 @com.google.common.annotations.VisibleForTesting
 const val MIN_API_29_GOOGLE_APIS_SYSIMG_REV = 12
 @com.google.common.annotations.VisibleForTesting
@@ -322,7 +324,7 @@ class AppInspectionInspectorClient(
         if (remote != null &&
             ((tags.contains(SystemImage.GOOGLE_APIS_TAG) && remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
              (tags.contains(SystemImage.DEFAULT_TAG) && remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))) {
-          message = "$API_29_BUG_MESSAGE $API_29_BUG_UPGRADE"
+          message = "${LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)} ${LayoutInspectorBundle.message(API_29_BUG_UPGRADE_KEY)}"
           actions = listOf(StatusNotificationAction("Download Update") {
             if (SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))?.showAndGet() == true) {
               Messages.showInfoMessage(project, "Please restart the emulator for update to take effect.", "Restart Required")
@@ -330,17 +332,18 @@ class AppInspectionInspectorClient(
           }, notificationModel.dismissAction)
         }
         else {
-          message = API_29_BUG_MESSAGE
+          message = LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)
           actions = listOf(notificationModel.dismissAction)
         }
-        notificationModel.addNotification(message, Status.Warning, actions)
+        notificationModel.addNotification(SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY, message, Status.Warning, actions)
       }
       sdkHandler.getSdkManager(logger).load(0, null, listOf(showBanner), null,
                                             StudioProgressRunner(false, false, "Checking available system images", null),
                                             StudioDownloader(), StudioSettingsController.getInstance())
     }
     else {
-      notificationModel.addNotification(API_29_BUG_MESSAGE, Status.Warning, listOf(notificationModel.dismissAction))
+      notificationModel.addNotification(SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY, LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY),
+                                        Status.Warning, listOf(notificationModel.dismissAction))
     }
     throw ConnectionFailedException("Unsupported system image revision", AttachErrorCode.LOW_API_LEVEL)
   }

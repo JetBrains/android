@@ -31,27 +31,29 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
 
+private const val TWO_VERSIONS_RUNNING_KEY = "two.versions.of.studio.running"
+
 /**
  * Class responsible for listening to events published by the transport.
  */
 class TransportErrorListener(
-  private val project: Project,
+  project: Project,
   private val notificationModel: NotificationModel,
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
-  private val disposable: Disposable
+  disposable: Disposable
   ) : TransportDeviceManager.TransportDeviceManagerListener {
-  val errorMessage = LayoutInspectorBundle.message("two.versions.of.studio.running")
 
   private var hasStartServerFailed = false
     set(value) {
       field = value
       if (hasStartServerFailed) {
         // the banner can't be dismissed. It will automatically be dismissed when the Transport tries to start again.
-        notificationModel.addNotification(errorMessage, Status.Error, emptyList())
+        notificationModel.addNotification(
+          TWO_VERSIONS_RUNNING_KEY, LayoutInspectorBundle.message(TWO_VERSIONS_RUNNING_KEY), Status.Error, emptyList())
         // TODO(b/258453315) log to metrics
       }
       else {
-        notificationModel.removeNotification(errorMessage)
+        notificationModel.removeNotification(TWO_VERSIONS_RUNNING_KEY)
       }
     }
 

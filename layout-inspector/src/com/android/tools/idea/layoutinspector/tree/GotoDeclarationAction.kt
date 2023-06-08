@@ -34,7 +34,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val VIEW_NOT_FOUND = "view.not.found"
+private const val VIEW_NOT_FOUND_KEY = "view.not.found"
 
 /**
  * Action for navigating to the currently selected node in the layout inspector.
@@ -80,7 +80,8 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
       val navigatable = withContext(AndroidDispatchers.uiThread) { resourceLookup.findFileLocation (node)?.navigatable }
       val layout = node.layout?.name
       if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
-        notificationModel.addNotification(LayoutInspectorBundle.message(VIEW_NOT_FOUND, node.unqualifiedName, layout), Status.Warning)
+        notificationModel.addNotification(VIEW_NOT_FOUND_KEY,
+                                          LayoutInspectorBundle.message(VIEW_NOT_FOUND_KEY, node.unqualifiedName, layout), Status.Warning)
       }
       navigatable
     }

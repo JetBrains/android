@@ -53,6 +53,7 @@ import javax.swing.JComponent
 private const val WORKBENCH_NAME = "Layout Inspector"
 
 const val SHOW_EXPERIMENTAL_WARNING_KEY = "com.android.tools.idea.layoutinspector.runningdevices.experimental.notification.show"
+const val EMBEDDED_EXPERIMENTAL_MESSAGE_KEY = "embedded.inspector.experimental.notification.message"
 
 /** Responsible for managing Layout Inspector in Running Devices Tool Window. */
 interface LayoutInspectorManager {
@@ -317,17 +318,17 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     val defaultValue = true
     val shouldShowWarning = { PropertiesComponent.getInstance().getBoolean(SHOW_EXPERIMENTAL_WARNING_KEY, defaultValue) }
     val setValue: (Boolean) -> Unit = { PropertiesComponent.getInstance().setValue(SHOW_EXPERIMENTAL_WARNING_KEY, it, defaultValue) }
-    val notificationText = LayoutInspectorBundle.message("embedded.inspector.experimental.notification.message")
 
     if (shouldShowWarning()) {
       notificationModel.addNotification(
-        text = notificationText,
+        id = EMBEDDED_EXPERIMENTAL_MESSAGE_KEY,
+        text = LayoutInspectorBundle.message(EMBEDDED_EXPERIMENTAL_MESSAGE_KEY),
         status = Status.Info,
         sticky = true,
         actions = listOf(
           StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification ->
             setValue(false)
-            notificationModel.removeNotification(notification.message)
+            notificationModel.removeNotification(notification.id)
           },
           StatusNotificationAction(LayoutInspectorBundle.message("opt.out")) {
             ShowSettingsUtil.getInstance().showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
@@ -336,7 +337,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       )
     }
     else {
-      notificationModel.removeNotification(notificationText)
+      notificationModel.removeNotification(EMBEDDED_EXPERIMENTAL_MESSAGE_KEY)
     }
   }
 

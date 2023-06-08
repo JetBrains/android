@@ -28,7 +28,7 @@ fun learnMoreAction(url: String) = StatusNotificationAction("Learn More") { Brow
 class NotificationModel(val project: Project) {
 
   val dismissAction = StatusNotificationAction("Dismiss") { notification ->
-    removeNotification(notification.message)
+    removeNotification(notification.id)
   }
 
   /**
@@ -68,23 +68,25 @@ class NotificationModel(val project: Project) {
    * @param sticky if true the notification will stay until explicitly dismissed with [removeNotification].
    */
   fun addNotification(
+    id: String,
     text: String,
     status: EditorNotificationPanel.Status = EditorNotificationPanel.Status.Warning,
     actions: List<StatusNotificationAction> = listOf(dismissAction),
     sticky: Boolean = false
   ) {
-    if (isDisposed || notificationData.any { it.message == text }) {
-      return
-    }
-    notificationData.add(StatusNotification(status, text, sticky, actions))
-    notifyChanges()
-  }
-
-  fun removeNotification(text: String) {
     if (isDisposed) {
       return
     }
-    if (notificationData.removeIf { it.message == text }) {
+    notificationData.removeIf { it.id == id }
+    notificationData.add(StatusNotification(status, id, text, sticky, actions))
+    notifyChanges()
+  }
+
+  fun removeNotification(id: String) {
+    if (isDisposed) {
+      return
+    }
+    if (notificationData.removeIf { it.id == id }) {
       notifyChanges()
     }
   }

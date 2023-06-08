@@ -21,10 +21,10 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.Disposable
@@ -254,7 +254,7 @@ class InspectorClientLauncher(
         // when we're reenabled, so leave the process selected.
         processes.selectedProcess = null
       }
-      notifications.forEach { notificationModel.addNotification(it.message, it.status, it.actions, it.sticky) }
+      notifications.forEach { notificationModel.addNotification(it.id, it.message, it.status, it.actions, it.sticky) }
     }
   }
 
