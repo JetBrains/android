@@ -34,13 +34,16 @@ import kotlinx.coroutines.flow.StateFlow
 
 enum class RefreshType(internal val priority: Int) {
   /** Previews are inflated and rendered. */
-  NORMAL(2),
+  NORMAL(3),
 
   /**
-   * Previews from the same Composable are not re-inflated. See
-   * [ComposePreviewRepresentation.requestRefresh].
+   * Previews from the same Composable are not re-inflated (i.e. only new Previews are inflated).
+   * See [ComposePreviewRepresentation.requestRefresh].
    */
-  QUICK(1),
+  QUICK(2),
+
+  /** The existing Previews that need a quality change are re-rendered, but no inflation is done. */
+  QUALITY(1),
 
   /**
    * Previews are not rendered or inflated. This mode is just used to trace a request to, for

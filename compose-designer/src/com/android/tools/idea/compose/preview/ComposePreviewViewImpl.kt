@@ -174,12 +174,14 @@ interface ComposePreviewView {
     progressIndicator: ProgressIndicator,
     modelToPreview: NlModel.() -> ComposePreviewElement?,
     configureLayoutlibSceneManager:
-      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
+      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
+    refreshFilter: (LayoutlibSceneManager) -> Boolean,
   ) {
     mainSurface.refreshExistingPreviewElements(
       progressIndicator,
       modelToPreview,
       configureLayoutlibSceneManager,
+      refreshFilter
     )
   }
 }

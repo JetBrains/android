@@ -20,10 +20,12 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
+import com.android.tools.idea.compose.preview.ComposePreviewRenderQualityPolicy
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.RefreshType
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.compose.preview.getDefaultPreviewQuality
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.build.ProjectStatus
@@ -34,6 +36,7 @@ import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
 import com.android.tools.idea.editors.fast.TestFastPreviewTrackerManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.deleteLine
 import com.android.tools.idea.testing.executeAndSave
@@ -44,6 +47,7 @@ import com.android.tools.idea.testing.moveCaretToEnd
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.ui.ApplicationUtils
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -67,6 +71,8 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
 import java.time.Duration
@@ -779,6 +785,79 @@ class ComposePreviewRepresentationGradleTest {
       composePreviewRepresentation.onActivate()
     }
     assertFalse(composePreviewRepresentation.isInvalid())
+  }
+
+  @Test
+  fun testPreviewRenderQuality() = runBlocking {
+    try {
+      StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(true)
+      // We need to setUp things again to make sure that the flag change takes effect
+      setUp()
+      withContext(uiThread) { fakeUi.root.validate() }
+
+      // zoom and center to one preview
+      val firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
+      firstPreview.sceneView.let {
+        previewView.mainSurface.zoomAndCenter(
+          it,
+          Rectangle(Point(it.x, it.y), it.scaledContentSize)
+        )
+      }
+
+      waitForQualityChange()
+      withContext(uiThread) { fakeUi.root.validate() }
+      // Default quality should have been used
+      assertEquals(
+        getDefaultPreviewQuality(),
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality
+      )
+
+      // Now zoom out a lot to go below the threshold
+      previewView.mainSurface.setScale(
+        ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold / 2.0
+      )
+      waitForQualityChange()
+      withContext(uiThread) { fakeUi.root.validate() }
+      assertEquals(
+        ComposePreviewRenderQualityPolicy.lowestQuality,
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality
+      )
+
+      // Now zoom in a little bit to go above the threshold
+      previewView.mainSurface.setScale(
+        ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold * 2.0
+      )
+      waitForQualityChange()
+      withContext(uiThread) { fakeUi.root.validate() }
+      assertEquals(
+        ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold * 2,
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality
+      )
+    } finally {
+      StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.clearOverride()
+    }
+  }
+
+  private suspend fun waitForQualityChange() {
+    // A quality refresh should be triggered soon
+    delay(ComposePreviewRenderQualityPolicy.debounceTimeMillis * 5)
+    // Now the quality refresh should have been triggered, wait for it to finish
+    composePreviewRepresentation.waitForAnyPendingRefresh()
   }
 
   private fun getPsiFile(path: String): PsiFile {

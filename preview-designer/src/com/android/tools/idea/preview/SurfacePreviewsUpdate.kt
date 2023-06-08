@@ -107,20 +107,24 @@ fun <T : PreviewElement, M> matchElementsToModels(
  *   cancelled, this method should return early.
  * @param configureLayoutlibSceneManager helper called when the method needs to reconfigure a
  *   [LayoutlibSceneManager].
+ * @param refreshFilter a filter to only refresh some of the existing previews. By default, all of
+ *   them are refreshed
  */
 @Slow
 suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
   progressIndicator: ProgressIndicator,
   modelToPreview: NlModel.() -> T?,
   configureLayoutlibSceneManager:
-    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
+    (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
+  refreshFilter: (LayoutlibSceneManager) -> Boolean = { true }
 ) {
   val previewElementsToSceneManagers =
-    models.mapNotNull {
-      val sceneManager = getSceneManager(it) ?: return@mapNotNull null
-      val previewElement = modelToPreview(it) ?: return@mapNotNull null
-      previewElement to sceneManager
-    }
+    sceneManagers
+      .filter { refreshFilter(it) }
+      .mapNotNull {
+        val previewElement = modelToPreview(it.model) ?: return@mapNotNull null
+        previewElement to it
+      }
   previewElementsToSceneManagers.forEachIndexed { index, pair ->
     if (progressIndicator.isCanceled)
       return@refreshExistingPreviewElements // Return early if user cancels the refresh.

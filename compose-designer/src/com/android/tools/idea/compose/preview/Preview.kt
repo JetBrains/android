@@ -61,9 +61,12 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
+import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.RenderQualityManager
+import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
@@ -225,7 +228,8 @@ fun configureLayoutlibSceneManager(
   isInteractive: Boolean,
   requestPrivateClassLoader: Boolean,
   runAtfChecks: Boolean,
-  runVisualLinting: Boolean
+  runVisualLinting: Boolean,
+  quality: Float
 ): LayoutlibSceneManager =
   sceneManager.apply {
     val reinflate =
@@ -234,7 +238,7 @@ fun configureLayoutlibSceneManager(
     setShrinkRendering(!showDecorations)
     interactive = isInteractive
     isUsePrivateClassLoader = requestPrivateClassLoader
-    setQuality(if (EssentialsMode.isEnabled()) 0.75f else 0.95f)
+    setQuality(quality)
     setShowDecorations(showDecorations)
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene
     // Manager to not
@@ -735,6 +739,13 @@ class ComposePreviewRepresentation(
   val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
 
+  private val qualityManager: RenderQualityManager =
+    if (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get())
+      DefaultRenderQualityManager(surface, ComposePreviewRenderQualityPolicy) {
+        requestRefresh(type = RefreshType.QUALITY)
+      }
+    else SimpleRenderQualityManager { getDefaultPreviewQuality() }
+
   /** List of [ComposePreviewElement] being rendered by this editor */
   private var renderedElements: List<ComposePreviewElement> = emptyList()
 
@@ -1156,7 +1167,8 @@ class ComposePreviewRepresentation(
       isInteractive = interactiveModeFlow.value.isStartingOrReady(),
       requestPrivateClassLoader = usePrivateClassLoader(),
       runAtfChecks = runAtfChecks(),
-      runVisualLinting = runVisualLinting()
+      runVisualLinting = runVisualLinting(),
+      quality = qualityManager.getTargetQuality(layoutlibSceneManager)
     )
 
   private fun onAfterRender() {
@@ -1354,7 +1366,8 @@ class ComposePreviewRepresentation(
             }
 
           val needsFullRefresh =
-            invalidated.getAndSet(false) || renderedElements != filePreviewElements
+            refreshRequest.type != RefreshType.QUALITY &&
+              (invalidated.getAndSet(false) || renderedElements != filePreviewElements)
 
           composeWorkBench.hasContent = filePreviewElements.isNotEmpty()
           if (!needsFullRefresh) {
@@ -1371,7 +1384,10 @@ class ComposePreviewRepresentation(
               refreshProgressIndicator,
               previewElementModelAdapter::modelToElement,
               this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement
-            )
+            ) { sceneManager ->
+              refreshRequest.type != RefreshType.QUALITY ||
+                qualityManager.needsQualityChange(sceneManager)
+            }
           } else {
             refreshProgressIndicator.text =
               message("refresh.progress.indicator.refreshing.all.previews")

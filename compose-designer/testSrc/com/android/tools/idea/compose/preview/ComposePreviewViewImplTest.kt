@@ -89,7 +89,8 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
     isInteractive = false,
     requestPrivateClassLoader = false,
     runAtfChecks = false,
-    runVisualLinting = false
+    runVisualLinting = false,
+    quality = 1f
   )
 
 /** Converts an [InstructionsPanel] into text that can be easily used in assertions. */

@@ -1345,6 +1345,11 @@ public final class StudioFlags {
     COMPOSE, "compose.preview.selection", "Enable the select/deselect interaction with Previews",
     "If enabled, Previews will be selectable, and some interactions will only be enabled for selected Previews",
     true);
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY = Flag.create(
+    COMPOSE, "compose.preview.render.quality", "Enable the usage of a render quality management mechanism for Compose Preview",
+    "If enabled, different Previews will be rendered with different qualities according to zoom level, layout and scroll position",
+    false);
   //endregion
 
   // region Wear surfaces
