@@ -15,6 +15,7 @@
  */
 package com.android.gmdcodecompletion
 
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -39,18 +40,18 @@ abstract class GmdDeviceCatalogService<T : GmdDeviceCatalogState>(
   protected val myLock: Lock = ReentrantLock()
 
   /**
-   * This function runs before Task starts in updateDeviceCatalog. Used for tasks that should
-   * not run in background thread (e.g. interactions with PSI elements.
+   * This function runs before Task starts in updateDeviceCatalog. Do not call from EDT
+   * as it makes expensive calls to [ProjectBuildModel.get]
    *
    * Return false to avoid running the updateDeviceCatalog function. Default is true
    */
-  protected open fun runBeforeUpdate(project: Project):Boolean { return true }
+  protected open fun shouldUpdate(project: Project) : Boolean { return true }
 
   // Update corresponding device catalog if necessary (catalog outdated / no catalog found)
   fun updateDeviceCatalog(project: Project) {
-    if(!runBeforeUpdate(project)) return
     object : Task.Backgroundable(project, "Syncing in $myServiceName", true) {
       override fun run(indicator: ProgressIndicator) {
+        if(!shouldUpdate(project)) return
         updateDeviceCatalogTaskAction(project, indicator)
       }
     }.setCancelText("Device catalog sync stopped").queue()

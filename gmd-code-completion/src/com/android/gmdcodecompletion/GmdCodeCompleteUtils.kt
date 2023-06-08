@@ -17,6 +17,7 @@ package com.android.gmdcodecompletion
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -150,7 +151,11 @@ fun isFtlPluginEnabled(project: Project, selectedModules: Array<Module>): Boolea
   fun GradleBuildModel.getPluginNames(): List<String> = this.plugins().orEmpty().mapNotNull { it.psiElement?.text }
   val projectBuildModel = ProjectBuildModel.get(project) ?: return false
   val selectedPlugins: HashSet<String> = hashSetOf()
-  selectedModules.forEach { selectedPlugins.addAll(projectBuildModel.getModuleBuildModel(it)?.getPluginNames().orEmpty()) }
+  selectedModules.forEach {
+    ApplicationManager.getApplication().runReadAction {
+      selectedPlugins.addAll(projectBuildModel.getModuleBuildModel(it)?.getPluginNames().orEmpty())
+    }
+  }
   return selectedPlugins.any { it.contains("com.google.firebase.testlab") } &&
          getGradlePropertyValue(projectBuildModel, "android.experimental.testOptions.managedDevices.customDevice")
 }

@@ -51,7 +51,7 @@ class FtlDeviceCatalogService : GmdDeviceCatalogService<FtlDeviceCatalogState>(F
   /**
    * Return false if FTL plugin is not enabled to NOT run updateDeviceCatalogTaskAction
    */
-  override fun runBeforeUpdate(project: Project): Boolean = isFtlPluginEnabled(project, project.modules)
+  override fun shouldUpdate(project: Project): Boolean = isFtlPluginEnabled(project, project.modules)
 
   override fun updateDeviceCatalogTaskAction(project: Project,
                                              indicator: ProgressIndicator) {
