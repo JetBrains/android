@@ -25,7 +25,12 @@ class LiveEditMarkerInfoConsumer() : MarkerInfoConsumer {
 
   override fun acceptMarkerInfo(info: MarkerInfoConsumerData?) {
     info?.markers?.forEach{
-      minApis.add(it.minApi)
+      // R8 returns -1 if it found marker but no min-api was in it.
+      // This is a workaround for b/283737440. Once fixed, we can delete
+      // this test.
+      if (it.minApi != -1) {
+        minApis.add(it.minApi)
+      }
     }
   }
 
