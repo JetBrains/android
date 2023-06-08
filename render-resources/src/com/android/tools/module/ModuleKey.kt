@@ -20,4 +20,4 @@ import com.intellij.openapi.module.Module
 /**
  * A key to use instead of [Module] avoiding direct references from Layoutlib.
  */
-class ModuleKey internal constructor()
+class ModuleKey
