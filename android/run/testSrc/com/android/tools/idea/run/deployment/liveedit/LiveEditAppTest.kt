@@ -38,4 +38,12 @@ class LiveEditAppTest {
     val liveEditApp = LiveEditApp(setOf(TestResources.getFile("/WearableTestApk.apk").toPath()), minApiDevice)
     Truth.assertThat(liveEditApp.minAPI).isEqualTo(actualApkDesugaredMinApi)
   }
+
+  @Test
+  fun testR8ReturnMinus1() {
+    val minApiDevice = -1
+    val actualApkDesugaredMinApi = 24
+    val liveEditApp = LiveEditApp(setOf(TestResources.getFile("/FakeBadR8.apk").toPath()), minApiDevice)
+    Truth.assertThat(liveEditApp.minAPI).isEqualTo(actualApkDesugaredMinApi)
+  }
 }
