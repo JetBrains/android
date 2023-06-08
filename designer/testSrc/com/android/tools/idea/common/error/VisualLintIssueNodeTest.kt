@@ -17,6 +17,8 @@ package com.android.tools.idea.common.error
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -27,12 +29,17 @@ import com.android.tools.idea.uibuilder.visual.TestVisualizationContentProvider
 import com.android.tools.idea.uibuilder.visual.VisualizationTestToolWindowManager
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.utils.HtmlBuilder
+import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.assertInstanceOf
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 import kotlin.test.assertNotNull
 
 class VisualLintIssueNodeTest {
@@ -165,5 +172,27 @@ class VisualLintIssueNodeTest {
     val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
+  }
+
+  @RunsInEdt
+  @Test
+  fun testForCompose() {
+    val file = rule.fixture.createFile("Compose.kt", "Compose file")
+    val model = mock(NlModel::class.java)
+    val navigatable = OpenFileDescriptor(rule.project, file)
+    val component = NlComponent(model, 651L).apply { setNavigatable(navigatable) }
+    val issue = VisualLintRenderIssue.builder()
+      .summary("")
+      .severity(HighlightSeverity.WARNING)
+      .contentDescriptionProvider { HtmlBuilder() }
+      .model(model)
+      .components(mutableListOf(component))
+      .type(VisualLintErrorType.BOUNDS)
+      .build()
+    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    assertEquals(1, node.getChildren().size)
+    val child = node.getChildren()[0]
+    assertInstanceOf<NavigatableFileNode>(child)
+    assertEquals(navigatable, child.getNavigatable())
   }
 }

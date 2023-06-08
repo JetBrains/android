@@ -211,7 +211,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
 
   private fun updateTree() {
     treeModel.structureChanged(null)
-    TreeUtil.promiseExpandAll(tree)
+    TreeUtil.promiseExpand(tree, 2)
   }
 
   fun setViewOptionFilter(filter: DesignerCommonIssueProvider.Filter) {
