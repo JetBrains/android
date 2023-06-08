@@ -324,6 +324,14 @@ def extract(workspace, dir, delete_after, metadata):
   with tarfile.open(dir + "/" + linux, "r") as tar:
     tar.extractall(path + "/linux")
 
+  # Workaround for b/267679210.
+  print("Patching app.jar to work around b/267679210")
+  for platform in PLATFORMS:
+    app_jar_path = path + HOME_PATHS[platform] + "/lib/app.jar"
+    os.system(f"jar xf {app_jar_path} __index__")
+    os.system(f"jar uf {app_jar_path} __index__")
+    os.remove("__index__")
+
   if manifest:
     xml = ET.parse(dir + "/" + manifest)
     for project in xml.getroot().findall("project"):
