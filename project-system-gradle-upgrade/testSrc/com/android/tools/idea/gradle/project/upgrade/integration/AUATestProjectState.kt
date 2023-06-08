@@ -101,6 +101,7 @@ enum class AUATestProjectState(
   ALL_DEPRECATIONS_7_0_FULL(ALL_DEPRECATIONS, V_7_0, minimalState = false, basePath = "4.2.0-base", patchPath = "7.0.0-upgraded"),
   // No changes from 7.0 apart from versions so reuse the same files.
   ALL_DEPRECATIONS_7_1_MIN(ALL_DEPRECATIONS, V_7_1, minimalState = true, basePath = "4.2.0-base", patchPath = "7.0.0-minimal"),
+  ALL_DEPRECATIONS_7_1_FULL(ALL_DEPRECATIONS, V_7_1, minimalState = false, basePath = "4.2.0-base", patchPath = "7.1.0-upgraded"),
   ALL_DEPRECATIONS_DEV_MIN(ALL_DEPRECATIONS, LATEST, minimalState = true, basePath = "4.2.0-base", patchPath = "dev-minimal"),
   ALL_DEPRECATIONS_DEV_FULL(ALL_DEPRECATIONS, LATEST, minimalState = false, basePath = "4.2.0-base", patchPath = "dev-upgraded"),
   ;
