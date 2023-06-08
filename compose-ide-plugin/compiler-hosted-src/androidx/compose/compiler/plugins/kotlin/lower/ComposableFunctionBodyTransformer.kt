@@ -3774,7 +3774,7 @@ class ComposableFunctionBodyTransformer(
                 var parent = function.parent
                 while (true) {
                     when (parent) {
-                        is IrPackageFragment -> return parent.fqName.asString()
+                        is IrPackageFragment -> return parent.packageFqName.asString()
                         is IrDeclaration -> parent = parent.parent
                         else -> break
                     }
