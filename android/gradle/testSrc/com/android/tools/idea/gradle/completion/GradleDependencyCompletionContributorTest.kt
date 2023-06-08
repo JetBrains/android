@@ -189,8 +189,11 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    // TODO(b/134753077): implement module completion
-    assertThat(myFixture.lookupElementStrings).isEmpty()
+    assertThat(myFixture.lookupElementStrings).containsExactly(
+      "androidx.camera:camera-core",
+      "androidx.camera:camera-view",
+      "androidx.room:room-runtime"
+    )
   }
 
   @Test
@@ -206,8 +209,10 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    // TODO(b/134753077): implement group completion
-    assertThat(myFixture.lookupElementStrings).isEmpty()
+    assertThat(myFixture.lookupElementStrings).containsExactly(
+      "androidx.camera",
+      "androidx.room"
+    )
   }
 
   @Test
@@ -223,8 +228,12 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    // TODO(b/134753077): implement name completion
-    assertThat(myFixture.lookupElementStrings).isEmpty()
+    assertThat(myFixture.lookupElementStrings).containsExactly(
+      "camera-core",
+      "camera-view",
+      "play-services-maps",
+      "room-runtime"
+    )
   }
 
   @Test
@@ -240,25 +249,9 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
     myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
     myFixture.completeBasic()
 
-    // TODO(b/134753077): implement version completion
-    assertThat(myFixture.lookupElementStrings).isEmpty()
-  }
-
-  @Test
-  fun testBasicCompletionInLibsVersionsTomlVersionRefKey() {
-    val tomlFile = myFixture.addFileToProject(
-      "gradle/libs.versions.toml",
-      """
-        [libraries]
-        camera = { version.ref = "androidx.$caret" }
-      """.trimIndent()
+    assertThat(myFixture.lookupElementStrings).containsExactly(
+      "1.0.0-alpha22", "1.1.0-alpha03", "17.0.0",
     )
-
-    myFixture.configureFromExistingVirtualFile(tomlFile.virtualFile)
-    myFixture.completeBasic()
-
-    // TODO(b/134753077): implement version.ref completion
-    assertThat(myFixture.lookupElementStrings).isEmpty()
   }
 
   @Test
