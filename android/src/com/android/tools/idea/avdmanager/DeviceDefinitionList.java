@@ -27,7 +27,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.ui.ExperimentalUI;
+import com.intellij.ui.NewUI;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
@@ -546,7 +546,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
           label.setForeground(table.getSelectionForeground());
           label.setOpaque(true);
           if (theIcon != null) {
-            label.setIcon(ExperimentalUI.isNewUI() ? StudioIcons.Avd.DEVICE_PLAY_STORE : highlightedPlayStoreIcon);
+            label.setIcon(NewUI.isEnabled() ? StudioIcons.Avd.DEVICE_PLAY_STORE : highlightedPlayStoreIcon);
           }
         }
         return label;
