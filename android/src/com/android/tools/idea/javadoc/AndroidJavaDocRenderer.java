@@ -63,7 +63,6 @@ import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
-import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
@@ -71,6 +70,7 @@ import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
+import com.android.tools.res.ResourceFiles;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
@@ -653,7 +653,7 @@ public class AndroidJavaDocRenderer {
               builder.newline();
             }
           } else if (value.endsWith(DOT_PNG)) {
-            if (ResourceFilesUtil.isFileResource(value)) {
+            if (ResourceFiles.isResourceFile(value)) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
@@ -992,7 +992,7 @@ public class AndroidJavaDocRenderer {
 
     private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density,
                                       @NotNull ResourceValue resolvedValue) {
-      if (ResourceFilesUtil.isFileResource(result)) {
+      if (ResourceFiles.isResourceFile(result)) {
         VirtualFile file = toVirtualFile(ResourcesUtil.toFileResourcePathString(result));
         if (file == null) {
           renderError(builder, result);

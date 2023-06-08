@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("ResourceFilesUtil")
-package com.android.tools.idea.res
+@file:JvmName("ResourceFiles")
+package com.android.tools.res
 
-import com.android.resources.ResourceFolderType
-import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 
 /**
- * Studio Independent resource folder util functions
+ * Checks if the given path points to a file resource. The resource path can point
+ * to either file on disk, or a ZIP file entry. If the candidate path contains
+ * "file:" or "apk:" scheme prefix, the method returns true without doing any I/O.
+ * Otherwise, the local file system is checked for existence of the file.
  */
-fun getFolderType(file: VirtualFile?): ResourceFolderType? = file?.parent?.let { ResourceFolderType.getFolderType(it.name) }
+fun isResourceFile(candidatePath: String): Boolean =
+  candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || candidatePath.startsWith("jar:") ||
+  File(candidatePath).isFile

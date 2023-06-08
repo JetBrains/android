@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
-import com.android.ide.common.rendering.api.AssetRepository;
 import com.android.ide.common.util.PathString;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.sdklib.IAndroidTarget;
@@ -30,13 +29,12 @@ import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
-import com.android.tools.res.FileResourceReader;
+import com.android.tools.res.AssetFileOpener;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,25 +53,20 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Finds an asset in all the asset directories and returns the input stream.
  */
-public class AssetRepositoryImpl extends AssetRepository {
+public class StudioAssetFileOpener implements AssetFileOpener {
   private static Path myFrameworkResDirOrJar;
   private AndroidFacet myFacet;
 
-  public AssetRepositoryImpl(@NotNull AndroidFacet facet) {
+  public StudioAssetFileOpener(@NotNull AndroidFacet facet) {
     myFacet = facet;
   }
 
-  @Override
-  public boolean isSupported() {
-    return true;
-  }
-
   /**
-   * @param mode one of ACCESS_UNKNOWN, ACCESS_STREAMING, ACCESS_RANDOM or ACCESS_BUFFER (int values 0-3).
+   * @param path path to the asset file.
    */
   @Override
   @Nullable
-  public InputStream openAsset(@NotNull String path, int mode) throws IOException {
+  public InputStream openAssetFile(@NotNull String path) {
     assert myFacet != null;
 
     return getDirectories(myFacet, IdeaSourceProvider::getAssetsDirectories, ExternalAndroidLibrary::getAssetsFolder)
@@ -115,19 +108,12 @@ public class AssetRepositoryImpl extends AssetRepository {
    * It takes an absolute path that does not point to an asset and opens the file. Currently the access
    * is restricted to files under the resources directories and the downloadable font cache directory.
    *
-   * @param cookie ignored
-   * @param path the path pointing to a file on disk, or to a ZIP file entry. In the latter case the path
-   *     has the following format: "apk:<i>path_to_zip_file</i>!/<i>path_to_zip_entry</i>
-   * @param mode ignored
+   * @param path the path pointing to a file on disk.
    */
   @Override
   @Nullable
-  public InputStream openNonAsset(int cookie, @NotNull String path, int mode) throws IOException {
+  public InputStream openNonAssetFile(@NotNull String path) {
     assert myFacet != null;
-
-    if (path.startsWith("apk:") || path.startsWith("jar:")) {
-      return new ByteArrayInputStream(FileResourceReader.readBytes(path));
-    }
 
     String url;
     if (path.startsWith("file://")) {
@@ -167,14 +153,6 @@ public class AssetRepositoryImpl extends AssetRepository {
         }
         return null;
       });
-  }
-
-  /**
-   * Checks if the given path points to a file resource.
-   */
-  @Override
-  public boolean isFileResource(@NotNull String path) {
-    return ResourceFilesUtil.isFileResource(path);
   }
 
   /**

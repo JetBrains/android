@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("ResourceFilesUtil")
-package com.android.tools.idea.res
+package com.android.tools.res
 
-import com.android.resources.ResourceFolderType
-import com.intellij.openapi.vfs.VirtualFile
-import java.io.File
+import java.io.InputStream
 
 /**
- * Studio Independent resource folder util functions
+ * Abstract out the specific logic of receiving the [InputStream] for the resource file located at path. In some case (e.g. inside Studio)
+ * it might not be as simple as reading the file from disk since file on disk might be out-of-date and the updated file version is kept in
+ * e.g. memory.
  */
-fun getFolderType(file: VirtualFile?): ResourceFolderType? = file?.parent?.let { ResourceFolderType.getFolderType(it.name) }
+interface AssetFileOpener {
+  fun openAssetFile(path: String): InputStream?
+
+  fun openNonAssetFile(path: String): InputStream?
+}

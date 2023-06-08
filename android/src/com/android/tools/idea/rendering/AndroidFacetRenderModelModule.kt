@@ -20,7 +20,7 @@ import com.android.tools.idea.model.MergedManifestException
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.res.AssetRepositoryImpl
+import com.android.tools.idea.res.StudioAssetFileOpener
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.res.ids.ResourceIdManager
@@ -30,6 +30,7 @@ import com.android.tools.module.ModuleKeyManager
 import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.RenderModelManifest
 import com.android.tools.rendering.api.RenderModelModule
+import com.android.tools.res.AssetRepositoryBase
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -38,7 +39,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -55,7 +55,8 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
   }
 
   override fun getIdeaModule(): Module = facet.module
-  override var assetRepository: AssetRepository? = AssetRepositoryImpl(facet)
+  override var assetRepository: AssetRepository? = AssetRepositoryBase(
+    StudioAssetFileOpener(facet))
     private set
   override val manifest: RenderModelManifest?
     get() {
