@@ -255,7 +255,7 @@ def check_artifacts(dir):
   if len(manifests) == 1:
     manifest = os.path.basename(manifests[0])
 
-  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4], files[5], manifest
+  return "AI", files[0], files[1], files[2], files[3], files[4], files[5], manifest
 
 
 def download(workspace, bid):
