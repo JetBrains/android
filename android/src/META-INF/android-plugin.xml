@@ -32,10 +32,6 @@
 
   <resource-bundle>messages.AndroidBundle</resource-bundle>
   <actions>
-    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
-      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="control shift o" />
-    </action>
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
       <add-to-group group-id="FileExportGroup" anchor="last"/>
     </action>
@@ -140,24 +136,6 @@
     </action>
     <action id="AndroidUnusedResourceAction" class="org.jetbrains.android.refactoring.UnusedResourcesAction" text="Remove Unused Resources..."
             description="Removes unused resources">
-      <add-to-group group-id="RefactoringMenu"/>
-    </action>
-    <action id="AndroidMigrateToAppCompatAction" class="org.jetbrains.android.refactoring.MigrateToAppCompatAction" text="Migrate to AppCompat..."
-            description="Migrates app to AppCompat">
-      <add-to-group group-id="RefactoringMenu"/>
-    </action>
-    <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction" text="Migrate to AndroidX..."
-            description="Migrates to AndroidX package names">
-      <add-to-group group-id="RefactoringMenu"/>
-    </action>
-    <action id="AndroidMigrateToResourceNamespacesAction" class="org.jetbrains.android.refactoring.namespaces.MigrateToResourceNamespacesAction" text="Migrate to Resource Namespaces..."
-            description="Migrates to resource namespaces">
-      <add-to-group group-id="RefactoringMenu"/>
-    </action>
-    <action id="AndroidMigrateToNonTransitiveRClassesAction"
-            class="org.jetbrains.android.refactoring.namespaces.MigrateToNonTransitiveRClassesAction"
-            text="Migrate to Non-Transitive R Classes..."
-            description="Migrates the project to use Non-Transitive R classes">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
     <action id="AndroidEnableInstantAppsSupport" class="com.android.tools.idea.actions.EnableInstantAppsSupportAction" text="Enable Instant Apps Support..."
@@ -265,7 +243,6 @@
     <projectService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionService"/>
     <postStartupActivity implementation="com.android.tools.idea.model.MergedManifestModificationListener$SubscriptionStartupActivity"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectDumbStartupActivity"/>
-    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity" order="last"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity" order="first"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
@@ -296,7 +273,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.project.AndroidRunConfigurations"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.CustomProjectTypeImporter$MainImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.EmbeddedDistributionPaths"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.BuildFileProcessor"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleProjectSettingsFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleLocalCache"/>
@@ -336,7 +312,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.diagnostics.crash.StudioCrashReporter" />
     <applicationService serviceInterface="com.android.tools.fonts.DownloadableFontCacheService"
                         serviceImplementation="com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl" />
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions"/>
 
@@ -513,7 +488,6 @@
 
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleVersionCatalogDetector"/>
     <projectService serviceImplementation="com.android.tools.idea.apk.debugging.DexSourceFiles"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
     <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsService" />
@@ -523,8 +497,6 @@
     <projectService serviceInterface="com.android.tools.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.StudioConfigurationStateManager"/>
 
-    <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidProjectRootListener"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceFolderRegistry"/>
     <projectService serviceImplementation="com.android.tools.idea.res.SampleDataListener$Subscriber"/>
@@ -659,11 +631,8 @@
         id="android_string_resource"
         implementation="com.android.tools.idea.editors.strings.StringResourceSafeDeleteProcessorDelegate"/>
 
-    <usageGroupingRuleProvider implementation="org.jetbrains.android.refactoring.namespaces.ResourcePackageGroupingRuleProvider"/>
     <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
 
-    <consoleFilterProvider implementation="com.android.tools.idea.gradle.project.build.output.GenericFileFilterProvider"
-                           order="first"/>
     <fileBasedIndex implementation="com.android.tools.idea.databinding.index.BindingXmlIndex"/>
     <projectStructureDetector implementation="com.android.tools.idea.apk.debugging.KotlinProjectStructureDetector"/>
     <notificationGroup id="APK Analyzer (Important)" displayType="BALLOON"/>
@@ -736,11 +705,6 @@
 
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.customProjectTypeImporter" interface="com.android.tools.idea.project.CustomProjectTypeImporter"/>
-    <extensionPoint qualifiedName="com.android.moduleImporter" interface="com.android.tools.idea.gradle.project.AndroidModuleImporter" />
-    <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
                     interface="com.android.tools.idea.sdk.IdeSdks$AndroidSdkEventListener"/>
     <extensionPoint qualifiedName="com.android.run.deployTargetProvider" interface="com.android.tools.idea.run.editor.DeployTargetProvider" />
@@ -781,10 +745,6 @@
     <extensionPoint qualifiedName="com.android.tools.idea.diagnostics.report.logsProvider"
                     interface="com.android.tools.idea.diagnostics.report.DiagnosticsSummaryFileProvider"/>
   </extensionPoints>
-
-  <extensions defaultExtensionNs="com.android.gradle.sync">
-    <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
-  </extensions>
 
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.project.DefaultProjectSystem"/>

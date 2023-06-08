@@ -40,6 +40,8 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSync"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
+    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder"/>
     <compiler.optionsManager implementation="com.android.tools.idea.gradle.project.build.compiler.HideCompilerOptions" />
 
     <projectConfigurable groupId="build" id="gradle.compiler"
@@ -70,6 +72,9 @@
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.util.LastBuildOrSyncService" />
     <projectService serviceImplementation="com.android.tools.idea.structure.dialog.ProjectStructureConfigurable"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleVersionCatalogDetector"/>
+    <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
                       anchor="left"
@@ -90,6 +95,8 @@
     <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <externalSystemOutputParserProvider implementation="com.android.tools.idea.gradle.project.build.output.GradleOutputParserProvider"
                                         id="gradle" order="first"/>
+    <consoleFilterProvider implementation="com.android.tools.idea.gradle.project.build.output.GenericFileFilterProvider"
+                           order="first"/>
     <externalSystemViewContributor id="android" order="before com.intellij.openapi.externalSystem.view.ExternalSystemViewDefaultContributor"
                                    implementation="com.android.tools.idea.projectsystem.gradle.GradleTaskEmptyContributor"/>
     <externalSystemExecutionConsoleManager implementation="com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager"
@@ -120,11 +127,13 @@
     <usageTypeProvider id="org.jetbrains.android.refactoring.GradleUsageTypeProvider"
                        implementation="org.jetbrains.android.refactoring.GradleUsageTypeProvider" order="first" />
     <usageTypeProvider implementation="org.jetbrains.android.refactoring.AndroidPropertiesUsageType" order="first" />
+    <usageGroupingRuleProvider implementation="org.jetbrains.android.refactoring.namespaces.ResourcePackageGroupingRuleProvider"/>
     <referencesSearch implementation="com.android.tools.idea.gradle.navigation.GradleKtsVersionCatalogReferencesSearcher"/>
     <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtNameReferenceExpression"
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidGradleProjectStartupActivity" order="last"/>
     <intentionAction>
       <language>UAST</language>
       <className>org.jetbrains.android.intentions.AndroidAddLibraryDependencyAction</className>
@@ -190,6 +199,7 @@
   </extensions>
   <extensions defaultExtensionNs="com.android.gradle.sync">
     <postSyncProjectSetupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.project.IgnoredBuildScriptSetupStep"/>
+    <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.ide">
     <sdkEventListener implementation="com.android.tools.idea.gradle.sdk.GradleAndroidSdkEventListener"/>
@@ -202,6 +212,10 @@
       implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
   </extensions>
   <actions>
+    <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
+      <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="control shift o" />
+    </action>
     <group id="Library.Properties">
       <separator/>
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
@@ -249,5 +263,31 @@
     <action id="NewVersionCatalogFile" class="com.android.tools.idea.actions.NewVersionCatalogAction">
       <add-to-group group-id="NewGroup" anchor="last"/>
     </action>
+    <action id="AndroidMigrateToAppCompatAction" class="org.jetbrains.android.refactoring.MigrateToAppCompatAction" text="Migrate to AppCompat..."
+            description="Migrates app to AppCompat">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+    <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction" text="Migrate to AndroidX..."
+            description="Migrates to AndroidX package names">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+    <action id="AndroidMigrateToResourceNamespacesAction" class="org.jetbrains.android.refactoring.namespaces.MigrateToResourceNamespacesAction" text="Migrate to Resource Namespaces..."
+            description="Migrates to resource namespaces">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
+    <action id="AndroidMigrateToNonTransitiveRClassesAction"
+            class="org.jetbrains.android.refactoring.namespaces.MigrateToNonTransitiveRClassesAction"
+            text="Migrate to Non-Transitive R Classes..."
+            description="Migrates the project to use Non-Transitive R classes">
+      <add-to-group group-id="RefactoringMenu"/>
+    </action>
   </actions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.moduleImporter" interface="com.android.tools.idea.gradle.project.AndroidModuleImporter" />
+    <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectSetupStep"
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep"/>
+    <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
+                    interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
+  </extensionPoints>
 </idea-plugin>
