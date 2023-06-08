@@ -249,9 +249,7 @@ class AnimationPreview(val surface: DesignSurface<LayoutlibSceneManager>) : Disp
 
   /** Do an initial setup before adding animation to the panel. */
   fun setupAnimation(animation: ComposeAnimation, callback: () -> Unit) {
-    animationsMap[animation]?.let {
-      it.setup(callback)
-    }
+    animationsMap[animation]?.setup(callback)
   }
 
   private fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {

@@ -256,10 +256,10 @@ class AndroidLiveEditCodeGenerator(val project: Project, private val inlineCandi
       if (c.relativePath == "$internalClassName.class") {
         primaryClass = c.asByteArray()
         println("   Primary class: ${c.relativePath}")
-        inlineCandidateCache?.let { cache ->
-          cache.computeIfAbsent(internalClassName) {
+        inlineCandidateCache?.computeIfAbsent(internalClassName) {
           SourceInlineCandidate(input, it, input.module!!)
-        }.setByteCode(primaryClass)}
+        }?.setByteCode(primaryClass)
+
         continue
       }
 
@@ -269,10 +269,10 @@ class AndroidLiveEditCodeGenerator(val project: Project, private val inlineCandi
         println("   Proxiable class: ${c.relativePath}")
         val name = c.relativePath.substringBefore(".class")
         supportClasses[name] = c.asByteArray()
-        inlineCandidateCache?.let { cache ->
-          cache.computeIfAbsent(name) {
+        inlineCandidateCache?.computeIfAbsent(name) {
           SourceInlineCandidate(input, it, input.module!!)
-        }.setByteCode(supportClasses[name]!!)}
+        }?.setByteCode(supportClasses[name]!!)
+
         continue
       }
 
