@@ -101,6 +101,7 @@ class DeviceNamePanelTest {
         androidVersion = AndroidVersion(31),
         abi = Abi.ARM64_V8A,
         status = DeviceRowData.Status.ONLINE,
+        error = null,
         isVirtual = false,
         wearPairingId = "abcd1234",
         pairingStatus = emptyList()

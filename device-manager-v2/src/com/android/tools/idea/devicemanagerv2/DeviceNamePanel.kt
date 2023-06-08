@@ -109,11 +109,14 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
    * Returns the appropriate text for the second line of the device cell, using the following in
    * order:
    * 1. The status message, if the device state is transitioning and one is present.
-   * 2. Reservation information, if present.
-   * 3. Android version
+   * 2. The error message, if there's an error.
+   * 3. Reservation information, if present.
+   * 4. Android version
    */
   private fun DeviceRowData.toLine2Text() =
-    stateTransitionText() ?: reservationText() ?: androidVersionText()
+    stateTransitionText() ?: errorText() ?: reservationText() ?: androidVersionText()
+
+  private fun DeviceRowData.errorText() = error?.message
 
   private fun DeviceRowData.reservationText() = handle?.state?.reservation?.line2Text()
 

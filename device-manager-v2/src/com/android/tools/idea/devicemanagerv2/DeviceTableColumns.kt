@@ -120,6 +120,7 @@ internal object DeviceTableColumns {
       component.baseIcon =
         when {
           rowValue.handle?.state?.isTransitioning == true -> ColorableAnimatedSpinnerIcon()
+          rowValue.error != null -> StudioIcons.Common.WARNING
           else ->
             when (value) {
               DeviceRowData.Status.OFFLINE -> null

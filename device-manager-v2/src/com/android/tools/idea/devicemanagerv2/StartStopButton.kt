@@ -18,8 +18,8 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.DeactivationAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.sdklib.deviceprovisioner.DeviceState.Connected
 import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
+import com.android.sdklib.deviceprovisioner.RepairDeviceAction
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import icons.StudioIcons
@@ -36,17 +36,22 @@ import kotlinx.coroutines.withContext
 internal class StartStopButton(
   private val handle: DeviceHandle,
   activationAction: ActivationAction,
-  deactivationAction: DeactivationAction
+  deactivationAction: DeactivationAction,
+  repairDeviceAction: RepairDeviceAction?,
 ) : IconButton(StudioIcons.Avd.RUN) {
   init {
     val activationPresentation = activationAction.presentation
     val deactivationPresentation = deactivationAction.presentation
+    val repairPresentation = repairDeviceAction?.presentation
 
     addActionListener {
       when (baseIcon) {
         activationPresentation.value.icon -> handle.scope.launch { activationAction.activate() }
         deactivationPresentation.value.icon ->
           handle.scope.launch { deactivationAction.deactivate() }
+        repairPresentation?.value?.icon -> {
+          handle.scope.launch { repairDeviceAction?.repair() }
+        }
         else -> {}
       }
     }
@@ -57,9 +62,11 @@ internal class StartStopButton(
         // the deactivation action when we're connected, and the activation action when we're
         // disconnected.
         combine(
-            when (state) {
-              is Disconnected -> listOf(activationPresentation, deactivationPresentation)
-              is Connected -> listOf(deactivationPresentation, activationPresentation)
+            when {
+              state.error != null && repairPresentation != null ->
+                listOf(repairPresentation, activationPresentation, deactivationPresentation)
+              state is Disconnected -> listOf(activationPresentation, deactivationPresentation)
+              else -> listOf(deactivationPresentation, activationPresentation)
             }
           ) {
             it.firstOrNull { it.enabled } ?: it.first()

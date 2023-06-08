@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
@@ -128,6 +129,18 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
                 }
               }
             }
+          }
+        }
+
+        override suspend fun downloadAvdSystemImage(avdInfo: AvdInfo) {
+          val path = AvdManagerConnection.getRequiredSystemImagePath(avdInfo) ?: return
+          val ok =
+            withContext(uiThread) {
+              SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet()
+            }
+          if (ok == true) {
+            // Multiple AVDs can have the same missing system image, so refresh all
+            rescanAvds()
           }
         }
       }

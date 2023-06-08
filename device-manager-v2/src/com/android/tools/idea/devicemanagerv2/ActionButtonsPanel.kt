@@ -50,7 +50,7 @@ internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHan
     handle.activationAction?.let { activationAction ->
       handle.deactivationAction?.let { deactivationAction ->
         setUp(
-          StartStopButton(handle, activationAction, deactivationAction),
+          StartStopButton(handle, activationAction, deactivationAction, handle.repairDeviceAction),
           openDeviceExplorer,
           overflowButton
         )

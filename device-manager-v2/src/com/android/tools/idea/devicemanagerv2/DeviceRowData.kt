@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
@@ -39,6 +40,7 @@ internal data class DeviceRowData(
   val androidVersion: AndroidVersion?,
   val abi: Abi?,
   val status: Status,
+  val error: DeviceError?,
   val isVirtual: Boolean,
   val wearPairingId: String?,
   val pairingStatus: List<PairingStatus>,
@@ -65,6 +67,7 @@ internal data class DeviceRowData(
             state.isOnline() -> Status.ONLINE
             else -> Status.OFFLINE
           },
+        error = state.error,
         isVirtual = properties.isVirtual ?: false,
         wearPairingId = properties.wearPairingId,
         pairingStatus = pairingStatus,
@@ -81,6 +84,7 @@ internal data class DeviceRowData(
         androidVersion = properties.androidVersion,
         abi = properties.abi,
         status = Status.OFFLINE,
+        error = null,
         isVirtual = properties.isVirtual ?: false,
         wearPairingId = properties.wearPairingId,
         pairingStatus = emptyList(),
