@@ -45,6 +45,7 @@ import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.PersistentStateComponent
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.diagnostic.Logger
@@ -457,6 +458,7 @@ internal class EmulatorToolWindowPanel(
     }
   }
 
+  @Service(Service.Level.PROJECT)
   @State(name = "EmulatorDisplays", storages = [Storage("emulatorDisplays.xml")])
   class MultiDisplayStateStorage : PersistentStateComponent<MultiDisplayStateStorage> {
 

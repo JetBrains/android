@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -51,6 +52,7 @@ import kotlin.math.min
 /**
  * Keeps track of Android Emulators running on the local machine under the current user account.
  */
+@Service(Service.Level.APP)
 class RunningEmulatorCatalog : Disposable.Parent {
   // TODO: Use WatchService instead of polling.
   @Volatile var emulators: Set<EmulatorController> = ImmutableSet.of()

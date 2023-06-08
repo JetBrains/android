@@ -15,8 +15,6 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceImplementation="com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog"/>
-
     <applicationConfigurable groupId="tools" id="emulator"
                              provider="com.android.tools.idea.streaming.emulator.settings.EmulatorConfigurableProvider"/>
     <applicationConfigurable groupId="tools" id="device.mirroring"
@@ -37,7 +35,6 @@
                        key="android.streaming.notification.title"/>
 
     <keymapExtension implementation="com.android.tools.idea.streaming.actions.StreamingKeymapExtension"/>
-    <projectService serviceImplementation="com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel$MultiDisplayStateStorage" />
   </extensions>
 
   <actions>
