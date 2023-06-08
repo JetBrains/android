@@ -34,11 +34,13 @@ import com.intellij.openapi.editor.colors.ColorKey;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.ui.JBColor;
 import java.util.Arrays;
+import java.util.function.Function;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -244,6 +246,11 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   }
 
   private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {
-    return type.create(myProject, myFile);
+    Function<? super FileEditor, ProjectSyncStatusNotificationProvider.NotificationPanel> panelFunction =
+      type.getProvider(myProject, myFile);
+    if (panelFunction == null) {
+      return null;
+    }
+    return panelFunction.apply(null);
   }
 }
