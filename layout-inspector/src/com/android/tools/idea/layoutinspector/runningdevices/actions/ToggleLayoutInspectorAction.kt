@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.runningdevices
+package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
+import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
+import com.android.tools.idea.layoutinspector.runningdevices.TabId
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent

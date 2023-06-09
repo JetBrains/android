@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.runningdevices
+package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.layoutinspector.runningdevices.FakeToolWindowManager
+import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
+import com.android.tools.idea.layoutinspector.runningdevices.TabId
+import com.android.tools.idea.layoutinspector.runningdevices.TabInfo
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY

@@ -22,7 +22,7 @@
 
     <action
         id="com.android.tools.idea.layoutinspector.toggle.layout.inspector.action"
-        class="com.android.tools.idea.layoutinspector.runningdevices.ToggleLayoutInspectorAction"
+        class="com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleLayoutInspectorAction"
         text="Toggle Layout Inspector"
         description="Toggles Layout Inspection on and off for this device."
         icon="StudioIcons.Shell.ToolWindows.CAPTURES" >
