@@ -20,6 +20,7 @@ import com.android.builder.model.proto.ide.AndroidGradlePluginProjectFlags
 import com.android.builder.model.proto.ide.AndroidVersion
 import com.android.builder.model.proto.ide.Library
 import com.android.builder.model.proto.ide.SigningConfig
+import com.android.builder.model.proto.ide.TestInfo
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
@@ -33,6 +34,7 @@ import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.ResolverType
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
@@ -46,6 +48,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformatio
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
@@ -56,6 +59,7 @@ import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
@@ -112,6 +116,24 @@ class KotlinModelConverter {
       apiLevel = apiLevel,
       codename = codename.deduplicate(),
       apiString = apiString.deduplicate()
+    )
+  }
+
+  private fun TestInfo.convert(): IdeTestOptionsImpl {
+    val executionOption: IdeTestOptions.Execution? =
+      when (execution) {
+        null -> null
+        TestInfo.Execution.ANDROID_TEST_ORCHESTRATOR ->
+          IdeTestOptions.Execution.ANDROID_TEST_ORCHESTRATOR
+        TestInfo.Execution.ANDROIDX_TEST_ORCHESTRATOR ->
+          IdeTestOptions.Execution.ANDROIDX_TEST_ORCHESTRATOR
+        TestInfo.Execution.HOST ->
+          IdeTestOptions.Execution.HOST
+        TestInfo.Execution.UNRECOGNIZED -> IdeTestOptions.Execution.HOST
+      }
+    return IdeTestOptionsImpl(
+      animationsDisabled = animationsDisabled,
+      execution = executionOption
     )
   }
 
@@ -335,6 +357,18 @@ class KotlinModelConverter {
         dependencies = null
       )
     }
+    val unitTestSourceSetDependencies = unitTestAndroidCompilation?.let { sourceSetDependenciesMap[unitTestAndroidCompilation.defaultSourceSetName] }?.map {
+      IdeDependencyCoreImpl(
+        target = it,
+        dependencies = null
+      )
+    }
+    val androidTestSourceSetDependencies = androidTestAndroidCompilation?.let { sourceSetDependenciesMap[androidTestAndroidCompilation.defaultSourceSetName] }?.map {
+      IdeDependencyCoreImpl(
+        target = it,
+        dependencies = null
+      )
+    }
 
     // TODO(b/288062009): Use the new compiler arguments infra when we migrate to 1.9.0
     val mainKotlinCompilerOptions = CachedArgumentsRestoring.restoreExtractedArgs(
@@ -431,42 +465,108 @@ class KotlinModelConverter {
       )
     )
 
-    val androidMainVariant = IdeVariantCoreImpl(
-      name = kotlinMultiplatformAndroidVariantName,
-      displayName = kotlinMultiplatformAndroidVariantName,
-      mainArtifact = IdeAndroidArtifactCoreImpl(
-        name = IdeArtifactName.MAIN,
-        compileTaskName = mainAndroidCompilation.kotlinCompileTaskName,
-        assembleTaskName = mainAndroidCompilation.assembleTaskName,
-        classesFolder = mainKotlinCompilation.output.classesDirs,
+    val mainArtifact = IdeAndroidArtifactCoreImpl(
+      name = IdeArtifactName.MAIN,
+      compileTaskName = mainAndroidCompilation.kotlinCompileTaskName,
+      assembleTaskName = mainAndroidCompilation.assembleTaskName,
+      classesFolder = mainKotlinCompilation.output.classesDirs,
+      variantSourceProvider = null,
+      multiFlavorSourceProvider = null,
+      ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
+      generatedSourceFolders = emptyList(), // For now, there is no generated sourced
+      isTestArtifact = false,
+      compileClasspathCore = IdeDependenciesCoreDirect(
+        dependencies = mainSourceSetDependencies
+      ),
+      runtimeClasspathCore = IdeDependenciesCoreDirect(
+        dependencies = mainSourceSetDependencies
+      ),
+      unresolvedDependencies = emptyList(),
+      applicationId = null,
+      signingConfigName = null,
+      isSigned = false,
+      generatedResourceFolders = emptyList(),
+      additionalRuntimeApks = emptyList(),
+      testOptions = null,
+      abiFilters = emptySet(),
+      buildInformation = mainBuildInformation,
+      codeShrinker = CodeShrinker.R8.takeIf { mainAndroidCompilation.mainInfo.minificationEnabled },
+      modelSyncFiles = emptyList(),
+      privacySandboxSdkInfo = null,
+      desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
+      generatedClassPaths = emptyMap()
+    )
+
+    val unitTestArtifact = unitTestAndroidCompilation?.let {
+      IdeJavaArtifactCoreImpl(
+        name = IdeArtifactName.UNIT_TEST,
+        compileTaskName = unitTestAndroidCompilation.kotlinCompileTaskName,
+        assembleTaskName = unitTestAndroidCompilation.assembleTaskName,
+        classesFolder = unitTestKotlinCompilation?.output?.classesDirs ?: emptyList(),
         variantSourceProvider = null,
         multiFlavorSourceProvider = null,
         ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
         generatedSourceFolders = emptyList(), // For now, there is no generated sourced
-        isTestArtifact = false,
+        isTestArtifact = true,
         compileClasspathCore = IdeDependenciesCoreDirect(
-          dependencies = mainSourceSetDependencies
+          dependencies = unitTestSourceSetDependencies!!
         ),
         runtimeClasspathCore = IdeDependenciesCoreDirect(
-          dependencies = mainSourceSetDependencies
+          dependencies = unitTestSourceSetDependencies
         ),
         unresolvedDependencies = emptyList(),
-        applicationId = null,
-        signingConfigName = null,
-        isSigned = false,
+        mockablePlatformJar = unitTestAndroidCompilation.unitTestInfo.mockablePlatformJar.convertAndDeduplicate(),
+        generatedClassPaths = emptyMap()
+      )
+    }
+
+    val androidTestArtifact = androidTestAndroidCompilation?.let {
+      IdeAndroidArtifactCoreImpl(
+        name = IdeArtifactName.ANDROID_TEST,
+        compileTaskName = androidTestAndroidCompilation.kotlinCompileTaskName,
+        assembleTaskName = androidTestAndroidCompilation.assembleTaskName,
+        classesFolder = androidTestKotlinCompilation?.output?.classesDirs ?: emptyList(),
+        variantSourceProvider = null,
+        multiFlavorSourceProvider = null,
+        ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
+        generatedSourceFolders = emptyList(), // For now, there is no generated sourced
+        isTestArtifact = true,
+        compileClasspathCore = IdeDependenciesCoreDirect(
+          dependencies = androidTestSourceSetDependencies!!
+        ),
+        runtimeClasspathCore = IdeDependenciesCoreDirect(
+          dependencies = androidTestSourceSetDependencies
+        ),
+        unresolvedDependencies = emptyList(),
+        applicationId = androidTestAndroidCompilation.instrumentedTestInfo.namespace,
+        signingConfigName = androidTestAndroidCompilation.instrumentedTestInfo.signingConfig?.name,
+        isSigned = androidTestAndroidCompilation.instrumentedTestInfo.signingConfig != null,
         generatedResourceFolders = emptyList(),
         additionalRuntimeApks = emptyList(),
-        testOptions = null,
+        testOptions = targetInfo.testInfo.convert(),
         abiFilters = emptySet(),
-        buildInformation = mainBuildInformation,
-        codeShrinker = CodeShrinker.R8.takeIf { mainAndroidCompilation.mainInfo.minificationEnabled },
+        buildInformation = IdeBuildTasksAndOutputInformationImpl(
+          assembleTaskName = androidTestAndroidCompilation.assembleTaskName,
+          assembleTaskOutputListingFile = androidTestAndroidCompilation.instrumentedTestInfo.assembleTaskOutputListingFile.absolutePath.deduplicate(),
+          bundleTaskName = null,
+          bundleTaskOutputListingFile = null,
+          apkFromBundleTaskName = null,
+          apkFromBundleTaskOutputListingFile = null
+        ),
+        codeShrinker = mainArtifact.codeShrinker,
         modelSyncFiles = emptyList(),
         privacySandboxSdkInfo = null,
         desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
         generatedClassPaths = emptyMap()
-      ),
-      unitTestArtifact = null,
-      androidTestArtifact = null,
+      )
+    }
+
+    val androidMainVariant = IdeVariantCoreImpl(
+      name = kotlinMultiplatformAndroidVariantName,
+      displayName = kotlinMultiplatformAndroidVariantName,
+      mainArtifact = mainArtifact,
+      unitTestArtifact = unitTestArtifact,
+      androidTestArtifact = androidTestArtifact,
       testFixturesArtifact = null,
       buildType = "", // TODO(b/288062702): figure out what will this affect
       productFlavors = emptyList(),

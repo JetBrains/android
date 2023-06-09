@@ -2378,6 +2378,86 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleAndroidMain
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileAndroidInstrumentedTest
+                AssembleTaskName              : assembleAndroidInstrumentedTest
+                IsTestArtifact                : true
+                ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest [-]
+                Dependencies
+                    compileClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                        androidLibrary                : androidx.test:runner:1.3.0@aar
+                        androidLibrary                : androidx.test.ext:junit:1.1.2@aar
+                        androidLibrary                : androidx.test:core:1.3.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        androidLibrary                : androidx.test:monitor:1.3.0@aar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0
+                        javaLibrary                   : androidx.annotation:annotation:1.0.0
+                        javaLibrary                   : junit:junit:4.12
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
+                        module                        : :-:kmpFirstLib-commonMain
+                        module                        : :-:kmpFirstLib-androidMain
+                        module                        : :-:androidLib-MAIN
+                    runtimeClasspath
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                        androidLibrary                : androidx.test:runner:1.3.0@aar
+                        androidLibrary                : androidx.test.ext:junit:1.1.2@aar
+                        androidLibrary                : androidx.test:core:1.3.0@aar
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        androidLibrary                : androidx.test:monitor:1.3.0@aar
+                        javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0
+                        javaLibrary                   : androidx.annotation:annotation:1.0.0
+                        javaLibrary                   : junit:junit:4.12
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
+                        module                        : :-:kmpFirstLib-commonMain
+                        module                        : :-:kmpFirstLib-androidMain
+                        module                        : :-:androidLib-MAIN
+                ApplicationId                 : com.example.kmpfirstlib.test
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleAndroidInstrumentedTest
+                    AssembleTaskOutputListingFile : <ROOT>/kmpFirstLib/build/intermediates/apk_ide_redirect_file/androidInstrumentedTest/redirect.txt [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileAndroidUnitTest
+                AssembleTaskName              : assembleAndroidUnitTest
+                IsTestArtifact                : true
+                ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/unitTest [-]
+                Dependencies
+                    compileClasspath
+                        module                        : :-:kmpFirstLib-commonTest
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                        javaLibrary                   : junit:junit:4.13.2
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                        module                        : :-:kmpFirstLib-commonMain
+                        module                        : :-:kmpFirstLib-androidMain
+                        module                        : :-:androidLib-MAIN
+                    runtimeClasspath
+                        module                        : :-:kmpFirstLib-commonTest
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                        javaLibrary                   : junit:junit:4.13.2
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                        module                        : :-:kmpFirstLib-commonMain
+                        module                        : :-:kmpFirstLib-androidMain
+                        module                        : :-:androidLib-MAIN
+                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies                  : IdeaKotlinDeserializedDependenciesContainer
         extraFeatures                 : ExtraFeaturesImpl
