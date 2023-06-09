@@ -718,7 +718,7 @@
     <extensionPoint qualifiedName="com.android.tools.idea.ui.designer.overlays.overlayProvider"
                     interface="com.android.tools.idea.ui.designer.overlays.OverlayProvider"/>
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
-                    interface="com.android.tools.idea.rendering.RenderSecurityManagerOverrides"/>
+                    interface="com.android.tools.rendering.security.RenderSecurityManagerOverrides"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingCompletionSupport"
                     interface="com.android.tools.idea.lang.databinding.DataBindingCompletionSupport"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingExpressionSupport"
