@@ -244,7 +244,7 @@ class CpuCaptureStageTest {
     assertThat(threadsTrackGroup.size).isEqualTo(105)
 
     val powerRailTrackGroup = stage.trackGroupModels[4]
-    assertThat(powerRailTrackGroup.title).isEqualTo("Power Rails")
+    assertThat(powerRailTrackGroup.title).isEqualTo("Power Rails (Cumulative)")
     assertThat(powerRailTrackGroup.size).isEqualTo(7)
 
     val batteryDrainTrackGroup = stage.trackGroupModels[5]

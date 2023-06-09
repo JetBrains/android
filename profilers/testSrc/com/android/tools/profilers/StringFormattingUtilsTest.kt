@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.com.android.tools.profilers
+package com.android.tools.profilers
 
-import com.android.tools.profilers.ValueFormattingUtils.formatLongValueWithCommas
+import com.android.tools.profilers.StringFormattingUtils.formatLongValueWithCommas
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.Test
 
-class ValueFormattingUtilsTest {
+class StringFormattingUtilsTest {
   @Test
   fun testFormatLongValueWithNoCommasExpected() {
     // A value with 3 digits should not have a commas

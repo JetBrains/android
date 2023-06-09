@@ -105,9 +105,9 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.profilers.StringFormattingUtils.formatStringInTitleCase;
 import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getUnitFromTrackName;
 import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getFormattedBatteryDrainName;
-
 
 /**
  * This class holds the models and capture data for the {@code com.android.tools.profilers.cpu.CpuCaptureStageView}.
@@ -827,15 +827,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private TrackGroupModel createPowerRailsTrackGroup(@NotNull CpuSystemTraceData systemTraceData) {
+    PowerProfilerDisplayMode displayMode =
+      getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode();
+    String displayModeTitleCase = formatStringInTitleCase(displayMode.name());
     TrackGroupModel power = TrackGroupModel.newBuilder()
-      .setTitle("Power Rails")
+      .setTitle("Power Rails " + "(" + displayModeTitleCase + ")")
       .setTitleHelpText("This section shows the device's power consumption per hardware component.<br/>" +
                         "<b>Power Rails</b> are wires in your device that connect the battery to hardware modules.")
       .setCollapsedInitially(false)
       .build();
 
-    PowerProfilerDisplayMode displayMode =
-      getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode();
     systemTraceData.getPowerRailCounters().forEach(
       (trackName, trackData) -> {
         PowerRailTrackModel trackModel = new PowerRailTrackModel(trackData, myTrackGroupTimeline.getViewRange(), displayMode);
