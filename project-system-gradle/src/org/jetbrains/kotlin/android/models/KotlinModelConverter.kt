@@ -15,24 +15,58 @@
  */
 package org.jetbrains.kotlin.android.models
 
+import com.android.builder.model.AndroidProject
+import com.android.builder.model.proto.ide.AndroidGradlePluginProjectFlags
+import com.android.builder.model.proto.ide.AndroidVersion
 import com.android.builder.model.proto.ide.Library
+import com.android.builder.model.proto.ide.SigningConfig
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
+import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
+import com.android.kotlin.multiplatform.models.AndroidCompilation
+import com.android.kotlin.multiplatform.models.AndroidTarget
+import com.android.kotlin.multiplatform.models.SourceProvider
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.CodeShrinker
+import com.android.tools.idea.gradle.model.IdeAaptOptions
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.ResolverType
+import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
+import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
+import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
+import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl.Companion.wellKnownOrCreate
+import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl
+import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
+import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
+import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
+import com.android.tools.idea.gradle.project.model.ourAndroidSyncVersion
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependencyCoordinates
@@ -40,13 +74,23 @@ import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinSourceDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.extras.documentationClasspath
 import org.jetbrains.kotlin.gradle.idea.tcs.extras.sourcesClasspath
+import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring
+import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
+import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
+import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
+import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.tooling.core.WeakInterner
 import java.io.File
+import java.nio.charset.Charset
 
 /**
  * Used to convert models coming from the build side in the kotlin model extras to the IDE models representation.
  */
 class KotlinModelConverter {
+  companion object {
+    const val kotlinMultiplatformAndroidVariantName = "androidMain"
+  }
+
   private val interner = WeakInterner(lock = null) // No need for a lock since the resolution happens sequentially.
 
   private val seenDependencies = mutableMapOf<IdeaKotlinDependencyCoordinates, LibraryReference>()
@@ -60,6 +104,76 @@ class KotlinModelConverter {
   private fun String.deduplicate() = interner.getOrPut(this)
   private fun File.deduplicateFile(): File = File(path.deduplicate())
   private fun com.android.builder.model.proto.ide.File.convertAndDeduplicate() = File(absolutePath.deduplicate())
+  private fun Collection<com.android.builder.model.proto.ide.File>.convertAndDeduplicate() = map { it.convertAndDeduplicate() }
+
+  private fun AndroidVersion.convert(): IdeApiVersionImpl {
+    val apiString = codename ?: apiLevel.toString()
+    return IdeApiVersionImpl(
+      apiLevel = apiLevel,
+      codename = codename.deduplicate(),
+      apiString = apiString.deduplicate()
+    )
+  }
+
+  private fun SourceProvider.convert(
+    sourceSet: KotlinSourceSet
+  ): IdeSourceProviderImpl {
+    val folder = File(manifestFile.absolutePath).parentFile
+    fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
+    fun String.makeRelativeAndDeduplicate(): String = File(this).makeRelativeAndDeduplicate()
+    fun Collection<File>.makeRelativeAndDeduplicate(): Collection<String> = map { it.makeRelativeAndDeduplicate() }
+    return IdeSourceProviderImpl(
+      myName = sourceSet.name,
+      myFolder = folder,
+      myManifestFile = manifestFile.absolutePath.makeRelativeAndDeduplicate(),
+      myKotlinDirectories = sourceSet.sourceDirs.makeRelativeAndDeduplicate(),
+      myResourcesDirectories = sourceSet.resourceDirs.makeRelativeAndDeduplicate(),
+      myJavaDirectories = emptyList(),
+      myAidlDirectories = emptyList(),
+      myRenderscriptDirectories = emptyList(),
+      myResDirectories = emptyList(),
+      myAssetsDirectories = emptyList(),
+      myJniLibsDirectories = emptyList(),
+      myShadersDirectories = emptyList(),
+      myMlModelsDirectories = emptyList(),
+      myBaselineProfileDirectories = emptyList(),
+      myCustomSourceDirectories = emptyList()
+    )
+  }
+
+  private fun AndroidGradlePluginProjectFlags.convert() = IdeAndroidGradlePluginProjectFlagsImpl(
+    applicationRClassConstantIds = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS
+    }.value,
+    testRClassConstantIds = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.TEST_R_CLASS_CONSTANT_IDS
+    }.value,
+    transitiveRClasses = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS
+    }.value,
+    usesCompose = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE
+    }.value,
+    mlModelBindingEnabled = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING
+    }.value,
+    unifiedTestPlatformEnabled = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM
+    }.value,
+    useAndroidX = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X
+    }.value,
+    enableVcsInfo = booleanFlagValuesList.first {
+      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.ENABLE_VCS_INFO
+    }.value
+  )
+
+  private fun SigningConfig.convert() = IdeSigningConfigImpl(
+    name = name.deduplicate(),
+    storeFile = storeFile?.convertAndDeduplicate(),
+    storePassword = storePassword?.deduplicate(),
+    keyAlias = keyAlias?.deduplicate()
+  )
 
   private fun computeForCoordinatesIfAbsent(
     coordinates: IdeaKotlinDependencyCoordinates?,
@@ -202,5 +316,188 @@ class KotlinModelConverter {
       seenDependencies.clear()
       libraries.clear()
     }
+  }
+
+  fun createGradleAndroidModelData(
+    moduleName: String,
+    rootModulePath: File?,
+    targetInfo: AndroidTarget,
+    compilationInfoMap: Map<AndroidCompilation.CompilationType, Pair<KotlinCompilation, AndroidCompilation>>,
+    sourceSetDependenciesMap: Map<String, Set<LibraryReference>>,
+  ): GradleAndroidModelData {
+    val (mainKotlinCompilation, mainAndroidCompilation) = compilationInfoMap[AndroidCompilation.CompilationType.MAIN]!!
+    val (unitTestKotlinCompilation, unitTestAndroidCompilation) = compilationInfoMap[AndroidCompilation.CompilationType.UNIT_TEST] ?: Pair(null, null)
+    val (androidTestKotlinCompilation, androidTestAndroidCompilation) = compilationInfoMap[AndroidCompilation.CompilationType.INSTRUMENTED_TEST] ?: Pair(null, null)
+
+    val mainSourceSetDependencies = sourceSetDependenciesMap[mainAndroidCompilation.defaultSourceSetName]!!.map {
+      IdeDependencyCoreImpl(
+        target = it,
+        dependencies = null
+      )
+    }
+
+    // TODO(b/288062009): Use the new compiler arguments infra when we migrate to 1.9.0
+    val mainKotlinCompilerOptions = CachedArgumentsRestoring.restoreExtractedArgs(
+      mainKotlinCompilation.cachedArgsInfo as CachedExtractedArgsInfo,
+      CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder
+    ).currentCompilerArguments as K2JVMCompilerArguments
+
+    val mainBuildInformation = IdeBuildTasksAndOutputInformationImpl(
+      assembleTaskName = mainAndroidCompilation.assembleTaskName,
+      assembleTaskOutputListingFile = null,
+      bundleTaskName = null,
+      bundleTaskOutputListingFile = null,
+      apkFromBundleTaskName = null,
+      apkFromBundleTaskOutputListingFile = null,
+    )
+
+    val androidProject = IdeAndroidProjectImpl(
+      agpVersion = targetInfo.agpVersion,
+      projectPath = IdeProjectPathImpl(
+        rootBuildId = targetInfo.rootBuildId.convertAndDeduplicate(),
+        buildId = targetInfo.buildId.convertAndDeduplicate(),
+        buildName = targetInfo.buildName.deduplicate(),
+        projectPath = targetInfo.projectPath.deduplicate()
+      ),
+      buildFolder = File(targetInfo.buildDir.absolutePath).deduplicateFile(),
+      projectType = IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM,
+      defaultSourceProvider = IdeSourceProviderContainerImpl(
+        sourceProvider = mainKotlinCompilation.declaredSourceSets.firstOrNull {
+          it.name == mainAndroidCompilation.defaultSourceSetName
+        }?.let { sourceSet ->
+          sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet)
+        },
+        extraSourceProviders = listOf(
+          AndroidProject.ARTIFACT_UNIT_TEST to unitTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
+            it.name == unitTestAndroidCompilation?.defaultSourceSetName
+          }?.let { sourceSet ->
+            sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet)
+          },
+          AndroidProject.ARTIFACT_ANDROID_TEST to androidTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
+            it.name == androidTestAndroidCompilation?.defaultSourceSetName
+          }?.let { sourceSet ->
+            sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet)
+          }
+        ).mapNotNull { (artifactName, sourceProvider) ->
+          sourceProvider?.let {
+            IdeExtraSourceProviderImpl(
+              artifactName = artifactName,
+              sourceProvider = sourceProvider
+            )
+          }
+        }
+      ),
+      multiVariantData = null,
+      flavorDimensions = emptyList(),
+      compileTarget = mainAndroidCompilation.mainInfo.compileSdkTarget,
+      bootClasspath = targetInfo.bootClasspathList.map { it.absolutePath.deduplicate() },
+      signingConfigs = listOfNotNull(
+        androidTestAndroidCompilation?.instrumentedTestInfo?.signingConfig?.convert()
+      ),
+      aaptOptions = IdeAaptOptionsImpl(IdeAaptOptions.Namespacing.REQUIRED),
+      lintOptions = IdeLintOptionsImpl(), // TODO(b/269755640): support lint in the IDE
+      javaCompileOptions = IdeJavaCompileOptionsImpl(
+        encoding = Charset.defaultCharset().name(),
+        sourceCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
+        targetCompatibility = mainKotlinCompilerOptions.jvmTarget ?: "1.8",
+        isCoreLibraryDesugaringEnabled = targetInfo.isCoreLibraryDesugaringEnabled,
+      ),
+      resourcePrefix = null,
+      buildToolsVersion = targetInfo.buildToolsVersion,
+      isBaseSplit = false,
+      dynamicFeatures = emptyList(),
+      viewBindingOptions = null,
+      dependenciesInfo = null,
+      groupId = targetInfo.groupId,
+      namespace = mainAndroidCompilation.mainInfo.namespace,
+      agpFlags = targetInfo.flags.convert(),
+      variantsBuildInformation = listOf(
+        IdeVariantBuildInformationImpl(
+          variantName = kotlinMultiplatformAndroidVariantName,
+          mainBuildInformation
+        )
+      ),
+      lintChecksJars = targetInfo.lintChecksJarsList.convertAndDeduplicate(),
+      testNamespace = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace,
+      isKaptEnabled = false,
+      desugarLibraryConfigFiles = targetInfo.desugarLibConfigList.convertAndDeduplicate(),
+      baseFeature = null,
+      basicVariants = listOf(
+        IdeBasicVariantImpl(
+          name = kotlinMultiplatformAndroidVariantName,
+          applicationId = null,
+          testApplicationId = androidTestAndroidCompilation?.instrumentedTestInfo?.namespace
+        )
+      )
+    )
+
+    val androidMainVariant = IdeVariantCoreImpl(
+      name = kotlinMultiplatformAndroidVariantName,
+      displayName = kotlinMultiplatformAndroidVariantName,
+      mainArtifact = IdeAndroidArtifactCoreImpl(
+        name = IdeArtifactName.MAIN,
+        compileTaskName = mainAndroidCompilation.kotlinCompileTaskName,
+        assembleTaskName = mainAndroidCompilation.assembleTaskName,
+        classesFolder = mainKotlinCompilation.output.classesDirs,
+        variantSourceProvider = null,
+        multiFlavorSourceProvider = null,
+        ideSetupTaskNames = emptyList(), // For now, there is no source generation tasks
+        generatedSourceFolders = emptyList(), // For now, there is no generated sourced
+        isTestArtifact = false,
+        compileClasspathCore = IdeDependenciesCoreDirect(
+          dependencies = mainSourceSetDependencies
+        ),
+        runtimeClasspathCore = IdeDependenciesCoreDirect(
+          dependencies = mainSourceSetDependencies
+        ),
+        unresolvedDependencies = emptyList(),
+        applicationId = null,
+        signingConfigName = null,
+        isSigned = false,
+        generatedResourceFolders = emptyList(),
+        additionalRuntimeApks = emptyList(),
+        testOptions = null,
+        abiFilters = emptySet(),
+        buildInformation = mainBuildInformation,
+        codeShrinker = CodeShrinker.R8.takeIf { mainAndroidCompilation.mainInfo.minificationEnabled },
+        modelSyncFiles = emptyList(),
+        privacySandboxSdkInfo = null,
+        desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
+        generatedClassPaths = emptyMap()
+      ),
+      unitTestArtifact = null,
+      androidTestArtifact = null,
+      testFixturesArtifact = null,
+      buildType = "", // TODO(b/288062702): figure out what will this affect
+      productFlavors = emptyList(),
+      minSdkVersion = mainAndroidCompilation.mainInfo.minSdkVersion.convert(),
+      targetSdkVersion = null,
+      maxSdkVersion = mainAndroidCompilation.mainInfo.maxSdkVersion,
+      versionCode = null,
+      versionNameSuffix = null,
+      versionNameWithSuffix = null,
+      instantAppCompatible = false,
+      vectorDrawablesUseSupportLibrary = false,
+      resourceConfigurations = emptyList(),
+      resValues = emptyMap(),
+      proguardFiles = mainAndroidCompilation.mainInfo.proguardFilesList.convertAndDeduplicate(),
+      consumerProguardFiles = mainAndroidCompilation.mainInfo.consumerProguardFilesList.convertAndDeduplicate(),
+      manifestPlaceholders = emptyMap(),
+      testInstrumentationRunner = androidTestAndroidCompilation?.instrumentedTestInfo?.testInstrumentationRunner,
+      testInstrumentationRunnerArguments = androidTestAndroidCompilation?.instrumentedTestInfo?.testInstrumentationRunnerArgumentsMap?.toMap() ?: emptyMap(),
+      testedTargetVariants = emptyList(),
+      deprecatedPreMergedApplicationId = null,
+      deprecatedPreMergedTestApplicationId = null,
+      desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate()
+    )
+
+    return GradleAndroidModelDataImpl(
+      androidSyncVersion = ourAndroidSyncVersion,
+      moduleName = moduleName,
+      rootDirPath = rootModulePath!!,
+      androidProject = androidProject,
+      selectedVariantName = kotlinMultiplatformAndroidVariantName,
+      variants = listOf(androidMainVariant)
+    )
   }
 }

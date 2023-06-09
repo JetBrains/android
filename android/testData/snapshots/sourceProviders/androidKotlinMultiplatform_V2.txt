@@ -2029,6 +2029,283 @@ MODULE: Kotlin_Multiplatform.app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestDebug/shaders
         CurrentTestFixturesSourceProviders:
+MODULE: Kotlin_Multiplatform.kmpFirstLib
+    by Facet:
+        androidMain (IDEA)
+            ScopeType: MAIN
+            ManifestFileUrls:
+                file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+            ManifestFiles:
+                file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./kmpFirstLib/src/androidMain
+            ManifestDirectories:
+                file://./kmpFirstLib/src/androidMain
+            KotlinDirectoryUrls:
+                file://./kmpFirstLib/src/androidMain/kotlin
+            KotlinDirectories:
+                file://./kmpFirstLib/src/androidMain/kotlin
+            ResourcesDirectoryUrls:
+                file://./kmpFirstLib/src/androidMain/resources
+            ResourcesDirectories:
+                file://./kmpFirstLib/src/androidMain/resources
+    by AndroidModel:
+        androidMain
+            Manifest:
+                ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+            KotlinDirectories:
+                ./kmpFirstLib/src/androidMain/kotlin
+            ResourcesDirectories:
+                ./kmpFirstLib/src/androidMain/resources
+        Active:
+            androidMain
+                Manifest:
+                    ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                KotlinDirectories:
+                    ./kmpFirstLib/src/androidMain/kotlin
+                ResourcesDirectories:
+                    ./kmpFirstLib/src/androidMain/resources
+        All:
+            androidMain
+                Manifest:
+                    ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                KotlinDirectories:
+                    ./kmpFirstLib/src/androidMain/kotlin
+                ResourcesDirectories:
+                    ./kmpFirstLib/src/androidMain/resources
+        UnitTest:
+            androidUnitTest
+                Manifest:
+                    ./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                KotlinDirectories:
+                    ./kmpFirstLib/src/androidUnitTest/kotlin
+                ResourcesDirectories:
+                    ./kmpFirstLib/src/androidUnitTest/resources
+        AndroidTest:
+        TestFixtures:
+    by IdeaSourceProviders:
+        Manifests:
+            file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                ManifestFiles:
+                    file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidMain
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidMain/kotlin
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/resources
+                ResourcesDirectories:
+                    file://./kmpFirstLib/src/androidMain/resources
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidUnitTest
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/resources
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
+        GeneratedSources:
+            GeneratedSources (IDEA)
+                ScopeType: MAIN
+        GeneratedUnitTestSources:
+            GeneratedUnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
+        GeneratedAndroidTestSources:
+            GeneratedAndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+        GeneratedTestFixturesSources:
+            GeneratedTestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                ManifestFiles:
+                    file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidMain
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidMain/kotlin
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/resources
+                ResourcesDirectories:
+                    file://./kmpFirstLib/src/androidMain/resources
+        CurrentSourceProviders:
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                ManifestFiles:
+                    file://./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidMain
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidMain/kotlin
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/resources
+                ResourcesDirectories:
+                    file://./kmpFirstLib/src/androidMain/resources
+        CurrentUnitTestSourceProviders:
+            androidUnitTest (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest
+                ManifestDirectories:
+                    file://./kmpFirstLib/src/androidUnitTest
+                KotlinDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                KotlinDirectories:
+                    file://./kmpFirstLib/src/androidUnitTest/kotlin
+                ResourcesDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/resources
+        CurrentAndroidTestSourceProviders:
+        CurrentTestFixturesSourceProviders:
+MODULE: Kotlin_Multiplatform.kmpSecondLib
+    by Facet:
+        androidMain (IDEA)
+            ScopeType: MAIN
+            ManifestFileUrls:
+                file://./kmpSecondLib/src/androidMain/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./kmpSecondLib/src/androidMain
+            ManifestDirectories:
+                file://./kmpSecondLib/src/androidMain
+            KotlinDirectoryUrls:
+                file://./kmpSecondLib/src/androidMain/kotlin
+            KotlinDirectories:
+                file://./kmpSecondLib/src/androidMain/kotlin
+            ResourcesDirectoryUrls:
+                file://./kmpSecondLib/src/androidMain/resources
+    by AndroidModel:
+        androidMain
+            Manifest:
+                ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+            KotlinDirectories:
+                ./kmpSecondLib/src/androidMain/kotlin
+            ResourcesDirectories:
+                ./kmpSecondLib/src/androidMain/resources
+        Active:
+            androidMain
+                Manifest:
+                    ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                KotlinDirectories:
+                    ./kmpSecondLib/src/androidMain/kotlin
+                ResourcesDirectories:
+                    ./kmpSecondLib/src/androidMain/resources
+        All:
+            androidMain
+                Manifest:
+                    ./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                KotlinDirectories:
+                    ./kmpSecondLib/src/androidMain/kotlin
+                ResourcesDirectories:
+                    ./kmpSecondLib/src/androidMain/resources
+        UnitTest:
+        AndroidTest:
+        TestFixtures:
+    by IdeaSourceProviders:
+        Sources:
+            Sources (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain
+                ManifestDirectories:
+                    file://./kmpSecondLib/src/androidMain
+                KotlinDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./kmpSecondLib/src/androidMain/kotlin
+                ResourcesDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/resources
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+        TestFixturesSources:
+            TestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
+        GeneratedSources:
+            GeneratedSources (IDEA)
+                ScopeType: MAIN
+        GeneratedUnitTestSources:
+            GeneratedUnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
+        GeneratedAndroidTestSources:
+            GeneratedAndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
+        GeneratedTestFixturesSources:
+            GeneratedTestFixturesSources (IDEA)
+                ScopeType: TEST_FIXTURES
+        CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain
+                ManifestDirectories:
+                    file://./kmpSecondLib/src/androidMain
+                KotlinDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./kmpSecondLib/src/androidMain/kotlin
+                ResourcesDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/resources
+        CurrentSourceProviders:
+            androidMain (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./kmpSecondLib/src/androidMain/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain
+                ManifestDirectories:
+                    file://./kmpSecondLib/src/androidMain
+                KotlinDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/kotlin
+                KotlinDirectories:
+                    file://./kmpSecondLib/src/androidMain/kotlin
+                ResourcesDirectoryUrls:
+                    file://./kmpSecondLib/src/androidMain/resources
+        CurrentUnitTestSourceProviders:
+        CurrentAndroidTestSourceProviders:
+        CurrentTestFixturesSourceProviders:
 Build configuration files:
     file://./build.gradle : Project: Kotlin_Multiplatform [0]
     file://./androidLib/build.gradle.kts : Module :androidLib [2000004]

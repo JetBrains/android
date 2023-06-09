@@ -2238,6 +2238,146 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 22
+            ApiString                     : 22
+        runtimeMinSdk
+            ApiLevel                      : 22
+            ApiString                     : 22
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
+    ProjectPath                   : :kmpFirstLib
+    ModelVersion                  : <AGP_VERSION>
+    ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
+    CompileTarget                 : android-<SDK_VERSION>
+    BuildFolder                   : <ROOT>/kmpFirstLib/build [-]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    IsBaseSplit                   : false
+    GroupId                       : Kotlin Multiplatform
+    Namespace                     : com.example.kmpfirstlib
+    TestNamespace                 : com.example.kmpfirstlib.test
+    AaptOptions
+        NameSpacing                   : REQUIRED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 17
+        TargetCompatibility           : 17
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
+        TransitiveRClasses            : false
+        UseAndroidX                   : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
+    - basicVariant:               : androidMain
+        testApplicationId             : com.example.kmpfirstlib.test
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    DefaultSourceProvider
+        SourceProvider
+            Name                          : androidMain
+            Manifest                      : <ROOT>/kmpFirstLib/src/androidMain/AndroidManifest.xml
+            KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidMain/kotlin
+            ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidMain/resources
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : androidUnitTest
+                    Manifest                      : <ROOT>/kmpFirstLib/src/androidUnitTest/AndroidManifest.xml [-]
+                    KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidUnitTest/kotlin
+                    ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidUnitTest/resources [-]
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidInstrumentedTest
+                    Manifest                      : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
+                    ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : androidMain
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleAndroidMain
+    IdeVariants
+        IdeVariant
+            Name                          : androidMain
+            BuildType                     :
+            DisplayName                   : androidMain
+            InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 22
+                CodeName                      :
+                ApiString                     :
+            MaxSdkVersion                 : 0
+            ProguardFiles                 : <ROOT>/kmpFirstLib/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileAndroidMain
+                AssembleTaskName              : assembleAndroidMain
+                IsTestArtifact                : false
+                ClassesFolder                 : <ROOT>/kmpFirstLib/build/classes/kotlin/android/main [-]
+                Dependencies
+                    compileClasspath
+                        module                        : :-:kmpFirstLib-commonMain
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                        module                        : :-:androidLib-MAIN
+                        module                        : :-:kmpSecondLib-commonMain
+                        module                        : :-:kmpSecondLib-androidMain
+                        module                        : :-:kmpJvmOnly-commonMain
+                        module                        : :-:kmpJvmOnly-jvmMain
+                    runtimeClasspath
+                        module                        : :-:kmpFirstLib-commonMain
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                        module                        : :-:androidLib-MAIN
+                        module                        : :-:kmpSecondLib-commonMain
+                        module                        : :-:kmpSecondLib-androidMain
+                        module                        : :-:kmpJvmOnly-commonMain
+                        module                        : :-:kmpJvmOnly-jvmMain
+                IsSigned                      : false
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleAndroidMain
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies                  : IdeaKotlinDeserializedDependenciesContainer
         extraFeatures                 : ExtraFeaturesImpl
@@ -2684,6 +2824,114 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
         rootFolderPath                : <ROOT>
         hasSafeArgsJava               : false
         hasSafeArgsKotlin             : false
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 22
+            ApiString                     : 22
+        runtimeMinSdk
+            ApiLevel                      : 22
+            ApiString                     : 22
+        targetSdk
+            ApiLevel                      : 1
+            ApiString                     : 1
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
+    ProjectPath                   : :kmpSecondLib
+    ModelVersion                  : <AGP_VERSION>
+    ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
+    CompileTarget                 : android-<SDK_VERSION>
+    BuildFolder                   : <ROOT>/kmpSecondLib/build [-]
+    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    IsBaseSplit                   : false
+    GroupId                       : Kotlin Multiplatform
+    Namespace                     : com.example.kmpsecondlib
+    AaptOptions
+        NameSpacing                   : REQUIRED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 17
+        TargetCompatibility           : 17
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
+        TransitiveRClasses            : false
+        UseAndroidX                   : true
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
+    - basicVariant:               : androidMain
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    DefaultSourceProvider
+        SourceProvider
+            Name                          : androidMain
+            Manifest                      : <ROOT>/kmpSecondLib/src/androidMain/AndroidManifest.xml [-]
+            KotlinDirectories             : <ROOT>/kmpSecondLib/src/androidMain/kotlin
+            ResourcesDirectories          : <ROOT>/kmpSecondLib/src/androidMain/resources [-]
+        ExtraSourceProviders
+    SigningConfigs
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : androidMain
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleAndroidMain
+    IdeVariants
+        IdeVariant
+            Name                          : androidMain
+            BuildType                     :
+            DisplayName                   : androidMain
+            InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 22
+                CodeName                      :
+                ApiString                     :
+            MaxSdkVersion                 : 0
+            ProguardFiles                 : <ROOT>/kmpSecondLib/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileAndroidMain
+                AssembleTaskName              : assembleAndroidMain
+                IsTestArtifact                : false
+                ClassesFolder                 : <ROOT>/kmpSecondLib/build/classes/kotlin/android/main [-]
+                Dependencies
+                    compileClasspath
+                        module                        : :-:kmpSecondLib-commonMain
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                    runtimeClasspath
+                        module                        : :-:kmpSecondLib-commonMain
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains:annotations:13.0
+                IsSigned                      : false
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleAndroidMain
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
     kotlinMppGradleModel          : {androidMain=androidMain, commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies                  : IdeaKotlinDeserializedDependenciesContainer
         extraFeatures                 : ExtraFeaturesImpl

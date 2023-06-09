@@ -19,14 +19,20 @@ import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilat
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKey
+import com.android.kotlin.multiplatform.models.AndroidCompilation
 import com.android.kotlin.multiplatform.models.AndroidCompilation.CompilationType
+import com.android.kotlin.multiplatform.models.AndroidTarget
 import com.android.tools.idea.gradle.model.LibraryReference
+import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.io.FilePaths
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.AbstractDependencyData
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
+import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.android.models.KotlinModelConverter
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
@@ -46,6 +52,8 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
 
   private val sourceSetResolver = KotlinMppAndroidSourceSetResolver()
   private val sourceSetDependenciesMap = mutableMapOf<String, MutableMap<String, Set<LibraryReference>>>()
+
+  private val compilationModelMap = mutableMapOf<String, MutableMap<CompilationType, Pair<KotlinCompilation, AndroidCompilation>>>()
 
   override fun provideAdditionalProjectArtifactDependencyResolvers(): List<KotlinProjectArtifactDependencyResolver> {
     return listOf(
@@ -69,6 +77,10 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
         CompilationType.UNRECOGNIZED, null -> error("Unexpected compilation type.")
       }
     )
+
+    compilationModelMap.getOrPut(context.moduleDataNode.data.id) {
+      mutableMapOf()
+    }.putIfAbsent(androidCompilation.type, Pair(kotlinCompilation, androidCompilation))
   }
 
   override fun afterPopulateSourceSetDependencies(context: Context,
@@ -128,8 +140,46 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
   }
 
   override fun afterResolveFinished(context: Context) {
-    modelConverter.maybeCreateLibraryTable(
-      context.projectDataNode
+    try {
+      val targetInfo = context.mppModel.targets.firstNotNullOfOrNull { it.extras[androidTargetKey] }?.invoke() ?: return
+      val compilationInfo = compilationModelMap[context.moduleDataNode.data.id] ?: return
+      val sourceSetDependencies = sourceSetDependenciesMap[context.moduleDataNode.data.id] ?: return
+
+      modelConverter.maybeCreateLibraryTable(
+        context.projectDataNode
+      )
+
+      createAndAttachModelsToDataNode(
+        moduleNode = context.moduleDataNode,
+        targetInfo = targetInfo,
+        compilationInfoMap = compilationInfo,
+        sourceSetDependenciesMap = sourceSetDependencies
+      )
+    } finally {
+      // cleanup
+      compilationModelMap.remove(context.moduleDataNode.data.id)
+      sourceSetDependenciesMap.remove(context.moduleDataNode.data.id)
+    }
+  }
+
+  private fun createAndAttachModelsToDataNode(
+    moduleNode: DataNode<ModuleData>,
+    targetInfo: AndroidTarget,
+    compilationInfoMap: Map<CompilationType, Pair<KotlinCompilation, AndroidCompilation>>,
+    sourceSetDependenciesMap: Map<String, Set<LibraryReference>>
+  ): GradleAndroidModelData {
+    val moduleName = moduleNode.data.internalName
+    val rootModulePath = FilePaths.stringToFile(moduleNode.data.linkedExternalProjectPath)
+
+    val kotlinAndroidModel = modelConverter.createGradleAndroidModelData(
+      moduleName,
+      rootModulePath,
+      targetInfo,
+      compilationInfoMap,
+      sourceSetDependenciesMap
     )
+    moduleNode.createChild(AndroidProjectKeys.ANDROID_MODEL, kotlinAndroidModel)
+
+    return kotlinAndroidModel
   }
 }
