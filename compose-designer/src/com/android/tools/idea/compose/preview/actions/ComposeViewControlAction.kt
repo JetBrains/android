@@ -23,6 +23,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
@@ -62,7 +63,7 @@ class ComposeViewControlAction(
   @VisibleForTesting
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
-    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
+    if (StudioFlags.COMPOSE_VIEW_FILTER.get() && !ComposePreviewLiteModeManager.isLiteModeEnabled) {
       DESIGN_SURFACE.getData(context)?.let { surface ->
         add(ComposeShowFilterAction(surface))
         addSeparator()
