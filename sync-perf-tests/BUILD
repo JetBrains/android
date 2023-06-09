@@ -1,6 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 SYNC_PERFGATE_TAGS = [
     "block-network",
@@ -20,85 +19,15 @@ iml_module(
     name = "intellij.android.sync-perf-tests",
     iml_files = ["intellij.android.sync-perf-tests.iml"],
     split_test_targets = {
-        # Smoke tests
-        "AverageSmoke": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.AverageSmokeTest",
-            "timeout": "long",
-            "tags": SYNC_SMOKE_TAGS,
-        },
-        "Base100Smoke": {
-            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100SmokeTest",
-            "timeout": "long",
-            "tags": SYNC_SMOKE_TAGS,
-        },
-        "Base100KotlinSmoke": {
-            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinSmokeTest",
-            "timeout": "long",
-            "tags": SYNC_SMOKE_TAGS,
-        },
         "DolphinSmoke": {
             "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinSmokeTest",
             "timeout": "long",
             "tags": SYNC_SMOKE_TAGS,
         },
-        "SantaTrackerSmoke": {
-            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerSmokeTest",
-            "timeout": "long",
-            "tags": SYNC_SMOKE_TAGS,
-        },
-        # Perfgate tests
-        # We split the V1 and V2 tests in different shards so that project loading from one
-        # does not impact the initial metrics for another. See b/215189237 for more context.
-        "Base100V1": {
-            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTestV1",
-            "tags": SYNC_PERFGATE_TAGS,
-        },
-        "Base100V2": {
-            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100PerfTestV2",
-            "tags": SYNC_PERFGATE_TAGS,
-        },
-        "Base100KotlinV1": {
-            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinPerfTestV1",
-            "tags": SYNC_PERFGATE_TAGS,
-        },
-        "Base100KotlinV2": {
-            "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinPerfTestV2",
-            "tags": SYNC_PERFGATE_TAGS,
-        },
         "DolphinV2": {
             "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTestV2",
-            "tags": SYNC_PERFGATE_TAGS,
-        },
-        "ExtraLargeV1": {
-            "data": ["//prebuilts/studio/buildbenchmarks:ExtraLarge_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.ExtraLargePerfTestV1",
-            # Only run manually since this project requires too much memory (b/176172752)
-            "timeout": "long",
-            "tags": ["manual"],
-        },
-        "ExtraLargeV2": {
-            "data": ["//prebuilts/studio/buildbenchmarks:ExtraLarge_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.ExtraLargePerfTestV2",
-            "tags": SYNC_PERFGATE_TAGS,
-            "exec_properties": LARGE_MACHINE,
-        },
-        "SantaTrackerV1": {
-            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTestV1",
-            "tags": SYNC_PERFGATE_TAGS,
-        },
-        "SantaTrackerV2": {
-            "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerPerfTestV2",
             "tags": SYNC_PERFGATE_TAGS,
         },
         # This split test target contains AveragePerfTest, and other unspecified tests if
@@ -110,18 +39,18 @@ iml_module(
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-32",  # Used for model v1 tests that needs AGP 7.1 (which needs compile sdk 32)
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/sync-perf-tests/testData",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:gradle-distrib-7.2",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:gradle-distrib",
+        "//tools/base/build-system:gradle-distrib-7.2",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
