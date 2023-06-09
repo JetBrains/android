@@ -43,7 +43,6 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
     addRowToCommonSectionWithInfoIcon("Total Power Used in Range", powerUsedLabel, POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG)
     tabModel.selectionRange.addDependency(observer).onChange(Range.Aspect.RANGE) { updateRangeLabels() }
     updateRangeLabels()
-    addSection(HelpTextView())
     // The CpuCapture containing the system trace data is always the first element in the tab model's data series
     val cpuCapture = tabModel.dataSeries[0]
     cpuCapture.systemTraceData?.powerRailCounters?.let { powerRailCounters ->
@@ -52,6 +51,7 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
           PowerRailTable(profilersView.studioProfilers, powerRailCounters, tabModel.selectionRange, tabModel.captureRange).component)
       }
     }
+    addSection(HelpTextView())
   }
 
   private fun updateRangeLabels() {
