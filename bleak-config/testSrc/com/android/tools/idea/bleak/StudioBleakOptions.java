@@ -13,45 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.asdriver.inject;
+package com.android.tools.idea.bleak;
 
-import com.android.tools.idea.bleak.BleakOptions;
-import com.android.tools.idea.bleak.IgnoreList;
-import com.android.tools.idea.bleak.IgnoreListEntry;
-import com.android.tools.idea.bleak.LeakInfo;
-import com.android.tools.idea.bleak.MainBleakCheck;
+import com.android.tools.idea.bleak.expander.Expander;
+import com.android.tools.idea.bleak.expander.SmartFMapExpander;
+import com.android.tools.idea.bleak.expander.SmartListExpander;
+import gnu.trove.TObjectHash;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 
-public class AsdriverBleakOptions {
-  /**
-   * Specifies a pattern to ignore should it appear in a leaktrace (shortest path from GC roots to a suspected
-   * leaky object). The pattern matches if the reference at position {@code index} is from an object of class
-   * {@code className}, through field {@code fieldName}. Negative indices count backwards from the end of the
-   * leaktrace.
-   */
-  private static class IgnoredRef {
-    int index;
-    String className;
-    String fieldName;
-
-    IgnoredRef(int index, String className, String fieldName) {
-      this.index = index;
-      this.className = className;
-      this.fieldName = fieldName;
-    }
-
-    private IgnoreListEntry<LeakInfo> toIgnorelistEntry() {
-      return (LeakInfo info) -> info.getLeaktrace().referenceMatches(index, className, fieldName);
-    }
-  }
-
-  private static final IgnoredRef[] ignoredRefs = {
+public class StudioBleakOptions {
+  private static IgnoreList<LeakInfo> globalIgnoreList = new IgnoreList<> (Arrays.stream(new IgnoredRef[]{
     new IgnoredRef(-2, "com.intellij.openapi.util.ObjectNode", "myChildren"),
     new IgnoredRef(-2, "com.intellij.openapi.util.ObjectTree", "myObject2ParentNode"),
     new IgnoredRef(-2, "com.android.tools.idea.testing.DisposerExplorer", "object2ParentNode"),
     new IgnoredRef(-2, "com.android.tools.idea.diagnostics.report.MetricsLogFileProviderKt", "DefaultMetricsLogFileProvider"),
+    new IgnoredRef(-5, "com.android.tools.idea.tests.gui.framework.GuiPerfLogger", "myMetric"),
     new IgnoredRef(1, "com.android.layoutlib.bridge.impl.DelegateManager", "sJavaReferences"),
     new IgnoredRef(-2, "com.intellij.util.ref.DebugReflectionUtil", "allFields"),
     new IgnoredRef(-1, "java.util.concurrent.ForkJoinPool", "workQueues"),
@@ -108,13 +87,20 @@ public class AsdriverBleakOptions {
     new IgnoredRef(-1, "com.android.tools.idea.io.grpc.netty.shaded.io.netty.util.internal.shaded.org.jctools.queues.MpscChunkedArrayQueue", "producerBuffer"),
     new IgnoredRef(-1, "com.android.tools.idea.io.grpc.netty.shaded.io.netty.util.internal.shaded.org.jctools.queues.MpscArrayQueue", "buffer"),
     new IgnoredRef(-1, "com.android.tools.idea.io.grpc.netty.shaded.io.netty.buffer.PoolChunk", "subpages"),
-  };
+  }).map(IgnoredRef::toIgnoreListEntry).toList());
 
-  private static final IgnoreList<LeakInfo> globalIgnoreList = new IgnoreList<>(
-    Arrays.stream(ignoredRefs).map((ref) -> ref.toIgnorelistEntry()).toList());
+  private static Supplier<List<Expander>> customExpanders = () -> List.of(new SmartListExpander(), new SmartFMapExpander());
+
+  private static List<Object> forbiddenObjects = List.of(TObjectHash.REMOVED);
 
   public static BleakOptions getDefaults() {
-    return new BleakOptions().withCheck(
-      new MainBleakCheck(globalIgnoreList, () -> new ArrayList<>(), new ArrayList<>(), Duration.ofSeconds(60)));
+    return new BleakOptions().withCheck(new MainBleakCheck(globalIgnoreList, customExpanders, forbiddenObjects, Duration.ofSeconds(60)))
+      .withCheck(new DisposerCheck());
+  }
+
+  public static BleakOptions defaultsWithAdditionalIgnoreList(IgnoreList<LeakInfo> additionalIgnoreList) {
+      return new BleakOptions()
+        .withCheck(new MainBleakCheck(globalIgnoreList.plus(additionalIgnoreList), customExpanders, forbiddenObjects, Duration.ofSeconds(60)))
+        .withCheck(new DisposerCheck());
   }
 }
