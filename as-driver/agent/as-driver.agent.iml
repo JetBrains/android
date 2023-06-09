@@ -3,7 +3,7 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -20,5 +20,6 @@
     </orderEntry>
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="module" module-name="intellij.android.bleak" />
+    <orderEntry type="module" module-name="intellij.android.bleak-config" />
   </component>
 </module>

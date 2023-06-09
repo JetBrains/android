@@ -20,6 +20,7 @@ import com.android.tools.asdriver.proto.AndroidStudioGrpc;
 import com.android.tools.idea.bleak.BleakCheck;
 import com.android.tools.idea.bleak.BleakOptions;
 import com.android.tools.idea.bleak.BleakResult;
+import com.android.tools.idea.bleak.StudioBleakOptions;
 import com.android.tools.idea.io.grpc.Server;
 import com.android.tools.idea.io.grpc.ServerBuilder;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
@@ -27,8 +28,6 @@ import com.google.common.base.Objects;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.codeInsight.daemon.impl.TrafficLightRenderer;
-import com.intellij.codeInspection.CommonProblemDescriptor;
-import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -79,7 +78,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
-  private static BleakOptions bleakOptions = AsdriverBleakOptions.getDefaults();
+  private static BleakOptions bleakOptions = StudioBleakOptions.getDefaults();
 
   static public void start() {
     ServerBuilder<?> builder = ServerBuilder.forPort(0);
