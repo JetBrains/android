@@ -365,6 +365,11 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   }
 
   @Test
+  fun testVersionBigInteger() = assertSerializable {
+    Version.parse("202306061221.31415926535897932385")
+  }
+
+  @Test
   fun testComponent() = assertSerializable {
     Component.parse("com.example:example:00.3.17-rC")
   }
