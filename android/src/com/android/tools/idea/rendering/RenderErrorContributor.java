@@ -1022,11 +1022,11 @@ public class RenderErrorContributor {
 
       builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 
-      //DesignSurface surface = renderTask.getDesignSurface();
-      //if (surface != null && surface.getType() == LAYOUT_EDITOR) {
+      String fileType = mySourceFile.getFileType() == XmlFileType.INSTANCE
+        ? "XML"
+        : "File";
       builder.add(", ");
-      builder.addLink("Edit XML", myLinkManager.createShowTagUrl(className));
-      //}
+      builder.addLink("Edit " + fileType, myLinkManager.createShowTagUrl(className));
 
       // Offer to create the class, but only if it looks like a custom view
       // TODO: Check to see if it looks like it's the name of a custom view and the
