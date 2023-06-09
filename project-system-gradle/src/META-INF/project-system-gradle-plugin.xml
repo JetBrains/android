@@ -213,7 +213,7 @@
   </extensions>
   <actions>
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
-      <add-to-group group-id="Android.MainToolBarActionGroup" anchor="before" relative-to-action="Android.DeviceManager"/>
+      <add-to-group group-id="Android.MainToolBarActionGroup" anchor="before" relative-to-action="AndroidDeviceManagerPlaceholder"/>
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
       <keyboard-shortcut keymap="$default" first-keystroke="control shift o" />
     </action>

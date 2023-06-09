@@ -25,5 +25,8 @@
     <group id="Android.DeviceManager.TypeSpecificActions">
       <action id="PairDevicesUsingWiFiAction" class="com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction"/>
     </group>
+    <action id="Android.DeviceManager2" class="com.android.tools.idea.devicemanagerv2.DeviceManager2Action">
+      <add-to-group group-id="AndroidDeviceManagerPlaceholder"/>
+    </action>
   </actions>
 </idea-plugin>

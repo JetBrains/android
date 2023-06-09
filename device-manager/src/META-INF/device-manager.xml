@@ -27,4 +27,9 @@
     <extensionPoint qualifiedName="org.jetbrains.android.deviceManagerTab"
                     interface="com.android.tools.idea.devicemanager.DeviceManagerTab"/>
   </extensionPoints>
+  <actions>
+    <action id="Android.DeviceManager" class="com.android.tools.idea.devicemanager.DeviceManagerAction">
+      <add-to-group group-id="AndroidDeviceManagerPlaceholder"/>
+    </action>
+  </actions>
 </idea-plugin>

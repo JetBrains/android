@@ -113,7 +113,7 @@
     </action>
 
     <group id="Android.NavBarToolBar">
-      <reference id="Android.DeviceManager" />
+      <reference id="AndroidDeviceManagerPlaceholder" />
       <separator/>
       <add-to-group group-id="NavBarToolBar" anchor="before" relative-to-action="SearchEverywhere" />
     </group>
