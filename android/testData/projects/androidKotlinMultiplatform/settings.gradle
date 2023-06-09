@@ -1,0 +1,6 @@
+rootProject.name = "Kotlin Multiplatform"
+include ':kmpJvmOnly'
+include ':kmpFirstLib'
+include ':kmpSecondLib'
+include ':androidLib'
+include ':app'

@@ -25,6 +25,8 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.run.DeviceFutures
@@ -50,6 +52,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.anyList
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.inOrder
@@ -84,7 +87,11 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Before
   fun setup() {
+    val mockAndroidProject = Mockito.mock(IdeAndroidProject::class.java).also {
+      whenever(it.projectType).thenReturn(IdeAndroidProjectType.PROJECT_TYPE_APP)
+    }
     whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
+    whenever(mockAndroidModuleModel.androidProject).thenReturn(mockAndroidProject)
     whenever(mockAndroidModuleModel.getGradleConnectedTestTaskNameForSelectedVariant()).thenCallRealMethod()
     whenever(mockModuleData.id).thenReturn(":app")
     whenever(mockModuleData.getProperty(eq("gradleIdentityPath"))).thenReturn(":app")

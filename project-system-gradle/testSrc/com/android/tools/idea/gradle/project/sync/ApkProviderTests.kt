@@ -681,6 +681,20 @@ b/283852233 */
          RequiredInstallationOptions: []
       """.trimIndent())
     ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+        target = TestTargetRunConfiguration("com.example.kmpfirstlib.test.KmpAndroidFirstLibActivityTest"),
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+             ApplicationId: com.example.kmpfirstlib.test
+             Files:
+                -> project/kmpFirstLib/build/intermediates/apk/androidTest/main/kmpFirstLib-androidTest.apk
+             RequiredInstallationOptions: []
+          """.trimIndent())
+    ),
   )
 
 private fun def(

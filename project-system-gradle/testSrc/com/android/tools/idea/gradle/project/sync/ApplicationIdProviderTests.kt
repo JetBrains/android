@@ -228,6 +228,17 @@ internal val APPLICATION_ID_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectPackageName = "com.example.android.app",
       expectTestPackageName = "com.example.android.benchmark"
     ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+        target = TestTargetRunConfiguration("com.example.kmpfirstlib.test.KmpAndroidFirstLibActivityTest"),
+        executeMakeBeforeRun = false,
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectPackageName = "com.example.kmpfirstlib.test",
+      expectTestPackageName = "com.example.kmpfirstlib.test"
+    ),
   )
 
 private fun def(

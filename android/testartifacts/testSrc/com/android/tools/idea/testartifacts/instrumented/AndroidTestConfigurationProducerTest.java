@@ -21,6 +21,7 @@ import static com.android.tools.idea.testartifacts.TestConfigurationTesting.crea
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromMethod;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_CLASS;
+import static com.android.tools.idea.testing.TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM;
 import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM;
@@ -318,5 +319,48 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     assertThat(runConfig.PACKAGE_NAME).isEmpty();
     assertThat(runConfig.CLASS_NAME).isEqualTo("ExampleInstrumentedTest");
     assertThat(runConfig.METHOD_NAME).isEmpty();
+  }
+
+  public void testCreateAndroidInstrumentedTestAndroidKotlinMultiplatformFromDirectory() throws Exception {
+    loadProject(ANDROID_KOTLIN_MULTIPLATFORM);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(
+      getProject(), "kmpFirstLib/src/androidInstrumentedTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
+    assertThat(runConfig.PACKAGE_NAME).isEmpty();
+    assertThat(runConfig.CLASS_NAME).isEmpty();
+    assertThat(runConfig.METHOD_NAME).isEmpty();
+  }
+
+  public void testCreateAndroidInstrumentedTestAndroidKotlinMultiplatformFromClass() throws Exception {
+    loadProject(ANDROID_KOTLIN_MULTIPLATFORM);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(
+      getProject(), "com.example.kmpfirstlib.test.KmpAndroidFirstLibActivityTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(TEST_CLASS);
+    assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
+    assertThat(runConfig.PACKAGE_NAME).isEmpty();
+    assertThat(runConfig.CLASS_NAME).isEqualTo("com.example.kmpfirstlib.test.KmpAndroidFirstLibActivityTest");
+    assertThat(runConfig.METHOD_NAME).isEmpty();
+  }
+
+  public void testCreateAndroidInstrumentedTestAndroidKotlinMultiplatformFromMethod() throws Exception {
+    loadProject(ANDROID_KOTLIN_MULTIPLATFORM);
+    PsiMethod[] methods = myFixture.findClass("com.example.kmpfirstlib.test.KmpAndroidFirstLibActivityTest")
+      .findMethodsByName("testActivityThatPasses", false);
+    assertThat(methods).hasLength(1);
+    RunConfiguration runConfig = createConfigurationFromPsiElement(getProject(), methods[0]);
+    assertNotNull(runConfig);
+    assertThat(runConfig).isInstanceOf(AndroidTestRunConfiguration.class);
+    AndroidTestRunConfiguration androidRunConfig = (AndroidTestRunConfiguration) runConfig;
+    assertEmpty(androidRunConfig.checkConfiguration(myAndroidFacet));
+    assertThat(androidRunConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_METHOD);
+    assertThat(androidRunConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
+    assertThat(androidRunConfig.PACKAGE_NAME).isEmpty();
+    assertThat(androidRunConfig.CLASS_NAME).isEqualTo("com.example.kmpfirstlib.test.KmpAndroidFirstLibActivityTest");
+    assertThat(androidRunConfig.METHOD_NAME).isEqualTo("testActivityThatPasses");
   }
 }

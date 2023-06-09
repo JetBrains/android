@@ -113,7 +113,11 @@ class GradleAndroidModel(
 
   // TODO(b/284152933): Get this directly from the build model
   fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
-    return ":connected${selectedVariantName.usLocaleCapitalize()}AndroidTest"
+    return if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
+      ":connectedAndroidInstrumentedTest"
+    } else {
+      ":connected${selectedVariantName.usLocaleCapitalize()}AndroidTest"
+    }
   }
 
   val selectedMainCompileDependencies: IdeDependencies get() = this.mainArtifact.compileClasspath
@@ -152,6 +156,11 @@ class GradleAndroidModel(
   }
 
   override fun isDebuggable(): Boolean {
+    // TODO(b/288091803): Figure out if kotlin multiplatform android modules should be marked debuggable
+    if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
+      return true
+    }
+
     val buildTypeContainer = myBuildTypesByName[selectedVariant.buildType]
       ?: error("Build type ${selectedVariant.buildType} not found")
     return buildTypeContainer.buildType.isDebuggable

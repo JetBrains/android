@@ -9,6 +9,7 @@ public final class TestProjectPaths {
 
   public static final String ANDROIDX_WITH_LIB_MODULE = "projects/androidxWithLibModule";
   public static final String ANDROID_LIBRARY_AS_TEST_DEPENDENCY = "projects/AndroidLibraryAsTestDependency";
+  public static final String ANDROID_KOTLIN_MULTIPLATFORM = "projects/androidKotlinMultiplatform";
   public static final String APK_SAN_ANGELES = "projects/apk/sanAngeles";
   public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
   public static final String APP_WITH_LIB_WITH_SAMPLES = "projects/appWithLibWithSamples";
