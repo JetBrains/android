@@ -81,8 +81,6 @@ public class Jdks {
     return isEmpty(version) ? null : JavaSdkVersion.fromVersionString(version);
   }
 
-  @RequiresBackgroundThread
-  @RequiresReadLockAbsence
   public @Nullable Sdk createAndAddJdk(@NotNull String jdkHomePath) {
     VirtualFile sdkHome = LocalFileSystem.getInstance().refreshAndFindFileByPath(FileUtil.toSystemIndependentName(jdkHomePath));
     if (sdkHome == null) {
