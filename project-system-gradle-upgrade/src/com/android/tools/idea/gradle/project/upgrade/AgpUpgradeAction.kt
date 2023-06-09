@@ -46,7 +46,7 @@ class AgpUpgradeActionHandler: RefactoringActionHandler {
     ApplicationManager.getApplication().executeOnPooledThread {
       val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
       val state = computeGradlePluginUpgradeState(current, latestKnown, published)
-      invokeLater(ModalityState.NON_MODAL) {
+      invokeLater(ModalityState.nonModal()) {
         showAndInvokeAgpUpgradeRefactoringProcessor(project, current, state.target)
       }
     }

@@ -331,7 +331,7 @@ class InstallTask extends Task.Backgroundable {
             "SDK Install", message, NotificationType.INFORMATION).setListener(notificationListener).notify(p);
         }
       },
-      ModalityState.NON_MODAL,  // Don't show while we're in a modal context (e.g. sdk manager)
+      ModalityState.nonModal(),  // Don't show while we're in a modal context (e.g. sdk manager)
       o -> {
         for (RepoPackage pack : packages) {
           PackageOperation installer = myRepoManager.getInProgressInstallOperation(pack);

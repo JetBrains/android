@@ -198,7 +198,7 @@ class CallGraphAction : AnAction() {
             if (!project.isDisposed) {
               BrowseHierarchyActionBase.createAndAddToPanel(project, provider, target)
             }
-          }, ModalityState.NON_MODAL)
+          }, ModalityState.nonModal())
         }
       }
     })

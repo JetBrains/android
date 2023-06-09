@@ -45,7 +45,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState.NON_MODAL
+import com.intellij.openapi.application.ModalityState.nonModal
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
@@ -166,7 +166,7 @@ fun performRecommendedPluginUpgrade(
   LOG.info("Gradle upgrade state: $state")
   if (state.importance != RECOMMEND) return false
 
-  val userAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
+  val userAccepted = invokeAndWaitIfNeeded(nonModal()) {
     val updateDialog = dialogFactory.create(project, currentVersion, state.target)
     updateDialog.showAndGet()
   }
@@ -237,7 +237,7 @@ fun performForcedPluginUpgrade(
     IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
   ).target
 ) {
-  val upgradeAccepted = invokeAndWaitIfNeeded(NON_MODAL) {
+  val upgradeAccepted = invokeAndWaitIfNeeded(nonModal()) {
     ForcedPluginPreviewVersionUpgradeDialog(project, currentPluginVersion, newPluginVersion).showAndGet()
   }
 

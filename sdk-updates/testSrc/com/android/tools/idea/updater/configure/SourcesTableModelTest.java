@@ -56,7 +56,7 @@ public class SourcesTableModelTest {
   @Before
   public void setUp() throws Exception {
     Semaphore initDone = new Semaphore(0);
-    myModel = new SourcesTableModel(() -> {}, () -> initDone.release(), ModalityState.NON_MODAL);
+    myModel = new SourcesTableModel(() -> {}, () -> initDone.release(), ModalityState.nonModal());
     myModel.setRefreshCallback(() -> {});
     SdkUpdaterConfigurable configurable = mock(SdkUpdaterConfigurable.class);
     Path sdkRoot = InMemoryFileSystems.createInMemoryFileSystemAndFolder("sdk");

@@ -341,7 +341,7 @@ class ToolWindowModel(
       override fun run(indicator: ProgressIndicator) {
         knownVersions.value = knownVersionsRequester()
         val suggestedVersionsList = suggestedVersionsList(knownVersions.value)
-        invokeLater(ModalityState.NON_MODAL) { suggestedVersions.value = suggestedVersionsList }
+        invokeLater(ModalityState.nonModal()) { suggestedVersions.value = suggestedVersionsList }
       }
     })
   }
@@ -464,7 +464,7 @@ class ToolWindowModel(
     if (application.isUnitTestMode) {
       setEnabled(newProcessor, projectFilesClean)
     } else {
-      invokeLater(ModalityState.NON_MODAL) { setEnabled(newProcessor, projectFilesClean) }
+      invokeLater(ModalityState.nonModal()) { setEnabled(newProcessor, projectFilesClean) }
     }
   }
 
@@ -878,7 +878,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
           // Tree expansion should not run in 'treeStructureChanged' as another listener clears the nodes expanded state
           // in the same event listener that is normally called after this one. Probably this state is cached somewhere else
           // making this diversion not immediately visible but on page hide and restore it uses all-folded state form the model.
-          invokeLater(ModalityState.NON_MODAL) {
+          invokeLater(ModalityState.nonModal()) {
             tree.setHoldSize(false)
             TreeUtil.expandAll(tree) {
               tree.setHoldSize(true)

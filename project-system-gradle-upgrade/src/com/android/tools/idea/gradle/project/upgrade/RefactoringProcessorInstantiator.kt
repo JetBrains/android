@@ -64,7 +64,7 @@ class RefactoringProcessorInstantiator {
     if (hasChangesInBuildFiles) {
       LOG.warn("changes found in project build files")
     }
-    val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
+    val runProcessor = invokeAndWaitIfNeeded(ModalityState.nonModal()) {
       if (processor.blockProcessorExecution()) {
         processor.trackProcessorUsage(UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED)
         LOG.warn("cannot upgrade: processor is blocked")

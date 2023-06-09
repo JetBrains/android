@@ -47,7 +47,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
   private val confirmationDialogHeader = "Configuration Cache Compatibility Assessment"
 
   private fun runFirstConfigurationCacheTestBuildWithConfirmation(originalBuildRequest: GradleBuildInvoker.Request) {
-    invokeLater(ModalityState.NON_MODAL) {
+    invokeLater(ModalityState.nonModal()) {
       val confirmationResult = Messages.showIdeaMessageDialog(
         project,
         """
@@ -76,7 +76,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
   }
 
   private fun showFinalSuccessMessage() {
-    invokeLater(ModalityState.NON_MODAL) {
+    invokeLater(ModalityState.nonModal()) {
       val confirmationResult = Messages.showIdeaMessageDialog(
         project,
         """
@@ -129,7 +129,7 @@ class ConfigurationCacheTestBuildFlowRunner(val project: Project) {
   }
 
   private fun showFailureMessage(result: GradleInvocationResult) {
-    invokeLater(ModalityState.NON_MODAL) {
+    invokeLater(ModalityState.nonModal()) {
       if (result.isBuildCancelled) {
         Messages.showIdeaMessageDialog(
           project,

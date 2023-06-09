@@ -21,7 +21,7 @@ import static com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentN
 import static com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessorKt.notifyCancelledUpgrade;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.isCleanEnoughProject;
 import static com.intellij.ide.BrowserUtil.browse;
-import static com.intellij.openapi.application.ModalityState.NON_MODAL;
+import static com.intellij.openapi.application.ModalityState.nonModal;
 import static javax.swing.Action.NAME;
 
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction;
@@ -132,7 +132,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
         public void actionPerformed(ActionEvent e) {
           boolean hasChangesInBuildFiles = !isCleanEnoughProject(myProcessor.getProject());
           boolean runProcessor = ActionsKt.invokeAndWaitIfNeeded(
-            NON_MODAL,
+            nonModal(),
             () -> {
               DialogWrapper dialog = new AgpUpgradeRefactoringProcessorDialog(
                 myProcessor, myJava8Processor, myR8FullModeProcessor, hasChangesInBuildFiles, true, true);

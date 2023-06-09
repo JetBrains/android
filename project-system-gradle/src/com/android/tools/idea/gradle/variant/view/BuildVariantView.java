@@ -314,14 +314,14 @@ public class BuildVariantView {
     }
 
     void setLoading() {
-      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.NON_MODAL, () -> {
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.nonModal(), () -> {
         updateLoadingStatus(true);
         setModel(BuildVariantTableModel.createEmpty());
       });
     }
 
     private void setBuildVariantTableModel(@NotNull BuildVariantTableModel model) {
-      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.NON_MODAL, () -> {
+      ModalityUiUtil.invokeLaterIfNeeded(ModalityState.nonModal(), () -> {
         updateLoadingStatus(false);
         setModel(model);
       });

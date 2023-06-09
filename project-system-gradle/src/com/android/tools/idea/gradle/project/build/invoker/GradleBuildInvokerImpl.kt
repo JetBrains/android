@@ -143,7 +143,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
    */
   private fun stopNativeDebugSessionOrStopBuild(): Boolean {
     val nativeDebugSession: XDebugSession = nativeDebugSessionFinder.findNativeDebugSession() ?: return false
-    return when (invokeAndWaitIfNeeded(ModalityState.NON_MODAL) { TerminateDebuggerChoice.promptUserToStopNativeDebugSession(project) }) {
+    return when (invokeAndWaitIfNeeded(ModalityState.nonModal()) { TerminateDebuggerChoice.promptUserToStopNativeDebugSession(project) }) {
       TerminateDebuggerChoice.TERMINATE_DEBUGGER -> {
         nativeDebugSession.stop()
         false

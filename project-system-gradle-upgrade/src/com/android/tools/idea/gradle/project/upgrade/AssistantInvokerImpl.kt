@@ -63,7 +63,7 @@ class AssistantInvokerImpl : AssistantInvoker {
     val wrappedElement = WrappedPsiElement(element, compileRuntimeProcessor!!, null, "Upgrading deprecated configurations")
     processor.targets.add(wrappedElement)
     processor.ensureParsedModels()
-    val runProcessor = invokeAndWaitIfNeeded(ModalityState.NON_MODAL) {
+    val runProcessor = invokeAndWaitIfNeeded(ModalityState.nonModal()) {
       val dialog = dialogFactory(processor)
       dialog.showAndGet()
     }
