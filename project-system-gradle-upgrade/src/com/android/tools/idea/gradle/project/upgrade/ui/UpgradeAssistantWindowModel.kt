@@ -326,7 +326,7 @@ class UpgradeAssistantWindowModel(
       override fun run(indicator: ProgressIndicator) {
         knownVersions.value = knownVersionsRequester()
         val suggestedVersionsList = suggestedVersionsList(knownVersions.value)
-        invokeLater(ModalityState.NON_MODAL) { suggestedVersions.value = suggestedVersionsList }
+        invokeLater(ModalityState.nonModal()) { suggestedVersions.value = suggestedVersionsList }
       }
     })
   }

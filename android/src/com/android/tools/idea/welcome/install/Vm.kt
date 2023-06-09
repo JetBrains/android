@@ -234,7 +234,7 @@ abstract class Vm(
           val rebootMessage = "Reboot required: ${installerInfo.fullName} installation succeeded, however the installer reported that a " +
                               "reboot is required in order for the changes to take effect"
           installContext.print(rebootMessage, ConsoleViewContentType.NORMAL_OUTPUT)
-          AccelerationErrorSolution.promptAndRebootAsync(rebootMessage, ModalityState.NON_MODAL)
+          AccelerationErrorSolution.promptAndRebootAsync(rebootMessage, ModalityState.nonModal())
           isInstallerSuccessfullyCompleted = true
           progressIndicator?.apply { fraction = 1.0 }
           return

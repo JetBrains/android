@@ -93,7 +93,7 @@ class AndroidSdkCompatibilityChecker {
         )
         dialog.show()
       }
-    }, ModalityState.NON_MODAL)
+    }, ModalityState.nonModal())
   }
 
   private fun getChannelFromUpdateSettings(): ProductDetails.SoftwareLifeCycleChannel {

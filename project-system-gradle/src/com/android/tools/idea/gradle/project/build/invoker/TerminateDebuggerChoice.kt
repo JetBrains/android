@@ -67,7 +67,7 @@ enum class TerminateDebuggerChoice {
               Messages.CANCEL -> TerminateDebuggerChoice.CANCEL_BUILD
               else -> error("Unknown selection: $answer")
             }
-          }, ModalityState.NON_MODAL
+          }, ModalityState.nonModal()
         )
         return choice!!
       }

@@ -206,7 +206,7 @@ class GradleConnectedAndroidTestInvoker(
                                                               if (toolWindow.isAvailable && !toolWindow.isVisible) {
                                                                 toolWindow.show()
                                                               }
-                                                            }, ModalityState.NON_MODAL, project.disposed)
+                                                            }, ModalityState.nonModal(), project.disposed)
           }
 
           RunContentManager.getInstance(project).allDescriptors.find {

@@ -39,7 +39,7 @@ class AnalyzerProgressIndicator extends EmptyProgressIndicator {
   private DateFormat myFormat = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
 
   AnalyzerProgressIndicator() {
-    super(ModalityState.NON_MODAL);
+    super(ModalityState.nonModal());
     myFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 
@@ -81,7 +81,7 @@ public class Analyzer {
       hprofPath = Paths.get(args[1]);
     }
     else {
-      progress = new EmptyProgressIndicator(ModalityState.NON_MODAL);
+      progress = new EmptyProgressIndicator(ModalityState.nonModal());
       hprofPath = Paths.get(args[0]);
     }
 

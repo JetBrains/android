@@ -277,7 +277,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
         // Tree expansion should not run in 'treeStructureChanged' as another listener clears the nodes expanded state
         // in the same event listener that is normally called after this one. Probably this state is cached somewhere else
         // making this diversion not immediately visible but on page hide and restore it uses all-folded state form the model.
-        invokeLater(ModalityState.NON_MODAL) {
+        invokeLater(ModalityState.nonModal()) {
           tree.setHoldSize(false)
           TreeUtil.expandAll(tree) {
             tree.setHoldSize(true)
