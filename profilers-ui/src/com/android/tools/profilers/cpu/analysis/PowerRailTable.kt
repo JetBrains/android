@@ -40,6 +40,7 @@ import javax.swing.JTable
 import javax.swing.SwingConstants
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableCellRenderer
+import javax.swing.table.TableRowSorter
 
 /**
  * UI component for a table presenting the power consumption per power rail in the user-selected range.
@@ -120,6 +121,13 @@ class PowerRailTable(val profilers: StudioProfilers,
         toolTipText = POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG
       }
     }
+
+    // During creation of the table, we force the consumption column to default its sorting to be in descending order.
+    table.setRowSorter(TableRowSorter(table.getModel()))
+    val consumptionRowIndex = Column.CONSUMPTION.ordinal
+    // Toggle twice as first toggle switches it to ascending order and second toggle switches it to descending order.
+    table.rowSorter.toggleSortOrder(consumptionRowIndex)
+    table.rowSorter.toggleSortOrder(consumptionRowIndex)
 
     val tableContainer = JPanel(TabularLayout("*", "Fit,Fit")).apply {
       border = JBUI.Borders.customLine(com.android.tools.adtui.common.border, 2)
