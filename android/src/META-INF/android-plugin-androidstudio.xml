@@ -120,7 +120,6 @@
     </group>
 
     <group id="Android.MainToolbarRight" >
-      <action id="Android.MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction" />
       <reference id="Android.InstantRunActions" />
       <reference id="AndroidConnectDebuggerAction" />
       <reference id="Android.SyncProject" />
