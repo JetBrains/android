@@ -234,8 +234,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
         linkRunnable.run();
       }
     }
-    else if (url.startsWith(URL_ADD_DEPENDENCY) && module != null) {
-      assert module.getModuleFile() != null;
+    else if ((url.startsWith(URL_ADD_DEPENDENCY) || url.startsWith(URL_ADD_DEBUG_DEPENDENCY)) && module != null) {
       handleAddDependency(url, module);
       ProjectSystemUtil.getSyncManager(module.getProject())
         .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);

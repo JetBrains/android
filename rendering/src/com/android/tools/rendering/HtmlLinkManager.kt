@@ -55,6 +55,7 @@ interface HtmlLinkManager {
   fun createClearCacheUrl(): String = URL_CLEAR_CACHE_AND_NOTIFY
 
   fun createAddDependencyUrl(artifactId: String): String = "$URL_ADD_DEPENDENCY$artifactId"
+  fun createAddDebugDependencyUrl(artifactId: String): String = "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
 
   fun createReplaceAttributeValueUrl(attribute: String, oldValue: String, newValue: String): String =
     "$URL_REPLACE_ATTRIBUTE_VALUE$attribute/$oldValue/$newValue"
