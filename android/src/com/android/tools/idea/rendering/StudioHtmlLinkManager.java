@@ -30,6 +30,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ACTION_IGNORE_FRAGMENTS;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEBUG_DEPENDENCY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ASSIGN_FRAGMENT_URL;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ASSIGN_LAYOUT_URL;
@@ -50,6 +51,7 @@ import static com.android.tools.rendering.HtmlLinkManagerKt.URL_SYNC;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -83,6 +85,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
@@ -859,15 +862,28 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   @VisibleForTesting
   @UiThread
   static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
-    assert url.startsWith(URL_ADD_DEPENDENCY) : url;
-    String coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
+    String coordinateStr;
+    DependencyType dependencyType;
+    if (url.startsWith(URL_ADD_DEPENDENCY)) {
+      dependencyType = DependencyType.IMPLEMENTATION;
+      coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
+    }
+    else if (url.startsWith(URL_ADD_DEBUG_DEPENDENCY)) {
+      dependencyType = DependencyType.DEBUG_IMPLEMENTATION;
+      coordinateStr = url.substring(URL_ADD_DEBUG_DEPENDENCY.length());
+    }
+    else {
+      return;
+    }
+
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateStr + ":+");
     if (coordinate == null) {
       Logger.getInstance(StudioHtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(coordinate), false, false)
-                                .isEmpty()) {
+    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(coordinate), false,
+                                                                   false, dependencyType)
+      .isEmpty()) {
       return;
     }
     Logger.getInstance(StudioHtmlLinkManager.class).warn("Could not add dependency " + coordinate);

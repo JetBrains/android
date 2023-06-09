@@ -78,12 +78,18 @@ public class StudioHtmlLinkManagerTest extends LightPlatformTestCase {
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", getModule());
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", getModule());
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", getModule());
+    StudioHtmlLinkManager.handleAddDependency("addDebugDependency:com.google.android:flexbox", getModule());
     assertThat(
       testProjectSystem.getAddedDependencies(getModule()).stream()
-                       .map(artifact -> artifact.getGroupId() + ":" + artifact.getArtifactId())
-                       .collect(Collectors.toList()))
-      .containsExactly("com.android.support:palette-v7",
-                       "com.google.android.gms:play-services",
-                       "com.android.support.constraint:constraint-layout");
+        .map(dependency ->
+               dependency.getType()
+               + "("
+               + dependency.getCoordinate().getGroupId() + ":" + dependency.getCoordinate().getArtifactId()
+               + ")")
+        .collect(Collectors.toList()))
+      .containsExactly("IMPLEMENTATION(com.android.support:palette-v7)",
+                       "IMPLEMENTATION(com.google.android.gms:play-services)",
+                       "IMPLEMENTATION(com.android.support.constraint:constraint-layout)",
+                       "DEBUG_IMPLEMENTATION(com.google.android:flexbox)");
   }
 }

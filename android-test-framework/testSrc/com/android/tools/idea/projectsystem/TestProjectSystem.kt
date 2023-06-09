@@ -63,6 +63,8 @@ class TestProjectSystem @JvmOverloads constructor(
   private val androidLibraryDependencies: Collection<ExternalAndroidLibrary> = emptySet()
 ) : AndroidProjectSystem {
 
+  data class Dependency(val type: DependencyType, val coordinate: GradleCoordinate)
+
   override fun getBootClasspath(module: Module): Collection<String> {
     return emptyList()
   }
@@ -75,7 +77,7 @@ class TestProjectSystem @JvmOverloads constructor(
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
   }
 
-  private val dependenciesByModule: HashMultimap<Module, GradleCoordinate> = HashMultimap.create()
+  private val dependenciesByModule: HashMultimap<Module, Dependency> = HashMultimap.create()
   private val availablePreviewDependencies: List<GradleCoordinate>
   private val availableStableDependencies: List<GradleCoordinate>
   private val incompatibleDependencyPairs: HashMap<GradleCoordinate, GradleCoordinate>
@@ -98,13 +100,13 @@ class TestProjectSystem @JvmOverloads constructor(
    */
   fun addDependency(artifactId: GoogleMavenArtifactId, module: Module, mavenVersion: GradleVersion) {
     val coordinate = artifactId.getCoordinate(mavenVersion.toString())
-    dependenciesByModule.put(module, coordinate)
+    dependenciesByModule.put(module, Dependency(DependencyType.IMPLEMENTATION, coordinate))
   }
 
   /**
    * @return the set of dependencies added to the given module.
    */
-  fun getAddedDependencies(module: Module): Set<GradleCoordinate> = dependenciesByModule.get(module)
+  fun getAddedDependencies(module: Module): Set<Dependency> = dependenciesByModule.get(module)
 
   /**
    * Mark a pair of dependencies as incompatible so that [AndroidModuleSystem.analyzeDependencyCompatibility]
@@ -173,14 +175,14 @@ class TestProjectSystem @JvmOverloads constructor(
         coordinateToFakeRegisterDependencyError[coordinate]?.let {
           throw DependencyManagementException(it, DependencyManagementException.ErrorCodes.INVALID_ARTIFACT)
         }
-        dependenciesByModule.put(module, coordinate)
+        dependenciesByModule.put(module, Dependency(type, coordinate))
       }
 
       override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
-        dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
+        dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) }
 
       override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? =
-        dependenciesByModule[module].firstOrNull { it.matches(coordinate) }
+        dependenciesByModule[module].map { it.coordinate }.firstOrNull { it.matches(coordinate) }
 
       override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> =
         listOfNotNull(

@@ -49,7 +49,7 @@ open class NlDependencyManagerTest : LayoutTestCase() {
     val depsShouldBeAdded = listOf(GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"),
                                    GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+"))
     NlDependencyManager.getInstance().addDependencies(model.components, model.facet, false)
-    assertSameElements(projectSystem.getAddedDependencies(model.module), depsShouldBeAdded)
+    assertSameElements(projectSystem.getAddedDependencies(model.module).map { it.coordinate }, depsShouldBeAdded)
   }
 
   fun testIdentifiesMissingDependency() {
