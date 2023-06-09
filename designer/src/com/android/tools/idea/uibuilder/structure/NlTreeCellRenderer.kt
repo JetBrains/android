@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.lint.detector.api.stripIdPrefix
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.NewUI
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
@@ -118,7 +118,7 @@ class NlTreeCellRenderer(
     val handler = if (!facet.isDisposed) ViewHandlerManager.get(facet).getHandler(value) {} else null
 
     primaryLabel.icon = handler?.getIcon(value)?.let {
-      if (selected && treeFocused && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it
+      if (selected && treeFocused && !NewUI.isEnabled()) ColoredIconGenerator.generateWhiteIcon(it) else it
     } ?: StudioIcons.LayoutEditor.Palette.VIEW
 
     val id = stripIdPrefix(value.id)

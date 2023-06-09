@@ -30,8 +30,8 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.NewUI;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
@@ -698,7 +698,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
      */
     @Override
     public boolean isSelected() {
-      return ExperimentalUI.isNewUI() ? myIsActive : !myIsMinimized;
+      return NewUI.isEnabled() ? myIsActive : !myIsMinimized;
     }
 
     /**
@@ -706,7 +706,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
      */
     @Override
     public boolean isRollover() {
-      return ExperimentalUI.isNewUI() ? !myIsMinimized : super.isRollover();
+      return NewUI.isEnabled() ? !myIsMinimized : super.isRollover();
     }
   }
 

@@ -15,24 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import static com.intellij.ui.ExperimentalUI.isNewUI;
-
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.intellij.openapi.util.Pair;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
+import com.intellij.ui.NewUI;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
-import org.jetbrains.annotations.Nls;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ListCellRenderer;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
 
 /**
  * A list control for displaying palette items.
@@ -138,7 +141,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
 
       setBackground(selected ? UIUtil.getTreeSelectionBackground(hasFocus) : null);
       mySelectionForeground = UIUtil.getTreeForeground(selected, hasFocus);
-      setIcon(selected && hasFocus && !isNewUI() ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(icon) : icon);
+      setIcon(selected && hasFocus && !NewUI.isEnabled() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
       append(text);
     }
   }
