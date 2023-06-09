@@ -57,7 +57,7 @@ class MemoryConstrainedTestRule(
     recordMemoryMeasurement("${projectName}_Max_Heap", TimestampedMeasurement(
       Clock.System.now(),
       memoryLimitMb.toLong() shl 20
-    ))
+    ), enableAnalyzer = false)
   }
 
   private fun startMemoryPolling() {
