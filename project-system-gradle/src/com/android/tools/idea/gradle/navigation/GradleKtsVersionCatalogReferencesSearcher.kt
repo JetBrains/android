@@ -12,11 +12,17 @@ import com.intellij.psi.search.RequestResultProcessor
 import com.intellij.psi.search.UsageSearchContext
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PropertyUtilBase
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.Processor
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptSearchScope
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForReceiver
+import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
 
@@ -45,8 +51,6 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
     search(getter)
   }
 
-  private fun String.getVersionCatalogParts() : List<String> = split("_", "-")
-
   class MyProcessor(private val searchedElement: TomlKeyValue, private val oldNameParts: List<String>) : RequestResultProcessor() {
 
     override fun processTextOccurrence(element: PsiElement, offsetInElement: Int, consumer: Processor<in PsiReference>): Boolean {
@@ -54,7 +58,7 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
       val handler = VersionCatalogGoToDeclarationHandler()
       val gotoDeclarationTargets = handler.getGotoDeclarationTargets(element, 0, null)
       if (gotoDeclarationTargets?.singleOrNull() == searchedElement) {
-        return consumer.process(KtsVersionCatalogReference(parent, searchedElement))
+        return consumer.process(KtsVersionCatalogReference(parent, oldNameParts, searchedElement))
       }
       return true
     }
@@ -62,11 +66,38 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
 
   private class KtsVersionCatalogReference(
     refExpr: KtNameReferenceExpression,
+    val oldNameParts: List<String>,
     val searchedElement: TomlKeyValue
   ) : PsiReferenceBase<KtNameReferenceExpression>(refExpr) {
 
     override fun resolve(): PsiElement {
       return searchedElement
     }
+
+    override fun handleElementRename(newElementName: String): PsiElement {
+      val parts = newElementName.getVersionCatalogParts()
+      val elementToReplace = element.parent
+
+      if (elementToReplace is KtDotQualifiedExpression) {
+        val catalogName = getCatalogDotExpression(elementToReplace)
+        catalogName?.let {
+          val newElementText = catalogName.text + "." + parts.joinToString(".")
+          val newElement = KtPsiFactory(element.project).createExpression(newElementText)
+          return elementToReplace.replace(newElement)
+        }
+      }
+
+      return elementToReplace
+    }
+
+    private fun getCatalogDotExpression(element: KtDotQualifiedExpression): KtNameReferenceExpression? {
+      var newElement = element
+      while (newElement.firstChild is KtDotQualifiedExpression)
+        newElement = (newElement.firstChild as KtDotQualifiedExpression)
+      return newElement.firstChild as? KtNameReferenceExpression
+    }
   }
 }
+
+private fun String.getVersionCatalogParts() : List<String> = split("_", "-")
+
