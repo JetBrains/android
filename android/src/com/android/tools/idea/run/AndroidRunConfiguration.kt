@@ -132,7 +132,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     val applicationIdProvider = applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
     val apkProvider = apkProvider ?: throw RuntimeException("Cannot get ApkProvider")
     env.putCopyableUserData(AppRunConfiguration.KEY, this)
-    return LaunchTaskRunner(applicationIdProvider, env, deployFutures, apkProvider)
+    return AndroidRunConfigurationExecutor(applicationIdProvider, env, deployFutures, apkProvider)
   }
 
   override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String?> {

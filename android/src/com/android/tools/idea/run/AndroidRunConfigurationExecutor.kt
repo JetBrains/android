@@ -17,7 +17,6 @@ package com.android.tools.idea.run
 
 import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
-import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -73,7 +72,7 @@ import java.util.Date
 import java.util.Locale
 
 
-class LaunchTaskRunner(
+class AndroidRunConfigurationExecutor(
   private val applicationIdProvider: ApplicationIdProvider,
   private val env: ExecutionEnvironment,
   override val deviceFutures: DeviceFutures,
@@ -153,12 +152,6 @@ class LaunchTaskRunner(
     }
 
     createRunContentDescriptor(processHandler, console, env)
-  }
-
-  private fun deploy(fullDeploy: () -> Deployer.Result) = try {
-    fullDeploy()
-  } catch (e: DeployerException) {
-    throw AndroidExecutionException(e.id, e.message)
   }
 
   private fun deployAsInstantApp(devices: List<IDevice>, console: ConsoleView) {

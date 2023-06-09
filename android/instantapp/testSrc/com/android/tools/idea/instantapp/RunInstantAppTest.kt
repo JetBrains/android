@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.LaunchTaskRunner
+import com.android.tools.idea.run.AndroidRunConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
@@ -86,11 +86,11 @@ class RunInstantAppTest {
     configSettings = RunManager.getInstance(projectRule.project).allSettings.single { it.configuration is AndroidRunConfiguration }
   }
 
-  private fun getExecutor(): LaunchTaskRunner {
+  private fun getExecutor(): AndroidRunConfigurationExecutor {
     val runner = ProgramRunner.getRunner(DefaultRunExecutor.EXECUTOR_ID, configSettings.configuration)!!
     val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, projectRule.project)
 
-    return LaunchTaskRunner(
+    return AndroidRunConfigurationExecutor(
       projectRule.project.getProjectSystem().getApplicationIdProvider(configSettings.configuration)!!,
       env,
       DeviceFutures.forDevices(listOf(device)),

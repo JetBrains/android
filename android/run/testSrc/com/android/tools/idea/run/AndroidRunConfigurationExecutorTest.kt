@@ -74,9 +74,9 @@ import kotlin.test.fail
 
 
 /**
- * Unit test for [LaunchTaskRunner].
+ * Unit test for [AndroidRunConfigurationExecutor].
  */
-class LaunchTaskRunnerTest {
+class AndroidRunConfigurationExecutorTest {
   companion object {
     val APPLICATION_ID = "google.simpleapplication"
     val ACTIVITY_NAME = "google.simpleapplication.MyActivity"
@@ -116,7 +116,7 @@ class LaunchTaskRunnerTest {
     projectRule.project.messageBus.connect(projectRule.testRootDisposable)
       .subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener { logcatCleared = true })
 
-    val runner = LaunchTaskRunner(
+    val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       env,
       deviceFutures,
@@ -165,7 +165,7 @@ class LaunchTaskRunnerTest {
     configuration.executeMakeBeforeRunStepInTest(device)
     configuration.setLaunchActivity(ACTIVITY_NAME)
 
-    val runner = LaunchTaskRunner(
+    val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       env,
       deviceFutures,
@@ -204,7 +204,7 @@ class LaunchTaskRunnerTest {
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
 
-    val runner = LaunchTaskRunner(
+    val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       env,
       deviceFutures,
@@ -253,7 +253,7 @@ class LaunchTaskRunnerTest {
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
 
-    val runner = LaunchTaskRunner(
+    val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       env,
       deviceFutures,
@@ -289,7 +289,7 @@ class LaunchTaskRunnerTest {
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
 
-    val runner = LaunchTaskRunner(
+    val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       env,
       deviceFutures,
@@ -308,7 +308,7 @@ class LaunchTaskRunnerTest {
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
 
-    val runner = LaunchTaskRunner(
+    val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       env,
       deviceFutures,
@@ -358,7 +358,7 @@ class LaunchTaskRunnerTest {
     val runningDescriptor = setSwapInfo(env, device)
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
-    val runner = LaunchTaskRunner(configuration.applicationIdProvider!!, env, deviceFutures, { throw ApkProvisionException("Exception") })
+    val runner = AndroidRunConfigurationExecutor(configuration.applicationIdProvider!!, env, deviceFutures, { throw ApkProvisionException("Exception") })
 
     assertThatThrownBy { runner.applyChanges(EmptyProgressIndicator()) }
       .isInstanceOf(ExecutionException::class.java)
@@ -394,7 +394,7 @@ class LaunchTaskRunnerTest {
       Deployer.Result(false, /*needsRestart */ true, false, createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
     val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyChangesDeploy.name, result)
 
-    val runner = LaunchTaskRunner(
+    val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       env,
       deviceFutures,
@@ -443,7 +443,7 @@ class LaunchTaskRunnerTest {
       Deployer.Result(false, /*needsRestart */ true, false, createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
     val applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::applyCodeChangesDeploy.name, result)
 
-    val runner = LaunchTaskRunner(
+    val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
       env,
       deviceFutures,
