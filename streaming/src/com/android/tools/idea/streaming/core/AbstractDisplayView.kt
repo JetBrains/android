@@ -68,7 +68,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   /** The difference between [displayOrientationQuadrants] and the orientation according to the internal Android data structures. */
   var displayOrientationCorrectionQuadrants: Int = 0
     protected set
-
+  abstract val apiLevel: Int
   /** Size of the device's native display. */
   internal abstract val deviceDisplaySize: Dimension
   /** The number of the last rendered display frame. */

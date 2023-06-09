@@ -197,6 +197,8 @@ class EmulatorView(
         requestScreenshotFeed(currentDisplaySize, value)
       }
     }
+  override val apiLevel: Int
+    get() = emulatorConfig.api
 
   private var lastScreenshot: Screenshot? = null
   private val displayTransform = AffineTransform()

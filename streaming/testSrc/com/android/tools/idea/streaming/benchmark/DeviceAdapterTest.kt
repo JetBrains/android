@@ -378,7 +378,6 @@ class DeviceAdapterTest {
       }
       addMouseListener(mouseListener)
       val keyListener = object : KeyListener {
-        private var index = 0
         override fun keyTyped(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_TYPED to e.keyChar) }
         override fun keyPressed(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_PRESSED to e.keyCode) }
         override fun keyReleased(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_RELEASED to e.keyCode) }
@@ -389,6 +388,9 @@ class DeviceAdapterTest {
 
     override val deviceSerialNumber: String = "test"
     override val displayOrientationQuadrants = 0
+    override val apiLevel: Int
+      get() = 0
+
     override fun canZoom() = false
     override fun computeActualSize() = deviceDisplaySize
     override fun dispose() {}
