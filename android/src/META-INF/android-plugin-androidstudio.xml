@@ -112,10 +112,6 @@
       <add-to-group group-id="Internal.JavaFlightRecorder" anchor="after" relative-to-action="FreezeUI"/>
     </action>
 
-    <group id="AndroidToolbarMakeGroup">
-      <action id="MakeTypeSelectionGroup" class="com.android.tools.idea.gradle.actions.MakeTypeSelectionGroupAction"/>
-      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
-    </group>
     <action id="WelcomeScreen.RunDeviceManager"
             text="Virtual Device Manager"
             class="com.android.tools.idea.devicemanager.DeviceManagerWelcomeScreenAction"
@@ -208,8 +204,4 @@
     <listener class="com.android.tools.idea.startup.ProjectMetricsInitializer"
               topic="com.intellij.openapi.project.ProjectCloseListener"/>
   </applicationListeners>
-
-  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
-  </extensions>
 </idea-plugin>

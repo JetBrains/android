@@ -35,6 +35,9 @@
     <registryKey key="unknown.sdk.modal.jps" defaultValue="false" description="Run unknown JDK test before JPS build is started"/>
     <registryKey key="unknown.sdk.show.editor.actions" defaultValue="false" description="Show editor suggestions to fix missing SKDs"/>
   </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmFromMacrosSyncListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
@@ -56,5 +59,9 @@
     <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
+    <group id="AndroidToolbarMakeGroup">
+      <action id="MakeTypeSelectionGroup" class="com.android.tools.idea.gradle.actions.MakeTypeSelectionGroupAction"/>
+      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
+    </group>
   </actions>
 </idea-plugin>
