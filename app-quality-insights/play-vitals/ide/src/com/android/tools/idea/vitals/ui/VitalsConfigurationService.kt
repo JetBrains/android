@@ -28,6 +28,7 @@ import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.client.AppConnection
+import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.ExplicitRefresh
@@ -45,7 +46,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.serviceContainer.NonInjectable
+import com.intellij.openapi.util.Disposer
 import java.time.Clock
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlinx.coroutines.channels.BufferOverflow
@@ -60,26 +61,29 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
 @Service(Service.Level.PROJECT)
-class VitalsConfigurationManager
-@NonInjectable
-@TestOnly
-constructor(
+class VitalsConfigurationService(project: Project) : Disposable {
+  private val cache = AppInsightsCacheImpl()
+
+  val manager = VitalsConfigurationManager(project, cache, VitalsClient(this, cache))
+
+  init {
+    Disposer.register(this, manager)
+  }
+
+  override fun dispose() = Unit
+}
+
+class VitalsConfigurationManager(
   override val project: Project,
-  createVitalsClient: (Disposable) -> AppInsightsClient,
+  @VisibleForTesting val cache: AppInsightsCache,
+  private val client: AppInsightsClient,
   loginState: Flow<Boolean> = LoginState.loggedIn
 ) : AppInsightsConfigurationManager, Disposable {
-  @Suppress("unused")
-  constructor(
-    project: Project
-  ) : this(project, { disposable -> VitalsClient(disposable, AppInsightsCacheImpl()) })
 
   private val logger = Logger.getInstance(VitalsConfigurationManager::class.java)
-  @VisibleForTesting val cache = AppInsightsCacheImpl()
-  private val client = createVitalsClient(this)
   private val scope = AndroidCoroutineScope(this)
   private val refreshConfigurationFlow =
     MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)

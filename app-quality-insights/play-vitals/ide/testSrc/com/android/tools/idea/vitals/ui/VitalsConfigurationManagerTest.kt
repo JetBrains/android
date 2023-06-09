@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.CONNECTION2
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.client.AppConnection
+import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -52,10 +53,11 @@ class VitalsConfigurationManagerTest {
   @Test
   fun getConnections() =
     runBlocking<Unit> {
+      val cache = AppInsightsCacheImpl()
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
       val configManager =
-        VitalsConfigurationManager(projectRule.project, { client }, MutableStateFlow(true))
+        VitalsConfigurationManager(projectRule.project, cache, client, MutableStateFlow(true))
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.refreshConfiguration()
@@ -77,7 +79,12 @@ class VitalsConfigurationManagerTest {
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.UnknownFailure("error"))
       val configManager =
-        VitalsConfigurationManager(projectRule.project, { client }, MutableStateFlow(true))
+        VitalsConfigurationManager(
+          projectRule.project,
+          AppInsightsCacheImpl(),
+          client,
+          MutableStateFlow(true)
+        )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.refreshConfiguration()
@@ -90,7 +97,12 @@ class VitalsConfigurationManagerTest {
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.UnknownFailure("error"))
       val configManager =
-        VitalsConfigurationManager(projectRule.project, { client }, MutableStateFlow(false))
+        VitalsConfigurationManager(
+          projectRule.project,
+          AppInsightsCacheImpl(),
+          client,
+          MutableStateFlow(false)
+        )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.refreshConfiguration()
@@ -104,7 +116,12 @@ class VitalsConfigurationManagerTest {
       `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
 
       val configManager =
-        VitalsConfigurationManager(projectRule.project, { client }, MutableStateFlow(true))
+        VitalsConfigurationManager(
+          projectRule.project,
+          AppInsightsCacheImpl(),
+          client,
+          MutableStateFlow(true)
+        )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.refreshConfiguration()
@@ -137,7 +154,13 @@ class VitalsConfigurationManagerTest {
       `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
       val loggedInFlow = MutableStateFlow(true)
 
-      val configManager = VitalsConfigurationManager(projectRule.project, { client }, loggedInFlow)
+      val configManager =
+        VitalsConfigurationManager(
+          projectRule.project,
+          AppInsightsCacheImpl(),
+          client,
+          loggedInFlow
+        )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.refreshConfiguration()
@@ -155,7 +178,13 @@ class VitalsConfigurationManagerTest {
       `when`(client.listConnections()).thenReturn(LoadingState.NetworkFailure("error"))
       val loggedInFlow = MutableStateFlow(true)
 
-      val configManager = VitalsConfigurationManager(projectRule.project, { client }, loggedInFlow)
+      val configManager =
+        VitalsConfigurationManager(
+          projectRule.project,
+          AppInsightsCacheImpl(),
+          client,
+          loggedInFlow
+        )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.cache.populateConnections(listOf(CONNECTION2))
@@ -176,7 +205,13 @@ class VitalsConfigurationManagerTest {
       `when`(client.listConnections()).thenReturn(LoadingState.NetworkFailure("error"))
       val loggedInFlow = MutableStateFlow(true)
 
-      val configManager = VitalsConfigurationManager(projectRule.project, { client }, loggedInFlow)
+      val configManager =
+        VitalsConfigurationManager(
+          projectRule.project,
+          AppInsightsCacheImpl(),
+          client,
+          loggedInFlow
+        )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.cache.populateConnections(listOf(CONNECTION2))

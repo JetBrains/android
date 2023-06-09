@@ -40,6 +40,7 @@ import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.zeroCounts
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
 import com.android.tools.idea.vitals.TEST_ISSUE2
@@ -130,12 +131,7 @@ class VitalsClientTest {
       .isEqualTo(
         LoadingState.Ready(
           IssueResponse(
-            listOf(
-              TEST_ISSUE1.copy(
-                issueDetails =
-                  TEST_ISSUE1.issueDetails.copy(impactedDevicesCount = 0L, eventsCount = 0L)
-              )
-            ),
+            listOf(TEST_ISSUE1.zeroCounts()),
             emptyList(),
             emptyList(),
             emptyList(),
@@ -314,4 +310,68 @@ class VitalsClientTest {
       assertThat((result as LoadingState.Ready).value)
         .containsExactly(AppConnection(TEST_CONNECTION_1.appId, TEST_CONNECTION_1.displayName))
     }
+
+  @Test
+  fun `client uses the same cache for connections and issues`() = runTest {
+    val cache = AppInsightsCacheImpl()
+    val issueRequest =
+      IssueRequest(
+        TEST_CONNECTION_1,
+        QueryFilters(
+          interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
+          eventTypes = listOf(FailureType.FATAL),
+          signal = SignalType.SIGNAL_UNSPECIFIED
+        )
+      )
+    val grpcClient =
+      object : TestVitalsGrpcClient() {
+        override suspend fun listAccessibleApps(maxNumResults: Int) =
+          listOf(AppConnection(TEST_CONNECTION_1.appId, TEST_CONNECTION_1.displayName))
+
+        override suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection) =
+          listOf(Freshness(TimeGranularity.FULL_RANGE, DateTime.getDefaultInstance()))
+
+        override suspend fun queryErrorCountMetrics(
+          connection: Connection,
+          filters: QueryFilters,
+          issueId: IssueId?,
+          dimensions: List<DimensionType>,
+          metrics: List<MetricType>,
+          freshness: Freshness,
+          maxNumResults: Int
+        ) = emptyList<DimensionsAndMetrics>()
+
+        override suspend fun searchErrorReports(
+          connection: Connection,
+          filters: QueryFilters,
+          issueId: IssueId,
+          maxNumResults: Int
+        ) = listOf(ISSUE1.sampleEvent)
+
+        override suspend fun listTopIssues(
+          connection: Connection,
+          filters: QueryFilters,
+          maxNumResults: Int,
+          pageTokenFromPreviousCall: String?
+        ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
+      }
+    val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
+
+    // Verify list connections returns expected result
+    val result = client.listConnections()
+    assertThat((result as LoadingState.Ready).value)
+      .containsExactly(AppConnection(TEST_CONNECTION_1.appId, TEST_CONNECTION_1.displayName))
+
+    // Verify list top open issues returns expected result
+    assertThat(client.listTopOpenIssues(issueRequest, null, ConnectionMode.ONLINE))
+      .isEqualTo(
+        LoadingState.Ready(
+          IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
+        )
+      )
+
+    // Verify the cache contains both connections and issues computed in the previous steps
+    assertThat(cache.getRecentConnections()).containsExactly(TEST_CONNECTION_1)
+    assertThat(cache.getTopIssues(issueRequest)).containsExactly(ISSUE1.zeroCounts())
+  }
 }

@@ -46,7 +46,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
 
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
     tabPanel.setComponent(placeholderContent())
-    val configManager = project.service<VitalsConfigurationManager>()
+    val configManager = project.service<VitalsConfigurationService>().manager
     val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
     AndroidCoroutineScope(tabPanel, AndroidDispatchers.uiThread).launch {
       configManager.configuration.collect { appInsightsModel ->
@@ -81,7 +81,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
   override fun isApplicable() = StudioFlags.PLAY_VITALS_ENABLED.get()
 
   override fun getConfigurationManager(project: Project) =
-    project.service<VitalsConfigurationManager>()
+    project.service<VitalsConfigurationService>().manager
 
   private fun placeholderContent(): JPanel =
     object : JPanel() {
