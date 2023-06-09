@@ -20,26 +20,37 @@ import com.android.gmdcodecompletion.fullAndroidDeviceCatalog
 import com.android.gmdcodecompletion.isFtlPluginEnabled
 import com.android.gmdcodecompletion.matchFtlDeviceCatalog
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.gct.testing.launcher.CloudAuthenticator
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
-import org.jetbrains.android.AndroidTestCase
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 
-class FtlDeviceCatalogServiceTest : AndroidTestCase() {
+class FtlDeviceCatalogServiceTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.onDisk()
+
+  val project: Project get() = projectRule.project
 
   private val mockCloudAuthenticator: CloudAuthenticator = mock(CloudAuthenticator::class.java)
 
   private val mockProgressIndicator: ProgressIndicator = mock(ProgressIndicator::class.java)
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setUp() {
     CloudAuthenticator.setInstance(mockCloudAuthenticator)
   }
 
-
+  @Test
   fun testObtainAndroidDeviceCatalog() {
     whenever(mockCloudAuthenticator.androidDeviceCatalog).thenReturn(fullAndroidDeviceCatalog)
     val ftlDeviceCatalogService = FtlDeviceCatalogService()
@@ -52,6 +63,7 @@ class FtlDeviceCatalogServiceTest : AndroidTestCase() {
     verify(mockCloudAuthenticator).androidDeviceCatalog
   }
 
+  @Test
   fun testCacheIsFresh() {
     val ftlDeviceCatalogService = FtlDeviceCatalogService()
     ftlDeviceCatalogService.loadState(freshFtlDeviceCatalogState())
@@ -61,7 +73,7 @@ class FtlDeviceCatalogServiceTest : AndroidTestCase() {
     verifyNoInteractions(mockCloudAuthenticator)
   }
 
-
+  @Test
   fun testFtlNotEnabled_gradlePropertyNotSet() {
     val ftlDeviceCatalogService = FtlDeviceCatalogService()
 
@@ -71,6 +83,7 @@ class FtlDeviceCatalogServiceTest : AndroidTestCase() {
     assertFalse(ftlDeviceCatalogService.state.isCacheFresh())
   }
 
+  @Test
   fun testFtlNotEnabled_noMatchingPluginInModule() {
     val ftlDeviceCatalogService = FtlDeviceCatalogService()
 
@@ -80,13 +93,15 @@ class FtlDeviceCatalogServiceTest : AndroidTestCase() {
     assertFalse(ftlDeviceCatalogService.state.isCacheFresh())
   }
 
+  @Test
   fun testFtlEnabled_moduleLevelSetting() {
-    myFixture.addFileToProject("build.gradle", """
+    val fixture = projectRule.fixture
+    fixture.addFileToProject("build.gradle", """
       plugins {
         id 'com.google.firebase.testlab`
       }
     """.trimIndent())
-    myFixture.addFileToProject("gradle.properties", """
+    fixture.addFileToProject("gradle.properties", """
       android.experimental.testOptions.managedDevices.customDevice=true
     """.trimIndent())
 
