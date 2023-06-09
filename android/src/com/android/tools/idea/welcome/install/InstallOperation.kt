@@ -19,6 +19,7 @@ import com.google.common.base.Function
 import com.google.common.base.Throwables
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
@@ -86,7 +87,7 @@ abstract class InstallOperation<Return, Argument>(
           0, 0, Messages.getErrorIcon()
         )
         response.set(i == Messages.YES)
-      }, application.anyModalityState)
+      }, ModalityState.any())
     if (!response.get()) {
       if (e != null) {
         Throwables.throwIfInstanceOf(e, WizardException::class.java)
