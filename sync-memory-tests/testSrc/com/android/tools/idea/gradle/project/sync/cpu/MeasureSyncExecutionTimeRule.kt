@@ -21,8 +21,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementCheckpoint
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.memory.OUTPUT_DIRECTORY
+import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
+import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.Topic
 import kotlinx.datetime.Clock
@@ -39,6 +41,22 @@ import com.android.tools.idea.gradle.project.sync.MeasurementCheckpoint as Andro
 val CPU_BENCHMARK = Benchmark.Builder("Cpu time")
   .setProject("Android Studio Sync Test")
   .build()
+
+private val ANALYZER = listOf(
+  WindowDeviationAnalyzer.Builder()
+    .setMetricAggregate(Analyzer.MetricAggregate.MEDIAN)
+    // This means, out of last 100 runs, only consider the last 11 "recent", including the current one.
+    // The rest is "historic". The analyzer works by compares the set of recent values and historic values
+    .setRunInfoQueryLimit(100)
+    .setRecentWindowSize(11)
+    .addMedianTolerance(
+      WindowDeviationAnalyzer.MedianToleranceParams.Builder()
+        .setConstTerm(0.0)
+        .setMadCoeff(0.0)
+        .setMedianCoeff(0.05) // flag 5% regressions
+        .build())
+    .build()
+)
 
 private typealias TimestampedMeasurement = Pair<Instant, Duration>
 
@@ -90,10 +108,12 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
       }
   )
   fun recordMeasurements(projectName: String) {
+    val initialPrefix = "Initial_"
+    val droppedPrefix = "Dropped_"
     results.flatMapIndexed { index, value ->
       val prefix = when (index) {
-        0 -> "Initial_"
-        1, 2 -> "Dropped_"
+        0 -> initialPrefix
+        1, 2 -> droppedPrefix
         else -> ""
       }
       listOf(
@@ -109,7 +129,7 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
       .mapValues { groupEntry -> groupEntry.value.map {it.second} }.entries // unpack group values
       .forEach { (type, values: List<TimestampedMeasurement>) ->
       println("Recording ${projectName}_$type -> $values")
-      recordCpuMeasurement("${projectName}_$type", values)
+      recordCpuMeasurement("${projectName}_$type", values, enableAnalyzers = !type.startsWith(droppedPrefix) )
     }
   }
   private fun getTimestampForCheckpoint(checkpointName: String): Instant {
@@ -120,10 +140,13 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
   }
 }
 
-internal fun recordCpuMeasurement(metricName: String, values: Iterable<TimestampedMeasurement>) {
+internal fun recordCpuMeasurement(metricName: String, values: Iterable<TimestampedMeasurement>, enableAnalyzers: Boolean) {
   Metric(metricName).apply {
     values.forEach {
       addSamples(CPU_BENCHMARK, Metric.MetricSample(it.first.toEpochMilliseconds(), it.second.toLong(DurationUnit.MILLISECONDS)))
+    }
+    if (enableAnalyzers) {
+      setAnalyzers(CPU_BENCHMARK, ANALYZER)
     }
     commit()
   }
