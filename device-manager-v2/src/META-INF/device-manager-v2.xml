@@ -14,6 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends optional="true" config-file="device-manager-v2-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow id="Device Manager 2"
                 anchor="right"
