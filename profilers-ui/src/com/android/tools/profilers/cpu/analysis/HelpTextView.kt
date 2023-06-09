@@ -36,6 +36,7 @@ class HelpTextView: JPanel(BorderLayout()) {
   }
 
   companion object {
+    const val HELP_TEXT_TITLE = "<b>Help Text</b>"
     private val CONTROL_KEY_TEXT = if (SystemInfo.isMac) "Command &#8984" else "Ctrl &#8963"
     private val HELP_TEXT = """
       <html>

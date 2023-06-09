@@ -17,12 +17,14 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.ValueFormattingUtils.formatLongValueWithCommas
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativePowerUsageInRange
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.POWER_RAIL_UNIT
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.util.ui.JBUI
 import javax.swing.JLabel
 
 class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
@@ -51,7 +53,9 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
           PowerRailTable(profilersView.studioProfilers, powerRailCounters, tabModel.selectionRange, tabModel.captureRange).component)
       }
     }
-    addSection(HelpTextView())
+    // Add a collapsible Help Text section containing Navigation and Analysis instructions (initially collapsed)
+    addSection(HideablePanel.Builder(HelpTextView.HELP_TEXT_TITLE, HelpTextView()).setInitiallyExpanded(false).setPanelBorder(
+      JBUI.Borders.empty()).build())
   }
 
   private fun updateRangeLabels() {
