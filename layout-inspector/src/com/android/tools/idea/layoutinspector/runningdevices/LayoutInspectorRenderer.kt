@@ -48,7 +48,8 @@ import kotlin.math.max
  * A Physical pixel corresponds to a real pixel on the display. A logical pixel corresponds to a physical pixels * screen scale.
  * For example on a Retina display a logical pixel is a physical pixel * 2.
  * @param screenScaleProvider Returns the screen scale. For example 1 on a regular display and 2 on a Retina display.
- * @param orientationQuadrantProvider Returns an integer that indicates if the device rendering is rotated and in which quadrant.
+ * @param orientationQuadrantProvider Returns an integer that indicates the rotation that should be applied to the Layout Inspector's
+ * rendering in order to match the rendering from Running Devices.
  */
 class LayoutInspectorRenderer(
   disposable: Disposable,
@@ -124,14 +125,14 @@ class LayoutInspectorRenderer(
     val layoutInspectorDisplayRectangle = Rectangle(0, 0, layoutInspectorScreenDimension.width, layoutInspectorScreenDimension.height)
 
     val scale = calculateScaleDifference(displayRectangle, layoutInspectorDisplayRectangle)
-    val quadrant = getOrientationQuadrant()
+    val orientationQuadrant = orientationQuadrantProvider()
 
     val transform = AffineTransform()
 
     // Apply scale and rotation, this will transform LI rendering to match the rendering from RD, in terms of scale and orientation.
     transform.apply {
       scale(scale, scale)
-      quadrantRotate(quadrant)
+      quadrantRotate(orientationQuadrant)
     }
 
     // Create the new transformed shape of LI rendering. This will have same scale and orientation as the display from RD.
@@ -143,11 +144,11 @@ class LayoutInspectorRenderer(
 
     transform.apply {
       // Remove rotation, otherwise translate is affected by it.
-      quadrantRotate(-quadrant)
+      quadrantRotate(-orientationQuadrant)
       // Translate LI rendering to overlap with display from RD.
       translate(xDelta.toDouble() / scale, yDelta.toDouble() / scale)
       // Re-apply rotation.
-      quadrantRotate(quadrant)
+      quadrantRotate(orientationQuadrant)
     }
 
     return transform
@@ -165,29 +166,6 @@ class LayoutInspectorRenderer(
     val layoutInspectorDisplayMaxSide = max(layoutInspectorDisplayRectangle.width, layoutInspectorDisplayRectangle.height)
 
     return displayMaxSide.toDouble() / layoutInspectorDisplayMaxSide.toDouble()
-  }
-
-  /**
-   * Returns the quadrant in which the rendering should be rotated.
-   */
-  private fun getOrientationQuadrant(): Int {
-    // The rotation of the display rendering coming from Running Devices.
-    val displayRectangleOrientationQuadrant = orientationQuadrantProvider()
-
-    // The rotation of the display coming from Layout Inspector, this should match the actual orientation of the device.
-    val layoutInspectorDisplayOrientationQuadrant = when (renderModel.model.resourceLookup.displayOrientation) {
-      0 -> 0
-      90 -> 1
-      180 -> 2
-      270 -> 3
-      else -> 0
-    }
-
-    // The difference in quadrant rotation between Layout Inspector and the display rendering.
-    // Both the display from RD and the device can be rotated in all 4 quadrants, independently of each other.
-    // We use the diff to reconcile the difference in rotation, as ultimately the rendering from LI should match the rendering of the
-    // display from RD.
-    return (layoutInspectorDisplayOrientationQuadrant - displayRectangleOrientationQuadrant).mod(4)
   }
 
   override fun paint(g: Graphics) {

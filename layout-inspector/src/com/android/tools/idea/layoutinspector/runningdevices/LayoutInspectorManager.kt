@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.model.ViewNode
@@ -35,6 +36,7 @@ import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
@@ -236,7 +238,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
    * @param tabContentPanelContainer The container of [tabContentPanel].
    * @param displayView The [AbstractDisplayView] from running devices. Component on which the device display is rendered.
    */
-  private class TabComponents(
+  class TabComponents(
     val disposable: Disposable,
     val tabContentPanel: JComponent,
     val tabContentPanelContainer: Container,
@@ -253,7 +255,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
    * @param tabId The id of selected tab.
    * @param tabComponents The components of the selected tab.
    * @param wrapLogic The logic used to wrap the tab in a workbench.
-   * @param displayViewManager The component responsible for rendering Layout Inspector on the selected tab.
    */
   private data class SelectedTabState(
     val project: Project,
@@ -269,11 +270,14 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       layoutInspector.renderModel,
       { tabComponents.displayView.displayRectangle },
       { tabComponents.displayView.screenScalingFactor },
-      { tabComponents.displayView.displayOrientationQuadrants },
+      { calculateRotationCorrection(
+        layoutInspector.inspectorModel,
+        displayOrientationQuadrant = { tabComponents.displayView.displayOrientationQuadrants},
+        displayOrientationQuadrantCorrection = { tabComponents.displayView.displayOrientationCorrectionQuadrants }
+      )},
       { layoutInspector.currentClient.stats },
     )
   ) {
-
     fun enableLayoutInspector() {
       wrapLogic.wrapComponent { centerPanel ->
         val mainPanel = BorderLayoutPanel()
@@ -355,6 +359,58 @@ private fun createLayoutInspectorWorkbench(
   workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
   DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
   return workbench
+}
+
+/**
+ * Returns the quadrant in which the rendering of Layout Inspector should be rotated in order to match the rendering from Running Devices.
+ * It does this by calculating the rotation difference between the rotation of the device and the rotation of the rendering from
+ * Running Devices.
+ *
+ * Both the rendering from RD and the device can be rotated in all 4 quadrants, independently of each other.
+ * We use the diff to reconcile the difference in rotation, as ultimately the rendering from LI should match the rendering of the
+ * display from RD.
+ *
+ * Note that the rendering from Layout Inspector should be rotated only sometimes, to match the rendering from Running Devices.
+ * Here are a few examples:
+ * * Device is in portrait mode, auto-rotation is off, running devices rendering has no rotation -> apply no rotation
+ * * Device is in landscape mode, auto-rotation is off, running devices rendering has rotation to be horizontal -> apply rotation,
+ * because the app is in portrait mode in the device, so should be rotated to match rendering from RD.
+ * * Device is in landscape mode, auto-rotation is on, running devices rendering has rotation to be horizontal -> apply no rotation,
+ * because the app is already in landscape mode, so no rotation is needed to match rendering from RD.
+ *
+ * Note that: when rendering a streamed device (as opposed to an emulator), the Running Devices Tool Window fakes the rotation of the
+ * screen (b/273699961). This means that for those cases we can't reliably use the rotation provided by the device to calculate the
+ * rotation for the Layout Inspector rendering. In these cases we should use the rotation correction provided by the RD Tool Window.
+ * But in the case of emulators, the rotation correction from Running Devices is always 0. In these case we should calculate our
+ * own rotation correction.
+ */
+@VisibleForTesting
+fun calculateRotationCorrection(
+  layoutInspectorModel: InspectorModel,
+  displayOrientationQuadrant: () -> Int,
+  displayOrientationQuadrantCorrection: () -> Int
+): Int {
+  val orientationCorrectionFromRunningDevices = displayOrientationQuadrantCorrection()
+
+  // Correction can be different from 0 only for streamed devices (as opposed to emulators).
+  if (orientationCorrectionFromRunningDevices != 0) {
+    return -orientationCorrectionFromRunningDevices
+  }
+
+  // The rotation of the display rendering coming from Running Devices.
+  val displayRectangleOrientationQuadrant = displayOrientationQuadrant()
+
+  // The rotation of the display coming from Layout Inspector.
+  val layoutInspectorDisplayOrientationQuadrant = when (layoutInspectorModel.resourceLookup.displayOrientation) {
+    0 -> 0
+    90 -> 1
+    180 -> 2
+    270 -> 3
+    else -> 0
+  }
+
+  // The difference in quadrant rotation between Layout Inspector rendering and the Running Devices rendering.
+  return (layoutInspectorDisplayOrientationQuadrant - displayRectangleOrientationQuadrant).mod(4)
 }
 
 /** Utility function to get [LayoutInspector] from a [Project] */

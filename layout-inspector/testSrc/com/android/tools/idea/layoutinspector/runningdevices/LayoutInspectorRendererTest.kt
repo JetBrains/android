@@ -31,7 +31,6 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -113,8 +112,17 @@ class LayoutInspectorRendererTest {
   /** The rectangle that contains the device rendering, LI rendering should be overlaid to this rectangle. */
   private val deviceDisplayRectangle = Rectangle(10, 10, deviceScreenDimension.width, deviceScreenDimension.height)
 
-  private val inspectorModel = model {
+  private val verticalInspectorModel = model {
     view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+      view(VIEW1, 10, 15, 25, 25) {
+        image()
+      }
+      compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
+    }
+  }
+
+  private val horizontalInspectorModel = model {
+    view(ROOT, 0, 0, deviceScreenDimension.height, deviceScreenDimension.width) {
       view(VIEW1, 10, 15, 25, 25) {
         image()
       }
@@ -124,7 +132,7 @@ class LayoutInspectorRendererTest {
 
   @Before
   fun setUp() {
-    renderModel = RenderModel(inspectorModel, mock(), treeSettings) { DisconnectedClient }
+    renderModel = RenderModel(verticalInspectorModel, mock(), treeSettings) { DisconnectedClient }
     renderLogic = RenderLogic(renderModel, renderSettings)
     sessionStats = SessionStatisticsImpl(DisconnectedClient.clientType)
   }
@@ -234,7 +242,6 @@ class LayoutInspectorRendererTest {
     // test all possible combinations of rotations
     val combinations = allPossibleCombinations(listOf(0, 1, 2, 3), listOf(0, 90, 180, 270))
     combinations.forEach {
-      val displayQuadrant = it.displayQuadrant
       val inspectorModelWithTopBorder = model {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
           view(VIEW1, 10, 15, 25, 25) {
@@ -243,20 +250,27 @@ class LayoutInspectorRendererTest {
         }
       }
       inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
-      inspectorModel.resourceLookup.displayOrientation = it.deviceRotation
-      val deviceScreenDimension = when (it.deviceRotation) {
-        0, 180 -> Dimension(1080, 1920)
-        // assume that when the device is horizontal it's in landscape mode.
-        90, 270 -> Dimension(1920, 1080)
+      verticalInspectorModel.resourceLookup.displayOrientation = it.deviceRotation
+      val inspectorModel = when (it.deviceRotation) {
+        0, 180 -> {
+          verticalInspectorModel.resourceLookup.screenDimension = Dimension(1080, 1920)
+          verticalInspectorModel
+        }
+        // assume that when the device is horizontal the app is in landscape mode.
+        90, 270 -> {
+          horizontalInspectorModel.resourceLookup.screenDimension = Dimension(1920, 1080)
+          horizontalInspectorModel
+        }
         else -> throw IllegalArgumentException()
       }
-      inspectorModel.resourceLookup.screenDimension = deviceScreenDimension
 
       val renderModel = RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
-      val layoutInspectorRenderer = createRenderer(renderModel = renderModel, displayOrientation = displayQuadrant)
+      val quadrant = calculateRotationCorrection(inspectorModel, { it.displayQuadrant }, { 0 })
+
+      val layoutInspectorRenderer = createRenderer(renderModel = renderModel, displayOrientation = quadrant)
 
       val renderImage = createRenderImage()
-      paint(renderImage, layoutInspectorRenderer, displayQuadrant = displayQuadrant)
+      paint(renderImage, layoutInspectorRenderer, displayQuadrant = it.displayQuadrant)
       assertSimilar(renderImage, testName.methodName + "${it.displayQuadrant}_${it.deviceRotation}")
     }
   }
@@ -346,7 +360,7 @@ class LayoutInspectorRendererTest {
     fakeUi.render()
 
     // click mouse above VIEW1.
-    fakeUi.mouse.doubleClick(deviceDisplayRectangle.x + 30, deviceDisplayRectangle.y + 35)
+    fakeUi.mouse.doubleClick(deviceDisplayRectangle.x + 20, deviceDisplayRectangle.y + 25)
 
     fakeUi.render()
     fakeUi.layoutAndDispatchEvents()
@@ -493,8 +507,7 @@ class LayoutInspectorRendererTest {
       displayRectangleProvider = { deviceDisplayRectangle },
       screenScaleProvider = { 1.0 },
       orientationQuadrantProvider = { displayOrientation },
-      { sessionStats }
-    )
+    ) { sessionStats }
   }
 
   private fun createRenderImage(): BufferedImage {
