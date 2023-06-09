@@ -18,8 +18,6 @@ iml_module(
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_jvm_flags = [
-        # TODO: http://b/281905227
-        "-Didea.leak.check.enabled=false",
         "-Djdk.attach.allowAttachSelf=true",
     ],
     test_shard_count = 3,

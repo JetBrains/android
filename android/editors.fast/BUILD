@@ -10,8 +10,6 @@ iml_module(
         "//tools/adt/idea/compose-ide-plugin/testData",
     ],
     test_jvm_flags = [
-        # TODO: http://b/281905227
-        "-Didea.leak.check.enabled=false",
         "-Djdk.attach.allowAttachSelf=true",
     ],
     test_srcs = ["testSrc"],
