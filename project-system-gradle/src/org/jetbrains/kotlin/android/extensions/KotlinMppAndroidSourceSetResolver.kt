@@ -15,17 +15,50 @@
  */
 package org.jetbrains.kotlin.android.extensions
 
-internal class KotlinMppAndroidSourceSetResolver {
-  private val mainSourceSetMap = mutableMapOf<String, String>()
+import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetData
+import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.intellij.openapi.externalSystem.model.DataNode
+import com.intellij.openapi.externalSystem.model.project.ProjectData
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 
-  internal fun recordMainSourceSetForProject(
-    projectPath: String,
-    sourceSetName: String
+/**
+ * Responsible for populating [AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE] with android sourceSets for each kotlin
+ * multiplatform module.
+ */
+class KotlinMppAndroidSourceSetResolver {
+  private val sourceSetDataByGradleProjectPath = mutableMapOf<String, MutableMap<KotlinMultiplatformAndroidSourceSetType, String>>()
+
+  /**
+   * Record an android sourceSet in the module with the given [gradleProjectPath].
+   */
+  internal fun recordSourceSetForModule(
+    gradleProjectPath: String,
+    sourceSetName: String,
+    sourceSetType: KotlinMultiplatformAndroidSourceSetType
   ) {
-    mainSourceSetMap[projectPath] = sourceSetName
+    sourceSetDataByGradleProjectPath.getOrPut(gradleProjectPath) { mutableMapOf() }.also {
+      it[sourceSetType] = sourceSetName
+    }
   }
 
+  internal fun attachSourceSetDataToProject(
+    projectNode: DataNode<ProjectData>
+  ) {
+    if (ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE) == null) {
+      projectNode.createChild(
+        AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE,
+        KotlinMultiplatformAndroidSourceSetData(
+          this.sourceSetDataByGradleProjectPath.toMap()
+        )
+      )
+    }
+  }
+
+  /**
+   * Returns tha main android sourceSet in the module with the given [gradleProjectPath].
+   */
   fun getMainSourceSetForProject(
-    projectPath: String
-  ) = mainSourceSetMap[projectPath]
+    gradleProjectPath: String
+  ) = sourceSetDataByGradleProjectPath[gradleProjectPath]?.get(KotlinMultiplatformAndroidSourceSetType.MAIN)
 }

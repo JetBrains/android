@@ -59,6 +59,7 @@ import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSo
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil.addTraceJvmArgs
 import com.android.tools.idea.gradle.project.sync.idea.VariantProjectDataNodes.Companion.collectCurrentAndPreviouslyCachedVariants
+import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
@@ -559,11 +560,19 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ideLibraryTable: IdeUnresolvedLibraryTable
   ): IdeResolvedLibraryTable {
     val artifactModuleIdMap = buildArtifactsModuleIdMap(ideProject)
+    val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.find(
+      ideProject,
+      AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE
+    )?.data
     return ResolvedLibraryTableBuilder(
       { key: Any? -> myGradlePathByModuleId[key] },
       { key: Any? -> myModuleDataByGradlePath[key] },
       { artifact: File -> resolveArtifact(artifactModuleIdMap, artifact) },
-      { "androidMain" } // TODO(b/269755640): Get this from the kmp resolvers
+      {
+        kotlinMultiplatformAndroidSourceSetData?.sourceSetsByGradleProjectPath?.get(
+          it.path
+        )?.get(KotlinMultiplatformAndroidSourceSetType.MAIN)
+      }
     ).buildResolvedLibraryTable(ideLibraryTable)
   }
 

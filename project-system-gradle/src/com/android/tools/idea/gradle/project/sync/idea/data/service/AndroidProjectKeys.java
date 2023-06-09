@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport;
 import com.android.tools.idea.gradle.project.sync.idea.IdeAndroidNativeVariantsModelsWrapper;
+import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetData;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData;
 import com.android.tools.idea.projectsystem.gradle.sync.AndroidModuleDataService;
@@ -99,6 +100,10 @@ public final class AndroidProjectKeys {
   @NotNull
   public static final Key<ProjectJdkUpdateData> PROJECT_JDK_UPDATE =
     Key.create(ProjectJdkUpdateData.class, PROJECT_CLEANUP_MODEL.getProcessingWeight() + 10);
+
+  @NotNull
+  public static final Key<KotlinMultiplatformAndroidSourceSetData> KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE =
+    Key.create(KotlinMultiplatformAndroidSourceSetData.class, PROJECT_JDK_UPDATE.getProcessingWeight() + 10);
 
   private AndroidProjectKeys() {
   }

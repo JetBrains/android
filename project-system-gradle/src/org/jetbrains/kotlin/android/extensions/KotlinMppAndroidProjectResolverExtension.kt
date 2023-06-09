@@ -19,7 +19,9 @@ import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilat
 import com.android.kotlin.multiplatform.ide.models.serialization.androidDependencyKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
 import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKey
+import com.android.kotlin.multiplatform.models.AndroidCompilation.CompilationType
 import com.android.tools.idea.gradle.model.LibraryReference
+import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.AbstractDependencyData
@@ -57,12 +59,16 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     val kotlinCompilation = (component as? KotlinCompilation) ?: return
     val androidCompilation = kotlinCompilation.extras[androidCompilationKey]?.invoke() ?: return
 
-    if (androidCompilation.hasMainDslInfo()) {
-      sourceSetResolver.recordMainSourceSetForProject(
-        projectPath = context.mppModel.targets.firstNotNullOf { it.extras[androidTargetKey] }.invoke()!!.projectPath,
-        sourceSetName = androidCompilation.defaultSourceSetName
-      )
-    }
+    sourceSetResolver.recordSourceSetForModule(
+      gradleProjectPath = context.mppModel.targets.firstNotNullOf { it.extras[androidTargetKey] }.invoke()!!.projectPath,
+      sourceSetName = androidCompilation.defaultSourceSetName,
+      sourceSetType = when(androidCompilation.type) {
+        CompilationType.MAIN -> KotlinMultiplatformAndroidSourceSetType.MAIN
+        CompilationType.UNIT_TEST -> KotlinMultiplatformAndroidSourceSetType.UNIT_TEST
+        CompilationType.INSTRUMENTED_TEST -> KotlinMultiplatformAndroidSourceSetType.ANDROID_TEST
+        CompilationType.UNRECOGNIZED, null -> error("Unexpected compilation type.")
+      }
+    )
   }
 
   override fun afterPopulateSourceSetDependencies(context: Context,
@@ -109,6 +115,11 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
   override fun afterPopulateContentRoots(context: Context,
                                          sourceSetDataNode: DataNode<GradleSourceSetData>,
                                          sourceSet: KotlinSourceSet) {
+    // We need to do this before populateSourceSetDependencies so that the android project resolver can read this data.
+    sourceSetResolver.attachSourceSetDataToProject(
+      context.projectDataNode
+    )
+
     val sourceSetInfo = sourceSet.extras[androidSourceSetKey]?.invoke() ?: return
     sourceSetDataNode.createChild(
       ProjectKeys.CONTENT_ROOT,
