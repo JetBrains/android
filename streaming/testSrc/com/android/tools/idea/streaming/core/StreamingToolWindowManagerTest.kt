@@ -528,7 +528,6 @@ class StreamingToolWindowManagerTest {
     createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
-    toolWindow.show()
 
     agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
