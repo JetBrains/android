@@ -19,10 +19,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.intellij.openapi.application.ApplicationManager;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * All the settings of an {@link AttachedToolWindow} are shared globally for all instances
@@ -31,7 +30,7 @@ import java.util.Optional;
  * changed.
  */
 public class WorkBenchManager {
-  private Multimap<String, WorkBench> myWorkBenches;
+  private final Multimap<String, WorkBench<?>> myWorkBenches;
 
   public static WorkBenchManager getInstance() {
     return ApplicationManager.getApplication().getService(WorkBenchManager.class);
@@ -41,17 +40,17 @@ public class WorkBenchManager {
     myWorkBenches = Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
   }
 
-  public void register(@NotNull WorkBench workBench) {
+  public void register(@NotNull WorkBench<?> workBench) {
     myWorkBenches.put(workBench.getName(), workBench);
   }
 
-  public void unregister(@NotNull WorkBench workBench) {
+  public void unregister(@NotNull WorkBench<?> workBench) {
     myWorkBenches.remove(workBench.getName(),workBench);
   }
 
   public void storeDefaultLayout() {
     for (String name : myWorkBenches.keySet()) {
-      Optional<WorkBench> workbench = myWorkBenches.get(name).stream().findFirst();
+      Optional<WorkBench<?>> workbench = myWorkBenches.get(name).stream().findFirst();
       if (workbench.isPresent()) {
         workbench.get().storeDefaultLayout();
         updateOtherWorkBenches(workbench.get());
@@ -61,7 +60,7 @@ public class WorkBenchManager {
 
   public void restoreDefaultLayout() {
     for (String name : myWorkBenches.keySet()) {
-      Optional<WorkBench> workbench = myWorkBenches.get(name).stream().findFirst();
+      Optional<WorkBench<?>> workbench = myWorkBenches.get(name).stream().findFirst();
       if (workbench.isPresent()) {
         workbench.get().restoreDefaultLayout();
         updateOtherWorkBenches(workbench.get());
@@ -69,8 +68,8 @@ public class WorkBenchManager {
     }
   }
 
-  public void updateOtherWorkBenches(@NotNull WorkBench workBench) {
-    Collection<WorkBench> workBenches = myWorkBenches.get(workBench.getName());
+  public void updateOtherWorkBenches(@NotNull WorkBench<?> workBench) {
+    Collection<WorkBench<?>> workBenches = myWorkBenches.get(workBench.getName());
     workBenches.stream().filter(bench -> bench != workBench).forEach(WorkBench::updateModel);
   }
 }
