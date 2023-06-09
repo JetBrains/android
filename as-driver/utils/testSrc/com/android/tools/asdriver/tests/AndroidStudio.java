@@ -250,7 +250,7 @@ public class AndroidStudio implements AutoCloseable {
 
   public void invokeComponent(String componentText) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-    builder.addComponentTextMatch(componentText);
+    builder.addComponentTextExactMatch(componentText);
     invokeComponent(builder);
   }
 
@@ -323,9 +323,32 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
+  /**
+   * @deprecated use {@link #waitForComponentWithExactText(String)} instead
+   */
+  @Deprecated
   public void waitForComponent(String componentText) {
+    waitForComponentWithExactText(componentText);
+  }
+
+  /** Waits for a {@code Component} whose <b>entire</b> text matches {@code componentText}.*/
+  public void waitForComponentWithExactText(String componentText) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-    builder.addComponentTextMatch(componentText);
+    builder.addComponentTextExactMatch(componentText);
+    waitForComponent(builder);
+  }
+
+  /** Waits for a {@code Component} whose text contains {@code containedText}. */
+  public void waitForComponentWithTextContaining(String containedText) {
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    builder.addComponentTextContainsMatch(containedText);
+    waitForComponent(builder);
+  }
+
+  /** Waits for a {@code Component} whose <b>entire</b> text matches the regular expression {@code regex}. */
+  public void waitForComponentWithTextMatchingRegex(String regex) {
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    builder.addComponentTextRegexMatch(regex);
     waitForComponent(builder);
   }
 

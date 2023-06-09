@@ -57,6 +57,7 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -226,8 +227,7 @@ public class StudioInteractionService {
     for (ASDriver.ComponentMatcher matcher : matchers) {
       if (matcher.hasComponentTextMatch()) {
         ASDriver.ComponentTextMatch match = matcher.getComponentTextMatch();
-        String text = match.getText();
-        componentsFound = findComponentsMatchingText(componentsFound, text);
+        componentsFound = findComponentsMatchingText(componentsFound, match.getText(), match.getMatchMode());
       } else if (matcher.hasSvgIconMatch()) {
         ASDriver.SvgIconMatch match = matcher.getSvgIconMatch();
         componentsFound = findLinksByIconNames(componentsFound, match.getIconList());
@@ -302,13 +302,23 @@ public class StudioInteractionService {
     return componentsFound;
   }
 
-  private Set<Component> findComponentsMatchingText(Set<Component> componentsToLookUnder, String text) {
+  private Set<Component> findComponentsMatchingText(
+    Set<Component> componentsToLookUnder, String text, ASDriver.ComponentTextMatch.MatchMode matchMode) {
     Predicate<? super Component> filterByText = (c) -> {
       String componentText = getTextFromComponent(c);
 
       // Remove any escape characters introduced by mnemonics from the component's text.
       String textWithoutEscapeCharacter = componentText == null ? null : componentText.replaceAll(String.valueOf(BundleBase.MNEMONIC), "");
-      return Objects.equals(componentText, text) || Objects.equals(textWithoutEscapeCharacter, text);
+      return switch (matchMode) {
+        case EXACT -> Objects.equals(componentText, text) || Objects.equals(textWithoutEscapeCharacter, text);
+        case CONTAINS -> componentText != null && (componentText.contains(text) || textWithoutEscapeCharacter.contains(text));
+        case REGEX -> {
+          Pattern pattern = Pattern.compile(text);
+          yield componentText != null &&
+                 (pattern.matcher(componentText).matches() || pattern.matcher(textWithoutEscapeCharacter).matches());
+        }
+        case UNRECOGNIZED -> false;
+      };
     };
     Set<Component> componentsFound = componentsToLookUnder.stream().filter(filterByText).collect(Collectors.toSet());
 

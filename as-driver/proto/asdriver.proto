@@ -94,7 +94,13 @@ message SwingClassRegexMatch {
 }
 
 message ComponentTextMatch {
+  enum MatchMode {
+    EXACT = 0;
+    CONTAINS = 1;
+    REGEX = 2;
+  }
   string text = 1;
+  MatchMode matchMode = 2;
 }
 
 message SvgIconMatch {
