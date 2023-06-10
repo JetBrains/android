@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.runReadAction
@@ -41,6 +42,8 @@ private const val VIEW_NOT_FOUND = "view.not.found"
 object GotoDeclarationAction : AnAction("Go To Declaration") {
   @get:VisibleForTesting
   var lastAction: Job? = null
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
