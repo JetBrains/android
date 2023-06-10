@@ -170,12 +170,14 @@ class FakeScreenSharingAgentRule : TestRule {
     }
   }
 
-  class FakeDevice(val serialNumber: String, val displaySize: Dimension,
+  class FakeDevice(val serialNumber: String,
+                   val displaySize: Dimension,
                    val deviceState: DeviceState,
                    val roundDisplay: Boolean = false,
-                   foldedSize: Dimension? = null) {
+                   foldedSize: Dimension? = null,
+  ) {
     val agent: FakeScreenSharingAgent =
-        FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
+      FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
     var hostPort: Int? = null
     val configuration: DeviceConfiguration = createDeviceConfiguration(deviceState.properties)
     val handle: DeviceHandle = FakeDeviceHandle(this)
