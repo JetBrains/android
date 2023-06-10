@@ -41,11 +41,8 @@ class KotlinMapEntryRenderer : CompoundRendererProvider() {
     it.name == "Map.Entry"
   }
 
-  override fun isEnabled(): Boolean {
-    if (StudioFlags.COMPOSE_STATE_OBJECT_CUSTOM_RENDERER.get()) return true
-
-    return false
-  }
+  override fun isEnabled(): Boolean =
+    StudioFlags.COMPOSE_STATE_OBJECT_CUSTOM_RENDERER.get()
 
   override fun getName(): String {
     return "Kotlin MapEntry"

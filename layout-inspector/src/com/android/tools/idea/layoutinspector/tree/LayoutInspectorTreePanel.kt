@@ -377,10 +377,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val id = node.view.viewId?.name
     val text = node.view.textValue.ifEmpty { null }
     val searchString = listOfNotNull(name, id, text).joinToString(" - ")
-    if (comparator.matchingFragments(filter, searchString) != null) {
-      return true
-    }
-    return false
+    return comparator.matchingFragments(filter, searchString) != null
   }
 
   private fun selectNode(node: TreeViewNode) {

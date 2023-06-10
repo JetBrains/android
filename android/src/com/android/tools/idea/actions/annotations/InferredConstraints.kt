@@ -1438,10 +1438,7 @@ class InferredConstraints private constructor(
      */
     fun transferArgumentToParameter(qualifiedName: String): Boolean {
       if (isResourceAnnotation(qualifiedName)) {
-        if (qualifiedName == ANY_RES_ANNOTATION.newName()) {
-          return false
-        }
-        return true
+        return qualifiedName != ANY_RES_ANNOTATION.newName()
       }
 
       return when (qualifiedName) {

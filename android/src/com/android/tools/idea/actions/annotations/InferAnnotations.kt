@@ -746,10 +746,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     fun isResourceField(field: PsiField?): Boolean {
       var rClass: PsiClass? = field?.containingClass ?: return false
       rClass = rClass?.containingClass ?: return false
-      if (AndroidUtils.R_CLASS_NAME == rClass.name) {
-        return true
-      }
-      return false
+      return AndroidUtils.R_CLASS_NAME == rClass.name
     }
 
     override fun visitReturnExpression(node: UReturnExpression): Boolean {
