@@ -84,7 +84,6 @@ import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
-import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.popup.list.ListPopupImpl
@@ -545,7 +544,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val content = contentFactory.createContent(panel, null, false).apply {
       isCloseable = false
     }
-    val contentManager = getContentManager()
+    val contentManager = toolWindow.contentManager
     try {
       contentManager.addContent(content)
       contentManager.setSelectedContent(content)
@@ -595,10 +594,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun findPanelBySerialNumber(serialNumber: String): RunningDevicePanel? {
     return panels.firstOrNull { it.id.serialNumber == serialNumber }
-  }
-
-  private fun getContentManager(): ContentManager {
-    return toolWindow.contentManager
   }
 
   private fun showLiveIndicator() {
