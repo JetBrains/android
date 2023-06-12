@@ -15,7 +15,6 @@
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
     <orderEntry type="library" scope="TEST" name="asm-commons" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" scope="TEST" name="javax.annotation-api" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module-library" exported="" scope="TEST">
@@ -38,13 +37,12 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="module" module-name="intellij.platform.buildScripts.downloader" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="commons-compress" level="project" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
   </component>
 </module>

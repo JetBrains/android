@@ -247,7 +247,6 @@
     <orderEntry type="module" module-name="intellij.platform.jps.model.serialization" />
     <orderEntry type="module" module-name="intellij.java.impl.refactorings" />
     <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
-    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
     <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.xml.dom.impl" />
     <orderEntry type="library" scope="PROVIDED" name="CGLIB" level="project" />
@@ -265,6 +264,5 @@
     <orderEntry type="module" module-name="intellij.platform.externalSystem.rt" />
     <orderEntry type="module" module-name="intellij.platform.util.classLoader" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
-    <orderEntry type="module" module-name="intellij.properties.psi.impl" />
   </component>
 </module>

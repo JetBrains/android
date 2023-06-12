@@ -77,7 +77,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.ex" />
     <orderEntry type="module" module-name="kotlin.base.psi" />
     <orderEntry type="module" module-name="kotlin.base.code-insight" />
-    <orderEntry type="module" module-name="kotlin.base.fe10.highlighting" />
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />

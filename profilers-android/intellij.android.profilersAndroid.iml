@@ -61,7 +61,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
-    <orderEntry type="library" scope="TEST" name="perfetto-proto" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
