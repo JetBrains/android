@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.util.ArrayUtil;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -96,7 +97,8 @@ public final class Sdks {
       sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
     }
 
-    Sdk jdk = IdeSdks.getInstance().getJdk();
+    Path jdk11 = TestUtils.getJava11Jdk();
+    Sdk jdk = IdeSdks.getInstance().getOrCreateJdk(jdk11);
     if (parentDisposable != null) {
       Disposer.register(parentDisposable, () -> WriteAction.run(() -> ProjectJdkTable.getInstance().removeJdk(jdk)));
     }

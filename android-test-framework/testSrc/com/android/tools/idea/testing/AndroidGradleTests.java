@@ -616,16 +616,18 @@ public final class AndroidGradleTests {
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(project, () -> {
-      if (IdeInfo.getInstance().isAndroidStudio()) {
-        if (!ideSdks.isUsingEnvVariableJdk()) {
-          ideSdks.setUseEmbeddedJdk();
-          applyJdkToProject(project, ideSdks.getJdk());
-        }
-        LOG.info("Set JDK to " + ideSdks.getJdkPath());
+      Sdk jdk = null;
+      if (!ideSdks.isUsingEnvVariableJdk()) {
+        Path jdkPath = IdeInfo.getInstance().isAndroidStudio()
+                       ? ideSdks.getEmbeddedJdkPath()
+                       : TestUtils.getJava11Jdk();
+        jdk = ideSdks.setJdkPath(jdkPath);
       }
+      applyJdkToProject(project, ideSdks.getJdk());
+      LOG.info("Set JDK to " + ideSdks.getJdkPath());
 
       Sdks.allowAccessToSdk(projectDisposable);
-      ideSdks.setAndroidSdkPath(androidSdkPath, project);
+      ideSdks.setAndroidSdkPath(androidSdkPath, jdk, project);
       IdeSdks.removeJdksOn(projectDisposable);
 
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);

@@ -868,7 +868,8 @@ public class IdeSdks {
    * {@code null} if it could not be created successfully.
    */
   @Nullable
-  private Sdk getOrCreateJdk(@NotNull Path homeDirectory) {
+  @VisibleForTesting
+  public Sdk getOrCreateJdk(@NotNull Path homeDirectory) {
     ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
     for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
       if (FileUtil.pathsEqual(jdk.getHomePath(), homeDirectory.toString())) {
