@@ -563,9 +563,7 @@ class WindowsDefenderWarningNodeDescriptor(
   val data: WindowsDefenderCheckService.WindowsDefenderWarningData
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.windowsDefenderWarning
-  override val analyticsPageType: PageType
-    //TODO add page to analytics
-    get() = PageType.UNKNOWN_PAGE
+  override val analyticsPageType = PageType.WINDOWS_DEFENDER_WARNING_PAGE
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
       mainText = "Windows Defender Active Scanning",

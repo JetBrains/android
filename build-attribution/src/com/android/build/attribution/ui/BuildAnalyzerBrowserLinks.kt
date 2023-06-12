@@ -68,7 +68,6 @@ enum class BuildAnalyzerBrowserLinks(
   WINDOWS_DEFENDER(
     //TODO(b/285867050): do we have a redirect already?
     "https://developer.android.com/studio/intro/studio-config?utm_source=android-studio#antivirus-impact",
-    //TODO(b/285867050): add value to analytics
-    BuildAttributionUiEvent.OutgoingLinkTarget.UNKNOWN_OUTGOING_LINK_TARGET
+    BuildAttributionUiEvent.OutgoingLinkTarget.WINDOWS_DEFENDER_INSTRUCTIONS
   )
 }

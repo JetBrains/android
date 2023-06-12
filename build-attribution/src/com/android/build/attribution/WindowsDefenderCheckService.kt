@@ -71,7 +71,7 @@ class WindowsDefenderCheckService(
     val checker = checkerProvider()
     if (checker.isStatusCheckIgnored(project)) {
       Logger.getInstance(WindowsDefenderCheckService::class.java).info("status check is disabled")
-      logState(WindowsDefenderStatus.Status.UNKNOWN_STATUS) //TODO(b/285867050): change to CHECK_IGNORED (add to proto first)
+      logState(WindowsDefenderStatus.Status.CHECK_IGNORED)
       return
     }
 
@@ -82,8 +82,8 @@ class WindowsDefenderCheckService(
     when {
       protection == null -> logState(WindowsDefenderStatus.Status.UNKNOWN_STATUS)
       protection == false -> logState(WindowsDefenderStatus.Status.SCANNING_DISABLED)
-      protection && canRunExclusionScript -> logState(WindowsDefenderStatus.Status.UNKNOWN_STATUS) //TODO(b/285867050): change to ENABLED_AUTO (add to proto first)
-      protection && !canRunExclusionScript -> logState(WindowsDefenderStatus.Status.UNKNOWN_STATUS) //TODO(b/285867050): change to ENABLED_MANUAL (add to proto first)
+      protection && canRunExclusionScript -> logState(WindowsDefenderStatus.Status.ENABLED_AUTO)
+      protection && !canRunExclusionScript -> logState(WindowsDefenderStatus.Status.ENABLED_MANUAL)
     }
 
   }
@@ -97,12 +97,10 @@ class WindowsDefenderCheckService(
       val success = checker.excludeProjectPaths(paths)
       if (success) {
         ignoreCheckForProject()
-        //TODO(b/285867050): change to DEFENDER_WARNING_AUTO_EXCLUDE_SUCCESS (add to proto first)
-        logUserAction(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
+        logUserAction(BuildAttributionUiEvent.EventType.DEFENDER_WARNING_AUTO_EXCLUDE_SUCCESS)
       }
       else {
-        //TODO(b/285867050): change to DEFENDER_WARNING_AUTO_EXCLUDE_FAILURE (add to proto first)
-        logUserAction(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
+        logUserAction(BuildAttributionUiEvent.EventType.DEFENDER_WARNING_AUTO_EXCLUDE_FAILURE)
       }
       callback(success)
     }
@@ -111,8 +109,7 @@ class WindowsDefenderCheckService(
   override fun ignoreCheckForProject() {
     Logger.getInstance(WindowsDefenderCheckService::class.java).info("Suppress warning for the project")
     checkerProvider().ignoreStatusCheck(project, true)
-    //TODO(b/285867050): change to DEFENDER_WARNING_SUPPRESS_CLICKED (add to proto first)
-    logUserAction(BuildAttributionUiEvent.EventType.UNKNOWN_TYPE)
+    logUserAction(BuildAttributionUiEvent.EventType.DEFENDER_WARNING_SUPPRESS_CLICKED)
   }
 
   data class WindowsDefenderWarningData(
