@@ -466,7 +466,7 @@ private fun EmulatorController.deleteSnapshotSync(snapshotId: String): Boolean {
 private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile: File, indicator: ProgressIndicator): Boolean {
   val format = if (snapshotFile.isDirectory) {
     SnapshotPackage.Format.DIRECTORY
-  } else if (snapshotFile.extension.toLowerCase() == "gz") {
+  } else if (snapshotFile.extension.lowercase() == "gz") {
     SnapshotPackage.Format.TARGZ
   } else {
     SnapshotPackage.Format.TAR

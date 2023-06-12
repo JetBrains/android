@@ -38,7 +38,7 @@ class ColorValuePanelTest : PlatformTestCase() {
     assertEquals(Color.YELLOW.red.toString(), panel.colorField1.text)
     assertEquals(Color.YELLOW.green.toString(), panel.colorField2.text)
     assertEquals(Color.YELLOW.blue.toString(), panel.colorField3.text)
-    assertEquals(Integer.toHexString(Color.YELLOW.rgb).toUpperCase(), panel.hexField.text)
+    assertEquals(Integer.toHexString(Color.YELLOW.rgb).uppercase(), panel.hexField.text)
 
     panel.currentColorFormat = ColorFormat.HSB
     val hsb = Color.RGBtoHSB(Color.YELLOW.red, Color.YELLOW.green, Color.YELLOW.blue, null)
@@ -46,7 +46,7 @@ class ColorValuePanelTest : PlatformTestCase() {
     assertEquals((hsb[0] * 360).roundToInt().toString(), panel.colorField1.text)
     assertEquals((hsb[1] * 100).roundToInt().toString(), panel.colorField2.text)
     assertEquals((hsb[2] * 100).roundToInt().toString(), panel.colorField3.text)
-    assertEquals(Integer.toHexString(Color.YELLOW.rgb).toUpperCase(), panel.hexField.text)
+    assertEquals(Integer.toHexString(Color.YELLOW.rgb).uppercase(), panel.hexField.text)
   }
 
   fun testChangeColorModeFromHSBToRGB() {
@@ -64,14 +64,14 @@ class ColorValuePanelTest : PlatformTestCase() {
     assertEquals((0.3f * 360).roundToInt().toString(), panel.colorField1.text)
     assertEquals((0.4f * 100).roundToInt().toString(), panel.colorField2.text)
     assertEquals((0.5f * 100).roundToInt().toString(), panel.colorField3.text)
-    assertEquals(Integer.toHexString(color.rgb).toUpperCase(), panel.hexField.text)
+    assertEquals(Integer.toHexString(color.rgb).uppercase(), panel.hexField.text)
 
     panel.currentColorFormat = ColorFormat.RGB
     assertEquals(color.alpha.toString(), panel.alphaField.text)
     assertEquals(color.red.toString(), panel.colorField1.text)
     assertEquals(color.green.toString(), panel.colorField2.text)
     assertEquals(color.blue.toString(), panel.colorField3.text)
-    assertEquals(Integer.toHexString(color.rgb).toUpperCase(), panel.hexField.text)
+    assertEquals(Integer.toHexString(color.rgb).uppercase(), panel.hexField.text)
   }
 
   fun testChangeAlphaModeFromByteToPercentage() {
@@ -117,7 +117,7 @@ class ColorValuePanelTest : PlatformTestCase() {
     assertEquals(Color.YELLOW.red.toString(), panel.colorField1.text)
     assertEquals(Color.YELLOW.green.toString(), panel.colorField2.text)
     assertEquals(Color.YELLOW.blue.toString(), panel.colorField3.text)
-    assertEquals(Integer.toHexString(Color.YELLOW.rgb).toUpperCase(), panel.hexField.text)
+    assertEquals(Integer.toHexString(Color.YELLOW.rgb).uppercase(), panel.hexField.text)
 
     val newColor = Color(0x40, 0x50, 0x60, 0x70)
     model.setColor(newColor)
@@ -149,7 +149,7 @@ class ColorValuePanelTest : PlatformTestCase() {
     val greenHex = 150.toString(16)
     val blueHex = 100.toString(16)
     val alphaHex = 50.toString(16)
-    val hex = (alphaHex + redHex + greenHex + blueHex).toUpperCase()
+    val hex = (alphaHex + redHex + greenHex + blueHex).uppercase()
 
     assertEquals(hex, panel.hexField.text)
   }
@@ -191,7 +191,7 @@ class ColorValuePanelTest : PlatformTestCase() {
     assertEquals((yellowHsb[0] * 360).roundToInt().toString(), panel.colorField1.text)
     assertEquals((yellowHsb[1] * 100).roundToInt().toString(), panel.colorField2.text)
     assertEquals((yellowHsb[2] * 100).roundToInt().toString(), panel.colorField3.text)
-    assertEquals(Integer.toHexString(Color.YELLOW.rgb).toUpperCase(), panel.hexField.text)
+    assertEquals(Integer.toHexString(Color.YELLOW.rgb).uppercase(), panel.hexField.text)
 
     val newColor = Color(0x40, 0x50, 0x60, 0x70)
     val newColorHsb = Color.RGBtoHSB(newColor.red, newColor.green, newColor.blue, null)
@@ -221,7 +221,7 @@ class ColorValuePanelTest : PlatformTestCase() {
     val rgbValue = Color.HSBtoRGB(180 / 360f, 50 / 100f, 30 / 100f)
     val color = Color((200 shl 24) or (0x00FFFFFF and rgbValue), true)
     assertEquals(color, model.color)
-    assertEquals((200.toString(16) + (0x00FFFFFF and rgbValue).toString(16)).toUpperCase(), panel.hexField.text)
+    assertEquals((200.toString(16) + (0x00FFFFFF and rgbValue).toString(16)).uppercase(), panel.hexField.text)
   }
 
   fun testChangeHexFieldInHSBMode() {

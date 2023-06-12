@@ -222,7 +222,7 @@ object GuiTestLauncher {
     val classLoader = this.javaClass.classLoader
     val urlClassLoaderClass = classLoader.javaClass
     if (urlClassLoaderClass.name == "com.intellij.util.lang.UrlClassLoader") {
-      val getUrlsMethod = urlClassLoaderClass.methods.firstOrNull { it.name.toLowerCase() == "geturls" }!!
+      val getUrlsMethod = urlClassLoaderClass.methods.firstOrNull { it.name.lowercase() == "geturls" }!!
       @Suppress("UNCHECKED_CAST")
       val urlsListOrArray = getUrlsMethod.invoke(classLoader)
       var urls = (urlsListOrArray as? List<*> ?: (urlsListOrArray as Array<*>).toList()).filterIsInstance(URL::class.java)

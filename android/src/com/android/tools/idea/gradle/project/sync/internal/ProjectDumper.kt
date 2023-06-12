@@ -93,10 +93,10 @@ class ProjectDumper(
     val stringFile = this.toString().replace("\\", "/")
     val variantSegmentToReplace = stringFile.substring(stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1, stringFile.lastIndexOf(abiSegment) - 1)
     val pathsToReplace = mapOf(
-      "/build/intermediates/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
-      "/build/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
-      "/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
-      "/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}")
+      "/build/intermediates/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+      "/build/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+      "/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+      "/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}")
     var result = this.path
     for ((old, new) in pathsToReplace) {
       result = result.replace(old, new)

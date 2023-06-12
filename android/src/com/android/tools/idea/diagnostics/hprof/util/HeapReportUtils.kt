@@ -40,7 +40,7 @@ object HeapReportUtils {
   }
 
   fun sectionHeader(name: String): String {
-    val uppercaseName = name.toUpperCase(Locale.US)
+    val uppercaseName = name.uppercase(Locale.US)
     return if (uppercaseName.length >= SECTION_HEADER_SIZE - 2) {
       uppercaseName
     }

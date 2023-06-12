@@ -326,7 +326,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
           val dests = DumbService.getInstance(project).runReadActionInSmartMode(Computable { destinations })
           maxIconWidth = dests.maxOfOrNull { it.iconWidth } ?: 0
           val listModel = FilteringListModel(CollectionListModel(dests))
-          listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.toLowerCase()) }
+          listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.lowercase()) }
           searchField.addDocumentListener(
             object : DocumentAdapter() {
               override fun textChanged(e: DocumentEvent) {

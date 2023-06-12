@@ -221,7 +221,7 @@ class PathValidatorTest {
 
   @Test
   fun fileNameRule() {
-    val allCapRule = filenameRule("all cap") { it == it.toUpperCase(Locale.US) }
+    val allCapRule = filenameRule("all cap") { it == it.uppercase(Locale.US) }
     assertRulePasses(allCapRule, Paths.get("foo/bar/ALL_CAP"))
     assertRuleFails(allCapRule, Paths.get("foo/bar/Not_All_Cap"))
   }

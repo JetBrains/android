@@ -300,7 +300,7 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
 
     private fun toId(tagName: String, index: Int = 0): String {
       val offset = if (index == 0) "" else index.toString()
-      return "@+id/${tagName.toLowerCase().substringAfterLast('.')}$offset"
+      return "@+id/${tagName.lowercase().substringAfterLast('.')}$offset"
     }
   }
 }

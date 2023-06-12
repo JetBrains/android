@@ -333,7 +333,7 @@ private fun getResourceDataType(asset: Asset, psiElement: PsiElement): String {
       if (psiElement.virtualFile.name.endsWith(SdkConstants.DOT_9PNG, true)) {
         "9-Patch"
       } else {
-        psiElement.virtualFile.extension?.toUpperCase(Locale.US) ?: ""
+        psiElement.virtualFile.extension?.uppercase(Locale.US) ?: ""
       }
     }
     // Fallback for unsupported types in Drawables and Mip Maps
