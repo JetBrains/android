@@ -100,7 +100,7 @@ class CollapsibleLabelPanel(
     add(label, BorderLayout.CENTER)
     model.addValueChangedListener { valueChanged() }
     if (actions.isNotEmpty()) {
-      val buttonPanel = JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0))
+      val buttonPanel = ButtonPanel()
       actions.forEach {
         val button = FocusableActionButton(it)
         buttonPanel.add(button)
@@ -171,5 +171,14 @@ class CollapsibleLabelPanel(
     expandButton.icon = model.icon
     revalidateParent?.revalidate()
     revalidateParent?.repaint()
+  }
+
+  private class ButtonPanel: JPanel(FlowLayout(FlowLayout.CENTER, JBUI.scale(2), 0)) {
+    override fun doLayout() {
+      super.doLayout()
+      for (component in components) {
+        component.setLocation(component.x, maxOf((height - component.height) / 2, 0))
+      }
+    }
   }
 }
