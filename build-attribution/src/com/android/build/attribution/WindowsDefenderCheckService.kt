@@ -83,25 +83,31 @@ class WindowsDefenderCheckService(
 
   /** This should only be called from [StudioWindowsDefenderCheckerActivity] in production code. */
   fun checkRealTimeProtectionStatus() {
-    //TODO add try-catch and log error. Or check first if throwing error is being logged to crashes
-    val checker = checkerProvider()
-    if (checker.isStatusCheckIgnored(project)) {
-      LOG.info("status check is disabled")
-      logState(WindowsDefenderStatus.Status.CHECK_IGNORED)
-      return
-    }
-
-    val protection = checker.isRealTimeProtectionEnabled
-    LOG.info("real-time protection: $protection")
-    realTimeProtectionEnabledOnStartup = protection
-    when {
-      protection == null -> logState(WindowsDefenderStatus.Status.UNKNOWN_STATUS)
-      protection == false -> logState(WindowsDefenderStatus.Status.SCANNING_DISABLED)
-      protection -> {
-        val canRunExclusionScript = checker.canRunScript()
-        logState(if (canRunExclusionScript) WindowsDefenderStatus.Status.ENABLED_AUTO else WindowsDefenderStatus.Status.ENABLED_MANUAL)
-        showWarningNotification(canRunExclusionScript, checker.getImportantPaths(project))
+    try {
+      val checker = checkerProvider()
+      if (checker.isStatusCheckIgnored(project)) {
+        LOG.info("status check is disabled")
+        logState(WindowsDefenderStatus.Status.CHECK_IGNORED)
+        return
       }
+
+      val protection = checker.isRealTimeProtectionEnabled
+      LOG.info("real-time protection: $protection")
+      realTimeProtectionEnabledOnStartup = protection
+      when {
+        protection == null -> logState(WindowsDefenderStatus.Status.UNKNOWN_STATUS)
+        protection == false -> logState(WindowsDefenderStatus.Status.SCANNING_DISABLED)
+        protection -> {
+          val canRunExclusionScript = checker.canRunScript()
+          val state = if (canRunExclusionScript) WindowsDefenderStatus.Status.ENABLED_AUTO else WindowsDefenderStatus.Status.ENABLED_MANUAL
+          logState(state)
+          showWarningNotification(canRunExclusionScript, checker.getImportantPaths(project))
+        }
+      }
+    }
+    catch (t: Throwable) {
+      LOG.error("Error reading Windows Defender status", t)
+      realTimeProtectionEnabledOnStartup = null
     }
   }
 
