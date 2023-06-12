@@ -25,7 +25,10 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
@@ -33,7 +36,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
@@ -44,6 +46,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.junit.After
@@ -293,6 +296,23 @@ class LayoutInspectorManagerTest {
 
     layoutInspector.inspectorModel.setSelection(ViewNode("node2"), SelectionOrigin.COMPONENT_TREE)
     assertThat(refreshCount).isEqualTo(1)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testDeepInspectIsDisabledOnProcessChange() {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    val layoutInspectorRenderer = tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+    assertThat(layoutInspectorRenderer.interceptClicks).isFalse()
+
+    layoutInspectorRenderer.interceptClicks = true
+    layoutInspector.processModel?.selectedProcess = MODERN_DEVICE.createProcess()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertThat(layoutInspectorRenderer.interceptClicks).isFalse()
   }
 
   @Test

@@ -50,6 +50,7 @@ import com.intellij.ui.content.Content
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Container
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import javax.swing.JComponent
 
 private const val WORKBENCH_NAME = "Layout Inspector"
@@ -301,12 +302,14 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       tabComponents.displayView.add(layoutInspectorRenderer)
 
       layoutInspector.inspectorModel.selectionListeners.add(selectionChangedListener)
+      layoutInspector.processModel?.addSelectedProcessListeners(newSingleThreadExecutor(), selectedProcessListener)
     }
 
     fun disableLayoutInspector() {
       wrapLogic.unwrapComponent()
       tabComponents.displayView.remove(layoutInspectorRenderer)
       layoutInspector.inspectorModel.selectionListeners.remove(selectionChangedListener)
+      layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
 
       tabComponents.tabContentPanelContainer.revalidate()
       tabComponents.tabContentPanelContainer.repaint()
@@ -314,6 +317,10 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
     private val selectionChangedListener: (old: ViewNode?, new: ViewNode?, origin: SelectionOrigin) -> Unit = { _, _, _ ->
       layoutInspectorRenderer.refresh()
+    }
+
+    private val selectedProcessListener = {
+      layoutInspectorRenderer.interceptClicks = false
     }
   }
 
