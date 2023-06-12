@@ -52,6 +52,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -74,6 +75,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBase {
 
@@ -140,7 +142,9 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       String projectName = request.hasProjectName() ? request.getProjectName() : null;
       DataContext dataContext = getDataContext(projectName, request.getDataContextSource());
       if (dataContext == null) {
-        System.err.println("Could not get a DataContext for executeAction.");
+        String errorMessage = "Could not get a DataContext for executeAction.";
+        System.err.println(errorMessage);
+        builder.setErrorMessage(errorMessage);
         builder.setResult(ASDriver.ExecuteActionResponse.Result.ERROR);
       }
       else {
@@ -262,6 +266,9 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     catch (Exception e) {
       e.printStackTrace();
       builder.setResult(ASDriver.InvokeComponentResponse.Result.ERROR);
+      if (!StringUtil.isEmpty(e.getMessage())) {
+        builder.setErrorMessage(e.getMessage());
+      }
     }
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
@@ -327,6 +334,9 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
       catch (Exception e) {
         e.printStackTrace();
+        if (!StringUtil.isEmpty(e.getMessage())) {
+          builder.setErrorMessage(e.getMessage());
+        }
       }
     });
 
@@ -463,18 +473,19 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     String fileName = request.getFile();
     String searchRegex = request.getSearchRegex();
     ApplicationManager.getApplication().invokeAndWait(() -> {
+      @Nullable String errorMessage = null;
       try {
         Project project = getSingleProject();
         VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(new File(fileName));
         if (virtualFile == null) {
-          System.err.println("File does not exist on filesystem with path: " + fileName);
+          errorMessage = "File does not exist on filesystem with path: " + fileName;
           return;
         }
 
         FileEditorManager manager = FileEditorManager.getInstance(project);
         Editor editor = manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
         if (editor == null) {
-          System.err.println("Could not open an editor with file: " + fileName);
+          errorMessage = "Could not open an editor with file: " + fileName;
           return;
         }
         Document document = editor.getDocument();
@@ -503,7 +514,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
         }
 
         if (replacements.isEmpty()) {
-          System.err.println("Could not find a match with these file contents: " + contents);
+          errorMessage = "Could not find a match with these file contents: " + contents;
           return;
         }
 
@@ -520,6 +531,15 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
       catch (Exception e) {
         e.printStackTrace();
+        if (!StringUtil.isEmpty(e.getMessage())) {
+          errorMessage = e.getMessage();
+        }
+      }
+      finally {
+        if (!StringUtil.isEmpty(errorMessage)) {
+          System.err.println(errorMessage);
+          builder.setErrorMessage(errorMessage);
+        }
       }
     });
 
@@ -538,6 +558,9 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     catch (Exception e) {
       e.printStackTrace();
       builder.setResult(ASDriver.WaitForComponentResponse.Result.ERROR);
+      if (!StringUtil.isEmpty(e.getMessage())) {
+        builder.setErrorMessage(e.getMessage());
+      }
     }
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
@@ -615,8 +638,12 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
       }
       responseObserver.onNext(ASDriver.TakeBleakSnapshotResponse.newBuilder().setResult(ASDriver.TakeBleakSnapshotResponse.Result.OK).build());
     } catch (Exception e) {
-      responseObserver.onNext(
-        ASDriver.TakeBleakSnapshotResponse.newBuilder().setResult(ASDriver.TakeBleakSnapshotResponse.Result.ERROR).build());
+      ASDriver.TakeBleakSnapshotResponse.Builder builder =
+        ASDriver.TakeBleakSnapshotResponse.newBuilder().setResult(ASDriver.TakeBleakSnapshotResponse.Result.ERROR);
+      if (!StringUtil.isEmpty(e.getMessage())) {
+        builder.setErrorMessage(e.getMessage());
+      }
+      responseObserver.onNext(builder.build());
       e.printStackTrace();
     } finally {
       responseObserver.onCompleted();

@@ -62,6 +62,7 @@ message ExecuteActionResponse {
     ERROR = 2;
   }
   ExecuteActionResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message ShowToolWindowRequest {
@@ -113,6 +114,7 @@ message InvokeComponentResponse {
     ERROR = 1;
   }
   InvokeComponentResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message WaitForIndexRequest {}
@@ -133,6 +135,7 @@ message OpenFileResponse {
     ERROR = 1;
   }
   OpenFileResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message EditFileRequest {
@@ -147,6 +150,7 @@ message EditFileResponse {
     ERROR = 1;
   }
   EditFileResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message WaitForComponentRequest {
@@ -159,6 +163,7 @@ message WaitForComponentResponse {
     ERROR = 1;
   }
   WaitForComponentResponse.Result result = 1;
+  string error_message = 2;
 }
 
 message GetSystemPropertyRequest {
@@ -180,6 +185,7 @@ message AnalyzeFileResponse {
   }
   AnalyzeFileResponse.Status status = 1;
   repeated AnalysisResult analysis_results = 2;
+  string error_message = 3;
 }
 
 message AnalysisResult {
@@ -227,4 +233,5 @@ message TakeBleakSnapshotResponse {
   }
   TakeBleakSnapshotResponse.Result result = 1;
   optional string leak_info = 2;
+  string error_message = 3;
 }

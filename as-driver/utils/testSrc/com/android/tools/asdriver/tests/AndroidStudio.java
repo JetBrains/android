@@ -21,6 +21,7 @@ import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.system.CpuArch;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -233,12 +234,11 @@ public class AndroidStudio implements AutoCloseable {
       ASDriver.ExecuteActionRequest.newBuilder().setActionId(action).setDataContextSource(dataContextSource.dataContextSource).build();
     ASDriver.ExecuteActionResponse response = androidStudio.executeAction(rq);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ACTION_NOT_FOUND:
-        throw new NoSuchElementException(String.format("No action found by this ID: %s", action));
-      default:
-        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+      case OK -> {}
+      case ACTION_NOT_FOUND -> throw new NoSuchElementException(String.format("No action found by this ID: %s", action));
+      case ERROR -> throw new IllegalStateException(String.format("Failed to execute action: %s. %s",
+                                                                  action, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
 
@@ -258,13 +258,10 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.InvokeComponentRequest request = ASDriver.InvokeComponentRequest.newBuilder().addAllMatchers(matchers.build()).build();
     ASDriver.InvokeComponentResponse response = androidStudio.invokeComponent(request);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ERROR:
-        throw new IllegalStateException(String.format("Could not invoke component with these matchers: %s. Check the Android Studio " +
-                                                      "stderr log for the cause.", matchers));
-      default:
-        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException(String.format("Could not invoke component with these matchers: %s. %s",
+                                                                  matchers, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
 
@@ -294,13 +291,11 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.OpenFileRequest rq = builder.build();
     ASDriver.OpenFileResponse response = androidStudio.openFile(rq);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ERROR:
-        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\" to line %d:%d. Check the Android " +
-                                                      "Studio stderr log for the cause.", file, project, line, column));
-      default:
-        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+      case OK -> {}
+      case ERROR ->
+        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\" to line %d:%d. %s",
+                                                      file, project, line, column, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
 
@@ -316,8 +311,8 @@ public class AndroidStudio implements AutoCloseable {
       case OK:
         return;
       case ERROR:
-        throw new IllegalStateException(String.format("Could not edit file \"%s\" with searchRegex %s and replacement %s. Check the " +
-                                                      "Android Studio stderr log for the cause.", file, searchRegex, replacement));
+        throw new IllegalStateException(String.format("Could not edit file \"%s\" with searchRegex %s and replacement %s. %s",
+                                                      file, searchRegex, replacement, formatErrorMessage(response.getErrorMessage())));
       default:
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
@@ -364,13 +359,10 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.WaitForComponentRequest request = ASDriver.WaitForComponentRequest.newBuilder().addAllMatchers(requestBuilder.build()).build();
     ASDriver.WaitForComponentResponse response = androidStudio.waitForComponent(request);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ERROR:
-        throw new IllegalStateException(String.format("Could not wait for component with these matchers: %s. Check the Android Studio " +
-                                                      "stderr log for the cause.", requestBuilder));
-      default:
-        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException(String.format("Failed while waiting for component with these matchers: %s. %s",
+                                                    requestBuilder, formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
   }
 
@@ -381,8 +373,8 @@ public class AndroidStudio implements AutoCloseable {
     return switch (response.getStatus()) {
       case OK -> response.getAnalysisResultsList().stream().map(AnalysisResult::fromProto).toList();
       case ERROR ->
-        throw new IllegalStateException(String.format("Could not analyze file \"%s\". Check the Android " +
-                                                      "Studio stderr log for the cause.", file));
+        throw new IllegalStateException(String.format("Could not analyze file %s. %s",
+                                                      file, formatErrorMessage(response.getErrorMessage())));
       default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getStatus()));
     };
   }
@@ -414,24 +406,28 @@ public class AndroidStudio implements AutoCloseable {
   public void runWithBleak(Runnable scenario) {
     scenario.run(); // warm up: for BLeak to track a path in the heap, it must exist when the first snapshot is taken.
     int lastIter = 3;
-    for (int i=0; i < lastIter; i++) {
+    for (int i = 0; i < lastIter; i++) {
       ASDriver.TakeBleakSnapshotRequest request = ASDriver.TakeBleakSnapshotRequest.newBuilder().setCurrentIteration(i).setLastIteration(lastIter).build();
       ASDriver.TakeBleakSnapshotResponse response = androidStudio.takeBleakSnapshot(request);
       if (response.getResult() == ASDriver.TakeBleakSnapshotResponse.Result.ERROR) {
-        throw new IllegalStateException("Error in BLeak");
+        throw new IllegalStateException("Error in BLeak. " + formatErrorMessage(response.getErrorMessage()));
       }
       scenario.run();
     }
     ASDriver.TakeBleakSnapshotRequest request = ASDriver.TakeBleakSnapshotRequest.newBuilder().setCurrentIteration(lastIter).setLastIteration(lastIter).build();
     ASDriver.TakeBleakSnapshotResponse response = androidStudio.takeBleakSnapshot(request);
     switch (response.getResult()) {
-      case OK:
-        return;
-      case ERROR:
-        throw new IllegalStateException("Error in BLeak");
-      case LEAK_DETECTED:
-        throw new MemoryLeakException(response.getLeakInfo());
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException("Error in BLeak. " + formatErrorMessage(response.getErrorMessage()));
+      case LEAK_DETECTED -> throw new MemoryLeakException(response.getLeakInfo());
     }
+  }
+
+  private static String formatErrorMessage(String errorMessage) {
+    if (StringUtil.isEmpty(errorMessage)) {
+      return "Check the Android Studio stderr log for the cause. See go/e2e-find-log-files for more info.";
+    }
+    return "Error message: " + errorMessage;
   }
 
   /**
