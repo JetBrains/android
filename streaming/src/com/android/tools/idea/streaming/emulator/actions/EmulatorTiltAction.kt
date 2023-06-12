@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.emulator.actions
 import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.PhysicalModelValue.PhysicalType.WRIST_TILT
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
@@ -32,4 +33,6 @@ internal class EmulatorTiltAction : AbstractEmulatorAction(configFilter = { it.i
         .setValue(ParameterValue.newBuilder().addData(1F))
     emulatorController.setPhysicalModel(physicalModelValue.build())
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.emulator.actions
 
 import com.android.emulator.control.PaneEntry.PaneIndex
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
@@ -27,4 +28,6 @@ class EmulatorShowFoldingControlsAction : AbstractEmulatorAction(configFilter = 
     val emulatorController = getEmulatorController(event) ?: return
     showExtendedControls(emulatorController, getProject(event), PaneIndex.VIRT_SENSORS)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

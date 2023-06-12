@@ -20,6 +20,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.dialogs.ManageSnapshotsDialog
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
@@ -37,7 +38,7 @@ class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
     showManageSnapshotsDialog(emulatorView, getProject(event))
   }
 
-  protected fun getProject(event: AnActionEvent) = event.getRequiredData(CommonDataKeys.PROJECT)
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }
 
 /**

@@ -31,6 +31,7 @@ import com.android.tools.idea.ui.screenshot.ScreenshotSupplier
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.base.Throwables
 import com.google.common.util.concurrent.UncheckedExecutionException
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -62,6 +63,8 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
     val emulatorController: EmulatorController = getEmulatorController(event) ?: return
     emulatorController.getScreenshot(pngFormat(), ScreenshotReceiver(emulatorController, project))
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   private class ScreenshotReceiver(val emulatorController: EmulatorController, val project: Project) : EmptyStreamObserver<Image>() {
 
