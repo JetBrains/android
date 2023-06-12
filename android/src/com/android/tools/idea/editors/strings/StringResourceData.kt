@@ -13,278 +13,199 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings;
+package com.android.tools.idea.editors.strings
 
-import com.android.SdkConstants;
-import com.android.ide.common.resources.Locale;
-import com.android.ide.common.resources.ResourceItem;
-import com.android.tools.idea.editors.strings.model.StringResourceKey;
-import com.android.tools.idea.editors.strings.model.StringResourceRepository;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.StringResourceWriter;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.refactoring.rename.RenameProcessor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.SdkConstants
+import com.android.ide.common.resources.Locale
+import com.android.tools.idea.editors.strings.model.StringResourceKey
+import com.android.tools.idea.editors.strings.model.StringResourceRepository
+import com.android.tools.idea.res.StringResourceWriter
+import com.android.tools.idea.res.getItemTag
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.Iterables
+import com.google.common.collect.Sets
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.PsiElement
+import com.intellij.psi.xml.XmlFile
+import com.intellij.refactoring.rename.RenameProcessor
+import java.util.function.Consumer
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
-public class StringResourceData {
-  private static final int MAX_LOCALE_LABEL_COUNT = 3;
+class StringResourceData private constructor(val project: Project, val repository: StringResourceRepository) {
+  private val myKeyToResourceMap: LinkedHashMap<StringResourceKey, StringResource>
+  private val myStringResourceWriter = StringResourceWriter.INSTANCE
 
-  private final LinkedHashMap<StringResourceKey, StringResource> myKeyToResourceMap;
-  private final Project myProject;
-  private final StringResourceRepository myRepository;
-
-  private final StringResourceWriter myStringResourceWriter = StringResourceWriter.INSTANCE;
-  private StringResourceData(@NotNull Project project, @NotNull StringResourceRepository repository) {
-    myKeyToResourceMap = new LinkedHashMap<>();
-    myProject = project;
-    myRepository = repository;
+  init {
+    myKeyToResourceMap = LinkedHashMap()
   }
 
-  @NotNull
-  public static StringResourceData create(@NotNull Project project, @NotNull StringResourceRepository repository) {
-    StringResourceData data = new StringResourceData(project, repository);
-    repository.getKeys().forEach(key -> data.myKeyToResourceMap.put(key, new StringResource(key, data)));
-
-    return data;
-  }
-
-  @NotNull
-  final Project getProject() {
-    return myProject;
-  }
-
-  @NotNull
-  final StringResourceRepository getRepository() {
-    return myRepository;
-  }
-
-  public void setKeyName(@NotNull StringResourceKey key, @NotNull String name) {
-    if (key.getName().equals(name)) {
-      return;
+  fun setKeyName(key: StringResourceKey, name: String) {
+    var key = key
+    if (key.name == name) {
+      return
     }
-
-    boolean mapContainsName = myKeyToResourceMap.keySet().stream()
-      .map(k -> k.getName())
-      .anyMatch(n -> n.equals(name));
-
+    val mapContainsName = myKeyToResourceMap.keys.stream()
+      .map { (name1): StringResourceKey -> name1 }
+      .anyMatch { n: String -> n == name }
     if (mapContainsName) {
-      return;
+      return
     }
-
-    ResourceItem value = getStringResource(key).getDefaultValueAsResourceItem();
-
-    if (value == null) {
-      return;
-    }
-
-    XmlTag stringElement = IdeResourcesUtil.getItemTag(myProject, value);
-    assert stringElement != null;
-
-    XmlAttribute nameAttribute = stringElement.getAttribute(SdkConstants.ATTR_NAME);
-    assert nameAttribute != null;
-
-    PsiElement nameAttributeValue = nameAttribute.getValueElement();
-    assert nameAttributeValue != null;
-
-    new RenameProcessor(myProject, nameAttributeValue, name, false, false).run();
-
-    myKeyToResourceMap.remove(key);
-    key = new StringResourceKey(name, key.getDirectory());
-    myKeyToResourceMap.put(key, new StringResource(key, this));
+    val value = getStringResource(key).defaultValueAsResourceItem ?: return
+    val stringElement = getItemTag(project, value)!!
+    val nameAttribute = stringElement.getAttribute(SdkConstants.ATTR_NAME)!!
+    val nameAttributeValue: PsiElement = nameAttribute.valueElement!!
+    RenameProcessor(project, nameAttributeValue, name, false, false).run()
+    myKeyToResourceMap.remove(key)
+    key = StringResourceKey(name, key.directory)
+    myKeyToResourceMap[key] = StringResource(key, this)
   }
 
-  public boolean setTranslatable(@NotNull StringResourceKey key, boolean translatable) {
-    StringResource stringResource = getStringResource(key);
-    ResourceItem item = stringResource.getDefaultValueAsResourceItem();
+  fun setTranslatable(key: StringResourceKey, translatable: Boolean): Boolean {
+    val stringResource = getStringResource(key)
+    val item = stringResource.defaultValueAsResourceItem
     if (item != null) {
-      String translatableAsString;
+      val translatableAsString: String?
       if (translatable) {
-        translatableAsString = null;
-        stringResource.setTranslatable(true);
+        translatableAsString = null
+        stringResource.isTranslatable = true
+      } else {
+        translatableAsString = SdkConstants.VALUE_FALSE
+        stringResource.isTranslatable = false
       }
-      else {
-        translatableAsString = SdkConstants.VALUE_FALSE;
-        stringResource.setTranslatable(false);
-      }
-
-      return myStringResourceWriter.setAttribute(myProject, SdkConstants.ATTR_TRANSLATABLE, translatableAsString, item);
+      return myStringResourceWriter.setAttribute(project, SdkConstants.ATTR_TRANSLATABLE, translatableAsString, item)
     }
-    return false;
+    return false
   }
 
-  @Nullable
-  public String validateKey(@NotNull StringResourceKey key) {
-    if (!myKeyToResourceMap.containsKey(key)) {
-      throw new IllegalArgumentException("Key " + key + " does not exist.");
-    }
-
-    StringResource stringResource = getStringResource(key);
-    if (!stringResource.isTranslatable()) {
-      Collection<Locale> localesWithTranslation = stringResource.getTranslatedLocales();
+  fun validateKey(key: StringResourceKey): String? {
+    require(myKeyToResourceMap.containsKey(key)) { "Key $key does not exist." }
+    val stringResource = getStringResource(key)
+    if (!stringResource.isTranslatable) {
+      val localesWithTranslation = stringResource.translatedLocales
       if (!localesWithTranslation.isEmpty()) {
-        return String.format("Key '%1$s' is marked as non translatable, but is translated in %2$s %3$s", key.getName(),
-                             StringUtil.pluralize("locale", localesWithTranslation.size()), summarizeLocales(localesWithTranslation));
+        return String.format(
+          "Key '%1\$s' is marked as non translatable, but is translated in %2\$s %3\$s", key.name,
+          StringUtil.pluralize("locale", localesWithTranslation.size), summarizeLocales(localesWithTranslation)
+        )
       }
-    }
-    else { // translatable key
-      if (stringResource.getDefaultValueAsResourceItem() == null) {
-        return "Key '" + key.getName() + "' missing default value";
+    } else { // translatable key
+      if (stringResource.defaultValueAsResourceItem == null) {
+        return "Key '" + key.name + "' missing default value"
       }
-
-      Collection<Locale> missingTranslations = getMissingTranslations(key);
+      val missingTranslations = getMissingTranslations(key)
       if (!missingTranslations.isEmpty()) {
-        return String.format("Key '%1$s' has translations missing for %2$s %3$s", key.getName(),
-                             StringUtil.pluralize("locale", missingTranslations.size()), summarizeLocales(missingTranslations));
+        return String.format(
+          "Key '%1\$s' has translations missing for %2\$s %3\$s", key.name,
+          StringUtil.pluralize("locale", missingTranslations.size), summarizeLocales(missingTranslations)
+        )
       }
     }
-    return null;
+    return null
   }
 
-  @NotNull
   @VisibleForTesting
-  Collection<Locale> getMissingTranslations(@NotNull StringResourceKey key) {
-    Set<Locale> missingTranslations = Sets.newHashSet();
-    for (Locale locale : getLocaleSet()) {
-      StringResource stringResource = getStringResource(key);
+  fun getMissingTranslations(key: StringResourceKey): Collection<Locale?> {
+    val missingTranslations: MutableSet<Locale?> = Sets.newHashSet()
+    for (locale in localeSet) {
+      val stringResource = getStringResource(key)
       if (stringResource.isTranslationMissing(locale)) {
-        missingTranslations.add(locale);
+        missingTranslations.add(locale)
       }
     }
-
-    return missingTranslations;
+    return missingTranslations
   }
 
-  @VisibleForTesting
-  @NotNull
-  static String summarizeLocales(@NotNull Collection<Locale> locales) {
-    if (locales.isEmpty()) {
-      return "";
-    }
-
-    final int size = locales.size();
-
-    if (size == 1) {
-      return getLabel(Iterables.getFirst(locales, null));
-    }
-
-    List<Locale> sorted = getLowest(locales);
-
-    if (size <= MAX_LOCALE_LABEL_COUNT) {
-      return getLabels(sorted.subList(0, size - 1)) + " and " + getLabel(sorted.get(size - 1));
-    }
-    else {
-      return getLabels(sorted) + " and " + (size - MAX_LOCALE_LABEL_COUNT) + " more";
-    }
+  fun containsKey(key: StringResourceKey): Boolean {
+    return myKeyToResourceMap.containsKey(key)
   }
 
-  @NotNull
-  private static List<Locale> getLowest(@NotNull Collection<Locale> locales) {
-    return locales.stream()
-      .limit(MAX_LOCALE_LABEL_COUNT)
-      .sorted(Comparator.comparing(StringResourceData::getLabel))
-      .collect(Collectors.toList());
+  fun getStringResource(key: StringResourceKey): StringResource {
+    return myKeyToResourceMap[key] ?: throw IllegalArgumentException(key.toString())
   }
 
-  private static String getLabels(Collection<Locale> locales) {
-    return locales.stream()
-      .map(StringResourceData::getLabel)
-      .collect(Collectors.joining(", "));
-  }
-
-  private static String getLabel(@Nullable Locale locale) {
-    return locale == null ? "" : Locale.getLocaleLabel(locale, false);
-  }
-
-  public boolean containsKey(@NotNull StringResourceKey key) {
-    return myKeyToResourceMap.containsKey(key);
-  }
-
-  @NotNull
-  public StringResource getStringResource(@NotNull StringResourceKey key) {
-    StringResource resource = myKeyToResourceMap.get(key);
-
-    if (resource == null) {
-      throw new IllegalArgumentException(key.toString());
-    }
-
-    return resource;
-  }
-
-  @NotNull
-  public Collection<StringResource> getResources() {
-    return myKeyToResourceMap.values();
-  }
-
-  @NotNull
-  public List<StringResourceKey> getKeys() {
-    return new ArrayList<>(myKeyToResourceMap.keySet());
-  }
-
-  @NotNull
-  public List<Locale> getLocaleList() {
-    return getTranslatedLocaleStream()
+  val resources: Collection<StringResource>
+    get() = myKeyToResourceMap.values
+  val keys: List<StringResourceKey>
+    get() = ArrayList(myKeyToResourceMap.keys)
+  val localeList: List<Locale>
+    get() = translatedLocaleStream
       .distinct()
       .sorted(Locale.LANGUAGE_NAME_COMPARATOR)
-      .collect(Collectors.toList());
-  }
-
-  @NotNull
-  public Set<Locale> getLocaleSet() {
-    return getTranslatedLocaleStream().collect(Collectors.toSet());
-  }
-
-  @NotNull
-  private Stream<Locale> getTranslatedLocaleStream() {
-    return myKeyToResourceMap.values().stream().flatMap(resource -> resource.getTranslatedLocales().stream());
-  }
+      .collect(Collectors.toList())
+  val localeSet: Set<Locale>
+    get() = translatedLocaleStream.collect(Collectors.toSet())
+  private val translatedLocaleStream: Stream<Locale>
+    private get() = myKeyToResourceMap.values.stream().flatMap { resource: StringResource -> resource.translatedLocales.stream() }
 
   /**
    * Finds the single XML file responsible for all the translations.
    *
    * @param locale The target language of the translation update.
-   * @return the {@link XmlFile} to which subsequent write operations should target, or null if there are either no files or multiple files
+   * @return the [XmlFile] to which subsequent write operations should target, or null if there are either no files or multiple files
    */
-  @Nullable
-  XmlFile getDefaultLocaleXml(@NotNull Locale locale) {
-    XmlFile lastFile = null;
-    for (StringResource stringResource : myKeyToResourceMap.values()) {
-      ResourceItem resourceItem = stringResource.getTranslationAsResourceItem(locale);
-      if (resourceItem == null) {
-        continue;
-      }
-      XmlTag tag = IdeResourcesUtil.getItemTag(myProject, resourceItem);
-      if (tag == null) {
-        continue;
-      }
-      PsiFile file = tag.getContainingFile();
-      if (!(file instanceof XmlFile)) {
-        continue;
-      }
+  fun getDefaultLocaleXml(locale: Locale): XmlFile? {
+    var lastFile: XmlFile? = null
+    for (stringResource in myKeyToResourceMap.values) {
+      val resourceItem = stringResource.getTranslationAsResourceItem(locale) ?: continue
+      val tag = getItemTag(project, resourceItem) ?: continue
+      val file = tag.containingFile as? XmlFile ?: continue
       if (lastFile == null) {
-        lastFile = (XmlFile)file;
-      }
-      else if (lastFile != file) {
-        return null;
+        lastFile = file
+      } else if (lastFile !== file) {
+        return null
       }
     }
-    return lastFile;
+    return lastFile
+  }
+
+  companion object {
+    private const val MAX_LOCALE_LABEL_COUNT = 3
+    @JvmStatic
+    fun create(project: Project, repository: StringResourceRepository): StringResourceData {
+      val data = StringResourceData(project, repository)
+      repository.getKeys().forEach(Consumer { key: StringResourceKey -> data.myKeyToResourceMap[key] = StringResource(key, data) })
+      return data
+    }
+
+    @VisibleForTesting
+    fun summarizeLocales(locales: Collection<Locale?>): String {
+      if (locales.isEmpty()) {
+        return ""
+      }
+      val size = locales.size
+      if (size == 1) {
+        return getLabel(Iterables.getFirst(locales, null))
+      }
+      val sorted = getLowest(locales)
+      return if (size <= MAX_LOCALE_LABEL_COUNT) {
+        getLabels(
+          sorted.subList(
+            0,
+            size - 1
+          )
+        ) + " and " + getLabel(sorted[size - 1])
+      } else {
+        getLabels(sorted) + " and " + (size - MAX_LOCALE_LABEL_COUNT) + " more"
+      }
+    }
+
+    private fun getLowest(locales: Collection<Locale?>): List<Locale?> {
+      return locales.stream()
+        .limit(MAX_LOCALE_LABEL_COUNT.toLong())
+        .sorted(Comparator.comparing { locale: Locale? -> getLabel(locale) })
+        .collect(Collectors.toList())
+    }
+
+    private fun getLabels(locales: Collection<Locale?>): String {
+      return locales.stream()
+        .map { locale: Locale? -> getLabel(locale) }
+        .collect(Collectors.joining(", "))
+    }
+
+    private fun getLabel(locale: Locale?): String {
+      return if (locale == null) "" else Locale.getLocaleLabel(locale, false)
+    }
   }
 }
