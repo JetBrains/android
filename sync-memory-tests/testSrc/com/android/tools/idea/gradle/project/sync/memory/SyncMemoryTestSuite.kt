@@ -27,6 +27,9 @@ import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_500_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_50_NAME
 import com.android.tools.idea.gradle.project.sync.createBenchmarkTestRule
+import com.android.tools.idea.testing.requestSyncAndWait
+import com.intellij.util.io.createDirectories
+import java.io.File
 
 class Benchmark50MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_50_NAME)
@@ -35,27 +38,27 @@ class Benchmark50MemoryTest {
 }
 class Benchmark100MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_100_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
-  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark200MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
-  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark500MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_500_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
-  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark1000MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule()
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
 
-  @Test fun testMemory() = runTest(benchmarkTestRule, measureSyncMemoryUsageRule)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark2000MemoryTest {
@@ -71,24 +74,28 @@ class Benchmark4200MemoryTest {
 }
 
 class Benchmark200Repeated20TimesMemoryTest  {
+  private val repeatCount = 20
+
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME)
-  @get:Rule val measureSyncMemoryUsageRule = MeasureSyncMemoryUsageRule(
-    // Turn off measurements in repeated syncs before the measured one
-    disableInitialMeasurements = true
-  )
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule("${benchmarkTestRule.projectName}_Post_${repeatCount}_Repeats")
 
   @Test
   fun testSyncMemoryPost20Repeats() {
-    benchmarkTestRule.openProject {
-      measureSyncMemoryUsageRule.repeatSyncAndMeasure(it, benchmarkTestRule.projectName, repeatCount = 20)
+    benchmarkTestRule.openProject { project ->
+      repeat (repeatCount - 2 ) {
+        project.requestSyncAndWait()
+      }
+      // Delete all the measurements before the final measurement.
+      clearOutputDirectory()
+
+      project.requestSyncAndWait()
     }
   }
-}
 
-private fun runTest(benchmarkTestRule: BenchmarkTestRule,
-                    measureSyncMemoryUsageRule: MeasureSyncMemoryUsageRule) {
-  benchmarkTestRule.openProject {
-    measureSyncMemoryUsageRule.recordMeasurements(benchmarkTestRule.projectName)
+  private fun clearOutputDirectory() {
+    val directory = File(OUTPUT_DIRECTORY)
+    directory.deleteRecursively()
+    directory.toPath().createDirectories()
   }
 }
 
