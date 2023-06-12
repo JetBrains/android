@@ -36,7 +36,7 @@ import com.android.tools.idea.execution.common.shouldDebugSandboxSdk
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
@@ -75,7 +75,7 @@ import java.util.Locale
 class AndroidRunConfigurationExecutor(
   private val applicationIdProvider: ApplicationIdProvider,
   private val env: ExecutionEnvironment,
-  override val deviceFutures: DeviceFutures,
+  val deviceFutures: DeviceFutures,
   private val apkProvider: ApkProvider,
   private val liveEditService: LiveEditService = LiveEditService.getInstance(env.project),
   private val applicationDeployer: ApplicationDeployer = ApplicationDeployerImpl(env.project, RunStats.from(env))

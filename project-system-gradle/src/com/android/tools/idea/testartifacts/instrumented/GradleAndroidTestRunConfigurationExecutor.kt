@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
@@ -53,7 +53,7 @@ import java.util.Locale
 
 open class GradleAndroidTestRunConfigurationExecutor(
   private val env: ExecutionEnvironment,
-  override val deviceFutures: DeviceFutures
+  private val deviceFutures: DeviceFutures
 ) : AndroidConfigurationExecutor {
 
   override val configuration = env.runProfile as AndroidTestRunConfiguration

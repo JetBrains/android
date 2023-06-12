@@ -29,7 +29,7 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
@@ -76,7 +76,7 @@ import java.util.Locale
  */
 class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
   private val env: ExecutionEnvironment,
-  override val deviceFutures: DeviceFutures,
+  private val deviceFutures: DeviceFutures,
   getApkProvider: (AndroidTestRunConfiguration) -> ApkProvider = { it.apkProvider ?: throw RuntimeException("Cannot get ApkProvider") }
 ) : AndroidConfigurationExecutor {
 

@@ -5,7 +5,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProject
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
 
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState

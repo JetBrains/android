@@ -31,8 +31,8 @@ import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger
 import com.android.tools.idea.stats.RunStats

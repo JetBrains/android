@@ -29,7 +29,7 @@ import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
@@ -63,7 +63,7 @@ class BlazeAndroidConfigurationExecutor(
   private val consoleProvider: ConsoleProvider,
   private val applicationIdProvider: ApplicationIdProvider,
   private val env: ExecutionEnvironment,
-  override val deviceFutures: DeviceFutures,
+  private val deviceFutures: DeviceFutures,
   private val myLaunchTasksProvider: BlazeLaunchTasksProvider,
   private val launchOptions: LaunchOptions
 ) : AndroidConfigurationExecutor {

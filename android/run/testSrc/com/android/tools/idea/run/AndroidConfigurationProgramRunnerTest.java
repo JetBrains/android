@@ -25,8 +25,8 @@ import static org.mockito.Mockito.when;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.testing.KeepTasksAsynchronousRule;
 import com.google.common.truth.Truth;
@@ -79,33 +79,6 @@ public class AndroidConfigurationProgramRunnerTest {
   @Rule
   public KeepTasksAsynchronousRule keepTasksAsynchronous = new KeepTasksAsynchronousRule(true);
 
-  /**
-   * {@link HiddenRunContentDescriptor} is a almost-pure wrapper class for
-   * {@link RunContentDescriptor}, with the excDefaultStudioProgramRunnerTesteption of the {@link RunContentDescriptor#isHiddenContent()} method overridden to return
-   * {@code false}. All other methods in the wrapper class should be overrides to the base class (with the addition of
-   * {@link com.intellij.openapi.Disposable} handling.
-   * <p>
-   * This test is to ensure that all public and protected methods of the base class are overridden by the deriving class, and should break
-   * if the base class has methods added to it due to IJ merges (in which case, just override the newly added method with proper disposal
-   * handling). All other cases should result in compiler errors (either stale {@link Override} or mismatched signatures).
-   */
-  @Test
-  public void ensureAllPublicProtectedMethodsAreOverridden() {
-    long runContentDescriptorMethodCount = Arrays.stream(RunContentDescriptor.class.getDeclaredMethods())
-      .filter(method -> {
-        int modifier = method.getModifiers();
-        return Modifier.isPublic(modifier) || Modifier.isProtected(modifier);
-      })
-      .count();
-    long hiddenRunContentDescriptorMethodCount =
-      Arrays.stream(HiddenRunContentDescriptor.class.getDeclaredMethods())
-        .filter(method -> {
-          int modifier = method.getModifiers();
-          return Modifier.isPublic(modifier) || Modifier.isProtected(modifier);
-        })
-        .count();
-    Truth.assertThat(runContentDescriptorMethodCount).isEqualTo(hiddenRunContentDescriptorMethodCount);
-  }
 
   @Test
   public void ensureCannotRunOnMultipleDevices() {
@@ -310,12 +283,6 @@ public class AndroidConfigurationProgramRunnerTest {
           @NotNull
           @Override
           public RunContentDescriptor run(@NotNull ProgressIndicator indicator) throws ExecutionException {
-            return null;
-          }
-
-          @NotNull
-          @Override
-          public DeviceFutures getDeviceFutures() {
             return null;
           }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.configuration.execution
+package com.android.tools.idea.execution.common
 
-import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
@@ -27,31 +25,24 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.progress.ProgressIndicator
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 
 
 interface AndroidConfigurationExecutor {
   /**
-   * An extension point to introduce build system dependent [AndroidRunConfigurationBase] based [LaunchTasksProvider] implementations like
-   * support for running instrumented tests via Gradle.
+   * An extension point to provide custom [AndroidConfigurationExecutor]
    */
   interface Provider {
-    fun createAndroidConfigurationExecutor(
-      facet: AndroidFacet,
-      env: ExecutionEnvironment,
-      deviceFutures: DeviceFutures
-    ): AndroidConfigurationExecutor?
+    fun createAndroidConfigurationExecutor(env: ExecutionEnvironment): AndroidConfigurationExecutor?
 
     companion object {
       @JvmField
-      val EP_NAME: ExtensionPointName<Provider> = ExtensionPointName.create("com.android.run.AndroidConfigurationExecutorProvider")
+      val EP_NAME: ExtensionPointName<Provider> = ExtensionPointName.create("com.android.tools.idea.execution.common.androidConfigurationExecutorProvider")
     }
   }
 
 
   val configuration: RunConfiguration
-  val deviceFutures: DeviceFutures
 
   @Throws(ExecutionException::class)
   fun run(indicator: ProgressIndicator): RunContentDescriptor

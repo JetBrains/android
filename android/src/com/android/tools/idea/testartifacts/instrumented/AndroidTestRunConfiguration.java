@@ -31,7 +31,7 @@ import com.android.tools.idea.model.TestOptions;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;

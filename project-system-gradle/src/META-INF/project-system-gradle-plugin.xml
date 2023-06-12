@@ -26,8 +26,8 @@
   <extensions defaultExtensionNs="com.android.project">
     <projectsystem implementation="com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider"/>
   </extensions>
-  <extensions defaultExtensionNs="com.android.run">
-    <AndroidConfigurationExecutorProvider
+  <extensions defaultExtensionNs="com.android.tools.idea.execution.common">
+    <androidConfigurationExecutorProvider
         implementation="com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestRunConfigurationExecutorProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">

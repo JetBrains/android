@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
@@ -46,7 +47,7 @@ import kotlinx.coroutines.joinAll
 
 abstract class AndroidConfigurationExecutorBase(
   protected val environment: ExecutionEnvironment,
-  override val deviceFutures: DeviceFutures,
+  private val deviceFutures: DeviceFutures,
   protected val appRunSettings: AppRunSettings,
   protected val applicationIdProvider: ApplicationIdProvider,
   protected val apkProvider: ApkProvider

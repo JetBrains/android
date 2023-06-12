@@ -18,7 +18,7 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager

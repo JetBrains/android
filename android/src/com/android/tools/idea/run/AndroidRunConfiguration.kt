@@ -34,7 +34,7 @@ import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch
 import com.android.tools.idea.run.activity.launch.LaunchOptionState
 import com.android.tools.idea.run.activity.launch.NoLaunch
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.android.tools.idea.run.editor.ApplicationRunParameters
 import com.android.tools.idea.run.editor.DeployTargetProvider

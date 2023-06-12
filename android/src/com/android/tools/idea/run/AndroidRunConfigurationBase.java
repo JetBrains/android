@@ -18,8 +18,8 @@ import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugg
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
@@ -304,7 +304,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
     Optional<AndroidConfigurationExecutor> provided = AndroidConfigurationExecutor.Provider.EP_NAME.extensions()
-      .map(it -> it.createAndroidConfigurationExecutor(facet, env, deviceFutures))
+      .map(it -> it.createAndroidConfigurationExecutor(env))
       .filter(Objects::nonNull)
       .findFirst();
     if (provided.isPresent()) {

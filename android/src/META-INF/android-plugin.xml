@@ -758,8 +758,6 @@
                     interface="org.jetbrains.android.actions.NewResourceCreationHandler"/>
     <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
                     interface="com.android.tools.idea.run.AndroidLaunchTaskContributor"/>
-    <extensionPoint qualifiedName="com.android.run.AndroidConfigurationExecutorProvider"
-                    interface="com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor$Provider"/>
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
