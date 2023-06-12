@@ -214,8 +214,8 @@ object CounterDataUtils {
           // the current timestamp. This allows us to account for the new counter's contribution to the
           // accumulated value.
           else if (inCurrentGroup) {
-            val pastCurrentRailVal = newCounterData.floorEntry(ts)
-            newSortedMap[ts] = (if (pastCurrentRailVal != null) pastCurrentRailVal.value else 0.0) + existingMap[ts]!!
+            val pastCurrentCounterVal = newCounterData.floorEntry(ts)
+            newSortedMap[ts] = (if (pastCurrentCounterVal != null) pastCurrentCounterVal.value else 0.0) + existingMap[ts]!!
           }
           // If the current timestamp is in the new (to be merged) counter and not in the current group,
           // then we will set the current timestamp's value as the new counter's value in the aggregated
