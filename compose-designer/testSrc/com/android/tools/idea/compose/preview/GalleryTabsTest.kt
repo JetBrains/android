@@ -41,7 +41,7 @@ class GalleryTabsTest {
 
   private var rootComponent = JPanel(BorderLayout())
 
-  private class TestKey(override val title: String) : TitledKey
+  private data class TestKey(override val title: String) : TitledKey
 
   @Test
   fun `first tab is selected`() {
@@ -73,6 +73,24 @@ class GalleryTabsTest {
       tabs.updateKeys(keys + newTab)
       ui.updateToolbars()
       assertEquals(4, findAllActionButtons(tabs).size)
+    }
+  }
+
+  @Test
+  fun `order correct after update`() {
+    invokeAndWaitIfNeeded {
+      val keyOne = TestKey("First")
+      val keyTwo = TestKey("Second")
+      val keyThree = TestKey("Third")
+      val tabs = GalleryTabs(rootComponent, setOf(keyTwo)) {}
+      val ui = FakeUi(tabs).apply { updateToolbars() }
+      tabs.updateKeys(setOf(keyOne, keyTwo, keyThree))
+      ui.updateToolbars()
+      val allActions = findAllActionButtons(tabs)
+      assertEquals(3, allActions.size)
+      assertEquals("First", allActions[0].presentation.text)
+      assertEquals("Second", allActions[1].presentation.text)
+      assertEquals("Third", allActions[2].presentation.text)
     }
   }
 

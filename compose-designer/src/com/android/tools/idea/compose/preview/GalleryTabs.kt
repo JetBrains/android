@@ -163,29 +163,20 @@ class GalleryTabs<Key : TitledKey>(
   }
 
   /**
-   * If [GalleryTabs] needs update, [previousToolbar] will be removed and new toolbar will be
-   * created and added with available [labelActions].
-   */
-  private var needsUpdate = false
-
-  /**
    * Update all available [Key]s. Toolbar is recreated if there are any changes in [keys]. It also
    * insures that if there are no changes in [keys] toolbar will not be updated.
    */
   fun updateKeys(keys: Set<Key>) {
-    // Remove all keys what don's exist anymore.
-    val keysToRemove = labelActions.filterKeys { !keys.contains(it) }.keys
-    keysToRemove.forEach {
-      labelActions.remove(it)
-      needsUpdate = true
-    }
-    // Add new added keys.
-    keys.forEach {
-      labelActions.computeIfAbsent(it) { key -> TabLabelAction(key).also { needsUpdate = true } }
-    }
+
+    // If [GalleryTabs] needs update, [previousToolbar] will be removed and new toolbar will be
+    // created and added with available [labelActions].
+    val needsUpdate =
+      labelActions.keys.any { !keys.contains(it) } || keys.any { !labelActions.keys.contains(it) }
+
     // Only update toolbar if there are any changes.
     if (needsUpdate) {
-      needsUpdate = false
+      labelActions.clear()
+      keys.forEach { labelActions[it] = TabLabelAction(it) }
       // Remove previous toolbar if exists.
       previousToolbar?.let { centerPanel.remove(it) }
       // Create new toolbar.
