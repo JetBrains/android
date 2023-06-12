@@ -4,25 +4,6 @@
     <exclude-output />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="module-library" exported="">
-      <library name="lint-cli-psi-prebuilts">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/intellij-core/intellij-core.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/kotlin-compiler/kotlin-compiler.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-common.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-java.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-kotlin.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/intellij-core/intellij-core-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/kotlin-compiler/kotlin-compiler-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-common-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-java-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-kotlin-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.lint-api" />
     <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
