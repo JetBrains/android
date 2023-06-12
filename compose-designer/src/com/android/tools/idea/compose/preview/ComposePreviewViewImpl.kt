@@ -95,8 +95,8 @@ interface ComposePreviewView {
   /** If true, the contents have been at least rendered once. */
   var hasRendered: Boolean
 
-  /** Let the owner of this component know what the refresh is needed. */
-  val refreshNeeded: () -> Unit
+  /** Requests the previews displayed by this [ComposePreviewView] to be refreshed. */
+  val requestRefresh: () -> Unit
 
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)
@@ -219,7 +219,7 @@ fun interface ComposePreviewViewProvider {
  *   panel. Used to handle which notifications should be displayed.
  * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build
  *   status and show/hide the correct loading message.
- * @param refreshNeeded let the owner of this component know what the refresh is needed.
+ * @param requestRefresh requests the previews of this component to be refreshed.
  * @param dataProvider the [DataProvider] to be used by the [mainSurface] panel.
  * @param mainDesignSurfaceBuilder a builder to create main design surface
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
@@ -228,7 +228,7 @@ internal class ComposePreviewViewImpl(
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val projectBuildStatusManager: ProjectBuildStatusManager,
-  override val refreshNeeded: () -> Unit,
+  override val requestRefresh: () -> Unit,
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlDesignSurface.Builder,
   parentDisposable: Disposable
@@ -315,7 +315,7 @@ internal class ComposePreviewViewImpl(
         ComposeGallery(
           content = mainSurface,
           rootComponent = mainSurface,
-          refreshNeeded = refreshNeeded
+          requestRefresh = requestRefresh
         )
     }
 

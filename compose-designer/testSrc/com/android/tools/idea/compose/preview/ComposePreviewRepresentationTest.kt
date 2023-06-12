@@ -67,7 +67,7 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
-  override val refreshNeeded: () -> Unit = { mainSurface.requestRender() }
+  override val requestRefresh: () -> Unit = { mainSurface.requestRender() }
 
   override fun updateNotifications(parentEditor: FileEditor) {}
 

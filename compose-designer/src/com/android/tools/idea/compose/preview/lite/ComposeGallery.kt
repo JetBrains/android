@@ -23,14 +23,15 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /** If lite mode is enabled, one preview at a time is available with tabs to select between them. */
-class ComposeGallery(content: JComponent, rootComponent: JComponent, refreshNeeded: () -> Unit) {
+class ComposeGallery(content: JComponent, rootComponent: JComponent, requestRefresh: () -> Unit) {
 
   private var selectedKey: PreviewElementKey? = null
 
   private val tabs: GalleryTabs<PreviewElementKey> =
     GalleryTabs(rootComponent, emptySet()) {
       selectedKey = it
-      refreshNeeded()
+      // Request a refresh now that the tab has changed and the content needs to be updated.
+      requestRefresh()
     }
 
   /** [JPanel] that wraps tabs and content. */
