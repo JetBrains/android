@@ -33,6 +33,8 @@ import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState
+import com.android.tools.idea.execution.common.ApplicationDeployer
+import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger
 import com.android.tools.idea.stats.RunStats
@@ -115,7 +117,8 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
         override val componentLaunchOptions = this@AndroidWearConfiguration.componentLaunchOptions
         override val module = this@AndroidWearConfiguration.module
       }
-      val state = getExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider)
+      val deployer = ApplicationDeployerImpl(project, stats)
+      val state = getExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider, deployer)
       stats.markStateCreated()
       state
     }
@@ -130,7 +133,8 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     deviceFutures: DeviceFutures,
     appRunSettings: AppRunSettings,
     applicationIdProvider: ApplicationIdProvider,
-    apkProvider: ApkProvider
+    apkProvider: ApkProvider,
+    deployer: ApplicationDeployer
   ): AndroidConfigurationExecutor
 
   private fun fillStatsForEnvironment(environment: ExecutionEnvironment, deviceFutures: DeviceFutures) {

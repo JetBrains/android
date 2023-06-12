@@ -124,9 +124,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       }
       override val module = myModule
     }
-    val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
-                                               TestApksProvider(appId)))
+
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
       hashMapOf(
@@ -134,8 +132,8 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
-
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
+                                               TestApksProvider(appId), appInstaller))
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
@@ -226,19 +224,14 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       override val module = myModule
     }
 
-    val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
-                                               TestApksProvider(appId)))
-
-    // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
       hashMapOf(
         Pair(appId, app),
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
-
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
+                                                            TestApksProvider(appId), appInstaller))
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
@@ -317,18 +310,14 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       override val module = myModule
     }
 
-    val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
-                                               TestApksProvider(appId)))
-    // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
       hashMapOf(
         Pair(appId, app),
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
-
+    val executor = Mockito.spy(AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
+                                                            TestApksProvider(appId), appInstaller))
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
@@ -386,12 +375,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       override val module = myModule
     }
 
-    val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
-                                               TestApksProvider(appId)))
-    doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
-    doReturn(listOf("SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
-
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val watchFaceApp = createApp(device, TestWatchFaceInfo.appId, servicesName = listOf(TestWatchFaceInfo.watchFaceFQName),
                                  activitiesName = emptyList())
@@ -399,8 +382,13 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       hashMapOf(
         Pair(appId, app),
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
-      )) // Mock app installation.
-    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
+      ))
+
+    val executor = Mockito.spy(
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
+                                               TestApksProvider(appId), appInstaller))
+    doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
+    doReturn(listOf("SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
     assertFailsWith<ExecutionException>("Error while launching complication, message: $failedResponse") {
       executor.run(EmptyProgressIndicator())

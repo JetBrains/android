@@ -106,13 +106,10 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       override val module = myModule
     }
 
-    val executor = Mockito.spy(
-      AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
-
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
+    val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
@@ -176,12 +173,9 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       override val module = myModule
     }
 
-    val executor = Mockito.spy(
-      AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
-
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
-    val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
+    val appInstaller = TestApplicationInstaller(appId, app)
+    val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
 
     assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
       executor.debug(EmptyProgressIndicator())
@@ -221,14 +215,11 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       override val module = myModule
     }
 
-    val executor = Mockito.spy(
-      AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
-
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
       .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
-    val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
+    val appInstaller = TestApplicationInstaller(appId, app)
+    val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
 
     val e = assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
       executor.run(EmptyProgressIndicator())
@@ -281,13 +272,9 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       override val module = myModule
     }
 
-    val executor = Mockito.spy(
-      AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
-
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    // Mock app installation.
-    Mockito.doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
+    val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
     assertThat(runContentDescriptor.processHandler).instanceOf(AndroidRemoteDebugProcessHandler::class)

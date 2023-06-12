@@ -50,7 +50,8 @@ abstract class AndroidConfigurationExecutorBase(
   private val deviceFutures: DeviceFutures,
   protected val appRunSettings: AppRunSettings,
   protected val applicationIdProvider: ApplicationIdProvider,
-  protected val apkProvider: ApkProvider
+  protected val apkProvider: ApkProvider,
+  protected val applicationDeployer: ApplicationDeployer
 ) : AndroidConfigurationExecutor {
 
   private val LOG = Logger.getInstance(this::class.java)
@@ -69,7 +70,6 @@ abstract class AndroidConfigurationExecutorBase(
     val console = createConsole()
     val processHandler = AndroidProcessHandler(appId, getStopCallback(console, false))
 
-    val applicationInstaller = getApplicationDeployer(console)
 
     val onDevice = { device: IDevice ->
       LOG.info("Launching on device ${device.name}")
@@ -79,7 +79,7 @@ abstract class AndroidConfigurationExecutorBase(
       val result = try {
         // ApkProvider provides multiple ApkInfo only for instrumented tests.
         val app = apkProvider.getApks(device).single()
-        applicationInstaller.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
+        applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
       }
       catch (e: DeployerException) {
         throw ExecutionException("Failed to install app '$appId'. ${e.details.orEmpty()}", e)
@@ -112,7 +112,7 @@ abstract class AndroidConfigurationExecutorBase(
 
     // ApkProvider provides multiple ApkInfo only for instrumented tests.
     val app = apkProvider.getApks(device).single()
-    val deployResult = getApplicationDeployer(console).fullDeploy(device, app, appRunSettings.deployOptions, indicator)
+    val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
 
     val runContentDescriptorDeferred = async {
       startDebugSession(device, console, indicator).runContentDescriptor
@@ -156,11 +156,6 @@ abstract class AndroidConfigurationExecutorBase(
     if (!terminator.killApp()) {
       throw ExecutionException("Could not terminate running app $appId")
     }
-  }
-
-  @Throws(ExecutionException::class)
-  open fun getApplicationDeployer(console: ConsoleView): ApplicationDeployer {
-    return ApplicationDeployerImpl(project, RunStats.from(environment))
   }
 
   private fun createConsole(): ConsoleView {

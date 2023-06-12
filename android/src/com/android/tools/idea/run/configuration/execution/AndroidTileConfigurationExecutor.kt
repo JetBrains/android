@@ -27,6 +27,7 @@ import com.android.tools.deployer.model.component.Tile
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
 import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -43,14 +44,18 @@ import java.time.Duration
 private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
 private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
-open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
-                                            deviceFutures: DeviceFutures,
-                                            appRunSettings: AppRunSettings,
-                                            applicationIdProvider: ApplicationIdProvider,
-                                            apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deviceFutures,
-                                                                                                         appRunSettings,
-                                                                                                         applicationIdProvider,
-                                                                                                         apkProvider) {
+class AndroidTileConfigurationExecutor(
+  environment: ExecutionEnvironment,
+  deviceFutures: DeviceFutures,
+  appRunSettings: AppRunSettings,
+  applicationIdProvider: ApplicationIdProvider,
+  apkProvider: ApkProvider,
+  deployer: ApplicationDeployer
+) : AndroidWearConfigurationExecutor(environment, deviceFutures,
+                                     appRunSettings,
+                                     applicationIdProvider,
+                                     apkProvider,
+                                     deployer) {
   private val tileLaunchOptions = appRunSettings.componentLaunchOptions as TileLaunchOptions
   override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
     val tileName = AppComponent.getFQEscapedName(appId, tileLaunchOptions.componentName!!)
