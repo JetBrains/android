@@ -24,13 +24,27 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
-final class AndroidLowMemoryNotifier implements Disposable {
-  private LowMemoryWatcher myWatcher = LowMemoryWatcher.register(this::onLowMemorySignalReceived, ONLY_AFTER_GC);
+@Service
+public final class AndroidLowMemoryNotifier implements Disposable {
+  private LowMemoryWatcher myWatcher;
   private final AtomicBoolean myNotificationShown = new AtomicBoolean();
+
+  public static AndroidLowMemoryNotifier getInstance() {
+    return ApplicationManager.getApplication().getService(AndroidLowMemoryNotifier.class);
+  }
+
+  private AndroidLowMemoryNotifier() {
+    myWatcher = LowMemoryWatcher.register(AndroidLowMemoryNotifier.this::onLowMemorySignalReceived, ONLY_AFTER_GC);
+  }
 
   private void onLowMemorySignalReceived() {
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
@@ -50,5 +64,13 @@ final class AndroidLowMemoryNotifier implements Disposable {
   public void dispose() {
     myWatcher.stop();
     myWatcher = null;
+  }
+
+  private static class Initializer implements StartupActivity.Background {
+    @Override
+    public void runActivity(@NotNull Project project) {
+      // Access the service to initialize it
+      AndroidLowMemoryNotifier.getInstance();
+    }
   }
 }

@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  * All external access should be through this class
  * TODO support Stash / merge constraints ourConverts etc.
  */
-public final class Scout {
+public class Scout {
 
   public static final int DEFAULT_MARGIN = 0;
 

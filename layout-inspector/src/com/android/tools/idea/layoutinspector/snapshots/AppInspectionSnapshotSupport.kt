@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Get
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.DisconnectedViewPropertiesCache
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.convert
+import com.android.tools.idea.layoutinspector.protobuf.parseDelimitedFrom
 import com.android.tools.idea.layoutinspector.skia.SkiaParserImpl
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
@@ -53,7 +54,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
 
   override val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SYSTEM_NODES)
 
-  override fun loadFile(file: Path, model: InspectorModel, stats: SessionStatistics): SnapshotMetadata {
+  override fun loadFile(file: Path, model: InspectorModel, stats: SessionStatistics): SnapshotMetadata? {
     val viewPropertiesCache = DisconnectedViewPropertiesCache(model)
     val composeParametersCache = ComposeParametersCache(null, model)
     propertiesProvider = AppInspectionPropertiesProvider(viewPropertiesCache, composeParametersCache, model)
@@ -65,14 +66,13 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
         Logger.getInstance(AppInspectionSnapshotLoader::class.java).error(message)
         throw Exception(message)
       }
-
-      metadata = Metadata.parseDelimitedFrom(input).convert(APP_INSPECTION_SNAPSHOT_VERSION)
-      val snapshot = Snapshot.parseDelimitedFrom(input)
+      metadata = parseDelimitedFrom(input, Metadata.parser())?.convert(APP_INSPECTION_SNAPSHOT_VERSION) ?: return null
+      val snapshot = parseDelimitedFrom(input, Snapshot.parser()) ?: return null
       val response = snapshot.viewSnapshot
       val allWindows = response.windowSnapshotsList.associateBy { it.layout.rootView.id }
       val rootIds = response.windowRoots.idsList
       val allComposeInfo = snapshot.composeInfoList.associateBy { it.viewId }
-      val metrics = LayoutInspectorMetrics(model.project, processDescriptor, snapshotMetadata = metadata)
+      val metrics = LayoutInspectorSessionMetrics(model.project, processDescriptor, snapshotMetadata = metadata)
       fun logEvent(eventType: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) = metrics.logEvent(eventType, stats)
       rootIds.map { allWindows[it] }.forEach { windowInfo ->
         // should always be true
@@ -89,6 +89,7 @@ class AppInspectionSnapshotLoader : SnapshotLoader {
           composeInfo?.composeParameters?.let { composeParametersCache.setAllFrom(it) }
         }
       }
+      model.resourceLookup.updateConfiguration(metadata.dpi, metadata.fontScale, metadata.screenDimension)
       snapshot.foldInfo?.let {
         model.foldInfo = it.convert()
       }
@@ -152,4 +153,3 @@ fun saveAppInspectorSnapshot(
   }
   path.write(output.toByteArray())
 }
-

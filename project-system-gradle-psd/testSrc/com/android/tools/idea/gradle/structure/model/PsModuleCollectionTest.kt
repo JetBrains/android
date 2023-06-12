@@ -1,0 +1,161 @@
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.structure.model
+
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.android.asParsed
+import com.android.tools.idea.gradle.structure.model.android.psTestWithProject
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.utils.FileUtils
+import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
+import java.io.File
+
+/**
+ * Tests for [PsModuleCollection].
+ */
+@RunsInEdt
+class PsModuleCollectionTest {
+
+  @get:Rule
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+
+  @Test
+  fun testNotSyncedModules() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    preparedProject.root.resolve("settings.gradle").writeText("include ':app', ':lib', ':dyn_feature' ")
+
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
+      assertThat(project.findModuleByName("jav")).isNull()
+
+      // Edit the settings file, but do not sync.
+      val virtualFile = resolvedProject.baseDir.findFileByRelativePath("settings.gradle")!!
+      runWriteAction { virtualFile.setBinaryContent("include ':app', ':lib', ':jav' ".toByteArray()) }
+      PsiDocumentManager.getInstance(resolvedProject).commitAllDocuments()
+
+      reparse()
+
+      assertThat(moduleWithSyncedModel(project, "app").projectType).isEqualTo(PsModuleType.ANDROID_APP)
+      assertThat(moduleWithSyncedModel(project, "lib").projectType).isEqualTo(PsModuleType.ANDROID_LIBRARY)
+      assertThat(moduleWithSyncedModel(project, "jav").projectType).isEqualTo(PsModuleType.JAVA)
+    }
+  }
+
+  @Test
+  fun testNonAndroidGradlePluginFirst() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    preparedProject.root.resolve("app/build.gradle").replaceContent { "apply plugin: 'something' \n" + it }
+    projectRule.psTestWithProject(preparedProject, resolveModels = false, expectSyncFailing = true) {
+      assertThat(
+        GradleModelProvider
+          .getInstance()
+          .getProjectModel(resolvedProject)
+          .getModuleBuildModel(File(resolvedProject.basePath, "app"))
+          ?.plugins()
+          ?.firstOrNull()
+          ?.name()
+          ?.getValue(STRING_TYPE)
+      ).isEqualTo("something")
+
+      assertThat(project.modules.map { it.gradlePath }).contains(":app")
+    }
+  }
+
+  @Test
+  fun testNestedModules() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
+      val module = project.findModuleByGradlePath(":nested1:deep")
+      assertThat(module).isNotNull()
+      assertThat(module!!.parentModule).isSameAs(project.findModuleByGradlePath(":nested1")!!)
+      assertThat(module.variables.getVariableScopes().map { it.name })
+        .containsExactly("${project.name} (build script)", "${project.name} (project)", ":nested1", ":nested1:deep")
+    }
+  }
+
+  @Test
+  fun testRelocatedModules_withoutResolvedModels() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_PROJECT_DIR)
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
+      val basePath = resolvedProject.basePath
+
+      assertThat(project.modules.map { it.gradlePath }).containsExactly(":app", ":lib")
+      (project.findModuleByGradlePath(":app") as PsAndroidModule).run {
+        val root = parsedModel?.moduleRootDirectory
+        assertThat(root).isEqualTo(File(FileUtils.toSystemDependentPath("$basePath/app")))
+      }
+      (project.findModuleByGradlePath(":lib") as PsAndroidModule).run {
+        val root = parsedModel?.moduleRootDirectory
+        assertThat(root).isEqualTo(File(FileUtils.toSystemDependentPath("$basePath/module/lib")))
+      }
+    }
+  }
+
+  @Test
+  fun testRelocatedModules_withResolvedModel() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_PROJECT_DIR)
+    projectRule.psTestWithProject(preparedProject) {
+
+      assertThat(project.modules.map { it.gradlePath }).containsExactly(":app", ":lib", ":jav")
+
+      // And make sure the build file is parsed.
+      val javModule = project.findModuleByGradlePath(":jav") as? PsJavaModule
+      assertThat(javModule?.dependencies?.findLibraryDependencies("junit", "junit")?.firstOrNull()?.version).isEqualTo("4.12".asParsed())
+      javModule!!.run {
+        // We can't work out where the module is from the project settings, but our implementation will assume that the module root
+        // is where the build.gradle file is (which happens to be correct in this case)
+        val root = parsedModel?.moduleRootDirectory
+        assertThat(root).isEqualTo(File(FileUtils.toSystemDependentPath("${resolvedProject.basePath}/module/jav")))
+      }
+    }
+  }
+
+  @Test
+  fun testEmptyParentsInNestedModules() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject, resolveModels = false) {
+
+      assertThat(project.modules.map { it.gradlePath }).containsExactly(
+        ":app",
+        ":lib",
+        ":jav",
+        ":nested1",
+        ":nested2",
+        ":nested1:deep",
+        ":nested2:deep",
+        ":nested2:trans",
+        ":nested2:trans:deep2",
+        ":dyn_feature"
+      )
+
+      assertThat(project.findModuleByGradlePath(":nested2:trans")?.moduleKind).isEqualTo(ModuleKind.EMPTY)
+    }
+  }
+
+}
+
+private fun moduleWithSyncedModel(project: PsProject, name: String): PsModule = project.findModuleByName(name) as PsModule

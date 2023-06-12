@@ -22,6 +22,7 @@ import org.jetbrains.annotations.TestOnly
 import java.util.PriorityQueue
 import java.util.Queue
 import java.util.concurrent.Callable
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.PriorityBlockingQueue
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.LongAdder
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -80,6 +82,7 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
   private val timeoutExecutor: ScheduledExecutorService = timeoutExecutorProvider()
   private val accumulatedTimeoutExceptions = AtomicInteger(0)
   private val isBusy = AtomicBoolean(false)
+  private val executedRenderActions = LongAdder()
 
   fun interrupt() = renderingThread.get()?.interrupt()
 
@@ -117,13 +120,15 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
     return runAsyncAction(RenderingPriority.HIGH, callable).get()
   }
 
-  private class EvictedException(message: String?) : Exception(message)
+  private class EvictedException(message: String?) : CancellationException(message)
 
   private fun scheduleTimeoutAction(timeout: Long, unit: TimeUnit, action: () -> Unit): ScheduledFuture<*> =
     timeoutExecutor.schedule(
       action,
       timeout,
       unit)
+
+  override fun getExecutedRenderActionCount(): Long = executedRenderActions.toLong()
 
   override fun <T : Any?> runAsyncActionWithTimeout(queueingTimeout: Long,
                                                     queueingTimeoutUnit: TimeUnit,
@@ -168,16 +173,17 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
       it.completeExceptionally(EvictedException("Max number ($maxQueueingTasks) of render actions reached"))
     }
     renderingExecutor.execute(PriorityRunnable(priority) {
+      executedRenderActions.increment()
       // Clear the interrupted state
       Thread.interrupted()
       isBusy.set(true)
       try {
         queueTimeoutFuture?.cancel(false)
-        pendingActionsQueueLock.withLock {
+        val isPending = pendingActionsQueueLock.withLock {
           pendingActionsQueue.remove(future)
         }
 
-        if (future.isDone) return@PriorityRunnable
+        if (!isPending || future.isDone) return@PriorityRunnable
 
         val actionTimeoutFuture = scheduleTimeoutAction(actionTimeout, actionTimeoutUnit) {
           if (!future.isDone) {
@@ -230,6 +236,8 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
 
   @TestOnly
   fun shutdown(timeoutSeconds: Long) {
+    shutdown()
+
     if (timeoutSeconds > 0) {
       try {
         renderingExecutor.awaitTermination(timeoutSeconds, TimeUnit.SECONDS)
@@ -238,8 +246,6 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
         Logger.getInstance(RenderExecutor::class.java).warn("The RenderExecutor does not shutdown after $timeoutSeconds seconds")
       }
     }
-
-    shutdown()
   }
 
   /**
@@ -250,6 +256,10 @@ class RenderExecutor private constructor(private val maxQueueingTasks: Int,
   @get:TestOnly
   val accumulatedTimeouts: Int
     get() = accumulatedTimeoutExceptions.get()
+
+  @get:TestOnly
+  val numPendingActions: Int
+    get() = pendingActionsQueue.size
 
   /**
    * Returns true if the render thread is busy running some code, false otherwise.

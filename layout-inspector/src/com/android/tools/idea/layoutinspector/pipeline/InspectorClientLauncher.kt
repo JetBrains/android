@@ -19,7 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
@@ -31,6 +31,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.jetbrains.rd.util.threadLocalWithInitial
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
@@ -52,8 +54,9 @@ class InspectorClientLauncher(
   private val processes: ProcessesModel,
   private val clientCreators: List<(Params) -> InspectorClient?>,
   private val project: Project,
+  private val scope: CoroutineScope,
   private val parentDisposable: Disposable,
-  private val metrics: LayoutInspectorMetrics? = null,
+  private val metrics: LayoutInspectorSessionMetrics? = null,
   @VisibleForTesting executor: Executor? = null
 ) {
   companion object {
@@ -64,8 +67,10 @@ class InspectorClientLauncher(
     fun createDefaultLauncher(
       processes: ProcessesModel,
       model: InspectorModel,
-      metrics: LayoutInspectorMetrics,
+      metrics: LayoutInspectorSessionMetrics,
       treeSettings: TreeSettings,
+      inspectorClientSettings: InspectorClientSettings,
+      coroutineScope: CoroutineScope,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
       return InspectorClientLauncher(
@@ -73,15 +78,26 @@ class InspectorClientLauncher(
         listOf(
           { params ->
             if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, model, metrics, treeSettings, parentDisposable)
+              // Only Q devices or newer support image updates which is used by the app inspection agent
+              AppInspectionInspectorClient(
+                params.process,
+                params.isInstantlyAutoConnected,
+                model,
+                metrics,
+                treeSettings,
+                inspectorClientSettings,
+                coroutineScope,
+                parentDisposable
+              )
             }
             else {
               null
             }
           },
-          { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, metrics, parentDisposable) }
+          { params -> LegacyClient(params.process, params.isInstantlyAutoConnected, model, metrics, coroutineScope, parentDisposable) }
         ),
         model.project,
+        coroutineScope,
         parentDisposable,
         metrics)
     }
@@ -186,21 +202,21 @@ class InspectorClientLauncher(
 
             activeClient = client
 
-            // InspectorClientLaunchMonitor should kill it before this, but just in case, don't wait forever.
-            latch.await(1, TimeUnit.MINUTES)
+            // Wait until client is connected or the user stops the connection attempt.
+            latch.await()
+
             // The current selected process changed out from under us, abort the whole thing.
             if (processes.selectedProcess?.isRunning != true || processes.selectedProcess?.pid != process.pid) {
               metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED, client.stats)
               return
             }
-            // This client didn't work, try the next
             if (validClientConnected) {
+              // Successful connected exit creator loop
               break
             }
-            else {
-              // Disconnect to clean up any partial connection or leftover process
-              client.disconnect()
-            }
+            // This client didn't work, try the next
+            // Disconnect to clean up any partial connection or leftover process
+            client.disconnect()
           }
           catch (cancellationException: CancellationException) {
             // Disconnect to clean up any partial connection or leftover process
@@ -215,17 +231,17 @@ class InspectorClientLauncher(
       }
     }
 
-    if (!validClientConnected && !project.isDisposed) {
-      val bannerService = InspectorBannerService.getInstance(project)
+    if (!validClientConnected) {
+      val bannerService = InspectorBannerService.getInstance(project) ?: return
       // Save the banner so we can put it back after it's cleared by the client change, to show the error that made us disconnect.
-      val currentBanner = bannerService.notification
+      val notifications = bannerService.notifications
       activeClient = DisconnectedClient
       if (enabled) {
         // If we're enabled, don't show the process as selected anymore. If we're not (the window is minimized), we'll try to reconnect
         // when we're reenabled, so leave the process selected.
         processes.selectedProcess = null
       }
-      bannerService.notification = currentBanner
+      notifications.forEach { bannerService.addNotification(it.message, it.actions) }
     }
   }
 
@@ -249,7 +265,7 @@ class InspectorClientLauncher(
           field = value
         }
         clientChangedCallbacks.forEach { callback -> callback(value) }
-        value.connect(project)
+        scope.launch { value.connect(project) }
       }
     }
 

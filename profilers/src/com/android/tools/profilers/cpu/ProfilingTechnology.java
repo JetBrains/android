@@ -15,11 +15,12 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 public enum ProfilingTechnology {
   ART_SAMPLED("Java/Kotlin Method Sample Recording (legacy)",
@@ -80,57 +81,60 @@ public enum ProfilingTechnology {
   }
 
   @NotNull
-  public Cpu.CpuTraceType getType() {
+  public TraceType getType() {
     switch (this) {
       case ART_SAMPLED:
-        return Cpu.CpuTraceType.ART;
+        return TraceType.ART;
       case ART_INSTRUMENTED:
-        return Cpu.CpuTraceType.ART;
+        return TraceType.ART;
       case ART_UNSPECIFIED:
-        return Cpu.CpuTraceType.ART;
+        return TraceType.ART;
       case SIMPLEPERF:
-        return Cpu.CpuTraceType.SIMPLEPERF;
+        return TraceType.SIMPLEPERF;
       case SYSTEM_TRACE:
-        return Cpu.CpuTraceType.ATRACE;
+        return TraceType.ATRACE;
     }
     throw new IllegalArgumentException("Unreachable code");
   }
 
   @NotNull
-  public Cpu.CpuTraceMode getMode() {
+  public Trace.TraceMode getMode() {
     switch (this) {
       case ART_SAMPLED:
-        return Cpu.CpuTraceMode.SAMPLED;
+        return Trace.TraceMode.SAMPLED;
       case ART_INSTRUMENTED:
-        return Cpu.CpuTraceMode.INSTRUMENTED;
+        return Trace.TraceMode.INSTRUMENTED;
       case ART_UNSPECIFIED:
-        return Cpu.CpuTraceMode.UNSPECIFIED_MODE;
+        return Trace.TraceMode.UNSPECIFIED_MODE;
       case SIMPLEPERF:
-        return Cpu.CpuTraceMode.SAMPLED;
+        return Trace.TraceMode.SAMPLED;
       case SYSTEM_TRACE:
-        return Cpu.CpuTraceMode.INSTRUMENTED;
+        return Trace.TraceMode.INSTRUMENTED;
     }
     throw new IllegalArgumentException("Unreachable code");
   }
 
+  /**
+   * Utilizes the {@link Trace.TraceConfiguration} technology specific option
+   * to determine the respective {@link ProfilingTechnology}.
+   */
   @NotNull
-  public static ProfilingTechnology fromTypeAndMode(@NotNull Cpu.CpuTraceType type,
-                                                    @NotNull Cpu.CpuTraceMode mode) {
-    switch (type) {
-      case ART:
-        if (mode == Cpu.CpuTraceMode.SAMPLED) {
+  public static ProfilingTechnology fromTraceConfiguration(@NotNull Trace.TraceConfiguration config) {
+    switch (config.getUnionCase()) {
+      case ART_OPTIONS:
+        if (config.getArtOptions().getTraceMode() == Trace.TraceMode.SAMPLED) {
           return ART_SAMPLED;
         }
-        else if (mode == Cpu.CpuTraceMode.INSTRUMENTED) {
+        else if (config.getArtOptions().getTraceMode() == Trace.TraceMode.INSTRUMENTED) {
           return ART_INSTRUMENTED;
         }
         else {
           return ART_UNSPECIFIED;
         }
-      case SIMPLEPERF:
+      case SIMPLEPERF_OPTIONS:
         return SIMPLEPERF;
-      case ATRACE: // fall-through
-      case PERFETTO:
+      case ATRACE_OPTIONS: // fall-through
+      case PERFETTO_OPTIONS:
         return SYSTEM_TRACE;
       default:
         throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");

@@ -15,354 +15,632 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isPrimitive;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
-import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.sizeOf;
-import static com.google.common.math.IntMath.isPowerOfTwo;
+import static com.google.common.math.LongMath.isPowerOfTwo;
+import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
-import com.google.common.collect.Sets;
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ide.PowerSaveMode;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
-import com.intellij.testFramework.LeakHunter;
-import com.intellij.util.ReflectionUtil;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import java.lang.ref.WeakReference;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+import com.intellij.util.containers.WeakList;
+import com.intellij.util.messages.MessageBusConnection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
-public final class HeapSnapshotTraverse {
+public final class HeapSnapshotTraverse implements Disposable {
 
-  private static final int MAX_HEAP_TREE_SIZE = 3 * (int)1e7;
+  static final Computable<WeakList<Object>> getLoadedClassesComputable = () -> {
+    WeakList<Object> roots = new WeakList<>();
+    Object[] classes = getClasses();
+    roots.addAll(Arrays.asList(classes));
+    roots.addAll(Thread.getAllStackTraces().keySet());
+    // We don't process ClassLoader during the HeapTraverse, so they are added as a traverse roots after
+    // class objects and threads.
+    // By the moment of starting DFS from them all the class objects are already processed, but fields of
+    // ClassLoaders other than ClassLoader#classes still need to be processed.
+    roots.addAll(
+      Arrays.stream(classes).filter(c -> c instanceof Class<?>).map(c -> ((Class<?>)c).getClassLoader()).collect(Collectors.toSet()));
+    return roots;
+  };
 
-  private volatile boolean myShouldAbortTraversal = false;
-  @NotNull
-  private final LowMemoryWatcher myWatcher;
-  @NotNull
-  private final Set<ClassLoader> myProcessedLoaders;
-  @NotNull
-  private final HeapTraverseChildProcessor myHeapTraverseChildProcessor;
+  private static final int MAX_ALLOWED_OBJECT_MAP_SIZE = 1_000_000;
+  private static final int INVALID_OBJECT_ID = -1;
+  private static final int INVALID_OBJECT_TAG = -1;
+  private static final int MAX_DEPTH = 100_000;
 
-  public HeapSnapshotTraverse() {
-    this(new HeapTraverseChildProcessor());
+  private static final long CURRENT_ITERATION_ID_MASK = 0xFF;
+  private static final long CURRENT_ITERATION_VISITED_MASK = 0x100;
+  private static final long CURRENT_ITERATION_OBJECT_ID_MASK = 0x1FFFFFFFE00L;
+
+  private static final int CURRENT_ITERATION_OBJECT_ID_OFFSET = 9;
+  // 8(current iteration id mask) + 1(visited mask)
+
+  private static short ourIterationId = 0;
+
+  @NotNull private final LowMemoryWatcher watcher;
+  @NotNull private final MessageBusConnection messageBusConnection;
+
+  @NotNull private final HeapTraverseChildProcessor heapTraverseChildProcessor;
+  private final short iterationId;
+  @NotNull private final HeapSnapshotStatistics statistics;
+  private volatile boolean shouldAbortTraversal = false;
+  private int lastObjectId = 0;
+
+  public HeapSnapshotTraverse(@NotNull final HeapSnapshotStatistics statistics) {
+    this(new HeapTraverseChildProcessor(statistics), statistics);
   }
 
-  public HeapSnapshotTraverse(@NotNull final HeapTraverseChildProcessor childProcessor) {
-    myWatcher = LowMemoryWatcher.register(this::onLowMemorySignalReceived);
-    myProcessedLoaders = Sets.newHashSet(LeakHunter.class.getClassLoader());
-    myHeapTraverseChildProcessor = childProcessor;
+  public HeapSnapshotTraverse(@NotNull final HeapTraverseChildProcessor childProcessor,
+                              @NotNull final HeapSnapshotStatistics statistics) {
+    watcher = LowMemoryWatcher.register(this::onLowMemorySignalReceived);
+    messageBusConnection = ApplicationManager.getApplication().getMessageBus().connect();
+    messageBusConnection.subscribe(PowerSaveMode.TOPIC, (PowerSaveMode.Listener)() -> {
+      if (PowerSaveMode.isEnabled()) {
+        shouldAbortTraversal = true;
+        messageBusConnection.disconnect();
+      }
+    });
+
+    heapTraverseChildProcessor = childProcessor;
+    iterationId = getNextIterationId();
+    this.statistics = statistics;
   }
 
-  private void onLowMemorySignalReceived() {
-    myShouldAbortTraversal = true;
+  @TestOnly
+  StatusCode walkObjects(int maxDepth, @NotNull final List<Object> roots) {
+    WeakList<Object> classes = new WeakList<>();
+    classes.addAll(roots);
+    return walkObjects(maxDepth, () -> classes);
   }
 
   /**
    * The heap traversal algorithm is the following:
-   *
-   * In the process of traversal, we associate a number of masks with each object. These masks are stored in {@link HeapTraverseNode} and
-   * show which components own the corresponding object(myOwnedByComponentMask), which components retain the object(myRetainedMask) etc.
-   *
-   * On the first pass along the heap we arrange objects in topological order (in terms of references). This is necessary so that during the
-   * subsequent propagation of masks, we can be sure that all objects that refer to the object have already been processed and masks were
+   * <p>
+   * In the process of traversal, we associate a number of masks with each object. These masks are
+   * stored in {@link HeapTraverseNode} and show which components own the corresponding
+   * object(ownedByComponentMask), which components retain the object(retainedMask) etc.
+   * <p>
+   * On the first pass along the heap we arrange objects in topological order (in terms of
+   * references). This is necessary so that during the subsequent propagation of masks, we can be
+   * sure that all objects that refer to the object have already been processed and masks were
    * updated.
-   *
+   * <p>
    * On the second pass, we directly update the masks and pass them to the referring objects.
    *
-   * @param maxDepth the maximum depth to which we will descend when traversing the object tree.
-   * @param startRoots objects from which traversal is started.
-   * @param stats holder for memory report
+   * @param maxDepth        the maximum depth to which we will descend when traversing the object tree.
+   * @param rootsComputable computable that return the list of roots for heap traversal.
    */
-  public ErrorCode walkObjects(int maxDepth,
-                                      @NotNull final Collection<?> startRoots,
-                                      @NotNull final HeapSnapshotStatistics stats) {
+  public StatusCode walkObjects(int maxDepth, @NotNull final Computable<WeakList<Object>> rootsComputable) {
     try {
-      final IntSet visited = new IntOpenHashSet(100);
-      final Deque<WeakReference<?>> order = new ArrayDeque<>();
-      final FieldCache fieldCache = new FieldCache();
-
-      // collection of topological order
-      for (Object root : startRoots) {
-        if (root == null) continue;
-        ErrorCode errorCode = depthFirstTraverseHeapObjects(root, maxDepth, visited, order, fieldCache);
-        if (errorCode != ErrorCode.OK) {
-          return errorCode;
-        }
+      if (!canTagObjects()) {
+        return StatusCode.CANT_TAG_OBJECTS;
       }
-      final Map<Integer, HeapTraverseNode> objectHashToTraverseNode = new HashMap<>();
+      try {
+        StackNode.cacheStackNodeConstructorId(StackNode.class);
+        final FieldCache fieldCache = new FieldCache(statistics);
 
-      // iterate over objects and update masks
-      while (!order.isEmpty()) {
-        abortTraversalIfRequested();
-        final Object currentObject = order.pop().get();
-        if (currentObject == null) {
-          continue;
-        }
-        int currentObjectHashCode = System.identityHashCode(currentObject);
-        visited.remove(currentObjectHashCode);
+        StackNode.clearDepthFirstSearchStack();
+        HeapTraverseNode.clearObjectIdToTraverseNodeMap();
+        HeapTraverseNode.cacheHeapSnapshotTraverseNodeConstructorId(HeapTraverseNode.class);
+        WeakList<Object> startRoots = rootsComputable.compute();
+        // enumerating heap objects in topological order
+        for (Object root : startRoots) {
+          if (root == null) continue;
+          long rootTag = depthFirstTraverseHeapObjects(root, maxDepth, fieldCache);
+          if (rootTag == INVALID_OBJECT_TAG) {
+            continue;
+          }
+          int rootObjectId = getObjectId(rootTag);
+          if (rootObjectId <= 0 || rootObjectId > lastObjectId) {
+            return StatusCode.WRONG_ROOT_OBJECT_ID;
+          }
 
-        HeapTraverseNode node = objectHashToTraverseNode.get(currentObjectHashCode);
-        objectHashToTraverseNode.remove(currentObjectHashCode);
+          HeapTraverseNode.putOrUpdateObjectIdToTraverseNodeMap(rootObjectId, root, HeapTraverseNode.RefWeight.DEFAULT.getValue(), 0L, 0L,
+                                                                0,
+                                                                rootTag,
+                                                                statistics.getConfig().getComponentsSet().getComponentOfObject(root) !=
+                                                                null);
+        }
+        // By this moment all the reachable heap objects are enumerated in topological order and
+        // marked as visited. Order id, visited and the iteration id are stored in objects tags.
+        // We also use this enumeration to kind of "freeze" the state of the heap, and we will ignore
+        // all the newly allocated object that were allocated after the enumeration pass.
 
-        // Check whether the current object is a root of one of the components
-        int componentId = stats.getComponentsSet().getComponentId(currentObject);
-        long currentObjectSize = sizeOf(currentObject, fieldCache);
-        stats.addObjectToTotal(currentObjectSize);
+        statistics.setHeapObjectCount(lastObjectId);
+        statistics.setTraverseSessionId(iterationId);
 
-        if (node == null) {
-          node = new HeapTraverseNode();
-        }
-        // if it's a root of a component
-        if (componentId != HeapSnapshotStatistics.COMPONENT_NOT_FOUND) {
-          node.myReachableFromComponentMask |= (1 << componentId);
-          node.myRetainedMask |= (1 << componentId);
-          node.myOwnedByComponentMask = (1 << componentId);
-          node.myOwnershipWeight = HeapTraverseNode.RefWeight.DEFAULT;
+        // iterate over objects in topological order and update masks
+        for (int i = lastObjectId; i > 0; i--) {
+          abortTraversalIfRequested();
+          int mapSize = HeapTraverseNode.getObjectIdToTraverseNodeMapSize();
+          statistics.updateMaxObjectsQueueSize(mapSize);
+          if (mapSize > MAX_ALLOWED_OBJECT_MAP_SIZE) {
+            return StatusCode.OBJECTS_MAP_IS_TOO_BIG;
+          }
+          HeapTraverseNode node = HeapTraverseNode.getObjectIdToTraverseNodeMapElement(i, HeapTraverseNode.class);
+          if (node == null) {
+            statistics.incrementGarbageCollectedObjectsCounter();
+            continue;
+          }
+          HeapTraverseNode.removeElementFromObjectIdToTraverseNodeMap(i);
+          Object currentObject = node.getObject();
+          if (currentObject == null) {
+            statistics.incrementGarbageCollectedObjectsCounter();
+            continue;
+          }
+          setObjectTag(currentObject, 0);
+
+          // Check whether the current object is a root of one of the components
+          ComponentsSet.Component currentObjectComponent =
+            statistics.getConfig().getComponentsSet().getComponentOfObject(currentObject);
+
+          long currentObjectSize = getObjectSize(currentObject);
+          String currentObjectClassName = currentObject.getClass().getName();
+
+          statistics.addObjectToTotal(currentObjectSize);
+
+          if (statistics.getConfig().collectDisposerTreeInfo && currentObject instanceof Disposable) {
+            //noinspection deprecation
+            if (Disposer.isDisposed((Disposable)currentObject)) {
+              statistics.addDisposedButReferencedObject(currentObjectSize, currentObjectClassName);
+            }
+          }
+
+          // if it's a root of a component
+          boolean objectIsAComponentRoot = currentObjectComponent != null;
+          if (objectIsAComponentRoot) {
+            updateComponentRootMasks(node, currentObjectComponent, HeapTraverseNode.RefWeight.DEFAULT);
+          }
+
+          // If current object is retained by any components - propagate their stats.
+          processMask(node.retainedMask,
+                      (index) -> statistics.addRetainedObjectSizeToComponent(index, currentObjectSize));
+          // If current object is retained by any component categories - propagate their stats.
+          processMask(node.retainedMaskForCategories,
+                      (index) -> statistics.addRetainedObjectSizeToCategoryComponent(index,
+                                                                                     currentObjectSize
+                      ));
+
+          AtomicInteger categoricalOwnedMask = new AtomicInteger();
+          processMask(node.ownedByComponentMask,
+                      (index) -> categoricalOwnedMask.set(
+                        categoricalOwnedMask.get() |
+                        1 <<
+                        statistics.getConfig().getComponentsSet().getComponents().get(index)
+                          .getComponentCategory().getId()));
+          if (categoricalOwnedMask.get() != 0 && isPowerOfTwo(categoricalOwnedMask.get())) {
+            processMask(categoricalOwnedMask.get(),
+                        (index) -> statistics.addOwnedObjectSizeToCategoryComponent(index,
+                                                                                    currentObjectSize,
+                                                                                    currentObjectClassName, node.isMergePoint));
+          }
+          if (node.ownedByComponentMask == 0) {
+            int uncategorizedComponentId =
+              statistics.getConfig().getComponentsSet().getUncategorizedComponent().getId();
+            int uncategorizedCategoryId =
+              statistics.getConfig().getComponentsSet().getUncategorizedComponent().getComponentCategory()
+                .getId();
+            statistics.addOwnedObjectSizeToComponent(uncategorizedComponentId, currentObjectSize,
+                                                     currentObjectClassName, false);
+            statistics.addOwnedObjectSizeToCategoryComponent(uncategorizedCategoryId,
+                                                             currentObjectSize, currentObjectClassName, false);
+          }
+          else if (isPowerOfTwo(node.ownedByComponentMask)) {
+            // if only owned by one component
+            processMask(node.ownedByComponentMask,
+                        (index) -> statistics.addOwnedObjectSizeToComponent(index, currentObjectSize,
+                                                                            currentObjectClassName, objectIsAComponentRoot));
+          }
+          else {
+            // if owned by multiple components -> add to shared
+            statistics.addObjectSizeToSharedComponent(node.ownedByComponentMask, currentObjectSize,
+                                                      currentObjectClassName, node.isMergePoint);
+          }
+
+          // propagate to referred objects
+          propagateComponentMask(currentObject, node, i, fieldCache);
         }
 
-        // If current object is retained by any components - propagate their stats.
-        processMask(node.myRetainedMask,
-                    (index) -> stats.addRetainedObjectSizeToComponent(index, currentObjectSize));
-        if (node.myOwnedByComponentMask == 0) {
-          stats.addNonComponentObject(currentObjectSize);
-        }
-        else if (isPowerOfTwo(node.myOwnedByComponentMask)) {
-          // if only owned by one component
-          processMask(node.myOwnedByComponentMask,
-                      (index) -> stats.addOwnedObjectSizeToComponent(index, currentObjectSize));
-        }
-        else {
-          // if owned by multiple components -> add to shared
-          stats.addObjectSizeToSharedComponent(node.myOwnedByComponentMask, currentObjectSize);
-        }
-
-        // propagate to referred objects
-        propagateComponentMask(currentObject, node, visited, objectHashToTraverseNode, fieldCache);
+        //noinspection UnstableApiUsage
+        statistics.addDisposerTreeInfo(Disposer.getTree());
+      }
+      finally {
+        // finalization operations that involved the native agent.
+        StackNode.clearDepthFirstSearchStack();
+        HeapTraverseNode.clearObjectIdToTraverseNodeMap();
       }
     }
     catch (HeapSnapshotTraverseException exception) {
-      return exception.getErrorCode();
+      return exception.getStatusCode();
     }
     finally {
-      myWatcher.stop();
+      watcher.stop();
+      messageBusConnection.disconnect();
     }
-    return ErrorCode.OK;
+    return StatusCode.NO_ERROR;
+  }
+
+  private void updateComponentRootMasks(HeapTraverseNode node,
+                                        ComponentsSet.Component currentObjectComponent,
+                                        HeapTraverseNode.RefWeight weight) {
+    node.retainedMask |= (1L << currentObjectComponent.getId());
+    node.retainedMaskForCategories |= (1 << currentObjectComponent.getComponentCategory().getId());
+    node.ownedByComponentMask = (1L << currentObjectComponent.getId());
+    node.ownershipWeight = weight;
   }
 
   private void abortTraversalIfRequested() throws HeapSnapshotTraverseException {
-    if (myShouldAbortTraversal) {
-      throw new HeapSnapshotTraverseException(ErrorCode.LOW_MEMORY);
+    if (shouldAbortTraversal) {
+      throw new HeapSnapshotTraverseException(StatusCode.LOW_MEMORY);
     }
   }
 
-  private void addToStack(@NotNull final Node node,
-                                 int maxDepth,
-                                 @Nullable final Object value,
-                                 @NotNull final IntSet visited,
-                                 @NotNull final Deque<Node> stack) {
+  private void onLowMemorySignalReceived() {
+    shouldAbortTraversal = true;
+  }
+
+  /**
+   * Checks that the passed tag was set during the current traverse.
+   */
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+  private boolean isTagFromTheCurrentIteration(long tag) {
+    return (tag & CURRENT_ITERATION_ID_MASK) == iterationId;
+  }
+
+  private int getObjectId(long tag) {
+    if (!isTagFromTheCurrentIteration(tag)) {
+      return INVALID_OBJECT_ID;
+    }
+    return (int)(tag >> CURRENT_ITERATION_OBJECT_ID_OFFSET);
+  }
+
+  private boolean wasVisited(long tag) {
+    if (!isTagFromTheCurrentIteration(tag)) {
+      return false;
+    }
+    return (tag & CURRENT_ITERATION_VISITED_MASK) != 0;
+  }
+
+  private long setObjectId(@NotNull final Object obj, long tag, int newObjectId) {
+    tag &= ~CURRENT_ITERATION_OBJECT_ID_MASK;
+    tag |= (long)newObjectId << CURRENT_ITERATION_OBJECT_ID_OFFSET;
+    tag &= ~CURRENT_ITERATION_ID_MASK;
+    tag |= iterationId;
+    setObjectTag(obj, tag);
+    return tag;
+  }
+
+  private long markVisited(@NotNull final Object obj, long tag) {
+    tag &= ~CURRENT_ITERATION_VISITED_MASK;
+    tag |= CURRENT_ITERATION_VISITED_MASK;
+    tag &= ~CURRENT_ITERATION_ID_MASK;
+    tag |= iterationId;
+    setObjectTag(obj, tag);
+    return tag;
+  }
+
+  private void addToStack(@NotNull final StackNode stackNode,
+                          int maxDepth,
+                          @Nullable final Object value) {
     if (value == null) {
       return;
     }
-    if (node.getDepth() + 1 > maxDepth) {
+    if (stackNode.depth + 1 > maxDepth) {
       return;
     }
-    if (HeapTraverseUtil.isPrimitive(value.getClass())) {
+    if (HeapTraverseUtil.isPrimitive(value.getClass()) ||
+        value instanceof Thread ||
+        value instanceof Class<?> ||
+        value instanceof ClassLoader) {
       return;
     }
-    int valueHashCode = System.identityHashCode(value);
+    long tag = getObjectTag(value);
+    if (wasVisited(tag)) {
+      return;
+    }
 
-    if (visited.contains(valueHashCode)) {
-      return;
-    }
-    visited.add(valueHashCode);
-    stack.push(new Node(value, node.getDepth() + 1));
-
-    // check that ClassLoader that loaded the object class was already processed. In case if it wasn't - add it and all the corresponding
-    // classes
-    ClassLoader loader = value.getClass().getClassLoader();
-    if (loader != null && !myProcessedLoaders.contains(loader)) {
-      myProcessedLoaders.add(loader);
-      Vector<?> allLoadedClasses = ReflectionUtil.getField(loader.getClass(), loader, Vector.class, "classes");
-      for (Object aClass : allLoadedClasses) {
-        valueHashCode = System.identityHashCode(aClass);
-        if (!visited.contains(valueHashCode)) {
-          visited.add(valueHashCode);
-          stack.push(new Node(aClass, 0));
-        }
-      }
-    }
+    StackNode.pushElementToDepthFirstSearchStack(value, stackNode.depth + 1, markVisited(value, tag));
   }
 
-  private void addStronglyReferencedChildrenToStack(@NotNull final Node node,
-                                                           int maxDepth,
-                                                           @NotNull final IntSet visited,
-                                                           @NotNull final Deque<Node> stack,
-                                                           @NotNull final FieldCache fieldCache) {
-    if (node.myDepth >= maxDepth) {
+  private void addStronglyReferencedChildrenToStack(@NotNull final StackNode stackNode,
+                                                    int maxDepth,
+                                                    @NotNull final FieldCache fieldCache)
+    throws HeapSnapshotTraverseException {
+    if (stackNode.depth >= maxDepth) {
       return;
     }
-    myHeapTraverseChildProcessor.processChildObjects(node.getObject(),
-                        (Object value, HeapTraverseNode.RefWeight weight) -> addToStack(node, maxDepth, value,
-                                                                                        visited, stack),
-                        fieldCache);
+    heapTraverseChildProcessor.processChildObjects(stackNode.getObject(),
+                                                   (Object value, HeapTraverseNode.RefWeight weight) -> addToStack(
+                                                     stackNode, maxDepth, value), fieldCache);
   }
 
-  private ErrorCode depthFirstTraverseHeapObjects(@NotNull final Object root,
-                                                  int maxDepth,
-                                                  @NotNull final IntSet visited,
-                                                  final Deque<WeakReference<?>> order,
-                                                  @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
-    Deque<Node> stack = new ArrayDeque<>(1_000_000);
-    Node rootNode = new Node(root, 0);
-    stack.push(rootNode);
+  private int getNextObjectId() {
+    return ++lastObjectId;
+  }
+
+    /*
+    Object tags have the following structure (in right-most bit order):
+    8bits - object creation iteration id
+    8bits - current iteration id (used for validation of below fields)
+    1bit - visited
+    32bits - topological order id
+   */
+
+  /**
+   * Traverses a subtree of the given root node and enumerates objects in the topological order.
+   *
+   * @return The tag of the passed root object and INVALID_OBJECT_TAG if this object was already visited on this iteration.
+   */
+  private long depthFirstTraverseHeapObjects(@NotNull final Object root,
+                                             int maxDepth,
+                                             @NotNull final FieldCache fieldCache)
+    throws HeapSnapshotTraverseException {
+    long rootTag = getObjectTag(root);
+    if (wasVisited(rootTag)) {
+      return INVALID_OBJECT_TAG;
+    }
+    rootTag = markVisited(root, rootTag);
+    StackNode.pushElementToDepthFirstSearchStack(root, 0, rootTag);
 
     // DFS starting from the given root object.
-    while (!stack.isEmpty()) {
-      Node node = stack.peek();
-      Object obj = node.getObject();
-      if (obj == null) {
-        stack.pop();
+    while (true) {
+      int stackSize = StackNode.getDepthFirstSearchStackSize();
+      if (stackSize == 0) {
+        break;
+      }
+      if (stackSize > MAX_ALLOWED_OBJECT_MAP_SIZE) {
+        StackNode.clearDepthFirstSearchStack();
+        throw new HeapSnapshotTraverseException(StatusCode.OBJECTS_MAP_IS_TOO_BIG);
+      }
+      StackNode stackNode = StackNode.peekAndMarkProcessedDepthFirstSearchStack(StackNode.class);
+
+      if (stackNode == null || stackNode.obj == null) {
+        StackNode.popElementFromDepthFirstSearchStack();
         continue;
       }
+      long tag = stackNode.tag;
       // add to the topological order when ascending from the recursive subtree.
-      if (node.myReferencesProcessed) {
-        if (node.getObject() != null) {
-          order.push(new WeakReference<>(obj));
-          if (order.size() >= MAX_HEAP_TREE_SIZE) {
-            return ErrorCode.HEAP_IS_TOO_BIG;
-          }
+      if (stackNode.referencesProcessed) {
+        tag = setObjectId(stackNode.obj, tag, getNextObjectId());
+        StackNode.popElementFromDepthFirstSearchStack();
+        if (root == stackNode.obj) {
+          rootTag = tag;
         }
-        stack.pop();
         continue;
       }
 
-      addStronglyReferencedChildrenToStack(node, maxDepth, visited, stack, fieldCache);
+      addStronglyReferencedChildrenToStack(stackNode, maxDepth, fieldCache);
       abortTraversalIfRequested();
-      node.myReferencesProcessed = true;
     }
-    return ErrorCode.OK;
+    return rootTag;
   }
 
   /**
    * Distributing object masks to referring objects.
-   *
+   * <p>
    * Masks contain information about object ownership and retention.
+   * <p>
+   * By objects owned by a component CompA we mean objects that are reachable from one of the roots
+   * of the CompA and not directly reachable from roots of other components (only through CompA
+   * root).
+   * <p>
+   * By component retained objects we mean objects that are only reachable through one of the
+   * component roots. Component retained objects for the component also contains objects owned by
+   * other components but all of them will be unreachable from GC roots after removing the
+   * component roots, so retained objects can be considered as an "additional weight" of the
+   * component.
+   * <p>
+   * We also added weights to object references in order to separate difference types of references
+   * and handle situations of shared ownership. Reference types listed in
+   * {@link HeapTraverseNode.RefWeight}.
    *
-   * By objects owned by a component CompA we mean objects that are reachable from one of the roots of the CompA and not directly
-   * reachable from roots of other components (only through CompA root).
-   *
-   * By component retained objects we mean objects that are only reachable through one of the component roots. Component retained objects
-   * for the component also contains objects owned by other components but all of them will be unreachable from GC roots after removing the
-   * component roots, so retained objects can be considered as an "additional weight" of the component.
-   *
-   * We also added weights to object references in order to separate difference types of references and handle situations of shared
-   * ownership. Reference types listed in {@link HeapTraverseNode.RefWeight}.
-   *
-   * @param parentObj processing object
+   * @param parentObj  processing object
    * @param parentNode contains object-specific information (masks)
-   * @param visited set that contains hashes of objects that we should visit
-   * @param objectHashToNode map from object hash to {@link HeapTraverseNode}
    * @param fieldCache cache that stores fields declared for the given class.
    */
   private void propagateComponentMask(@NotNull final Object parentObj,
                                       @NotNull final HeapTraverseNode parentNode,
-                                      @NotNull final IntSet visited,
-                                      @NotNull final Map<Integer, HeapTraverseNode> objectHashToNode,
-                                      @NotNull final FieldCache fieldCache) {
-    myHeapTraverseChildProcessor.processChildObjects(parentObj, (Object value, HeapTraverseNode.RefWeight ownershipWeight) -> {
-      if (value == null) {
+                                      int parentId,
+                                      @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
+    heapTraverseChildProcessor.processChildObjects(parentObj, (Object value, HeapTraverseNode.RefWeight ownershipWeight) -> {
+      if (value == null ||
+          isPrimitive(value.getClass()) ||
+          value instanceof Thread ||
+          value instanceof Class<?> ||
+          value instanceof ClassLoader) {
         return;
       }
-      int valueHashCode = System.identityHashCode(value);
-
-      if (!visited.contains(valueHashCode)) {
+      long tag = getObjectTag(value);
+      if (tag == 0) {
+        return;
+      }
+      int objectId = getObjectId(tag);
+      // don't process non-enumerated objects.
+      // This situation may occur if array/list element or field value changed after enumeration
+      // traversal. We don't process them because they can break the topological ordering.
+      if (objectId == INVALID_OBJECT_ID || objectId >= parentId) {
         return;
       }
       if (parentObj.getClass().isSynthetic()) {
         ownershipWeight = HeapTraverseNode.RefWeight.SYNTHETIC;
       }
-      if (parentNode.myOwnedByComponentMask == 0) {
+      if (parentNode.ownedByComponentMask == 0) {
         ownershipWeight = HeapTraverseNode.RefWeight.NON_COMPONENT;
       }
 
-      HeapTraverseNode currentNode = objectHashToNode.get(valueHashCode);
+      HeapTraverseNode currentNode = HeapTraverseNode.getObjectIdToTraverseNodeMapElement(objectId, HeapTraverseNode.class);
       if (currentNode == null) {
-        currentNode = new HeapTraverseNode();
-        currentNode.myOwnershipWeight = ownershipWeight;
-        currentNode.myOwnedByComponentMask = parentNode.myOwnedByComponentMask;
-        currentNode.myRetainedMask = parentNode.myRetainedMask;
-        objectHashToNode.put(valueHashCode, currentNode);
+        currentNode = new HeapTraverseNode(value, ownershipWeight, parentNode.ownedByComponentMask, parentNode.retainedMask,
+                                           parentNode.retainedMaskForCategories, tag, false);
       }
 
-      currentNode.myReachableFromComponentMask |= parentNode.myReachableFromComponentMask;
-      currentNode.myRetainedMask &= parentNode.myRetainedMask;
+      currentNode.retainedMask &= parentNode.retainedMask;
+      currentNode.retainedMaskForCategories &= parentNode.retainedMaskForCategories;
 
-      if (ownershipWeight.compareTo(currentNode.myOwnershipWeight) < 0) {
-        return;
+      if (ownershipWeight.compareTo(currentNode.ownershipWeight) > 0) {
+        currentNode.ownershipWeight = ownershipWeight;
+        currentNode.ownedByComponentMask = parentNode.ownedByComponentMask;
+        currentNode.isMergePoint = false;
       }
-      if (ownershipWeight.compareTo(currentNode.myOwnershipWeight) > 0) {
-        currentNode.myOwnershipWeight = ownershipWeight;
-        currentNode.myOwnedByComponentMask = parentNode.myOwnedByComponentMask;
+      else if (ownershipWeight.compareTo(currentNode.ownershipWeight) == 0) {
+        if (currentNode.ownedByComponentMask != 0 && parentNode.ownedByComponentMask != currentNode.ownedByComponentMask) {
+          currentNode.isMergePoint = true;
+        }
+        currentNode.ownedByComponentMask |= parentNode.ownedByComponentMask;
       }
-      else {
-        currentNode.myOwnedByComponentMask |= parentNode.myOwnedByComponentMask;
-      }
+
+      HeapTraverseNode.putOrUpdateObjectIdToTraverseNodeMap(objectId, value, currentNode.ownershipWeight.getValue(),
+                                                            currentNode.ownedByComponentMask, currentNode.retainedMask,
+                                                            currentNode.retainedMaskForCategories, tag, currentNode.isMergePoint);
     }, fieldCache);
   }
 
-  public enum ErrorCode {
-    OK("Success"),
-    HEAP_IS_TOO_BIG("Heap is too big"),
-    LOW_MEMORY("LowMemory state occured during the heap traversal");
-
-    private final String myClarification;
-
-    ErrorCode(@NotNull final String clarification) {
-      myClarification = clarification;
-    }
-
-    @NotNull
-    public String getDescription() {
-      return myClarification;
-    }
+  @Override
+  public void dispose() {
+    watcher.stop();
+    messageBusConnection.disconnect();
   }
 
-  private static final class Node {
-    private final int myDepth;
-    @NotNull
-    private final WeakReference<Object> myObjReference;
-    private boolean myReferencesProcessed = false;
+  public static void collectAndWriteStats(@NotNull final Consumer<String> writer,
+                                          @NotNull final HeapSnapshotStatistics stats,
+                                          @NotNull final HeapSnapshotPresentationConfig presentationConfig) {
+    long collectionStartTimestamp = System.nanoTime();
+    new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, getLoadedClassesComputable);
 
-    private Node(@NotNull final Object obj, int depth) {
-      myObjReference = new WeakReference<>(obj);
-      myDepth = depth;
-    }
-
-    @Nullable
-    private Object getObject() {
-      return myObjReference.get();
-    }
-
-    private int getDepth() {
-      return myDepth;
-    }
+    stats.print(writer, bytes -> HeapTraverseUtil.getObjectsStatsPresentation(bytes, presentationConfig.sizePresentation),
+                presentationConfig, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - collectionStartTimestamp));
   }
 
-  private static class HeapSnapshotTraverseException extends Exception {
-    private final ErrorCode myErrorCode;
-
-    HeapSnapshotTraverseException(ErrorCode errorCode) {
-      super(errorCode.getDescription());
-      myErrorCode = errorCode;
+  public static StatusCode collectMemoryReport(@NotNull final HeapSnapshotStatistics stats,
+                                               @NotNull final Computable<WeakList<Object>> rootsComputable) {
+    long startTime = System.nanoTime();
+    StatusCode statusCode =
+      new HeapSnapshotTraverse(stats).walkObjects(MAX_DEPTH, rootsComputable);
+    UsageTracker.log(AndroidStudioEvent.newBuilder()
+                       .setKind(AndroidStudioEvent.EventKind.MEMORY_USAGE_REPORT_EVENT)
+                       .setMemoryUsageReportEvent(
+                         stats.buildMemoryUsageReportEvent(statusCode,
+                                                           TimeUnit.NANOSECONDS.toMillis(
+                                                             System.nanoTime() - startTime),
+                                                           TimeUnit.NANOSECONDS.toMillis(
+                                                             startTime),
+                                                           ComponentsSet.getServerFlagConfiguration()
+                                                             .getSharedComponentsLimit())));
+    List<String> exceededClusters = getClustersThatExceededThreshold(stats);
+    if (!exceededClusters.isEmpty()) {
+      collectAndSendExtendedMemoryReport(stats.getConfig().getComponentsSet(), exceededClusters, rootsComputable);
     }
 
-    ErrorCode getErrorCode() {
-      return myErrorCode;
+    return statusCode;
+  }
+
+  @NotNull
+  private static List<String> getClustersThatExceededThreshold(@NotNull final HeapSnapshotStatistics stats) {
+    List<String> exceededClusters = new ArrayList<>();
+    for (ComponentsSet.ComponentCategory category : stats.getConfig().getComponentsSet().getComponentsCategories()) {
+      if (stats.getCategoryComponentStats().get(category.getId()).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes() >
+          category.getExtendedReportCollectionThresholdBytes()) {
+        exceededClusters.add(category.getComponentCategoryLabel());
+      }
+    }
+
+    for (ComponentsSet.Component component : stats.getConfig().getComponentsSet().getComponents()) {
+      if (stats.getComponentStats().get(component.getId()).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes() >
+          component.getExtendedReportCollectionThresholdBytes()) {
+        exceededClusters.add(component.getComponentLabel());
+      }
+    }
+    for (HeapSnapshotStatistics.SharedClusterStatistics value : stats.maskToSharedComponentStats.values()) {
+      if (value.getStatistics().getObjectsStatistics().getTotalSizeInBytes() >
+          stats.getConfig().getComponentsSet().getSharedClusterExtendedReportThreshold()) {
+        exceededClusters.add(HeapSnapshotStatistics.getSharedClusterPresentationLabel(value, stats));
+      }
+    }
+
+    return exceededClusters;
+  }
+
+  public static void collectAndSendExtendedMemoryReport(@NotNull final ComponentsSet componentsSet,
+                                                        @NotNull final List<String> exceededClusters,
+                                                        @NotNull final Computable<WeakList<Object>> rootsComputable) {
+    HeapSnapshotStatistics extendedReportStats =
+      new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet, true, /*collectDisposerTreeInfo=*/true));
+    new HeapSnapshotTraverse(extendedReportStats).walkObjects(MAX_DEPTH, rootsComputable);
+
+    StudioCrashReporter.getInstance().submit(extendedReportStats.asCrashReport(exceededClusters), true);
+  }
+
+  private static short getNextIterationId() {
+    return ++ourIterationId;
+  }
+
+  /**
+   * Returns a JVM TI tag of the passed object.
+   */
+  static native long getObjectTag(@NotNull final Object obj);
+
+  /**
+   * Sets a JVM TI object tag for a passed object.
+   */
+  private static native void setObjectTag(@NotNull final Object obj, long newTag);
+
+  /**
+   * Checks that JVM TI agent has a capability to tag objects.
+   */
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+  private static native boolean canTagObjects();
+
+  /**
+   * @return an array of class objects initialized by the JVM.
+   */
+  public static native Class<?>[] getClasses();
+
+  /**
+   * @return an estimated size of the passed object in bytes.
+   */
+  private static native long getObjectSize(@NotNull final Object obj);
+
+  /**
+   * Checks if class was initialized by the JVM.
+   */
+  static native boolean isClassInitialized(@NotNull final Class<?> classToCheck);
+
+  /**
+   * Checks if class was initialized by the JVM.
+   */
+  static native Object[] getClassStaticFieldsValues(@NotNull final Class<?> classToCheck);
+
+  static class HeapSnapshotPresentationConfig {
+    final SizePresentationStyle sizePresentation;
+    final boolean shouldLogSharedClusters;
+    final boolean shouldLogRetainedSizes;
+
+    HeapSnapshotPresentationConfig(SizePresentationStyle sizePresentation,
+                                   boolean shouldLogSharedClusters,
+                                   boolean shouldLogRetainedSizes) {
+      this.sizePresentation = sizePresentation;
+      this.shouldLogSharedClusters = shouldLogSharedClusters;
+      this.shouldLogRetainedSizes = shouldLogRetainedSizes;
+    }
+
+    enum SizePresentationStyle {
+      BYTES,
+      OPTIMAL_UNITS,
     }
   }
 }

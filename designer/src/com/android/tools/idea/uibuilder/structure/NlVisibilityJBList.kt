@@ -26,7 +26,7 @@ import java.awt.event.MouseEvent
 class NlVisibilityJBList : JBList<ButtonPresentation>(), Disposable {
   var currHovered = -1
   var currClicked = -1
-  private var currModel: NlVisibilityModel? = null
+  var currModel: NlVisibilityModel? = null
 
   private var popupMenu: NlVisibilityPopupMenu? = null
 
@@ -101,8 +101,8 @@ class NlVisibilityJBList : JBList<ButtonPresentation>(), Disposable {
   }
 
   override fun dispose() {
-    currHovered - 1
-    currClicked - 1
+    currHovered = -1
+    currClicked = -1
     currModel = null
     for (i in 0 until model.size) {
       val item = model.getElementAt(i)

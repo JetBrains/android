@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANNOTATION;
 
 import com.android.ide.common.rendering.api.ViewInfo;
@@ -27,14 +28,17 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
@@ -82,19 +86,19 @@ public class ViewEditorImpl extends ViewEditor {
   @Nullable
   @Override
   public AndroidVersion getCompileSdkVersion() {
-    return AndroidModuleInfo.getInstance(myModel.getFacet()).getBuildSdkVersion();
+    return StudioAndroidModuleInfo.getInstance(myModel.getFacet()).getBuildSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getMinSdkVersion() {
-    return AndroidModuleInfo.getInstance(myModel.getFacet()).getMinSdkVersion();
+    return StudioAndroidModuleInfo.getInstance(myModel.getFacet()).getMinSdkVersion();
   }
 
   @NotNull
   @Override
   public AndroidVersion getTargetSdkVersion() {
-    return AndroidModuleInfo.getInstance(myModel.getFacet()).getTargetSdkVersion();
+    return StudioAndroidModuleInfo.getInstance(myModel.getFacet()).getTargetSdkVersion();
   }
 
   @NotNull
@@ -156,8 +160,8 @@ public class ViewEditorImpl extends ViewEditor {
     NlModel model = myModel;
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
-    RenderService renderService = RenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(model.getFacet(), getConfiguration())
+    RenderService renderService = StudioRenderService.getInstance(module.getProject());
+    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, model.getFacet(), getConfiguration())
       .withPsiFile(xmlFile)
       .build();
 
@@ -167,7 +171,7 @@ public class ViewEditorImpl extends ViewEditor {
       if (task == null) {
         return CompletableFuture.completedFuture(Collections.emptyMap());
       }
-      return task.measureChildren(parentTag, filter)
+      return task.measureChildren(new PsiXmlTag(parentTag), filter)
         .whenCompleteAsync((map, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService())
         .thenApply(map -> {
           if (map == null) {
@@ -175,7 +179,7 @@ public class ViewEditorImpl extends ViewEditor {
           }
 
           Map<NlComponent, Dimension> unweightedSizes = new HashMap<>();
-          for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
+          for (Map.Entry<RenderXmlTag, ViewInfo> entry : map.entrySet()) {
             ViewInfo viewInfo = entry.getValue();
             viewInfo = RenderService.getSafeBounds(viewInfo);
             Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());

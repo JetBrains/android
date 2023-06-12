@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
-import com.android.ddmlib.internal.ClientImpl
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
@@ -24,16 +24,19 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
@@ -93,7 +96,7 @@ DONE.
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(projectRule.project)
-    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT, newModel)
+    val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     snapshotLoader.loadFile(savePath, newModel, stats)
 
     val window = newModel.windows[windowName]!!
@@ -129,19 +132,29 @@ DONE.
     assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
     val actualImage = ViewNode.readAccess { window.root.drawChildren.filterIsInstance<DrawViewImage>().first().image }
     ImageDiffUtil.assertImageSimilar(imageFile, actualImage as BufferedImage, 0.0)
+    assertThat(newModel.resourceLookup.dpi).isEqualTo(560)
+    assertThat(newModel.resourceLookup.fontScale).isNull()
+    assertThat(newModel.resourceLookup.screenDimension).isNull()
   }
 
   private fun setUpLegacyClient(): LegacyClient {
     val model = model(project = projectRule.project) {}
     val process = LEGACY_DEVICE.createProcess()
-    val legacyClient = LegacyClient(process, isInstantlyAutoConnected = true, model,
-                                    LayoutInspectorMetrics(projectRule.project, process),
-                                    disposableRule.disposable).apply {
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+    val legacyClient = LegacyClient(
+      process,
+      isInstantlyAutoConnected = true,
+      model,
+      LayoutInspectorSessionMetrics(projectRule.project, process),
+      coroutineScope,
+      disposableRule.disposable
+    ).apply {
       launchMonitor = mock()
     }
     // This causes the current client to register its listeners
     val treeSettings = FakeTreeSettings()
-    LayoutInspector(legacyClient, model, treeSettings)
+    LayoutInspector(coroutineScope, InspectorClientSettings(projectRule.project), legacyClient, model, treeSettings)
+    legacyClient.state = InspectorClient.State.CONNECTED
     return legacyClient
   }
 
@@ -152,19 +165,15 @@ DONE.
     imageFile: Path,
     legacyClient: LegacyClient
   ) {
-    val client = mock<ClientImpl>()
+    val client = mock<Client>()
     whenever(client.device).thenReturn(mock())
-    whenever(client.send(ArgumentMatchers.argThat { argument ->
-      argument?.payload?.int == DebugViewDumpHandler.CHUNK_VURT &&
-        argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
-    }, ArgumentMatchers.any())).thenAnswer { invocation ->
-      invocation
-        .getArgument(1, DebugViewDumpHandler::class.java)
-        .handleChunk(client, DebugViewDumpHandler.CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
-    }
     whenever(client.dumpViewHierarchy(ArgumentMatchers.eq(windowName), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
                                             ArgumentMatchers.anyBoolean(),
-                                            ArgumentMatchers.any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
+                                            ArgumentMatchers.any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
+      invocation
+        .getArgument<DebugViewDumpHandler>(4)
+        .handleChunkData(ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)))
+    }
     whenever(client.listViewRoots(any())).thenAnswer { invocation ->
       val bytes = ByteBuffer.allocate(windowName.length * 2 + Int.SIZE_BYTES * 2).apply {
         putInt(1)
@@ -183,6 +192,7 @@ DONE.
         .getArgument<DebugViewDumpHandler>(2)
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageFile.readBytes()), true, 1234)
     }
+    whenever(client.device.density).thenReturn(560)
     legacyClient.treeLoader.ddmClientOverride = client
   }
 

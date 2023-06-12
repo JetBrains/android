@@ -16,11 +16,13 @@
 package com.android.tools.idea.compose.annotator.check.common
 
 /**
- * A [CheckRule] is a set of required and optional [ParameterRule]s. All parameters will be checked against these rules for correctness.
+ * A [CheckRule] is a set of required and optional [ParameterRule]s. All parameters will be checked
+ * against these rules for correctness.
  *
  * Required parameters are those that need to be present.
  *
- * Optional parameters may not be present. This means that missing parameters from this list will not generate a [Missing] issue.
+ * Optional parameters may not be present. This means that missing parameters from this list will
+ * not generate a [Missing] issue.
  */
 internal interface CheckRule {
   val requiredParameters: List<ParameterRule>

@@ -20,8 +20,10 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.PackagingOptionsModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.google.common.collect.ImmutableList;
 import java.io.File;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.junit.Test;
@@ -245,6 +247,28 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     assertEmpty("pickFirsts", packagingOptions.pickFirsts().toList());
   }
 
+  @Test
+  public void testAddPackagingFromEmpty800Beta01() throws IOException {
+    writeToBuildFile("");
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("8.0.0-beta01"));
+    buildModel.android().packaging().dex().useLegacyPackaging().setValue(true);
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_PACKAGING_FROM_EMPTY_800_BETA_01);
+  }
+
+  @Test
+  public void testAddPackagingFromEmpty800Beta02() throws IOException {
+    writeToBuildFile("");
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("8.0.0-beta02"));
+    buildModel.android().packaging().dex().useLegacyPackaging().setValue(true);
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_PACKAGING_FROM_EMPTY_800_BETA_02);
+  }
+
   enum TestFile implements TestFileName {
     PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS("parseElementsInApplicationStatements"),
     PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS("parseElementsInAssignmentStatements"),
@@ -252,6 +276,8 @@ public class PackagingOptionsModelTest extends GradleFileModelTestCase {
     REPLACE_ELEMENTS_EXPECTED("replaceElementsExpected"),
     ADD_ELEMENTS("addElements"),
     ADD_ELEMENTS_EXPECTED("addElementsExpected"),
+    ADD_PACKAGING_FROM_EMPTY_800_BETA_01("addPackagingFromEmpty800Beta01"),
+    ADD_PACKAGING_FROM_EMPTY_800_BETA_02("addPackagingFromEmpty800Beta02"),
     APPEND_ELEMENTS("appendElements"),
     APPEND_ELEMENTS_EXPECTED("appendElementsExpected"),
     REMOVE_ELEMENTS("removeElements"),

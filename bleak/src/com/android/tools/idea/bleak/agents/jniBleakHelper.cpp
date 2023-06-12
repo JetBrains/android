@@ -4,7 +4,7 @@ using namespace std;
 
 jvmtiEnv *jvmti;
 
-JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_pauseThreads0(JNIEnv *env, jstring testThreadNameStr) {
+JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_pauseThreads0(JNIEnv *env, jobject self, jstring testThreadNameStr) {
 	jint nthreads;
 	jthread *threads;
 	jvmti->GetAllThreads(&nthreads, &threads);
@@ -20,7 +20,7 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_pauseThr
 	env->ReleaseStringUTFChars(testThreadNameStr, testThreadName);
 }
 
-JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_resumeThreads0(JNIEnv *env, jstring testThreadNameStr) {
+JNIEXPORT void JNICALL Java_com_android_tools_idea_bleak_JniBleakHelper_resumeThreads0(JNIEnv *env, jobject self, jstring testThreadNameStr) {
 	jint nthreads;
 	jthread *threads;
 	jvmti->GetAllThreads(&nthreads, &threads);

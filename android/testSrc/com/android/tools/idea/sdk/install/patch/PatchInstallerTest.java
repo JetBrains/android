@@ -41,18 +41,18 @@ public class PatchInstallerTest extends TestCase {
     InMemoryFileSystems.recordExistingFile(sourceFile, "the source to which the diff will be applied");
     Path patchFile = ourSdkRoot.getRoot().resolve("patchfile");
     InMemoryFileSystems.recordExistingFile(patchFile, "the patch contents");
-    PatchRunner runner = new PatchRunner(ourSdkRoot.getRoot().resolve("dummy'"), FakeRunner.class, FakeUIBase.class, FakeUI.class,
-                                         FakeGenerator.class);
+    PatchRunner runner = new PatchRunner(FakeRunner.class, FakeUIBase.class, FakeUI.class, FakeGenerator.class);
     boolean result = runner.run(sourceFile.getParent(), patchFile, progress);
     progress.assertNoErrorsOrWarnings();
     assertTrue(result);
     assertTrue(FakeRunner.ourDidRun);
   }
 
-  private static final class FakeRunner {
+  private static class FakeRunner {
     public static boolean ourDidRun;
     private static boolean ourLoggerInitted;
 
+    @SuppressWarnings("unused") // invoked by reflection
     public static void initLogger() {
       ourLoggerInitted = true;
     }

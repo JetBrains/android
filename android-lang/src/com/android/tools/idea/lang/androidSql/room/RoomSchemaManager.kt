@@ -55,7 +55,6 @@ import com.intellij.psi.util.PsiUtil
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private val LOG = Logger.getInstance(RoomSchemaManager::class.java)
 
@@ -199,7 +198,7 @@ class RoomSchemaManager(val module: Module) {
           createColumnsFromEmbeddedField(psiMember, embeddedAnnotation, namePrefix)
         } else {
           val thisField = getNameAndNameElement(
-            psiMember.safeAs<PsiField>() ?: psiMember.safeAs<PsiMethod>()!!,
+            psiMember as? PsiField ?: psiMember as PsiMethod,
             annotationName = RoomAnnotations.COLUMN_INFO,
             annotationAttributeName = "name"
           )
@@ -230,7 +229,7 @@ class RoomSchemaManager(val module: Module) {
                       ?.toString()
                     ?: ""
 
-    val type = embeddedMember.safeAs<PsiField>()?.type ?: embeddedMember.safeAs<PsiMethod>()!!.returnType
+    val type = (embeddedMember as? PsiField)?.type ?: (embeddedMember as PsiMethod).returnType
     val embeddedClass = PsiUtil.resolveClassInClassTypeOnly(type) ?: return emptySequence()
 
     return createColumnsFromFields(embeddedClass, currentPrefix + newPrefix, false)

@@ -18,13 +18,19 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 class BuildAndRunTest {
   @JvmField @Rule
   val system = AndroidSystem.standard()
+
+  @JvmField
+  @Rule
+  var watcher = MemoryDashboardNameProviderWatcher()
 
   /**
    * Verifies that a project can build and deploy on an emulator
@@ -46,12 +52,11 @@ class BuildAndRunTest {
   @Test
   fun deploymentTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
-    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
     system.runAdb { adb ->
       system.runEmulator { emulator ->
-        system.runStudio(project) { studio ->
+        system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
           studio.executeAction("MakeGradleProject")
@@ -61,8 +66,8 @@ class BuildAndRunTest {
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.minapp",
             60, TimeUnit.SECONDS)
-          adb.runCommand("logcat") { logcat ->
-            logcat.waitForLog(".*Hello Minimal World!.*", 30, TimeUnit.SECONDS);
+          adb.runCommand("logcat") {
+            waitForLog(".*Hello Minimal World!.*", 30.seconds);
           }
         }
       }

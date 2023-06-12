@@ -31,7 +31,7 @@ public abstract class AndroidOutputReceiver extends MultiLineReceiver {
   }
 
   @Override
-  public final void processNewLines(String @NotNull [] lines) {
+  public final void processNewLines(String[] lines) {
     if (myTryAgain) {
       return;
     }

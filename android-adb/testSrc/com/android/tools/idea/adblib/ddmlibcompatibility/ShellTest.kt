@@ -19,7 +19,7 @@ import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.tools.idea.testingutils.FakeAdbServiceRule
+import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assert_
 import com.intellij.testFramework.ProjectRule
@@ -60,6 +60,7 @@ class ShellTest {
 [ro.product.cpu.abi]: [arm64-v8a]
 [ro.product.manufacturer]: [Google]
 [ro.product.model]: [Pix3l]
+[ro.serialno]: [42]
 """
     assertThat(receiver.lines.joinToString("\n")).isEqualTo(expected)
     TestLoggerFactory.dumpLogToStdout("foo")

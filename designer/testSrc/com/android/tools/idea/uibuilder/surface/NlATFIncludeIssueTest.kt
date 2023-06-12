@@ -32,9 +32,6 @@ import org.mockito.MockitoAnnotations
 @RunWith(JUnit4::class)
 class NlATFIncludeIssueTest: LayoutTestCase() {
 
-  @Mock
-  lateinit var mockSurface: NlDesignSurface
-
   public override fun setUp() {
     super.setUp()
     MockitoAnnotations.openMocks(this)
@@ -43,7 +40,7 @@ class NlATFIncludeIssueTest: LayoutTestCase() {
   @Test
   fun createIssue() {
     val source: NlComponent = NlScannerLayoutParserTest.createComponentWithInclude()
-    val atfIssue = NlATFIncludeIssue(source, mockSurface)
+    val atfIssue = NlATFIncludeIssue(source)
 
     assertEquals(HighlightSeverity.WARNING, atfIssue.severity)
     assertNotEquals(IssueSource.NONE, atfIssue.source)
@@ -65,7 +62,7 @@ class NlATFIncludeIssueTest: LayoutTestCase() {
                         )).build()
 
     val source: NlComponent = model.components[0].getChild(0)!!
-    val atfIssue = NlATFIncludeIssue(source, mockSurface)
+    val atfIssue = NlATFIncludeIssue(source)
 
     val ignore = atfIssue.suppresses.getIfSingle()!!
     ignore.action.run()
@@ -85,7 +82,7 @@ class NlATFIncludeIssueTest: LayoutTestCase() {
                         )).build()
 
     val source: NlComponent = model.components[0].getChild(0)!!
-    val atfIssue = NlATFIncludeIssue(source, mockSurface)
+    val atfIssue = NlATFIncludeIssue(source)
 
     var openLayoutFixFound = false
     atfIssue.fixes.filter { it.buttonText == "Open the layout" }.forEach {

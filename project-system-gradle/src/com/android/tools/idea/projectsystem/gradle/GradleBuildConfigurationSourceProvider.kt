@@ -30,7 +30,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.utils.yieldIfNotNull
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
-import org.jetbrains.plugins.gradle.service.execution.MAIN_INIT_SCRIPT_NAME
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import org.jetbrains.plugins.gradle.util.gradlePath
 import org.jetbrains.plugins.gradle.util.isIncludedBuild
@@ -156,7 +155,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
       )
 
       projectRootFolder.findChild("gradle")?.takeIf { it.isDirectory }?.let { gradle ->
-        gradle.children.filter { !it.isDirectory && it.name.endsWith(".versions.toml") }.forEach {
+        gradle.children.filter { !it.isDirectory && it.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML) }.forEach {
           yield(it.describe("Version Catalog", BUILD_WIDE_ORDER_BASE))
         }
       }
@@ -192,9 +191,9 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
         continue
       }
 
-      // When a project is imported via unit tests, there is a `${MAIN_INIT_SCRIPT_NAME}XXXX.gradle` file created somehow, exclude that.
+      // When a project is imported via unit tests, there is a ijinitXXXX.gradle file created somehow, exclude that.
       if (ApplicationManager.getApplication().isUnitTestMode &&
-        (child.name.startsWith(MAIN_INIT_SCRIPT_NAME) || child.name.startsWith("asLocalRepo"))
+        (child.name.startsWith("ijinit") || child.name.startsWith("asLocalRepo"))
       ) {
         continue
       }

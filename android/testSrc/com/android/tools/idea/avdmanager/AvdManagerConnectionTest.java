@@ -15,7 +15,21 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_FOLD_AT_POSTURE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_AREAS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_COUNT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_DEFAULTS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_RANGES;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_HEIGHT;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_WIDTH;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_X_OFFSET;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_Y_OFFSET;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.repository.Revision;
@@ -32,12 +46,13 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.MockLog;
 import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
@@ -47,6 +62,7 @@ import com.intellij.openapi.util.SystemInfo;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -72,9 +88,13 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mSdkRoot, mPrefsRoot);
 
-    mAvdManager = AvdManager.getInstance(androidSdkHandler, mPrefsRoot.resolve("avd"), new NullLogger());
+    mAvdManager =
+        AvdManager.createInstance(
+            androidSdkHandler,
+            mPrefsRoot.resolve("avd"),
+            DeviceManager.createInstance(androidSdkHandler, NullLogger.getLogger()),
+            NullLogger.getLogger());
 
-    assert mAvdManager != null;
     mAvdFolder = AvdInfo.getDefaultAvdFolder(mAvdManager, getName(), false);
 
     mSystemImage = androidSdkHandler.getSystemImageManager(new FakeProgressIndicator()).getImages().iterator().next();
@@ -94,7 +114,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     // google api31 image
     String g31Path = "system-images;android-31;google_apis;x86_64";
     FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
-    DetailsTypes.SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -127,8 +147,135 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       hardwareProperties,
       false);
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("884");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("884-0-1-2208");
+    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
     assertThat(hardwareProperties.get(AVD_INI_RESIZABLE_CONFIG)).
       isEqualTo("phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
+  }
+
+  public void testFoldableAvds() {
+    RepositoryPackages packages = new RepositoryPackages();
+
+    // google api31 image
+    String g31Path = "system-images;android-31;google_apis;x86_64";
+    FakeLocalPackage g31Package = new FakeLocalPackage(g31Path, mSdkRoot.resolve("mySysImg"));
+    SysImgDetailsType g31Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
+    g31Package.setTypeDetails((TypeDetails)g31Details);
+    InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(List.of(g31Package));
+    FakeRepoManager mgr = new FakeRepoManager(mSdkRoot, packages);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(mSdkRoot, mAvdFolder, mgr);
+    FakeProgressIndicator progress = new FakeProgressIndicator();
+    SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
+
+    ISystemImage g31Image =
+      systemImageManager.getImageAt(Objects.requireNonNull(sdkHandler.getLocalPackage(g31Path, progress)).getLocation());
+    assert g31Image != null;
+    SystemImageDescription g31ImageDescription = new SystemImageDescription(g31Image);
+
+    DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
+
+    // 7.6 foldable
+    Device foldable = devMgr.getDevice("7.6in Foldable", "Generic");
+
+    assert foldable != null;
+    Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(foldable);
+
+    mAvdManagerConnection.createOrUpdateAvd(
+      null,
+      "test7p6Foldable",
+      foldable,
+      g31ImageDescription,
+      ScreenOrientation.PORTRAIT,
+      false,
+      null,
+      null,
+      hardwareProperties,
+      false);
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("884");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("884-0-1-2208");
+    assertThat(hardwareProperties.containsKey(AVD_INI_FOLD_AT_POSTURE)).isFalse();
+    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+
+    // 8in foldable
+    foldable = devMgr.getDevice("8in Foldable", "Generic");
+    assert foldable != null;
+    hardwareProperties = DeviceManager.getHardwareProperties(foldable);
+    mAvdManagerConnection.createOrUpdateAvd(
+      null,
+      "test8Foldable",
+      foldable,
+      g31ImageDescription,
+      ScreenOrientation.PORTRAIT,
+      false,
+      null,
+      null,
+      hardwareProperties,
+      false);
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1148");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2480");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("180-360");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("1148-0-1-2480");
+    assertThat(hardwareProperties.get(AVD_INI_FOLD_AT_POSTURE)).isEqualTo("4");
+    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("3, 4");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("180-330, 330-360");
+
+    // 6.7in Foldable
+    foldable = devMgr.getDevice("6.7in Foldable", "Generic");
+    assert foldable != null;
+    hardwareProperties = DeviceManager.getHardwareProperties(foldable);
+    mAvdManagerConnection.createOrUpdateAvd(
+      null,
+      "test6p7Foldable",
+      foldable,
+      g31ImageDescription,
+      ScreenOrientation.PORTRAIT,
+      false,
+      null,
+      null,
+      hardwareProperties,
+      false);
+    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("0");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("0-1318-1080-1");
+    assertThat(hardwareProperties.containsKey(AVD_INI_FOLD_AT_POSTURE)).isFalse();
+    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
   }
 
   public void testWipeAvd() {
@@ -193,7 +340,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     // QEMU-1 image
     String q1Path = "system-images;android-q1;google_apis;x86";
     FakeLocalPackage q1Package = new FakeLocalPackage(q1Path, mSdkRoot.resolve("mySysImg1"));
-    DetailsTypes.SysImgDetailsType q1Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    SysImgDetailsType q1Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q1Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q1Package.setTypeDetails((TypeDetails)q1Details);
     InMemoryFileSystems.recordExistingFile(q1Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -201,7 +348,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     // QEMU-2 image
     String q2Path = "system-images;android-q2;google_apis;x86";
     FakeLocalPackage q2Package = new FakeLocalPackage(q2Path, mSdkRoot.resolve("mySysImg2"));
-    DetailsTypes.SysImgDetailsType q2Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    SysImgDetailsType q2Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q2Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2Package.setTypeDetails((TypeDetails)q2Details);
     InMemoryFileSystems.recordExistingFile(q2Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -211,7 +358,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     // QEMU-2-64 image
     String q2_64Path = "system-images;android-q2-64;google_apis;x86";
     FakeLocalPackage q2_64Package = new FakeLocalPackage(q2_64Path, mSdkRoot.resolve("mySysImg3"));
-    DetailsTypes.SysImgDetailsType q2_64Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    SysImgDetailsType q2_64Details = AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
     q2_64Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     q2_64Package.setTypeDetails((TypeDetails)q2_64Details);
     InMemoryFileSystems.recordExistingFile(q2_64Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
@@ -271,7 +418,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     try {
       assert skinnyAvd != null;
-      mAvdManagerConnection.startAvd(null, skinnyAvd).get(4, TimeUnit.SECONDS);
+      mAvdManagerConnection.startAvd(null, skinnyAvd, RequestType.DIRECT).get(4, TimeUnit.SECONDS);
       fail();
     }
     catch (ExecutionException expected) {
@@ -332,7 +479,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     try {
       assert skinlessAvd != null;
-      mAvdManagerConnection.startAvd(null, skinlessAvd).get(4, TimeUnit.SECONDS);
+      mAvdManagerConnection.startAvd(null, skinlessAvd, RequestType.DIRECT).get(4, TimeUnit.SECONDS);
       fail();
     }
     catch (ExecutionException expected) {

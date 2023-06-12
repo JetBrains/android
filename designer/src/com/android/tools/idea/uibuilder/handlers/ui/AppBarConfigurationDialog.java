@@ -27,6 +27,7 @@ import static com.android.SdkConstants.TOOLS_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationUtilKt.formatNamespaces;
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ide.common.rendering.api.SessionParams;
@@ -41,6 +42,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -358,7 +360,7 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @WorkerThread
-  private PsiFile generateXml(boolean collapsed) {
+  private XmlFile generateXml(boolean collapsed) {
     DumbService.getInstance(getProject()).waitForSmartMode();
     StringBuilder text = new StringBuilder(SAMPLE_REPETITION * SAMPLE_TEXT.length());
     text.append(SAMPLE_TEXT.repeat(SAMPLE_REPETITION));
@@ -366,7 +368,7 @@ public class AppBarConfigurationDialog extends JDialog {
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
     Project project = getProject();
-    return ReadAction.compute(() -> PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml));
+    return (XmlFile)ReadAction.compute(() -> PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml));
   }
 
   private void updatePreviewImages() {
@@ -588,16 +590,14 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @NotNull
-  private CompletableFuture<BufferedImage> updateImage(@NotNull PsiFile xmlFile, @NotNull JBLabel preview) {
+  private CompletableFuture<BufferedImage> updateImage(@NotNull XmlFile xmlFile, @NotNull JBLabel preview) {
     return renderImage(xmlFile).whenCompleteAsync((image, ex) -> updatePreviewImage(image, preview), EdtExecutorService.getInstance());
   }
 
-  private CompletableFuture<BufferedImage> renderImage(@NotNull PsiFile xmlFile) {
+  private CompletableFuture<BufferedImage> renderImage(@NotNull XmlFile xmlFile) {
     AndroidFacet facet = myModel.getFacet();
-    RenderService renderService = RenderService.getInstance(getProject());
-    RenderLogger logger = renderService.createLogger(facet);
-    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, myModel.getConfiguration())
-      .withLogger(logger)
+    RenderService renderService = StudioRenderService.getInstance(getProject());
+    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, myModel.getConfiguration())
       .withPsiFile(xmlFile)
       .build();
     return taskFuture.thenCompose(task -> {

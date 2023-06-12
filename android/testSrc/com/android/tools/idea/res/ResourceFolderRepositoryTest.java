@@ -92,6 +92,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -169,7 +170,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private @NotNull ResourceFolderRepository createRepository(boolean createCache) {
     VirtualFile dir = getResourceDirectory();
-    ResourceNamespace namespace = ResourceRepositoryManager.getInstance(myFacet).getNamespace();
+    ResourceNamespace namespace = StudioResourceRepositoryManager.getInstance(myFacet).getNamespace();
     ResourceFolderRepositoryCachingData cachingData =
         ResourceFolderRepositoryFileCacheService.get().getCachingData(getProject(), dir, createCache ? directExecutor() : null);
     return ResourceFolderRepository.create(myFacet, dir, namespace, cachingData);
@@ -359,7 +360,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   public void testAddFile() throws Exception {
     myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
-    myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
+    VirtualFile layout2 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
     ResourceFolderRepository repository = createRegisteredRepository();
     assertNotNull(repository);
     Collection<String> layouts = repository.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
@@ -368,7 +369,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertNotNull(repository.getResources(RES_AUTO, ResourceType.LAYOUT, "layout2"));
 
     long generation = repository.getModificationCount();
-    myFixture.copyFileToProject(LAYOUT1, "res/layout/layout2.xml");
+    // Change modification time of the layout2 file without changing its contents.
+    Path file = Paths.get(layout2.getPath());
+    Files.setLastModifiedTime(file, FileTime.from(Files.getLastModifiedTime(file).toInstant().plusSeconds(1)));
+    VfsUtil.markDirtyAndRefresh(false, false, false, layout2);
     assertThat(repository.getModificationCount()).isEqualTo(generation); // no changes in file: no new generation
 
     generation = repository.getModificationCount();
@@ -483,6 +487,36 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     waitForUpdates(repository);
     layouts = repository.getResources(RES_AUTO, ResourceType.LAYOUT).keySet();
     assertEquals(2, layouts.size());
+    assertThat(repository.getModificationCount()).isGreaterThan(generation);
+  }
+
+  public void testDeleteMultipleResourceDirectories() throws Exception {
+    VirtualFile strings = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    VirtualFile stringsDe = myFixture.copyFileToProject(STRINGS, "res/values-de/strings.xml");
+    VirtualFile stringsEs = myFixture.copyFileToProject(STRINGS, "res/values-es/strings.xml");
+    PsiFile psiFileDe = PsiManager.getInstance(getProject()).findFile(stringsDe);
+    PsiFile psiFileEs = PsiManager.getInstance(getProject()).findFile(stringsEs);
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertNotNull(repository);
+
+    // Try deleting a two resource directories and ensure we remove the resources within.
+    long generation = repository.getModificationCount();
+    Collection<ResourceItem> stringItems = repository.getResources(RES_AUTO, ResourceType.STRING).values();
+
+    assertEquals(9, stringItems.size());
+    PsiDirectory directoryDe = psiFileDe.getContainingDirectory();
+    PsiDirectory directoryEs = psiFileEs.getContainingDirectory();
+    assertNotNull(directoryDe);
+    assertNotNull(directoryEs);
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      directoryDe.delete();
+      directoryEs.delete();
+    });
+    waitForUpdates(repository);
+
+    stringItems = repository.getResources(RES_AUTO, ResourceType.STRING).values();
+    assertEquals(3, stringItems.size());
     assertThat(repository.getModificationCount()).isGreaterThan(generation);
   }
 
@@ -4122,7 +4156,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     VirtualFile logoFile = myFixture.copyFileToProject(DRAWABLE_RED, "res/drawable/logo.png");
     ResourceFolderRepository repository = createRegisteredRepository();
     assertTrue(repository.hasResources(RES_AUTO, ResourceType.DRAWABLE, "logo"));
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(logoFile);
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(logoFile);
     DrawableRenderer renderer = new DrawableRenderer(myFacet, configuration);
 
     String bitmapXml = "<adaptive-icon xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +

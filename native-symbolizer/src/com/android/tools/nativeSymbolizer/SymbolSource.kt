@@ -72,7 +72,9 @@ class NdkSymbolSource(private val module: Module): SymbolSource {
 /** Gets symbol directories from a module's Gradle file. */
 class JniSymbolSource(private val module: Module) : SymbolSource {
   override fun getDirsFor(abi: Abi): Collection<File> {
-    return module.androidFacet?.let { SourceProviders.getInstance(it) }?.sources?.jniLibsDirectories?.map { it.toIoFile() }.orEmpty()
+    return module.androidFacet?.let { SourceProviders.getInstance(it) }?.sources?.jniLibsDirectories?.map {
+      it.findChild(abi.toString())?.toIoFile()
+    }.orEmpty().filterNotNull()
   }
 }
 

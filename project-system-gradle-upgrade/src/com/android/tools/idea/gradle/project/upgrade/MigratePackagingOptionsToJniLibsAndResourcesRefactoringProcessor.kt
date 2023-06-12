@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -28,10 +27,10 @@ import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
 class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = standardRegionNecessity(current, new, GradleVersion.parse("4.2.0-alpha08"), GradleVersion.parse("8.0.0"))
+  override val necessityInfo = RegionNecessity(AgpVersion.parse("4.2.0-alpha08"), AgpVersion.parse("9.0.0-alpha01"))
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -62,7 +61,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       usages.addAll(MOVE_PACKAGING_OPTIONS_PROPERTIES_INFO.findBuildModelUsages(this, model))
-      model.android().packagingOptions().run {
+      model.android().packaging().run {
         splitModel(excludes(), jniLibs().excludes(), resources().excludes())
         splitModel(pickFirsts(), jniLibs().pickFirsts(), resources().pickFirsts())
       }
@@ -73,7 +72,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.migratePackagingOptionsRefactoringProcessor.commandName")
 
-  override fun getShortDescription(): String =
+  override fun getShortDescription(): String? =
     """
       Directives to affect packaging have been split into those affecting
       libraries (.so files) and those affecting all other resources.
@@ -94,20 +93,20 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
   }
 
   companion object {
-    private val MOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.usageType"))
+    val MOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.usageType"))
     val SPLIT_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.split.usageType"))
-    private val REMOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.usageType"))
+    val REMOVE_PROPERTY = UsageType(AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.usageType"))
 
     val MOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = MovePropertiesInfo(
       listOf(
-        Pair({ android().packagingOptions().doNotStrip() }, { android().packagingOptions().jniLibs().keepDebugSymbols() }),
-        Pair({ android().packagingOptions().merges() }, { android().packagingOptions().resources().merges() }),
+        Pair({ android().packaging().doNotStrip() }, { android().packaging().jniLibs().keepDebugSymbols() }),
+        Pair({ android().packaging().merges() }, { android().packaging().resources().merges() }),
       ),
       tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.tooltipText"),
       usageType = MOVE_PROPERTY
     )
     val REMOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = RemovePropertiesInfo(
-      { listOf(android().packagingOptions().excludes(), android().packagingOptions().pickFirsts()) },
+      { listOf(android().packaging().excludes(), android().packaging().pickFirsts()) },
       tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.tooltipText"),
       usageType = REMOVE_PROPERTY
     )
@@ -130,11 +129,11 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 }
 
 class SplitPropertiesUsageInfo(
-  element: WrappedPsiElement, val value: Any, private val destinations: List<GradlePropertyModel>
+  element: WrappedPsiElement, val value: Any, val destinations: List<GradlePropertyModel>
 ): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     destinations.forEach {
-      it.addListValue().setValue(value)
+      it.addListValue()?.setValue(value)
     }
   }
 

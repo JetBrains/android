@@ -15,20 +15,22 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.treeview;
 
-import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
-import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
-
 import com.intellij.ide.util.treeView.AbstractTreeBuilder;
 import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeModel;
+
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeModel;
-import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.util.ui.tree.TreeUtil.collapseAll;
+import static com.intellij.util.ui.tree.TreeUtil.showRowCentered;
 
 public abstract class AbstractBaseTreeBuilder extends AbstractTreeBuilder {
   public AbstractBaseTreeBuilder(@NotNull JTree tree,

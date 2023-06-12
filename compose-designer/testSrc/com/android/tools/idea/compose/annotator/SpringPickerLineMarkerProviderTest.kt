@@ -16,40 +16,45 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.SdkConstants
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.Dependencies
 import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.codeInsight.daemon.impl.LineMarkersPass
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.compose.stubSpringSpecLibrary
+import kotlin.test.assertEquals
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
+import org.junit.rules.RuleChain
 
 private const val FILE_PATH = "src/main/Test.kt"
 
 internal class SpringPickerLineMarkerProviderTest {
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  private val rule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val edtRule = EdtRule()
+  val chain =
+    RuleChain.outerRule(rule)
+      .around(FlagRule(StudioFlags.COMPOSE_SPRING_PICKER, true))
+      .around(EdtRule())!!
 
-  private val fixture get() = rule.fixture
+  private val fixture
+    get() = rule.fixture
 
   @Before
   fun setup() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-    StudioFlags.COMPOSE_SPRING_PICKER.override(true)
-    (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    fixture.registerLanguageExtensionPoint(LineMarkerProviders.getInstance(), SpringPickerLineMarkerProvider(), KotlinLanguage.INSTANCE)
-    fixture.stubSpringSpecLibrary()
+    (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+    fixture.registerLanguageExtensionPoint(
+      LineMarkerProviders.getInstance(),
+      SpringPickerLineMarkerProvider(),
+      KotlinLanguage.INSTANCE
+    )
 
     fixture.addFileToProject(
       FILE_PATH,
@@ -66,22 +71,21 @@ internal class SpringPickerLineMarkerProviderTest {
           spring<Float>()
           FloatSpringSpec()
         }
-      """.trimIndent())
-  }
-
-  @After
-  fun teardown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    StudioFlags.COMPOSE_SPRING_PICKER.clearOverride()
+      """
+        .trimIndent()
+    )
   }
 
   @RunsInEdt
   @Test
   fun gutterIconOnSpringDeclarations() {
+    Dependencies.add(rule.fixture, "compose/animation/animation-core")
     val psiFile = fixture.findPsiFile(FILE_PATH)
-    val springLineMarkerInfos = LineMarkersPass.queryLineMarkers(psiFile, psiFile.viewProvider.document!!).filter { lineMarkerInfo ->
-      lineMarkerInfo.lineMarkerTooltip == "SpringSpec configuration picker"
-    }
+    val springLineMarkerInfos =
+      LineMarkersPass.queryLineMarkers(psiFile, psiFile.viewProvider.document!!).filter {
+        lineMarkerInfo ->
+        lineMarkerInfo.lineMarkerTooltip == "SpringSpec configuration picker"
+      }
     assertEquals(3, springLineMarkerInfos.size)
     assertEquals("SpringSpec<Float>()", springLineMarkerInfos[0].element!!.parent.parent.text)
     assertEquals("spring<Float>()", springLineMarkerInfos[1].element!!.parent.parent.text)

@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class StringResourceTableModel extends AbstractTableModel {
   public static final int KEY_COLUMN = 0;
@@ -40,33 +42,27 @@ public class StringResourceTableModel extends AbstractTableModel {
   public static final int FIXED_COLUMN_COUNT = 4;
 
   private final StringResourceRepository myRepository;
-
+  private final @Nullable Project myProject;
   private final @Nullable StringResourceData myData;
 
   private List<StringResourceKey> myKeys;
   private List<Locale> myLocales;
 
-
-  private final @Nullable Project myProject;
-
-  StringResourceTableModel() {
-    myRepository = StringResourceRepository.empty();
-    myData = null;
-    myProject = null;
-
-    myKeys = Collections.emptyList();
-    myLocales = Collections.emptyList();
+  public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull Project project) {
+    this(repository, project, StringResourceData.create(project, repository));
   }
 
-  public StringResourceTableModel(@NotNull StringResourceRepository repository, @NotNull Project project) {
+  StringResourceTableModel() {
+    this(StringResourceRepository.empty(), null, null);
+  }
+
+  @VisibleForTesting
+  StringResourceTableModel(@Nullable StringResourceRepository repository, @Nullable Project project, @Nullable StringResourceData data) {
     myRepository = repository;
     myProject = project;
-
-    StringResourceData data = StringResourceData.create(project, repository);
     myData = data;
-
-    myKeys = data.getKeys();
-    myLocales = data.getLocaleList();
+    myKeys = data == null ? Collections.emptyList() : data.getKeys();
+    myLocales = data == null ? Collections.emptyList() : data.getLocaleList();
   }
 
   @NotNull
@@ -138,7 +134,7 @@ public class StringResourceTableModel extends AbstractTableModel {
         break;
 
       case DEFAULT_VALUE_COLUMN:
-        Futures.addCallback(getStringResourceAt(row).setDefaultValue((String)value), new FutureCallback<Boolean>() {
+        Futures.addCallback(getStringResourceAt(row).setDefaultValue((String)value), new FutureCallback<>() {
           @Override
           public void onSuccess(@Nullable Boolean changed) {
             if (changed != null && changed) {
@@ -205,7 +201,17 @@ public class StringResourceTableModel extends AbstractTableModel {
       case DEFAULT_VALUE_COLUMN:
         return "Default Value";
       default:
-        return Locale.getLocaleLabel(getLocale(column), false);
+        Locale locale = getLocale(column);
+        String columnName;
+        try {
+          columnName = Locale.getLocaleLabel(locale, false);
+        } catch (AssertionError e) {
+          // Locale code is littered with asserts, including some assuming that a locale has valid values. While we would hope that's the
+          // case, we don't want the editor to just error out if someone puts in a bad resource folder name.
+          columnName = locale.toString();
+          Logger.getInstance(StringResourceTableModel.class).warn("Failed to get label for locale '" + columnName + "'", e);
+        }
+        return columnName;
     }
   }
 
@@ -256,5 +262,10 @@ public class StringResourceTableModel extends AbstractTableModel {
   private String computeResourceFolderString(StringResourceKey key) {
     assert myProject != null;
     return key.getDirectory() == null ? "" : VirtualFiles.toString(key.getDirectory(), myProject);
+  }
+
+  /** Returns whether the column at the given index is a string value, i.e. a default value or translation. */
+  public static boolean isStringValueColumn(int index) {
+    return index >= DEFAULT_VALUE_COLUMN;
   }
 }

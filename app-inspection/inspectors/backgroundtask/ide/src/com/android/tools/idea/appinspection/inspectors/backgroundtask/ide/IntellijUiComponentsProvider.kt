@@ -32,8 +32,8 @@ class IntellijUiComponentsProvider(private val project: Project) : UiComponentsP
   init {
     val locator = SymbolFilesLocator(ProjectSymbolSource(project))
     val symbolizer = createNativeSymbolizer(locator)
-    codeNavigator = CodeNavigator(IntelliJNavSource(project, symbolizer),
-                                  CodeNavigator.applicationExecutor)
+    codeNavigator =
+      CodeNavigator(IntelliJNavSource(project, symbolizer), CodeNavigator.applicationExecutor)
   }
 
   override fun createStackTraceView(model: StackTraceModel): StackTraceView {

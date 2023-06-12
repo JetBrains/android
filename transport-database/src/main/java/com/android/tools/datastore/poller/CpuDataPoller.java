@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
+import com.android.tools.profiler.proto.Trace;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -106,7 +107,7 @@ public class CpuDataPoller extends PollRunner {
     CpuProfiler.GetTraceInfoRequest.Builder traceInfoRequest = CpuProfiler.GetTraceInfoRequest
       .newBuilder().setSession(mySession).setFromTimestamp(myTraceInfoRequestStartTimestampNs).setToTimestamp(Long.MAX_VALUE);
     CpuProfiler.GetTraceInfoResponse traceInfoResponse = myPollingService.getTraceInfo(traceInfoRequest.build());
-    for (Cpu.CpuTraceInfo traceInfo : traceInfoResponse.getTraceInfoList()) {
+    for (Trace.TraceInfo traceInfo : traceInfoResponse.getTraceInfoList()) {
       myCpuTable.insertTraceInfo(mySession, traceInfo);
       myTraceInfoRequestStartTimestampNs =
         Math.max(myTraceInfoRequestStartTimestampNs, Math.max(traceInfo.getFromTimestamp(), traceInfo.getToTimestamp()));

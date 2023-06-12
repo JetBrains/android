@@ -20,7 +20,7 @@ import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
 import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.RunsInEdt
@@ -67,14 +67,14 @@ class SafeArgNavigationKtTest {
               android:name="test.safeargs.Fragment2"
               android:label="Fragment2">
           <argument
-                android:name="arg_two"
+                android:name="Arg_two"
                 app:argType="string" />
           </fragment>
         </navigation>
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
       it is SafeArgsKtPackageProviderExtension
@@ -120,6 +120,7 @@ class SafeArgNavigationKtTest {
                         android:name="arg_one"
                         app:argType="string" />
                 """.trimIndent())
+              assertThat(descriptor.name.asString()).isEqualTo("argOne")
             }
             is SimpleFunctionDescriptorImpl -> {
               val resolvedNavigationElement = descriptor.source.getPsi()!!
@@ -159,9 +160,10 @@ class SafeArgNavigationKtTest {
               assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
                 """
                 <argument
-                        android:name="arg_two"
+                        android:name="Arg_two"
                         app:argType="string" />
                 """.trimIndent())
+              assertThat(descriptor.name.asString()).isEqualTo("ArgTwo")
             }
             is SimpleFunctionDescriptorImpl -> {
               val resolvedNavigationElement = descriptor.source.getPsi()!!
@@ -171,7 +173,7 @@ class SafeArgNavigationKtTest {
                 assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
                   """
                 <argument
-                        android:name="arg_two"
+                        android:name="Arg_two"
                         app:argType="string" />
                 """.trimIndent())
               }
@@ -232,7 +234,7 @@ class SafeArgNavigationKtTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
       it is SafeArgsKtPackageProviderExtension

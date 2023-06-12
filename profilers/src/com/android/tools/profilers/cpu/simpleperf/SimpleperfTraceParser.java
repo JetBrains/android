@@ -15,11 +15,11 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
-import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
+import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
@@ -27,7 +27,6 @@ import com.android.tools.profilers.cpu.TraceParser;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -47,6 +46,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 /**
  * Parses a trace file obtained using simpleperf to a map threadId -> {@link CaptureNode}.
@@ -194,7 +194,7 @@ public class SimpleperfTraceParser implements TraceParser {
   public CpuCapture parse(@NotNull File trace, long traceId) throws IOException {
     parseTraceFile(trace);
     parseSampleData();
-    return new BaseCpuCapture(traceId, Cpu.CpuTraceType.SIMPLEPERF,
+    return new BaseCpuCapture(traceId, TraceType.SIMPLEPERF,
                               isThreadTimeSupported(), isThreadTimeSupported() ? null : DUAL_CLOCK_DISABLED_MESSAGE,
                               myCaptureRange, getCaptureTrees(), myTags);
   }

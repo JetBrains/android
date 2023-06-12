@@ -27,7 +27,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.isArgument
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.wireless.android.sdk.stats.NavActionInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -303,7 +303,7 @@ class NavLogEventTest : NavTestCase() {
                        "@Navigator.Name(\"fragment\")\n" +
                        "public class CustomFragmentNavigator extends FragmentNavigator {}\n")
 
-    ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
+    StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
     waitForResourceRepositoryUpdates();
 
     val model = model("nav.xml") {

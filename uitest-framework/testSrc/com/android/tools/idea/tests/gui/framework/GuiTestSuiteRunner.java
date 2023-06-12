@@ -15,20 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
-import static com.android.SdkConstants.DOT_CLASS;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-
 import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogTest;
 import com.google.common.base.Verify;
-import com.google.common.collect.Lists;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.runner.RunWith;
@@ -37,6 +27,17 @@ import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.RunnerBuilder;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.android.SdkConstants.DOT_CLASS;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.GUI_TESTS_RUNNING_IN_SUITE_PROPERTY;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 /**
  * <p>{@link Runner} that finds and runs classes {@link RunWith} {@link GuiTestRemoteRunner}.</p>
@@ -77,8 +78,8 @@ public class GuiTestSuiteRunner extends Suite {
   @NotNull
   private static Class<?>[] getGuiTestClasses(@NotNull Class<?> suiteClass, @Nullable String testGroup)
     throws InitializationError, IOException {
-    List<Class<?>> guiTestClasses = Lists.newArrayList();
-    List<File> guiTestClassFiles = Lists.newArrayList();
+    List<Class<?>> guiTestClasses = new ArrayList<>();
+    List<File> guiTestClassFiles = new ArrayList<>();
     File parentDir = getParentDir(suiteClass);
 
     String packagePath = suiteClass.getPackage().getName().replace('.', File.separatorChar);

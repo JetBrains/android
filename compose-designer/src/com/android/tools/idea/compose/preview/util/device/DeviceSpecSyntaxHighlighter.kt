@@ -28,16 +28,40 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
 
-private val prefix = arrayOf(TextAttributesKey.createTextAttributesKey("PREFIX", DefaultLanguageHighlighterColors.STRING))
-private val paramName = arrayOf(TextAttributesKey.createTextAttributesKey("PARAM", KotlinHighlightingColors.NAMED_ARGUMENT))
-private val separator = arrayOf(TextAttributesKey.createTextAttributesKey("SEPARATOR", DefaultLanguageHighlighterColors.COMMA))
-private val operator = arrayOf(TextAttributesKey.createTextAttributesKey("OPERATOR", KotlinHighlightingColors.NAMED_ARGUMENT))
-private val primitive = arrayOf(TextAttributesKey.createTextAttributesKey("PRIMITIVE", DefaultLanguageHighlighterColors.NUMBER))
-private val unit = arrayOf(TextAttributesKey.createTextAttributesKey("UNIT", KotlinHighlightingColors.EXTENSION_PROPERTY))
-private val string = arrayOf(TextAttributesKey.createTextAttributesKey("STRING", DefaultLanguageHighlighterColors.CONSTANT))
+private val prefix =
+  arrayOf(
+    TextAttributesKey.createTextAttributesKey("PREFIX", DefaultLanguageHighlighterColors.STRING)
+  )
+private val paramName =
+  arrayOf(
+    TextAttributesKey.createTextAttributesKey("PARAM", KotlinHighlightingColors.NAMED_ARGUMENT)
+  )
+private val separator =
+  arrayOf(
+    TextAttributesKey.createTextAttributesKey("SEPARATOR", DefaultLanguageHighlighterColors.COMMA)
+  )
+private val operator =
+  arrayOf(
+    TextAttributesKey.createTextAttributesKey("OPERATOR", KotlinHighlightingColors.NAMED_ARGUMENT)
+  )
+private val primitive =
+  arrayOf(
+    TextAttributesKey.createTextAttributesKey("PRIMITIVE", DefaultLanguageHighlighterColors.NUMBER)
+  )
+private val unit =
+  arrayOf(
+    TextAttributesKey.createTextAttributesKey("UNIT", KotlinHighlightingColors.EXTENSION_PROPERTY)
+  )
+private val string =
+  arrayOf(
+    TextAttributesKey.createTextAttributesKey("STRING", DefaultLanguageHighlighterColors.CONSTANT)
+  )
 
 class DeviceSpecSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
-  override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?): SyntaxHighlighter {
+  override fun getSyntaxHighlighter(
+    project: Project?,
+    virtualFile: VirtualFile?
+  ): SyntaxHighlighter {
     return DeviceSpecSyntaxHighlighter()
   }
 }

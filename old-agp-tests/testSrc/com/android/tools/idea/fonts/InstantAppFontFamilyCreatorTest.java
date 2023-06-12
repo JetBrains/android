@@ -22,6 +22,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.resources.ResourceFolderType;
 import com.android.testutils.junit4.OldAgpTest;
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.util.text.CharFilter;
 import com.intellij.openapi.util.text.StringUtil;
@@ -38,7 +39,7 @@ public class InstantAppFontFamilyCreatorTest extends AndroidGradleTestCase {
   @OldAgpTest(agpVersions = "3.5.0", gradleVersions = "5.5")
   public void testCreateFontWithInstantApp() throws Exception {
     // Use a plugin with instant app support
-    loadProject(INSTANT_APP, "instant-app", "5.5", "3.5.0");
+    loadProject(INSTANT_APP, "instant-app", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
     AndroidFacet baseFacet = AndroidFacet.getInstance(findBaseFeature(myAndroidFacet));
     FontFamilyCreator creator = new FontFamilyCreator(myAndroidFacet);
     FontDetail font = FontTestUtils.createFontDetail("Roboto", 400, 100, false);

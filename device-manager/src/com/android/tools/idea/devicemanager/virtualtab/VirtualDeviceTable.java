@@ -26,6 +26,7 @@ import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DeviceTable;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Devices;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.Key;
@@ -33,9 +34,11 @@ import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.EditValue;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
@@ -68,21 +71,23 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   private final @NotNull VirtualDeviceAsyncSupplier myAsyncSupplier;
   private final @NotNull NewSetDevices myNewSetDevices;
   private @Nullable IDeviceChangeListener myListener;
+  private final @NotNull ActionListener myEmptyTextLinkListener;
 
   @VisibleForTesting
   interface NewSetDevices {
-    @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> apply(@NotNull VirtualDeviceTable table);
+    @NotNull FutureCallback<List<VirtualDevice>> apply(@NotNull VirtualDeviceTable table);
   }
 
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel) {
-    this(panel, panel.getProject(), new VirtualDeviceAsyncSupplier(), VirtualDeviceTable::newSetDevices);
+    this(panel, panel.getProject(), new VirtualDeviceAsyncSupplier(), VirtualDeviceTable::newSetDevices, WearPairingManager.getInstance());
   }
 
   @VisibleForTesting
   VirtualDeviceTable(@NotNull VirtualDevicePanel panel,
                      @Nullable Project project,
                      @NotNull VirtualDeviceAsyncSupplier asyncSupplier,
-                     @NotNull NewSetDevices newSetDevices) {
+                     @NotNull NewSetDevices newSetDevices,
+                     @NotNull WearPairingManager manager) {
     super(new VirtualDeviceTableModel(project), VirtualDevice.class);
 
     myAsyncSupplier = asyncSupplier;
@@ -90,6 +95,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
     initListener();
 
+    setDefaultEditor(DeviceType.class, new DownloadButtonTableCellEditor(project));
     setDefaultEditor(VirtualDevice.State.class, new LaunchOrStopButtonTableCellEditor());
 
     setDefaultEditor(ActivateDeviceFileExplorerWindowValue.class,
@@ -98,9 +104,10 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                                                                                  EventKind.VIRTUAL_DEVICE_FILE_EXPLORER_ACTION));
 
     setDefaultEditor(EditValue.class, new EditButtonTableCellEditor(panel));
-    setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel));
+    setDefaultEditor(PopUpMenuValue.class, new VirtualDevicePopUpMenuButtonTableCellEditor(panel, manager));
 
-    setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer());
+    setDefaultRenderer(DeviceType.class, new VirtualDeviceIconButtonTableCellRenderer());
+    setDefaultRenderer(Device.class, new VirtualDeviceTableCellRenderer(manager));
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Long.class, new SizeOnDiskTableCellRenderer());
     setDefaultRenderer(VirtualDevice.State.class, new LaunchOrStopButtonTableCellRenderer());
@@ -109,27 +116,29 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                        new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
 
     setDefaultRenderer(EditValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.Edit, "Edit this AVD"));
-    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
+    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More, "More Actions"));
 
     setRowSorter(newRowSorter(dataModel));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     setShowGrid(false);
 
-    ActionListener listener = new BuildVirtualDeviceConfigurationWizardActionListener(this, project, this);
+    myEmptyTextLinkListener = new BuildVirtualDeviceConfigurationWizardActionListener(this, project, this);
 
-    // noinspection DialogTitleCapitalization
-    getEmptyText()
-      .appendLine("No virtual devices added. Create a virtual device to test")
-      .appendLine("applications without owning a physical device.")
-      .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, listener);
+    getEmptyText().setText("Loading...");
 
     refreshAvds();
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
+  static @NotNull FutureCallback<List<VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
     return new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, devices -> {
       table.getModel().setDevices(devices);
+      // noinspection DialogTitleCapitalization
+      table.getEmptyText()
+        .clear()
+        .appendLine("No virtual devices added. Create a virtual device to test")
+        .appendLine("applications without owning a physical device.")
+        .appendLine("Create virtual device", SimpleTextAttributes.LINK_PLAIN_ATTRIBUTES, table.myEmptyTextLinkListener);
 
       DeviceManagerEvent event = DeviceManagerEvent.newBuilder()
         .setKind(EventKind.VIRTUAL_DEVICE_COUNT)
@@ -145,7 +154,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     AndroidDebugBridge.addDeviceChangeListener(myListener);
   }
 
-  private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
+  private static @NotNull RowSorter<TableModel> newRowSorter(@NotNull TableModel model) {
     DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
 
     sorter.setComparator(VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX,
@@ -175,22 +184,24 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     AndroidDebugBridge.removeDeviceChangeListener(myListener);
   }
 
-  void addDevice(@NotNull Key key) {
-    FutureCallback<VirtualDevice> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, device -> {
-      getModel().add(device);
-      setSelectedDevice(key);
-    });
-
-    Futures.addCallback(myAsyncSupplier.get(key), callback, EdtExecutorService.getInstance());
+  @NotNull ListenableFuture<Key> addDevice(@NotNull Key key) {
+    // noinspection UnstableApiUsage
+    return Futures.transform(myAsyncSupplier.get(key), this::add, EdtExecutorService.getInstance());
   }
 
-  void reloadDevice(@NotNull Key key) {
-    FutureCallback<VirtualDevice> callback = new DeviceManagerFutureCallback<>(VirtualDeviceTable.class, device -> {
-      getModel().set(device);
-      setSelectedDevice(key);
-    });
+  private @NotNull Key add(@NotNull VirtualDevice device) {
+    getModel().add(device);
+    return device.getKey();
+  }
 
-    Futures.addCallback(myAsyncSupplier.get(key), callback, EdtExecutorService.getInstance());
+  @NotNull ListenableFuture<Key> reloadDevice(@NotNull Key key) {
+    // noinspection UnstableApiUsage
+    return Futures.transform(myAsyncSupplier.get(key), this::set, EdtExecutorService.getInstance());
+  }
+
+  private @NotNull Key set(@NotNull VirtualDevice device) {
+    getModel().set(device);
+    return device.getKey();
   }
 
   @Override
@@ -198,7 +209,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return (VirtualDeviceTableModel)dataModel;
   }
 
-  @NotNull Optional<@NotNull VirtualDevice> getSelectedDevice() {
+  @NotNull Optional<VirtualDevice> getSelectedDevice() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {
@@ -208,7 +219,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
     return Optional.of(getDeviceAt(viewRowIndex));
   }
 
-  private void setSelectedDevice(@NotNull Key key) {
+  void setSelectedDevice(@NotNull Key key) {
     int modelRowIndex = Devices.indexOf(getModel().getDevices(), key);
 
     if (modelRowIndex == -1) {
@@ -225,6 +236,7 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
   protected @NotNull JTableHeader createDefaultTableHeader() {
     TableColumnModel model = new DefaultTableColumnModel();
 
+    model.addColumn(columnModel.getColumn(deviceIconViewColumnIndex()));
     model.addColumn(columnModel.getColumn(deviceViewColumnIndex()));
     model.addColumn(columnModel.getColumn(apiViewColumnIndex()));
     model.addColumn(columnModel.getColumn(sizeOnDiskViewColumnIndex()));
@@ -249,6 +261,9 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
 
   @Override
   public void doLayout() {
+    Tables.setWidths(columnModel.getColumn(deviceIconViewColumnIndex()),
+                     VirtualDeviceIconButtonTableCellRenderer.getPreferredWidth(this, DeviceType.class));
+
     columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
 
     Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
@@ -271,6 +286,10 @@ public final class VirtualDeviceTable extends DeviceTable<VirtualDevice> impleme
                      IconButtonTableCellRenderer.getPreferredWidth(this, PopUpMenuValue.class));
 
     super.doLayout();
+  }
+
+  private int deviceIconViewColumnIndex() {
+    return convertColumnIndexToView(VirtualDeviceTableModel.DEVICE_ICON_MODEL_COLUMN_INDEX);
   }
 
   @Override

@@ -25,10 +25,10 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.ComponentTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.ComponentTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SceneComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
@@ -89,15 +89,16 @@ public class NavNlEditorTest {
 
     menuFixture.selectDestination("fragment_my");
 
-    ComponentTreeFixture<NlComponent> treeFixture = navEditor.navComponentTree();
-    List<NlComponent> selected = treeFixture.selectedComponents();
+    ComponentTreeFixture treeFixture = navEditor.navComponentTree();
+    List<NlComponent> selected = treeFixture.selectedElements();
     assertEquals(1, selected.size());
     assertEquals("myFragment", selected.get(0).getId());
 
-    treeFixture.showPopupMenuAt(1).menuItemWithPath("Delete").click();
+    treeFixture.showPopupMenuAt(1, 0).menuItemWithPath("Delete").click();
 
     navEditor.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
-    treeFixture.selectedComponents().forEach(component -> assertNotEquals("main_activity", component.getId()));
+    selected = treeFixture.selectedElements();
+    selected.forEach(component -> assertNotEquals("main_activity", component.getId()));
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/137919011
@@ -307,6 +308,6 @@ public class NavNlEditorTest {
 
   private List<NlComponent> getPanelSelectedComponents(NlEditorFixture editor) {
     ComponentTreeFixture navComponentTreeFixture = editor.navComponentTree();
-    return navComponentTreeFixture.selectedComponents();
+    return navComponentTreeFixture.selectedElements();
   }
 }

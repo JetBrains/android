@@ -39,7 +39,7 @@ public class SelectParentAction extends AnAction {
   @Override
   public void update(@NotNull AnActionEvent e) {
     boolean enabled;
-    if (mySurface.getInteractionManager().isInteractionInProgress()) {
+    if (mySurface.getGuiInputHandler().isInteractionInProgress()) {
       // Interaction should consume escape event first
       enabled = false;
     }

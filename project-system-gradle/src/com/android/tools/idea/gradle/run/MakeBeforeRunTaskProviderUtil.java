@@ -15,19 +15,24 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import static java.util.stream.Collectors.toList;
+
+import com.android.tools.idea.run.AndroidRunConfigurationType;
+import com.google.common.collect.Lists;
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
+import com.intellij.execution.RunManager;
 import com.intellij.execution.RunManagerEx;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public final class MakeBeforeRunTaskProviderUtil {
+public class MakeBeforeRunTaskProviderUtil {
   @NotNull
   private static Logger getLogger() {
     return Logger.getInstance(MakeBeforeRunTaskProviderUtil.class);
@@ -42,8 +47,9 @@ public final class MakeBeforeRunTaskProviderUtil {
       return new ArrayList<>();
     }
 
-    List<RunConfiguration> configurations = RunManagerEx.getInstanceEx(project).getAllConfigurationsList();
-    return ContainerUtil.filter(configurations, config -> isBeforeRunTaskMissing(project, config));
+    return RunManagerEx.getInstanceEx(project).getAllConfigurationsList().stream()
+      .filter(config -> isBeforeRunTaskMissing(project, config))
+      .collect(Collectors.toList());
   }
 
   /**
@@ -65,6 +71,14 @@ public final class MakeBeforeRunTaskProviderUtil {
       }
     }
     return result;
+  }
+
+  public static void ensureMakeBeforeRunTaskInConfigurationTemplate(@NotNull Project project) {
+    RunManager runManager = RunManagerEx.getInstance(project);
+    RunConfiguration configuration = runManager.getConfigurationTemplate(new AndroidRunConfigurationType().getFactory()).getConfiguration();
+    if (configuration.getBeforeRunTasks().isEmpty()) {
+      configuration.setBeforeRunTasks(Lists.newArrayList(new MakeBeforeRunTaskProvider().createTask(configuration)));
+    }
   }
 
   private static boolean isBeforeRunTaskMissing(@NotNull Project project, @NotNull RunConfiguration config) {

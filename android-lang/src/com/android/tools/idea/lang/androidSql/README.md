@@ -10,8 +10,8 @@ Prerequisites:
 
 ## PsiReferences
 
-For every token in a Room query that is defined as a column (column_name/AndroidSqlColumnName) in [grammar](./parser/roomSql.bnf), we create
-a [AndroidSqlColumnPsiReference](./resolution/References.kt). `AndroidSqlColumnPsiReference` can be one of two types:
+For every token in a Room query that is defined as a column (column_name/AndroidSqlColumnName) in [grammar](./parser/androidSql.bnf), we
+create a [AndroidSqlColumnPsiReference](./resolution/References.kt). `AndroidSqlColumnPsiReference` can be one of two types:
 `UnqualifiedColumnPsiReference` or `QualifiedColumnPsiReference`. It depends on whether we know the table a given column belongs to. If we
 use column in query like this: `TableName.columnName` we say that we know the table and use `QualifiedColumnPsiReference`.
 

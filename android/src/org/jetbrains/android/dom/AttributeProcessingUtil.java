@@ -85,7 +85,7 @@ import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CompletionUtil;
@@ -105,16 +105,15 @@ import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomExtension;
 import com.intellij.xml.XmlElementDescriptor;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.dom.animation.InterpolatorElement;
 import org.jetbrains.android.dom.animation.fileDescriptions.InterpolatorDomFileDescription;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.StyleableDefinition;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
+import com.android.tools.dom.attrs.StyleableDefinition;
 import org.jetbrains.android.dom.attrs.ToolsAttributeUtil;
 import org.jetbrains.android.dom.converters.CompositeConverter;
 import org.jetbrains.android.dom.converters.ManifestPlaceholderConverter;
@@ -151,7 +150,7 @@ import org.jetbrains.annotations.Nullable;
  * Entry point is {@link #processAttributes(AndroidDomElement, AndroidFacet, boolean, AttributeProcessor)},
  * look for a Javadoc there.
  */
-public final class AttributeProcessingUtil {
+public class AttributeProcessingUtil {
   private static final String PREFERENCE_TAG_NAME = "Preference";
 
   private static final ImmutableSet<String> SIZE_NOT_REQUIRED_TAG_NAMES =
@@ -310,7 +309,8 @@ public final class AttributeProcessingUtil {
       if (styleableName != null) {
         registerAttributes(facet, element, styleableName, getResourcePackage(c), callback, skipNames);
       }
-      for (PsiClass additional : getAdditionalAttributesClasses(facet, c)) {
+      PsiClass additional = getAdditionalAttributesClass(facet, c);
+      if (additional != null) {
         String additionalStyleableName = additional.getName();
         if (additionalStyleableName != null) {
           registerAttributes(facet, element, additionalStyleableName, getResourcePackage(additional), callback, skipNames);
@@ -321,15 +321,15 @@ public final class AttributeProcessingUtil {
   }
 
   /**
-   * Return the classes that hold attributes used in the specified class c.
-   * This is for classes from support libaries without attrs.xml like support lib v4.
+   * Returns the class that holds attributes used in the specified class c.
+   * This is for classes from support libraries without attrs.xml like support lib v4.
    */
-  private static Collection<PsiClass> getAdditionalAttributesClasses(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
+  private static @Nullable PsiClass getAdditionalAttributesClass(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
     if (CLASS_NESTED_SCROLL_VIEW.isEquals(StringUtil.notNullize(c.getQualifiedName()))) {
-      return Collections.singleton(findViewValidInXMLByName(facet, SCROLL_VIEW));
+      return findViewValidInXMLByName(facet, SCROLL_VIEW);
     }
 
-    return Collections.emptySet();
+    return null;
   }
 
   @Nullable
@@ -460,7 +460,7 @@ public final class AttributeProcessingUtil {
     @NotNull Set<XmlName> skipAttrNames,
     @NotNull ResourceNamespace resourceNamespace
   ) {
-    ResourceRepository repo = ResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceNamespace);
+    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceNamespace);
     if (repo == null) return;
 
     //@see AttributeProcessingUtil.getLayoutStyleablePrimary and AttributeProcessingUtil.getLayoutStyleableSecondary

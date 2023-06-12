@@ -24,7 +24,6 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.ui.validation.validators.PathValidator
@@ -33,6 +32,7 @@ import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
+import com.android.tools.sdk.isValid
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -53,7 +53,7 @@ import com.intellij.util.containers.notNullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
-import org.jetbrains.android.sdk.AndroidSdkData
+import com.android.tools.sdk.AndroidSdkData
 import org.jetbrains.annotations.Contract
 import java.awt.BorderLayout
 import java.awt.Container
@@ -221,7 +221,7 @@ class SdkComponentsStep(
   override fun getPreferredFocusComponent(): JComponent = componentsTable
 
   // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid/reduce freezes?
-  private lateinit var componentInstaller: ComponentInstaller
+  lateinit var componentInstaller: ComponentInstaller
 
   init {
     val localHandler = model.localHandler
@@ -457,7 +457,7 @@ fun isExistingSdk(path: String?): Boolean {
   if (path.isNullOrBlank()) {
     return false
   }
-  return File(path).run { isDirectory && IdeSdks.getInstance().isValidAndroidSdkPath(this) }
+  return File(path).run { isDirectory && isValid(this) }
 }
 
 @Contract("null->false")

@@ -28,9 +28,6 @@ import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.Targets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,20 +37,18 @@ final class AsyncPhysicalDeviceBuilder {
   private final @NotNull IDevice myDevice;
   private final @NotNull Key myKey;
 
-  private final @NotNull ListenableFuture<@NotNull AndroidVersion> myVersionFuture;
-  private final @NotNull ListenableFuture<@NotNull DeviceType> myTypeFuture;
-  private final @NotNull ListenableFuture<@NotNull String> myModelFuture;
-  private final @NotNull ListenableFuture<@NotNull String> myManufacturerFuture;
+  private final @NotNull ListenableFuture<AndroidVersion> myVersionFuture;
+  private final @NotNull ListenableFuture<DeviceType> myTypeFuture;
+  private final @NotNull ListenableFuture<String> myModelFuture;
+  private final @NotNull ListenableFuture<String> myManufacturerFuture;
 
   @UiThread
   AsyncPhysicalDeviceBuilder(@NotNull IDevice device, @NotNull Key key) {
     myDevice = device;
     myKey = key;
 
-    ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
-
-    myVersionFuture = service.submit(device::getVersion);
-    myTypeFuture = service.submit(this::getType);
+    myVersionFuture = DeviceManagerFutures.appExecutorServiceSubmit(device::getVersion);
+    myTypeFuture = DeviceManagerFutures.appExecutorServiceSubmit(this::getType);
     myModelFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MODEL);
     myManufacturerFuture = device.getSystemProperty(IDevice.PROP_DEVICE_MANUFACTURER);
   }
@@ -87,7 +82,7 @@ final class AsyncPhysicalDeviceBuilder {
   }
 
   @UiThread
-  @NotNull ListenableFuture<@NotNull PhysicalDevice> buildAsync() {
+  @NotNull ListenableFuture<PhysicalDevice> buildAsync() {
     // noinspection UnstableApiUsage
     return Futures.whenAllComplete(myVersionFuture, myTypeFuture, myModelFuture, myManufacturerFuture)
       .call(this::build, EdtExecutorService.getInstance());

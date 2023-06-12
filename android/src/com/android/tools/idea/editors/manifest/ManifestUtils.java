@@ -34,6 +34,7 @@ import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
@@ -57,7 +58,6 @@ import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -66,7 +66,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-public final class ManifestUtils {
+public class ManifestUtils {
 
   private ManifestUtils() {
   }

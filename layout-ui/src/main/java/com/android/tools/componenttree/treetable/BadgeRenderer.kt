@@ -17,6 +17,7 @@ package com.android.tools.componenttree.treetable
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.componenttree.api.BadgeItem
+import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
@@ -28,7 +29,7 @@ import javax.swing.table.TableCellRenderer
 /**
  * Renderer used for each [BadgeItem] specified.
  */
-class BadgeRenderer(val badge: BadgeItem, private val emptyIcon: Icon) : TableCellRenderer, JBLabel() {
+class BadgeRenderer(val badge: BadgeItem, val emptyIcon: Icon) : TableCellRenderer, JBLabel() {
   init {
     horizontalAlignment = JLabel.CENTER
     text = null
@@ -53,5 +54,5 @@ class BadgeRenderer(val badge: BadgeItem, private val emptyIcon: Icon) : TableCe
   }
 
   private fun Icon.white(focused: Boolean): Icon =
-    if (focused) ColoredIconGenerator.generateWhiteIcon(this) else this
+    if (focused && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(this) else this
 }

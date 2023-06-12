@@ -65,7 +65,7 @@ public class HorizontalScrollViewHandler extends ScrollViewHandler {
 
     if (maxScrollableWidth > 0) {
       // There is something to scroll
-      return ScrollViewScrollHandler.createHandler(viewGroup, maxScrollableWidth, 10, ScrollViewScrollHandler.Orientation.HORIZONTAL);
+      return ScrollViewScrollHandler.createHandler(viewGroup, component, maxScrollableWidth, 10, ScrollViewScrollHandler.Orientation.HORIZONTAL);
     }
 
     return null;

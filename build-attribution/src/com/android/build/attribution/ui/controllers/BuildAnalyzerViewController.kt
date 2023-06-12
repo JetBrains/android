@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.controllers
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.analyzers.checkJetifierResultFile
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.StudioProvidedInfo
@@ -34,6 +35,7 @@ import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
+import com.android.buildanalyzer.common.TaskCategory
 import com.android.builder.model.PROPERTY_CHECK_JETIFIER_RESULT_FILE
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -47,10 +49,10 @@ import com.android.tools.idea.memorysettings.MemorySettingsConfigurable
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.lang.properties.IProperty
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
@@ -64,7 +66,6 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.RangeBlinker
-import org.jetbrains.android.refactoring.disableJetifier
 import java.time.Duration
 import java.util.function.Supplier
 
@@ -86,11 +87,11 @@ class BuildAnalyzerViewController(
     analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.DATA_VIEW_COMBO_SELECTED, duration)
   }
 
-  override fun changeViewToTasksLinkClicked(targetGrouping: Grouping) {
+  override fun changeViewToTasksLinkClicked(targetGrouping: Grouping?) {
     val currentAnalyticsPage = analytics.getStateFromModel(model)
     val duration = runAndMeasureDuration {
       model.selectedData = BuildAnalyzerViewModel.DataSet.TASKS
-      model.tasksPageModel.selectGrouping(targetGrouping)
+      model.tasksPageModel.selectGrouping(targetGrouping ?: model.tasksPageModel.defaultGrouping)
     }
     val newAnalyticsPage = analytics.getStateFromModel(model)
     analytics.pageChange(currentAnalyticsPage, newAnalyticsPage, BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK, duration)
@@ -200,13 +201,23 @@ class BuildAnalyzerViewController(
   }
 
   override fun runTestConfigurationCachingBuild() {
-    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow(model.reportUiData.buildRequest)
+    val configurationCacheData = (model.reportUiData.confCachingData as? NoIncompatiblePlugins) ?: return
+    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow(
+      model.reportUiData.buildRequestData,
+      configurationCacheData.configurationCacheIsStableFeature)
     analytics.rerunBuildWithConfCacheClicked()
   }
 
-  override fun turnConfigurationCachingOnInProperties() {
-    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
+  override fun turnConfigurationCachingOnInProperties(isFeatureConsideredStable: Boolean) {
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, isFeatureConsideredStable)
     analytics.turnConfigurationCacheOnInPropertiesClicked()
+  }
+
+  override fun migrateToNonTransitiveRClass() {
+    ActionManager.getInstance().tryToExecute(
+      ActionManager.getInstance().getAction("AndroidMigrateToNonTransitiveRClassesAction"),
+      null, null, null, true)
+    analytics.migrateToNonTransitiveRClassesClicked()
   }
 
   override fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning) {
@@ -222,7 +233,7 @@ class BuildAnalyzerViewController(
 
   override fun runCheckJetifierTask() {
     val duration = runAndMeasureDuration {
-      val request = createCheckJetifierTaskRequest(model.reportUiData.buildRequest)
+      val request = createCheckJetifierTaskRequest(project, model.reportUiData.buildRequestData)
       GradleBuildInvoker.getInstance(project).executeTasks(request)
     }
     analytics.runCheckJetifierTaskClicked(duration)
@@ -230,28 +241,26 @@ class BuildAnalyzerViewController(
 
   override fun turnJetifierOffInProperties(sourceRelativePointSupplier: Supplier<RelativePoint>) {
     val duration = runAndMeasureDuration {
-      WriteCommandAction.runWriteCommandAction(project) {
-        project.disableJetifier { property ->
-          if (property == null) {
-            invokeLater {
-              val feedbackBalloonRelativePoint = sourceRelativePointSupplier.get()
-              val message = "'android.enableJetifier' property is not found in 'gradle.properties'. Was it already removed?"
-              createPropertyRemovalFeedbackBalloon(message, MessageType.ERROR)
-                .show(feedbackBalloonRelativePoint, Balloon.Position.below)
-            }
+      StudioProvidedInfo.disableJetifier(project) { property ->
+        if (property == null) {
+          invokeLater {
+            val feedbackBalloonRelativePoint = sourceRelativePointSupplier.get()
+            val message = "'android.enableJetifier' property is not found in 'gradle.properties'. Was it already removed?"
+            createPropertyRemovalFeedbackBalloon(message, MessageType.ERROR)
+              .show(feedbackBalloonRelativePoint, Balloon.Position.below)
           }
-          else {
-            invokeLater {
-              val openFileDescriptor = OpenFileDescriptor(project, property.propertiesFile.virtualFile,
-                                                          property.psiElement.textRange.endOffset)
-              FileEditorManager.getInstance(project).openTextEditor(openFileDescriptor, true)?.let { editor ->
-                blinkPropertyTextInEditor(editor, property)
-                val pointInEditor = JBPopupFactory.getInstance().guessBestPopupLocation(editor)
-                val message = "'android.enableJetifier' property is now set to false.<br/>" +
-                              "Please, remove it after reviewing any associated comments."
-                createPropertyRemovalFeedbackBalloon(message, MessageType.INFO)
-                  .show(pointInEditor, Balloon.Position.atRight)
-              }
+        }
+        else {
+          invokeLater {
+            val openFileDescriptor = OpenFileDescriptor(project, property.propertiesFile.virtualFile,
+                                                        property.psiElement.textRange.endOffset)
+            FileEditorManager.getInstance(project).openTextEditor(openFileDescriptor, true)?.let { editor ->
+              blinkPropertyTextInEditor(editor, property)
+              val pointInEditor = JBPopupFactory.getInstance().guessBestPopupLocation(editor)
+              val message = "'android.enableJetifier' property is now set to false.<br/>" +
+                            "Please, remove it after reviewing any associated comments."
+              createPropertyRemovalFeedbackBalloon(message, MessageType.INFO)
+                .show(pointInEditor, Balloon.Position.atRight)
             }
           }
         }
@@ -278,6 +287,20 @@ class BuildAnalyzerViewController(
 
   override fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>): AnAction {
     return FindSelectedLibVersionDeclarationAction(selectionSupplier, project, analytics)
+  }
+
+  override fun redirectToTaskCategoryWarningsPage(taskCategory: TaskCategory) {
+    // if the view is grouped by category navigate to the root node, otherwise switch to the warnings page
+    if (model.selectedData == BuildAnalyzerViewModel.DataSet.TASKS && model.tasksPageModel.selectedGrouping == Grouping.BY_TASK_CATEGORY) {
+      model.tasksPageModel.selectPageById(TasksPageId.taskCategory(taskCategory))
+    } else {
+      model.selectedData = BuildAnalyzerViewModel.DataSet.WARNINGS
+      if (taskCategory != TaskCategory.JAVA) {
+        model.warningsPageModel.selectPageById(WarningsPageId.taskCategory(taskCategory))
+      } else {
+        model.warningsPageModel.selectPageById(WarningsPageId.annotationProcessorRoot)
+      }
+    }
   }
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {
@@ -328,12 +351,13 @@ class PluginVersionDeclarationFinder(val project: Project) {
   }
 }
 
-fun createCheckJetifierTaskRequest(originalBuildRequest: GradleBuildInvoker.Request): GradleBuildInvoker.Request {
-  return builder(originalBuildRequest.project, originalBuildRequest.rootProjectPath, listOf(CHECK_JETIFIER_TASK_NAME))
-    .setCommandLineArguments(listOf(
-      createProjectProperty(PROPERTY_CHECK_JETIFIER_RESULT_FILE, checkJetifierResultFile(originalBuildRequest).absolutePath),
-      // 'checkJetifier' task does not support configuration cache so switch it off for this run to avoid errors.
-      "--no-configuration-cache"
-    ))
-    .build()
-}
+fun createCheckJetifierTaskRequest(
+  project: Project,
+  originalBuildRequestData: GradleBuildInvoker.Request.RequestData
+): GradleBuildInvoker.Request = builder(project, originalBuildRequestData.rootProjectPath, listOf(CHECK_JETIFIER_TASK_NAME))
+  .setCommandLineArguments(listOf(
+    createProjectProperty(PROPERTY_CHECK_JETIFIER_RESULT_FILE, checkJetifierResultFile(originalBuildRequestData).absolutePath),
+    // 'checkJetifier' task does not support configuration cache so switch it off for this run to avoid errors.
+    "--no-configuration-cache"
+  ))
+  .build()

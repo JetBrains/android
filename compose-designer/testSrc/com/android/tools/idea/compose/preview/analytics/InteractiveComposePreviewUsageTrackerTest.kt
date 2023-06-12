@@ -17,23 +17,26 @@ package com.android.tools.idea.compose.preview.analytics
 
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.InteractivePreviewEvent
+import java.util.concurrent.Executor
+import java.util.function.Consumer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.Executor
-import java.util.function.Consumer
 
 class InteractiveComposePreviewUsageTrackerTest {
   private lateinit var myInteractivePreviewUsageTracker: InteractivePreviewUsageTracker
 
   private var myLastEventBuilder: AndroidStudioEvent.Builder? = null
 
-  private val myEventLogger = Consumer { event: AndroidStudioEvent.Builder -> myLastEventBuilder = event }
+  private val myEventLogger = Consumer { event: AndroidStudioEvent.Builder ->
+    myLastEventBuilder = event
+  }
 
   @Before
   fun setUp() {
-    myInteractivePreviewUsageTracker = InteractiveComposePreviewUsageTracker(Executor { command -> command.run() }, myEventLogger)
+    myInteractivePreviewUsageTracker =
+      InteractiveComposePreviewUsageTracker(Executor { command -> command.run() }, myEventLogger)
   }
 
   @Test
@@ -48,7 +51,10 @@ class InteractiveComposePreviewUsageTrackerTest {
 
     val interactiveEvent = event.interactivePreviewEvent
 
-    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS)
+    assertEquals(
+      interactiveEvent.type,
+      InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS
+    )
     assertEquals(interactiveEvent.fps, 30)
     assertEquals(interactiveEvent.durationMs, 15000)
     assertEquals(interactiveEvent.actions, 15)
@@ -66,7 +72,10 @@ class InteractiveComposePreviewUsageTrackerTest {
 
     val interactiveEvent = event.interactivePreviewEvent
 
-    assertEquals(interactiveEvent.type, InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME)
+    assertEquals(
+      interactiveEvent.type,
+      InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME
+    )
     assertEquals(interactiveEvent.startupTimeMs, 500)
     assertEquals(interactiveEvent.peerPreviews, 3)
   }

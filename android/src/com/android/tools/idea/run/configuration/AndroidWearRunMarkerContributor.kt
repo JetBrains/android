@@ -34,10 +34,6 @@ import org.jetbrains.kotlin.lexer.KtTokens
  */
 class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
   override fun getInfo(e: PsiElement): Info? {
-    if (!StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.get()) {
-      return null
-    }
-
     val elementType = e.node.elementType
     if (!(elementType is KtToken && elementType == KtTokens.CLASS_KEYWORD) // do not force loading of KtTokens in Java files
         && !(elementType is IJavaElementType && elementType == JavaTokenType.CLASS_KEYWORD)) {

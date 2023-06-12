@@ -78,7 +78,7 @@ class LocaleAnalyzerTest {
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, layoutFile)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
@@ -139,7 +139,7 @@ class LocaleAnalyzerTest {
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, layoutFile)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->
@@ -199,7 +199,7 @@ class LocaleAnalyzerTest {
 
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, layoutFile)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, layoutFile)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, layoutFile)
 
     val analyzer = LocaleAnalyzer(VisualLintBaseConfigIssues())
     RenderTestUtil.withRenderTask(facet, layoutFile, configuration) { task: RenderTask ->

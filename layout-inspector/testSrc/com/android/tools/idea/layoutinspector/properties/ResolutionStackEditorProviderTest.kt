@@ -20,6 +20,7 @@ import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.LambdaParameterItem
 import com.android.tools.idea.layoutinspector.ui.ResolutionElementEditor
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
@@ -82,7 +83,7 @@ class ResolutionStackEditorProviderTest {
 
   @Test
   fun createLambdaEditor() {
-    val property = LambdaPropertyItem("onText", -2, "com.example", "Text.kt", "f1$1", "", 34, 34, mock())
+    val property = LambdaParameterItem("onText", PropertySection.DEFAULT, -2, -1, 0, "com.example", "Text.kt", "f1$1", "", 34, 34, mock())
     val propertiesModel = InspectorPropertiesModel()
     val provider = ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)

@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.icons.CoreIconManager;
@@ -27,11 +26,10 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
-  GradleProjectSystemTestSuite.class
+  GradleProjectSystemTestSuite.class,
+  GradleProjectSystemOldAgpTestSuite.class,
 })
 public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
-
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {

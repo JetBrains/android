@@ -39,10 +39,9 @@ class AllocationSamplingRateDataSeriesTest {
 
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer)
-  private val myService = FakeMemoryService()
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myTransportService, myService)
+  var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myTransportService)
 
   @Test
   fun testGetDataForXRange() {
@@ -56,7 +55,7 @@ class AllocationSamplingRateDataSeriesTest {
                                         ProfilersTestData.generateMemoryAllocSamplingData(
                                           ProfilersTestData.SESSION_DATA, TIMESTAMP3, SAMPLING_RATE3).build())
 
-    val series = AllocationSamplingRateDataSeries(ProfilerClient(myGrpcChannel.channel), ProfilersTestData.SESSION_DATA, true)
+    val series = AllocationSamplingRateDataSeries(ProfilerClient(myGrpcChannel.channel), ProfilersTestData.SESSION_DATA)
     val dataList = series.getDataForRange(Range(0.0, java.lang.Double.MAX_VALUE))
 
     assertThat(dataList.size).isEqualTo(3)
@@ -91,7 +90,7 @@ class AllocationSamplingRateDataSeriesTest {
                                         ProfilersTestData.generateMemoryAllocSamplingData(
                                           ProfilersTestData.SESSION_DATA, TIMESTAMP3, SAMPLING_RATE3).build())
 
-    val series = AllocationSamplingRateDataSeries(ProfilerClient(myGrpcChannel.channel), ProfilersTestData.SESSION_DATA, true)
+    val series = AllocationSamplingRateDataSeries(ProfilerClient(myGrpcChannel.channel), ProfilersTestData.SESSION_DATA)
     val dataList = series.getDataForRange(Range(4.0, java.lang.Double.MAX_VALUE))
 
     assertThat(dataList.size).isEqualTo(1)

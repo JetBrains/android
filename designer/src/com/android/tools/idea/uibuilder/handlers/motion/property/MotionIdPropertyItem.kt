@@ -19,7 +19,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property.NlIdPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.intellij.psi.xml.XmlAttributeValue
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 
 /**
  * Property item for an ID.

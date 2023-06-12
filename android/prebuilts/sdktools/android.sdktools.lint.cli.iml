@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="module-library" exported="">
+      <library name="lint-cli-psi-prebuilts">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/intellij-core/intellij-core.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/kotlin-compiler/kotlin-compiler.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-common.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-java.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-kotlin.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/intellij-core/intellij-core-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/kotlin-compiler/kotlin-compiler-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-common-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-java-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/lint-psi/uast/uast-kotlin-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.lint-api" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-lint.cli" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.cli:223.0.1.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli/223.0.1.0/studio.android.sdktools.lint.cli-223.0.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="precompiled-lint.cli-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.cli_test:223.0.1.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.cli_test/223.0.1.0/studio.android.sdktools.lint.cli_test-223.0.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>

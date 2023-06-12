@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utility methods for generating light class.
  */
-public final class CodeUtils {
+public class CodeUtils {
 
   /**
    * Gets {@link PsiClassType} based on {@link TensorInfo}

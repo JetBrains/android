@@ -38,10 +38,10 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.jf.dexlib2.dexbacked.DexBackedClassDef;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedClassDef;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
+import com.android.tools.smali.dexlib2.dexbacked.reference.DexBackedMethodReference;
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 
 class DexFileStructure {
   // All dex files represented by this node.

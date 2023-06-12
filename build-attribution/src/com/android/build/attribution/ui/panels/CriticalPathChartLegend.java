@@ -30,7 +30,7 @@ public interface CriticalPathChartLegend {
 
   ChartColor androidPluginColor = new ChartColor(new Color(0xA2DFFE));
   ChartColor externalPluginColor = new ChartColor(new Color(0x097F5));
-  ChartColor buildsrcPluginColor = new ChartColor(new Color(0xA78BD9));
+  ChartColor buildscriptPluginColor = new ChartColor(new Color(0xA78BD9));
 
   ChartColor[] categoricalGooglePalette = new ChartColor[]{
     new ChartColor(new Color(0x97B1C0)),
@@ -63,8 +63,8 @@ public interface CriticalPathChartLegend {
 
   static ChartColor resolveTaskColor(TaskUiData taskData) {
     switch (taskData.getSourceType()) {
-      case BUILD_SRC:
-        return buildsrcPluginColor;
+      case BUILD_SCRIPT:
+        return buildscriptPluginColor;
       case ANDROID_PLUGIN:
         return androidPluginColor;
       case THIRD_PARTY:
@@ -88,7 +88,7 @@ public interface CriticalPathChartLegend {
     @NotNull
     public ChartColor getColor(@NotNull String name) {
       return pluginToColorMapping
-        .computeIfAbsent(name, key -> categoricalGooglePalette[Math.min(paletteCursor++, categoricalGooglePalette.length)]);
+        .computeIfAbsent(name, key -> categoricalGooglePalette[Math.min(paletteCursor++, categoricalGooglePalette.length - 1)]);
     }
 
     @NotNull

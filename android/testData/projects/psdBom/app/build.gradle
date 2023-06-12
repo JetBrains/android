@@ -1,0 +1,10 @@
+apply plugin: 'com.android.application'
+
+android {
+  compileSdkVersion 19 // This will be replaced by AndroidGradleTestCase
+}
+
+dependencies {
+  implementation platform(project(':platform'))
+  implementation "com.android.support:appcompat-v7"
+}

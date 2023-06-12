@@ -48,7 +48,7 @@ class NavPropertiesView(model: NlPropertiesModel) : PropertiesView<NlPropertyIte
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
-    main.builders.add(SelectedComponentBuilder())
+    main.builders.add(SelectedComponentBuilder(model))
     val tab = addTab("")
     tab.builders.add(IdInspectorBuilder(editorProvider))
     tab.builders.add(LabelInspectorBuilder(editorProvider))

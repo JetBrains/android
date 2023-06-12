@@ -134,6 +134,7 @@ public class TransportServiceProxyTest {
     Map.Entry<Integer, Common.Process> cachedProcess = cachedProcesses.entrySet().iterator().next();
     assertThat(cachedProcess.getKey()).isEqualTo(client1.getClientData().getPid());
     assertThat(cachedProcess.getValue().getPid()).isEqualTo(1);
+    assertThat(cachedProcess.getValue().getPackageName()).isEqualTo("test1");
     assertThat(cachedProcess.getValue().getName()).isEqualTo("testClientDescription");
     assertThat(cachedProcess.getValue().getState()).isEqualTo(Common.Process.State.ALIVE);
     assertThat(cachedProcess.getValue().getAbiCpuArch()).isEqualTo(SdkConstants.CPU_ARCH_ARM);
@@ -153,6 +154,7 @@ public class TransportServiceProxyTest {
     assertThat(cachedProcesses.size()).isEqualTo(2);
     Common.Process process1 = cachedProcesses.get(1);
     assertThat(process1.getPid()).isEqualTo(1);
+    assertThat(process1.getPackageName()).isEqualTo("test1");
     assertThat(process1.getName()).isEqualTo("name1");
     assertThat(process1.getState()).isEqualTo(Common.Process.State.ALIVE);
     assertThat(process1.getAbiCpuArch()).isEqualTo(SdkConstants.CPU_ARCH_ARM);
@@ -373,6 +375,15 @@ public class TransportServiceProxyTest {
     assertThat(receivedData.get(1)).isEqualTo(preprocessor.preprocessBytes("1", FakeTransportService.TEST_BYTES));
   }
 
+  @Test
+  public void bootIdIsSetCorrectly() throws Exception {
+    Client client1 = createMockClient(1, "test1", "name1");
+    ProfileableClient client2 = createMockProfileableClient(2, "name2");
+    IDevice device = createMockDevice(AndroidVersion.VersionCodes.S, new Client[]{client1}, new ProfileableClient[] { client2 });
+    Common.Device transportDevice = TransportServiceProxy.transportDeviceFromIDevice(device);
+    assertThat(transportDevice.getBootId()).isEqualTo("boot-id");
+  }
+
   /**
    * @param uniqueName Name should be unique across tests.
    */
@@ -408,6 +419,7 @@ public class TransportServiceProxyTest {
       public Void answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         ((IShellOutputReceiver)args[1]).addOutput("boot-id\n".getBytes(), 0, 8);
+        ((IShellOutputReceiver)args[1]).flush();
         return null;
       }
     }).when(mockDevice).executeShellCommand(anyString(), any(IShellOutputReceiver.class));

@@ -39,23 +39,29 @@ import java.io.File
 
 fun ProjectDumper.dumpLintModels(project: Project) {
   nest(File(project.basePath!!), "PROJECT") {
-    ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
-      head("MODULE") { module.name }
-      nest {
-        val androidModuleModel = GradleAndroidModel.get(module)
-        // Skip all but holders to prevent needless spam in the snapshots. All modules
-        // point to the same facet.
-        if (module.isHolderModule() && androidModuleModel != null) {
-          val lintModelModule = LintModelFactory().create(
-            androidModuleModel.androidProject,
-            androidModuleModel.variants,
-            androidModuleModel.rootDirPath,
-            deep = true
-          )
-          dump(lintModelModule)
+    ModuleManager.getInstance(project)
+      .modules
+      .sortedBy { it.name }
+      .forEach { module ->
+        head("MODULE") { module.name }
+        nest {
+          val androidModuleModel = GradleAndroidModel.get(module)
+          // Skip all but holders to prevent needless spam in the snapshots. All modules
+          // point to the same facet.
+          if (module.isHolderModule() && androidModuleModel != null) {
+            val lintModelModule =
+              LintModelFactory()
+                .create(
+                  androidModuleModel.androidProject,
+                  androidModuleModel.variants,
+                  androidModuleModel.androidProject.multiVariantData!!,
+                  androidModuleModel.rootDirPath,
+                  deep = true
+                )
+            dump(lintModelModule)
+          }
         }
       }
-    }
   }
 }
 
@@ -64,12 +70,14 @@ private fun ProjectDumper.dump(lintModelModule: LintModelModule) {
   prop("ModulePath") { lintModelModule.modulePath }
   prop("Type") { lintModelModule.type.toString() }
   prop("MavenName") { lintModelModule.mavenName?.toString() }
-  prop("GradleVersion") { lintModelModule.gradleVersion?.toString()?.replaceKnownPaths() }
+  prop("AGPVersion") { lintModelModule.agpVersion?.toString()?.replaceKnownPaths() }
   prop("BuildFolder") { lintModelModule.buildFolder.path.toPrintablePath() }
   lintModelModule.lintRuleJars.forEach { prop("- LintRuleJars") { it.path.toPrintablePath() } }
   prop("ResourcePrefix") { lintModelModule.resourcePrefix }
   lintModelModule.dynamicFeatures.forEach { prop("- DynamicFeatures") { it } }
-  lintModelModule.bootClassPath.forEach { prop("- BootClassPath") { it.path.toPrintablePath().replaceCurrentSdkVersion() } }
+  lintModelModule.bootClassPath.forEach {
+    prop("- BootClassPath") { it.path.toPrintablePath().replaceCurrentSdkVersion() }
+  }
   prop("JavaSourceLevel") { lintModelModule.javaSourceLevel }
   prop("CompileTarget") { lintModelModule.compileTarget.replaceCurrentSdkVersion() }
   this.dump(lintModelModule.lintOptions)
@@ -107,9 +115,7 @@ private fun ProjectDumper.dump(lintOptions: LintModelLintOptions) {
     if (lintOptions.severityOverrides.orEmpty().isNotEmpty()) {
       head("SeverityOverrides")
       nest {
-        lintOptions.severityOverrides?.forEach { key, value ->
-          prop(key) { value.toString() }
-        }
+        lintOptions.severityOverrides?.forEach { key, value -> prop(key) { value.toString() } }
       }
     }
   }
@@ -122,78 +128,60 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
       head("BuildFeatures")
       nest {
         prop("ViewBinding") { lintModelVariant.buildFeatures.viewBinding.toString() }
-        prop("CoreLibraryDesugaringEnabled") { lintModelVariant.buildFeatures.coreLibraryDesugaringEnabled.toString() }
+        prop("CoreLibraryDesugaringEnabled") {
+          lintModelVariant.buildFeatures.coreLibraryDesugaringEnabled.toString()
+        }
         prop("NamespacingMode") { lintModelVariant.buildFeatures.namespacingMode.toString() }
       }
     }
     nest {
-      prop("UseSupportLibraryVectorDrawables") { useSupportLibraryVectorDrawables.takeIf { it }?.toString() }
-      head("MainArtifact")
-      nest {
-        dump(mainArtifact)
+      prop("UseSupportLibraryVectorDrawables") {
+        useSupportLibraryVectorDrawables.takeIf { it }?.toString()
       }
+      head("MainArtifact")
+      nest { dump(mainArtifact) }
       testArtifact?.let { testArtifact ->
         head("TestArtifact")
-        nest {
-          dump(testArtifact)
-        }
+        nest { dump(testArtifact) }
       }
-      androidTestArtifact?.let { androidTestArtifact ->
-        dump(androidTestArtifact)
-      }
+      androidTestArtifact?.let { androidTestArtifact -> dump(androidTestArtifact) }
       testFixturesArtifact?.let { testFixturesArtifact ->
         head("TestFixturesArtifact")
-        nest {
-          dump(testFixturesArtifact)
-        }
+        nest { dump(testFixturesArtifact) }
       }
       prop("Package") { `package` }
       prop("MinSdkVersion") { minSdkVersion?.toString() }
       prop("TargetSdkVersion") { targetSdkVersion?.toString()?.replaceCurrentSdkVersion() }
       if (resValues.isNotEmpty()) {
         head("ResValues")
-        nest {
-          resValues.forEach { (key, value) ->
-            prop(key) { value.toString() }
-          }
-        }
+        nest { resValues.forEach { (key, value) -> prop(key) { value.toString() } } }
       }
       if (manifestPlaceholders.isNotEmpty()) {
         head("ManifestPlaceholders")
-        nest {
-          manifestPlaceholders.forEach { (key, value) ->
-            prop(key) { value.toString() }
-          }
-        }
+        nest { manifestPlaceholders.forEach { (key, value) -> prop(key) { value.toString() } } }
       }
       resourceConfigurations.forEach { prop("- ResourceConfigurations") { it } }
       proguardFiles.forEach { prop("- ProguardFiles") { it.path.toPrintablePath() } }
-      consumerProguardFiles.forEach { prop("- ConsumerProguardFiles") { it.path.toPrintablePath() } }
+      consumerProguardFiles.forEach {
+        prop("- ConsumerProguardFiles") { it.path.toPrintablePath() }
+      }
       if (sourceProviders.isNotEmpty()) {
         head("SourceProviders")
-        nest {
-          sourceProviders.forEach { dump(it) }
-        }
+        nest { sourceProviders.forEach { dump(it) } }
       }
       if (testSourceProviders.isNotEmpty()) {
         head("TestSourceProviders")
-        nest {
-          testSourceProviders.forEach { dump(it) }
-        }
+        nest { testSourceProviders.forEach { dump(it) } }
       }
       if (testFixturesSourceProviders.isNotEmpty()) {
         head("TestFixturesSourceProviders")
-        nest {
-          testFixturesSourceProviders.forEach { dump(it) }
-        }
+        nest { testFixturesSourceProviders.forEach { dump(it) } }
       }
       prop("Debuggable") { debuggable.takeIf { it }?.toString() }
       prop("Shrinkable") { shrinkable.takeIf { it }?.toString() }
 
       head("LibraryResolver")
-      nest {
-        libraryResolver.getAllLibraries().sortedBy { it.identifier }.forEach { dump(it) }
-      }
+      nest { libraryResolver.getAllLibraries().sortedBy { it.identifier }.forEach { dump(it) } }
     }
   }
 }
@@ -201,8 +189,15 @@ private fun ProjectDumper.dump(lintModelVariant: LintModelVariant) {
 private fun ProjectDumper.dump(lintModelAndroidArtifact: LintModelAndroidArtifact) {
   with(lintModelAndroidArtifact) {
     prop("ApplicationId") { applicationId }
-    generatedResourceFolders.sorted().forEach { prop("- GeneratedResourceFolders") { it.path.toPrintablePath() } }
-    generatedSourceFolders.sorted().forEach { prop("- GeneratedSourceFolders") { it.path.toPrintablePath() } }
+    generatedResourceFolders.sorted().forEach {
+      prop("- GeneratedResourceFolders") { it.path.toPrintablePath() }
+    }
+    generatedSourceFolders.sorted().forEach {
+      prop("- GeneratedSourceFolders") { it.path.toPrintablePath() }
+    }
+    desugaredMethodsFiles.sorted().forEach {
+      prop("- DesugaredMethodFiles") { it.path.toPrintablePath() }
+    }
   }
   dump(lintModelAndroidArtifact as LintModelArtifact)
 }
@@ -214,10 +209,10 @@ private fun ProjectDumper.dump(lintModelJavaArtifact: LintModelJavaArtifact) {
 private fun ProjectDumper.dump(lintModelArtifact: LintModelArtifact) {
   with(lintModelArtifact) {
     head("Dependencies")
-    nest {
-      dump(dependencies)
-    }
-    classOutputs.sortedBy { it.path.toPrintablePath() }.forEach { prop("- ClassOutputs") { it.path.toPrintablePath() } }
+    nest { dump(dependencies) }
+    classOutputs
+      .sortedBy { it.path.toPrintablePath() }
+      .forEach { prop("- ClassOutputs") { it.path.toPrintablePath() } }
   }
 }
 
@@ -234,18 +229,22 @@ private fun ProjectDumper.dump(lintModelDependencies: LintModelDependencies) {
   with(lintModelDependencies) {
     head("CompileDependencies")
     nest {
-      compileDependencies.roots.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) }
+      compileDependencies.roots
+        .sortedBy { it.artifactName.replaceKnownPaths() }
+        .forEach { dump(it) }
     }
     head("PackageDependencies")
     nest {
-      packageDependencies.roots.sortedBy { it.artifactName.replaceKnownPaths() }.forEach { dump(it) }
+      packageDependencies.roots
+        .sortedBy { it.artifactName.replaceKnownPaths() }
+        .forEach { dump(it) }
     }
   }
 }
 
 private fun ProjectDumper.dump(lintModelSourceProvider: LintModelSourceProvider) {
   with(lintModelSourceProvider) {
-    prop("ManifestFile") { manifestFile.path.toPrintablePath() }
+    manifestFiles.forEach { prop("- ManifestFiles") { it.path.toPrintablePath() } }
     javaDirectories.forEach { prop("- JavaDirectories") { it.path.toPrintablePath() } }
     resDirectories.forEach { prop("- ResDirectories") { it.path.toPrintablePath() } }
     assetsDirectories.forEach { prop("- AssetsDirectories") { it.path.toPrintablePath() } }
@@ -256,7 +255,9 @@ private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
   with(lintModelLibrary) {
     head("LintModelLibrary") { toString().replaceKnownPaths() }
     nest {
-      (this@with as? LintModelExternalLibrary)?.jarFiles?.forEach { prop("- JarFiles") { it.path.toPrintablePath() } }
+      (this@with as? LintModelExternalLibrary)?.jarFiles?.forEach {
+        prop("- JarFiles") { it.path.toPrintablePath() }
+      }
       prop("Identifier") { identifier.replaceKnownPaths() }
       if (this@with is LintModelAndroidLibrary) {
         prop("Manifest") { manifest.path.toPrintablePath() }
@@ -272,7 +273,12 @@ private fun ProjectDumper.dump(lintModelLibrary: LintModelLibrary) {
         prop("ProguardRules") { proguardRules.path.toPrintablePath() }
       }
       prop("ProjectPath") { (this@with as? LintModelModuleLibrary)?.projectPath }
-      prop("ResolvedCoordinates") { (this@with as? LintModelExternalLibrary)?.resolvedCoordinates?.toString()?.replaceKnownPaths() }
+      prop("ResolvedCoordinates") {
+        (this@with as? LintModelExternalLibrary)
+          ?.resolvedCoordinates
+          ?.toString()
+          ?.replaceKnownPaths()
+      }
       prop("Provided") { provided.takeIf { it }?.toString() }
     }
   }

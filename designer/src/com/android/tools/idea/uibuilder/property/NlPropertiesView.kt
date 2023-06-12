@@ -43,7 +43,7 @@ class NlPropertiesView(model : NlPropertiesModel) : PropertiesView<NlPropertyIte
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
-    main.builders.add(SelectedComponentBuilder())
+    main.builders.add(SelectedComponentBuilder(model))
     val tab = addTab("")
     if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
       tab.builders.add(ComponentActionsInspectorBuilder(model))
@@ -53,9 +53,7 @@ class NlPropertiesView(model : NlPropertiesModel) : PropertiesView<NlPropertyIte
     tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))
     tab.builders.add(LayoutInspectorBuilder(model.facet.module.project, editorProvider))
     tab.builders.add(FavoritesInspectorBuilder(model, enumSupportProvider))
-    if (StudioFlags.NELE_TRANSFORM_PANEL.get()) {
-      tab.builders.add(TransformsAttributesInspectorBuilder(model, enumSupportProvider))
-    }
+    tab.builders.add(TransformsAttributesInspectorBuilder(model, enumSupportProvider))
     tab.builders.add(CommonAttributesInspectorBuilder(model.project, editorProvider))
     tab.builders.add(AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider))
   }

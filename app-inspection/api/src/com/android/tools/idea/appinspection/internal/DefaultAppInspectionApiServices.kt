@@ -24,11 +24,11 @@ import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameter
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 
 /**
- * This serves as the entry point to all public AppInspection API services, specifically:
- * 1) discover when processes start and finish.
- * 2) launch inspectors on discovered processes.
+ * This serves as the entry point to all public AppInspection API services, specifically: 1)
+ * discover when processes start and finish. 2) launch inspectors on discovered processes.
  */
-internal class DefaultAppInspectionApiServices internal constructor(
+internal class DefaultAppInspectionApiServices
+internal constructor(
   private val targetManager: AppInspectionTargetManager,
   private val createJarCopier: JarCopierCreator,
   private val discovery: AppInspectionProcessDiscovery
@@ -39,15 +39,25 @@ internal class DefaultAppInspectionApiServices internal constructor(
     targetManager.disposeClients(project)
   }
 
-  private suspend fun doAttachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {
-    val jarCopierCreator = createJarCopier(process.device) ?: throw AppInspectionCannotFindAdbDeviceException("Cannot find ADB device.")
-    val streamChannel = discovery.getStreamChannel(process.streamId)
-                        ?: throw AppInspectionProcessNoLongerExistsException(
-                          "Cannot attach to process because the device does not exist. Process: $process")
+  private suspend fun doAttachToProcess(
+    process: ProcessDescriptor,
+    projectName: String
+  ): AppInspectionTarget {
+    val jarCopierCreator =
+      createJarCopier(process.device)
+        ?: throw AppInspectionCannotFindAdbDeviceException("Cannot find ADB device.")
+    val streamChannel =
+      discovery.getStreamChannel(process.streamId)
+        ?: throw AppInspectionProcessNoLongerExistsException(
+          "Cannot attach to process because the device does not exist. Process: $process"
+        )
     return targetManager.attachToProcess(process, jarCopierCreator, streamChannel, projectName)
   }
 
-  override suspend fun attachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget {
+  override suspend fun attachToProcess(
+    process: ProcessDescriptor,
+    projectName: String
+  ): AppInspectionTarget {
     return doAttachToProcess(process, projectName)
   }
 

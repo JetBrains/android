@@ -71,7 +71,7 @@ class PreviewReader : BufferReaderState() {
     }
 }
 
-class MatchResult(private val reader: BufferReader) {
+class MatchResult(val reader: BufferReader) {
     var matcher: Matcher? = null
     var startIndex: Int = 0
 
@@ -124,9 +124,9 @@ class BufferReader : BufferReaderState() {
     var stringCache: StringCache? = null
     val tempSlice = DataSlice()
     val tempPreview = PreviewReader()
-    private val tempMatchResult = MatchResult(this)
+    val tempMatchResult = MatchResult(this)
 
-    private val charWrapper = object : CharSequence {
+    val charWrapper = object : CharSequence {
         override val length: Int
             get() = endIndexExclusive - index
 

@@ -517,6 +517,28 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testModifiedInPluginsBlockWithMultiplePlugins() throws Exception {
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_MULTIPLE_PLUGINS);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<PluginModel> plugins = buildModel.plugins();
+    verifyPlugins(ImmutableList.of("org.jetbrains.kotlin.android", "com.android.application"), plugins);
+    assertFalse(plugins.get(0).name().isModified());
+    assertFalse(plugins.get(0).version().isModified());
+    assertFalse(plugins.get(1).name().isModified());
+    assertFalse(plugins.get(1).version().isModified());
+    plugins.get(0).version().setValue("1.4.10");
+    assertFalse(plugins.get(0).name().isModified());
+    assertTrue(plugins.get(0).version().isModified());
+    assertFalse(plugins.get(1).name().isModified());
+    assertFalse(plugins.get(1).version().isModified());
+    plugins.get(1).name().setValue("com.android.library");
+    assertFalse(plugins.get(0).name().isModified());
+    assertTrue(plugins.get(0).version().isModified());
+    assertTrue(plugins.get(1).name().isModified());
+    assertFalse(plugins.get(1).version().isModified());
+  }
+
+  @Test
   public void testPluginsBlockNoDslSetVersion() throws Exception {
     writeToBuildFile(TestFile.PLUGINS_BLOCK_NO_DSL);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -677,6 +699,20 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testParsePluginBlockWithAnnotation() throws Exception {
+    isIrrelevantForGroovy("Annotations are not supported in Groovy build files");
+    writeToBuildFile(TestFile.PLUGINS_BLOCK_WITH_ANNOTATIONS);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+
+    buildModel.applyPlugin("com.android.library");
+    applyChangesAndReparse(buildModel);
+
+    verifyPlugins(ImmutableList.of("com.android.application", "com.android.library"), buildModel.plugins());
+    verifyFileContents(myBuildFile, TestFile.PLUGINS_BLOCK_WITH_ANNOTATIONS_EXPECTED);
+  }
+
+  @Test
   public void testPluginRemove() throws Exception {
     writeToBuildFile(TestFile.PLUGIN_REMOVE);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -786,10 +822,13 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY("pluginsBlockWithVersionAndApply"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_VERSION_EXPECTED("pluginsBlockWithVersionAndApplySetVersionExpected"),
     PLUGINS_BLOCK_WITH_VERSION_AND_APPLY_SET_APPLY_EXPECTED("pluginsBlockWithVersionAndApplySetApplyExpected"),
+    PLUGINS_BLOCK_WITH_MULTIPLE_PLUGINS("pluginsBlockWithMultiplePlugins"),
     PLUGINS_DSL_PARSE_KOTLIN_FUNCTION("pluginsDslParseKotlinFunction"),
     PLUGINS_BLOCK_ID_METHOD_CALL("pluginsBlockIdMethodCall"),
     PLUGINS_BLOCK_DSL_METHOD_CALL("pluginsBlockDslMethodCall"),
     PLUGINS_UNSUPPORTED_SYNTAX("pluginsWithUnsupportedSyntax"),
+    PLUGINS_BLOCK_WITH_ANNOTATIONS("pluginsBlockWithAnnotations"),
+    PLUGINS_BLOCK_WITH_ANNOTATIONS_EXPECTED("pluginsBlockWithAnnotationsExpected"),
     PLUGINS_FROM_APPLY_AND_PLUGINS_BLOCK("pluginsFromApplyAndPluginsBlock"),
     PLUGIN_REMOVE("pluginRemove"),
     PLUGIN_REMOVE_EXPECTED("pluginRemoveExpected")

@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
 
 import com.android.ide.common.resources.Locale;
 import com.android.testutils.TestUtils;
@@ -44,7 +45,7 @@ public final class TranslationsEditorGradleTest {
   public void removeLocale() throws Exception {
     // Arrange.
     myRule.getFixture().setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
-    myRule.load("stringsEditor/MyApplication", null, null);
+    myRule.load("stringsEditor/MyApplication", AGP_CURRENT, null);
 
     String projectBasePath = myRule.getProject().getBasePath();
     Path mainRes = Paths.get(projectBasePath, "app/src/main/res");

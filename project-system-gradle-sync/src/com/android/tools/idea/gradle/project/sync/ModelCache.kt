@@ -30,10 +30,11 @@ import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
+import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
@@ -56,7 +57,7 @@ import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 
 interface ModelCache {
-  val libraryResolver: (LibraryReference) -> IdeLibrary
+  val libraryLookup: (LibraryReference) -> IdeUnresolvedLibrary
   fun createLibraryTable(): IdeUnresolvedLibraryTableImpl
 
   interface V1 : ModelCache {
@@ -64,9 +65,9 @@ interface ModelCache {
       androidProject: IdeAndroidProjectImpl,
       variant: Variant,
       legacyApplicationIdModel: LegacyApplicationIdModel?,
-      modelVersion: GradleVersion?,
+      modelVersion: AgpVersion?,
       androidModuleId: ModuleId
-    ): IdeVariantWithPostProcessor
+    ): ModelResult<IdeVariantWithPostProcessor>
 
     fun androidProjectFrom(
       rootBuildId: BuildId,
@@ -74,8 +75,9 @@ interface ModelCache {
       buildName: String,
       projectPath: String,
       project: AndroidProject,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeAndroidProjectImpl
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
+    ): ModelResult<IdeAndroidProjectImpl>
 
     fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl
 
@@ -93,7 +95,7 @@ interface ModelCache {
       basicVariant: BasicVariant,
       variant: com.android.builder.model.v2.ide.Variant,
       legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeVariantCoreImpl
+    ): ModelResult<IdeVariantCoreImpl>
 
     /**
      * Supplements an incomplete instance of [IdeVariantImpl] with dependency information from a [VariantDependencies] model.
@@ -103,9 +105,10 @@ interface ModelCache {
       ownerProjectPath: String,
       variant: IdeVariantCoreImpl,
       variantDependencies: VariantDependencies,
+      bootClasspath: Collection<String>,
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildNameMap: Map<String, BuildId>
-    ): IdeVariantWithPostProcessor
+    ): ModelResult<IdeVariantWithPostProcessor>
 
     fun androidProjectFrom(
       rootBuildId: BuildId,
@@ -114,8 +117,9 @@ interface ModelCache {
       project: com.android.builder.model.v2.models.AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeAndroidProjectImpl
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
+    ): ModelResult<IdeAndroidProjectImpl>
   }
 
   fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl
@@ -132,7 +136,9 @@ interface ModelCache {
         modelCacheV2Impl(
           internedModels,
           modelCacheLock,
-          GradleVersion.parseAndroidGradlePluginVersion(Version.ANDROID_GRADLE_PLUGIN_VERSION)
+          AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
+          syncTestMode = SyncTestMode.PRODUCTION,
+          false,
         )
       } else {
         modelCacheV1Impl(internedModels, BuildFolderPaths(), modelCacheLock)
@@ -196,7 +202,7 @@ fun getDefaultVariant(variantNames: Collection<String>): String? {
   return sortedNames.first()
 }
 
-internal val GradleVersion.agpModelIncludesApplicationId: Boolean
+internal val AgpVersion.agpModelIncludesApplicationId: Boolean
    get() = isAtLeast(7, 4, 0, "alpha", 4, false)
 
 internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {

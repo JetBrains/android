@@ -18,22 +18,26 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.DefaultTimeline
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.CpuThreadTrackModel
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,17 +51,23 @@ class CpuThreadSummaryDetailsViewTest {
   }
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("CpuThreadSummaryDetailsViewTest")
+  val applicationRule = ApplicationRule()
 
   @get:Rule
-  val applicationRule = ApplicationRule()
+  val disposableRule = DisposableRule()
+
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+
+  @get:Rule
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CpuThreadSummaryDetailsViewTest", transportService)
 
   private lateinit var profilersView: StudioProfilersView
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices())
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices())
+    profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test
@@ -115,7 +125,7 @@ class CpuThreadSummaryDetailsViewTest {
       whenever(getThreadStatesForThread(123)).thenReturn(listOf())
     }
     val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(type).thenReturn(Cpu.CpuTraceType.PERFETTO)
+      whenever(type).thenReturn(TraceType.PERFETTO)
       whenever(systemTraceData).thenReturn(sysTraceData)
     }
     val cpuThreadTrackModel = CpuThreadTrackModel(
@@ -137,7 +147,7 @@ class CpuThreadSummaryDetailsViewTest {
       viewRange.set(0.0, 0.0)
     }
     val sysTrace = Mockito.mock(CpuCapture::class.java).apply {
-      whenever(type).thenReturn(Cpu.CpuTraceType.ART)
+      whenever(type).thenReturn(TraceType.ART)
     }
     val cpuThreadTrackModel = CpuThreadTrackModel(
       sysTrace,

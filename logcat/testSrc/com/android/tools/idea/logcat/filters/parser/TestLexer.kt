@@ -18,7 +18,7 @@ package com.android.tools.idea.logcat.filters.parser
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterLexer.YYINITIAL
 import com.intellij.psi.tree.IElementType
 
-private val lexer = LogcatFilterLexerWrapper()
+private val lexer = LogcatFilterLexer(null)
 
 /**
  * A simple engine that pumps string through the Lexer, so we can debug issues.
@@ -38,13 +38,12 @@ object TestLexer {
     val tokens = mutableListOf<TokenInfo>()
     while (true) {
       val element = lexer.advance() ?: break
-      @Suppress("UnstableApiUsage")
       tokens.add(TokenInfo(element, lexer.yytext(text), lexer.yystate()))
     }
     return tokens
   }
 }
 
-private fun LogcatFilterLexerWrapper.yytext(text: String) = text.substring(tokenStart, tokenEnd)
+private fun LogcatFilterLexer.yytext(text: String) = text.substring(tokenStart, tokenEnd)
 
 internal data class TokenInfo(val name: IElementType, val text: String, val state: Int = YYINITIAL)

@@ -20,6 +20,9 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
 public interface VersionCatalogModel extends GradleBlockModel {
+  String DEFAULT_CATALOG_NAME = "libs";
+  String DEFAULT_CATALOG_FILE = "gradle/libs.versions.toml";
+
   @NotNull String getName();
 
   /**

@@ -15,8 +15,8 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <facet.toolWindow id="Android Profiler"
-                      facetIdList="android,apk"
+    <library.toolWindow id="Android Profiler"
+                      librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
@@ -27,6 +27,10 @@
     <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.ChooseProfileConfigurationPopupAction"
             text="Profile..." description="Choose and profile configuration" icon="StudioIcons.Shell.Toolbar.PROFILER">
       <add-to-group group-id="RunMenu" anchor="after" relative-to-action="ChooseDebugConfiguration" />
+    </action>
+    <action id="Android.ProfileWithLowOverhead" class="com.android.tools.idea.profilers.ProfileProfileableAction">
+    </action>
+    <action id="Android.ProfileWithCompleteData" class="com.android.tools.idea.profilers.ProfileDebuggableAction">
     </action>
   </actions>
   <extensions defaultExtensionNs="com.android.run">
@@ -48,4 +52,7 @@
     <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.profilers.capture.PerfettoCaptureFileType"
               extensions="pftrace;perfetto-trace"/>
   </extensions>
+  <projectListeners>
+    <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />
+  </projectListeners>
 </idea-plugin>

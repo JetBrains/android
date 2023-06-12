@@ -18,18 +18,20 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import icons.StudioIcons;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<VirtualDevice> {
-  VirtualDeviceTableCellRenderer() {
-    super(VirtualDevice.class);
+  VirtualDeviceTableCellRenderer(@NotNull WearPairingManager manager) {
+    super(VirtualDevice.class, manager);
   }
 
+  @Nullable
   @Override
-  protected @Nullable Icon getStateIcon(@NotNull VirtualDevice device) {
+  protected Icon getStateIcon(@NotNull VirtualDevice device) {
     if (!device.getAvdInfo().getStatus().equals(AvdStatus.OK)) {
       return StudioIcons.Common.WARNING_INLINE;
     }
@@ -37,8 +39,9 @@ final class VirtualDeviceTableCellRenderer extends DeviceTableCellRenderer<Virtu
     return super.getStateIcon(device);
   }
 
+  @NotNull
   @Override
-  protected @NotNull String getLine2(@NotNull VirtualDevice device) {
+  protected String getLine2(@NotNull VirtualDevice device) {
     AvdInfo avd = device.getAvdInfo();
 
     if (!avd.getStatus().equals(AvdStatus.OK)) {

@@ -24,7 +24,7 @@ internal class AndroidSourceTypeTest {
   fun compareTo() {
 
     val expectedOrder: List<AndroidSourceType> =
-      AndroidSourceType.BUILT_IN_TYPES + listOf(
+      BUILT_IN_TYPES + listOf(
         AndroidSourceType.Custom("a"),
         AndroidSourceType.Custom("z"),
       )
@@ -35,7 +35,7 @@ internal class AndroidSourceTypeTest {
   @Test
   fun equalsAndHashcode() {
     val examples: List<AndroidSourceType> =
-      AndroidSourceType.BUILT_IN_TYPES + listOf(
+      BUILT_IN_TYPES + listOf(
         AndroidSourceType.Custom("a"),
         AndroidSourceType.Custom("z"),
       )

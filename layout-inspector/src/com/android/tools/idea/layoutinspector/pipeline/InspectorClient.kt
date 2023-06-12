@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.properties.EmptyPropertiesProvider
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_RED
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
@@ -33,7 +34,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import java.util.EnumSet
-import java.util.concurrent.CompletableFuture
 
 /**
  * Client for communicating with the agent.
@@ -90,7 +90,13 @@ interface InspectorClient: Disposable {
   /**
    * Register a handler that is triggered when this client encounters an error message
    */
-  fun registerErrorCallback(callback: (String) -> Unit)
+  fun registerErrorCallback(callback: (String?, Throwable?) -> Unit)
+
+  /**
+   * Register a handler that is triggered when this client receives an event containing the changed
+   * window roots for this device.
+   */
+  fun registerRootsEventCallback(callback: (List<*>) -> Unit)
 
   /**
    * Register a handler that is triggered when this client receives an event containing layout tree
@@ -113,7 +119,7 @@ interface InspectorClient: Disposable {
    *
    * You are only supposed to call this once.
    */
-  fun connect(project: Project)
+  suspend fun connect(project: Project)
 
   fun updateProgress(state: AttachErrorState)
 
@@ -140,7 +146,7 @@ interface InspectorClient: Disposable {
    * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
    * method should not be called, and doing so is undefined.
    */
-  fun startFetching(): CompletableFuture<Unit>
+  suspend fun startFetching()
 
   /**
    * Stop fetching information off the device.
@@ -150,7 +156,7 @@ interface InspectorClient: Disposable {
    * If this client does not have the [Capability.SUPPORTS_CONTINUOUS_MODE] capability, then this
    * method should not be called, and doing so is undefined.
    */
-  fun stopFetching(): CompletableFuture<Unit>
+  suspend fun stopFetching()
 
   /**
    * Refresh the content of the inspector.
@@ -174,6 +180,11 @@ interface InspectorClient: Disposable {
    * Save a snapshot of the current view, including all data needed to reconstitute it (e.g. properties information) to the given [path].
    */
   fun saveSnapshot(path: Path)
+
+  /**
+   * The type of client (app inspection or legacy client)
+   */
+  val clientType: ClientType
 
   /**
    * Report this client's capabilities so that external systems can check what functionality is
@@ -223,20 +234,23 @@ interface InspectorClient: Disposable {
 }
 
 object DisconnectedClient : InspectorClient {
-  override fun connect(project: Project) {}
+  override suspend fun connect(project: Project) {}
   override fun updateProgress(state: AttachErrorState) {}
 
   override fun disconnect() {}
 
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
-  override fun registerErrorCallback(callback: (String) -> Unit) = Unit
+  override fun registerErrorCallback(callback: (String?, Throwable?) -> Unit) = Unit
+  override fun registerRootsEventCallback(callback: (List<*>) -> Unit) = Unit
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
   override fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit) = Unit
 
-  override fun startFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
-  override fun stopFetching(): CompletableFuture<Unit> = CompletableFuture.completedFuture(Unit)
+  override suspend fun startFetching() { }
+  override suspend fun stopFetching() { }
   override fun refresh() {}
   override fun saveSnapshot(path: Path) {}
+
+  override val clientType: ClientType = ClientType.UNKNOWN_CLIENT_TYPE
 
   override val state = InspectorClient.State.DISCONNECTED
   override val process = object : ProcessDescriptor {
@@ -251,6 +265,7 @@ object DisconnectedClient : InspectorClient {
     }
     override val abiCpuArch: String = ""
     override val name: String = ""
+    override val packageName: String = ""
     override val isRunning: Boolean = false
     override val pid: Int = 0
     override val streamId: Long = 0
@@ -277,13 +292,15 @@ private object DisconnectedSessionStatistics : SessionStatistics {
   override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {}
   override fun resetRecompositionCountsClick() {}
   override fun attachSuccess() {}
-  override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {}
+  override fun attachError(errorCode: AttachErrorCode) {}
+  override fun composeAttachError(errorCode: AttachErrorCode) {}
   override fun frameReceived() {}
+  override fun debuggerInUse(isPaused: Boolean) {}
 
   override var currentModeIsLive: Boolean = false
   override var currentMode3D: Boolean = false
   override var hideSystemNodes: Boolean = true
   override var showRecompositions: Boolean = false
   override var recompositionHighlightColor: Int = HIGHLIGHT_COLOR_RED
-  override val memoryMeasurements: Int = 0
+  override var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
 }

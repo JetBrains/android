@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -88,7 +89,7 @@ data class WarningsFilter(
 
   companion object {
     val DEFAULT = WarningsFilter(
-      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SRC),
+      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SCRIPT),
       showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
       showAnnotationProcessorWarnings = true,
       showNonCriticalPathTasks = false,
@@ -100,7 +101,7 @@ data class WarningsFilter(
 
 abstract class WarningsFilterToggleAction(
   uiName: String,
-  private val warningsModel: WarningsDataPageModel,
+  val warningsModel: WarningsDataPageModel,
   val actionHandlers: ViewActionHandlers
 ) : AnAction(uiName), DumbAware, KeepingPopupOpenAction {
 
@@ -184,9 +185,9 @@ private class BoolValueWarningsFilterToggleAction(
   override fun isSelected(filter: WarningsFilter): Boolean = valueGetter(filter)
 }
 
-fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers): ActionGroup {
+fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): ActionGroup {
   return FilterComponentAction(
-    subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+    subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
     getModelUIText = { model.filter.toUiText() }
   ).apply {
     addAction(object : AnAction("Reset filters to default") {
@@ -203,7 +204,7 @@ fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActi
       "Show issues for other plugins", PluginSourceType.THIRD_PARTY, model, actionHandlers
     ))
     add(TaskSourceTypeWarningFilterToggleAction(
-      "Show issues for project customization", PluginSourceType.BUILD_SRC, model, actionHandlers
+      "Show issues for project customization", PluginSourceType.BUILD_SCRIPT, model, actionHandlers
     ))
     add(BoolValueWarningsFilterToggleAction(
       "Include issues for tasks non determining this build duration", model, actionHandlers,
@@ -223,11 +224,11 @@ fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActi
   }
 }
 
-fun warningsFilterComponent(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers): Component {
+fun warningsFilterComponent(model: WarningsDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): Component {
   return JPanel().apply {
     add(FilterCustomComponent(
-      warningsFilterActions(model, actionHandlers),
-      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+      warningsFilterActions(model, actionHandlers, disposable),
+      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
       getModelUIText = { model.filter.toUiText() }
     ))
   }
@@ -238,8 +239,9 @@ data class TasksFilter(
   val showTasksWithoutWarnings: Boolean
 ) {
 
-  fun acceptTask(taskData: TaskUiData): Boolean =
-    (showTasksWithoutWarnings || taskData.hasWarning) &&
+  fun acceptTask(taskData: TaskUiData, currentGrouping: TasksDataPageModel.Grouping): Boolean =
+    (showTasksWithoutWarnings || taskData.hasWarning ||
+     (currentGrouping == TasksDataPageModel.Grouping.BY_TASK_CATEGORY && taskData.relatedTaskCategoryIssues.isNotEmpty())) &&
     showTaskSourceTypes.contains(taskData.sourceType)
 
   fun toUiText(): String {
@@ -258,21 +260,21 @@ data class TasksFilter(
 
   companion object {
     val DEFAULT = TasksFilter(
-      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SRC),
+      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SCRIPT),
       showTasksWithoutWarnings = true
     )
   }
 }
 
 private fun PluginSourceType.toFilterUiShortName(): String = when (this) {
-  PluginSourceType.BUILD_SRC -> "Project customization"
+  PluginSourceType.BUILD_SCRIPT -> "Project customization"
   PluginSourceType.ANDROID_PLUGIN -> "Android/Java/Kotlin"
   PluginSourceType.THIRD_PARTY -> "Other"
 }
 
 abstract class TasksFilterToggleAction(
   uiName: String,
-  private val tasksModel: TasksDataPageModel,
+  val tasksModel: TasksDataPageModel,
   val actionHandlers: ViewActionHandlers
 ) : AnAction(uiName), DumbAware, KeepingPopupOpenAction {
 
@@ -351,17 +353,17 @@ fun tasksFilterActions(model: TasksDataPageModel, actionHandlers: ViewActionHand
     ))
     add(TaskSourceTypeTasksFilterToggleAction("Show tasks for other plugins", PluginSourceType.THIRD_PARTY, model, actionHandlers))
     add(TaskSourceTypeTasksFilterToggleAction(
-      "Show tasks for project customization", PluginSourceType.BUILD_SRC, model, actionHandlers
+      "Show tasks for project customization", PluginSourceType.BUILD_SCRIPT, model, actionHandlers
     ))
     addSeparator()
     add(TasksWithoutWarningsFilterToggleAction("Show tasks without warnings", model, actionHandlers))
   }
 
-fun tasksFilterComponent(model: TasksDataPageModel, actionHandlers: ViewActionHandlers): Component =
+fun tasksFilterComponent(model: TasksDataPageModel, actionHandlers: ViewActionHandlers, disposable: Disposable): Component =
   JPanel().apply {
     add(FilterCustomComponent(
       tasksFilterActions(model, actionHandlers),
-      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener { r.run() } },
+      subscribeToModelUpdates = { r: Runnable -> model.addModelUpdatedListener(disposable) { r.run() } },
       getModelUIText = { model.filter.toUiText() }
     ))
   }

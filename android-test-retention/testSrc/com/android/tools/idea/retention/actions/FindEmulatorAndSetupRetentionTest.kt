@@ -18,16 +18,18 @@ package com.android.tools.idea.retention.actions
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.ignore.IgnoreWithCondition
 import com.android.testutils.ignore.OnMac
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.FakeEmulator
-import com.android.tools.idea.emulator.FakeEmulatorRule
-import com.android.tools.idea.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.FakeEmulator
+import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
+import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.tools.idea.sdk.AvdManagerCache
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
@@ -140,17 +142,17 @@ class FindEmulatorAndSetupRetentionTest {
     val anActionEvent = AnActionEvent(null, dataContext,
                                       ActionPlaces.UNKNOWN, Presentation(),
                                       ActionManager.getInstance(), 0)
-    val action = FindEmulatorAndSetupRetention { androidSdkHandler, path, iLogger ->
-      val mockAvdManager = mock<AvdManager>()
-      doReturn(mock<AvdInfo>()).whenever(mockAvdManager).getAvd(anyString(), anyBoolean())
-      doReturn(true).whenever(mockAvdManager).isAvdRunning(any())
-      mockAvdManager
-    }
+    val action = FindEmulatorAndSetupRetention(object : AvdManagerCache {
+      override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager {
+        val mockAvdManager = mock<AvdManager>()
+        doReturn(mock<AvdInfo>()).whenever(mockAvdManager).getAvd(anyString(), anyBoolean())
+        doReturn(true).whenever(mockAvdManager).isAvdRunning(any())
+        return mockAvdManager
+      }
+    })
     action.actionPerformed(anActionEvent)
     retentionDoneSignal.await()
     // It pushes a header message, followed by a content message
-    assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
-      .matches("android.emulation.control.SnapshotService/PushSnapshot")
     assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
       .matches("android.emulation.control.SnapshotService/PushSnapshot")
     assertThat(emulator.getNextGrpcCall(5, TimeUnit.SECONDS).methodName)
@@ -170,12 +172,15 @@ class FindEmulatorAndSetupRetentionTest {
     val anActionEvent = AnActionEvent(null, dataContext,
                                       ActionPlaces.UNKNOWN, Presentation(),
                                       ActionManager.getInstance(), 0)
-    val action = FindEmulatorAndSetupRetention { androidSdkHandler, path, iLogger ->
-      val mockAvdManager = mock<AvdManager>()
-      doReturn(mock<AvdInfo>()).whenever(mockAvdManager).getAvd(anyString(), anyBoolean())
-      doReturn(true).whenever(mockAvdManager).isAvdRunning(any())
-      mockAvdManager
-    }
+    val action = FindEmulatorAndSetupRetention(object : AvdManagerCache {
+      override fun getAvdManager(sdkHandler: AndroidSdkHandler, avdHomeDir: Path): AvdManager {
+        val mockAvdManager = mock<AvdManager>()
+        doReturn(mock<AvdInfo>()).whenever(mockAvdManager).getAvd(anyString(), anyBoolean())
+        doReturn(true).whenever(mockAvdManager).isAvdRunning(any())
+        return mockAvdManager
+      }
+    })
+
     action.actionPerformed(anActionEvent)
     retentionDoneSignal.await()
     // It pushes a header message, followed by a content message

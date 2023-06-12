@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,38 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import org.jetbrains.annotations.NotNull;
 
+/**
+ * Version Catalog Model covers one version catalog.
+ * Each ExtModel returned from this model represents the entries in the corresponding table
+ *
+ * Effective model of GradleVersionCatalogModel is a list of maps. VersionCatalogModel -> ExtModel -> name-value properties.
+ */
 public interface GradleVersionCatalogModel extends GradleFileModel {
-  // TODO(b/238982664): these might not make sense as ExtModels, though that is the closest thing we currently have (an
-  //  arbitrary-sized collection of arbitrary named Dsl values).  The ExtModel for versions in particular might be doing double
-  //  duty in order to support exposing its contents as PsVariables.
+
+  @NotNull
   ExtModel libraries();
 
+  /**
+   * New API. Returns designated high level library Declaration model
+   */
+  @NotNull
+  GradleVersionCatalogLibraries libraryDeclarations();
+
+  @NotNull
   ExtModel plugins();
 
+  @NotNull
   ExtModel versions();
+
+  @NotNull
+  ExtModel bundles();
+
+  @NotNull
+  String catalogName();
+
+  boolean isDefault();
 }

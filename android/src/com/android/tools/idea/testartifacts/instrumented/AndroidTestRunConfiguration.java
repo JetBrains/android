@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.testartifacts.instrumented;
 
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isAndroidTestModule;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.isMainModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.codeInsight.AnnotationUtil.CHECK_HIERARCHY;
 import static com.intellij.openapi.util.text.StringUtil.getPackageName;
@@ -27,27 +29,25 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.model.TestOptions;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.ConsoleProvider;
+import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
+import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
+import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView;
-import com.google.common.base.Joiner;
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.TestLibraries;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.execution.ExecutionBundle;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.JUnitBundle;
 import com.intellij.execution.JavaExecutionUtil;
 import com.intellij.execution.configurations.ConfigurationFactory;
@@ -56,8 +56,8 @@ import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.junit.JUnitUtil;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.testframework.TestRunnerBundle;
-import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationQuickFix;
 import com.intellij.openapi.options.SettingsEditor;
@@ -152,6 +152,12 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   @Override
   public @NotNull List<DeployTargetProvider> getApplicableDeployTargetProviders() {
     return getDeployTargetContext().getApplicableDeployTargetProviders(true);
+  }
+
+  @Override
+  protected AndroidConfigurationExecutor getExecutor(ExecutionEnvironment env, AndroidFacet facet, DeviceFutures deviceFutures)
+    throws ExecutionException {
+    return new AndroidTestRunConfigurationExecutor(env, deviceFutures);
   }
 
   @Override
@@ -310,115 +316,32 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
     return new AndroidRunConfigurationEditor<>(
       getProject(),
-      facet -> facet != null && supportsRunningLibraryProjects(facet).getFirst(),
+      module -> {
+        if (module == null) return false;
+        final var facet = AndroidFacet.getInstance(module);
+        if (facet == null) return false;
+        final var moduleSystem = getModuleSystem(facet);
+        final var moduleType = moduleSystem.getType();
+        switch (moduleType) {
+          case TYPE_APP:
+          case TYPE_DYNAMIC_FEATURE:
+          case TYPE_LIBRARY:
+            return isAndroidTestModule(module);
+          case TYPE_TEST:
+            return isMainModule(module);
+          case TYPE_ATOM:
+          case TYPE_FEATURE:
+          case TYPE_INSTANTAPP:
+            return false; // Legacy not-supported module types.
+          case TYPE_NON_ANDROID:
+            return false;
+        }
+        return false;
+      },
       this,
       false,
       true,
       moduleSelector -> new TestRunParameters(getProject(), moduleSelector));
-  }
-
-  @NotNull
-  @Override
-  protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
-    return (parent, handler, executor) -> {
-      final ConsoleView consoleView = new AndroidTestSuiteView(parent, getProject(), getConfigurationModule().getAndroidTestModule(),
-                                                               executor.getToolWindowId(), this);
-      consoleView.attachToProcess(handler);
-      return consoleView;
-    };
-  }
-
-  @Nullable
-  @Override
-  protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                   @NotNull AndroidFacet facet,
-                                                   @NotNull String contributorsAmStartOptions,
-                                                   boolean waitForDebugger,
-                                                   @NotNull LaunchStatus launchStatus,
-                                                   @NotNull ApkProvider apkProvider,
-                                                   @NotNull ConsolePrinter consolePrinter,
-                                                   @NotNull IDevice device) {
-    String runner = INSTRUMENTATION_RUNNER_CLASS;
-    if (isEmptyOrSpaces(runner)) {
-      runner = getDefaultInstrumentationRunner(facet);
-    }
-    if (isEmptyOrSpaces(runner)) {
-      launchStatus.terminateLaunch("Unable to determine instrumentation runner", true);
-      return null;
-    }
-    @Nullable AndroidModel androidModel = AndroidModel.get(facet);
-    @Nullable TestOptions testOptions = androidModel != null ? androidModel.getTestOptions() : null;
-    String instrumentationOptions = Joiner.on(" ").join(getExtraInstrumentationOptions(facet), getInstrumentationOptions(testOptions));
-
-    String testAppId;
-    try {
-      testAppId = applicationIdProvider.getTestPackageName();
-      if (testAppId == null) {
-        launchStatus.terminateLaunch("Unable to determine test package name", true);
-        return null;
-      }
-    }
-    catch (ApkProvisionException e) {
-      launchStatus.terminateLaunch("Unable to determine test package name", true);
-      return null;
-    }
-
-    AndroidModuleSystem moduleSystem = getModuleSystem(facet);
-    TestLibraries testLibrariesInUse = moduleSystem.getTestLibrariesInUse();
-    TestExecutionOption testExecutionOption = testOptions != null ? testOptions.getExecutionOption() : null;
-    switch (TESTING_TYPE) {
-      case TEST_ALL_IN_MODULE:
-        return AndroidTestApplicationLaunchTask.allInModuleTest(runner,
-                                                                testAppId,
-                                                                waitForDebugger,
-                                                                instrumentationOptions,
-                                                                testLibrariesInUse,
-                                                                testExecutionOption,
-                                                                launchStatus.getProcessHandler(),
-                                                                consolePrinter,
-                                                                device);
-
-      case TEST_ALL_IN_PACKAGE:
-        return AndroidTestApplicationLaunchTask.allInPackageTest(runner,
-                                                                 testAppId,
-                                                                 waitForDebugger,
-                                                                 instrumentationOptions,
-                                                                 testLibrariesInUse,
-                                                                 testExecutionOption,
-                                                                 launchStatus.getProcessHandler(),
-                                                                 consolePrinter,
-                                                                 device,
-                                                                 PACKAGE_NAME);
-
-      case TEST_CLASS:
-        return AndroidTestApplicationLaunchTask.classTest(runner,
-                                                          testAppId,
-                                                          waitForDebugger,
-                                                          instrumentationOptions,
-                                                          testLibrariesInUse,
-                                                          testExecutionOption,
-                                                          launchStatus.getProcessHandler(),
-                                                          consolePrinter,
-                                                          device,
-                                                          CLASS_NAME);
-
-      case TEST_METHOD:
-        return AndroidTestApplicationLaunchTask.methodTest(runner,
-                                                           testAppId,
-                                                           waitForDebugger,
-                                                           instrumentationOptions,
-                                                           testLibrariesInUse,
-                                                           testExecutionOption,
-                                                           launchStatus.getProcessHandler(),
-                                                           consolePrinter,
-                                                           device,
-                                                           CLASS_NAME,
-                                                           METHOD_NAME);
-
-      default:
-        launchStatus.terminateLaunch("Unknown testing type is selected", true);
-        return null;
-    }
   }
 
   /**
@@ -471,26 +394,18 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   public String getExtraInstrumentationOptions(@Nullable AndroidFacet facet) {
     Collection<AndroidTestExtraParam> extraParams;
 
-    extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
+    if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
+      // Extra options defined in build.gradle are always included in AGP, adding them here would duplicate them.
+      extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
+
+    } else {
+      extraParams = AndroidTestExtraParamKt.merge(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS),
+                                                  AndroidTestExtraParamKt.getAndroidTestExtraParams(facet));
+    }
 
     return extraParams.stream()
       .map(param -> "-e " + param.getNAME() + " " + param.getVALUE())
       .collect(Collectors.joining(" "));
-  }
-
-  /**
-   * Retrieves instrumentation options from the given facet. Extra instrumentation options are not included.
-   *
-   * @return instrumentation options string. All instrumentation options specified by the facet are concatenated by a single space.
-   */
-  @NotNull
-  public String getInstrumentationOptions(@Nullable TestOptions testOptions) {
-    ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
-    boolean isAnimationDisabled = testOptions != null ? testOptions.getAnimationsDisabled() : false;
-    if (isAnimationDisabled) {
-      builder.add("--no-window-animation");
-    }
-    return Joiner.on(" ").join(builder.build());
   }
 
   /**
@@ -592,22 +507,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       };
     }
     return null;
-  }
-
-  @NotNull
-  @Override
-  protected LaunchOptions.Builder getLaunchOptions() {
-    LaunchOptions.Builder builder = super.getLaunchOptions();
-    builder.setPmInstallOptions(device -> {
-      // -t: Allow test APKs to be installed.
-      // -g: Grant all permissions listed in the app manifest. (Introduced at Android 6.0).
-      if (device.isPresent() && device.get().getVersion().getApiLevel() >= 23) {
-        return "-t -g";
-      } else {
-        return "-t";
-      }
-    });
-    return builder;
   }
 
   /**

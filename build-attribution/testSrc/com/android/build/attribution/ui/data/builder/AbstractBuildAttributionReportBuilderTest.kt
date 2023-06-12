@@ -21,6 +21,7 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierNotUsed
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.GarbageCollectionData
@@ -30,6 +31,8 @@ import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
+import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 open class AbstractBuildAttributionReportBuilderTest {
 
@@ -46,7 +49,8 @@ open class AbstractBuildAttributionReportBuilderTest {
    * Mock results provider with default empty values.
    */
   open class MockResultsProvider : BuildEventsAnalysisResult {
-    override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
+    override fun getBuildRequestData(): GradleBuildInvoker.Request.RequestData = mock()
+    override fun getBuildFinishedTimestamp(): Long = 0
     override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
     override fun getTotalBuildTimeMs(): Long = 0
     override fun getConfigurationPhaseTimeMs(): Long = 0
@@ -58,7 +62,7 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun getAlwaysRunTasks(): List<AlwaysRunTaskData> = emptyList()
     override fun getNonCacheableTasks(): List<TaskData> = emptyList()
     override fun getAppliedPlugins(): Map<String, List<PluginData>> = emptyMap()
-    override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
+    override fun getConfigurationCachingCompatibility(): ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList(), false)
     override fun getJetifierUsageResult(): JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierNotUsed)
     override fun getTasksSharingOutput(): List<TasksSharingOutputData> = emptyList()
     override fun getGarbageCollectionData(): List<GarbageCollectionData> = emptyList()
@@ -67,6 +71,9 @@ open class AbstractBuildAttributionReportBuilderTest {
     override fun isGCSettingSet(): Boolean? = null
     override fun buildUsesConfigurationCache(): Boolean = false
     override fun getDownloadsAnalyzerResult() = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
+    override fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result = TaskCategoryWarningsAnalyzer.IssuesResult(
+      emptyList()
+    )
   }
 
   fun plugin(pluginData: PluginData, duration: Long) = PluginConfigurationData(pluginData, duration)

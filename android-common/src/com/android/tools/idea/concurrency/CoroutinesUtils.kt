@@ -21,9 +21,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
-import com.intellij.openapi.application.ex.ApplicationUtil
-import com.intellij.openapi.application.ex.ApplicationUtil.CannotRunReadActionException
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
@@ -38,6 +38,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -52,12 +53,15 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -66,9 +70,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.VisibleForTesting
+import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -170,6 +176,23 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
 }
 
 /**
+ * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned [Disposable] can be used
+ * as the root.
+ * This is analogous to [AndroidCoroutineScope] where this generates a [Disposable] for the given [CoroutineScope].
+ */
+fun CoroutineScope.scopeDisposable(): Disposable {
+  val disposable = Disposer.newDisposable()
+
+  // We use a weak reference so the disposable is not held by the coroutine if the caller ends up not
+  // using it.
+  val disposableRef = WeakReference(disposable)
+  coroutineContext.job.invokeOnCompletion {
+    disposableRef.get()?.let { Disposer.dispose(it) }
+  }
+  return disposable
+}
+
+/**
  * Launches a new coroutine that will be bound to the given [ProgressIndicatorEx]. If the indicator is stopped, the coroutine will be
  * cancelled. If the coroutine finishes or is cancelled, the indicator will also be stopped.
  * This method also accepts an optional [CoroutineContext].
@@ -261,12 +284,12 @@ class UniqueTaskCoroutineLauncher(private val coroutineScope: CoroutineScope, de
    * returned [Job] is null.
    */
   suspend fun launch(task: suspend () -> Unit): Job? {
-    taskJob?.cancel()
     var newJob: Job? = null
     coroutineScope.launch(taskDispatcher) {
       jobMutex.withLock {
-        taskJob?.join()
-        newJob = launch(taskDispatcher) {
+        // Cancel any running job and wait for the cancellation to complete
+        taskJob?.cancelAndJoin()
+        newJob = coroutineScope.launch(taskDispatcher) {
           task()
         }
         taskJob = newJob
@@ -311,57 +334,6 @@ suspend fun <T> Deferred<T>.getCompletedOrNull(): T? {
     }
   }
   return null
-}
-
-/**
- * Suspendable method that will suspend until the [project] is in smart mode and can get hold of the read lock. Once both conditions
- * are true, this method will execute [compute].
- * @see [com.intellij.openapi.application.smartReadAction]. This method is equivalent and will be replaced by it once is out of experimental.
- */
-// TODO(b/190691270): Migrate to com.intellij.openapi.application.smartReadAction once is not experimental
-suspend fun <T> runInSmartReadAction(project: Project, compute: Computable<T>): T = coroutineScope {
-  val result = CompletableDeferred<T>()
-  while (!result.isCompleted && isActive) {
-    val waitingForSmart = CompletableDeferred<Boolean>()
-    runReadAction {
-      val dumbService = DumbService.getInstance(project)
-      if (dumbService.isDumb) {
-        dumbService.runWhenSmart {
-          waitingForSmart.complete(true)
-        }
-        return@runReadAction
-      }
-      waitingForSmart.complete(true)
-      result.complete(compute.compute())
-      return@runReadAction
-    }
-    // We could not run in this loop, wait until we are in smart mode
-    waitingForSmart.await()
-  }
-  return@coroutineScope result.await()
-}
-
-/**
- * Suspendable method that will suspend until it can get obtain the read lock. Once the read lock is obtained, it will execute [compute].
- * @see [com.intellij.openapi.application.readAction]. This method is equivalent and will be replaced by it once is out of experimental.
- */
-// TODO(b/190691270): Migrate to com.intellij.openapi.application.readAction once is not experimental
-suspend fun <T> runReadAction(compute: Computable<T>): T = coroutineScope {
-  while (isActive) {
-    try {
-      return@coroutineScope ApplicationUtil.tryRunReadAction {
-        return@tryRunReadAction compute.compute()
-      }
-    }
-    catch (_: CannotRunReadActionException) {
-      // Wait until the current write finishes.
-      val writeFinished = CompletableDeferred<Boolean>()
-      ApplicationManager.getApplication().invokeLater { writeFinished.complete(true) }
-      // This will suspend the coroutine until the write lock has finished.
-      writeFinished.await()
-    }
-  }
-  throw CancellationException()
 }
 
 /**
@@ -420,7 +392,7 @@ suspend fun <T> runReadActionWithWritePriority(
          * Thus, we are waiting for the end of the [WriteAction] by blocking on a no-op `ReadAction`. After that read action happens it
          * is only makes sense to retry again.
          */
-        runReadAction {}
+        readAction { }
       }
       throw RetriesExceededException("Could you complete the action after $maxRetries retries.")
     }
@@ -436,10 +408,10 @@ suspend fun <T> runReadActionWithWritePriority(
 /**
  * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.
  */
-suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = runReadAction {
-  if (project.isDisposed) return@runReadAction null
-  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@runReadAction null
-  return@runReadAction if (psiFile.isValid) psiFile else null
+suspend fun getPsiFileSafely(project: Project, virtualFile: VirtualFile): PsiFile? = readAction {
+  if (project.isDisposed) return@readAction null
+  val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return@readAction null
+  if (psiFile.isValid) psiFile else null
 }
 
 /**
@@ -505,13 +477,23 @@ fun <T> disposableCallbackFlow(debugName: String,
 @VisibleForTesting
 fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger?, onConnected: (() -> Unit)?): Flow<Unit> =
   disposableCallbackFlow("SmartModeFlow", logger, parentDisposable) {
+    val wasInDumbMode = AtomicBoolean(DumbService.getInstance(project).isDumb)
+    logger?.debug { "SmartModeFlow wasInDumbMode=${wasInDumbMode.get()}" }
     project.messageBus.connect(disposable).subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
       override fun exitDumbMode() {
+        // We have detected the change, so clear the flag
+        wasInDumbMode.set(false)
         trySend(Unit)
       }
     })
 
     onConnected?.let { launch(workerThread) { it() } }
+
+    val isInDumbMode = DumbService.getInstance(project).isDumb
+    logger?.debug { "SmartModeFlow setup complete wasInDumbMode=${wasInDumbMode.get()} isInDumbMode=${isInDumbMode}" }
+    if (wasInDumbMode.getAndSet(false) && !isInDumbMode) {
+      trySend(Unit)
+    }
   }
 
 /**
@@ -519,3 +501,27 @@ fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger
  */
 fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null): Flow<Unit> =
   smartModeFlow(project, parentDisposable, logger, null)
+
+
+/**
+ * A [callbackFlow] that produces an element when a [PsiFile] changes.
+ */
+fun psiFileChangeFlow(psiManager: PsiManager, scope: CoroutineScope, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
+  disposableCallbackFlow<PsiFile>(debugName = "PsiFileChangeFlow", parentDisposable = scope.scopeDisposable(), logger = logger) {
+    psiManager.addPsiTreeChangeListener(
+      object : PsiTreeAnyChangeAbstractAdapter() {
+        override fun onChange(changedFile: PsiFile?) {
+          if (changedFile == null) return
+          trySend(changedFile)
+        }
+      },
+      this.disposable
+    )
+
+    onConnected?.let { onConnected -> launch(workerThread) { onConnected() } }
+  }
+    // Avoid repeated change events for no modifications
+    .distinctUntilChangedBy { psiManager.modificationTracker.modificationCount }
+
+fun psiFileChangeFlow(project: Project, scope: CoroutineScope, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
+  psiFileChangeFlow(PsiManager.getInstance(project), scope, logger, onConnected)

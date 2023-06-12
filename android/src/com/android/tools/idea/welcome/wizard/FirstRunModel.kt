@@ -29,7 +29,7 @@ import com.android.tools.idea.welcome.install.AndroidSdk
 import com.android.tools.idea.welcome.install.AndroidVirtualDevice
 import com.android.tools.idea.welcome.install.ComponentCategory
 import com.android.tools.idea.welcome.install.ComponentTreeNode
-import com.android.tools.idea.welcome.install.Gvm
+import com.android.tools.idea.welcome.install.Aehd
 import com.android.tools.idea.welcome.install.Haxm
 import com.android.tools.idea.welcome.install.InstallationIntention
 import com.android.tools.idea.welcome.install.Platform
@@ -52,7 +52,6 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     if (sdkLocation.path.isEmpty()) InstallationType.CUSTOM else InstallationType.STANDARD
   )
   val customInstall: Boolean get() = installationType.get() == InstallationType.CUSTOM
-  val jdkLocation = EmbeddedDistributionPaths.getInstance().embeddedJdkPath
   val sdkExists = if (sdkLocation.isDirectory) {
     val sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton, sdkLocation.toPath())
     val progress = StudioLoggerProgressIndicator(javaClass)
@@ -101,8 +100,8 @@ class FirstRunModel(private val mode: FirstRunWizardMode): WizardModel() {
     if (mode === FirstRunWizardMode.NEW_INSTALL && Haxm.canRun()) {
       components.add(Haxm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL))
     }
-    if (mode === FirstRunWizardMode.NEW_INSTALL && Gvm.canRun()) {
-      components.add(Gvm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL))
+    if (mode === FirstRunWizardMode.NEW_INSTALL && Aehd.canRun()) {
+      components.add(Aehd(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL))
     }
     if (createAvd) {
       components.add(AndroidVirtualDevice(remotePackages, installUpdates))

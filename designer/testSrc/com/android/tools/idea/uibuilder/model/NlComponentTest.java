@@ -161,7 +161,7 @@ public final class NlComponentTest extends LayoutTestCase {
   }
 
   private void deleteXmlTag(@NotNull NlComponent component) {
-    XmlTag tag = component.getBackend().getTagPointer().getElement();
+    XmlTag tag = component.getBackend().getTag();
     WriteCommandAction.writeCommandAction(getProject()).run(() -> tag.delete());
     UIUtil.dispatchAllInvocationEvents();
   }
@@ -326,7 +326,7 @@ public final class NlComponentTest extends LayoutTestCase {
 
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
 
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, null, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, myFacet, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
 
     NlComponent component = myModel.find("button");
@@ -395,7 +395,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "</RelativeLayout>\n" +
                       "</layout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, null, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, myFacet, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
     NlComponent relativeLayout = myModel.getComponents().get(0).getChild(0);
 
@@ -455,7 +455,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "         tools123:layout_editor_absoluteY=\"43dp\"\n/>" +
                       "</RelativeLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,null, null, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE,null, myFacet, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
     NlComponent relativeLayout = myModel.getComponents().get(0);
 

@@ -8,6 +8,7 @@
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
+        <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator" />
 
         <completion.contributor language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor" order="first, before KotlinCompletionContributor"/>
 
@@ -73,14 +74,11 @@
 
         <lang.foldingBuilder language="kotlin" implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
 
-        <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator" />
-
         <registryKey key="kotlin.android.import.mpp.all.transitive"
                      description="Add all transitive dependencies on MPP modules when Android project is imported"
                      defaultValue="true"
                      restartRequired="false"/>
     </extensions>
-
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
         <quickFixContributor implementation="org.jetbrains.kotlin.android.quickfix.AndroidQuickFixRegistrar"/>

@@ -25,14 +25,17 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
-import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
+import com.android.utils.DataBindingUtils;
 import com.android.utils.HashCodes;
+import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -57,7 +60,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -158,7 +160,7 @@ public class ResourceNotificationManager {
 
   public @NotNull ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file,
                                                     @Nullable Configuration configuration) {
-    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
+    LocalResourceRepository repository = StudioResourceRepositoryManager.getAppResources(facet);
     if (file != null) {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
@@ -271,7 +273,7 @@ public class ResourceNotificationManager {
       if (moduleEventObserver != null) {
         moduleEventObserver.removeListener(listener);
         if (!moduleEventObserver.hasListeners()) {
-          myModuleToObserverMap.remove(module);
+          Disposer.dispose(moduleEventObserver);
           if (myModuleToObserverMap.isEmpty() && myProjectPsiTreeObserver != null) {
             myProjectBuildObserver.stopListening();
             myProjectPsiTreeObserver = null;
@@ -349,14 +351,14 @@ public class ResourceNotificationManager {
 
   private void scheduleFinalNotification() {
     ApplicationManager.getApplication().invokeLater(() -> {
-      EnumSet<Reason> reason = myEvents;
+      ImmutableSet<Reason> reason = ImmutableSet.copyOf(myEvents);
       myEvents = EnumSet.noneOf(Reason.class);
       notifyListeners(reason);
       myEvents.clear();
     });
   }
 
-  private void notifyListeners(@NotNull EnumSet<Reason> reason) {
+  private void notifyListeners(@NotNull ImmutableSet<Reason> reason) {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     List<ModuleEventObserver> observers;
@@ -373,7 +375,7 @@ public class ResourceNotificationManager {
    * A {@linkplain ModuleEventObserver} registers listeners for various module-specific events (such as
    * resource folder manager changes) and then notifies {@link #notice(Reason, VirtualFile)} when it sees an event.
    */
-  private class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener {
+  private class ModuleEventObserver implements ModificationTracker, ResourceFolderManager.ResourceFolderListener, Disposable {
     private final AndroidFacet myFacet;
     private long myGeneration;
     private final Object myListenersLock = new Object();
@@ -385,6 +387,7 @@ public class ResourceNotificationManager {
     private ModuleEventObserver(@NotNull AndroidFacet facet) {
       myFacet = facet;
       myGeneration = getAppResourcesModificationCount();
+      Disposer.register(facet, this);
     }
 
     @Override
@@ -417,7 +420,7 @@ public class ResourceNotificationManager {
         // we want all repos to add their own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts to re-render).
-        ResourceRepositoryManager.getProjectResources(myFacet);
+        StudioResourceRepositoryManager.getProjectResources(myFacet);
 
         assert myConnection == null;
         myConnection = myFacet.getModule().getProject().getMessageBus().connect(myFacet);
@@ -432,7 +435,7 @@ public class ResourceNotificationManager {
       }
     }
 
-    private void notifyListeners(@NotNull EnumSet<Reason> reason) {
+    private void notifyListeners(@NotNull ImmutableSet<Reason> reason) {
       if (myFacet.isDisposed()) {
         return;
       }
@@ -456,7 +459,7 @@ public class ResourceNotificationManager {
     }
 
     private long getAppResourcesModificationCount() {
-      LocalResourceRepository appResources = ResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
+      LocalResourceRepository appResources = StudioResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
       return appResources == null ? 0 : appResources.getModificationCount();
     }
 
@@ -481,6 +484,13 @@ public class ResourceNotificationManager {
       if (facet.getModule() == myFacet.getModule()) {
         myModificationCount++;
         notice(Reason.GRADLE_SYNC, null);
+      }
+    }
+
+    @Override
+    public void dispose() {
+      synchronized (myObserverLock) {
+        myModuleToObserverMap.remove(myFacet.getModule());
       }
     }
   }
@@ -584,7 +594,7 @@ public class ResourceNotificationManager {
           // Just added attribute value
           String text = child.getText();
           // Check if this is an attribute that takes a resource.
-          if (text.startsWith(PREFIX_RESOURCE_REF) && !DataBindingUtil.isBindingExpression(text)) {
+          if (text.startsWith(PREFIX_RESOURCE_REF) && !DataBindingUtils.isBindingExpression(text)) {
             if (text.equals(PREFIX_RESOURCE_REF) || text.equals(ANDROID_PREFIX)) {
               // Using code completion to insert resource reference; not yet done.
               return;
@@ -652,7 +662,7 @@ public class ResourceNotificationManager {
           String newText = child.getText();
           String prevText = event.getOldChild().getText();
           // See if user is working on an incomplete URL, and is still not complete, e.g. typing in @string/foo manually.
-          if (newText.startsWith(PREFIX_RESOURCE_REF) && !DataBindingUtil.isBindingExpression(newText)) {
+          if (newText.startsWith(PREFIX_RESOURCE_REF) && !DataBindingUtils.isBindingExpression(newText)) {
             ResourceUrl prevUrl = ResourceUrl.parse(prevText);
             ResourceUrl newUrl = ResourceUrl.parse(newText);
             if (prevUrl != null && prevUrl.name.isEmpty()) {
@@ -791,7 +801,7 @@ public class ResourceNotificationManager {
     }
 
     @Override
-    public void after(@NotNull List<? extends @NotNull VFileEvent> events) {
+    public void after(@NotNull List<? extends VFileEvent> events) {
       events.stream()
         .filter(event -> {
           VirtualFile file = event.getFile();
@@ -872,7 +882,7 @@ public class ResourceNotificationManager {
      *
      * @param reason the set of reasons that the resources have changed since the last notification
      */
-    void resourcesChanged(@NotNull Set<Reason> reason);
+    void resourcesChanged(@NotNull ImmutableSet<Reason> reason);
   }
 
   /**

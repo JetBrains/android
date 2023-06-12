@@ -30,7 +30,7 @@ import com.android.tools.idea.lint.common.LintIdeSupport;
 import com.android.tools.idea.lint.common.LintProblemData;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.lint.checks.AppCompatCustomViewDetector;
 import com.android.tools.lint.client.api.LintRequest;
 import com.android.tools.lint.detector.api.Issue;
@@ -80,7 +80,7 @@ import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrat
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class MigrateToAppCompatUtil {
+class MigrateToAppCompatUtil {
 
   // Class known for its static members
   private MigrateToAppCompatUtil() {
@@ -283,7 +283,7 @@ final class MigrateToAppCompatUtil {
 
     List<UsageInfo> usageInfos = new ArrayList<>();
     for (Module module : modules) {
-      LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(module);
+      LocalResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(module);
       if (projectResources == null) {
         continue;
       }

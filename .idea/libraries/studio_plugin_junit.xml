@@ -1,11 +1,13 @@
 <component name="libraryTable">
   <library name="studio-plugin-junit">
     <CLASSES>
-      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/junit/lib/junit5-rt.jar!/" />
-      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/junit/lib/idea-junit.jar!/" />
-      <root url="jar://$IDEA-134f45d43aefc3cf7a3f806e0ea1ea6f768528f4$/plugins/junit/lib/junit-rt.jar!/" />
+      <root url="jar://$IDEA-e2145889fae88c3ad1b90efcf0690da06bbd44bf$/plugins/junit/lib/idea-junit.jar!/" />
+      <root url="jar://$IDEA-e2145889fae88c3ad1b90efcf0690da06bbd44bf$/plugins/junit/lib/junit-rt.jar!/" />
+      <root url="jar://$IDEA-e2145889fae88c3ad1b90efcf0690da06bbd44bf$/plugins/junit/lib/junit5-rt.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/android-studio-sources.zip!/" />
+    </SOURCES>
   </library>
 </component>

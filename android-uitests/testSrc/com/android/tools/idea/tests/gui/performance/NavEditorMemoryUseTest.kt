@@ -25,6 +25,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.awt.event.KeyEvent
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 @RunIn(TestGroup.PERFORMANCE)
@@ -32,7 +33,7 @@ class NavEditorMemoryUseTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = GuiTestRule().withTimeout(6, TimeUnit.MINUTES)
 
   /**
    * Opens and closes the designer tab for a navigation resource file.

@@ -34,8 +34,9 @@ import org.jetbrains.annotations.Nullable;
 
 // Overridden in non Android Studio IDE
 public class DeviceManagerAction extends DumbAwareAction {
+  @NotNull
   @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
+  public ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.BGT;
   }
 

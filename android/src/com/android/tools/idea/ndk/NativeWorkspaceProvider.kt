@@ -55,17 +55,15 @@ interface NativeWorkspaceProvider {
     private val EP_NAME = ExtensionPointName<NativeWorkspaceProvider>("com.android.tools.idea.ndk.nativeWorkspaceProvider")
 
     /** Gets additional native files that are not under any source roots for each module. */
-    fun getAdditionalNativeFiles(module: Module): Set<VirtualFile> {
-      return EP_NAME.extensionList.asSequence().flatMap {
+    fun getAdditionalNativeFiles(module: Module): Set<VirtualFile> =
+      EP_NAME.extensionList.asSequence().flatMap {
         it.getAdditionalNativeFiles(module)
       }.toSet()
-    }
 
-    fun getNativeHeaderDirs(project: Project, moduleVariantAbi: ModuleVariantAbi): Set<NativeHeaderDir> {
-      return EP_NAME.extensionList.asSequence().flatMap {
+    fun getNativeHeaderDirs(project: Project, moduleVariantAbi: ModuleVariantAbi): Set<NativeHeaderDir> =
+      EP_NAME.extensionList.asSequence().flatMap {
         it.getNativeHeaderDirs(project, moduleVariantAbi)
       }.toSet()
-    }
 
     fun getCompilerSettings(project: Project, filter: (ModuleVariantAbi) -> Boolean): Stream<NativeCompilerSetting> {
       return EP_NAME.extensionList.asSequence()

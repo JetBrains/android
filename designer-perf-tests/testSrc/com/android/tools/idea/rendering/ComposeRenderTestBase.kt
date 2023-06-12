@@ -16,9 +16,11 @@
 package com.android.tools.idea.rendering
 
 import com.android.testutils.TestUtils
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.withKotlin
 import com.intellij.openapi.application.ApplicationManager
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -32,26 +34,37 @@ open class ComposeRenderTestBase {
   @Before
   open fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
-    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
+    StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     val baseTestPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, kotlinVersion = "1.7.0")
-    projectRule.requestSyncAndWait()
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin("1.8.10"))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
       Assert.assertTrue("The project must compile correctly for the test to pass", isBuildSuccessful)
     }
 
-    ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(true)
+    StudioModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(true)
   }
 
   @After
   open fun tearDown() {
-    ModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
+    StudioModuleClassLoaderManager.get().setCaptureClassLoadingDiagnostics(false)
     ApplicationManager.getApplication().invokeAndWait {
       RenderTestUtil.afterRenderTestCase()
     }
-    RenderService.setForTesting(projectRule.project, null)
+    StudioRenderService.setForTesting(projectRule.project, null)
   }
+}
+
+fun AndroidGradleProjectRule.buildAndAssertSuccess(task: String = "assemble") {
+  val buildResult = invokeTasks(task)
+  Assert.assertTrue(
+    """
+        Build failed with:
+
+        ${buildResult.buildError}
+      """.trimIndent(),
+    buildResult.isBuildSuccessful
+  )
 }

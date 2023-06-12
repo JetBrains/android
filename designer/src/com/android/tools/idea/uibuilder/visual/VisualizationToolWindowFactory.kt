@@ -20,7 +20,6 @@ import com.android.tools.idea.res.getFolderType
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
@@ -32,13 +31,11 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * [ToolWindowFactory] for the Layout Validation Tool. The tool is registered in designer.xml and the initialization is controlled by IJ's
@@ -76,6 +73,10 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
     }
   }
 
+  override fun isApplicable(project: Project): Boolean {
+    return true
+  }
+
   override fun init(toolWindow: ToolWindow) {
     val project = (toolWindow as ToolWindowEx).project
     project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
@@ -87,17 +88,25 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
         override fun selectionChanged(event: FileEditorManagerEvent) = updateAvailable(toolWindow, event.newFile)
       }
     )
-    project.coroutineScope.launch {
-      val editors = FileEditorManager.getInstance(project).selectedEditors
-      withContext(Dispatchers.EDT) {
-        toolWindow.isAvailable = editors.any { getFolderType(it.file) == ResourceFolderType.LAYOUT }
+    // The file editor may be opened before the listener is registered. But we cannot change the availability in this init() function.
+    // Add a oneshot listener to update the availability after the registration is completed.
+    val connect = project.messageBus.connect(toolWindow.disposable)
+    connect.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+      override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
+        if (ids.contains(TOOL_WINDOW_ID)) {
+          toolWindow.isAvailable = hasSelectedLayoutFile(project)
+          connect.disconnect()
+        }
       }
-    }
+    })
   }
 
   override fun shouldBeAvailable(project: Project): Boolean {
-    // too early to check FileEditorManager.getInstance(project).selectedEditors here - editors not yet opened
-    return false
+    return hasSelectedLayoutFile(project)
+  }
+
+  private fun hasSelectedLayoutFile(project: Project): Boolean {
+    return FileEditorManager.getInstance(project).selectedEditors.any { getFolderType(it.file) == ResourceFolderType.LAYOUT }
   }
 
   /**

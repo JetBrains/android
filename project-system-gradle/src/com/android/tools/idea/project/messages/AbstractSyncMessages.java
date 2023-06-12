@@ -16,7 +16,6 @@
 package com.android.tools.idea.project.messages;
 
 import static com.intellij.openapi.externalSystem.service.notification.NotificationSource.PROJECT_SYNC;
-import static com.intellij.openapi.util.text.StringUtil.join;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
@@ -24,11 +23,10 @@ import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueFileEvent;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueQuickFix;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.ui.QuickFixNotificationListener;
 import com.android.tools.idea.util.PositionInFile;
 import com.intellij.build.SyncViewManager;
-import com.intellij.build.events.Failure;
 import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -39,13 +37,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.pom.Navigatable;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public abstract class AbstractSyncMessages implements Disposable {
 
@@ -56,22 +53,12 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   @GuardedBy("myLock")
   @NotNull
-  private final HashMap<Object, List<NotificationData>> myCurrentNotifications = new HashMap<>();
-  @GuardedBy("myLock")
-  @NotNull
-  private final HashMap<Object, List<Failure>> myShownFailures = new HashMap<>();
+  private final List<SyncMessage> myCurrentMessages = new ArrayList<>();
+
   @NotNull private static final String PENDING_TASK_ID = "Pending taskId";
 
   protected AbstractSyncMessages(@NotNull Project project) {
     myProject = project;
-  }
-
-  public int getErrorCount() {
-    return countNotifications(notification -> notification.getNotificationCategory() == NotificationCategory.ERROR);
-  }
-
-  public int getMessageCount(@NotNull String groupName) {
-    return countNotifications(notification -> notification.getTitle().equals(groupName));
   }
 
   /**
@@ -81,47 +68,30 @@ public abstract class AbstractSyncMessages implements Disposable {
   public String getErrorDescription() {
     Set<String> errorGroups = new LinkedHashSet<>();
     synchronized (myLock) {
-      for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
-        for (NotificationData notificationData : notificationDataList) {
-          if (notificationData.getNotificationCategory() == NotificationCategory.ERROR) {
-            errorGroups.add(notificationData.getTitle());
-          }
+      for (final var message : myCurrentMessages) {
+        if (message.getType() == MessageType.ERROR) {
+          errorGroups.add(message.getGroup());
         }
       }
     }
     return String.join(", ", errorGroups);
   }
 
-  private int countNotifications(@NotNull Predicate<NotificationData> condition) {
-    int total = 0;
-
-    synchronized (myLock) {
-      for (List<NotificationData> notificationDataList : myCurrentNotifications.values()) {
-        for (NotificationData notificationData : notificationDataList) {
-          if (condition.test(notificationData)) {
-            total++;
-          }
-        }
-      }
-    }
-    return total;
-  }
-
   public boolean isEmpty() {
     synchronized (myLock) {
-      return myCurrentNotifications.isEmpty();
+      return myCurrentMessages.isEmpty();
     }
   }
 
   public void removeAllMessages() {
     synchronized (myLock) {
-      myCurrentNotifications.clear();
+      myCurrentMessages.clear();
     }
   }
 
   public void report(@NotNull SyncMessage message) {
     String title = message.getGroup();
-    String text = join(message.getText(), "\n");
+    String text = message.getText();
     NotificationCategory category = message.getType().convertToCategory();
     PositionInFile position = message.getPosition();
 
@@ -130,12 +100,22 @@ public abstract class AbstractSyncMessages implements Disposable {
     Navigatable navigatable = message.getNavigatable();
     notification.setNavigatable(navigatable);
 
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    final var quickFixes = message.getQuickFixes();
     if (!quickFixes.isEmpty()) {
       updateNotification(notification, text, quickFixes);
     }
 
-    report(notification, ContainerUtil.map(quickFixes, it -> new AndroidSyncIssueQuickFix(it)));
+    // Save on array to be shown by build view later.
+    Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
+    if (taskId == null) {
+      taskId = PENDING_TASK_ID;
+    }
+    else {
+      showNotification(notification, taskId, ContainerUtil.flatMap(quickFixes, AndroidSyncIssueQuickFix::create));
+    }
+    synchronized (myLock) {
+      myCurrentMessages.add(message);
+    }
   }
 
   @NotNull
@@ -151,20 +131,21 @@ public abstract class AbstractSyncMessages implements Disposable {
     return new NotificationData(title, text, category, source);
   }
 
-  public void updateNotification(@NotNull NotificationData notification,
+  private void updateNotification(@NotNull NotificationData notification,
                                  @NotNull String text,
-                                 @NotNull List<? extends NotificationHyperlink> quickFixes) {
+                                 @NotNull List<? extends SyncMessageFragment> quickFixes) {
     String message = text;
-    int hyperlinkCount = quickFixes.size();
-    if (hyperlinkCount > 0) {
-      StringBuilder b = new StringBuilder();
-      for (int i = 0; i < hyperlinkCount; i++) {
-        b.append(quickFixes.get(i).toHtml());
-        if (i < hyperlinkCount - 1) {
-          b.append("<br>");
-        }
+    StringBuilder b = new StringBuilder();
+    for (final var handler : quickFixes) {
+      String html = handler.toHtml();
+      if (html.isEmpty()) continue;
+      if (b.length() > 0) {
+        b.append("\n");
       }
-      message += ('\n' + b.toString());
+      b.append(html);
+    }
+    if (b.length() > 0) {
+      message += ("\n" + b.toString());
     }
     notification.setMessage(message);
 
@@ -173,23 +154,11 @@ public abstract class AbstractSyncMessages implements Disposable {
 
   // Call this method only if notification contains detailed text message with hyperlinks
   // Use updateNotification otherwise
-  public void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends NotificationHyperlink> quickFixes) {
-    for (NotificationHyperlink quickFix : quickFixes) {
-      notification.setListener(quickFix.getUrl(), new QuickFixNotificationListener(myProject, quickFix));
-    }
-  }
-
-  public void report(@NotNull NotificationData notification, @NotNull List<? extends BuildIssueQuickFix> quickFixes) {
-    // Save on array to be shown by build view later.
-    Object taskId = GradleSyncState.getInstance(myProject).getExternalSystemTaskId();
-    if (taskId == null) {
-      taskId = PENDING_TASK_ID;
-    }
-    else {
-      showNotification(notification, taskId, quickFixes);
-    }
-    synchronized (myLock) {
-      myCurrentNotifications.computeIfAbsent(taskId, key -> new ArrayList<>()).add(notification);
+  private void addNotificationListener(@NotNull NotificationData notification, @NotNull List<? extends SyncMessageFragment> quickFixes) {
+    for (final var quickFix : quickFixes) {
+      for (String url : quickFix.getUrls()) {
+        notification.setListener(url, new QuickFixNotificationListener(myProject, quickFix));
+      }
     }
   }
 
@@ -220,6 +189,13 @@ public abstract class AbstractSyncMessages implements Disposable {
   @NotNull
   protected Project getProject() {
     return myProject;
+  }
+
+  @TestOnly
+  public @NotNull List<SyncMessage> getReportedMessages() {
+    synchronized (myLock) {
+      return new ArrayList<>(myCurrentMessages);
+    }
   }
 
   @Override

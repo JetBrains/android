@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories.ANDROID_REPOSITORY_NAME
 import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories.GOOGLE_REPOSITORY_NAME
 
@@ -23,16 +23,16 @@ data class FoundArtifact(
   val repositoryNames: Set<String>,
   val groupId: String,
   val name: String,
-  val unsortedVersions: Set<GradleVersion>
+  val unsortedVersions: Set<Version>
 ) : Comparable<FoundArtifact> {
-  constructor(repositoryName: String, groupId: String, name: String, unsortedVersions: Collection<GradleVersion>) :
+  constructor(repositoryName: String, groupId: String, name: String, unsortedVersions: Collection<Version>) :
     this(setOf(repositoryName), groupId, name, unsortedVersions.toSet())
 
-  constructor(repositoryName: String, groupId: String, name: String, version: GradleVersion) :
+  constructor(repositoryName: String, groupId: String, name: String, version: Version) :
     this(setOf(repositoryName), groupId, name, setOf(version))
 
   val coordinates: List<String> get() = versions.map { "$groupId:$name:$it" }
-  val versions: List<GradleVersion> = unsortedVersions.sortedByDescending { it }
+  val versions: List<Version> = unsortedVersions.sortedByDescending { it }
 
   override fun compareTo(other: FoundArtifact): Int =
     compareValuesBy(

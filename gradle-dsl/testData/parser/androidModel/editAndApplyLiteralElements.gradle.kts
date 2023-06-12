@@ -1,6 +1,6 @@
 android {
   buildToolsVersion("23.0.0")
-  compileSdkVersion("23")
+  compileSdkVersion("android-J")
   defaultPublishConfig("debug")
   generatePureSplits(true)
   namespace = "com.my.namespace"

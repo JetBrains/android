@@ -111,7 +111,12 @@ public final class AxisComponent extends AnimatedComponent {
   private int myEndMargin;
   private boolean myShowMin;
   private boolean myShowMax;
-  private boolean myShowUnitAtMax;
+
+  /**
+   * Whether to show the unit only on the max label of the y-axis (if true),
+   * or show the unit for all y-axis labels (if false)
+   */
+  private boolean myOnlyShowUnitAtMax;
   private boolean myShowAxisLine = true;
 
   /**
@@ -121,12 +126,15 @@ public final class AxisComponent extends AnimatedComponent {
 
   private boolean myHideTickAtMin;
 
-  public AxisComponent(@NotNull AxisComponentModel model, @NotNull AxisOrientation orientation) {
+  private boolean myHideNegativeValues;
+
+  public AxisComponent(@NotNull AxisComponentModel model, @NotNull AxisOrientation orientation, boolean hideNegativeValues) {
     myModel = model;
     myMajorMarkerPositions = new FloatArrayList();
     myMinorMarkerPositions = new FloatArrayList();
     myMarkerLabels = new ArrayList<>();
     myOrientation = orientation;
+    myHideNegativeValues = hideNegativeValues;
 
     switch (myOrientation) {
       case LEFT:
@@ -189,8 +197,20 @@ public final class AxisComponent extends AnimatedComponent {
     myMajorMarkerPositions.clear();
     myMinorMarkerPositions.clear();
 
-    double currentMinValueRelative = myModel.getRange().getMin() - myModel.getZero();
-    double currentMaxValueRelative = myModel.getRange().getMax() - myModel.getZero();
+    double currentMinValueRelative = myModel.getRange().getMin();
+    double currentMaxValueRelative = myModel.getRange().getMax();
+
+    // The models' 'zero' value is the lower bound of the data range.
+    // Thus, in the case where the lower bound of the range is negative, because
+    // we are subtracting, the calculation will increase the relative min and max
+    // values by the absolute value of the negative lower bound. This effectively
+    // hides any negative lower bound by turning it into a true zero, while increasing
+    // the max value the same amount.
+    if (myHideNegativeValues) {
+      currentMinValueRelative -= myModel.getZero();
+      currentMaxValueRelative -= myModel.getZero();
+    }
+
     double range = myModel.getRange().getLength();
     double labelRange = myModel.getDataRange();
 
@@ -232,7 +252,7 @@ public final class AxisComponent extends AnimatedComponent {
 
       if (i % numMinorPerMajor == 0) {    // Major Tick.
         myMajorMarkerPositions.add(markerOffset);
-        myMarkerLabels.add(formatter.getFormattedString(labelRange, markerValue, !myShowUnitAtMax));
+        myMarkerLabels.add(formatter.getFormattedString(labelRange, markerValue, !myOnlyShowUnitAtMax));
       }
       else {
         myMinorMarkerPositions.add(markerOffset);
@@ -240,7 +260,7 @@ public final class AxisComponent extends AnimatedComponent {
     }
 
     if (myShowMin && myModel.getMarkerRange().contains(currentMinValueRelative)) {
-      myMinLabel = formatter.getFormattedString(labelRange, currentMinValueRelative, !myShowUnitAtMax);
+      myMinLabel = formatter.getFormattedString(labelRange, currentMinValueRelative, !myOnlyShowUnitAtMax);
     }
     if (myShowMax && myModel.getMarkerRange().contains(currentMaxValueRelative)) {
       myMaxLabel = formatter.getFormattedString(labelRange, currentMaxValueRelative, true);
@@ -462,8 +482,8 @@ public final class AxisComponent extends AnimatedComponent {
     myShowMax = showMax;
   }
 
-  public void setShowUnitAtMax(boolean showUnitAtMax) {
-    myShowUnitAtMax = showUnitAtMax;
+  public void setOnlyShowUnitAtMax(boolean onlyShowUnitAtMax) {
+    myOnlyShowUnitAtMax = onlyShowUnitAtMax;
   }
 
   public void setHideTickAtMin(boolean hideTickAtMin) {

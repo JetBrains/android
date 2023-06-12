@@ -20,16 +20,19 @@ import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
-import com.android.build.attribution.ui.model.PluginDetailsNodeDescriptor
+import com.android.build.attribution.ui.model.EntryDetailsNodeDescriptor
 import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.view.ViewActionHandlers
+import com.android.buildanalyzer.common.TaskCategory
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -46,6 +49,11 @@ class TaskViewDetailPagesFactoryTest {
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
+  @After
+  fun clearOverride() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.clearOverride()
+  }
+
   @Test
   fun testCreateTaskPageWithoutWarning() {
     val taskData = mockTask(":module1", "task1", "myPlugin", 100, criticalPathDurationMs = 1000)
@@ -53,7 +61,7 @@ class TaskViewDetailPagesFactoryTest {
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
 
-    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.UNGROUPED))
+    val detailsPage = factory.createDetailsPage(TasksPageId.task(taskData, TasksDataPageModel.Grouping.BY_TASK_CATEGORY))
     assertThat(TreeWalker(detailsPage).descendants().filterIsInstance<JEditorPane>()).hasSize(1)
     // Just checking that page is created as expected, Content of the html for this page is tested in TaskDetailsPageTest.kt
   }
@@ -64,10 +72,10 @@ class TaskViewDetailPagesFactoryTest {
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
-    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as EntryDetailsNodeDescriptor
 
-    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
     assertThat(htmlBody).isEqualTo("""
       <B>myPlugin</B><BR/>
       Total duration: 0.1s<BR/>
@@ -90,10 +98,10 @@ class TaskViewDetailPagesFactoryTest {
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
-    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as EntryDetailsNodeDescriptor
 
-    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
 
     assertThat(htmlBody).isEqualTo("""
 <B>myPlugin</B><BR/>
@@ -122,10 +130,10 @@ ${expectedTaskSection(":module3:task1")}
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
-    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as PluginDetailsNodeDescriptor
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.plugin(pluginData)) as EntryDetailsNodeDescriptor
 
-    val htmlBody = factory.pluginDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
     assertThat(htmlBody).isEqualTo("""
 <B>myPlugin</B><BR/>
 Total duration: 2.0s<BR/>
@@ -133,7 +141,7 @@ Number of tasks: 20 tasks<BR/>
 <BR/>
 <B>Warnings</B><BR/>
 20 tasks with warnings associated with this plugin.<BR/>
-Top 10 tasks shown below, you can find the full list in the tree on the left.<BR/>
+Top 10 warnings shown below, you can find the full list in the tree on the left.<BR/>
 
 ${expectedTaskSection(":module1:task1")}
 
@@ -178,7 +186,7 @@ which it must do in order to support incremental builds.<BR/>
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
     val page = factory.createDetailsPage(TasksPageId.plugin(pluginData))
     val pane = TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single()
 
@@ -211,7 +219,7 @@ which it must do in order to support incremental builds.<BR/>
     val model = TasksDataPageModelImpl(data)
     val factory = TaskViewDetailPagesFactory(model, mockHandlers)
     model.selectGrouping(TasksDataPageModel.Grouping.BY_PLUGIN)
-    val pluginData = data.criticalPathPlugins.plugins.first { it.name == "myPlugin" }
+    val pluginData = data.criticalPathPlugins.entries.first { it.name == "myPlugin" }
     val page = factory.createDetailsPage(TasksPageId.plugin(pluginData))
     val pane = TreeWalker(page).descendants().filterIsInstance<JEditorPane>().single()
 
@@ -241,6 +249,58 @@ which it must do in order to support incremental builds.<BR/>
 
     assertThat(detailsPage.name).isEqualTo("empty-details")
     assertThat((detailsPage.components.single() as JLabel).text).isEqualTo("Select page for details")
+  }
+
+  @Test
+  fun testCreateTaskCategoryPageWithoutWarning() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
+    val data = MockUiData(tasksList = listOf(mockTask(":module1", "task1", "myPlugin", 100, taskCategory = TaskCategory.ANDROID_RESOURCES)))
+    val model = TasksDataPageModelImpl(data)
+    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
+    model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
+    val taskCategoryData = data.criticalPathTaskCategories!!.entries.first{ it.name == "Android Resources" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData.taskCategory)) as EntryDetailsNodeDescriptor
+
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    assertThat(htmlBody).isEqualTo("""
+      <B>Android Resources</B><BR/>
+      Tasks related to Android resources compilation, processing, linking and merging.<BR/>
+      <BR/>
+      Total duration: 0.1s<BR/>
+      Number of tasks: 1 task<BR/>
+      <BR/>
+      <B>Warnings</B><BR/>
+      No warnings detected for Android Resources category.
+    """.trimIndent())
+  }
+
+  @Test
+  fun testCreateTaskCategoryPageWithWarning() {
+    StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS.override(true)
+    val data = MockUiData(tasksList = listOf(mockTask(":module1", "task1", "myPlugin", 100, taskCategory = TaskCategory.ANDROID_RESOURCES)),
+                          createTaskCategoryWarning = true)
+    val model = TasksDataPageModelImpl(data)
+    val factory = TaskViewDetailPagesFactory(model, mockHandlers)
+    model.selectGrouping(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
+    val taskCategoryData = data.criticalPathTaskCategories!!.entries.first{ it.name == "Android Resources" }
+    val descriptor = model.getNodeDescriptorById(TasksPageId.taskCategory(taskCategoryData.taskCategory)) as EntryDetailsNodeDescriptor
+
+    val htmlBody = factory.entryDetailsHtml(descriptor, HtmlLinksHandler(mockHandlers)).clearHtml()
+    assertThat(htmlBody).isEqualTo("""
+      <B>Android Resources</B><BR/>
+      Tasks related to Android resources compilation, processing, linking and merging.<BR/>
+      <BR/>
+      Total duration: 0.1s<BR/>
+      Number of tasks: 1 task<BR/>
+      <BR/>
+      <B>Warnings</B><BR/>
+      1 warning associated with Android Resources category.<BR/>
+      
+      <table><tr><td VALIGN=TOP><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td VALIGN=TOP>Non-transitive R classes are currently disabled.<BR/>
+      Enable non-transitive R classes for faster incremental compilation.<BR/>
+      <a href='AndroidMigrateToNonTransitiveRClassesAction'>Click here to migrate your project to use non-transitive R classes</a>, or <a href='NON_TRANSITIVE_R_CLASS'>Learn more</a><icon src='AllIcons.Ide.External_link_arrow'></td></tr>
+      </table>
+    """.trimIndent())
   }
 
   private fun String.clearHtml(): String = trimIndent()

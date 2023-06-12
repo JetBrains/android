@@ -88,19 +88,6 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     MergedManifestModificationListener.ensureSubscribed(getProject());
   }
 
-  public void testIsFileBasedResourceType() {
-    assertTrue(IdeResourcesUtil.isFileBased(ResourceType.ANIMATOR));
-    assertTrue(IdeResourcesUtil.isFileBased(ResourceType.LAYOUT));
-
-    assertFalse(IdeResourcesUtil.isFileBased(ResourceType.STRING));
-    assertFalse(IdeResourcesUtil.isFileBased(ResourceType.DIMEN));
-    assertFalse(IdeResourcesUtil.isFileBased(ResourceType.ID));
-
-    // Both:
-    assertTrue(IdeResourcesUtil.isFileBased(ResourceType.DRAWABLE));
-    assertTrue(IdeResourcesUtil.isFileBased(ResourceType.COLOR));
-  }
-
   public void testIsValueBasedResourceType() {
     assertTrue(IdeResourcesUtil.isValueBased(ResourceType.STRING));
     assertTrue(IdeResourcesUtil.isValueBased(ResourceType.DIMEN));
@@ -318,7 +305,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
                               "\n" +
                               "</FrameLayout>";
     XmlFile outerFile = (XmlFile)myFixture.addFileToProject("layout/outer.xml", outerFileContent);
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myFacet).getConfiguration(innerFileLand.getVirtualFile());
+    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(innerFileLand.getVirtualFile());
     XmlTag include = outerFile.getRootTag().findFirstSubTag("include");
     ResourceValue resolved =
       IdeResourcesUtil
@@ -432,7 +419,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     assertThat(IdeResourcesUtil.getResourceNamespace(frameworkClass)).isEqualTo(ANDROID);
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
-    List<ResourceItem> appIconResourceItems = ResourceRepositoryManager.getInstance(myFacet)
+    List<ResourceItem> appIconResourceItems = StudioResourceRepositoryManager.getInstance(myFacet)
       .getFrameworkResources(ImmutableSet.of())
       .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 
@@ -624,6 +611,39 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
                                          "    xmlns:app=\"http://schemas.android.com/apk/res-auto\" android:id=\"@+id/nav\">\n" +
                                          "\n" +
                                          "</navigation>");
+  }
+
+  public void testBuildResourceNameFromStringValue_simpleName() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("Just simple string")).isEqualTo("just_simple_string");
+  }
+
+  public void testBuildResourceNameFromStringValue_nameWithSurroundingSpaces() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue(" Just a simple string ")).isEqualTo("just_a_simple_string");
+  }
+
+  public void testBuildResourceNameFromStringValue_nameWithDigits() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("A string with 31337 number")).isEqualTo("a_string_with_31337_number");
+  }
+
+  public void testBuildResourceNameFromStringValue_nameShouldNotStartWithNumber() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("100 things")).isEqualTo("_100_things");
+  }
+
+  public void testBuildResourceNameFromStringValue_emptyString() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("")).isNull();
+  }
+
+  public void testBuildResourceNameFromStringValue_stringHasPunctuation() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("Hello!!#^ But why??")).isEqualTo("hello_but_why");
+  }
+
+  public void testBuildResourceNameFromStringValue_stringIsOnlyPunctuation() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("!!#^??")).isNull();
+  }
+
+  public void testBuildResourceNameFromStringValue_stringStartsAndEndsWithPunctuation() {
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("\"A quotation\"")).isEqualTo("a_quotation");
+    assertThat(IdeResourcesUtil.buildResourceNameFromStringValue("<tag>")).isEqualTo("tag");
   }
 
   @NotNull

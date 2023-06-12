@@ -17,7 +17,8 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
@@ -154,24 +155,29 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
       .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
     { sr ->
       val searchResult = sr!!
-      val versions = searchResult.artifacts.flatMap { it.versions }.distinct().toSet()
-      val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      // TODO(b/242691473): going through toString() here is not pretty, but the type information is buried quite deep.
+      val versions = searchResult.artifacts.flatMap { it.versions }.distinct().mapNotNull { AgpVersion.tryParse(it.toString()) }.toSet()
+      val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
       // return only results that will not lead to forced upgrades
-      searchResult.toVersionValueDescriptors { computeGradlePluginUpgradeState(it, latestKnown, versions).importance != FORCE }
+      searchResult.toVersionValueDescriptors {
+        // TODO(b/242691473): again, not pretty
+        val agpVersion = AgpVersion.tryParse(it.toString()) ?: return@toVersionValueDescriptors false
+        computeGradlePluginUpgradeState(agpVersion, latestKnown, versions).importance != FORCE
+      }
     },
     directExecutor())
 
-fun gradleVersionValues(): ListenableFuture<KnownValues<String>> =
+fun versionValues(): ListenableFuture<KnownValues<String>> =
   GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
     object : KnownValues<String> {
       override val literals: List<ValueDescriptor<String>> =
-        it.sortedByDescending { GradleVersion.tryParse(it) }.map { ValueDescriptor(it) }
+        it.sortedByDescending { Version.parse(it) }.map { ValueDescriptor(it) }
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false
     }
   }
 
 @VisibleForTesting
-fun SearchResult.toVersionValueDescriptors(filter: (GradleVersion) -> Boolean = { true }): List<ValueDescriptor<String>> =
+fun SearchResult.toVersionValueDescriptors(filter: (Version) -> Boolean = { true }): List<ValueDescriptor<String>> =
   artifacts
     .flatMap { it.versions }
     .distinct()

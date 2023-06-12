@@ -16,6 +16,8 @@
 package com.android.tools.idea.npw.module
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
 import com.android.tools.idea.npw.importing.ImportModuleGalleryEntryProvider
@@ -26,6 +28,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import org.mockito.Mockito
 
 class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
+
   fun testSortSingleModuleEntries() {
     assertThat(sort(message("android.wizard.module.new.mobile"))).containsExactly(message("android.wizard.module.new.mobile")).inOrder()
   }
@@ -57,9 +60,14 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
   }
 
   fun testSortExistingModuleEntries() {
-    val providers = listOf(ImportModuleGalleryEntryProvider(), NewAndroidModuleDescriptionProvider(),
-                           NewDynamicAppModuleDescriptionProvider(), NewLibraryModuleDescriptionProvider(),
-                           NewBenchmarkModuleDescriptionProvider())
+    val providers = listOf(
+      ImportModuleGalleryEntryProvider(),
+      NewAndroidModuleDescriptionProvider(),
+      NewDynamicAppModuleDescriptionProvider(),
+      NewLibraryModuleDescriptionProvider(),
+      NewBenchmarkModuleDescriptionProvider(),
+      NewBaselineProfilesModuleDescriptionProvider()
+    )
     val moduleDescriptions = providers.flatMap { it.getDescriptions(project) }
 
     val sortedEntries = sortModuleEntries(moduleDescriptions).map { it.name }
@@ -76,10 +84,11 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       message("android.wizard.module.import.gradle.title"),
       message("android.wizard.module.import.eclipse.title"),
       message("android.wizard.module.new.java.or.kotlin.library"),
+      if (StudioFlags.NPW_NEW_BASELINE_PROFILES_MODULE.get()) message("android.wizard.module.new.baselineprofiles.module.app") else null,
       message("android.wizard.module.new.benchmark.module.app")
     ).filterNot {
       it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title")
-    }
+    }.filterNotNull()
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }

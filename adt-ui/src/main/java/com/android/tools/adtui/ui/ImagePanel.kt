@@ -19,7 +19,7 @@ import com.android.tools.adtui.ImageUtils
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.drawImage
+import com.intellij.util.ui.StartupUiUtil
 import java.awt.AlphaComposite
 import java.awt.Composite
 import java.awt.Graphics
@@ -32,7 +32,7 @@ import kotlin.math.roundToInt
  * A [JBPanel] that shows an [Image] as background, scaled to fit preserving the aspect ratio.
  * Quality of scaling is controlled by the [highFidelityScaling] parameter.
  */
-class ImagePanel(private val highFidelityScaling: Boolean = false) : JBPanel<ImagePanel>(true) {
+class ImagePanel(val highFidelityScaling: Boolean = false) : JBPanel<ImagePanel>(true) {
   var image: Image? = null
     set(value) {
       field = value
@@ -93,7 +93,7 @@ fun <T: JBPanel<T>> JBPanel<T>.paintPanelImage(g: Graphics, image: Image?, activ
       }
       else {
         // Draw the image using IJ wrapper so that rendering is optimized for JBHiDPIScaledImage
-        drawImage(g = g, image = img, x = xOffset, y = yOffset, dw = w, dh = h)
+        StartupUiUtil.drawImage(g, img, Rectangle(xOffset, yOffset, w, h), null, null)
       }
     }
   }

@@ -31,7 +31,7 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.refactoring.actions.RenameElementAction
 import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 import org.jetbrains.android.refactoring.renaming.NEW_NAME_RESOURCE
 
 open class NlIdPropertyItem(
@@ -90,7 +90,7 @@ open class NlIdPropertyItem(
   }
 
   override fun validate(text: String?): Pair<EditingErrorCategory, String> {
-    return lintValidation() ?: EDITOR_NO_ERROR
+    return lintValidation(text) ?: EDITOR_NO_ERROR
   }
 
   /**
@@ -105,10 +105,10 @@ open class NlIdPropertyItem(
 
     val action = RenameElementAction()
     val simpleContext = SimpleDataContext.builder()
-        .add(NEW_NAME_RESOURCE, newId)
-        .add(CommonDataKeys.PSI_FILE, value.containingFile)
-        .add(CommonDataKeys.PSI_ELEMENT, value)
-        .add(CommonDataKeys.PROJECT, value.project)
+      .add(NEW_NAME_RESOURCE, newId)
+      .add(CommonDataKeys.PSI_FILE, value.containingFile)
+      .add(CommonDataKeys.PSI_ELEMENT, value)
+      .add(CommonDataKeys.PROJECT, value.project)
       .build()
     ActionUtil.invokeAction(action, simpleContext, ActionPlaces.UNKNOWN, null, null)
 

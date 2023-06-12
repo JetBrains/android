@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
@@ -58,7 +58,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class LightArgsClass(facet: AndroidFacet,
                      private val modulePackage: String,
-                     private val navigationVersion: GradleVersion,
+                     private val navigationVersion: Version,
                      navigationResource: ResourceItem,
                      val destination: NavDestinationData)
   : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, destination) {

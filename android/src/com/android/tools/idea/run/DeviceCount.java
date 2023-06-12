@@ -30,8 +30,4 @@ public enum DeviceCount {
   public boolean isMultiple() {
     return this == MULTIPLE;
   }
-
-  public static DeviceCount fromBoolean(boolean supportMultipleDevices) {
-    return supportMultipleDevices ? MULTIPLE : SINGLE;
-  }
 }

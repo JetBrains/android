@@ -25,7 +25,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes
  * This should simply be ignored when running in Studio, as it doesn't allow the creation of new threads during rendering,
  * and it has its own way of getting downloadable fonts.
  */
-class RequestExecutorTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
+class RequestExecutorTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   private var isRequestExecutorClass: Boolean = false
   override val uniqueId: String = RequestExecutorTransform::class.qualifiedName!!
 
@@ -44,17 +44,17 @@ class RequestExecutorTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.AS
                            desc: String,
                            signature: String?,
                            exceptions: Array<String>?): MethodVisitor? {
-    val mv = super.visitMethod(access, name, desc, signature, exceptions)
+    val mv = super.visitMethod(access, name, desc, signature, exceptions) ?: return null
     if (isRequestExecutorClass && name == "execute") {
       return NoOpMethodVisitor(mv)
     }
     return mv
   }
 
-  class NoOpMethodVisitor(val mv: MethodVisitor?) : MethodVisitor(Opcodes.ASM7, null) {
+  class NoOpMethodVisitor(private val delegate: MethodVisitor) : MethodVisitor(Opcodes.ASM9, null) {
     override fun visitCode() {
-      mv.visitInsn(Opcodes.RETURN)
-      mv.visitEnd()
+      delegate.visitInsn(Opcodes.RETURN)
+      delegate.visitEnd()
     }
   }
 }

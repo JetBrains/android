@@ -24,39 +24,56 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.cr
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Before
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
-import java.util.concurrent.TimeUnit
 
 class NetworkInspectorModelTest {
   private lateinit var model: NetworkInspectorModel
   private val timer = FakeTimer()
 
-
   @Before
   fun setUp() {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(speedEventList = listOf(
-      Event.newBuilder().apply {
-        timestamp = 0
-        speedEvent = SpeedEvent.newBuilder().apply {
-          rxSpeed = 1
-          txSpeed = 2
-        }.build()
-      }.build(),
-      Event.newBuilder().apply {
-        timestamp = TimeUnit.SECONDS.toNanos(10)
-        speedEvent = SpeedEvent.newBuilder().apply {
-          rxSpeed = 3
-          txSpeed = 4
-        }.build()
-      }.build()
-    )), CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher()))
+    model =
+      NetworkInspectorModel(
+        services,
+        FakeNetworkInspectorDataSource(
+          speedEventList =
+            listOf(
+              Event.newBuilder()
+                .apply {
+                  timestamp = 0
+                  speedEvent =
+                    SpeedEvent.newBuilder()
+                      .apply {
+                        rxSpeed = 1
+                        txSpeed = 2
+                      }
+                      .build()
+                }
+                .build(),
+              Event.newBuilder()
+                .apply {
+                  timestamp = TimeUnit.SECONDS.toNanos(10)
+                  speedEvent =
+                    SpeedEvent.newBuilder()
+                      .apply {
+                        rxSpeed = 3
+                        txSpeed = 4
+                      }
+                      .build()
+                }
+                .build()
+            )
+        ),
+        CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+      )
     model.timeline.viewRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
   }
 
@@ -116,33 +133,54 @@ class NetworkInspectorModelTest {
     var legendsUpdated = false
     var tooltipLegendsUpdated = false
 
-    model.networkUsage.addDependency(observer).onChange(LineChartModel.Aspect.LINE_CHART) { networkUsageUpdated = true }
-    model.trafficAxis.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) { trafficAxisUpdated = true }
-    model.legends.addDependency(observer).onChange(LegendComponentModel.Aspect.LEGEND) { legendsUpdated = true }
-    model.tooltipLegends.addDependency(observer).onChange(LegendComponentModel.Aspect.LEGEND) { tooltipLegendsUpdated = true }
+    model.networkUsage.addDependency(observer).onChange(LineChartModel.Aspect.LINE_CHART) {
+      networkUsageUpdated = true
+    }
+    model.trafficAxis.addDependency(observer).onChange(AxisComponentModel.Aspect.AXIS) {
+      trafficAxisUpdated = true
+    }
+    model.legends.addDependency(observer).onChange(LegendComponentModel.Aspect.LEGEND) {
+      legendsUpdated = true
+    }
+    model.tooltipLegends.addDependency(observer).onChange(LegendComponentModel.Aspect.LEGEND) {
+      tooltipLegendsUpdated = true
+    }
     timer.tick(1)
     assertThat(networkUsageUpdated).isTrue()
     assertThat(trafficAxisUpdated).isTrue()
     assertThat(legendsUpdated).isFalse()
     assertThat(tooltipLegendsUpdated).isFalse()
 
-    model.timeline.viewRange.set(TimeUnit.SECONDS.toMicros(1).toDouble(), TimeUnit.SECONDS.toMicros(2).toDouble())
+    model.timeline.viewRange.set(
+      TimeUnit.SECONDS.toMicros(1).toDouble(),
+      TimeUnit.SECONDS.toMicros(2).toDouble()
+    )
     assertThat(networkUsageUpdated).isTrue()
 
     // Make sure the axis lerps correctly when we move the range there.
     model.timeline.dataRange.max = TimeUnit.SECONDS.toMicros(101).toDouble()
-    model.timeline.viewRange.set(TimeUnit.SECONDS.toMicros(99).toDouble(), TimeUnit.SECONDS.toMicros(101).toDouble())
+    model.timeline.viewRange.set(
+      TimeUnit.SECONDS.toMicros(99).toDouble(),
+      TimeUnit.SECONDS.toMicros(101).toDouble()
+    )
     timer.tick(100)
     assertThat(legendsUpdated).isTrue()
     assertThat(trafficAxisUpdated).isTrue()
-    model.timeline.tooltipRange.set(TimeUnit.SECONDS.toMicros(100).toDouble(), TimeUnit.SECONDS.toMicros(100).toDouble())
+    model.timeline.tooltipRange.set(
+      TimeUnit.SECONDS.toMicros(100).toDouble(),
+      TimeUnit.SECONDS.toMicros(100).toDouble()
+    )
     assertThat(tooltipLegendsUpdated).isTrue()
   }
 
   @Test
   fun testSelectedConnection() {
-    val data = createFakeHttpData(1, responseFields = "null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ",
-                                  responsePayload = ByteString.copyFromUtf8("Content"))
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields = "null  =  HTTP/1.1 302 Found \n Content-Type = image/jpeg; ",
+        responsePayload = ByteString.copyFromUtf8("Content")
+      )
     val observer = AspectObserver()
     var connectionChanged = false
     model.aspect.addDependency(observer).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {

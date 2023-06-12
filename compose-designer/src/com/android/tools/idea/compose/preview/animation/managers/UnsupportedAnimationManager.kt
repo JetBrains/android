@@ -24,23 +24,27 @@ import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabe
 import javax.swing.JComponent
 
 /** [AnimationManager] for unsupported animations. */
-class UnsupportedAnimationManager(animation: ComposeAnimation, title : String) : AnimationManager(animation, title) {
+class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
+  AnimationManager(animation, title) {
 
   /**
-   * State of animation, shared between single animation tab and coordination panel.
-   * All callbacks are empty for [UnsupportedAnimationManager].
+   * State of animation, shared between single animation tab and coordination panel. All callbacks
+   * are empty for [UnsupportedAnimationManager].
    */
   override val elementState = ElementState(title)
   override val card = LabelCard(elementState)
   override fun loadProperties() {}
 
   override fun setup(callback: () -> Unit) {
-    //UnsupportedManager doesn't require any additional setup, just call callback.
+    // UnsupportedManager doesn't require any additional setup, just call callback.
     callback.invoke()
   }
 
-  override fun createTimelineElement(parent: JComponent, minY: Int, positionProxy: PositionProxy): TimelineElement {
+  override fun createTimelineElement(
+    parent: JComponent,
+    minY: Int,
+    positionProxy: PositionProxy
+  ): TimelineElement {
     return UnsupportedLabel(parent, elementState, minY, positionProxy)
   }
 }
-

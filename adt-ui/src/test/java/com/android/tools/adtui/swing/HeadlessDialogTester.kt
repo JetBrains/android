@@ -19,6 +19,7 @@ package com.android.tools.adtui.swing
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.util.concurrent.ListenableFutureTask
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonShortcuts
@@ -84,6 +85,7 @@ import kotlin.concurrent.withLock
 
 /**
  * Enables showing of dialogs in a headless test environment.
+ * Don't call this function directly, prefer [HeadlessDialogRule].
  */
 fun enableHeadlessDialogs(disposable: Disposable) {
   Disposer.register(disposable) {
@@ -229,6 +231,7 @@ class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
  * code. This redundant code is preserved in hope that it may be used in future to implement more
  * behaviors mimicking real dialogs.
  */
+@Suppress("UnstableApiUsage")
 private class HeadlessDialogWrapperPeer(
   private val wrapper: DialogWrapper,
   private var project: Project?,
@@ -462,10 +465,16 @@ private class HeadlessDialogWrapperPeer(
 
   private val isHeadlessEnv: Boolean
     get() {
-      return getApplication() != null || GraphicsEnvironment.isHeadless()
+      val app = getApplication()
+      return if (app == null) GraphicsEnvironment.isHeadless() else app.isUnitTestMode || app.isHeadlessEnvironment
     }
 
   private inner class AnCancelAction : AnAction(), DumbAware {
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+      return ActionUpdateThread.EDT
+    }
+
     override fun update(event: AnActionEvent) {
       val focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner
       event.presentation.isEnabled = false

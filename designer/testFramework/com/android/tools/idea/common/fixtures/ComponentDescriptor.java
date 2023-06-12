@@ -42,6 +42,7 @@ import static org.mockito.Mockito.when;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;
@@ -494,9 +495,10 @@ public class ComponentDescriptor {
     }
     int right = left + myWidth;
     int bottom = top + myHeight;
-    TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(tag);
+    TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(new PsiXmlTag(tag));
 
-    TestViewInfo viewInfo = new TestViewInfo(myViewObjectClassName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
+    TestViewInfo viewInfo =
+      new TestViewInfo(myViewObjectClassName, snapshot, left, top, right, bottom, myViewObject, null, myLayoutParamsObject);
     viewInfo.setExtendedInfo((int) (0.8 * (bottom - top)), 0, 0, 0, 0);
     if (myViewType != null) {
       viewInfo.setViewType(myViewType);
@@ -524,8 +526,9 @@ public class ComponentDescriptor {
                          int right,
                          int bottom,
                          @Nullable Object viewObject,
+                         @Nullable Object accessibilityObject,
                          @Nullable Object layoutParamsObject) {
-      super(name, cookie, left, top, right, bottom, viewObject, layoutParamsObject);
+      super(name, cookie, left, top, right, bottom, viewObject, accessibilityObject, layoutParamsObject);
       myViewType = ViewType.USER;
     }
 

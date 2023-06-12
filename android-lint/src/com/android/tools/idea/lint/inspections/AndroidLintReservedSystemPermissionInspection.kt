@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PermissionErrorDetector
 
-class AndroidLintReservedSystemPermissionInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.reserved.system.permission"), PermissionErrorDetector.RESERVED_SYSTEM_PERMISSION
-)
+class AndroidLintReservedSystemPermissionInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.reserved.system.permission"),
+    PermissionErrorDetector.RESERVED_SYSTEM_PERMISSION
+  )

@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.getResourceSubdirs
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.actions.AddFontAction
@@ -58,7 +59,6 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.actions.CreateResourceFileActionGroup
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import kotlin.properties.Delegates
 
 /**
@@ -236,18 +236,25 @@ class ResourceExplorerToolbarViewModel(
     else -> null
   }
 
+  /**
+   * Returns one of the existing directories used for the current [ResourceType], or the default 'res' directory.
+   *
+   * Needed for AssetStudio.
+   */
   private fun getSlowData(dataId: String, facet: AndroidFacet, resourceType: ResourceType, project: Project): Any? {
     if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-      val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories
-      val firstResourceSubdir = resDirs.firstOrNull()
-      val resourceTypeSubDir = FolderTypeRelationship.getRelatedFolders(resourceType)
-        .firstOrNull()
-        ?.let { resourceFolderType -> getResourceSubdirs(resourceFolderType, resDirs).firstOrNull() ?: firstResourceSubdir }
-
-      return resourceTypeSubDir?.let { PsiManager.getInstance(project).findDirectory(it) }
+      return getPsiDirForResourceType(facet, resourceType)
     } else {
       return null
     }
+  }
+
+  private fun getPsiDirForResourceType(facet: AndroidFacet, resourceType: ResourceType): PsiDirectory? {
+    val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories
+    val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
+      getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
+    }
+    return (subDir ?: resDirs.firstOrNull())?.let { PsiManager.getInstance(facet.module.project).findDirectory(it) }
   }
 
   private fun onCreatedResource(name: String, type: ResourceType) {

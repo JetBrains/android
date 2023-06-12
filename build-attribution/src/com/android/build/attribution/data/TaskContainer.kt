@@ -15,7 +15,9 @@
  */
 package com.android.build.attribution.data
 
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.TaskCategory
+import com.android.tools.idea.flags.StudioFlags.BUILD_ANALYZER_CATEGORY_ANALYSIS
 import org.gradle.tooling.events.task.TaskFinishEvent
 
 /**
@@ -23,6 +25,7 @@ import org.gradle.tooling.events.task.TaskFinishEvent
  */
 class TaskContainer {
   private val taskCache = HashMap<String, TaskData>()
+  val allTasks: Map<String, TaskData> get() = taskCache
 
   fun getTask(taskPath: String): TaskData? {
     return taskCache[taskPath]
@@ -37,9 +40,19 @@ class TaskContainer {
   fun updateTasksData(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     // Set the task type
     taskCache.values.forEach { task ->
-      task.setTaskType(androidGradlePluginAttributionData.taskNameToClassNameMap[task.taskName])
+      val taskInfo = androidGradlePluginAttributionData.taskNameToTaskInfoMap[task.taskName]
+      task.setTaskType(taskInfo?.className)
+      if (BUILD_ANALYZER_CATEGORY_ANALYSIS.get()) {
+        val taskCategoryInfo = taskInfo?.taskCategoryInfo
+        task.setTaskCategories(
+          primaryTaskCategory = taskCategoryInfo?.primaryTaskCategory ?: TaskCategory.UNCATEGORIZED,
+          secondaryTaskCategories = taskCategoryInfo?.secondaryTaskCategories ?: emptyList()
+        )
+      }
     }
   }
+
+  fun getTasks(predicate: (TaskData) -> Boolean) = taskCache.values.filter(predicate)
 
   fun any(predicate: (TaskData) -> Boolean) = taskCache.values.any(predicate)
 

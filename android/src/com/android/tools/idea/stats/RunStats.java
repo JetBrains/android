@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.HashSet;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class RunStats {
@@ -145,6 +146,31 @@ public class RunStats {
     myEvent.setProjectId(AnonymizerUtil.anonymizeUtf8(packageName)).setRawProjectId(packageName);
   }
 
+  public static class CustomTask {
+    private final LaunchTaskDetail.Builder myBuilder;
+
+    private CustomTask(LaunchTaskDetail.Builder builder) {
+      myBuilder = builder;
+    }
+
+    LaunchTaskDetail.Builder getBuilder() {
+      return myBuilder;
+    }
+  }
+
+  public @NotNull CustomTask beginCustomTask(@NotNull String taskId) {
+    return new CustomTask(LaunchTaskDetail.newBuilder()
+      .setId(taskId)
+      .setStartTimestampMs(System.currentTimeMillis()));
+  }
+
+  public void endCustomTask(@NotNull CustomTask task, @Nullable Throwable exception) {
+    LaunchTaskDetail.Builder detail = task.getBuilder();
+    detail.setEndTimestampMs(System.currentTimeMillis());
+    detail.setStatus(exception == null ? "success" : "error");
+    myEvent.getRunEventBuilder().addLaunchTaskDetail(detail);
+  }
+
   public void setAppComponentType(ComponentType type) {
     RunEvent.AppComponent runEventType;
     switch (type) {
@@ -216,6 +242,10 @@ public class RunStats {
     myEvent.getRunEventBuilder().setRunAlwaysInstallWithPm(alwaysUsesPackageManager);
   }
 
+  public void setIsComposeProject(boolean isCompose) {
+    myEvent.getRunEventBuilder().setIsComposeProject(isCompose);
+  }
+  
   public static RunStats from(ExecutionEnvironment env) {
     RunStats data = env.getUserData(KEY);
     if (data == null) {

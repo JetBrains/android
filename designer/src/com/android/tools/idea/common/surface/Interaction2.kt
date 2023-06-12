@@ -85,19 +85,19 @@ interface Interaction2 {
   fun cancel(event: InteractionEvent)
 
   /**
-   * Called when [InteractionManager] asks for the current cursor during interaction.
+   * Called when [GuiInputHandler] asks for the current cursor during interaction.
    */
   fun getCursor(): Cursor?
 }
 
 /**
- * The event from [InteractionManager]. [info] provides the last information (e.g. mouse position, key board modification) recorded by
- * [InteractionManager].
+ * The event from [GuiInputHandler]. [info] provides the last information (e.g. mouse position, key board modification) recorded by
+ * [GuiInputHandler].
  */
 sealed class InteractionEvent(val info: InteractionInformation)
 
 /**
- * [InteractionManager] receives an event but which is not created by input. For example, [DesignSurface] is deactivated so the active
+ * [GuiInputHandler] receives an event but which is not created by input. For example, [DesignSurface] is deactivated so the active
  * [Interaction] needs to be canceled, then [Interaction2.cancel] may receive a [InteractionNonInputEvent].
  */
 class InteractionNonInputEvent(info: InteractionInformation): InteractionEvent(info)
@@ -116,8 +116,8 @@ class MouseReleasedEvent(mouseEvent: MouseEvent, info: InteractionInformation): 
 class MouseWheelMovedEvent(mouseWheelEvent: MouseWheelEvent, info: InteractionInformation)
   : InteractionInputEvent<MouseWheelEvent>(mouseWheelEvent, info)
 /**
- * There is no real mouse wheel stop event in Swing framework. [InteractionManager] sent this event when mouse wheel is stopped
- * scrolling for [InteractionManager.SCROLL_END_TIME_MS] milliseconds.
+ * There is no real mouse wheel stop event in Swing framework. [GuiInputHandler] sent this event when mouse wheel is stopped
+ * scrolling for [GuiInputHandler.SCROLL_END_TIME_MS] milliseconds.
  *
  * The type of [eventObject] is [ActionEvent] because the stop scrolling event is triggered by [javax.swing.Timer].
  */

@@ -18,16 +18,16 @@ package com.android.tools.idea.run
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
-import java.util.concurrent.Future
 
 interface DeploymentApplicationService {
   companion object {
     @JvmStatic
-    val instance:DeploymentApplicationService
+    val instance: DeploymentApplicationService
       get() = ApplicationManager.getApplication().getService(DeploymentApplicationService::class.java)
   }
 
   fun findClient(iDevice: IDevice, applicationId: String): List<Client>
-  fun getVersion(iDevice: IDevice): Future<AndroidVersion>
+  fun getVersion(iDevice: IDevice): ListenableFuture<AndroidVersion>
 }

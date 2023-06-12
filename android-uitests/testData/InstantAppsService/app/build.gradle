@@ -18,6 +18,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion rootProject.compileSdk
+    namespace "com.instantappsample.service"
 
     defaultConfig {
         applicationId "com.instantappsample.service"

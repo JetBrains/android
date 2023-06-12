@@ -45,9 +45,11 @@ public class DefaultApkActivityLocator extends ActivityLocator {
   private static final Logger LOG = Logger.getInstance(DefaultApkActivityLocator.class);
 
   private final ApkProvider myApkProvider;
+  private final String myApplicationId;
 
-  public DefaultApkActivityLocator(@NotNull ApkProvider apkProvider) {
+  public DefaultApkActivityLocator(@NotNull ApkProvider apkProvider, @NotNull String applicationId) {
     myApkProvider = apkProvider;
+    myApplicationId = applicationId;
   }
 
   // This is called before build runs, therefore we cannot validate.
@@ -70,7 +72,7 @@ public class DefaultApkActivityLocator extends ActivityLocator {
       throw new ActivityLocatorException("No APKs provided. Unable to extract default activity");
     }
 
-    String defaultActivity = computeDefaultActivityFromApks(apks);
+    String defaultActivity = computeDefaultActivityFromApks(apks, myApplicationId);
     if (defaultActivity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
     }
@@ -81,22 +83,30 @@ public class DefaultApkActivityLocator extends ActivityLocator {
   // Open all archives ending with ".apks". Attempt to find the AndroidManifest.xml entry.
   // Parse it and add activities to the list. When all have been retrieved, attempt to find
   // the Default Activity.
-  private static String computeDefaultActivityFromApks(@NotNull Collection<ApkInfo> apks) {
+  private static String computeDefaultActivityFromApks(@NotNull Collection<ApkInfo> apks, @NotNull String applicationId) {
+    List<ApkInfo> filteredApks = apks.stream()
+      .filter(apk -> apk.getApplicationId().equals(applicationId))
+      .collect(Collectors.toUnmodifiableList());
 
-    if (apks.size() != 1) {
-      StringBuilder errorMessage = new StringBuilder("Unable to extract Default Activity\n");
-      errorMessage.append("Received projects:\n");
-      for (ApkInfo apkInfo : apks) {
-        errorMessage.append("  " + apkInfo.getApplicationId() + " containing :\n" + apkInfo.getFiles());
-        for (ApkFileUnit fileUnit : apkInfo.getFiles()) {
-          errorMessage.append("    " + fileUnit.getApkFile());
+    if (filteredApks.size() != 1) {
+      StringBuilder errorMessage = new StringBuilder();
+      if (filteredApks.isEmpty()) {
+        errorMessage.append("No matching APK for application: " + applicationId + "\n");
+      } else {
+        errorMessage.append("Multiple APKs present for application: " + applicationId + "\n");
+        errorMessage.append("Projects:\n");
+        for (ApkInfo apkInfo : apks) {
+          errorMessage.append("  " + apkInfo.getApplicationId() + " containing :\n");
+          for (ApkFileUnit fileUnit : apkInfo.getFiles()) {
+            errorMessage.append("    " + fileUnit.getApkFile() + "\n");
+          }
         }
       }
       throw new IllegalStateException(errorMessage.toString());
     }
 
     List<NodeActivity> activities = new ArrayList<>();
-    ApkInfo apkInfo = apks.iterator().next();
+    ApkInfo apkInfo = filteredApks.iterator().next();
     for (ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
       // Only process .apk archives.
       File file = apkFileUnit.getApkFile();

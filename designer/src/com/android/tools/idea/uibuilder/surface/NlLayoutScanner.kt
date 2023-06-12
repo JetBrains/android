@@ -35,7 +35,7 @@ import com.intellij.openapi.util.Disposer
  * Validator for [NlDesignSurface].
  * It retrieves validation results from the [RenderResult] and update the lint accordingly.
  */
-class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable): Disposable, LayoutScannerControl {
+class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable): Disposable, LayoutScannerControl {
 
   constructor(surface: NlDesignSurface) : this(surface, surface)
 
@@ -117,7 +117,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
           listeners.forEach { it.lintUpdated(null) }
           return
         }
-        updateLint(renderResult, LayoutValidator.validate(validatorResult), model, surface)
+        updateLint(renderResult, LayoutValidator.validate(validatorResult), model)
       }
       else -> {
         // Result not available.
@@ -130,8 +130,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
   fun updateLint(
     renderResult: RenderResult,
     validatorResult: ValidatorResult,
-    model: NlModel,
-    surface: NlDesignSurface) {
+    model: NlModel) {
     lintIntegrator.clear()
     layoutParser.clear()
 
@@ -149,7 +148,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
       validatorResult.issues.forEach {
         if ((it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) &&
             it.mType == ValidatorData.Type.ACCESSIBILITY) {
-          val component = layoutParser.findComponent(it, validatorResult.srcMap)
+          val component = layoutParser.findComponent(it, validatorResult.srcMap, validatorResult.nodeInfoMap)
           if (component == null) {
             issuesWithoutSources++
           } else {
@@ -160,7 +159,7 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
       }
 
       if (NELE_LAYOUT_SCANNER_ADD_INCLUDE.get() && issuesWithoutSources > 0 && layoutParser.includeComponents.isNotEmpty()) {
-        lintIntegrator.handleInclude(layoutParser, surface)
+        lintIntegrator.handleInclude(layoutParser)
       }
 
       if (NELE_LAYOUT_SCANNER_COMMON_ERROR_PANEL.get()) {
@@ -203,8 +202,8 @@ class NlLayoutScanner(private val surface: NlDesignSurface, parent: Disposable):
   }
 }
 
-@Suppress("unused") // For debugging
-fun ValidatorResult.toDetailedString(): String {
+// For debugging
+fun ValidatorResult.toDetailedString(): String? {
   val builder: StringBuilder = StringBuilder().append("Result containing ").append(issues.size).append(
     " issues:\n")
   val var2: Iterator<*> = this.issues.iterator()

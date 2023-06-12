@@ -136,13 +136,8 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
     Set<Sdk> invalidSdks = new HashSet<>();
 
     Module appModule = createModule("app");
-    // Simulate this is an Android module.
-    AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
-
-    // There should be no attempts to fix the SDK.
-    verify(sdks, never()).getAndroidSdkAdditionalData(sdk);
 
     assertThat(fixedSdks).containsExactly(sdk);
     assertThat(invalidSdks).isEmpty();
@@ -160,13 +155,8 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
     invalidSdks.add(sdk);
 
     Module appModule = createModule("app");
-    // Simulate this is an Android module.
-    AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
-
-    // There should be no attempts to fix the SDK.
-    verify(sdks, never()).getAndroidSdkAdditionalData(sdk);
 
     assertThat(invalidSdks).containsExactly(sdk);
     assertThat(fixedSdks).isEmpty();
@@ -200,15 +190,12 @@ public class SdksCleanupStepTest extends HeavyPlatformTestCase {
     Sdks.allowAccessToSdk(getTestRootDisposable());
     IAndroidTarget target = findLatestAndroidTarget(sdkPath);
 
-    myJdk = IdeSdks.getInstance().getJdk();
-
-    mySdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", myJdk, true /* add roots */);
+    mySdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", true /* add roots */);
     assertNotNull(mySdk);
     IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   private void removeSdk() {
-    ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(myJdk));
     ApplicationManager.getApplication().runWriteAction(() -> ProjectJdkTable.getInstance().removeJdk(mySdk));
   }
 

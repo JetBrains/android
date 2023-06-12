@@ -37,13 +37,12 @@ class GcStatsDataSeriesTest {
   private val myTimer = FakeTimer()
   private val myService = FakeTransportService(myTimer)
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("GcStatsDataSeriesTest", myService, FakeMemoryService())
+  var myGrpcChannel = FakeGrpcChannel("GcStatsDataSeriesTest", myService)
   private lateinit var myStage: MainMemoryProfilerStage
 
   @Before
   fun setup() {
     val ideServices = FakeIdeProfilerServices()
-    ideServices.enableEventsPipeline(true)
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideServices, myTimer)
     myStage = MainMemoryProfilerStage(profilers)
 

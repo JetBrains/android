@@ -30,8 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 
 class DesignInfoProvidersUtilsTest {
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  @get:Rule val rule = AndroidProjectRule.inMemory()
 
   private val project
     get() = rule.project
@@ -89,5 +88,9 @@ class DesignInfoProvidersUtilsTest {
   }
 
   private fun addConstraintLayoutDependency(version: String) =
-    testProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT_COMPOSE, module, GradleVersion.parse(version))
+    testProjectSystem.addDependency(
+      GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT_COMPOSE,
+      module,
+      GradleVersion.parse(version)
+    )
 }

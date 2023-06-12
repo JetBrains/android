@@ -73,7 +73,7 @@ public final class AvdScreenData {
    * for the device, given its dots-per-inch
    */
   @NotNull
-  public static Density getScreenDensity(@Nullable String deviceId, boolean isTv, double dpi, int screenHeight) {
+  public static Density getScreenDensity(boolean isTv, double dpi, int screenHeight) {
 
     if (isTv) {
       // The 'generalized density' of a TV is based on its
@@ -81,17 +81,11 @@ public final class AvdScreenData {
       return (screenHeight <= 720) ? Density.TV : Density.XHIGH;
     }
     // A hand-held device.
-    // Check if it uses a "special" density
-    Density specialDensity = specialDeviceDensity(deviceId);
-    if (specialDensity != null) {
-      return specialDensity;
-    }
-    // Not "special." Search for the density enum whose value is
-    // closest to the density of our device.
+    // Search for the density enum whose value is closest to the density of our device.
     Density bucket = Density.MEDIUM;
     double minDifference = Double.MAX_VALUE;
     for (Density bucketDensity : Density.values()) {
-      if (!bucketDensity.isValidValueForDevice() || !bucketDensity.isRecommended()) {
+      if (!bucketDensity.isValidValueForDevice() || bucketDensity == Density.TV) {
         continue;
       }
       double difference = Math.abs(bucketDensity.getDpiValue() - dpi);
@@ -101,23 +95,6 @@ public final class AvdScreenData {
       }
     }
     return bucket;
-  }
-
-  /**
-   * A small set of devices use "special" density enumerations.
-   * Handle them explicitly.
-   */
-  @Nullable
-  private static Density specialDeviceDensity(@Nullable String deviceId) {
-    if ("Nexus 5X".equals(deviceId)) return Density.DPI_420;
-    if ("Nexus 6".equals(deviceId)) return Density.DPI_560;
-    if ("Nexus 6P".equals(deviceId)) return Density.DPI_560;
-    if ("pixel".equals(deviceId)) return Density.DPI_420;
-    if ("pixel_xl".equals(deviceId)) return Density.DPI_560;
-    if ("pixel 2".equals(deviceId)) return Density.DPI_420;
-    if ("pixel_2_xl".equals(deviceId)) return Density.DPI_560;
-
-    return null;
   }
 
   /**

@@ -26,7 +26,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 open class ConstructorAndSuperclassReplacingTransform(
   delegate: ClassVisitor,
   private val fromFqcn: String,
-  private val toFqcn: String) : ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
+  private val toFqcn: String) : ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   override val uniqueId: String = this::class.qualifiedName!!
 
   override fun visitMethod(access: Int,
@@ -49,7 +49,7 @@ open class ConstructorAndSuperclassReplacingTransform(
 private class ConstructorReplacingMethodVisitor(
   delegate: MethodVisitor,
   val replaceeFqcn: String,
-  val replacementFqcn: String) : MethodVisitor(Opcodes.ASM7, delegate) {
+  val replacementFqcn: String) : MethodVisitor(Opcodes.ASM9, delegate) {
 
   override fun visitMethodInsn(opcode: Int, owner: String?, name: String?, descriptor: String?, isInterface: Boolean) {
     val newOwner = if (owner == replaceeFqcn && name == "<init>") replacementFqcn else owner

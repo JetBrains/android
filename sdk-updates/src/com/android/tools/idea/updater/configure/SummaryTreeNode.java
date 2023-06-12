@@ -18,7 +18,7 @@ package com.android.tools.idea.updater.configure;
 import com.android.annotations.NonNull;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import java.util.HashSet;
 import java.util.Set;
@@ -107,7 +107,7 @@ class SummaryTreeNode extends UpdaterTreeNode {
 
   @Override
   public void customizeRenderer(Renderer renderer, JTree tree, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-    renderer.getTextRenderer().append(SdkVersionInfo.getVersionWithCodename(myVersion));
+    renderer.getTextRenderer().append(AndroidVersionUtils.getFullReleaseName(myVersion, false, true));
   }
 
   public AndroidVersion getVersion() {

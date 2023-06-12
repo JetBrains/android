@@ -16,7 +16,6 @@
 package com.android.tools.compose.intentions
 
 
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
@@ -30,7 +29,6 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
   public override fun setUp() {
     super.setUp()
     myFixture.stubComposableAnnotation()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
 
     myFixture.addFileToProject(
       "src/androidx/compose/foundation/layout/ColumnAndRow.kt",

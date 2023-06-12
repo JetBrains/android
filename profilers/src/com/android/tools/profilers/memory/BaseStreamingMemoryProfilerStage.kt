@@ -31,14 +31,11 @@ import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.adtui.model.updater.Updatable
-import com.android.tools.idea.codenavigation.CodeLocation
-import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.UnifiedEventDataSeries
 import com.android.tools.profilers.analytics.FeatureTracker
@@ -54,7 +51,6 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 private fun Long.nanosToMicros() = TimeUnit.NANOSECONDS.toMicros(this)
-private fun Long.microsToNanos() = TimeUnit.MICROSECONDS.toNanos(this)
 private typealias DataSeriesConstructor<T> = (ProfilerClient, Common.Session, FeatureTracker, BaseMemoryProfilerStage) -> DataSeries<T>
 
 /**
@@ -62,17 +58,15 @@ private typealias DataSeriesConstructor<T> = (ProfilerClient, Common.Session, Fe
  */
 abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
                                                 captureObjectLoader: CaptureObjectLoader = CaptureObjectLoader())
-      : BaseMemoryProfilerStage(profilers, captureObjectLoader),
-        CodeNavigator.Listener {
+  : BaseMemoryProfilerStage(profilers, captureObjectLoader) {
   protected val logger get() = Logger.getInstance(this.javaClass)
   protected val sessionData = profilers.session
   var isTrackingAllocations = false
     protected set
   val aspect = AspectModel<MemoryProfilerAspect>()
-  val client = profilers.client.memoryClient
   val gcStatsModel = makeModel(makeGcSeries())
 
-  private val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData, true)
+  val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData)
   val allocationSamplingRateDurations = makeModel(allocationSamplingRateDataSeries)
 
   val detailedMemoryUsage = DetailedMemoryUsage(profilers, this)
@@ -82,15 +76,20 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   val tooltipLegends = MemoryStageLegends(this, timeline.tooltipRange, true)
   val eventMonitor = EventMonitor(profilers)
 
-  private val allocationSamplingRateUpdatable = Updatable {
-    if (isLiveAllocationTrackingReady) {
-      getLiveAllocationSamplingModeFromData()?.let { liveAllocationSamplingMode = it }
+  private val allocationSamplingRateUpdatable = object: Updatable {
+    override fun update(elapsedNs: Long) {
+      if (isLiveAllocationTrackingReady) {
+        getLiveAllocationSamplingModeFromData()?.let { liveAllocationSamplingMode = it }
+      }
     }
   }
 
-  private val captureElapsedTimeUpdatable = Updatable {
-    if (isTrackingAllocations)
-      captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME)
+  private val captureElapsedTimeUpdatable = object: Updatable {
+    override fun update(elapsedNs: Long) {
+      if (isTrackingAllocations) {
+        captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_CAPTURE_ELAPSED_TIME)
+      }
+    }
   }
 
   val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange).apply {
@@ -156,7 +155,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     loader.start()
     eventMonitor.enter()
     updatables.forEach(studioProfilers.updater::register)
-    studioProfilers.ideServices.codeNavigator.addListener(this)
     studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
   }
 
@@ -164,7 +162,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     eventMonitor.exit()
     updatables.forEach(studioProfilers.updater::unregister)
     loader.stop()
-    studioProfilers.ideServices.codeNavigator.removeListener(this)
     rangeSelectionModel.clearListeners()
   }
 
@@ -174,7 +171,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   fun requestLiveAllocationSamplingModeUpdate(mode: LiveAllocationSamplingMode) {
     try {
       val samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.value).build()
-      val response = studioProfilers.client.transportClient.execute(
+      studioProfilers.client.transportClient.execute(
         Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
                                                            .setStreamId(sessionData.streamId)
                                                            .setPid(sessionData.pid)
@@ -188,7 +185,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   }
 
   fun forceGarbageCollection() {
-    val response = studioProfilers.client.transportClient.execute(
+    studioProfilers.client.transportClient.execute(
       Transport.ExecuteRequest.newBuilder()
         .setCommand(Commands.Command.newBuilder()
                       .setStreamId(sessionData.streamId)
@@ -237,11 +234,6 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
       }
     }
     return durationData
-  }
-
-
-  override fun onNavigated(location: CodeLocation) {
-    profilerMode = ProfilerMode.NORMAL
   }
 
   /**
@@ -319,8 +311,8 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     FULL(1, "Full");        // Sample every allocation
 
     companion object {
-      private val SamplingRateMap = values().map { it.value to it }.toMap()
-      private val NameMap = values().map { it.displayName to it }.toMap()
+      private val SamplingRateMap = values().associateBy { it.value }
+      private val NameMap = values().associateBy { it.displayName }
 
       @JvmStatic
       fun getModeFromFrequency(frequency: Int): LiveAllocationSamplingMode = SamplingRateMap[frequency] ?: SAMPLED

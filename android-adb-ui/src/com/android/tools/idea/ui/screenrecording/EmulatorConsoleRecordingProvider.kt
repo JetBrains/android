@@ -19,38 +19,81 @@ import com.android.adblib.AdbSession
 import com.android.adblib.tools.EmulatorConsole
 import com.android.adblib.tools.localConsoleAddress
 import com.android.adblib.tools.openEmulatorConsole
+import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.io.move
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.exists
 
 private const val SERIAL_NUMBER_PREFIX = "emulator-"
 
 /**
- * A [RecordingProvider] that uses [EmulatorConsole]
+ * A [RecordingProvider] that uses [EmulatorConsole].
  */
 internal class EmulatorConsoleRecordingProvider(
+  disposableParent: Disposable,
   private val serialNumber: String,
   private val localPath: Path,
   private val options: ScreenRecorderOptions,
   private val adbSession: AdbSession,
 ) : RecordingProvider {
+
   override val fileExtension = "webm"
-
   private lateinit var emulatorConsole: EmulatorConsole
+  private val recordingHandle = AtomicReference<CompletableDeferred<Unit>>()
 
-  override suspend fun startRecording() {
-    emulatorConsole = adbSession.openEmulatorConsole(localConsoleAddress(serialNumber.getEmulatorPort()))
-    emulatorConsole.startScreenRecording(localPath, *getRecorderOptions(options))
+  init {
+    Disposer.register(disposableParent, this)
   }
 
-  override suspend fun stopRecording() {
-    if (!this::emulatorConsole.isInitialized) {
-      throw IllegalStateException("emulatorConsole not initialized. Did you call startRecording()?")
+  override suspend fun startRecording(): Deferred<Unit> {
+    val handle = CompletableDeferred<Unit>()
+    Disposer.register(this) {
+      recordingHandle.getAndSet(null)?.completeExceptionally(
+          RuntimeException(AndroidAdbUiBundle.message("screenrecord.error.disconnected")))
     }
-    emulatorConsole.stopScreenRecording()
+
+    emulatorConsole = adbSession.openEmulatorConsole(localConsoleAddress(serialNumber.getEmulatorPort()))
+    emulatorConsole.startScreenRecording(localPath, *getRecorderOptions(options))
+
+    recordingHandle.set(handle)
+    return handle
+  }
+
+  override fun stopRecording() {
+    val handle = recordingHandle.getAndSet(null) ?: return
+    CoroutineScope(Dispatchers.IO).launch {
+      try {
+        emulatorConsole.stopScreenRecording()
+        handle.complete(Unit)
+      }
+      catch (e: Throwable) {
+        handle.completeExceptionally(e)
+      }
+    }
+  }
+
+  override fun cancelRecording() {
+    val handle = recordingHandle.getAndSet(null) ?: return
+    CoroutineScope(Dispatchers.IO).launch {
+      try {
+        emulatorConsole.stopScreenRecording()
+      }
+      finally {
+        handle.cancel()
+        Files.deleteIfExists(localPath)
+      }
+    }
   }
 
   override suspend fun doesRecordingExist(): Boolean = localPath.exists()
@@ -61,9 +104,13 @@ internal class EmulatorConsoleRecordingProvider(
     }
   }
 
+  override fun dispose() {
+    emulatorConsole.close()
+  }
+
   companion object {
-    // Note that this is very similar to ShellCommandRecordingProvider getScreenRecordCommand() but there is guarantee that the args will be the
-    // same in the future so best to keep separate versions
+    // Note that this is very similar to ShellCommandRecordingProvider.getScreenRecordCommand, but there
+    // is no guarantee that the options will be the same in the future so best to keep separate versions.
     @VisibleForTesting
     internal fun getRecorderOptions(options: ScreenRecorderOptions): Array<String> {
       val args = mutableListOf<String>()
@@ -74,6 +121,10 @@ internal class EmulatorConsoleRecordingProvider(
       if (options.bitrateMbps > 0) {
         args.add("--bit-rate")
         args.add((options.bitrateMbps * 1000000).toString())
+      }
+      if (options.timeLimitSec != 0) {
+        args.add("--time-limit")
+        args.add(options.timeLimitSec.toString())
       }
       return args.toTypedArray()
     }
@@ -88,6 +139,6 @@ private fun String.getEmulatorPort(): Int {
     return substring(SERIAL_NUMBER_PREFIX.length).toInt()
   }
   catch (e: NumberFormatException) {
-    throw IllegalArgumentException("Not an emulator serial number: $this", e)
+    throw IllegalArgumentException("Not an emulator serial number: $this")
   }
 }

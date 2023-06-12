@@ -3,6 +3,9 @@ parts {
         background {
             image   device_bezel.png
         }
+        foreground {
+            mask    device_mask.png
+        }
     }
 
     device {

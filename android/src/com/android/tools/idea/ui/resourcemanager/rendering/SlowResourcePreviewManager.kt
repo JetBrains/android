@@ -25,6 +25,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBImageIcon
 import com.intellij.util.ui.JBUI
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
@@ -81,26 +82,27 @@ class SlowResourcePreviewManager(
   override fun getIcon(assetToRender: Asset,
                        width: Int,
                        height: Int,
+                       component: Component,
                        refreshCallback: () -> Unit,
                        shouldBeRendered: () -> Boolean): ImageIcon {
     if (height > 0 && width > 0) {
       val targetSize = Dimension(width, height)
-      var image = fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize)
+      var image = fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, component)
       // If an image is cached but does not fit into the content (i.e the list cell size was changed)
       // we do a fast rescaling in place and request a higher quality scaled image in the background
       val imageWidth = image.getWidth(null)
       val imageHeight = image.getHeight(null)
       val scale = getScale(targetSize, Dimension(imageWidth, imageHeight))
       if (image != PLACEHOLDER_IMAGE && image != ERROR_IMAGE && shouldScale(scale)) {
-        val bufferedImage = ImageUtil.toBufferedImage(image)
         if (scale < 1) {
           // Prefer to scale down a high quality image.
-          image = ImageUtil.scaleImage(bufferedImage, scale)
+          image = ImageUtil.scaleImage(image, scale)
         }
         else {
           // Return a low quality scaled version, then trigger a callback to request high quality version.
+          val bufferedImage = ImageUtil.toBufferedImage(image)
           image = ImageUtils.lowQualityFastScale(bufferedImage, scale, scale)
-          fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, true)
+          fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, component, true)
         }
       }
       imageIcon.image = when (image) {
@@ -148,6 +150,7 @@ class SlowResourcePreviewManager(
                          refreshCallBack: () -> Unit,
                          isStillVisible: () -> Boolean,
                          targetSize: Dimension,
+                         component: Component,
                          forceImageRender: Boolean = false): Image {
     return imageCache.computeAndGet(asset, PLACEHOLDER_IMAGE, forceImageRender, refreshCallBack) {
       if (isStillVisible()) {
@@ -155,10 +158,10 @@ class SlowResourcePreviewManager(
           // Check for visibility again right before rendering.
           if (isStillVisible()) {
             try {
-              val previewImage = resourcePreviewProvider.getSlowPreview(JBUI.pixScale(targetSize.width.toFloat()).toInt(),
-                                                                        JBUI.pixScale(targetSize.height.toFloat()).toInt(), asset)
+              val previewImage = resourcePreviewProvider.getSlowPreview((JBUI.pixScale(component) * targetSize.width).toInt(),
+                                                                        (JBUI.pixScale(component) * targetSize.height).toInt(), asset)
                                  ?: throw Exception("Failed to resolve resource")
-              return@Supplier scaleToFitIfNeeded(previewImage, targetSize)
+              return@Supplier scaleToFitIfNeeded(previewImage, targetSize, component)
             }
             catch (throwable: Exception) {
               LOG.warn("Error while rendering $asset", throwable)
@@ -180,8 +183,8 @@ class SlowResourcePreviewManager(
    * Scale the provided [image] to fit into [targetSize] if needed. It might be converted to a
    * [BufferedImage] before being scaled
    */
-  private fun scaleToFitIfNeeded(bufferedImage: BufferedImage, targetSize: Dimension): BufferedImage {
-    var image = ImageUtil.ensureHiDPI(bufferedImage, ScaleContext.create())
+  private fun scaleToFitIfNeeded(bufferedImage: BufferedImage, targetSize: Dimension, component: Component): BufferedImage {
+    var image = ImageUtil.ensureHiDPI(bufferedImage, ScaleContext.create(component))
     val imageSize = Dimension(image.getWidth(null), image.getHeight(null))
     val scale = getScale(targetSize, imageSize)
     if (shouldScale(scale)) {

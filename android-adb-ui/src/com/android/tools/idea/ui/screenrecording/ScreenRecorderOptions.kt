@@ -17,17 +17,18 @@ package com.android.tools.idea.ui.screenrecording
 
 /**
  * Contains options for recording device screen.
- *
- * Based on com.android.ddmlib.ScreenRecorderOptions
  */
 internal class ScreenRecorderOptions(
-  // video size is given by width x height, defaults to device's main display resolution or 1280x720.
+  // Video size is given by width x height, defaults to device's main display resolution or 1280x720.
   val width: Int,
   val height: Int,
 
-  // bit rate in Mbps. Defaults to 4Mbps
+  // Bit rate in Mbps. Defaults to 4Mbps.
   val bitrateMbps: Int,
 
-  // display touches
+  // Display touches.
   val showTouches: Boolean,
+
+  // Max recording duration, or zero to use the default.
+  val timeLimitSec: Int,
 )

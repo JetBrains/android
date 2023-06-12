@@ -23,7 +23,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderAsyncActionExecutor
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
 import com.android.tools.idea.uibuilder.visual.WearDeviceModelsProvider
 import com.android.tools.idea.uibuilder.visual.WindowSizeModelsProvider
@@ -43,7 +46,9 @@ import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInspection.InspectionProfile
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.profile.ProfileChangeAdapter
@@ -62,6 +67,10 @@ private val visualLintExecutorService = AppExecutorUtil.createBoundedApplication
  * Pool of 1 thread to run all the visual linting analyzers triggered from one analysis
  */
 private val visualLintAnalyzerExecutorService = AppExecutorUtil.createBoundedApplicationPoolExecutor("Visual Lint Analyzer", 1)
+/** Time out for visual lint analysis. Use a longer one for testing to ensure it always completes then. */
+private val visualLintTimeout: Long = if (ApplicationManager.getApplication().isUnitTestMode) 30 else 5
+
+private val LOG = Logger.getInstance(VisualLintService::class.java)
 
 /**
  * Service that runs visual lints
@@ -78,9 +87,6 @@ class VisualLintService(val project: Project): Disposable {
 
   val issueModel: IssueModel = IssueModel(this, project)
 
-  /** Default issue provider for Visual Lint Service. */
-  val issueProvider: VisualLintIssueProvider = VisualLintIssueProvider(this)
-
   private val basicAnalyzers = listOf(BoundsAnalyzer, OverlapAnalyzer, AtfAnalyzer)
   private val adaptiveAnalyzers = listOf(BottomNavAnalyzer, BottomAppBarAnalyzer, TextFieldSizeAnalyzer,
                                          LongTextAnalyzer, ButtonSizeAnalyzer)
@@ -89,7 +95,6 @@ class VisualLintService(val project: Project): Disposable {
   private val ignoredTypes: MutableList<VisualLintErrorType>
 
   init {
-    issueModel.addIssueProvider(issueProvider, false)
     val connection = project.messageBus.connect()
     ignoredTypes = mutableListOf()
     getIgnoredTypesFromProfile(InspectionProfileManager.getInstance(project).currentProfile)
@@ -117,24 +122,23 @@ class VisualLintService(val project: Project): Disposable {
     }
   }
 
-  fun removeIssues() {
-    issueProvider.clear()
-    issueModel.updateErrorsList()
-  }
-
   /**
    * Runs visual lint analysis in a pooled thread for configurations based on the model provided,
    * and adds the issues found to the [IssueModel]
    */
-  fun runVisualLintAnalysis(models: List<NlModel>) {
-    runVisualLintAnalysis(models, visualLintExecutorService)
+  fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, models: List<NlModel>) {
+    runVisualLintAnalysis(parentDisposable, issueProvider, models, visualLintExecutorService)
   }
 
   @VisibleForTesting
-  fun runVisualLintAnalysis(models: List<NlModel>, executorService: ExecutorService) {
+  fun runVisualLintAnalysis(parentDisposable: Disposable, issueProvider: VisualLintIssueProvider, models: List<NlModel>, executorService: ExecutorService) {
     CompletableFuture.runAsync({
+      removeAllIssueProviders()
       issueProvider.clear()
-      issueModel.updateErrorsList()
+      Disposer.register(parentDisposable) {
+        issueModel.removeIssueProvider(issueProvider)
+      }
+      issueModel.addIssueProvider(issueProvider, true)
       if (models.isEmpty()) {
         return@runAsync
       }
@@ -172,8 +176,9 @@ class VisualLintService(val project: Project): Disposable {
             }
           }, visualLintAnalyzerExecutorService)
         }
-        latch.await(5, TimeUnit.SECONDS)
+        latch.await(visualLintTimeout, TimeUnit.SECONDS)
         issueModel.updateErrorsList()
+        LOG.debug("Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found")
       } finally {
         displayingModel.removeListener(listener)
       }
@@ -218,7 +223,13 @@ class VisualLintService(val project: Project): Disposable {
            ?: HighlightSeverity.WARNING
     }
 
+  fun removeAllIssueProviders() {
+    issueModel.removeAllIssueProviders()
+    issueModel.updateErrorsList()
+  }
+
   override fun dispose() {
+    issueModel.removeAllIssueProviders()
   }
 }
 
@@ -226,14 +237,15 @@ class VisualLintService(val project: Project): Disposable {
  * Inflates or renders a model, then returns the completable future with render result.
  */
 fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFuture<RenderResult> {
-  val renderService = RenderService.getInstance(model.project)
-  val logger = renderService.createLogger(model.facet)
+  val renderService = StudioRenderService.getInstance(model.project)
+  val logger = renderService.createLogger(model.project)
 
-  return renderService.taskBuilder(model.facet, model.configuration)
+  return renderService.taskBuilder(model.facet, model.configuration, logger)
     .withPsiFile(model.file)
     .withLayoutScanner(requireRender)
-    .withLogger(logger)
     .withPriority(RenderAsyncActionExecutor.RenderingPriority.LOW)
+    .withMinDownscalingFactor(0.25f)
+    .withQuality(0f)
     .build().thenCompose { newTask ->
       if (newTask == null) {
         logger.error("INFLATE", "Error inflating view for visual lint on background. No RenderTask Created.",

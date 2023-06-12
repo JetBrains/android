@@ -17,7 +17,6 @@ package com.android.tools.compose
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.LightCalloutPopup
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
@@ -36,9 +35,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiTypes
 import com.intellij.util.ui.ColorIcon
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UCallExpression
@@ -60,7 +63,6 @@ class ComposeColorAnnotator : Annotator {
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> return
       element.getModuleSystem()?.usesCompose != true -> return
       element is KtCallElement -> {
         val uElement = element.toUElement(UCallExpression::class.java) ?: return
@@ -223,12 +225,12 @@ enum class ComposeColorConstructor {
 }
 
 private fun getColorInt(arguments: List<KtValueArgument>): Color? {
-  val colorValue = arguments.first().getArgumentExpression()?.constantValueOrNull()?.value as? Int ?: return null
+  val colorValue = arguments.first().getArgumentExpression()?.evaluateToConstantOrNull<Int>() ?: return null
   return Color(colorValue, true)
 }
 
 private fun getColorLong(arguments: List<KtValueArgument>): Color? {
-  val colorValue = arguments.first().getArgumentExpression()?.constantValueOrNull()?.value as? Long ?: return null
+  val colorValue = arguments.first().getArgumentExpression()?.evaluateToConstantOrNull<Long>() ?: return null
   return Color(colorValue.toInt(), true)
 }
 
@@ -299,9 +301,19 @@ private inline fun <reified T> getNamedValues(requestArgumentNames: List<String>
 }
 
 private inline fun <reified T> getArgumentNameValuePair(valueArgument: KtValueArgument): Pair<String?, T>? {
-  val name = valueArgument.getArgumentName()?.asName?.asString()
-  val value = valueArgument.getArgumentExpression()?.constantValueOrNull()?.value as? T ?: return null
-  return name to value
+    val name = valueArgument.getArgumentName()?.asName?.asString()
+    val value = valueArgument.getArgumentExpression()?.evaluateToConstantOrNull<T>() ?: return null
+    return name to value
+}
+
+private inline fun <reified T> KtExpression.evaluateToConstantOrNull(): T? {
+  return if (isK2Plugin()) {
+    analyze(this) {
+      evaluate(KtConstantEvaluationMode.CONSTANT_EXPRESSION_EVALUATION)?.value as? T ?: return null
+    }
+  } else {
+    constantValueOrNull()?.value as? T ?: return null
+  }
 }
 
 private fun Int.toHexString(): String = "0x${(Integer.toHexString(this)).toUpperCase(Locale.getDefault())}"

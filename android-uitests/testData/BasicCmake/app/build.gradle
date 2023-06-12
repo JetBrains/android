@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "google.basiccmake"
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "google.basiccmake"
         minSdkVersion 24

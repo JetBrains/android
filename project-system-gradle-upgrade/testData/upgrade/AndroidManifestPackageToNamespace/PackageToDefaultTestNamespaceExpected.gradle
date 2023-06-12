@@ -1,0 +1,5 @@
+android {
+  compileSdk 30
+  namespace 'com.example.package'
+  testNamespace 'com.example.package.test'
+}

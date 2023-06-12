@@ -24,6 +24,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet;
+import com.android.tools.idea.gradle.model.IdeMultiVariantData;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.lint.common.LintIdeClient;
@@ -38,6 +39,8 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt;
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.lint.client.api.LintClient;
+import com.android.tools.lint.detector.api.ApiConstraint;
+import com.android.tools.lint.detector.api.ExtensionSdk;
 import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject;
 import com.android.tools.lint.detector.api.LintModelModuleProject;
 import com.android.tools.lint.detector.api.Project;
@@ -47,6 +50,7 @@ import com.android.tools.lint.model.LintModelLibrary;
 import com.android.tools.lint.model.LintModelModule;
 import com.android.tools.lint.model.LintModelModuleType;
 import com.android.tools.lint.model.LintModelVariant;
+import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.facet.ProjectFacetManager;
@@ -79,7 +83,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -378,10 +382,12 @@ public class AndroidLintIdeProject extends LintIdeProject {
     GradleAndroidModel model = GradleAndroidModel.get(facet);
     if (model == null) throw new IllegalStateException("GradleAndroidModel not available for " + facet);
     IdeAndroidProject builderModelProject = model.getAndroidProject();
+    IdeMultiVariantData multiVariantData = builderModelProject.getMultiVariantData();
+    if (multiVariantData == null) throw new IllegalStateException("GradleAndroidModel is expected to support multi variant plugins.");
     String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(facet.getModule());
     if (externalProjectPath == null) throw new IllegalStateException("No external project path for " + facet.getModule());
     File dir = new File(externalProjectPath);
-    LintModelModule module = new LintModelFactory().create(builderModelProject, model.getVariants(), dir, !shallowModel);
+    LintModelModule module = new LintModelFactory().create(builderModelProject, model.getVariants(), multiVariantData, dir, !shallowModel);
     return Result.create(module, ProjectSyncModificationTracker.getInstance(facet.getModule().getProject()));
   }
 
@@ -498,7 +504,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       gradleProject = false;
       library = myFacet.getConfiguration().isLibraryProject();
 
-      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getMainModule());
+      AndroidPlatform platform = AndroidPlatforms.getInstance(myFacet.getMainModule());
       if (platform != null) {
         buildSdk = platform.getApiLevel();
       }
@@ -643,6 +649,17 @@ public class AndroidLintIdeProject extends LintIdeProject {
       return super.getMinSdkVersion();
     }
 
+    @NotNull
+    @Override
+    public ApiConstraint getMinSdkVersions() {
+      AndroidVersion version = myAndroidModel.getMinSdkVersion();
+      if (version != null) {
+        // TODO: Handle codenames better?
+        return ApiConstraint.get(version.getFeatureLevel(), ExtensionSdk.ANDROID_SDK_ID);
+      }
+      return super.getMinSdkVersions();
+    }
+
     @NonNull
     @Override
     public AndroidVersion getTargetSdkVersion() {
@@ -703,7 +720,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
         return version.getFeatureLevel();
       }
 
-      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+      AndroidPlatform platform = AndroidPlatforms.getInstance(myFacet.getModule());
       if (platform != null) {
         return platform.getApiVersion().getFeatureLevel();
       }

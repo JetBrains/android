@@ -19,7 +19,6 @@ public class GradleCompilerSettingsConfigurableProvider extends ConfigurableProv
     if (myProject == null) {
       return null;
     }
-    final String displayName = IdeInfo.getInstance().isAndroidStudio() ? "Compiler" : "Gradle-Android Compiler";
-    return new GradleCompilerSettingsConfigurable(myProject, displayName);
+    return new GradleCompilerSettingsConfigurable(myProject, "Gradle-Android Compiler");
   }
 }

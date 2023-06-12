@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
+
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NameWithSpaceAndDollarTest {
@@ -58,6 +59,6 @@ public class NameWithSpaceAndDollarTest {
 
     // Note@ "'" should be escaped in xml, but not in settings.gradle
     assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml")).contains("\\'Test\\' Application$");
-    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE)).contains("\"'Test' Application\\$\"");
+    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE_KTS)).contains("\"'Test' Application\\$\"");
   }
 }

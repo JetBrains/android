@@ -104,7 +104,7 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
     myMouseListeningComponents = new ArrayList<>();
 
     JComponent artifactView = buildComponent();
-    if (artifact.canExport()) {
+    if (artifact.getCanExport()) {
       JPanel panel = new JPanel(new BorderLayout());
       panel.setBorder(BorderFactory.createEmptyBorder());
       artifactView.setOpaque(false);
@@ -257,9 +257,9 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   @NotNull
   protected List<ContextMenuItem> getContextMenus() {
     List<ContextMenuItem> menus = new ArrayList<>();
-    if (getArtifact().canExport()) {
+    if (getArtifact().getCanExport()) {
       DefaultContextMenuItem action = new DefaultContextMenuItem.Builder("Export...")
-        .setEnableBooleanSupplier(() -> getArtifact().canExport() && !getArtifact().isOngoing())
+        .setEnableBooleanSupplier(() -> getArtifact().getCanExport() && !getArtifact().isOngoing())
         .setActionRunnable(() -> exportArtifact())
         .build();
       menus.add(action);

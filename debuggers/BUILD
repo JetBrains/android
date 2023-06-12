@@ -19,6 +19,8 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
@@ -29,6 +31,8 @@ iml_module(
     test_class = "com.android.tools.idea.debuggers.DebuggersTestSuite",
     # keep sorted
     test_data = [
+        "//prebuilts/studio/jdk/jdk11",
+        "//prebuilts/studio/sdk:platforms/android-30",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:sources",
         "//tools/adt/idea/android/testData",
@@ -38,14 +42,19 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/debuggers:intellij.android.debuggers[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
     ],
 )
 

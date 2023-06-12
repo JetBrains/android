@@ -16,9 +16,8 @@
 package com.android.tools.idea.layoutinspector;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.adtui.swing.IconLoaderRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
@@ -26,8 +25,7 @@ import org.junit.runner.RunWith;
   LayoutInspectorTestSuite.class,
 })
 public class LayoutInspectorTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static final LeakCheckerRule checker = new LeakCheckerRule();
-
   static {
+    IconLoaderRule.enableIconLoading();
   }
 }

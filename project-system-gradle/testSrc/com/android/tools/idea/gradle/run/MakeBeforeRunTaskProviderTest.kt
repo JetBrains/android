@@ -51,6 +51,7 @@ import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
@@ -135,6 +136,29 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       assertFalse("codename should not be set for a released version",
                   argument.startsWith("-Pandroid.injected.build.codename"))
     }
+  }
+
+  fun `test when device api level injection is disabled`() {
+    StudioFlags.API_OPTIMIZATION_ENABLE.override(false)
+    setUpTestProject()
+    whenever(myDevice.version).thenReturn(AndroidVersion(20, null))
+    val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
+                                                                         myRunConfiguration,
+                                                                         deviceSpec(myDevice))
+    assertFalse(arguments.contains("-Pandroid.injected.build.api=20"))
+
+    StudioFlags.API_OPTIMIZATION_ENABLE.clearOverride()
+  }
+
+  fun testResizableDevice() {
+    setUpTestProject()
+    whenever(myDevice.version).thenReturn(AndroidVersion(33, null))
+    whenever(myDevice.density).thenReturn(640)
+    whenever(myDevice.supportsMultipleScreenFormats()).thenReturn(true)
+    val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
+                                                                         myRunConfiguration,
+                                                                         deviceSpec(myDevice))
+    assertTrue(arguments.contains("-Pandroid.injected.build.api=33"))
   }
 
   fun testPreviewDeviceArguments() {
@@ -308,6 +332,26 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
 
   }
 
+  fun `test when device serials injection`() {
+    StudioFlags.INJECT_DEVICE_SERIAL_ENABLED.override(true)
+    setUpTestProject()
+    whenever(myDevice.version).thenReturn(AndroidVersion(20, null))
+    whenever(myDevice.serial).thenReturn("device_1")
+    val device2 = mock(AndroidDevice::class.java)
+    whenever(device2.version).thenReturn(AndroidVersion(20, null))
+    whenever(device2.serial).thenReturn("device_2")
+    val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
+                                                                         myRunConfiguration,
+                                                                         deviceSpec(myDevice, device2))
+    assertThat(arguments).contains("-Pinternal.android.inject.device.serials=device_1,device_2")
+    StudioFlags.INJECT_DEVICE_SERIAL_ENABLED.clearOverride()
+
+    val argumentsWithDisabledFlag = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
+                                                                                         myRunConfiguration,
+                                                                                         deviceSpec(myDevice, device2))
+    assertThat(argumentsWithDisabledFlag).doesNotContain("-Pinternal.android.inject.device.serials=device_1,device_2")
+  }
+
   private fun MakeBeforeRunTaskProvider.isSyncNeeded(project: Project, vararg abi: Abi) = isSyncNeeded(project, abi.map { it.toString() })
 
   private fun v1NativeModel(selectedAbi: Abi, syncedAbis: List<Abi>, allAbis: List<Abi>): V1NdkModel {
@@ -384,9 +428,9 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
         receiver.addOutput(byteArray, 0, byteArray.size)
         null
       }.whenever(device).executeShellCommand(ArgumentMatchers.anyString(),
-                                           ArgumentMatchers.any(),
-                                           ArgumentMatchers.anyLong(),
-                                           ArgumentMatchers.any())
+                                             ArgumentMatchers.any(),
+                                             ArgumentMatchers.anyLong(),
+                                             ArgumentMatchers.any())
     }
   }
 }

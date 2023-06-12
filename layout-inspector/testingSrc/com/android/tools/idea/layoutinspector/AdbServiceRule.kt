@@ -47,7 +47,8 @@ class AdbServiceRule(
     val adbFile: File = mock()
     val bridge: AndroidDebugBridge = spy(adbRule.bridge)
     val disposable = Disposer.newDisposable().also { serviceDisposable = it }
-    AdbFileProvider { adbFile }.storeInProject(projectSupplier())
+    val adbFileProvider = AdbFileProvider { adbFile }
+    projectSupplier().replaceService(AdbFileProvider::class.java, adbFileProvider, disposable)
     val service: AdbService = mock()
     ApplicationManager.getApplication().replaceService(AdbService::class.java, service, disposable)
     doAnswer {

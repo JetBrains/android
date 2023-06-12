@@ -72,8 +72,7 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
 
     // The manifests have to be updated because the activity moved
     assertTrue(StringUtil.equalsIgnoreWhitespaces(
-      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-      "    package=\"google.mylibrary\">\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "\n" +
       "    <application\n" +
       "        android:allowBackup=\"true\"\n" +
@@ -93,8 +92,7 @@ public class AndroidModularizeGradleTest extends AndroidGradleTestCase {
 
     assertTrue(StringUtil.equalsIgnoreWhitespaces(
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-      "    package=\"app.google.myapplication\">\n" +
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "\n" +
       "    <application android:label=\"@string/app_name\"></application>\n" +
       "\n" +

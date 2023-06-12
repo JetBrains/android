@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class DependenciesTestUtil {
 
   protected static final String APP_NAME = "App";
-  protected static final int MIN_SDK_API = 18;
+  protected static final int MIN_SDK_API = 21;
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
 
@@ -53,7 +53,7 @@ public class DependenciesTestUtil {
       .welcomeFrame()
       .createNewProject()
       .getChooseAndroidProjectStep()
-      .chooseActivity("Empty Activity")
+      .chooseActivity("Empty Views Activity")
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
@@ -97,14 +97,19 @@ public class DependenciesTestUtil {
     assertTrue(result.isBuildSuccessful());
   }
 
-  protected static void addModuleDependencyUnderAnother(@NotNull IdeFrameFixture ideFrame,
+  protected static void addModuleDependencyUnderAnother(@NotNull GuiTestRule guiTest,
+                                                        @NotNull IdeFrameFixture ideFrame,
                                                         @NotNull String moduleName,
                                                         @NotNull String anotherModule,
                                                         @NotNull String scope) {
+    ideFrame.focus();
     ideFrame.getProjectView()
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, APP_NAME, anotherModule);
 
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
+    guiTest.robot().findActivePopupMenu();
     ideFrame.invokeMenuPath("Open Module Settings");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);

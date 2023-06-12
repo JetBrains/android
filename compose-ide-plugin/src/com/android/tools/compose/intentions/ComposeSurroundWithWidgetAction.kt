@@ -17,7 +17,6 @@ package com.android.tools.compose.intentions
 
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isInsideComposableCode
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.impl.IntentionActionGroup
@@ -128,9 +127,9 @@ fun findSurroundingSelectionRange(file: PsiFile, editor: Editor): TextRange? {
   val endSelectionOffset = findNearestSurroundableElement(file, editor.selectionModel.selectionEnd)?.endOffset ?: -1
 
   val statements = findElements(file,
-                                                 minOf(editor.selectionModel.selectionStart, startSelectionOffset),
-                                                 maxOf(editor.selectionModel.selectionEnd, endSelectionOffset),
-                                                 ElementKind.EXPRESSION)
+                                minOf(editor.selectionModel.selectionStart, startSelectionOffset),
+                                maxOf(editor.selectionModel.selectionEnd, endSelectionOffset),
+                                ElementKind.EXPRESSION)
     .filter { it.isInsideComposableCode() }
   if (statements.isNotEmpty()) {
     return TextRange.create(statements.minOf { it.startOffset }, statements.maxOf { it.endOffset })
@@ -157,10 +156,9 @@ abstract class ComposeSurroundWithWidgetAction : IntentionAction, HighPriorityAc
   }
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> false
-      file == null || editor == null -> false
-      !file.isWritable || file !is KtFile -> false
-      else -> findSurroundableRange(file, editor) != null
+    file == null || editor == null -> false
+    !file.isWritable || file !is KtFile -> false
+    else -> findSurroundableRange(file, editor) != null
   }
 
   protected abstract fun getTemplate(): TemplateImpl?

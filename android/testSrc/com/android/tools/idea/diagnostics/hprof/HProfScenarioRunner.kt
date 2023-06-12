@@ -44,8 +44,6 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
 
   val regex = Regex("^com\\.android\\.tools\\.idea\\.diagnostics\\.hprof\\..*\\\$.*\\\$")
 
-  open fun adjustConfig(config: AnalysisConfig): AnalysisConfig = config
-
   open fun mapClassName(clazz: Class<*>): String {
     // Simplify inner class names
     return clazz.name.replace(regex, "")
@@ -54,15 +52,18 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
   fun run(scenario: HProfBuilder.() -> Unit,
           baselineFileName: String,
           nominatedClassNames: List<String>?,
-          shouldMapClassNames: Boolean = true) {
+          shouldMapClassNames: Boolean = true,
+          config: AnalysisConfig? = null) {
     val hprofFile = tmpFolder.newFile()
     HProfTestUtils.createHProfOnFile(hprofFile,
-                                     scenario,
-                                     { c -> if (shouldMapClassNames) mapClassName(c) else c.name })
-    compareReportToBaseline(hprofFile, baselineFileName, nominatedClassNames)
+                                     scenario) { c -> if (shouldMapClassNames) mapClassName(c) else c.name }
+    compareReportToBaseline(hprofFile, baselineFileName, nominatedClassNames, config)
   }
 
-  private fun compareReportToBaseline(hprofFile: File, baselineFileName: String, nominatedClassNames: List<String>? = null) {
+  private fun compareReportToBaseline(hprofFile: File,
+                                      baselineFileName: String,
+                                      nominatedClassNames: List<String>? = null,
+                                      config: AnalysisConfig? = null) {
     FileChannel.open(hprofFile.toPath(), StandardOpenOption.READ).use { hprofChannel ->
 
       val progress = object : AbstractProgressIndicatorBase() {
@@ -97,7 +98,7 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
       val refIndexList = MemoryBackedUByteList(navigator.instanceCount.toInt() + 1)
 
       val nominatedClassNamesLocal = nominatedClassNames ?: nominatedClasses.map { it.classDefinition.name }
-      val analysisConfig = AnalysisConfig(
+      val analysisConfig = config ?: AnalysisConfig(
         perClassOptions = AnalysisConfig.PerClassOptions(
           classNames = nominatedClassNamesLocal,
           treeDisplayOptions = AnalysisConfig.TreeDisplayOptions.all()
@@ -108,7 +109,6 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
           classByCountLimit = Int.MAX_VALUE
         ),
         disposerOptions = AnalysisConfig.DisposerOptions(
-          includeDisposerTree = false,
           includeDisposerTreeSummary = false,
           includeDisposedObjectsDetails = false,
           includeDisposedObjectsSummary = false
@@ -122,7 +122,7 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
         innerClassOptions = AnalysisConfig.InnerClassOptions(
           includeInnerClassSection = false
         )
-      ).let { adjustConfig(it) }
+      )
       val analysisContext = AnalysisContext(
         navigator,
         analysisConfig,

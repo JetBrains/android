@@ -38,9 +38,7 @@ class TestNetworkInspectorUsageTracker : Disposable {
       .filter { it.hasNetworkInspectorEvent() }
       .map { it.networkInspectorEvent }
       .last()
-      .let {
-        consumer(it)
-      }
+      .let { consumer(it) }
   }
 
   override fun dispose() {

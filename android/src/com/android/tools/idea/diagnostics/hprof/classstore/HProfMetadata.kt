@@ -22,13 +22,12 @@ import com.android.tools.idea.diagnostics.hprof.visitors.CollectStringValuesVisi
 import com.android.tools.idea.diagnostics.hprof.visitors.CollectThreadInfoVisitor
 import com.android.tools.idea.diagnostics.hprof.visitors.CompositeVisitor
 import com.android.tools.idea.diagnostics.hprof.visitors.CreateClassStoreVisitor
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.util.function.LongUnaryOperator
 
 class HProfMetadata(var classStore: ClassStore, // TODO: private-set, public-get
-                    val threads: Long2ObjectMap<ThreadInfo>,
-                    var roots: Long2ObjectMap<RootReason>) {
+                    val threads: Long2ObjectOpenHashMap<ThreadInfo>,
+                    var roots: Long2ObjectOpenHashMap<RootReason>) {
 
   class RemapException : Exception()
 
@@ -38,15 +37,12 @@ class HProfMetadata(var classStore: ClassStore, // TODO: private-set, public-get
 
     // Remap root objects' ids
     val newRoots = Long2ObjectOpenHashMap<RootReason>()
-    for (entry in roots.long2ObjectEntrySet()) {
-      val key = entry.longKey
-      val value = entry.value
+    roots.forEach { key, value ->
       try {
         val newKey = remappingFunction.applyAsLong(key)
         assert(!newRoots.containsKey(newKey))
         newRoots.put(newKey, value)
-      }
-      catch (e: RemapException) {
+      } catch (e: RemapException) {
         // Ignore root entry if there is no associated object
       }
     }

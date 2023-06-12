@@ -17,11 +17,11 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.previewProviderClassAndIndex
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
-import com.android.tools.idea.compose.preview.util.previewProviderClassAndIndex
 import com.android.tools.idea.projectsystem.isTestFile
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManager
@@ -38,15 +38,15 @@ import org.jetbrains.kotlin.idea.base.util.module
 /**
  * Action to run a Compose Preview on a device/emulator.
  *
- * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated information.
+ * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
+ *   information.
  */
-internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext) : AnAction(message("action.run.title"),
-                                                                                                   message("action.run.description"),
-                                                                                                   RUN_ON_DEVICE) {
+internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext) :
+  AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE) {
 
   override fun actionPerformed(e: AnActionEvent) {
     previewElement()?.let {
-      val psiElement = it.previewBodyPsi?.element
+      val psiElement = it.previewElementDefinitionPsi?.element
       val project = psiElement?.project ?: return@actionPerformed
       val module = psiElement.module ?: return@actionPerformed
 
@@ -56,35 +56,50 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    val isTestFile = previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) } ?: false
+    val isTestFile =
+      previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) } ?: false
     e.presentation.apply {
       isEnabled = !isTestFile
-      description = if (isTestFile) message("action.run.description.test.files") else message("action.run.description")
+      isVisible = true
+      description =
+        if (isTestFile) message("action.run.description.test.files")
+        else message("action.run.description")
     }
   }
 
-  private fun runPreviewConfiguration(project: Project, module: Module, previewElement: ComposePreviewElement) {
-    val factory = runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
-    val composePreviewRunConfiguration = ComposePreviewRunConfiguration(project, factory, COMPOSE_PREVIEW_ACTIVITY_FQN).apply {
-      name = previewElement.displaySettings.name
-      composableMethodFqn = previewElement.composableMethodFqn
-      previewElement.previewProviderClassAndIndex()?.let {
-        providerClassFqn = it.first
-        providerIndex = it.second
+  private fun runPreviewConfiguration(
+    project: Project,
+    module: Module,
+    previewElement: ComposePreviewElement
+  ) {
+    val factory =
+      runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
+    val composePreviewRunConfiguration =
+      ComposePreviewRunConfiguration(project, factory, COMPOSE_PREVIEW_ACTIVITY_FQN).apply {
+        name = previewElement.displaySettings.name
+        composableMethodFqn = previewElement.composableMethodFqn
+        previewElement.previewProviderClassAndIndex()?.let {
+          providerClassFqn = it.first
+          providerIndex = it.second
+        }
+        setModule(module)
       }
-      setModule(module)
-    }
 
-    val configurationAndSettings = RunManager.getInstance(project).findSettings(composePreviewRunConfiguration)
-                                   ?: RunManager.getInstance(project).createConfiguration(composePreviewRunConfiguration, factory).apply {
-                                     isTemporary = true
-                                   }.also { configAndSettings ->
-                                     RunManager.getInstance(project).addConfiguration(configAndSettings)
-                                   }
-    (configurationAndSettings.configuration as ComposePreviewRunConfiguration)
-      .triggerSource = ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
+    val configurationAndSettings =
+      RunManager.getInstance(project).findSettings(composePreviewRunConfiguration)
+        ?: RunManager.getInstance(project)
+          .createConfiguration(composePreviewRunConfiguration, factory)
+          .apply { isTemporary = true }
+          .also { configAndSettings ->
+            RunManager.getInstance(project).addConfiguration(configAndSettings)
+          }
+    (configurationAndSettings.configuration as ComposePreviewRunConfiguration).triggerSource =
+      ComposePreviewRunConfiguration.TriggerSource.TOOLBAR
     RunManager.getInstance(project).selectedConfiguration = configurationAndSettings
-    ProgramRunnerUtil.executeConfiguration(configurationAndSettings, DefaultRunExecutor.getRunExecutorInstance())
+    ProgramRunnerUtil.executeConfiguration(
+      configurationAndSettings,
+      DefaultRunExecutor.getRunExecutorInstance()
+    )
   }
 
   private fun previewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)

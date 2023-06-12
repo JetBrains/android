@@ -15,43 +15,42 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import com.android.ide.common.repository.GradleVersion;
-import java.util.Arrays;
-import java.util.Collection;
+import com.android.ide.common.repository.AgpVersion;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
+import java.util.Collection;
+
+import static com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
- * Tests for {@link GradlePluginUpgrade#versionsAreIncompatible(GradleVersion, GradleVersion)}.
+ * Tests for {@link GradlePluginUpgrade#versionsAreIncompatible(AgpVersion, AgpVersion)}.
  */
 @RunWith(Parameterized.class)
 public class VersionsAreIncompatibleTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-      {"3.3.0-alpha9", "3.3.0-alpha9", false},
-      {"3.3.0-alpha9", "3.3.0-alpha9-1", true},
-      // Note: alpha9 is later in this algebra than alpha10.
-      {"3.3.0-alpha9", "3.3.0-alpha10", true},
+      {"3.3.0-alpha09", "3.3.0-alpha09", false},
+      {"3.3.0-alpha09", "3.3.0-alpha91", true},
       {"3.3.9-alpha09", "3.3.0-alpha10", true},
-      {"3.3.0-alpha9", "3.3.0-beta1", true},
-      {"3.3.0-alpha9", "3.3.0", true},
+      {"3.3.0-alpha09", "3.3.0-beta01", true},
+      {"3.3.0-alpha09", "3.3.0", true},
       {"3.3.0", "3.3.1", false},
       {"3.3.0", "4.0.0", false},
-      {"3.3.0-beta1", "3.4.0-alpha10", true},
+      {"3.3.0-beta01", "3.4.0-alpha10", true},
       {"3.3.0", "3.4.0-alpha10", false},
-      {"3.3.0-alpha1", "3.3.0-dev", false},
-      {"3.3.0-alpha8", "3.3.0-alpha8", false},
-      {"3.3.0-alpha9", "3.3.0-alpha8", true},
-      {"3.4.0", "3.3.0-alpha8", true},
-      {"3.4.0-alpha1", "3.3.0-alpha8", true},
-      {"3.3.0-alpha1", "3.4.0-alpha8", true},
+      {"3.3.0-alpha01", "3.3.0-dev", false},
+      {"3.3.0-alpha08", "3.3.0-alpha08", false},
+      {"3.3.0-alpha09", "3.3.0-alpha08", true},
+      {"3.4.0", "3.3.0-alpha08", true},
+      {"3.4.0-alpha01", "3.3.0-alpha08", true},
+      {"3.3.0-alpha01", "3.4.0-alpha08", true},
 
       // Treat -rc as effectively stable.  (Upgrades will be recommended, but not forced)
       {"3.3.1-rc01", "3.5.0-dev", false},
@@ -98,16 +97,16 @@ public class VersionsAreIncompatibleTest {
     });
   }
 
-  @NotNull private final GradleVersion myCurrent;
-  @NotNull private final GradleVersion myRecommended;
+  @NotNull private final AgpVersion myCurrent;
+  @NotNull private final AgpVersion myRecommended;
 
   private final boolean myForceUpgrade;
 
-  private static final GradleVersion unsupportedVersion = GradleVersion.parse("3.1.0");
+  private static final AgpVersion unsupportedVersion = AgpVersion.parse("3.1.0");
 
   public VersionsAreIncompatibleTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
-    myCurrent = GradleVersion.parse(current);
-    myRecommended = GradleVersion.parse(recommended);
+    myCurrent = AgpVersion.parse(current);
+    myRecommended = AgpVersion.parse(recommended);
     myForceUpgrade = forceUpgrade;
   }
 

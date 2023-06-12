@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.helpers.androidGradlePluginVersionValues
-import com.android.tools.idea.gradle.structure.model.helpers.gradleVersionValues
+import com.android.tools.idea.gradle.structure.model.helpers.versionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.DslText
@@ -42,13 +42,12 @@ import com.android.tools.idea.gradle.structure.model.meta.maybeLiteralValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.google.common.util.concurrent.ListenableFuture
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.reflect.KProperty
 
 object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
   private const val AGP_GROUP_ID_NAME = "com.android.tools.build:gradle"
   override fun getResolved(model: PsProject): Nothing? = null
-  override fun getParsed(model: PsProject): ProjectBuildModel = model.parsedModel
+  override fun getParsed(model: PsProject): ProjectBuildModel? = model.parsedModel
   override fun prepareForModification(model: PsProject) = Unit
   override fun setModified(model: PsProject) {
     model.isModified = true
@@ -65,7 +64,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
         val models: List<ResolvedPropertyModel>? =
           projectBuildModel?.run {
             buildscript().dependencies().all()
-              .mapNotNull { it.safeAs<ArtifactDependencyModel>() }
+              .mapNotNull { it as? ArtifactDependencyModel }
               .singleOrNull { it.isAgp() }
               ?.version()
               ?.let { listOf(it) }
@@ -94,7 +93,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
           .let { dependencies ->
             dependencies.addArtifact("classpath", "$AGP_GROUP_ID_NAME:0.0")
             dependencies.all()
-              .mapNotNull { it.safeAs<ArtifactDependencyModel>() }
+              .mapNotNull { it as? ArtifactDependencyModel }
               .single { it.isAgp() }
               .version()
           }
@@ -105,7 +104,8 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
       knownValuesGetter = ::androidGradlePluginVersionValues,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
       preferredVariableName = { "agp_version" },
-      variableScope = { buildScriptVariables }
+      variableScope = { buildScriptVariables },
+      canExtractVariable = { parsedModel.versionCatalogsModel.catalogNames().isEmpty() }
     )
   }
 
@@ -123,7 +123,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
 
           override fun format(value: String): String = value
 
-          override fun getKnownValues(): ListenableFuture<KnownValues<String>> = gradleVersionValues()
+          override fun getKnownValues(): ListenableFuture<KnownValues<String>> = versionValues()
         }
 
       override val description: String = "Gradle Version"
@@ -140,7 +140,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
             value.maybeLiteralValue?.let { model.setGradleVersionValue(it) }
           }
 
-          override val isModified: Boolean
+          override val isModified: Boolean?
             get() =
               model.getGradleVersionValue(true) != model.getGradleVersionValue(false)
 
@@ -148,7 +148,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
 
           override val description: String = "Gradle Version"
           override val defaultValueGetter: (() -> String?)? = null
-          override val variableScope: () -> PsVariablesScope? = { PsVariablesScope.NONE }
+          override val variableScope: (() -> PsVariablesScope?)? = { PsVariablesScope.NONE }
           override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
         }
 

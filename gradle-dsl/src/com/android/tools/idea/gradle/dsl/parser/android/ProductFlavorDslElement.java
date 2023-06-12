@@ -15,10 +15,21 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl.INIT_WITH;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,11 +37,37 @@ public class ProductFlavorDslElement extends AbstractProductFlavorDslElement imp
   public static final PropertiesElementDescription<ProductFlavorDslElement> PRODUCT_FLAVOR =
     new PropertiesElementDescription<>(null, ProductFlavorDslElement.class, ProductFlavorDslElement::new);
 
+  private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
+    {"initWith", exactly(1), INIT_WITH, OTHER},
+  }).collect(toModelMap(AbstractProductFlavorDslElement.ktsToModelNameMap));
+
+  private static final ExternalToModelMap groovyToModelNameMap = Stream.of(new Object[][]{
+    {"initWith", exactly(1), INIT_WITH, OTHER},
+  }).collect(toModelMap(AbstractProductFlavorDslElement.groovyToModelNameMap));
+
   @Nullable
   private String methodName;
 
   public ProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  @Override
+  public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+  }
+
+  @Override
+  public void addParsedElement(@NotNull GradleDslElement element) {
+    if (element.getFullName().equals("initWith") && element instanceof GradleDslLiteral) {
+      GradleReferenceInjection referenceTo = ((GradleDslLiteral)element).getReferenceInjection();
+      if (referenceTo != null && referenceTo.getToBeInjected() != null) {
+        // Merge properties with the target
+        mergePropertiesFrom((GradlePropertiesDslElement)referenceTo.getToBeInjected());
+      }
+    }
+
+    super.addParsedElement(element);
   }
 
   @Override

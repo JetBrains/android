@@ -41,6 +41,7 @@ import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
@@ -75,7 +76,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader
@@ -249,6 +249,7 @@ class DefaultModuleSystem(override val module: Module) :
     val isMlModelBindingEnabled: Key<Boolean> = Key.create(::isMlModelBindingEnabled.qualifiedName)
     val applicationRClassConstantIds: Key<Boolean> = Key.create(::applicationRClassConstantIds.qualifiedName)
     val testRClassConstantIds: Key<Boolean> = Key.create(::testRClassConstantIds.qualifiedName)
+    val useAndroidX: Key<Boolean> = Key.create(::useAndroidX.qualifiedName)
   }
 
   override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
@@ -281,6 +282,8 @@ class DefaultModuleSystem(override val module: Module) :
   override var applicationRClassConstantIds: Boolean by UserData(Keys.applicationRClassConstantIds, true)
 
   override var testRClassConstantIds: Boolean by UserData(Keys.testRClassConstantIds, true)
+
+  override var useAndroidX: Boolean by UserData(Keys.useAndroidX, false)
 }
 
 /**

@@ -21,15 +21,22 @@ import static com.android.tools.idea.tests.gui.framework.matcher.Matchers.byType
 
 import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.device.FormFactor;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.ui.components.JBList;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JRootPane;
 import org.fest.swing.core.matcher.JLabelMatcher;
+import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.fixture.JListFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
@@ -57,10 +64,33 @@ public class ChooseAndroidProjectStepFixture<W extends AbstractWizardFixture>
     return this;
   }
 
+  public List<String> listActivities() {
+    ASGallery<Object> list = waitUntilShowingAndEnabled(robot(), target(), byType(ASGallery.class));
+    List<String> activityNames = new ArrayList<String>();
+    // ListFixture with ASGallery is un-reliable selecting the right activity. Select by value instead.
+    GuiTask.execute(() -> {
+      for (int i = 0; i < list.getModel().getSize(); i++) {
+        Object value = list.getModel().getElementAt(i);
+        activityNames.add(String.valueOf(value));
+      }
+    });
+
+    return activityNames;
+  }
+
   public ChooseAndroidProjectStepFixture<W> selectTab(@NotNull FormFactor formFactor) {
     JLabel listTitle = waitUntilShowing(robot(), target(), JLabelMatcher.withText("Templates"));
     JListFixture listFixture = new JListFixture(robot(), waitUntilShowingAndEnabled(robot(), listTitle.getParent(), byType(JBList.class)));
     listFixture.clickItem(formFactor.toString());
     return this;
+  }
+
+  public void clickCancel() {
+    JButton button = GuiTests.waitUntilShowing(robot(),
+                                               Matchers.byText(JButton.class, "Cancel").andIsEnabled());
+    robot().click(button);
+    Wait.seconds(5).expecting("dialog to disappear").until(
+      () -> GuiQuery.getNonNull(() ->!target().isShowing())
+    );
   }
 }

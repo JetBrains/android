@@ -15,17 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.error;
 
-import com.android.tools.idea.common.error.Issue;
-import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.error.IssueSource;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.common.error.Issue;
+import com.android.tools.idea.common.error.IssueProvider;
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.annotation.HighlightSeverity;
-import javax.swing.event.HyperlinkListener;
+import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.event.HyperlinkListener;
+import org.jetbrains.annotations.TestOnly;
 
 public class RenderIssueProvider extends IssueProvider {
   @NotNull private final RenderErrorModel myRenderErrorModel;
@@ -101,6 +110,20 @@ public class RenderIssueProvider extends IssueProvider {
     @Nullable
     public HyperlinkListener getHyperlinkListener() {
       return myIssue.getHyperlinkListener();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      if (!super.equals(o)) return false;
+      NlRenderIssueWrapper wrapper = (NlRenderIssueWrapper)o;
+      return Objects.equals(myIssue, wrapper.myIssue) && Objects.equals(mySource, wrapper.mySource);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(super.hashCode(), myIssue, mySource);
     }
   }
 

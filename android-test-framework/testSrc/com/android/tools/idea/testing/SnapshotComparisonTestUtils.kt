@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
-import org.jetbrains.android.AndroidTestBase
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.io.path.writeText
 
 /**
  * See implementing classes for usage examples.
@@ -64,9 +67,43 @@ interface SnapshotComparisonTest {
   fun getName(): String
 }
 
+private val testLogsPath: String?
+  get() = System.getenv("TEST_TARGET")?.takeIf { it.isNotEmpty() }?.removePrefix("//")?.replace(":", "/")?.let { targetPath ->
+    targetPath + (System.getenv("TEST_SHARD_INDEX")?.takeIf { it.isNotEmpty() }?.let { shard -> "/shard_${shard}_of_${System.getenv("TEST_TOTAL_SHARDS")}" } ?: "")
+  }
+
+private fun SnapshotComparisonTest.assertInSnapshotTextContext() = Truth.assert_().withMessage("""
+  There has been a change to the contents of snapshot test ${getName()}.
+
+  If that change is intentional, update the expectation files.
+
+  To update the files from a presubmit failure, download and unzip the outputs.zip for this target:
+    unzip -d $(bazel info workspace) -o outputs.zip
+
+  For a local bazel invocation, outputs.zip will be in bazel-testlogs:
+    unzip -d $(bazel info workspace) -o \\
+      $(bazel info bazel-testlogs)/${testLogsPath ?: "<bazel test target for ${getName()}>"}/test.outputs/outputs.zip
+
+  Or, to re-run the test and update the expectations in place, either add -DUPDATE_TEST_SNAPSHOTS
+  to the jvm options in the idea test configuration and re-run the test, or from bazel, run:
+    bazel test ${System.getenv("TEST_TARGET")?.takeIf { it.isNotEmpty() } ?: "<bazel test target for ${getName()}>"} \\
+      --nocache_test_results \\
+      --sandbox_writable_path=${'$'}(bazel info workspace) \
+      --strategy=TestRunner=standalone \\
+      --jvmopt=\"-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)\" \\
+      --test_timeout=6000 \\
+      --test_output=streamed
+
+  NB: All the commands above assume 'tools/base/bazel' is on your path.
+  """.trimIndent()
+)
+
 fun SnapshotComparisonTest.assertIsEqualToSnapshot(text: String, snapshotTestSuffix: String = "") {
-  val (_, expectedText) = getAndMaybeUpdateSnapshot(snapshotTestSuffix, text)
-  assertThat(text).isEqualTo(expectedText)
+  val (fullSnapshotName, expectedText) = getAndMaybeUpdateSnapshot(snapshotTestSuffix, text)
+  assertInSnapshotTextContext()
+    .that(text)
+    .named("Snapshot comparison for $fullSnapshotName")
+    .isEqualTo(expectedText)
 }
 
 fun SnapshotComparisonTest.assertAreEqualToSnapshots(vararg checks: Pair<String, String>) {
@@ -82,7 +119,10 @@ fun SnapshotComparisonTest.assertAreEqualToSnapshots(vararg checks: Pair<String,
         it.first.joinToString(separator = "\n") to it.second.joinToString(separator = "\n")
       }
 
-  assertThat(actual).isEqualTo(expected)
+  assertInSnapshotTextContext()
+    .that(actual)
+    .named("Snapshot comparisons for ${checks.joinToString(", ") { it.second }}")
+    .isEqualTo(expected)
 }
 
 fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
@@ -92,9 +132,27 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
 ): Pair<String, String> {
   val fullSnapshotName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true)) + snapshotTestSuffix
   val expectedText = getExpectedTextFor(fullSnapshotName)
+  if (doNotUpdate) {
+    return fullSnapshotName to expectedText
+  }
 
-  if (!doNotUpdate && System.getProperty(updateSnapshotsJvmProperty) != null) {
-    updateSnapshotFile(fullSnapshotName, text)
+  if (System.getProperty(updateSnapshotsJvmProperty) != null) {
+    getSnapshotFileToUpdate(fullSnapshotName).run {
+      println("Writing to: ${this.absolutePath}")
+      writeText(text)
+    }
+  } else if (TestUtils.runningFromBazel()) {
+    // Populate additional test output if the file needs updating
+    val snapshotFileToUpdate = getSnapshotFileToUpdate(fullSnapshotName)
+    if (!snapshotFileToUpdate.isFile || expectedText != text) {
+      val workspaceRelativePath = TestUtils.getWorkspaceRoot().relativize(snapshotFileToUpdate.toPath())
+      println("Writing updated snapshot file to bazel additional test output.\n" +
+              "    $workspaceRelativePath")
+      TestUtils.getTestOutputDir().resolve(workspaceRelativePath).run {
+        Files.createDirectories(parent)
+        writeText(text)
+      }
+    }
   }
   return fullSnapshotName to expectedText
 }
@@ -108,13 +166,9 @@ private fun SnapshotComparisonTest.getCandidateSnapshotFiles(project: String): L
     .map { configuredWorkspace.resolve("${project.substringAfter("projects/")}$it.txt").toFile() }
 }
 
-private fun SnapshotComparisonTest.updateSnapshotFile(snapshotName: String, text: String) {
-  getCandidateSnapshotFiles(snapshotName)
+private fun SnapshotComparisonTest.getSnapshotFileToUpdate(snapshotName: String): File {
+  return getCandidateSnapshotFiles(snapshotName)
     .let { candidates -> candidates.firstOrNull { it.exists() } ?: candidates.last() }
-    .run {
-      println("Writing to: ${this.absolutePath}")
-      writeText(text)
-    }
 }
 
 private fun SnapshotComparisonTest.getExpectedTextFor(project: String): String =
@@ -123,12 +177,12 @@ private fun SnapshotComparisonTest.getExpectedTextFor(project: String): String =
       candidateFiles
         .firstOrNull { it.exists() }
         ?.let {
-          println("Comparing with: ${it.relativeTo(File(AndroidTestBase.getTestDataPath()))}")
+          println("Comparing with: ${it.relativeTo(resolveWorkspacePath("").toFile())}")
           it.readText().trimIndent()
         }
       ?: candidateFiles
         .joinToString(separator = "\n", prefix = "No snapshot files found. Candidates considered:\n\n") {
-          it.relativeTo(File(AndroidTestBase.getTestDataPath())).toString()
+          it.relativeTo(resolveWorkspacePath("").toFile()).toString()
         }
     }
 

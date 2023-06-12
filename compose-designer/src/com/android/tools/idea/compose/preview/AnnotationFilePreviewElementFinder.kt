@@ -19,14 +19,12 @@ import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
+import com.android.tools.idea.AndroidPsiUtils.getPsiFileSafely
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotations
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewEvent
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewUsageTracker
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
-import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
-import com.android.tools.idea.concurrency.getPsiFileSafely
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -35,12 +33,15 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.getFqNameByDirectory
 import org.jetbrains.uast.UMethod
 
-/**
- * [FilePreviewElementFinder] that uses `@Preview` annotations.
- */
+/** [FilePreviewElementFinder] that uses `@Preview` annotations. */
 object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   override fun hasPreviewMethods(project: Project, vFile: VirtualFile) =
-    hasAnnotations(project, vFile, setOf(COMPOSE_PREVIEW_ANNOTATION_FQN), COMPOSE_PREVIEW_ANNOTATION_NAME)
+    hasAnnotations(
+      project,
+      vFile,
+      setOf(COMPOSE_PREVIEW_ANNOTATION_FQN),
+      COMPOSE_PREVIEW_ANNOTATION_NAME
+    )
 
   override fun hasComposableMethods(project: Project, vFile: VirtualFile) =
     hasAnnotations(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME)
@@ -48,16 +49,29 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
   /**
    * Returns all the `@Composable` functions in the [vFile] that are also tagged with `@Preview`.
    */
-  override suspend fun findPreviewMethods(project: Project, vFile: VirtualFile): Collection<ComposePreviewElement> {
-    val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
-    return findAnnotatedMethodsValues(project, vFile, COMPOSABLE_FQ_NAMES, COMPOSABLE_ANNOTATION_NAME) { methods ->
+  override suspend fun findPreviewMethods(
+    project: Project,
+    vFile: VirtualFile
+  ): Collection<ComposePreviewElement> {
+    return findAnnotatedMethodsValues(
+      project,
+      vFile,
+      COMPOSABLE_FQ_NAMES,
+      COMPOSABLE_ANNOTATION_NAME
+    ) { methods ->
       val previewNodes = getPreviewNodes(methods, includeAllNodes = true)
       val previewElements = previewNodes.filterIsInstance<ComposePreviewElement>().distinct()
 
       if (previewElements.isNotEmpty()) {
-        MultiPreviewUsageTracker.getInstance(psiFile.androidFacet).logEvent(
-          MultiPreviewEvent(previewNodes.filterIsInstance<MultiPreviewNode>(),
-                            "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}"))
+        getPsiFileSafely(project, vFile)?.let { psiFile ->
+          MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
+            .logEvent(
+              MultiPreviewEvent(
+                previewNodes.filterIsInstance<MultiPreviewNode>(),
+                "${psiFile.getFqNameByDirectory().asString()}.${psiFile.name}"
+              )
+            )
+        }
       }
 
       previewElements.asSequence()
@@ -70,5 +84,4 @@ object AnnotationFilePreviewElementFinder : FilePreviewElementFinder {
       ProgressManager.checkCanceled()
       getPreviewNodes(it, includeAllNodes = includeAllNodes)
     }
-
 }

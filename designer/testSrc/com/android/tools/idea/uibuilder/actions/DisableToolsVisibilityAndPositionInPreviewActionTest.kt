@@ -17,11 +17,9 @@ package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.testFramework.MapDataContext
-import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,14 +44,7 @@ class DisableToolsVisibilityAndPositionInPreviewActionTest {
 
   @Before
   fun setUp() {
-    // TODO(146151278): Remove override once it's enabled by default.
-    StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.override(true)
     context = MapDataContext().apply { put(LAYOUT_PREVIEW_HANDLER_KEY, previewHandler) }
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.clearOverride()
   }
 
   @Test

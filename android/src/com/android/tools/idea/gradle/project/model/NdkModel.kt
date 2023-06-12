@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
-import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
+import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeAbi
-import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings
+import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeToolchain
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
+import com.android.ide.common.repository.AgpVersion
 import com.intellij.serialization.PropertyMapping
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.util.HashMap
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -66,7 +67,7 @@ data class V1NdkModel(
 ) : NdkModel() {
 
   @Transient
-  override val features: NdkModelFeatures = NdkModelFeatures(GradleVersion.tryParse(androidProject.modelVersion))
+  override val features: NdkModelFeatures = NdkModelFeatures(AgpVersion.tryParse(androidProject.modelVersion))
 
   /** Map of synced variants. For full-variants sync, contains all variant and ABIs from [allVariantAbis]. */
   @Transient
@@ -197,7 +198,7 @@ data class V2NdkModel @PropertyMapping("agpVersion", "nativeModule") constructor
 ) : NdkModel() {
 
   @Transient
-  override val features: NdkModelFeatures = NdkModelFeatures(GradleVersion.tryParse(agpVersion))
+  override val features: NdkModelFeatures = NdkModelFeatures(AgpVersion.tryParse(agpVersion))
 
   @Transient
   val abiByVariantAbi: Map<VariantAbi, IdeNativeAbi> = nativeModule.variants.flatMap { variant ->

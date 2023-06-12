@@ -19,7 +19,6 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -43,9 +42,13 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
   private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
 
   @get:Rule
-  val projectRule = ComposeProjectRule(previewAnnotationPackage = previewAnnotationPackage,
-                                       composableAnnotationPackage = composableAnnotationPackage)
-  private val fixture get() = projectRule.fixture
+  val projectRule =
+    ComposeProjectRule(
+      previewAnnotationPackage = previewAnnotationPackage,
+      composableAnnotationPackage = composableAnnotationPackage
+    )
+  private val fixture
+    get() = projectRule.fixture
 
   @Before
   fun setUp() {
@@ -59,11 +62,14 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
   @Test
   fun testNeedsComposableInspection() {
-    fixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
+    fixture.enableInspections(
+      PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
+    )
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
@@ -76,20 +82,26 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "preview2", apiLevel = 12)
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals("9: Preview only works with Composable functions.",
-                 fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
+    assertEquals(
+      "9: Preview only works with Composable functions.",
+      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
+    )
   }
 
   @Test
   fun testNoParametersInPreview() {
-    fixture.enableInspections(PreviewAnnotationInFunctionWithParametersInspection() as InspectionProfileEntry)
+    fixture.enableInspections(
+      PreviewAnnotationInFunctionWithParametersInspection() as InspectionProfileEntry
+    )
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
       import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
@@ -148,32 +160,39 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Composable
       fun MultiPreviewWithProviderAndNoDefault(@PreviewParameter(IntProvider::class) a: Int, b: String) { // ERROR, no default in second parameter
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
-      // Filter out UNRESOLVED_REFERENCE caused by the standard library not being available.
-      // sequence and sequenceOf are not available. We can safely ignore them.
-      .filter { !it.description.contains("[UNRESOLVED_REFERENCE]") }
-      .sortedByDescending { -it.startOffset }
-      .joinToString("\n") { it.descriptionWithLineNumber() }
-
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.ERROR)
+        // Filter out UNRESOLVED_REFERENCE caused by the standard library not being available.
+        // sequence and sequenceOf are not available. We can safely ignore them.
+        .filter { !it.description.contains("[UNRESOLVED_REFERENCE]") }
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
       """5: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
         |15: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
         |34: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
-        |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.""".trimMargin(),
-      inspections)
+        |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter."""
+        .trimMargin(),
+      inspections
+    )
   }
 
   @Test
   fun testNoMultipleParameterProvider() {
-    fixture.enableInspections(PreviewMultipleParameterProvidersInspection() as InspectionProfileEntry)
+    fixture.enableInspections(
+      PreviewMultipleParameterProvidersInspection() as InspectionProfileEntry
+    )
 
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $PREVIEW_TOOLING_PACKAGE.PreviewParameter
       import $PREVIEW_TOOLING_PACKAGE.PreviewParameterProvider
@@ -197,21 +216,26 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       fun MultiPreviewWithMultipleProviders(@PreviewParameter(IntProvider::class) a: Int,
                                             @PreviewParameter(IntProvider::class) b: Int) { // ERROR, only one PreviewParameter is supported
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
-      // Filter out UNRESOLVED_REFERENCE caused by the standard library not being available.
-      // sequence and sequenceOf are not available. We can safely ignore them.
-      .filter { !it.description.contains("[UNRESOLVED_REFERENCE]") }
-      .sortedByDescending { -it.startOffset }
-      .joinToString("\n") { it.descriptionWithLineNumber() }
-
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.ERROR)
+        // Filter out UNRESOLVED_REFERENCE caused by the standard library not being available.
+        // sequence and sequenceOf are not available. We can safely ignore them.
+        .filter { !it.description.contains("[UNRESOLVED_REFERENCE]") }
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
       """12: Multiple @PreviewParameter are not allowed.
         |21: Multiple @PreviewParameter are not allowed.
-      """.trimMargin(), inspections)
+      """
+        .trimMargin(),
+      inspections
+    )
   }
 
   @Test
@@ -220,7 +244,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
     @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
@@ -296,14 +321,18 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
         fun ClassMethodPreview() {
         }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
-      .sortedByDescending { -it.startOffset }
-      .joinToString("\n") { it.descriptionWithLineNumber() }
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.ERROR)
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { it.descriptionWithLineNumber() }
 
-    assertEquals("""15: Preview must be a top level declarations or in a top level class with a default constructor.
+    assertEquals(
+      """15: Preview must be a top level declarations or in a top level class with a default constructor.
                     |16: Preview must be a top level declarations or in a top level class with a default constructor.
                     |20: Preview must be a top level declarations or in a top level class with a default constructor.
                     |21: Preview must be a top level declarations or in a top level class with a default constructor.
@@ -312,8 +341,10 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
                     |51: Preview must be a top level declarations or in a top level class with a default constructor.
                     |53: Preview must be a top level declarations or in a top level class with a default constructor.
                     |68: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |70: Preview must be a top level declarations or in a top level class with a default constructor.""".trimMargin(),
-                 inspections)
+                    |70: Preview must be a top level declarations or in a top level class with a default constructor."""
+        .trimMargin(),
+      inspections
+    )
   }
 
   @Test
@@ -322,7 +353,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
@@ -347,17 +379,23 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 2", widthDp = goodWidth)
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    val inspections = fixture.doHighlighting(HighlightSeverity.WARNING)
-      .sortedByDescending { -it.startOffset }
-      .joinToString("\n") { it.descriptionWithLineNumber() }
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.WARNING)
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
       """7: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.
         |15: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.
-      """.trimMargin(), inspections)
+      """
+        .trimMargin(),
+      inspections
+    )
   }
 
   @Test
@@ -366,7 +404,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
@@ -391,17 +430,23 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 2", heightDp = goodHeight)
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    val inspections = fixture.doHighlighting(HighlightSeverity.WARNING)
-      .sortedByDescending { -it.startOffset }
-      .joinToString("\n") { it.descriptionWithLineNumber() }
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.WARNING)
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
       """7: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.
         |15: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.
-      """.trimMargin(), inspections)
+      """
+        .trimMargin(),
+      inspections
+    )
   }
 
   @Test
@@ -410,7 +455,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
@@ -418,19 +464,24 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001)
       fun Preview1() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    val inspections = fixture.doHighlighting(HighlightSeverity.WARNING)
-      .sortedByDescending { -it.startOffset }
-      .toArray(emptyArray())
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.WARNING)
+        .sortedByDescending { -it.startOffset }
+        .toTypedArray()
 
-    // Verify the height inspection only highlights the height parameter and value, i.e. "heightDp = 2001"
+    // Verify the height inspection only highlights the height parameter and value, i.e. "heightDp =
+    // 2001"
     val heightInspection = inspections[0]
     var highlightLength = heightInspection.actualEndOffset - heightInspection.actualStartOffset
     assertEquals("heightDp = 2001".length, highlightLength)
 
-    // Verify the width inspection only highlights the width parameter and value, i.e. "widthDp = 2001"
+    // Verify the width inspection only highlights the width parameter and value, i.e. "widthDp =
+    // 2001"
     val widthInspection = inspections[1]
     highlightLength = widthInspection.actualEndOffset - widthInspection.actualStartOffset
     assertEquals("widthDp = 2001".length, highlightLength)
@@ -442,7 +493,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
@@ -467,17 +519,23 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 2", fontScale = -2f) // error
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
-      .sortedByDescending { -it.startOffset }
-      .joinToString("\n") { it.descriptionWithLineNumber() }
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.ERROR)
+        .sortedByDescending { -it.startOffset }
+        .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
       """7: Preview fontScale value must be greater than zero.
         |21: Preview fontScale value must be greater than zero.
-      """.trimMargin(), inspections)
+      """
+        .trimMargin(),
+      inspections
+    )
   }
 
   @Test
@@ -486,7 +544,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $PREVIEW_TOOLING_PACKAGE.Preview
       import $COMPOSABLE_ANNOTATION_FQN
 
@@ -522,12 +581,15 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 4", apiLevel = 30)
       fun Preview4() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    val inspections = fixture.doHighlighting(HighlightSeverity.ERROR)
-      .sortedByDescending { -it.startOffset }
-      .map { it.descriptionWithLineNumber() }
+    val inspections =
+      fixture
+        .doHighlighting(HighlightSeverity.ERROR)
+        .sortedByDescending { -it.startOffset }
+        .map { it.descriptionWithLineNumber() }
 
     val apiLevelErrorMessagePrefix = "Preview apiLevel must be set to an integer between "
     assertEquals(3, inspections.size)
@@ -538,11 +600,14 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
   @Test
   fun testInspectionsWithNoImport() {
-    fixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
+    fixture.enableInspections(
+      PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry
+    )
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
-    val fileContent = """
+    val fileContent =
+      """
       import $COMPOSABLE_ANNOTATION_FQN
 
       @Composable
@@ -554,10 +619,13 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @$PREVIEW_TOOLING_PACKAGE.Preview(name = "preview2")
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
-    assertEquals("8: Preview only works with Composable functions.",
-                 fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
+    assertEquals(
+      "8: Preview only works with Composable functions.",
+      fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
+    )
   }
 }

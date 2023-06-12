@@ -17,19 +17,26 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.findParentOfType
+import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import org.toml.lang.psi.TomlArray
 import org.toml.lang.psi.TomlElement
@@ -41,6 +48,7 @@ import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlPsiFactory
 import org.toml.lang.psi.TomlTable
+import java.lang.UnsupportedOperationException
 
 class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, TomlDslNameConverter {
   override fun getContext(): BuildModelContext = context
@@ -49,9 +57,9 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement? = null
   override fun applyDslMethodCall(methodCall: GradleDslMethodCall): Unit = Unit
   override fun createDslExpressionList(expressionList: GradleDslExpressionList): PsiElement? = createDslElement(expressionList)
-  override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = Unit
-  override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap): Unit = Unit
-  override fun applyDslPropertiesElement(element: GradlePropertiesDslElement): Unit = Unit
+  override fun applyDslExpressionList(expressionList: GradleDslExpressionList): Unit = maybeUpdateName(expressionList)
+  override fun applyDslExpressionMap(expressionMap: GradleDslExpressionMap): Unit =  maybeUpdateName(expressionMap)
+  override fun applyDslPropertiesElement(element: GradlePropertiesDslElement): Unit = maybeUpdateName(element)
 
   override fun createDslExpressionMap(expressionMap: GradleDslExpressionMap): PsiElement? = createDslElement(expressionMap)
 
@@ -129,6 +137,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
 
   override fun applyDslLiteral(literal: GradleDslLiteral) {
     val psiElement = literal.psiElement ?: return
+    maybeUpdateName(literal)
     val newElement = literal.unsavedValue ?: return
 
     val element = psiElement.replace(newElement)
@@ -136,6 +145,24 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
     literal.reset()
     literal.commit()
   }
+
+  private fun maybeUpdateName(element: GradleDslElement) {
+    val nameElement = element.nameElement
+    val localName = nameElement.localName
+    if (localName.isNullOrEmpty() || nameElement.originalName == localName) return
+
+    val oldName = nameElement.namedPsiElement ?: return
+
+    val newName = GradleNameElement.unescape(localName)
+
+    // only rename elements that already have name
+    if (oldName is PsiNamedElement) {
+      oldName.setName(newName)
+      element.nameElement.commitNameChange(oldName, this, element.parent)
+    }
+
+  }
+
 
   override fun deleteDslLiteral(literal: GradleDslLiteral) {
     deleteDslElement(literal)

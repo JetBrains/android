@@ -27,6 +27,9 @@ class GradlePluginModelBuilder : ToolingModelBuilder {
   }
 
   override fun buildAll(modelName: String, project: Project): Any {
-    return GradlePluginModelImpl(project.plugins.map { it.javaClass.name })
+    return GradlePluginModelImpl(
+      project.plugins.hasPlugin("androidx.navigation.safeargs"),
+      project.plugins.hasPlugin("androidx.navigation.safeargs.kotlin")
+    )
   }
 }

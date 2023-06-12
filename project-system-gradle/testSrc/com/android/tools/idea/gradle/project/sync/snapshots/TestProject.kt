@@ -15,38 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.SdkConstants
-import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.builder.model.v2.ide.SyncIssue
 import com.android.testutils.AssumeUtil.assumeNotWindows
-import com.android.testutils.TestUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-import com.android.tools.idea.testing.AndroidGradleTests
-import com.android.tools.idea.testing.FileSubject.file
-import com.android.tools.idea.testing.IntegrationTestEnvironment
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.ModelVersion
-import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.SnapshotComparisonTest
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
-import com.android.utils.FileUtils
-import com.android.utils.FileUtils.writeToFile
-import com.google.common.truth.Truth
-import com.google.common.truth.Truth.assertAbout
+import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.PathUtil
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
-import org.jetbrains.annotations.SystemIndependent
+import org.junit.Rule
 import java.io.File
 import java.nio.file.Files
 
@@ -56,14 +43,17 @@ import java.nio.file.Files
  * When adding a new entry to this file add a new test method to [SyncedProjectTest].
  */
 enum class TestProject(
-  val template: String,
-  val pathToOpen: String = "",
-  val testName: String? = null,
-  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
-  val setup: () -> () -> Unit = { {} },
-  val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
-  val expectedSyncIssues: Set<Int> = emptySet()
-) {
+  override val template: String,
+  override val pathToOpen: String = "",
+  override val testName: String? = null,
+  override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+  override val autoMigratePackageAttribute: Boolean = true,
+  override val setup: () -> () -> Unit = { {} },
+  override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
+  override val expectedSyncIssues: Set<Int> = emptySet(),
+  override val verifyOpened: ((Project) -> Unit)? = null,
+  override val switchVariant: TemplateBasedTestProject.VariantSelection? = null
+) : TemplateBasedTestProject {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
   COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
@@ -148,6 +138,25 @@ enum class TestProject(
     },
     expectedSyncIssues = setOf(SyncIssue.TYPE_UNNAMED_FLAVOR_DIMENSION)
   ),
+  SIMPLE_APPLICATION_WITH_ANDROID_CAR(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "withAndroidCar",
+    patch = { root ->
+      root.resolve("app/build.gradle").replaceContent {
+        it + """
+          android.useLibrary 'android.car'
+         """
+      }
+    }
+  ),
+  SIMPLE_APPLICATION_SYNC_FAILED(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "syncFailed",
+    verifyOpened = { project -> assertThat(GradleSyncState.Companion.getInstance(project).lastSyncFailed()).isTrue() },
+    patch = { root ->
+      root.resolve("build.gradle").writeText("*** this is an error ***")
+    }
+  ),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
   PSD_SAMPLE_GROOVY(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
@@ -159,7 +168,11 @@ enum class TestProject(
         truncateForV2(projectRoot.resolve("settings.gradle"))
       }
     }),
-  NON_STANDARD_SOURCE_SETS(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS, "/application"),
+  NON_STANDARD_SOURCE_SETS(
+    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SETS,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 },
+    pathToOpen = "/application"
+  ),
   NON_STANDARD_SOURCE_SET_DEPENDENCIES(
     TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
     isCompatibleWith = { it.modelVersion == ModelVersion.V2 }
@@ -189,7 +202,15 @@ enum class TestProject(
     TestProjectToSnapshotPaths.TEST_FIXTURES,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_72 }
   ),
-  TEST_ONLY_MODULE(TestProjectToSnapshotPaths.TEST_ONLY_MODULE),
+  TEST_ONLY_MODULE(
+    TestProjectToSnapshotPaths.TEST_ONLY_MODULE,
+    patch = { projectRoot ->
+      if (this < AgpVersionSoftwareEnvironmentDescriptor.AGP_42) {
+        // Benchmarks sub-project is incompatible with <= 4.1.
+        projectRoot.resolve("settings.gradle").replaceInContent(", ':benchmark'", "")
+      }
+    }
+  ),
   KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
@@ -239,6 +260,11 @@ enum class TestProject(
     }
   ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
+  MULTI_FLAVOR_SWITCH_VARIANT(
+    TestProjectToSnapshotPaths.MULTI_FLAVOR,
+    testName = "switchVariant",
+    switchVariant = TemplateBasedTestProject.VariantSelection(":app", "firstXyzSecondXyzRelease")
+  ),
   MULTI_FLAVOR_WITH_FILTERING(
     TestProjectToSnapshotPaths.MULTI_FLAVOR,
     testName = "_withFiltering",
@@ -265,7 +291,10 @@ enum class TestProject(
     patch = { projectRootPath ->
       createEmptyGradleSettingsFile(projectRootPath)
     }),
-  MAIN_IN_ROOT(TestProjectToSnapshotPaths.MAIN_IN_ROOT),
+  MAIN_IN_ROOT(
+    TestProjectToSnapshotPaths.MAIN_IN_ROOT,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80 }
+    ),
   NESTED_MODULE(TestProjectToSnapshotPaths.NESTED_MODULE),
   TRANSITIVE_DEPENDENCIES(TestProjectToSnapshotPaths.TRANSITIVE_DEPENDENCIES),
   TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS(
@@ -290,248 +319,94 @@ enum class TestProject(
   SIMPLE_APPLICATION_VERSION_CATALOG(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_VERSION_CATALOG),
   CUSTOM_SOURCE_TYPE(TestProjectToSnapshotPaths.CUSTOM_SOURCE_TYPE),
   LIGHT_SYNC_REFERENCE(TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE),
+  NON_TRANSITIVE_R_CLASS_SYMBOL(TestProjectToSnapshotPaths.NON_TRANSITIVE_R_CLASS_SYMBOL),
+  NON_TRANSITIVE_R_CLASS_SYMBOL_TRUE(
+    TestProjectToSnapshotPaths.NON_TRANSITIVE_R_CLASS_SYMBOL,
+    testName = "_non_transitive_r_class_symbol_true",
+    patch = { projectRoot ->
+      projectRoot.resolve("gradle.properties").replaceContent { content ->
+        content.replace("android.nonTransitiveRClass=false", "android.nonTransitiveRClass=true")
+      }
+    }
+  ),
+  MIGRATE_TO_NON_TRANSITIVE_R_CLASSES(TestProjectToSnapshotPaths.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES),
   PURE_JAVA_PROJECT(TestProjectToSnapshotPaths.PURE_JAVA_PROJECT),
   BUILDSRC_WITH_COMPOSITE(TestProjectToSnapshotPaths.BUILDSRC_WITH_COMPOSITE),
   PRIVACY_SANDBOX_SDK(
     TestProjectToSnapshotPaths.PRIVACY_SANDBOX_SDK,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
-  )
+  ),
+  APP_WITH_BUILD_FEATURES_ENABLED(TestProjectToSnapshotPaths.APP_WITH_BUILD_FEATURES_ENABLED),
+  DEPENDENT_MODULES_ONLY_APP_RUNTIME(
+    TestProjectToSnapshotPaths.DEPENDENT_MODULES,
+    testName = "noLibraryRuntime",
+    setup =
+    fun(): () -> Unit {
+      StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
+
+      return fun() {
+        StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.clearOverride()
+      }
+    },
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    ),
   ;
 
-  val projectName: String get() = "${template.removePrefix("projects/")}$pathToOpen${if (testName == null) "" else " - $testName"}"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
 
-  val templateAbsolutePath: File get() = resolveTestDataPath(template)
-  val additionalRepositories: Collection<File> get() = getAdditionalRepos()
-
-  private fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  private fun getAdditionalRepos(): Collection<File> =
+  override fun getAdditionalRepos(): Collection<File> =
     listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
-
-  private fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
-    val testDataDirectory = TestUtils.resolveWorkspacePath(FileUtilRt.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
-    return testDataDirectory.resolve(FileUtilRt.toSystemDependentName(testDataPath)).toFile()
-  }
 }
 
-private fun File.replaceContent(change: (String) -> String) {
-  writeText(
-    readText().let {
-      val result = change(it)
-      if (it == result) error("No replacements made")
-      result
-    }
-  )
+/**
+ * Other test projects not included in `SyncedProjectTest`.
+ */
+enum class TestProjectOther(
+  override val template: String,
+  override val pathToOpen: String = "",
+  override val testName: String? = null,
+  override val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { true },
+  override val autoMigratePackageAttribute: Boolean = true,
+  override val setup: () -> () -> Unit = { {} },
+  override val patch: AgpVersionSoftwareEnvironmentDescriptor.(projectRoot: File) -> Unit = {},
+  override val expectedSyncIssues: Set<Int> = emptySet(),
+  override val verifyOpened: ((Project) -> Unit)? = null,
+  override val switchVariant: TemplateBasedTestProject.VariantSelection? = null
+) : TemplateBasedTestProject {
+  JPS_WITH_QUALIFIED_NAMES(TestProjectToSnapshotPaths.JPS_WITH_QUALIFIED_NAMES),
+  SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40(TestProjectToSnapshotPaths.SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40),
+  ;
+
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
+
+  override fun getAdditionalRepos(): Collection<File> =
+    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 }
 
-private fun File.replaceInContent(oldValue: String, newValue: String) {
-  replaceContent { it.replace(oldValue, newValue) }
-}
+open class TestProjectTest {
+  @get:Rule
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-private fun truncateForV2(settingsFile: File) {
-  val patchedText = settingsFile.readLines().takeWhile { !it.contains("//-v2:truncate-from-here") }.joinToString("\n")
-  Truth.assertThat(patchedText.trim()).isNotEqualTo(settingsFile.readText().trim())
-  settingsFile.writeText(patchedText)
-}
+  @get:Rule
+  val expect: Expect = Expect.createAndEnableStackTrace()
 
-private fun moveGradleRootUnderGradleProjectDirectory(root: File, makeSecondCopy: Boolean = false) {
-  val testJdkName = IdeSdks.getInstance().jdk?.name ?: error("No JDK in test")
-  val newRoot = root.resolve(if (makeSecondCopy) "gradle_project_1" else "gradle_project")
-  val newRoot2 = root.resolve("gradle_project_2")
-  val tempRoot = File(root.path + "_tmp")
-  val ideaDirectory = root.resolve(".idea")
-  val gradleXml = ideaDirectory.resolve("gradle.xml")
-  val miscXml = ideaDirectory.resolve("misc.xml")
-  Files.move(root.toPath(), tempRoot.toPath())
-  Files.createDirectory(root.toPath())
-  Files.move(tempRoot.toPath(), newRoot.toPath())
-  if (makeSecondCopy) {
-    FileUtils.copyDirectory(newRoot, newRoot2)
-    newRoot2
-      .resolve("settings.gradle")
-      .replaceContent { "rootProject.name = 'gradle_project_name'\n$it" } // Give it a name not matching the directory name.
-  }
-  Files.createDirectory(ideaDirectory.toPath())
+  private val namespaceSubstring = """namespace = "google.simpleapplication"""" // Do not inline as it needs to be the same in both tests.
+  private val packageSubstring = """package="google.simpleapplication"""" // Do not inline.
 
-  fun gradleSettingsFor(rootName: String): String {
-    return """
-      <GradleProjectSettings>
-        <option name="testRunner" value="GRADLE" />
-        <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="${'$'}PROJECT_DIR${'$'}/$rootName" />
-      </GradleProjectSettings>
-    """
+  open fun testMigratePackageAttribute_agp71() {
+    val preparedProject71 =
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_71)
+
+    val root = preparedProject71.root
+    expect.that(root.resolve("app/build.gradle").readText()).doesNotContain(namespaceSubstring)
+    expect.that(root.resolve("app/src/main/AndroidManifest.xml").readText()).contains(packageSubstring)
   }
 
-  gradleXml.writeText(
-    """
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="GradleMigrationSettings" migrationVersion="1" />
-  <component name="GradleSettings">
-    <option name="linkedExternalProjectsSettings">
-        ${gradleSettingsFor(newRoot.name)}
-        ${if (makeSecondCopy) gradleSettingsFor(newRoot2.name) else ""}
-    </option>
-  </component>
-</project>        
-    """.trim()
-  )
-
-  miscXml.writeText(
-    """
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-<component name="ProjectRootManager" version="2" project-jdk-name="$testJdkName" project-jdk-type="JavaSDK" />
-</project>
-    """.trim()
-  )
-}
-
-private fun patchMppProject(
-  projectRoot: File,
-  enableHierarchicalSupport: Boolean,
-  convertAppToKmp: Boolean = false,
-  addJvmTo: List<String> = emptyList(),
-  addIntermediateTo: List<String> = emptyList(),
-  addJsModule: Boolean = false
-) {
-  if (enableHierarchicalSupport) {
-    projectRoot.resolve("gradle.properties").replaceInContent(
-      "kotlin.mpp.hierarchicalStructureSupport=false",
-      "kotlin.mpp.hierarchicalStructureSupport=true"
-    )
-  }
-  if (convertAppToKmp) {
-    projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
-      """
-        plugins {
-            id 'com.android.application'
-            id 'kotlin-android'
-        }
-      """.trimIndent(),
-      """
-        plugins {
-            id 'com.android.application'
-            id 'kotlin-multiplatform'
-        }
-        kotlin {
-            android()
-        }
-     """.trimIndent(),
-    )
-  }
-  for (module in addJvmTo) {
-    projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
-      "android()",
-      "android()\njvm()"
-    )
-  }
-  for (module in addIntermediateTo) {
-    projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
-      """
-        |sourceSets {
-      """.trimMargin(),
-      """
-        |sourceSets {
-        |  create("jvmAndAndroid") {
-        |    dependsOn(commonMain)
-        |    androidMain.dependsOn(it)
-        |    jvmMain.dependsOn(it)
-        |  }
-      """.trimMargin()
-    )
-  }
-  if (addJsModule) {
-    projectRoot.resolve("settings.gradle")
-      .replaceInContent("//include ':jsModule'", "include ':jsModule'")
-    // "org.jetbrains.kotlin.js" conflicts with "clean" task.
-    projectRoot.resolve("build.gradle")
-      .replaceInContent("task clean(type: Delete)", "task clean1(type: Delete)")
-  }
-}
-
-private fun AgpVersionSoftwareEnvironmentDescriptor.updateProjectJdk(projectRoot: File) {
-  val jdk = IdeSdks.getInstance().jdk ?: error("${SyncedProjectTest::class} requires a valid JDK")
-  val miscXml = projectRoot.resolve(".idea").resolve("misc.xml")
-  miscXml.writeText(miscXml.readText().replace("""project-jdk-name="1.8"""", """project-jdk-name="${jdk.name}""""))
-}
-
-private fun createEmptyGradleSettingsFile(projectRootPath: File) {
-  val settingsFilePath = File(projectRootPath, FN_SETTINGS_GRADLE)
-  assertThat(FileUtil.delete(settingsFilePath)).isTrue()
-  writeToFile(settingsFilePath, " ")
-  assertAbout(file()).that(settingsFilePath).isFile()
-  refreshProjectFiles()
-}
-
-fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
-  AGP_CURRENT -> "_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1 -> "_NewAgp_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_32 -> "_Agp_3.2_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_35 -> "_Agp_3.5_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_40 -> "_Agp_4.0_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_41 -> "_Agp_4.1_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_42 -> "_Agp_4.2_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_70 -> "_Agp_7.0_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_71 -> "_Agp_7.1_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1 -> "_Agp_7.2_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_72 -> "_Agp_7.2_"
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_73 -> "_Agp_7.3_"
-}
-
-fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
-  return gradleVersion?.let { "Gradle_${it}_" }.orEmpty()
-}
-
-class SnapshotContext(
-  projectName: String,
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor,
-  workspace: String,
-) : SnapshotComparisonTest {
-
-  private val name: String =
-    "$projectName${agpVersion.agpSuffix()}${agpVersion.gradleSuffix()}${agpVersion.modelVersion}"
-
-  override val snapshotDirectoryWorkspaceRelativePath: String = workspace
-  override fun getName(): String = name
-}
-
-interface PreparedTestProject {
-  fun <T> open(options: OpenPreparedProjectOptions = OpenPreparedProjectOptions(), body: (Project) -> T): T
-  val root: File
-}
-
-fun IntegrationTestEnvironment.prepareTestProject(
-  testProject: TestProject,
-  name: String = "project",
-  agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT
-): PreparedTestProject {
-  val root = prepareGradleProject(
-    testProject.templateAbsolutePath,
-    testProject.additionalRepositories,
-    name,
-    agpVersion,
-    ndkVersion = SdkConstants.NDK_DEFAULT_VERSION
-  )
-  testProject.patch(agpVersion, root)
-
-  return object: PreparedTestProject {
-    override val root: File = root
-    override fun <T> open(options: OpenPreparedProjectOptions, body: (Project) -> T): T {
-      val tearDown = testProject.setup()
-      try {
-        return openPreparedProject(
-          name = "$name${testProject.pathToOpen}",
-          options = options
-        ) { project ->
-          invokeAndWaitIfNeeded {
-            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-          }
-          body(project)
-        }
-      } finally {
-        tearDown()
-      }
-    }
+  open fun testMigratePackageAttribute_agp80() {
+    val preparedProject80 =
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_80)
+    val root = preparedProject80.root
+    expect.that(root.resolve("app/build.gradle").readText()).contains(namespaceSubstring)
+    expect.that(root.resolve("app/src/main/AndroidManifest.xml").readText()).doesNotContain(packageSubstring)
   }
 }

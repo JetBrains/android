@@ -26,7 +26,6 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -328,7 +327,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
         }
         break;
       case MANIFEST: {
-        collectThemesFromManifest(myConfiguration.getModule())
+        collectThemesFromManifest(myConfiguration.getConfigModule())
           .sorted()
           .map(ResolutionUtils::getQualifiedNameFromResourceUrl)
           .forEach(themes::add);
@@ -351,9 +350,9 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   /** Collect all distinct themes from the module's manifest (i.e. application and activity themes) */
   @NotNull
-  private static Stream<String> collectThemesFromManifest(@NotNull Module module) {
-    String appTheme = ThemeUtils.getAppThemeName(module);
-    Set<String> activityThemes = ThemeUtils.getAllActivityThemeNames(module);
+  private static Stream<String> collectThemesFromManifest(@NotNull ConfigurationModelModule module) {
+    String appTheme = module.getThemeInfoProvider().getAppThemeName();
+    Set<String> activityThemes = module.getThemeInfoProvider().getAllActivityThemeNames();
     if (appTheme != null && !activityThemes.contains(appTheme)) {
       return Streams.concat(Stream.of(appTheme), activityThemes.stream());
     }
@@ -474,7 +473,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
       addCategory(topLevel, ThemeCategory.MANIFEST);
       addCategory(topLevel, ThemeCategory.PROJECT);
-      AndroidModuleInfo info = AndroidModuleInfo.getInstance(myConfiguration.getConfigurationManager().getModule());
+      AndroidModuleInfo info = myConfiguration.getConfigModule().getAndroidModuleInfo();
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
         addCategory(topLevel, ThemeCategory.MATERIAL);
         addCategory(topLevel, ThemeCategory.MATERIAL_LIGHT);
@@ -578,7 +577,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   }
 
   public void focus() {
-    final Project project = myConfiguration.getModule().getProject();
+    final Project project = myConfiguration.getConfigModule().getProject();
     final IdeFocusManager focusManager = project.isDefault() ? IdeFocusManager.getGlobalInstance() : IdeFocusManager.getInstance(project);
     focusManager.doWhenFocusSettlesDown(() -> focusManager.requestFocus(myThemeList, true));
   }

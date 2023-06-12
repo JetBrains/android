@@ -15,33 +15,40 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.testutils.MockitoKt.any
+import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
-import com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage
+import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory
+import com.android.tools.idea.logcat.devices.DeviceFinder
+import com.android.tools.idea.logcat.devices.FakeDeviceComboBoxDeviceTracker
 import com.android.tools.idea.logcat.messages.FormattingOptions
-import com.android.tools.idea.logcat.messages.LogcatColorSettingsPage
 import com.android.tools.idea.logcat.messages.TagFormat
+import com.android.tools.idea.logcat.service.LogcatService
+import com.android.tools.idea.logcat.util.waitForCondition
+import com.android.tools.idea.run.ShowLogcatListener
+import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
+import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.options.colors.ColorSettingsPages
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 
@@ -49,38 +56,38 @@ import org.mockito.Mockito.verify
 @RunsInEdt
 class LogcatToolWindowFactoryTest {
   private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+
+  private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(
+    projectRule,
+    ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
+    EdtRule(),
+    disposableRule)
 
-  private val settings = LogcatExperimentalSettings()
-
-  private val mockProcessNameMonitor = mock<ProcessNameMonitor>()
+  private val project get() = projectRule.project
+  private val disposable get() = disposableRule.disposable
+  private val fakeLogcatService = FakeLogcatService()
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(LogcatExperimentalSettings::class.java, settings, projectRule.project)
+    project.replaceService(LogcatService::class.java, fakeLogcatService, disposable)
   }
 
   @Test
   fun isApplicable() {
-    assertThat(logcatToolWindowFactory().isApplicable(projectRule.project)).isTrue()
-  }
-
-  @Test
-  fun isApplicable_legacy() {
-    settings.logcatV2Enabled = false
-
-    assertThat(logcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
+    assertThat(logcatToolWindowFactory().isApplicable(project)).isTrue()
   }
 
   @Test
   fun isApplicable_nonAndroidEnvironment() {
     val mockIdeInfo = spy(IdeInfo.getInstance())
     whenever(mockIdeInfo.isAndroidStudio).thenReturn(false)
-    ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, projectRule.project)
+    ApplicationManager.getApplication().replaceService(IdeInfo::class.java, mockIdeInfo, disposableRule.disposable)
 
-    assertThat(logcatToolWindowFactory().isApplicable(projectRule.project)).isFalse()
+    assertThat(logcatToolWindowFactory().isApplicable(project)).isFalse()
   }
 
   @Test
@@ -96,7 +103,7 @@ class LogcatToolWindowFactoryTest {
   @Test
   fun createChildComponent_isLogcatMainPanel() {
     val childComponent = logcatToolWindowFactory()
-      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = null)
+      .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = null)
 
     assertThat(childComponent).isInstanceOf(LogcatMainPanel::class.java)
     Disposer.dispose(childComponent as Disposable)
@@ -111,7 +118,7 @@ class LogcatToolWindowFactoryTest {
       isSoftWrap = false)
 
     val logcatMainPanel = logcatToolWindowFactory()
-      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = LogcatPanelConfig.toJson(logcatPanelConfig))
+      .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = LogcatPanelConfig.toJson(logcatPanelConfig))
 
     // It's enough to assert on just one field in the config. We test more thoroughly in LogcatMainPanelTest
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(logcatPanelConfig.formattingConfig.toFormattingOptions())
@@ -121,50 +128,49 @@ class LogcatToolWindowFactoryTest {
   @Test
   fun createChildComponent_invalidState() {
     val logcatMainPanel = logcatToolWindowFactory()
-      .createChildComponent(projectRule.project, ActionGroup.EMPTY_GROUP, clientState = "invalid state")
+      .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = "invalid state")
 
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
     Disposer.dispose(logcatMainPanel)
   }
 
   @Test
-  fun colorSettingsPagesRegistration() {
-    // We have to use a mock because there is no clean way to clean up ColorSettingsPages
-    val mockColorSettingsPages = mock<ColorSettingsPages>()
-    ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, projectRule.project)
-
-    logcatToolWindowFactory()
-    AndroidLogcatToolWindowFactory()
-
-    verify(mockColorSettingsPages).registerPage(any(LogcatColorSettingsPage::class.java))
-    verify(mockColorSettingsPages).registerPage(any(LogcatFilterColorSettingsPage::class.java))
-    verify(mockColorSettingsPages, never()).registerPage(any(AndroidLogcatColorPage::class.java))
-  }
-
-  @Test
-  fun colorSettingsPagesRegistration_legacy() {
-    // We have to use a mock because there is no clean way to clean up ColorSettingsPages
-    val mockColorSettingsPages = mock<ColorSettingsPages>()
-    ApplicationManager.getApplication().replaceService(ColorSettingsPages::class.java, mockColorSettingsPages, projectRule.project)
-    settings.logcatV2Enabled = false
-
-    logcatToolWindowFactory()
-    AndroidLogcatToolWindowFactory()
-
-    verify(mockColorSettingsPages, never()).registerPage(any(LogcatColorSettingsPage::class.java))
-    verify(mockColorSettingsPages, never()).registerPage(any(LogcatFilterColorSettingsPage::class.java))
-    verify(mockColorSettingsPages).registerPage(any(AndroidLogcatColorPage::class.java))
-  }
-
-  @Test
   fun startsProcessNameMonitor() {
-    logcatToolWindowFactory(mockProcessNameMonitor).init(MockToolWindow(projectRule.project))
+    val mockProcessNameMonitor = mock<ProcessNameMonitor>()
+
+    logcatToolWindowFactory(mockProcessNameMonitor).init(MockToolWindow(project))
 
     verify(mockProcessNameMonitor).start()
   }
 
-  private fun logcatToolWindowFactory(processNameMonitor: ProcessNameMonitor = mockProcessNameMonitor) =
-    LogcatToolWindowFactory().also {
-      projectRule.project.registerServiceInstance(ProcessNameMonitor::class.java, processNameMonitor)
+  @Test
+  fun showLogcat_opensLogcatPanel() {
+    val toolWindow = MockToolWindow(project)
+    logcatToolWindowFactory().init(toolWindow)
+    val device = Device.createPhysical("device1", true, "11", 30, "Google", "Pixel")
+    project.replaceService(DeviceFinder::class.java, DeviceFinder { device }, disposable)
+    deviceTracker.addDevices(device)
+
+    project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(
+      PhysicalDeviceInfo("device1", "11", 30, "Google", "Pixel"),
+      "com.test")
+
+    waitForCondition { toolWindow.contentManager.contentCount == 1 }
+
+    val content = toolWindow.contentManager.contents.first()
+    val logcatMainPanel: LogcatMainPanel = TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
+    waitForCondition {
+      logcatMainPanel.headerPanel.getSelectedDevice() != null
     }
+    assertThat(content.tabName).isEqualTo("com.test (device1)")
+    assertThat(logcatMainPanel.headerPanel.getSelectedDevice()?.deviceId).isEqualTo("device1")
+    assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:com.test")
+  }
+
+  private fun logcatToolWindowFactory(
+    processNameMonitor: ProcessNameMonitor = FakeProcessNameMonitor(),
+  ): LogcatToolWindowFactory {
+    project.registerOrReplaceServiceInstance(ProcessNameMonitor::class.java, processNameMonitor, disposable)
+    return LogcatToolWindowFactory()
+  }
 }

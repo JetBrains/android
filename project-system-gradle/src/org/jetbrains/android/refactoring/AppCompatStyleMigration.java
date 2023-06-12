@@ -36,7 +36,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -109,7 +109,7 @@ class AppCompatStyleMigration {
 
     addStyleUsagesFromManifest(facet, frameworkResources, result);
 
-    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(facet);
+    LocalResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(facet);
 
     addUsagesFromStyles(project, frameworkResources, result, projectResources);
 

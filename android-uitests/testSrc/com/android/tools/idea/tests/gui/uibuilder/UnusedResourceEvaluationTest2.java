@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,8 +39,8 @@ public class UnusedResourceEvaluationTest2 {
 
   @Before
   public void setUp() {
-    WizardUtils.createNewProject(guiTest, "Basic Activity");
-    guiTest.robot().waitForIdle();
+    WizardUtils.createNewProject(guiTest, "Basic Views Activity");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   /**
@@ -61,10 +62,12 @@ public class UnusedResourceEvaluationTest2 {
    */
 
   @Test
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void keepLavoutFiles() throws Exception {
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    ideFrame.clearNotificationsPresentOnIdeFrame();
 
     ideFrame.getProjectView().assertFilesExist(
       "app/src/main/res/layout/activity_main.xml",
@@ -74,8 +77,6 @@ public class UnusedResourceEvaluationTest2 {
     );
 
     //Refactoring multiple times as sometimes refactoring list is coming empty
-    doRefactor();
-    doRefactor();
     doRefactor();
 
     ideFrame.getProjectView().assertFilesExist(
@@ -87,7 +88,7 @@ public class UnusedResourceEvaluationTest2 {
   }
 
   public void doRefactor() throws InterruptedException {
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     ideFrame.invokeMenuPath("Refactor", "Remove Unused Resources...");
@@ -95,12 +96,11 @@ public class UnusedResourceEvaluationTest2 {
     RefactoringDialogFixture removeUnusedRes = RefactoringDialogFixture.find(ideFrame.robot(), "Remove Unused Resources");
     removeUnusedRes.getPreviewButton()
       .click();
-
-    Thread.sleep(3000);
+    removeUnusedRes.waitForDialogToDisappear();
 
     RefactorToolWindowFixture refactoringWindow = new RefactorToolWindowFixture(ideFrame);
     refactoringWindow.clickDoRefactorButton();
 
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 }

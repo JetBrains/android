@@ -251,7 +251,10 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       }
 
       try {
-        VirtualFile destDir = res.findOrCreateChildData(requestor, targetDir);
+        VirtualFile destDir = res.findChild(targetDir);
+        if (destDir == null) {
+          destDir = res.createChildDirectory(requestor, targetDir);
+        }
         for (ResourceItem item : srcItems) {
           PathString source = item.getSource();
           // Already checked above.

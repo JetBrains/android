@@ -106,7 +106,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     setUpAsHtmlLabel(myEditorPane);
     myEditorPane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });
@@ -142,7 +142,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
               DumbService.getInstance(myProcessor.getProject()).smartInvokeLater(() -> myProcessor.run());
             }
             else {
-              notifyCancelledUpgrade(myProcessor.getProject(), myProcessor);
+              notifyCancelledUpgrade(myProcessor.getProject(), myProcessor.getCurrent());
             }
         }
       };
@@ -150,7 +150,15 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
     }
 
     StringBuilder sb = new StringBuilder();
-    sb.append("<p>The following commands will be executed to upgrade your project");
+    sb.append("<p><b>Incompatibility between Android Studio and Android Gradle plugin</b></p>");
+    sb.append("<p>This project is using Android Gradle plugin version ").append(myProcessor.getCurrent())
+      .append(", which is incompatible with this version of Android Studio.  To continue importing this project (")
+      .append(myProcessor.getProject().getName()).append(") Android Studio will upgrade ")
+      .append("the project's build files to use version ").append(myProcessor.getNew()).append(" of Android Gradle ")
+      .append("plugin (see the <a href='https://developer.android.com/studio/")
+      .append(myProcessor.getNew().isPreview() ? "preview/features" : "releases/gradle-plugin")
+      .append("'>release notes</a><icon src='AllIcons.Ide.External_link_arrow'> for more information).</p>");
+    sb.append("<br/><p>The following commands will be executed to upgrade your project");
     if (myProcessor.getAgpVersionRefactoringProcessor().isEnabled()) {
       sb.append(" from Android Gradle Plugin version ").append(myProcessor.getCurrent())
         .append(" to version ").append(myProcessor.getNew());
@@ -215,7 +223,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   }
 
   @Override
-  protected Action @NotNull [] createActions() {
+  protected Action[] createActions() {
     Action previewAction = new AgpUpgradeRefactoringProcessorDialog.PreviewRefactoringAction();
     return ArrayUtil.mergeArrays(super.createActions(), new Action [] { previewAction });
   }

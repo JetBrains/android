@@ -19,6 +19,7 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentApplicationService;
+import com.google.common.util.concurrent.ListenableFuture;
 import java.util.List;
 import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
@@ -28,22 +29,37 @@ public interface Deployable {
    * Returns the API level of the device.
    */
   @NotNull
-  Future<AndroidVersion> getVersion();
+  ListenableFuture<AndroidVersion> getVersionAsync();
+
+  @NotNull
+  ListenableFuture<List<Client>> searchClientsForPackageAsync();
 
   /**
-   * Returns the {@link Client}s associated with the current project's application that are already running on this {@link Deployable}.
+   * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
+   * for too long. Use {@link #searchClientsForPackageAsync} instead.
    */
+  @Deprecated
   @NotNull
   List<Client> searchClientsForPackage();
 
-  /**
-   * @return true if the underlying device is online, or false otherwise.
-   */
-  boolean isOnline();
+  @NotNull
+  ListenableFuture<Boolean> isOnlineAsync();
 
   /**
-   * @return true if the underlying device is unauthorized, or false otherwise.
+   * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
+   * for too long. Use {@link #isOnlineAsync} instead.
    */
+  @Deprecated
+  boolean isOnline();
+
+  @NotNull
+  ListenableFuture<Boolean> isUnauthorizedAsync();
+
+  /**
+   * @deprecated This is called by the EDT and must execute quickly. The current implementation calls {@link Future#get()} which can block
+   * for too long. Use {@link #isUnauthorizedAsync} instead.
+   */
+  @Deprecated
   boolean isUnauthorized();
 
   @NotNull

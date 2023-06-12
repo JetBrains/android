@@ -15,18 +15,20 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext;
 
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST;
-import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.MAP;
-
 import com.android.tools.idea.gradle.dsl.api.ext.MultiTypePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.LIST;
+import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.MAP;
 
 /**
  * Base implementation of a MultiTypePropertyModel.
@@ -37,12 +39,14 @@ import org.jetbrains.annotations.Nullable;
  * @param <T> the enum type to represent this properties types
  */
 public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends GradlePropertyModelImpl implements MultiTypePropertyModel<T> {
+  private static final Logger LOG = Logger.getInstance(MultiTypePropertyModelImpl.class);
 
   @NotNull private Map<T, PropertyTransform> myTransforms;
   @NotNull private T myType;
+  @NotNull private T myOriginalType;
 
   /***
-   * @param defaultType the type to default to if no transforms in trasformMap are active.
+   * @param defaultType the type to default to if no transforms in transformMap are active.
    * @param element the element that the model should represent.
    * @param transformMap a map of types to the {@link PropertyTransform}s that should be used for them.
    *                     The order of this map is the order in which {@link PropertyTransform#test(GradleDslElement, GradleDslElement)}
@@ -54,6 +58,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     super(element);
     myTransforms = new LinkedHashMap<>(transformMap);
     myType = defaultType;
+    myOriginalType = defaultType;
     // This must be called after myType has been assign a default value.
     setUpTransforms();
   }
@@ -75,6 +80,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     super(holder, propertyType, name);
     myTransforms = new LinkedHashMap<>(transformMap);
     myType = defaultType;
+    myOriginalType = defaultType;
     // This must be called after myType has been assigned a default value.
     setUpTransforms();
   }
@@ -88,6 +94,7 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     for (Map.Entry<T, PropertyTransform> e : myTransforms.entrySet()) {
       if (e.getValue().test(myElement, myPropertyHolder)) {
         myType = e.getKey();
+        myOriginalType = myType;
         break;
       }
     }
@@ -111,6 +118,17 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
       return pt;
     }
     return super.getTransform();
+  }
+
+  @Override
+  protected @NotNull PropertyTransform getTransformFor(@Nullable GradleDslElement element) {
+    if (element == null) return super.getTransformFor(element);
+    for (PropertyTransform pt : myTransforms.values()) {
+      if (pt.test(element, myPropertyHolder)) {
+        return pt;
+      }
+    }
+    return super.getTransformFor(element);
   }
 
   @Override
@@ -143,7 +161,8 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
       ValueType oldValueType = getValueType();
 
       if (oldValueType == MAP || oldValueType == LIST) {
-        throw new UnsupportedOperationException("Can't convert " + oldValueType + " property to new type " + type);
+        LOG.warn(new UnsupportedOperationException("Can't convert " + oldValueType + " property to new type " + type));
+        return;
       }
       else {
         GradleDslElement element = getElement();
@@ -159,5 +178,10 @@ public abstract class MultiTypePropertyModelImpl<T extends Enum<T>> extends Grad
     if (newValue != null) {
       super.setValue(newValue);
     }
+  }
+
+  @Override
+  public boolean isModified() {
+    return (myType != myOriginalType) || super.isModified();
   }
 }

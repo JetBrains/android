@@ -16,8 +16,8 @@
 package com.android.tools.idea.run.activity.launch;
 
 import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 

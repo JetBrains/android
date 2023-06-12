@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -41,7 +42,6 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

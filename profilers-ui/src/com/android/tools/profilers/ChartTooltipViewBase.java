@@ -22,7 +22,7 @@ import com.android.tools.adtui.model.HNode;
 import com.google.common.annotations.VisibleForTesting;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.JLayeredPane;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ public abstract class ChartTooltipViewBase<T extends HNode<T>> extends MouseAdap
   @NotNull
   private final JPanel myContent;
 
-  protected ChartTooltipViewBase(@NotNull HTreeChart<T> chart, @NotNull JLayeredPane tooltipRoot) {
+  protected ChartTooltipViewBase(@NotNull HTreeChart<T> chart, @NotNull JComponent tooltipRoot) {
     myChart = chart;
 
     myContent = new JPanel(new TabularLayout("*", "*"));

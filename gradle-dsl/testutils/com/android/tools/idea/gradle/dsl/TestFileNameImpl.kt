@@ -283,6 +283,7 @@ enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {
   EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY("extModel/resolveMultiModuleExtPropertyFromPropertiesWithHistory"),
   EXT_MODEL_RESOLVE_MULTI_MODULE_EXT_PROPERTY_FROM_PROPERTIES_WITH_HISTORY_SUB("extModel/resolveMultiModuleExtPropertyFromPropertiesWithHistory_sub"),
   PROPERTY_MODIFIED_TEST_FILE("propertyModified/testFile"),
+  PROPERTY_MODIFIED_TEST_FILE2("propertyModified/testFile2"),
   PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME("propertyUtil/writeBackElementWithTrimmedName"),
   GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_EMPTY("googleMavenRepository/hasGoogleMavenRepositoryEmpty"),
   GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME3DOT5("googleMavenRepository/hasGoogleMavenRepositoryName3dot5"),

@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.view.chart
 
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.mockTask
+import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
@@ -50,7 +51,11 @@ class TimeDistributionTreeChartTest {
 
   private val data = MockUiData(tasksList = listOf(task1, task2, task3))
 
-  private val tree = Tree(DefaultTreeModel(TasksDataPageModelImpl(data).treeRoot)).apply {
+  private val model = TasksDataPageModelImpl(data).also {
+    it.selectGrouping(TasksDataPageModel.Grouping.UNGROUPED)
+  }
+
+  private val tree = Tree(DefaultTreeModel(model.treeRoot)).apply {
     isRootVisible = false
   }
 

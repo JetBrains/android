@@ -23,23 +23,28 @@ import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
 /**
- * Action to stop the interactive preview (including animation inspection). Only visible when it's already running and if the preview is not
- * refreshing.
+ * Action to stop the interactive preview (including animation inspection). Only visible when it's
+ * already running and if the preview is not refreshing.
  */
-class StopInteractivePreviewAction: AnActionButton(message("action.stop.interactive.title"),
-                                                   message("action.stop.interactive.description"),
-                                                   StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE) {
+class StopInteractivePreviewAction :
+  AnActionButton(
+    message("action.stop.interactive.title"),
+    message("action.stop.interactive.description"),
+    StudioIcons.Compose.Toolbar.STOP_INTERACTIVE_MODE
+  ) {
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
-    e.presentation.isEnabled = findComposePreviewManagersForContext(e.dataContext).any {
-      // The action should be disabled when refreshing.
-      !it.status().isRefreshing &&
-      (it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY)
-    }
-    e.presentation.isVisible = findComposePreviewManagersForContext(e.dataContext).any {
-      it.status().interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED
-    }
+    e.presentation.isEnabled =
+      findComposePreviewManagersForContext(e.dataContext).any {
+        // The action should be disabled when refreshing.
+        !it.status().isRefreshing &&
+          (it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY)
+      }
+    e.presentation.isVisible =
+      findComposePreviewManagersForContext(e.dataContext).any {
+        it.status().interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED
+      }
   }
 
   override fun actionPerformed(e: AnActionEvent) {

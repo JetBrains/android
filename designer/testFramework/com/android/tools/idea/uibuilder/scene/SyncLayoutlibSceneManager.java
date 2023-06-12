@@ -23,16 +23,20 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
-import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
+import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.ui.UIUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,6 +51,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   private boolean myIgnoreRenderRequests;
+  private boolean myIgnoreModelUpdateRequests;
 
   public SyncLayoutlibSceneManager(@NotNull DesignSurface<LayoutlibSceneManager> surface, @NotNull NlModel model) {
     super(
@@ -69,13 +74,35 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     myIgnoreRenderRequests = ignoreRenderRequests;
   }
 
+  private <T> CompletableFuture<T> waitForFutureWithoutBlockingUiThread(CompletableFuture<T> future) {
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      // If this is happening in the UI thread, keep dispatching the events in the UI thread while we are waiting
+      PlatformTestUtil.waitForFuture(future, TimeUnit.SECONDS.toMillis(RENDER_TIMEOUT_SECS));
+    }
+
+    CompletableFuture<T> result = CompletableFuture.completedFuture(future.orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
+
+    // After running render calls, there might be pending actions to run on the UI thread, dispatch those to ensure that after this call, everything
+    // is done.
+    ApplicationManager.getApplication().invokeAndWait(PlatformTestUtil::dispatchAllEventsInIdeEventQueue);
+    return result;
+  }
+
+  public boolean getIgnoreModelUpdateRequests() {
+    return myIgnoreModelUpdateRequests;
+  }
+
+  public void setIgnoreModelUpdateRequests(boolean ignoreModelUpdateRequests) {
+    myIgnoreModelUpdateRequests = ignoreModelUpdateRequests;
+  }
+
   @NotNull
   @Override
-  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger, AtomicBoolean reverseUpdate) {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }
-    return CompletableFuture.completedFuture(super.renderAsync(trigger).orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
+    return waitForFutureWithoutBlockingUiThread(super.renderAsync(trigger, reverseUpdate));
   }
 
   @NotNull
@@ -84,30 +111,42 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }
-    return CompletableFuture.completedFuture(super.requestRenderAsync().orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
+    CompletableFuture<Void> result = waitForFutureWithoutBlockingUiThread(super.requestRenderAsync());
+    return result;
+  }
+
+  @Override
+  protected @NotNull CompletableFuture<Void> requestRenderAsync(LayoutEditorRenderResult.Trigger trigger,  AtomicBoolean reverseUpdate) {
+    if (myIgnoreRenderRequests) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger, reverseUpdate));
   }
 
   @NotNull
   @Override
   public CompletableFuture<Void> updateModelAsync() {
-    return CompletableFuture.completedFuture(super.updateModelAsync().orTimeout(RENDER_TIMEOUT_SECS, TimeUnit.SECONDS).join());
+    if (myIgnoreModelUpdateRequests) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return waitForFutureWithoutBlockingUiThread(super.updateModelAsync());
   }
 
   @Override
   protected void requestModelUpdate() {
     updateModelAsync();
+  }
 
-    // Note: this probably doesn't belong here, but several tests rely on the UI event queue being emptied so keep it for now:
-    UIUtil.dispatchAllInvocationEvents();
+  @Override
+  @NotNull
+  protected RenderModelModule createRenderModule(AndroidFacet facet) {
+    return new TestRenderModelModule(new AndroidFacetRenderModelModule(facet));
   }
 
   @Override
   @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
-    return super.setupRenderTaskBuilder(taskBuilder)
-      .disableSecurityManager()
-      // For testing, we do not need to wait for the full merged manifest
-      .setMergedManifestProvider(module -> MergedManifestManager.getMergedManifestSupplier(module).getNow());
+    return super.setupRenderTaskBuilder(taskBuilder).disableSecurityManager();
   }
 
   @Override

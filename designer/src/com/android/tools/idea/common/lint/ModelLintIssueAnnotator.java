@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintEditorResult;
 import com.android.tools.idea.lint.common.LintExternalAnnotator;
@@ -31,9 +30,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.Executor;
 import kotlin.Pair;
 import net.jcip.annotations.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +48,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ModelLintIssueAnnotator {
   private final WeakReference<DesignSurface<?>> mySurfaceRef;
+  private final Executor myExecutor;
 
   private final Object myRunningTaskLock = new Object();
   @GuardedBy("myRunningTaskLock")
@@ -55,7 +59,12 @@ public class ModelLintIssueAnnotator {
    *                surface, so it won't stop it from being disposed.
    */
   public ModelLintIssueAnnotator(@NotNull DesignSurface<?> surface) {
+    this(surface, AppExecutorUtil.getAppExecutorService());
+  }
+
+  public ModelLintIssueAnnotator(@NotNull DesignSurface<?> surface, @NotNull Executor executor) {
     mySurfaceRef = new WeakReference<>(surface);
+    myExecutor = executor;
   }
 
   public void annotateRenderInformationToLint(@NotNull NlModel model) {
@@ -65,21 +74,22 @@ public class ModelLintIssueAnnotator {
       return;
     }
     Runnable annotatingTask = () -> {
-      SceneView sceneView = surface.getFocusedSceneView();
-      if (sceneView == null) {
-        return;
+      LintAnnotationsModel lintAnnotationsModel;
+      try {
+        lintAnnotationsModel =
+          ApplicationManager.getApplication().runReadAction((Computable<LintAnnotationsModel>)() -> getAnnotations(model));
       }
-      LintAnnotationsModel lintAnnotationsModel =
-        ApplicationManager.getApplication().runReadAction((Computable<LintAnnotationsModel>)() -> getAnnotations(model));
-      synchronized (myRunningTaskLock) {
-        myRunningTask = null;
+      finally {
+        synchronized (myRunningTaskLock) {
+          myRunningTask = null;
+        }
       }
       UIUtil.invokeLaterIfNeeded(() -> updateLintAnnotationsModelToSurface(surface, model, lintAnnotationsModel));
     };
     synchronized (myRunningTaskLock) {
       if (myRunningTask == null) {
         myRunningTask = annotatingTask;
-        ApplicationManager.getApplication().executeOnPooledThread(annotatingTask);
+        myExecutor.execute(annotatingTask);
       }
     }
   }
@@ -148,8 +158,13 @@ public class ModelLintIssueAnnotator {
         continue;
       }
 
+      SmartPsiElementPointer<PsiElement> startElementPointer =
+        SmartPointerManager.getInstance(model.getProject()).createSmartPsiElementPointer(startElement, xmlFile);
+      SmartPsiElementPointer<PsiElement> endElementPointer =
+        SmartPointerManager.getInstance(model.getProject()).createSmartPsiElementPointer(endElement, xmlFile);
+
       lintModel.addIssue(component, attributeKey, issue, problemData.getMessage(), inspection, level,
-                         startElement, endElement, problemData.getQuickfixData());
+                         startElementPointer, endElementPointer, problemData.getQuickfixData());
     }
 
     return lintModel;

@@ -22,5 +22,9 @@ class AndroidNullableNotNullManagerImpl(project: Project) : NullableNotNullManag
   init {
     myDefaultNotNull = "androidx.annotation.NonNull"
     myDefaultNullable = "androidx.annotation.Nullable"
+
+    // These two are missing from tools/idea/java/java-impl/src/com/intellij/codeInsight/annoPackages/AndroidAnnotationSupport.java
+    myNullables.add("android.annotation.Nullable")
+    myNotNulls.add("android.annotation.NonNull")
   }
 }

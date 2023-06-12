@@ -16,12 +16,14 @@
 package com.android.tools.idea.gradle.dsl.api.ext;
 
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Objects;
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
  * Represents a reference to another property or variable.
  */
 public final class ReferenceTo {
+  private static final Logger LOG = Logger.getInstance(ReferenceTo.class);
+
   @NotNull private final String fullyQualifiedName;  // The internal fully qualified name of the DSL reference.
   @NotNull private final GradleDslElementModel elementModel;
   @NotNull private final GradleDslElement scope;
@@ -47,18 +51,18 @@ public final class ReferenceTo {
 
   /**
    * Create a reference to a {@link GradleDslElementModel}.
-   * @param model the model we want to refer to.
+   * @param model the model we want to refer to.  This model must be associated with a Dsl element.
    * @param context the context in which we want to refer to the model.
-   * @throws IllegalArgumentException if the model isn't of a valid existing property.
    */
-  public ReferenceTo(@NotNull GradleDslElementModel model, @NotNull GradleDslElementModel context) {
+  public ReferenceTo(@NotNull GradleDslElementModel model, @NotNull GradleDslContextModel context) {
+    elementModel = model;
+    scope = context.getRawPropertyHolder();
     if (model.getRawElement() != null) {
       fullyQualifiedName = model.getFullyQualifiedName();
-      elementModel = model;
-      scope = context.getRawPropertyHolder();
     }
     else {
-      throw new IllegalArgumentException("Invalid model property: please check the property exists.");
+      LOG.warn(new IllegalArgumentException("Invalid model property: please check the property exists."));
+      fullyQualifiedName = "invalid.model.in.ReferenceTo";
     }
   }
 

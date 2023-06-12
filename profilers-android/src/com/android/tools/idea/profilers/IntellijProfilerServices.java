@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
@@ -289,17 +290,12 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
-    return ContainerUtil.map(
-      CpuProfilerConfigConverter.toProto(configsState.getUserConfigs(), apiLevel),
-      ProfilingConfiguration::fromProto);
+    return CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getUserConfigs(), apiLevel);
   }
 
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
-    return ContainerUtil.map(
-      CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel),
-      ProfilingConfiguration::fromProto
-    );
+    return CpuProfilerConfigConverter.toProfilingConfiguration(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel);
   }
 
   @Override
@@ -395,13 +391,28 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isUnifiedPipelineEnabled() {
-      return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
+    public boolean isVerboseLoggingEnabled() {
+      return StudioFlags.PROFILER_VERBOSE_LOGGING.get();
+    }
+
+    @Override
+    public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
+      return StudioFlags.PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE.get();
     }
 
     @Override
     public boolean isCustomEventVisualizationEnabled() {
       return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
+    }
+
+    @Override
+    public boolean isComposeTracingNavigateToSourceEnabled() {
+      return StudioFlags.COMPOSE_TRACING_NAVIGATE_TO_SOURCE.get();
+    }
+
+    @Override
+    public boolean isTaskBasedUxEnabled() {
+      return StudioFlags.PROFILER_TASK_BASED_UX.get();
     }
   }
 }

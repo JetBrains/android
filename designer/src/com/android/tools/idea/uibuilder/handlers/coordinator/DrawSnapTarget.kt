@@ -29,7 +29,7 @@ import java.awt.Graphics2D
  * Draw a snap target
  */
 class DrawSnapTarget : DrawRegion {
-  private var myMode: Int = 0
+  internal var myMode: Int = 0
 
   constructor(s: String) {
     val sp = s.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()

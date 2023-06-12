@@ -163,13 +163,11 @@ public class StringResourceTable extends FrozenColumnTable<StringResourceTableMo
 
   @Override
   boolean isPastePossible() {
-    if (getSelectedRowCount() != 1 || getSelectedColumnCount() != 1) {
-      return false;
-    }
-    else {
-      int column = getSelectedColumn();
-      return column != StringResourceTableModel.KEY_COLUMN && column != StringResourceTableModel.UNTRANSLATABLE_COLUMN;
-    }
+    return hasSelectedCell() && isColumnValidPasteTarget(getSelectedColumn());
+  }
+
+  private static boolean isColumnValidPasteTarget(int column) {
+    return column != StringResourceTableModel.KEY_COLUMN && column != StringResourceTableModel.UNTRANSLATABLE_COLUMN;
   }
 
   static class ThreeStateTableRowSorter<M extends TableModel> extends TableRowSorter<M> {

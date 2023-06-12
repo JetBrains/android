@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
@@ -35,6 +36,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +47,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PropertyUtil {
+public class PropertyUtil {
+  public static final Logger LOG = Logger.getInstance(PropertyUtil.class);
   @NonNls public static final String FILE_METHOD_NAME = "file";
   @NonNls public static final String FILE_CONSTRUCTOR_NAME = "File";
 
@@ -97,10 +100,16 @@ public final class PropertyUtil {
       }
     }
     else if (holder instanceof GradleDslMethodCall) {
-      if (!(newElement instanceof GradleDslExpression)) throw new IllegalArgumentException("not an expression (new): " + newElement);
+      if (!(newElement instanceof GradleDslExpression)) {
+        LOG.warn(new IllegalArgumentException("not an expression (new): " + newElement));
+        return;
+      }
       GradleDslMethodCall methodCall = (GradleDslMethodCall)holder;
       if (oldElement != null) {
-        if (!(oldElement instanceof GradleDslExpression)) throw new IllegalArgumentException("not an expression (new): " + oldElement);
+        if (!(oldElement instanceof GradleDslExpression)) {
+          LOG.warn(new IllegalArgumentException("not an expression (old): " + oldElement));
+          return;
+        }
         methodCall.replaceArgument((GradleDslExpression)oldElement, (GradleDslExpression)newElement);
       }
       else {
@@ -108,7 +117,7 @@ public final class PropertyUtil {
       }
     }
     else {
-      throw new IllegalStateException("Property holder has unknown type, " + holder);
+      LOG.warn(new IllegalStateException("Property holder has unknown type, " + holder));
     }
   }
 
@@ -132,7 +141,7 @@ public final class PropertyUtil {
       methodCall.remove(element);
     }
     else {
-      throw new IllegalStateException("Property holder has unknown type, " + holder);
+      LOG.warn(new IllegalStateException("Property holder has unknown type, " + holder));
     }
   }
 
@@ -238,16 +247,31 @@ public final class PropertyUtil {
   /**
    * Requires READ_ACCESS.
    */
+  static boolean isModelElementModified(@NotNull GradleDslElement oldRawElement,
+                                        @NotNull GradleDslElement newRawElement,
+                                        @NotNull GradleDslElement oldTransformedElement,
+                                        @NotNull GradleDslElement newTransformedElement) {
+    return checkForModifiedValue(oldTransformedElement, newTransformedElement) || checkForModifiedName(oldRawElement, newRawElement);
+  }
+
+  /**
+   * Requires READ_ACCESS.
+   */
   @Nullable
   public static GradleDslElement findOriginalElement(@NotNull GradleDslElement parent, @NotNull GradleDslElement element) {
     GradlePropertiesDslElement holder = parent instanceof GradleDslMethodCall ? ((GradleDslMethodCall)parent).getArgumentsElement() :
                                         (GradlePropertiesDslElement)parent;
 
-    if (holder instanceof GradleDslExpressionList) {
+    if (holder instanceof GradleDslExpressionList || holder instanceof GradleDslElementList) {
+      // get all elements that are loaded from file
+      List<GradleDslElement> originalElements = holder.getOriginalElements();
+      // get all effective elements (with new and without deleted)
       List<GradleDslElement> elements = holder.getAllPropertyElements();
-      List<GradleDslElement> originalElement = holder.getOriginalElements();
       int index = elements.indexOf(element);
-      return index >= 0 && index < originalElement.size() ? originalElement.get(index) : null;
+      // return original element unless it's new
+      // if new - return same position original element as it can be deleted and same value be added.
+      return (originalElements.contains(element)) ? element :
+             (index >= 0 && originalElements.size() > index) ? originalElements.get(index) : null;
     }
     else {
       return holder.getOriginalElementForNameAndType(element.getName(), element.getElementType());

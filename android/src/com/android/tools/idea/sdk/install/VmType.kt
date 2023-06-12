@@ -17,7 +17,7 @@ package com.android.tools.idea.sdk.install
 
 enum class VmType {
   HAXM,
-  GVM {
-    override fun toString() = "Android Emulator Hypervisor Driver for AMD Processors";
+  AEHD {
+    override fun toString() = "Android Emulator hypervisor driver";
   } ;
 }

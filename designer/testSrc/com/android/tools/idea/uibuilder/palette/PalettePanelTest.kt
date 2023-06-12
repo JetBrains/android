@@ -72,10 +72,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
+import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyCollection
 import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.isNull
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -395,7 +395,7 @@ public class MyWebView extends android.webkit.WebView {
     myPanel!!.itemList.selectedIndex = CHECKBOX_ITEM_INDEX
     val event: AnActionEvent = mock()
     myPanel!!.materialDocAction.actionPerformed(event)
-    verify(BrowserLauncher.instance).browse(eq("https://material.io/guidelines/components/selection-controls.html"), isNull(), isNull())
+    verify(BrowserLauncher.instance).browse(eq("https://d.android.com/r/studio-ui/designer/material/checkbox"), isNull(), isNull())
   }
 
   @Test

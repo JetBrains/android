@@ -26,15 +26,16 @@ import com.android.tools.idea.sqlite.ui.exportToFile.ExportToFileDialogView
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
+import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import org.mockito.Mockito.spy
-import javax.swing.JComponent
 
 open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   val sqliteEvaluatorView: FakeSqliteEvaluatorView = spy(FakeSqliteEvaluatorView::class.java)
   val tableView: FakeTableView = spy(FakeTableView())
-  val parametersBindingDialogView: FakeParametersBindingDialogView = spy(FakeParametersBindingDialogView())
+  val parametersBindingDialogView: FakeParametersBindingDialogView =
+    spy(FakeParametersBindingDialogView())
   val databaseInspectorView: FakeDatabaseInspectorView = spy(FakeDatabaseInspectorView())
   private val exportToFileDialogView: ExportToFileDialogView = mock()
   private val exportInProgressView: ExportInProgressView = mock()
@@ -52,7 +53,8 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
     tableView: TableView
   ): SqliteEvaluatorView = sqliteEvaluatorView
 
-  override fun createParametersBindingView(project: Project, sqliteStatementText: String) = parametersBindingDialogView
+  override fun createParametersBindingView(project: Project, sqliteStatementText: String) =
+    parametersBindingDialogView
 
   override fun createDatabaseInspectorView(project: Project) = databaseInspectorView
 
@@ -62,5 +64,9 @@ open class FakeDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
     analyticsTracker: DatabaseInspectorAnalyticsTracker
   ): ExportToFileDialogView = exportToFileDialogView
 
-  override fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher) = exportInProgressView
+  override fun createExportInProgressView(
+    project: Project,
+    job: Job,
+    taskDispatcher: CoroutineDispatcher
+  ) = exportInProgressView
 }

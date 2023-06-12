@@ -1,0 +1,4 @@
+[versions]
+junitVersion = "4.14"
+[libraries]
+junit = "junit:junit:4.13"

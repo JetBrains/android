@@ -343,9 +343,9 @@ class MessageFormatterTest {
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
     val textAttributes = textAccumulator.textAttributesKeyRanges.filter {
-      it.getText(textAccumulator.text).matches(" message-.*\n".toRegex())
+      it.getText(textAccumulator.text).matches("message-.*".toRegex())
     }
-      .associate { it.getText(textAccumulator.text).trim() to it.data }
+      .associate { it.getText(textAccumulator.text) to it.data }
 
     assertThat(textAttributes).containsExactly(
       "message-VERBOSE", logcatColors.getMessageKey(VERBOSE),
@@ -379,95 +379,6 @@ class MessageFormatterTest {
   }
 
   @Test
-  fun formatMessages_filterHints() {
-    val textAccumulator = TextAccumulator()
-
-    messageFormatter.formatMessages(
-      formattingOptions,
-      textAccumulator,
-      listOf(
-        LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", TIMESTAMP), "message1"),
-        LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", TIMESTAMP), "message2"),
-      ))
-
-
-    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
-    assertThat(filterHints).containsExactly(
-      "app1" to "package:app1",
-      "tag1" to "tag:tag1",
-      " W " to "level:WARN",
-      "app2" to "package:app2",
-      "tag2" to "tag:tag2",
-      " I " to "level:INFO",
-    )
-  }
-
-  @Test
-  fun formatMessages_filterHints_unknownApp() {
-    val textAccumulator = TextAccumulator()
-
-    messageFormatter.formatMessages(
-      formattingOptions,
-      textAccumulator,
-      listOf(
-        LogcatMessage(LogcatHeader(WARN, 1, 2, "?", "", "tag1", TIMESTAMP), "message1"),
-      ))
-
-
-    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
-    assertThat(filterHints).containsExactly(
-      "tag1" to "tag:tag1",
-      " W " to "level:WARN",
-    )
-  }
-
-  @Test
-  fun formatMessages_filterHints_noTags() {
-    formattingOptions.tagFormat = TagFormat(enabled = false)
-    val textAccumulator = TextAccumulator()
-
-    messageFormatter.formatMessages(
-      formattingOptions,
-      textAccumulator,
-      listOf(
-        LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", TIMESTAMP), "message1"),
-        LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", TIMESTAMP), "message2"),
-      ))
-
-
-    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
-    assertThat(filterHints).containsExactly(
-      "app1" to "package:app1",
-      " W " to "level:WARN",
-      "app2" to "package:app2",
-      " I " to "level:INFO",
-    )
-  }
-
-  @Test
-  fun formatMessages_filterHints_noAppNames() {
-    formattingOptions.appNameFormat = AppNameFormat(enabled = false)
-    val textAccumulator = TextAccumulator()
-
-    messageFormatter.formatMessages(
-      formattingOptions,
-      textAccumulator,
-      listOf(
-        LogcatMessage(LogcatHeader(WARN, 1, 2, "app1", "", "tag1", TIMESTAMP), "message1"),
-        LogcatMessage(LogcatHeader(INFO, 1, 2, "app2", "", "tag2", TIMESTAMP), "message2"),
-      ))
-
-
-    val filterHints = textAccumulator.filterHintRanges.map { it.getText(textAccumulator.text) to it.data.getFilter() }
-    assertThat(filterHints).containsExactly(
-      "tag1" to "tag:tag1",
-      " W " to "level:WARN",
-      "tag2" to "tag:tag2",
-      " I " to "level:INFO",
-    )
-  }
-
-  @Test
   fun formatMessages_systemMessages() {
     val textAccumulator = TextAccumulator()
 
@@ -480,6 +391,50 @@ class MessageFormatterTest {
 
     assertThat(textAccumulator.text).isEqualTo("message\n")
   }
+
+  @Test
+  fun formatMessages_softWrap() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(
+          LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
+          "A relatively long message   that\twe can \t  use to test soft wrap"),
+      ),
+      softWrapWidth = formattingOptions.getHeaderWidth() + 20)
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  A relatively long
+                                                                                                          message   that	we
+                                                                                                          can 	  use to test
+                                                                                                          soft wrap
+
+    """.trimIndent())
+  }
+
+  @Test
+  fun formatMessages_softWrap_widthTooSmall() {
+    val textAccumulator = TextAccumulator()
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(
+          LogcatHeader(WARN, 1, 2, "com.example.app1", "", "Tag1", TIMESTAMP),
+          "A relatively long message that we can use to test soft wrap"),
+      ),
+      softWrapWidth = formattingOptions.getHeaderWidth() - 1)
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                     W  A relatively long message that we can use to test soft wrap
+
+    """.trimIndent())
+  }
+
 }
 
 private fun <T> TextAccumulator.Range<T>.getText(text: String) = text.substring(start, end)

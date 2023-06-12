@@ -22,8 +22,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiLiteralExpression
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-class TableReferencesTest : RoomLightTestCase() {
+class TableReferencesTest : LightJavaCodeInsightFixtureAdtTestCase() {
+  override fun setUp() {
+    super.setUp()
+    createStubRoomClasses(myFixture)
+  }
 
   fun testDefaultTableName() {
     myFixture.addClass("package com.example; public class NotAnEntity {}")

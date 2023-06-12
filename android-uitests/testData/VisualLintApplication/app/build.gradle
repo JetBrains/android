@@ -4,6 +4,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 30
+    namespace "com.example.google.visuallint"
     defaultConfig {
         applicationId "com.example.google.visuallint"
         minSdkVersion 15

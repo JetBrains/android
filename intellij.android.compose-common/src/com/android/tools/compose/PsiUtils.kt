@@ -18,41 +18,76 @@
 package com.android.tools.compose
 
 import com.android.tools.idea.kotlin.fqNameMatches
-import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.openapi.roots.ProjectRootModificationTracker
+import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-fun PsiElement.isComposableFunction(): Boolean {
-  if (this !is KtNamedFunction) return false
+private val composableFunctionKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isComposableFunction")
+private val deprecatedKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
 
-  return CachedValuesManager.getCachedValue(this) {
-    val hasComposableAnnotation = annotationEntries.any {
-      // fqNameMatches is expensive, so we first verify that the short name of the annotation matches.
-      it.shortName?.identifier == COMPOSABLE_ANNOTATION_NAME &&
-      it.fqNameMatches(COMPOSABLE_FQ_NAMES)
-    }
-    val containingKtFile = this.containingKtFile
+fun PsiElement.isComposableFunction(): Boolean = this.getComposableAnnotation() != null
 
-    CachedValueProvider.Result.create(
-      // TODO: see if we can handle alias imports without ruining performance.
-      hasComposableAnnotation,
-      containingKtFile,
-      ProjectRootModificationTracker.getInstance(project)
-    )
+fun PsiElement.getComposableAnnotation(): KtAnnotationEntry? =
+  (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { it.isComposableAnnotation() }
+
+/**
+ * K2 version of [isComposableFunction].
+ */
+fun KtAnalysisSession.isComposableFunction(element: PsiElement): Boolean =
+  (element as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { isComposableAnnotation(it) } != null
+
+fun PsiElement.isDeprecated(): Boolean =
+  (this as? KtAnnotated)?.getAnnotationWithCaching(deprecatedKey) { it.isDeprecatedAnnotation() } != null
+
+private fun KtAnnotated.getAnnotationWithCaching(key: Key<CachedValue<KtAnnotationEntry?>>, doCheck: (KtAnnotationEntry) -> Boolean)
+  : KtAnnotationEntry? {
+    return CachedValuesManager.getCachedValue(this, key) {
+      val annotationEntry = annotationEntries.firstOrNull { doCheck(it) }
+      val containingKtFile = this.containingKtFile
+
+      CachedValueProvider.Result.create(
+        // TODO: see if we can handle alias imports without ruining performance.
+        annotationEntry,
+        containingKtFile,
+        ProjectRootModificationTracker.getInstance(project)
+      )
   }
 }
 
-fun PsiElement.isComposableAnnotation():Boolean {
+fun PsiElement.isComposableAnnotation(): Boolean {
   if (this !is KtAnnotationEntry) return false
-  val fqName = this.getQualifiedName() ?: return false
-  return COMPOSABLE_FQ_NAMES.any { it == fqName }
+
+  return fqNameMatches(COMPOSABLE_FQ_NAMES)
 }
+
+/**
+ * K2 version of [isComposableAnnotation].
+ */
+fun KtAnalysisSession.isComposableAnnotation(element: PsiElement): Boolean {
+  if (element !is KtAnnotationEntry) return false
+
+  return fqNameMatches(element, COMPOSABLE_FQ_NAMES)
+}
+
+private const val DEPRECATED_ANNOTATION_NAME = "Deprecated"
+
+private val DEPRECATED_FQ_NAMES = setOf(
+  "kotlin.$DEPRECATED_ANNOTATION_NAME",
+  "java.lang.$DEPRECATED_ANNOTATION_NAME"
+)
+
+private fun KtAnnotationEntry.isDeprecatedAnnotation() =
+  // fqNameMatches is expensive, so we first verify that the short name of the annotation matches.
+  shortName?.identifier == DEPRECATED_ANNOTATION_NAME && fqNameMatches(DEPRECATED_FQ_NAMES)
 
 fun PsiElement.isInsideComposableCode(): Boolean {
   // TODO: also handle composable lambdas.

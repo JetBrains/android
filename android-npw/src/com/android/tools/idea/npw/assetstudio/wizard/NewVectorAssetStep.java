@@ -25,7 +25,7 @@ import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.VectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
@@ -177,7 +177,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     super(model, "Configure Vector Asset");
     myFacet = facet;
 
-    int minSdkVersion = AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
+    int minSdkVersion = StudioAndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel();
     myIconGenerator = new VectorIconGenerator(myFacet.getModule().getProject(), minSdkVersion);
     Disposer.register(this, myIconGenerator);
 

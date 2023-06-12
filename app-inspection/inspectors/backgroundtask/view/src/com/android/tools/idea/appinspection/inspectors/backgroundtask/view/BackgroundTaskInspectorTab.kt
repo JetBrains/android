@@ -24,9 +24,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * View class for the Background Task Inspector Tab.
- */
+/** View class for the Background Task Inspector Tab. */
 class BackgroundTaskInspectorTab(
   client: BackgroundTaskInspectorClient,
   ideServices: AppInspectionIdeServices,
@@ -35,12 +33,21 @@ class BackgroundTaskInspectorTab(
   uiDispatcher: CoroutineDispatcher
 ) {
 
-  @VisibleForTesting
-  val selectionModel = EntrySelectionModel()
+  @VisibleForTesting val selectionModel = EntrySelectionModel()
 
-  private val entriesView = BackgroundTaskEntriesView(this, client, selectionModel, scope, uiDispatcher)
-  private val detailsView = EntryDetailsView(this, client, ideServices, selectionModel, entriesView, uiComponentsProvider, scope,
-                                             uiDispatcher)
+  private val entriesView =
+    BackgroundTaskEntriesView(this, client, selectionModel, scope, uiDispatcher)
+  private val detailsView =
+    EntryDetailsView(
+      this,
+      client,
+      ideServices,
+      selectionModel,
+      entriesView,
+      uiComponentsProvider,
+      scope,
+      uiDispatcher
+    )
 
   var isDetailsViewVisible = false
     set(value) {
@@ -50,14 +57,15 @@ class BackgroundTaskInspectorTab(
       }
     }
 
-  private val splitter = JBSplitter(false).apply {
-    border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
-    isOpaque = true
-    firstComponent = entriesView
-    secondComponent = null
-    dividerWidth = 1
-    divider.background = AdtUiUtils.DEFAULT_BORDER_COLOR
-  }
+  private val splitter =
+    JBSplitter(false).apply {
+      border = AdtUiUtils.DEFAULT_VERTICAL_BORDERS
+      isOpaque = true
+      firstComponent = entriesView
+      secondComponent = null
+      dividerWidth = 1
+      divider.background = AdtUiUtils.DEFAULT_BORDER_COLOR
+    }
 
   val component = splitter
 }

@@ -51,8 +51,8 @@ private fun <T> NodeType<T>.canInsert(item: Any, data: Transferable): Boolean {
 }
 
 /** Type safe access to generic accessor */
-private fun <T> NodeType<T>.insert(item: Any, data: Transferable, before: Any?): Boolean {
-  return insert(clazz.cast(item), data, before)
+private fun <T> NodeType<T>.insert(item: Any, data: Transferable, before: Any?, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
+  return insert(clazz.cast(item), data, before, isMove, draggedFromTree)
 }
 
 /** Type safe access to generic accessor */
@@ -82,10 +82,14 @@ class TreeTableModelImpl(
   private val modelListeners: MutableList<TreeModelListener> = ContainerUtil.createConcurrentList()
 
 // region ComponentTreeModel implementation
-  override var treeRoot: Any? by Delegates.observable(null) { _, _, newRoot -> hierarchyChanged(newRoot) }
+  override var treeRoot: Any? by Delegates.observable(null) { _, oldRoot, newRoot -> hierarchyChanged(newRoot, newRoot != oldRoot) }
 
   override fun hierarchyChanged(changedNode: Any?) {
-    invokeLater.invoke(Runnable { fireTreeChange(changedNode) })
+    hierarchyChanged(changedNode, false)
+  }
+
+  fun hierarchyChanged(changedNode: Any?, rootChanged: Boolean) {
+    invokeLater.invoke(Runnable { fireTreeChange(changedNode, rootChanged) })
   }
 
   override fun columnDataChanged() = fireColumnDataChanged()
@@ -161,8 +165,8 @@ class TreeTableModelImpl(
   /**
    * Insert [data] into [node] either before [before] or at the end if [before] is null.
    */
-  fun insert(node: Any?, data: Transferable, before: Any? = null): Boolean {
-    return node?.let { typeOf(it).insert(it, data, before) } ?: false
+  fun insert(node: Any?, data: Transferable, before: Any? = null, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
+    return node?.let { typeOf(it).insert(it, data, before, isMove, draggedFromTree) } ?: false
   }
 
   /**
@@ -224,9 +228,9 @@ class TreeTableModelImpl(
    */
   fun computeDepth(node: Any): Int = generateSequence(node) { parent(it) }.count()
 
-  private fun fireTreeChange(changedNode: Any?) {
+  private fun fireTreeChange(changedNode: Any?, rootChanged: Boolean) {
     val path = changedNode?.let { TreePath(changedNode) }
-    val event = TreeModelEvent(this, path)
+    val event = TreeTableModelEvent(this, path, rootChanged)
     modelListeners.forEach { (it as? TreeTableModelImplListener)?.treeChanged(event) }
   }
 

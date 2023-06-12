@@ -45,7 +45,6 @@ import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
-import com.android.tools.idea.gradle.dsl.parser.elements.FakeMethodElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -53,6 +52,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpressio
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.intellij.lang.ASTNode;
@@ -325,7 +325,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    FakeMethodElement fakeElement = new FakeMethodElement(methodCall);
+    GradleDslElement fakeElement = new GradleDslLiteral(methodCall.getParent(), GradleNameElement.fake(methodCall.getMethodName()));
     String methodCallText = (methodCall.isConstructor() ? "new " : "") + quotePartsIfNecessary(maybeTrimForParent(fakeElement, this)) + "()";
     String statementText;
     if (!methodCall.getNameElement().isEmpty()) {
@@ -533,14 +533,26 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     if (parent == null) return null;
     PsiElement parentPsi = parent.create();
     GradleDslElement firstElement = expression.getCurrentElements().get(0);
-    if (!(firstElement instanceof GradleDslLiteral)) return null;
-    GradleDslLiteral firstLiteral = (GradleDslLiteral) firstElement;
-    expression.setPsiElement(parentPsi);
-    PsiElement elementPsi = createDslElement(firstLiteral);
-    expression.setPsiElement(elementPsi);
-    applyDslLiteral(firstLiteral);
-    firstLiteral.reset();
-    firstLiteral.commit();
+    if (firstElement instanceof GradleDslLiteral) {
+      GradleDslLiteral firstLiteral = (GradleDslLiteral)firstElement;
+      expression.setPsiElement(parentPsi);
+      PsiElement elementPsi = createDslElement(firstLiteral);
+      expression.setPsiElement(elementPsi);
+      applyDslLiteral(firstLiteral);
+      firstLiteral.reset();
+      firstLiteral.commit();
+    }
+    else if (firstElement instanceof GradleDslMethodCall) {
+      GradleDslMethodCall firstMethodCall = (GradleDslMethodCall)firstElement;
+      expression.setPsiElement(parentPsi);
+      PsiElement elementPsi = createDslMethodCall(firstMethodCall);
+      expression.setPsiElement(elementPsi);
+      applyDslMethodCall(firstMethodCall);
+      firstMethodCall.commit();
+    }
+    else {
+      return null;
+    }
     return expression.getPsiElement();
   }
 

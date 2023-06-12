@@ -50,9 +50,9 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
     run {
       val files = buildModel.involvedFiles
-      assertSize(4, files)
+      assertSize(5, files)
       val expected = listOf(myBuildFile.path, mySubModuleBuildFile.path,
-                            myPropertiesFile.path, mySubModulePropertiesFile.path)
+                            myPropertiesFile.path, mySubModulePropertiesFile.path, myVersionCatalogFile.path)
       assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
@@ -113,13 +113,15 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
     run {
       val files = buildModel.involvedFiles
-      assertSize(4, files)
+      assertSize(5, files)
       val fileParent = myBuildFile.parent
       val expected =
         listOf(myBuildFile.path,
                fileParent.findChild(a)!!.path,
                fileParent.findChild(b)!!.path,
-               fileParent.findChild("gradle.properties")!!.path)
+               fileParent.findChild("gradle.properties")!!.path,
+               myVersionCatalogFile.path
+               )
       assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }

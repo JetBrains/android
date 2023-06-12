@@ -76,7 +76,7 @@ class GradleAndNdkSendFeedbackDescriptionProvider : SendFeedbackDescriptionProvi
 
     fun getGradleDetails(): String? {
       val gradleVersion = GradleVersions.getInstance().getGradleVersion(project ?: return null)
-      return gradleVersion?.toString() ?: "(gradle version information not found)"
+      return gradleVersion?.version ?: "(gradle version information not found)"
     }
 
     fun getJdkDetails(): String {
@@ -127,7 +127,7 @@ private fun getNdkDetails(
       }
     }
     // Latest NDK package in the SDK (if any)
-    val p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_NDK, null, false, progress)
+    val p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_NDK_SIDE_BY_SIDE, null, false, progress)
     append("latest from SDK: ${if (p == null) "(not found)" else getNdkVersion(p.location.toAbsolutePath().toString())}")
   }
 }

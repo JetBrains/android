@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -29,16 +26,6 @@ class VisualizationUtilTest {
   @JvmField
   @Rule
   val projectRule = AndroidProjectRule.inMemory()
-
-  @Before
-  fun setup() {
-    StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM.clearOverride()
-  }
 
   @Test
   fun testAddCustomCategory() {

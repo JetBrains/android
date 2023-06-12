@@ -34,16 +34,10 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
-import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
-import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
-import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.cpu.CpuProfiler;
@@ -62,6 +56,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
@@ -88,6 +83,9 @@ import org.jetbrains.annotations.TestOnly;
  * global across all the profilers, device management, process management, current state of the tool etc.
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
+
+  private static Logger getLogger() { return Logger.getInstance(StudioProfilers.class); }
+
   /**
    * The collection of data used to select a new process when we don't have a process to profile.
    */
@@ -302,6 +300,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // inconsistency worse if we call these lines again.
     setProcess(null, null);
     changed(ProfilerAspect.STAGE);
+    // Shutdown the gRPC channel after changing the aspect because some operations triggered by the aspect depends on the channel.
+    myClient.shutdownChannel();
   }
 
   @NotNull
@@ -363,18 +363,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setAutoProfilingEnabled(boolean enabled) {
     myAutoProfilingEnabled = enabled;
-
-    if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      // Do nothing. Let update() take care of which process should be selected.
-      // If setProcess() is called now, it may be confused if the process start/end events don't arrive immediately.
-      // For example, if the user ends a session (which will set myProcess null), then click the Run button.
-      // setAutoProfilingEnabled(true) will be called when Run button is clicked. If the previous process's
-      // DEAD event is delayed, setProcess() may start a new session on it (which is already dead) because
-      // the event stream shows it is still alive, and it's "new" in the perspective of StudioProfilers.
-    }
-    else if (myAutoProfilingEnabled) {
-      setProcess(findPreferredDevice(), null);
-    }
+    // Do nothing. Let update() take care of which process should be selected.
+    // If setProcess() is called now, it may be confused if the process start/end events don't arrive immediately.
+    // For example, if the user ends a session (which will set myProcess null), then click the Run button.
+    // setAutoProfilingEnabled(true) will be called when Run button is clicked. If the previous process's
+    // DEAD event is delayed, setProcess() may start a new session on it (which is already dead) because
+    // the event stream shows it is still alive, and it's "new" in the perspective of StudioProfilers.
   }
 
   @TestOnly
@@ -383,42 +377,31 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private List<Common.Device> getUpToDateDevices() {
-    return getUpToDateDevices(myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled(), myClient, myDeviceToStreamIds,
-                              myStreamIdToStreams);
+    return getUpToDateDevices(myClient, myDeviceToStreamIds, myStreamIdToStreams);
   }
 
   /**
    * Returns a up-to-date list of devices including disconnected ones.
    * This method works under either new or old data pipeline.
    *
-   * @param isUnifiedPipelineEnabled The flag to control whether unified pipeline is enabled.
    * @param client                   The ProfilerClient that can call into ProfilerService.
    * @param deviceToStreamIds        An updatable cache that maps a device to its stream ID.
    * @param streamIdToStreams        An updatable cache that maps a stream ID to the stream.
    */
   @NotNull
-  public static List<Common.Device> getUpToDateDevices(boolean isUnifiedPipelineEnabled,
-                                                       @NotNull ProfilerClient client,
+  public static List<Common.Device> getUpToDateDevices(@NotNull ProfilerClient client,
                                                        @Nullable Map<Common.Device, Long> deviceToStreamIds,
                                                        @Nullable Map<Long, Common.Stream> streamIdToStreams) {
-    List<Common.Device> devices;
-    if (isUnifiedPipelineEnabled) {
-      List<Common.Stream> streams = StreamQueryUtils.queryForDevices(client.getTransportClient());
-      devices = streams.stream().map((Stream stream) -> {
-        if (deviceToStreamIds != null) {
-          deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
-        }
-        if (streamIdToStreams != null) {
-          streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);
-        }
-        return stream.getDevice();
-      }).collect(Collectors.toList());
-    }
-    else {
-      GetDevicesResponse response = client.getTransportClient().getDevices(GetDevicesRequest.getDefaultInstance());
-      devices = response.getDeviceList();
-    }
-    return devices;
+    List<Common.Stream> streams = StreamQueryUtils.queryForDevices(client.getTransportClient());
+    return streams.stream().map((Stream stream) -> {
+      if (deviceToStreamIds != null) {
+        deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
+      }
+      if (streamIdToStreams != null) {
+        streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);
+      }
+      return stream.getDevice();
+    }).collect(Collectors.toList());
   }
 
   private void startProfileableDiscoveryIfApplicable(Collection<Common.Device> previousDevices,
@@ -462,35 +445,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       List<Common.Device> devices = getUpToDateDevices();
       startProfileableDiscoveryIfApplicable(myProcesses.keySet(), devices);
 
-      if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-        for (Common.Device device : devices) {
-          List<Common.Process> processList = StreamQueryUtils.queryForProcesses(
-            myClient.getTransportClient(),
-            myDeviceToStreamIds.get(device),
-            (Boolean isProcessAlive, Common.Process process) -> {
-              int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
-              return (isProcessAlive || process.getPid() == lastProcessId) &&
-                     (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
-                      process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE));
-            }
-          );
-          newProcesses.put(device, processList);
-        }
-      }
-      else {
-        for (Common.Device device : devices) {
-          GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(device.getDeviceId()).build();
-          GetProcessesResponse processes = myClient.getTransportClient().getProcesses(request);
-
-          int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
-          List<Common.Process> processList = processes.getProcessList()
-            .stream()
-            .filter(process -> process.getState() == Common.Process.State.ALIVE ||
-                               process.getPid() == lastProcessId)
-            .collect(Collectors.toList());
-
-          newProcesses.put(device, processList);
-        }
+      for (Common.Device device : devices) {
+        List<Common.Process> processList = StreamQueryUtils.queryForProcesses(
+          myClient.getTransportClient(),
+          myDeviceToStreamIds.get(device),
+          (Boolean isProcessAlive, Common.Process process) -> {
+            int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
+            return (isProcessAlive || process.getPid() == lastProcessId) &&
+                   (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
+                    process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE));
+          }
+        );
+        newProcesses.put(device, processList);
       }
 
       if (!newProcesses.equals(myProcesses)) {
@@ -626,12 +592,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
-        if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-          mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess);
-        }
-        else {
-          mySessionsManager.beginSession(myDevice, myProcess);
-        }
+        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess);
       }
     }
   }
@@ -703,25 +664,25 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private boolean startupMemoryProfilingStarted() {
-    List<Memory.MemoryNativeTrackingData> samples =
-      MemoryProfiler.getNativeHeapStatusForSession(myClient, mySelectedSession, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
-    if (samples.isEmpty()) {
+    List<Common.Event> events =
+      MemoryProfiler.getNativeHeapEventsForSessionSortedByTimestamp(myClient, mySelectedSession, new Range(Long.MIN_VALUE, Long.MAX_VALUE));
+    if (events.isEmpty()) {
       return false;
     }
-    Memory.MemoryNativeTrackingData last = samples.get(samples.size() - 1);
+    Trace.TraceStartStatus lastStartStatus = events.get(events.size() - 1).getTraceStatus().getTraceStartStatus();
     // If we are ongoing, and we started before the process then we have a startup session.
-    return last.getStatus() == Memory.MemoryNativeTrackingData.Status.SUCCESS &&
-           last.getStartTime() <= mySelectedSession.getStartTimestamp();
+    return lastStartStatus.getStatus() == Trace.TraceStartStatus.Status.SUCCESS &&
+           lastStartStatus.getStartTimeNs() <= mySelectedSession.getStartTimestamp();
   }
 
   /**
    * Checks whether startup CPU Profiling started for the selected session by making RPC call to perfd.
    */
   private boolean startupCpuProfilingStarted() {
-    List<Cpu.CpuTraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession);
+    List<Trace.TraceInfo> traceInfoList = CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession);
     if (!traceInfoList.isEmpty()) {
-      Cpu.CpuTraceInfo lastTraceInfo = traceInfoList.get(traceInfoList.size() - 1);
-      return lastTraceInfo.getConfiguration().getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP;
+      Trace.TraceInfo lastTraceInfo = traceInfoList.get(traceInfoList.size() - 1);
+      return lastTraceInfo.getConfiguration().getInitiationType() == Trace.TraceInitiationType.INITIATED_BY_STARTUP;
     }
 
     return false;
@@ -774,12 +735,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     AgentData agentData = AgentData.getDefaultInstance();
     if (Common.Session.getDefaultInstance().equals(session)) {
       return agentData;
-    }
-    if (!myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      // In legacy pipeline we don't have streams so we set device ID to session's stream ID.
-      AgentStatusRequest statusRequest =
-        AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getStreamId()).build();
-      return myClient.getTransportClient().getAgentStatus(statusRequest);
     }
     // Get agent data for requested session.
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
@@ -878,17 +833,52 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myProcess;
   }
 
+  /**
+   * Returns the support level for the live process of given PID. Assumes the process is running.
+   * If the assumption cannot be guaranteed, use `getProcessForStreamIdPidTimestamp`, which may be slower.
+   */
   @NotNull
-  public SupportLevel getProcessSupportLevel(int pid) {
+  public SupportLevel getLiveProcessSupportLevel(int pid) {
     return myProcesses.values().stream().flatMap(Collection::stream)
       .filter(p -> p.getPid() == pid).findFirst()
       .map(p -> SupportLevel.of(p.getExposureLevel()))
       .orElse(SupportLevel.NONE);
   }
 
+  /**
+   * Returns the process protobuf object from the given stream, of the given PID, at the given timestamp.
+   */
+  @NotNull
+  private Common.Process getProcessForStreamIdPidTimestamp(long streamId, int pid, long timestamp) {
+    GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
+      .setKind(Event.Kind.PROCESS)
+      .setStreamId(streamId)
+      .setPid(pid)
+      .setToTimestamp(timestamp)
+      .build();
+    GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(request);
+    if (response.getGroupsCount() == 1) {
+      Common.Event processEvent = StreamQueryUtils.getHighestExposureEventForLastProcess(response.getGroups(0));
+      if (processEvent != null) {
+        return processEvent.getProcess().getProcessStarted().getProcess();
+      }
+    }
+    if (pid != 0) {
+      // When PID is 0, e.g., during initialization of profilers, it's expected that no process is found.
+      getLogger().warn("Cannot find the unique process for the given criteria.");
+    }
+    return Common.Process.getDefaultInstance();
+  }
+
+  @NotNull
+  public SupportLevel getSupportLevelForSession(Common.Session session) {
+    return SupportLevel.of(
+      getProcessForStreamIdPidTimestamp(session.getStreamId(), session.getPid(), session.getStartTimestamp()).getExposureLevel());
+  }
+
   @NotNull
   public SupportLevel getSelectedSessionSupportLevel() {
-    return getProcessSupportLevel(mySessionsManager.getSelectedSession().getPid());
+    return getSupportLevelForSession(mySessionsManager.getSelectedSession());
   }
 
   public boolean isAgentAttached() {
@@ -902,14 +892,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   public List<StudioProfiler> getProfilers() {
     return myProfilers;
-  }
-
-  public ProfilerMode getMode() {
-    return myStage.getProfilerMode();
-  }
-
-  public void modeChanged() {
-    changed(ProfilerAspect.MODE);
   }
 
   @NotNull

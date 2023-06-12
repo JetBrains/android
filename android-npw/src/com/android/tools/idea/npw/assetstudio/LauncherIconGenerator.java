@@ -64,6 +64,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   private final BoolProperty myGenerateRoundIcon = new BoolValueProperty(true);
   private final BoolProperty myGeneratePlayStoreIcon = new BoolValueProperty(true);
+  private final BoolProperty myGenerateWebpIcons = new BoolValueProperty(true);
   private final ObjectProperty<Shape> myLegacyIconShape = new ObjectValueProperty<>(Shape.SQUARE);
   private final BoolProperty myShowGrid = new BoolValueProperty();
   private final ObjectValueProperty<Density> myPreviewDensity = new ObjectValueProperty<>(Density.XHIGH);
@@ -92,6 +93,14 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
   @NotNull
   public BoolProperty generatePlayStoreIcon() {
     return myGeneratePlayStoreIcon;
+  }
+
+  /**
+   * If {@code true}, generate icons in the WebP format.
+   */
+  @NotNull
+  public BoolProperty generateWebpIcons() {
+    return myGenerateWebpIcons;
   }
 
   /**
@@ -160,6 +169,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
     options.legacyIconShape = myLegacyIconShape.get();
     options.generateRoundIcon = myGenerateRoundIcon.get();
     options.generatePlayStoreIcon = myGeneratePlayStoreIcon.get();
+    options.generateWebpIcons = myGenerateWebpIcons.get();
     return options;
   }
 

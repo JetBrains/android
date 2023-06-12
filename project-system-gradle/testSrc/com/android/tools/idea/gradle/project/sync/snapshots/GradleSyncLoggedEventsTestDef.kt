@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -33,27 +34,29 @@ data class GradleSyncLoggedEventsTestDef(
   override val testProject: TestProject,
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
   val verify: GradleSyncLoggedEventsTestDef.(events: List<LoggedUsage>) -> Unit = {}
-) : SyncedProjectTest.TestDef {
+) : SyncedProjectTestDef {
 
   override val name: String
     get() = "$namePrefix - ${testProject.projectName}"
 
   override fun toString(): String = name
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 
   private val testUsageTracker = TestUsageTracker(VirtualTimeScheduler())
 
-  override fun setup(root: File) {
+  override fun setup() {
     UsageTracker.setWriterForTest(testUsageTracker)
+    AnalyticsSettings.optedIn = true
   }
 
   override fun runTest(root: File, project: Project) = Unit
 
   override fun verifyAfterClosing(root: File) {
     val usages = testUsageTracker.usages
+    AnalyticsSettings.optedIn = false
     UsageTracker.cleanAfterTesting()
     if (System.getenv("SYNC_BASED_TESTS_DEBUG_OUTPUT")?.lowercase(Locale.getDefault()) == "y") {
       val events = usages
@@ -85,7 +88,8 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ISSUES
               |  USER_REQUESTED_PARALLEL
               |  STUDIO_REQUESTD_$expectedMode
-              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH""".trim()
+              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH
+              |    OPEN_FILE_HYPERLINK""".trim()
               )
             }
             appendLine(
@@ -93,7 +97,13 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_PARALLEL
               |  STUDIO_REQUESTD_$expectedMode
-              |GRADLE_BUILD_DETAILS""".trim()
+              |GRADLE_BUILD_DETAILS
+              |INTELLIJ_PROJECT_SIZE_STATS
+              |  JAVA : 3
+              |  XML : 16
+              |  DOT_CLASS : 0
+              |  KOTLIN : 0
+              |  NATIVE : 0""".trim()
             )
           }.trimMargin()
         )
@@ -117,7 +127,8 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ISSUES
               |  USER_REQUESTED_SEQUENTIAL
               |  STUDIO_REQUESTD_SEQUENTIAL
-              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH""".trim()
+              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH
+              |    OPEN_FILE_HYPERLINK""".trim()
               )
             }
             appendLine(
@@ -125,7 +136,13 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_ENDED
               |  USER_REQUESTED_SEQUENTIAL
               |  STUDIO_REQUESTD_SEQUENTIAL
-              |GRADLE_BUILD_DETAILS""".trim()
+              |GRADLE_BUILD_DETAILS
+              |INTELLIJ_PROJECT_SIZE_STATS
+              |  JAVA : 3
+              |  XML : 16
+              |  DOT_CLASS : 0
+              |  KOTLIN : 0
+              |  NATIVE : 0""".trim()
             )
           }.trimMargin()
         )
@@ -136,6 +153,8 @@ data class GradleSyncLoggedEventsTestDef(
       ) { events ->
         assertThat(events.dumpModuleCounts()).isEqualTo(
           """
+            |Module count: 11
+            |Library count: 48
             |total_module_count: 11
             |app_module_count: 1
             |lib_module_count: 6
@@ -148,7 +167,9 @@ data class GradleSyncLoggedEventsTestDef(
       ) { events ->
         assertThat(events.dumpModuleCounts()).isEqualTo(
           """
-            |total_module_count: 12
+            |Module count: 13
+            |Library count: 37
+            |total_module_count: 13
             |app_module_count: 3
             |lib_module_count: 3
           """.trimMargin()
@@ -158,7 +179,7 @@ data class GradleSyncLoggedEventsTestDef(
 
     private fun List<LoggedUsage>.dumpSyncEvents(): String {
       return map { it.studioEvent }
-        .filter { it.hasGradleSyncStats() || it.hasGradleBuildDetails() }
+        .filter { it.hasGradleSyncStats() || it.hasGradleBuildDetails() || it.intellijProjectSizeStatsCount > 0 }
         .joinToString("") {
           buildString {
             appendLine(it.kind.toString())
@@ -172,6 +193,9 @@ data class GradleSyncLoggedEventsTestDef(
                 }
               }
             }
+            it.intellijProjectSizeStatsList.forEach {
+              entry -> appendLine("  ${entry.type} : ${entry.count}")
+            }
           }
         }
         .trim()
@@ -180,9 +204,19 @@ data class GradleSyncLoggedEventsTestDef(
     private fun List<LoggedUsage>.dumpModuleCounts(): String {
       return map { it.studioEvent }
         .filter { it.hasGradleBuildDetails() }
-        .flatMap { it.gradleBuildDetails.modulesList }
-        .joinToString("\n") { buildString { TextFormat.printer().print(it, this) } }
-        .trim()
+        .map { it.gradleBuildDetails }
+        .let {
+          buildString {
+            it
+              .forEach { gradleBuildDetails ->
+                appendLine("Module count: ${gradleBuildDetails.getModuleCount()}")
+                appendLine("Library count: ${gradleBuildDetails.libCount}")
+                gradleBuildDetails.modulesList.forEach { gradleModule ->
+                  TextFormat.printer().print(gradleModule, this)
+                }
+              }
+          }.trim()
+        }
     }
   }
 }

@@ -20,7 +20,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 
-public final class TestRenderingUtils {
+public class TestRenderingUtils {
   @NotNull
   public static BufferedImage getImageFromIcon(Icon icon) {
     @SuppressWarnings("UndesirableClassUsage")

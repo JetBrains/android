@@ -31,9 +31,11 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.settings.DependencyResolutionManagementModelImpl;
 import com.android.tools.idea.gradle.dsl.model.settings.PluginManagementModelImpl;
+import com.android.tools.idea.gradle.dsl.model.settings.PluginsBlockModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -41,6 +43,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.include.IncludeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.DependencyResolutionManagementDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.PluginManagementDslElement;
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement;
@@ -87,7 +90,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     long modificationCount = myGradleDslFile.getModificationCount();
     IncludeDslElement includePaths = myGradleDslFile.getPropertyElement(INCLUDE);
 
-    // if we the committedCount in our cache is equal to the current modification count, we must be unmodified since a previous
+    // if the committedCount in our cache is equal to the current modification count, we must be unmodified since a previous
     // already-committed count.  Since counts increase monotonically, and modificationCount >= lastCommittedCount, if modificationCount is
     // equal to our cached committedCount the GradleDslFile must be unchanged since the last cache save, so our cached result is valid.
     synchronized(myModulePathsCache) {
@@ -109,7 +112,7 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     }
 
     // update the cache.  (It does not matter if the GradleDslFile was initially modified, or has been modified since; any difference
-    // in either counter from thie initial committedCount will simply render this cache entry invalid.)
+    // in either counter from the initial committedCount will simply render this cache entry invalid.)
     synchronized(myModulePathsCache) {
       myModulePathsCache.paths = result;
       myModulePathsCache.committedCount = committedCount;
@@ -349,5 +352,15 @@ public class GradleSettingsModelImpl extends GradleFileModelImpl implements Grad
     PluginManagementDslElement pluginManagementDslElement =
       myGradleDslFile.ensurePropertyElementAt(PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT, 0);
     return new PluginManagementModelImpl(pluginManagementDslElement);
+  }
+
+  @Override
+  public @NotNull PluginsBlockModel plugins() {
+    PluginManagementDslElement pluginManagementDslElement =
+      myGradleDslFile.getPropertyElement(PluginManagementDslElement.PLUGIN_MANAGEMENT_DSL_ELEMENT);
+    // pluginManagement must come first, but plugins must be immediately after if so.
+    Integer at = pluginManagementDslElement == null ? 0 : 1;
+    PluginsDslElement pluginsDslElement = myGradleDslFile.ensurePropertyElementAt(PluginsDslElement.PLUGINS, at);
+    return new PluginsBlockModelImpl(pluginsDslElement);
   }
 }

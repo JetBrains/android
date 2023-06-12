@@ -20,7 +20,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
@@ -38,10 +37,11 @@ import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
 /** Bottom control panel. */
-class BottomPanel(val previewState: AnimationPreviewState,
-                  surface: DesignSurface<*>,
-                  private val tracker: ComposeAnimationEventTracker) : JPanel(
-  BorderLayout()) {
+class BottomPanel(
+  val previewState: AnimationPreviewState,
+  surface: DesignSurface<*>,
+  private val tracker: ComposeAnimationEventTracker
+) : JPanel(BorderLayout()) {
 
   var clockTimeMs = 0
     set(value) {
@@ -49,10 +49,14 @@ class BottomPanel(val previewState: AnimationPreviewState,
       westToolbar.updateActionsImmediately()
     }
 
-  private val westToolbar = DefaultToolbarImpl(
-    surface, "ResetCoordinationTimeline",
-    DefaultActionGroup(listOf(ClockTimeLabel(), Separator()) +
-                       if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction()) else emptyList()))
+  private val westToolbar =
+    DefaultToolbarImpl(
+      surface,
+      "ResetCoordinationTimeline",
+      listOf(ClockTimeLabel(), Separator()) +
+        if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction())
+        else emptyList()
+    )
 
   private val resetListeners: MutableList<() -> Unit> = mutableListOf()
   fun addResetListener(listener: () -> Unit) {
@@ -66,8 +70,7 @@ class BottomPanel(val previewState: AnimationPreviewState,
   }
 
   private inner class ClockTimeLabel() : ToolbarLabelAction() {
-    override fun createCustomComponent(presentation: Presentation,
-                                       place: String): JComponent =
+    override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
       (super.createCustomComponent(presentation, place) as JBLabel).apply {
         font = JBFont.smallOrNewUiMedium()
         foreground = UIUtil.getContextHelpForeground()
@@ -81,8 +84,11 @@ class BottomPanel(val previewState: AnimationPreviewState,
     }
   }
 
-  private inner class ResetTimelineAction()
-    : AnActionButton(message("animation.inspector.action.reset.timeline"), StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED) {
+  private inner class ResetTimelineAction() :
+    AnActionButton(
+      message("animation.inspector.action.reset.timeline"),
+      StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED
+    ) {
     override fun actionPerformed(e: AnActionEvent) {
       resetListeners.forEach { it() }
       tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.RESET_TIMELINE)
@@ -94,10 +100,10 @@ class BottomPanel(val previewState: AnimationPreviewState,
         e.presentation.isEnabled = previewState.isCoordinationAvailable()
         e.presentation.text =
           when {
-            previewState.isCoordinationAvailable() && previewState.isCoordinationPanelOpened() -> message(
-              "animation.inspector.action.reset.timeline")
-            previewState.isCoordinationAvailable() && !previewState.isCoordinationPanelOpened() -> message(
-              "animation.inspector.action.reset.single.animation")
+            previewState.isCoordinationAvailable() && previewState.isCoordinationPanelOpened() ->
+              message("animation.inspector.action.reset.timeline")
+            previewState.isCoordinationAvailable() && !previewState.isCoordinationPanelOpened() ->
+              message("animation.inspector.action.reset.single.animation")
             else -> message("animation.inspector.coordination.unavailable.reset.timeline")
           }
       }

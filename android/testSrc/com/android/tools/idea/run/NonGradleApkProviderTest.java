@@ -37,6 +37,6 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
     assertEquals(1, apks.size());
     ApkInfo apk = apks.iterator().next();
     assertEquals("p1.p2", apk.getApplicationId());
-    assertTrue(apk.getFile().getPath().endsWith("artifact.apk"));
+    assertTrue(apk.getFiles().get(0).getApkFile().getPath().endsWith("artifact.apk"));
   }
 }

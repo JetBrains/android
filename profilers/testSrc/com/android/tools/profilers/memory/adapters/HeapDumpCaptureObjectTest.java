@@ -34,7 +34,6 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
-import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.Classifier;
@@ -63,13 +62,12 @@ import org.junit.Test;
 public class HeapDumpCaptureObjectTest {
 
   @NotNull private final FakeTimer myTimer = new FakeTimer();
-  @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
 
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpCaptureObjectTest", myTransportService, myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpCaptureObjectTest", myTransportService);
 
   private MainMemoryProfilerStage myStage;
 

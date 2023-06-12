@@ -139,7 +139,7 @@ public class ProjectWithKotlinTestUtil {
 
     ConfigureNewAndroidProjectStepFixture<NewProjectWizardFixture> configAndroid = newProjectWizard
       .getChooseAndroidProjectStep()
-      .chooseActivity(hasCppSupport ? "Native C++" : "Empty Activity")
+      .chooseActivity(hasCppSupport ? "Native C++" : "Empty Views Activity")
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()

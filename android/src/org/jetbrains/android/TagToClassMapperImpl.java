@@ -20,6 +20,7 @@ import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.getTagNames
 
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.psi.TagToClassMapper;
@@ -255,7 +256,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
   }
 
   private int getMinApiLevel() {
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(myModule);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(myModule);
     return androidModuleInfo == null ? 1 : androidModuleInfo.getModuleMinApi();
   }
 

@@ -66,6 +66,7 @@ class WarningsNodePresentationTest {
     val expectedPresentation = BuildAnalyzerTreeNodePresentation(
       mainText = "Non-incremental Annotation Processors",
       suffix = "3 warnings",
+      rightAlignedSuffix = "1.4s",
       nodeIconState = NodeIconState.NO_ICON
     )
     assertThat(descriptor.presentation).isEqualTo(expectedPresentation)

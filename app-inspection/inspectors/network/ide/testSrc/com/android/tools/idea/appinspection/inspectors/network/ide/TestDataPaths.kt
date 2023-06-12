@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.ide
 
 import com.android.testutils.TestUtils
 
-internal val TEST_DATA_ROOT = TestUtils.resolveWorkspacePath("tools/adt/idea/app-inspection/inspectors/network/ide/testData")
+internal val TEST_DATA_ROOT =
+  TestUtils.resolveWorkspacePath("tools/adt/idea/app-inspection/inspectors/network/ide/testData")
 
 internal val TEST_IMAGE = TEST_DATA_ROOT.resolve("images/image.png")

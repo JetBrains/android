@@ -25,40 +25,49 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
-import kotlinx.coroutines.withContext
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
+import kotlinx.coroutines.withContext
 
-open class FakeDatabaseInspectorController(private val repository: DatabaseRepository, val model: DatabaseInspectorModel) : DatabaseInspectorController {
+open class FakeDatabaseInspectorController(
+  private val repository: DatabaseRepository,
+  val model: DatabaseInspectorModel
+) : DatabaseInspectorController {
 
   override val component: JComponent
     get() = throw OperationNotSupportedException()
 
-  override fun setUp() { }
+  override fun setUp() {}
 
-  override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) = withContext(uiThread) {
-    model.addDatabaseSchema(databaseId, SqliteSchema(emptyList()))
-  }
+  override suspend fun addSqliteDatabase(databaseId: SqliteDatabaseId) =
+    withContext(uiThread) { model.addDatabaseSchema(databaseId, SqliteSchema(emptyList())) }
 
-  override suspend fun runSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement) { }
+  override suspend fun runSqlStatement(
+    databaseId: SqliteDatabaseId,
+    sqliteStatement: SqliteStatement
+  ) {}
 
-  override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit = withContext(uiThread) {
-    repository.closeDatabase(databaseId)
-    model.removeDatabaseSchema(databaseId)
-  }
+  override suspend fun closeDatabase(databaseId: SqliteDatabaseId): Unit =
+    withContext(uiThread) {
+      repository.closeDatabase(databaseId)
+      model.removeDatabaseSchema(databaseId)
+    }
 
-  override suspend fun databasePossiblyChanged() { }
+  override suspend fun databasePossiblyChanged() {}
 
-  override fun showError(message: String, throwable: Throwable?) { }
+  override fun showError(message: String, throwable: Throwable?) {}
 
   override suspend fun startAppInspectionSession(
     clientCommandsChannel: DatabaseInspectorClientCommandsChannel,
     appInspectionIdeServices: AppInspectionIdeServices,
     processDescriptor: ProcessDescriptor,
     appPackageName: String?
-  ) { }
+  ) {}
 
-  override fun stopAppInspectionSession(appPackageName: String?, processDescriptor: ProcessDescriptor) { }
+  override fun stopAppInspectionSession(
+    appPackageName: String?,
+    processDescriptor: ProcessDescriptor
+  ) {}
 
-  override fun dispose() { }
+  override fun dispose() {}
 }

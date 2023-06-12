@@ -93,10 +93,10 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
   }
 
   /** Handles case where we have ATF issues and include tags. */
-  fun handleInclude(layoutParser: NlScannerLayoutParser, surface: NlDesignSurface) {
+  fun handleInclude(layoutParser: NlScannerLayoutParser) {
     layoutParser.includeComponents.forEach {
       if (it.getAttribute(TOOLS_URI, ATTR_IGNORE_A11Y_LINTS) == null) {
-        issues.add(NlATFIncludeIssue(it, surface))
+        issues.add(NlATFIncludeIssue(it))
       }
     }
   }
@@ -104,8 +104,7 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 
 /**  Issue created for <include> */
 class NlATFIncludeIssue(
-  private val include: NlComponent,
-  private val surface: NlDesignSurface): Issue() {
+  private val include: NlComponent) : Issue() {
   override val summary: String
     get() = "Included layout may contain accessibility issues."
   override val description: String
@@ -149,7 +148,7 @@ open class NlAtfIssue(
   val result: ValidatorData.Issue,
   issueSource: IssueSource,
   private val model: NlModel,
-  private val eventListener: EventListener? = null): Issue() {
+  private val eventListener: EventListener? = null) : Issue() {
 
   /** Event listeners for the ATF issue */
   interface EventListener {
@@ -266,17 +265,16 @@ open class NlAtfIssue(
       // If the suggested value is an empty string, let the user pick a string
       // resource as the suggested value
       applySetViewAttributeFixWithEmptySuggestedValue(model, fix.mViewAttribute)
-    } else if (source is NlComponentIssueSource) {
-      NlWriteCommandActionUtil.run(source.component, "Update issue source") {
-        applyFixImpl(fix, source.component)
-      }
+    }
+    else if (source is NlComponentIssueSource) {
+      applyFixImpl(fix, source)
     }
   }
 
   /**
    * Let the user to pick a new string resource as the suggested value.
    */
-  private fun applySetViewAttributeFixWithEmptySuggestedValue (
+  private fun applySetViewAttributeFixWithEmptySuggestedValue(
     model: NlModel, viewAttribute: ValidatorData.ViewAttribute) {
     val source = source
     val dialog: ResourcePickerDialog = createResourcePickerDialog(
@@ -290,29 +288,28 @@ open class NlAtfIssue(
       showThemeAttributes = false,
       file = null)
     if (dialog.showAndGet() && (source is NlComponentIssueSource)) {
-      dialog.resourceName?.let {
-        NlWriteCommandActionUtil.run(source.component, "Update issue source") {
-          source.component.setAttribute(
-            viewAttribute.mNamespaceUri, viewAttribute.mAttributeName, it)
-        }
-      }
+      val resourceName = dialog.resourceName ?: return
+      source.setAttribute(viewAttribute.mNamespaceUri, viewAttribute.mAttributeName, resourceName)
     }
   }
 
   @VisibleForTesting
-  fun applyFixImpl(fix: ValidatorData.Fix, component: NlComponent) {
+  fun applyFixImpl(fix: ValidatorData.Fix, source: NlAttributesHolder) {
     when (fix) {
       is ValidatorData.RemoveViewAttributeFix ->
-        component.removeAttribute(fix.mViewAttribute.mNamespaceUri,
-                                  fix.mViewAttribute.mAttributeName)
+        source.removeAttribute(fix.mViewAttribute.mNamespaceUri,
+                               fix.mViewAttribute.mAttributeName)
+
       is ValidatorData.SetViewAttributeFix ->
-        component.setAttribute(fix.mViewAttribute.mNamespaceUri,
-                               fix.mViewAttribute.mAttributeName,
-                               fix.mSuggestedValue)
+        source.setAttribute(fix.mViewAttribute.mNamespaceUri,
+                            fix.mViewAttribute.mAttributeName,
+                            fix.mSuggestedValue)
+
       is ValidatorData.CompoundFix ->
         fix.mFixes.forEach {
-          applyFixImpl(it, component)
+          applyFixImpl(it, source)
         }
+
       else -> {
         // Do not apply the fix
       }

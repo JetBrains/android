@@ -37,7 +37,7 @@ import javax.swing.JTree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class MemoryProfilerTestUtils {
+public class MemoryProfilerTestUtils {
   @NotNull
   public static ClassSet findChildClassSetWithName(@NotNull Classifier classifier, @NotNull String className) {
     List<ClassSet> classSets = classifier.getFilteredClassifierSets().stream()
@@ -142,6 +142,11 @@ public final class MemoryProfilerTestUtils {
     allocTrackingHandler.setLegacyTracking(legacyTracking);
     allocTrackingHandler.setTrackStatus(trackStatus);
     stage.trackAllocations(false);
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+  }
+
+  public static void toggleNativeAllocationTrackingHelper(MainMemoryProfilerStage stage, FakeTimer timer) {
+    stage.toggleNativeAllocationTracking();
     timer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 

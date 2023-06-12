@@ -513,7 +513,6 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         // Cause build view to show as skipped all pending tasks (b/73397414)
         val event = FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", SkippedResultImpl())
         buildEventDispatcher.onEvent(id, event)
-        buildEventDispatcher.close()
       }
       super.onCancel(id)
     }

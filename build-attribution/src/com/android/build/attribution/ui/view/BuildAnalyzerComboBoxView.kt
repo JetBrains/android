@@ -21,6 +21,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.SimpleListCellRenderer
@@ -62,9 +63,9 @@ class BuildAnalyzerComboBoxView(
     pageViewByDataSetMap.computeIfAbsent(dataSet) {
       when (it) {
         BuildAnalyzerViewModel.DataSet.OVERVIEW -> BuildOverviewPageView(model.overviewPageModel, actionHandlers)
-        BuildAnalyzerViewModel.DataSet.TASKS -> TasksPageView(model.tasksPageModel, actionHandlers)
+        BuildAnalyzerViewModel.DataSet.TASKS -> TasksPageView(model.tasksPageModel, actionHandlers, this)
         BuildAnalyzerViewModel.DataSet.WARNINGS -> WarningsPageView(model.warningsPageModel, actionHandlers, this)
-        BuildAnalyzerViewModel.DataSet.DOWNLOADS -> DownloadsInfoPageView(model.downloadsInfoPageModel, actionHandlers)
+        BuildAnalyzerViewModel.DataSet.DOWNLOADS -> DownloadsInfoPageView(model.downloadsInfoPageModel, actionHandlers, this)
       }
   }
 
@@ -87,6 +88,7 @@ class BuildAnalyzerComboBoxView(
     background = JBUI.CurrentTheme.ToolWindow.headerBorderBackground()
     val controlsPanel = JBPanel<JBPanel<*>>(HorizontalLayout(10)).apply {
       border = JBUI.Borders.emptyLeft(4)
+      withPreferredHeight(35)
     }
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = object : LayoutFocusTraversalPolicy() {
@@ -97,7 +99,6 @@ class BuildAnalyzerComboBoxView(
 
     controlsPanel.add(dataSetCombo)
     controlsPanel.add(additionalControlsPanel)
-    controlsPanel.add(createToolbar(this))
     add(controlsPanel, BorderLayout.NORTH)
     add(pagesPanel, BorderLayout.CENTER)
   }
@@ -120,7 +121,9 @@ class BuildAnalyzerComboBoxView(
     additionalControlsPanel.select(page, true)
   }
 
-  override fun dispose() = Unit
+  override fun dispose() {
+    model.dataSetSelectionListener = null
+  }
 
   private fun createToolbar(targetComponent: JComponent): JComponent {
     val group = DefaultActionGroup()

@@ -21,6 +21,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.testFramework.ApplicationRule;
@@ -39,16 +40,30 @@ import org.mockito.Mockito;
 public final class VirtualDeviceTableTest {
   @Rule
   public ApplicationRule rule = new ApplicationRule();
-  private final @NotNull VirtualDevicePanel myPanel = Mockito.mock(VirtualDevicePanel.class);
+
+  private final VirtualDevicePanel myPanel = Mockito.mock(VirtualDevicePanel.class);
+  private final WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
   private final CountDownLatch myLatch = new CountDownLatch(1);
 
   @Test
   public void emptyTable() throws InterruptedException {
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of()), this::newSetDevices);
+    VirtualDeviceTable.NewSetDevices callback = table -> new FutureCallback<>() {
+      @Override
+      public void onSuccess(@NotNull List<VirtualDevice> result) {
+        myLatch.countDown();
+      }
+
+      @Override
+      public void onFailure(@NotNull Throwable t) {
+        myLatch.countDown();
+      }
+    };
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of()), callback, myManager);
 
     CountDownLatchAssert.await(myLatch);
 
     assertEquals(Optional.empty(), table.getSelectedDevice());
+    assertEquals("Loading...", table.getEmptyText().getText());
   }
 
   @Test
@@ -61,7 +76,7 @@ public final class VirtualDeviceTableTest {
 
     VirtualDevice device = TestVirtualDevices.pixel5Api31(avdInfo);
 
-    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of(device)), this::newSetDevices);
+    VirtualDeviceTable table = new VirtualDeviceTable(myPanel, null, mockSupplier(List.of(device)), this::newSetDevices, myManager);
 
     CountDownLatchAssert.await(myLatch);
 
@@ -71,14 +86,14 @@ public final class VirtualDeviceTableTest {
     assertEquals(Optional.of(device), table.getSelectedDevice());
   }
 
-  private static @NotNull VirtualDeviceAsyncSupplier mockSupplier(@NotNull List<@NotNull VirtualDevice> devices) {
+  private static @NotNull VirtualDeviceAsyncSupplier mockSupplier(@NotNull List<VirtualDevice> devices) {
     VirtualDeviceAsyncSupplier supplier = Mockito.mock(VirtualDeviceAsyncSupplier.class);
     Mockito.when(supplier.getAll()).thenReturn(Futures.immediateFuture(devices));
 
     return supplier;
   }
 
-  private @NotNull FutureCallback<@NotNull List<@NotNull VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
+  private @NotNull FutureCallback<List<VirtualDevice>> newSetDevices(@NotNull VirtualDeviceTable table) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceTable.newSetDevices(table), myLatch);
   }
 }

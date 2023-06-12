@@ -28,6 +28,8 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats
 import com.intellij.openapi.util.io.FileUtil
 import com.android.tools.idea.io.grpc.stub.StreamObserver
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
@@ -50,10 +52,14 @@ class TraceProcessorServiceImplTest {
   @get:Rule
   val fakeGrpcChannel = FakeGrpcChannel("TraceProcessorServiceImplTest", fakeGrpcService)
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   @Test
   fun `loadTrace - ok`() {
     val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
+    Disposer.register(disposableRule.disposable, ideService)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
       .setOk(true)
@@ -82,6 +88,7 @@ class TraceProcessorServiceImplTest {
   fun `loadTrace - fail`() {
     val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
+    Disposer.register(disposableRule.disposable, ideService)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
       .setOk(false)
@@ -100,6 +107,7 @@ class TraceProcessorServiceImplTest {
   fun `loadTrace - grpc retry`() {
     val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
+    Disposer.register(disposableRule.disposable, ideService)
 
     fakeGrpcService.failsPerQuery = 2
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
@@ -118,6 +126,7 @@ class TraceProcessorServiceImplTest {
   fun `loadTrace - grpc retry exhausted`() {
     val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
+    Disposer.register(disposableRule.disposable, ideService)
 
     fakeGrpcService.failsPerQuery = 5
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
@@ -142,6 +151,7 @@ class TraceProcessorServiceImplTest {
   fun `loadCpuData - ok`() {
     val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
+    Disposer.register(disposableRule.disposable, ideService)
 
     // For test simplicity here, will return a single result (the real case would be one for each query in the batch)
     fakeGrpcService.queryBatchResponse = TraceProcessor.QueryBatchResponse.newBuilder()
@@ -165,6 +175,9 @@ class TraceProcessorServiceImplTest {
                   .setTraceId(10)
                   .setAndroidFrameEventsRequest(
                     TraceProcessor.QueryParameters.AndroidFrameEventsParameters.newBuilder().setLayerNameHint("foo")))
+      .addQuery(TraceProcessor.QueryParameters.newBuilder()
+                  .setTraceId(10)
+                  .setPowerCounterTracksRequest(TraceProcessor.QueryParameters.PowerCounterTracksParameters.getDefaultInstance()))
       .addQuery(TraceProcessor.QueryParameters.newBuilder()
                   .setTraceId(10)
                   .setAndroidFrameTimelineRequest(
@@ -192,6 +205,7 @@ class TraceProcessorServiceImplTest {
   fun `loadCpuData - reload trace if necessary`() {
     val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
+    Disposer.register(disposableRule.disposable, ideService)
 
     fakeGrpcService.loadTraceResponse = TraceProcessor.LoadTraceResponse.newBuilder()
       .setOk(true)
@@ -225,6 +239,7 @@ class TraceProcessorServiceImplTest {
   fun `loadCpuData - trace not loaded`() {
     val client = TraceProcessorDaemonClient(fakeTicker, TraceProcessorServiceGrpc.newBlockingStub(fakeGrpcChannel.channel))
     val ideService = TraceProcessorServiceImpl(fakeTicker, client)
+    Disposer.register(disposableRule.disposable, ideService)
 
     // For test simplicity here, will return a single result (the real case would be one for each query in the batch)
     fakeGrpcService.queryBatchResponse = TraceProcessor.QueryBatchResponse.newBuilder()

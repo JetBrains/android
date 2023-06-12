@@ -436,25 +436,10 @@ of whichever profiler you have selected.
      scenario simply exists as a reminder to test them.
 1. Tap the screen and you **should see a pink circle**
 1. Tap and hold the screen and you **should see an extended pink circle**
-1. Press volume down and you **should see a "volume up" icon**
-1. Press volume up and you **should see a "volume down" icon**
 1. Make sure the phone or AVD's system-wide Auto-rotate setting is on
 1. Rotate the screen and when the app reacts to the rotation, you **should see a "rotation" icon**
 
 ![Events - Basic][events-basic]
-
-### Type Words
-
-1. In the QA App, select the "Type Words" scenario.
-1. Press the "run" button
-1. Tap the text area to bring up the keyboard
-1. Type "e" and you can see the **e icon**
-1. Type Backspace and you can see a **delete iconm**
-1. Type "l", "o" and you can see **"l" and "lo" icons**
-1. Tap the autocompleted word "love" and you can see **the final "love" icon**
-1. Tap the "back" button to hide keyboard
-
-![Events - Type Words][events-typing]
 
 ### Switch Activities
 

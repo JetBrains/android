@@ -62,7 +62,6 @@ public class DiagnosticReportBuilder {
                                  long maxSamplingTimeMs,
                                  long frameTimeIgnoreThresholdMs,
                                  long freezeTimeBeforeCreatedMs,
-                                 @NotNull LastActionTracker lastActionTracker,
                                  @NotNull DiagnosticReportIdePerformanceListener.Controller controller) {
     if (intervalMs <= 0) {
       throw new IllegalArgumentException("intervalMs must be > 0");
@@ -74,8 +73,7 @@ public class DiagnosticReportBuilder {
     myReportContributors = Arrays.asList(
       new ThreadSamplingReportContributor(),
       new MemoryUseReportContributor(),
-      new ActionsReportContributor(lastActionTracker),
-      new JfrReportContributor()
+      new ActionsReportContributor()
     );
     myBinaryReportPaths = new TreeMap<>();
 

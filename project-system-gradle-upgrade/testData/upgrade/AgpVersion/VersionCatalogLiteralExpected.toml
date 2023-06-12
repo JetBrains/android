@@ -1,0 +1,2 @@
+[plugins]
+agp = "com.android.application:8.0.0"

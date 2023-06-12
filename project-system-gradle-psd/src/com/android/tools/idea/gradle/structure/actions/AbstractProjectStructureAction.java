@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.actions;
 
 import com.android.tools.idea.gradle.actions.AndroidStudioGradleAction;
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -48,6 +49,11 @@ public abstract class AbstractProjectStructureAction extends AndroidStudioGradle
         doPerform(module, ((AndroidProjectSettingsServiceImpl)service), e);
       }
     }
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   protected abstract Module getTargetModule(@NotNull AnActionEvent e);

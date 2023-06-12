@@ -15,22 +15,26 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createResponse
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
+import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.COMPOSE_LAYOUT_INSPECTOR_ID
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeComposeLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.VIEW_LAYOUT_INSPECTOR_ID
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -41,8 +45,8 @@ import com.intellij.openapi.Disposable
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 
 /**
  * An [InspectorClientProvider] for creating an app inspection-based client.
@@ -51,32 +55,43 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as Comp
  */
 fun AppInspectionClientProvider(
   getApiServices: () -> AppInspectionApiServices,
-  getMonitor: () -> InspectorClientLaunchMonitor,
-  parentDisposable: Disposable
+  getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor,
+  getClientSettings: () -> InspectorClientSettings,
+  getDisposable: () -> Disposable
 ) = InspectorClientProvider { params, inspector ->
   val apiServices = getApiServices()
 
-  AppInspectionInspectorClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
-                               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
-                               inspector.treeSettings, parentDisposable, apiServices).apply {
-    launchMonitor = getMonitor()
+  AppInspectionInspectorClient(
+    process = params.process,
+    isInstantlyAutoConnected = params.isInstantlyAutoConnected,
+    model = inspector.inspectorModel,
+    metrics = LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
+    treeSettings = inspector.treeSettings,
+    inspectorClientSettings = getClientSettings(),
+    coroutineScope = AndroidCoroutineScope(getDisposable()),
+    parentDisposable = getDisposable(),
+    apiServices = apiServices).apply {
+    launchMonitor = getMonitor(this)
   }
 }
 
 /**
  * App inspection-pipeline specific setup and teardown for tests.
  */
-class AppInspectionInspectorRule(private val parentDisposable: Disposable, withDefaultResponse: Boolean = true) : TestRule {
+class AppInspectionInspectorRule(
+  private val projectRule: AndroidProjectRule,
+  withDefaultResponse: Boolean = true
+) : TestRule {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
   // This flag allows us to avoid a path in Compose inspector client construction so we don't need to mock a bunch of services
-  private val devModeFlagRule = SetFlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR, true)
+  private val devModeFlagRule = FlagRule(StudioFlags.APP_INSPECTION_USE_DEV_JAR, true)
   private val grpcServer = FakeGrpcServer.createFakeGrpcServer("AppInspectionInspectorRuleServer", transportService)
   val inspectionService = AppInspectionServiceRule(timer, transportService, grpcServer)
 
-  val viewInspector = FakeViewLayoutInspector(object : FakeInspector.Connection<ViewProtocol.Event>() {
-    override fun sendEvent(event: ViewProtocol.Event) {
+  val viewInspector = FakeViewLayoutInspector(object : FakeInspector.Connection<LayoutInspectorViewProtocol.Event>() {
+    override fun sendEvent(event: LayoutInspectorViewProtocol.Event) {
       if (withDefaultResponse) {
         inspectionService.addAppInspectionEvent(
           AppInspection.AppInspectionEvent.newBuilder().apply {
@@ -96,7 +111,7 @@ class AppInspectionInspectorRule(private val parentDisposable: Disposable, withD
         createCommand.createResponse(viewInspector.createResponseStatus)
       },
       rawInspectorResponse = { rawCommand ->
-        val viewCommand = ViewProtocol.Command.parseFrom(rawCommand.content)
+        val viewCommand = LayoutInspectorViewProtocol.Command.parseFrom(rawCommand.content)
         val viewResponse = viewInspector.handleCommand(viewCommand)
         val rawResponse = AppInspection.RawResponse.newBuilder().setContent(viewResponse.toByteString())
         AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
@@ -108,7 +123,7 @@ class AppInspectionInspectorRule(private val parentDisposable: Disposable, withD
         createCommand.createResponse(composeInspector.createResponseStatus)
       },
       rawInspectorResponse = { rawCommand ->
-        val composeCommand = ComposeProtocol.Command.parseFrom(rawCommand.content)
+        val composeCommand = LayoutInspectorComposeProtocol.Command.parseFrom(rawCommand.content)
         val composeResponse = composeInspector.handleCommand(composeCommand)
         val rawResponse = AppInspection.RawResponse.newBuilder().setContent(composeResponse.toByteString())
         AppInspection.AppInspectionResponse.newBuilder().setRawResponse(rawResponse)
@@ -127,8 +142,24 @@ class AppInspectionInspectorRule(private val parentDisposable: Disposable, withD
   /**
    * Convenience method so users don't have to manually create an [AppInspectionClientProvider].
    */
-  fun createInspectorClientProvider(monitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor())): InspectorClientProvider {
-    return AppInspectionClientProvider({ inspectionService.apiServices }, { monitor }, parentDisposable)
+  fun createInspectorClientProvider(
+    getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor = { defaultMonitor(it) },
+    getClientSettings: () -> InspectorClientSettings = { defaultInspectorClientSettings() },
+    getDisposable: () -> Disposable = { defaultDisposable() }
+  ): InspectorClientProvider {
+    return AppInspectionClientProvider({ inspectionService.apiServices }, getMonitor, getClientSettings, getDisposable)
+  }
+
+  private fun defaultMonitor(client: AbstractInspectorClient): InspectorClientLaunchMonitor {
+    return InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), client.stats)
+  }
+
+  private fun defaultInspectorClientSettings(): InspectorClientSettings {
+    return InspectorClientSettings(projectRule.project)
+  }
+
+  private fun defaultDisposable(): Disposable {
+    return projectRule.testRootDisposable
   }
 
   override fun apply(base: Statement, description: Description): Statement {

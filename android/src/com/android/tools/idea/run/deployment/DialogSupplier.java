@@ -21,5 +21,5 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 interface DialogSupplier {
-  @NotNull DialogWrapper get(@NotNull Project project, @NotNull List<@NotNull Device> devices);
+  @NotNull DialogWrapper get(@NotNull Project project, @NotNull List<Device> devices);
 }

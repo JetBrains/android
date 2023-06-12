@@ -570,7 +570,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     for (ToolWindowDefinition<T> definition : myToolDefinitions) {
       AttachedToolWindow<T> toolWindow =
         new AttachedToolWindow<>(definition, myButtonDragListener, this, myModel, minimizedWindows);
-      Disposer.register(this, toolWindow);
       tools.add(toolWindow);
     }
     setDefaultOrderIfMissing(tools);

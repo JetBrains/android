@@ -34,6 +34,7 @@ import java.awt.Point
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicBoolean
 
 class NlVisibilityGutterPanelTest: LayoutTestCase() {
 
@@ -58,7 +59,7 @@ class NlVisibilityGutterPanelTest: LayoutTestCase() {
     mySurface = NlDesignSurface.builder(project, myDisposable!!)
       .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
         object : SyncLayoutlibSceneManager(surface, model as SyncNlModel) {
-          override fun renderAsync(trigger: LayoutEditorRenderResult.Trigger?): CompletableFuture<RenderResult> {
+          override fun renderAsync(trigger: LayoutEditorRenderResult.Trigger?, ignore: AtomicBoolean): CompletableFuture<RenderResult> {
             return CompletableFuture.completedFuture(null)
           }
         }

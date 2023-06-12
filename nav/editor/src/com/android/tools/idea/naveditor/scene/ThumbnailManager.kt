@@ -19,8 +19,10 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
@@ -55,10 +57,10 @@ data class RefinableImage(val image: Image? = null, val refined: CompletableFutu
 open class ThumbnailManager protected constructor(facet: AndroidFacet) : AndroidFacetScopedService(facet) {
 
   private val myImages = HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>?>()
-  private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, MutableMap<Dimension, SoftReference<Image>?>?>()
+  private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?>?>()
   private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
   private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
-  private val myResourceRepository: LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet)
+  private var myResourceRepository: LocalResourceRepository? = StudioResourceRepositoryManager.getAppResources(facet)
 
   @GuardedBy("disposalLock")
   private val myPendingFutures = HashMap<VirtualFile, CompletableFuture<RefinableImage?>>()
@@ -68,6 +70,8 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
 
   private val disposalLock = Any()
 
+  private fun modificationCount() = myResourceRepository?.modificationCount ?: 0
+
   override fun onDispose() {
     lateinit var futures: Array<CompletableFuture<RefinableImage?>>
     synchronized(disposalLock) {
@@ -75,6 +79,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       futures = myPendingFutures.values.toTypedArray()
       myPendingFutures.clear()
     }
+    myResourceRepository = null
     try {
       CompletableFuture.allOf(*futures).get(5, TimeUnit.SECONDS)
     }
@@ -88,27 +93,30 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   fun getThumbnail(
     xmlFile: XmlFile,
     configuration: Configuration,
-    dimensions: Dimension
+    dimensions: Dimension,
+    scaleContext: ScaleContext
   ): RefinableImage {
     val file = xmlFile.virtualFile
-    val cachedByDimension = myScaledImages[file, configuration] ?: mutableMapOf<Dimension, SoftReference<Image>?>().also {
-      myScaledImages.put(file, configuration, it)
-    }
-    val cached = cachedByDimension[dimensions]?.get()
+    val cachedByDimension = myScaledImages[file, configuration]
+                            ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>?>().also {
+                              myScaledImages.put(file, configuration, it)
+                            }
+    val cached = cachedByDimension[dimensions, scaleContext]?.get()
     return if (cached != null &&
-               myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
+               myRenderVersions.get(file, configuration) == modificationCount() &&
                myRenderModStamps.get(file, configuration) == file.timeStamp) {
       RefinableImage(cached)
     }
     else {
-      RefinableImage(cached, getScaledImage(xmlFile, configuration, dimensions))
+      RefinableImage(cached, getScaledImage(xmlFile, configuration, dimensions, scaleContext))
     }
   }
 
   private fun getScaledImage(
     xmlFile: XmlFile,
     configuration: Configuration,
-    dimensions: Dimension
+    dimensions: Dimension,
+    scaleContext: ScaleContext
   ): CompletableFuture<RefinableImage?> {
     val file = xmlFile.virtualFile
     val result = CompletableFuture<RefinableImage?>()
@@ -139,13 +147,13 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
             }
           }
           // This does the high-quality scaling asynchronously
-          val scaledFuture = scaleImage(full, dimensions).thenApply { scaled ->
-            val dimensionMap: MutableMap<Dimension, SoftReference<Image>?> =
+          val scaledFuture = scaleImage(full, dimensions, scaleContext).thenApply { scaled ->
+            val dimensionMap: HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?> =
               myScaledImages[xmlFile.virtualFile, configuration]
-              ?: mutableMapOf<Dimension, SoftReference<Image>?>().also {
+              ?: HashBasedTable.create<Dimension, ScaleContext, SoftReference<Image>?>().also {
                 myScaledImages.put(xmlFile.virtualFile, configuration, it)
               }
-            dimensionMap[dimensions] = SoftReference(scaled)
+            dimensionMap.put(dimensions, scaleContext, SoftReference(scaled))
             scaled
           }.thenApply { RefinableImage(it) }
           // This stage of the top-level async pipeline returns a quickly-scaled version of the fullsize image, and the future for the high-
@@ -176,7 +184,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     val file = xmlFile.virtualFile
     val fullSize = myImages[file, configuration]?.get()
     return if (fullSize != null &&
-               myRenderVersions.get(file, configuration) == myResourceRepository.modificationCount &&
+               myRenderVersions.get(file, configuration) == modificationCount() &&
                myRenderModStamps.get(file, configuration) == file.timeStamp) {
       CompletableFuture.completedFuture(fullSize)
     }
@@ -191,10 +199,10 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
     return scaled
   }
 
-  private fun scaleImage(image: BufferedImage, dimensions: Dimension): CompletableFuture<Image> {
+  private fun scaleImage(image: BufferedImage, dimensions: Dimension, scaleContext: ScaleContext): CompletableFuture<Image> {
     val result = CompletableFuture<Image>()
     ApplicationManager.getApplication().executeOnPooledThread {
-      var scaledImage = ImageUtil.ensureHiDPI(image, ScaleContext.create())
+      var scaledImage = ImageUtil.ensureHiDPI(image, scaleContext)
       scaledImage = ImageUtil.scaleImage(scaledImage, dimensions.width, dimensions.height)
 
       result.complete(scaledImage)
@@ -205,13 +213,13 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   // open for testing
   @VisibleForTesting
   protected open fun getImage(xmlFile: XmlFile, file: VirtualFile, configuration: Configuration): CompletableFuture<BufferedImage?> {
-    val renderService = RenderService.getInstance(module.project)
+    val renderService = StudioRenderService.getInstance(module.project)
     val renderTaskFuture = createTask(facet, xmlFile, configuration, renderService)
     return renderTaskFuture.thenCompose { task -> task.render() }
       .thenApply {
         val image = it.renderedImage.copy
         myImages.put(file, configuration, SoftReference<BufferedImage>(image))
-        myRenderVersions.put(file, configuration, myResourceRepository.modificationCount)
+        myRenderVersions.put(file, configuration, modificationCount())
         myRenderModStamps.put(file, configuration, file.timeStamp)
         image
       }

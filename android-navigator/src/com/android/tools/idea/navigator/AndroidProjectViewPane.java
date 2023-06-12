@@ -25,6 +25,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.Projects;
+import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
@@ -60,6 +61,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.containers.ContainerUtil;
@@ -169,6 +171,13 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
       public float getWeight() {
         return AndroidProjectViewPane.this.getWeight();
       }
+
+      @Override
+      protected boolean canSelect(PsiFileSystemItem file) {
+        if (super.canSelect(file)) return true;
+        return AndroidViewNodeProvider.getProviders().stream()
+          .anyMatch(it -> it.projectContainsExternalFile(myProject, file.getVirtualFile()));
+      }
     };
   }
 
@@ -234,12 +243,14 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     return o;
   }
 
+  @Nullable
   @Override
-  protected @Nullable Object getSlowDataFromSelection(@Nullable Object @NotNull [] selectedUserObjects,
-                                                      @Nullable Object @Nullable [] singleSelectedPathUserObjects,
-                                                      @NotNull String dataId) {
+  protected Object getSlowDataFromSelection(
+      @Nullable Object[] selectedUserObjects,
+      @Nullable Object[] singleSelectedPathUserObjects,
+      @NotNull String dataId) {
     if (DELETE_ELEMENT_PROVIDER.is(dataId)) {
-      Object o = selectedUserObjects.length != 1 ? null : getValueFromNode(selectedUserObjects[0]);
+      Object o = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
       if (o instanceof PsiDirectory) {
         VirtualFile directory = ((PsiDirectory)o).getVirtualFile();
         // Do not allow folder to be deleted if the folder is the root project folder.
@@ -251,7 +262,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     if (PlatformCoreDataKeys.MODULE.is(dataId)) {
-      Object o = selectedUserObjects.length != 1 ? null : getValueFromNode(selectedUserObjects[0]);
+      Object o = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
       if (o instanceof PackageElement) {
         PackageElement packageElement = (PackageElement)o;
         return packageElement.getModule();
@@ -262,7 +273,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     if (VIRTUAL_FILE.is(dataId)) {
-      Object o = selectedUserObjects.length != 1 ? null : getValueFromNode(selectedUserObjects[0]);
+      Object o = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
       if (o instanceof PackageElement) {
         PackageElement packageElement = (PackageElement)o;
         Module m = packageElement.getModule();
@@ -279,8 +290,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     if (VIRTUAL_FILE_ARRAY.is(dataId)) {
-      NodeDescriptor<?> selectedDescriptor = selectedUserObjects.length != 1 ? null :
-                                             ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
+      NodeDescriptor<?> selectedDescriptor =
+          (selectedUserObjects.length != 1) ? null : ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
       if (selectedDescriptor instanceof FileGroupNode) {
         List<PsiFile> files = ((FileGroupNode)selectedDescriptor).getFiles();
         if (!files.isEmpty()) {
@@ -309,7 +320,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     }
 
     if (PSI_ELEMENT.is(dataId)) {
-      Object o = selectedUserObjects.length != 1 ? null : getValueFromNode(selectedUserObjects[0]);
+      Object o = (selectedUserObjects.length != 1) ? null : getValueFromNode(selectedUserObjects[0]);
       if (o instanceof PsiElement) {
         return o;
       }
@@ -320,8 +331,8 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
         }
       }
 
-      NodeDescriptor<?> selectedDescriptor = selectedUserObjects.length != 1 ? null :
-                                             ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
+      NodeDescriptor<?> selectedDescriptor =
+          (selectedUserObjects.length != 1) ? null : ObjectUtils.tryCast(selectedUserObjects[0], NodeDescriptor.class);
       if (selectedDescriptor instanceof FileGroupNode) {
         List<PsiFile> files = ((FileGroupNode)selectedDescriptor).getFiles();
         if (!files.isEmpty()) {
@@ -371,8 +382,9 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
   // This class is used to prevent deleting folders that are actually the root project.
   // See: https://code.google.com/p/android/issues/detail?id=212522
   private static class NoOpDeleteProvider implements DeleteProvider {
+    @NotNull
     @Override
-    public @NotNull ActionUpdateThread getActionUpdateThread() {
+    public ActionUpdateThread getActionUpdateThread() {
       return ActionUpdateThread.BGT;
     }
 
@@ -388,8 +400,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
 
   private static class AndroidProjectTreeStructure extends ProjectTreeStructure implements ProjectViewSettings {
 
+    private final String panelId;
+
     AndroidProjectTreeStructure(@NotNull Project project, @NotNull String panelId) {
       super(project, panelId);
+      this.panelId = panelId;
     }
 
     @Override
@@ -404,6 +419,11 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     @Override
     protected AbstractTreeNode createRoot(@NotNull Project project, @NotNull ViewSettings settings) {
       return new AndroidViewProjectNode(project, settings);
+    }
+
+    @Override
+    public boolean isShowVisibilityIcons() {
+      return ProjectView.getInstance(myProject).isShowVisibilityIcons(panelId);
     }
   }
 }

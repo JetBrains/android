@@ -1,44 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.4.0-dev">
+<issues format="5" by="lint 8.1.0-dev">
 
     <issue
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="108"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="266"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="267"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="271"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="291"/>
+            line="105"/>
     </issue>
 
     <issue
@@ -53,32 +21,48 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="335"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewPanelActionsToolbarProvider.kt"
-            line="103"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewPanelActionsToolbarProvider.kt"
-            line="104"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
             file="src/com/android/tools/idea/layoutinspector/pipeline/legacy/PropertyMapper.kt"
             line="222"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
+            line="56"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
+            line="63"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
+            line="75"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
+            line="108"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
+            line="110"/>
     </issue>
 
 </issues>

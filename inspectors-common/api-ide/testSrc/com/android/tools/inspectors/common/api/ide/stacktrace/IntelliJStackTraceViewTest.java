@@ -59,8 +59,8 @@ public class IntelliJStackTraceViewTest {
     "java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1133)\n" +
     "java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:607)\n" +
     "java.lang.Thread.run(Thread.java:761)";
-  private static final List<CodeLocation> CODE_LOCATIONS = Arrays.stream(STACK_STRING.split("\\n")).map(
-    line -> new StackFrameParser(line).toCodeLocation())
+  private static final List<CodeLocation> CODE_LOCATIONS = Arrays.stream(STACK_STRING.split("\\n"))
+    .map(StackFrameParser::parseFrame)
     .collect(Collectors.toList());
 
   @Rule
@@ -95,8 +95,7 @@ public class IntelliJStackTraceViewTest {
   @Test
   public void equalityTest() {
     final String duplicateTestString = "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)";
-    StackFrameParser parser = new StackFrameParser(duplicateTestString);
-    CodeLocation positiveTest = parser.toCodeLocation();
+    CodeLocation positiveTest = StackFrameParser.parseFrame(duplicateTestString);
     CodeLocation negativeTest1 = CodeLocation.stub();
     CodeLocation negativeTest2 = new CodeLocation.Builder(positiveTest).setMethodName(positiveTest.getFileName()).build();
     CodeLocation negativeTest3 = new CodeLocation.Builder(positiveTest).setLineNumber(-1).build();

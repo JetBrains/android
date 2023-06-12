@@ -21,86 +21,135 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.S
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
-import java.util.concurrent.TimeUnit
 
 private const val CONNECTION_ID = 1L
 
-private val HTTP_DATA = listOf(
-  Event.newBuilder().apply {
-    timestamp = TimeUnit.SECONDS.toNanos(0)
-    httpConnectionEvent = HttpConnectionEvent.newBuilder().apply {
-      connectionId = CONNECTION_ID
-      httpRequestStarted = HttpConnectionEvent.RequestStarted.newBuilder().apply {
-        url = fakeUrl(CONNECTION_ID)
-        method = ""
-        trace = fakeStackTrace(1)
-        fields = ""
-      }.build()
-    }.build()
-  }.build(),
-  Event.newBuilder().apply {
-    timestamp = TimeUnit.SECONDS.toNanos(1)
-    httpConnectionEvent = HttpConnectionEvent.newBuilder().apply {
-      connectionId = CONNECTION_ID
-      requestPayload = HttpConnectionEvent.Payload.newBuilder().apply {
-        payload = ByteString.copyFromUtf8("REQUEST_CONTENT")
-      }.build()
-    }.build()
-  }.build(),
-  Event.newBuilder().apply {
-    timestamp = TimeUnit.SECONDS.toNanos(1)
-    httpConnectionEvent = HttpConnectionEvent.newBuilder().apply {
-      connectionId = CONNECTION_ID
-      httpRequestCompleted = HttpConnectionEvent.RequestCompleted.getDefaultInstance()
-    }.build()
-  }.build(),
-  Event.newBuilder().apply {
-    timestamp = TimeUnit.SECONDS.toNanos(2)
-    httpConnectionEvent = HttpConnectionEvent.newBuilder().apply {
-      connectionId = CONNECTION_ID
-      httpResponseStarted = HttpConnectionEvent.ResponseStarted.newBuilder().apply {
-        fields = fakeResponseFields(CONNECTION_ID)
-      }.build()
-    }.build()
-  }.build(),
-  Event.newBuilder().apply {
-    timestamp = TimeUnit.SECONDS.toNanos(3)
-    httpConnectionEvent = HttpConnectionEvent.newBuilder().apply {
-      connectionId = CONNECTION_ID
-      responsePayload = HttpConnectionEvent.Payload.newBuilder().apply {
-        payload = ByteString.copyFromUtf8("RESPONSE_CONTENT")
-      }.build()
-    }.build()
-  }.build(),
-  Event.newBuilder().apply {
-    timestamp = TimeUnit.SECONDS.toNanos(3)
-    httpConnectionEvent = HttpConnectionEvent.newBuilder().apply {
-      connectionId = CONNECTION_ID
-      httpResponseCompleted = HttpConnectionEvent.ResponseCompleted.getDefaultInstance()
-    }.build()
-  }.build(),
-  Event.newBuilder().apply {
-    timestamp = TimeUnit.SECONDS.toNanos(3)
-    httpConnectionEvent = HttpConnectionEvent.newBuilder().apply {
-      connectionId = CONNECTION_ID
-      httpClosed = HttpConnectionEvent.Closed.newBuilder().apply {
-        completed = true
-      }.build()
-    }.build()
-  }.build()
-)
+private val HTTP_DATA =
+  listOf(
+    Event.newBuilder()
+      .apply {
+        timestamp = TimeUnit.SECONDS.toNanos(0)
+        httpConnectionEvent =
+          HttpConnectionEvent.newBuilder()
+            .apply {
+              connectionId = CONNECTION_ID
+              httpRequestStarted =
+                HttpConnectionEvent.RequestStarted.newBuilder()
+                  .apply {
+                    url = fakeUrl(CONNECTION_ID)
+                    method = ""
+                    trace = fakeStackTrace(1)
+                    fields = ""
+                  }
+                  .build()
+            }
+            .build()
+      }
+      .build(),
+    Event.newBuilder()
+      .apply {
+        timestamp = TimeUnit.SECONDS.toNanos(1)
+        httpConnectionEvent =
+          HttpConnectionEvent.newBuilder()
+            .apply {
+              connectionId = CONNECTION_ID
+              requestPayload =
+                HttpConnectionEvent.Payload.newBuilder()
+                  .apply { payload = ByteString.copyFromUtf8("REQUEST_CONTENT") }
+                  .build()
+            }
+            .build()
+      }
+      .build(),
+    Event.newBuilder()
+      .apply {
+        timestamp = TimeUnit.SECONDS.toNanos(1)
+        httpConnectionEvent =
+          HttpConnectionEvent.newBuilder()
+            .apply {
+              connectionId = CONNECTION_ID
+              httpRequestCompleted = HttpConnectionEvent.RequestCompleted.getDefaultInstance()
+            }
+            .build()
+      }
+      .build(),
+    Event.newBuilder()
+      .apply {
+        timestamp = TimeUnit.SECONDS.toNanos(2)
+        httpConnectionEvent =
+          HttpConnectionEvent.newBuilder()
+            .apply {
+              connectionId = CONNECTION_ID
+              httpResponseStarted =
+                HttpConnectionEvent.ResponseStarted.newBuilder()
+                  .apply { fields = fakeResponseFields(CONNECTION_ID) }
+                  .build()
+            }
+            .build()
+      }
+      .build(),
+    Event.newBuilder()
+      .apply {
+        timestamp = TimeUnit.SECONDS.toNanos(3)
+        httpConnectionEvent =
+          HttpConnectionEvent.newBuilder()
+            .apply {
+              connectionId = CONNECTION_ID
+              responsePayload =
+                HttpConnectionEvent.Payload.newBuilder()
+                  .apply { payload = ByteString.copyFromUtf8("RESPONSE_CONTENT") }
+                  .build()
+            }
+            .build()
+      }
+      .build(),
+    Event.newBuilder()
+      .apply {
+        timestamp = TimeUnit.SECONDS.toNanos(3)
+        httpConnectionEvent =
+          HttpConnectionEvent.newBuilder()
+            .apply {
+              connectionId = CONNECTION_ID
+              httpResponseCompleted = HttpConnectionEvent.ResponseCompleted.getDefaultInstance()
+            }
+            .build()
+      }
+      .build(),
+    Event.newBuilder()
+      .apply {
+        timestamp = TimeUnit.SECONDS.toNanos(3)
+        httpConnectionEvent =
+          HttpConnectionEvent.newBuilder()
+            .apply {
+              connectionId = CONNECTION_ID
+              httpClosed =
+                HttpConnectionEvent.Closed.newBuilder().apply { completed = true }.build()
+            }
+            .build()
+      }
+      .build()
+  )
 
-private val HTTP_DATA_WITH_THREAD = HTTP_DATA + listOf(
-  Event.newBuilder().setTimestamp(TimeUnit.SECONDS.toNanos(4)).setHttpConnectionEvent(
-    HttpConnectionEvent.newBuilder().setConnectionId(CONNECTION_ID).setHttpThread(
-      HttpConnectionEvent.ThreadData.newBuilder().setThreadId(1).setThreadName("thread")
+private val HTTP_DATA_WITH_THREAD =
+  HTTP_DATA +
+    listOf(
+      Event.newBuilder()
+        .setTimestamp(TimeUnit.SECONDS.toNanos(4))
+        .setHttpConnectionEvent(
+          HttpConnectionEvent.newBuilder()
+            .setConnectionId(CONNECTION_ID)
+            .setHttpThread(
+              HttpConnectionEvent.ThreadData.newBuilder().setThreadId(1).setThreadName("thread")
+            )
+        )
+        .build()
     )
-  ).build())
 
 class HttpDataModelTest {
 

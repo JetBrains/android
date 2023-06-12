@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static org.mockito.Mockito.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -50,6 +50,6 @@ public class MakeGradleProjectActionTest extends PlatformTestCase {
     myAction.doPerform(TestActionEvent.createTestEvent(), getProject());
 
     // Verify.
-    verify(myBuildInvoker).assemble(eq(TestCompileType.ALL));
+    verify(myBuildInvoker).assemble(eq(TestCompileType.NONE));
   }
 }

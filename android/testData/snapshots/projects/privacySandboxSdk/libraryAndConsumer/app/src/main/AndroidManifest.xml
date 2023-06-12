@@ -9,7 +9,7 @@
     <application
         android:label="@string/app_name"
         android:supportsRtl="true"
-        tools:targetApi="31">
+        tools:targetApi="33">
 
         <activity
             android:name=".MainActivity"

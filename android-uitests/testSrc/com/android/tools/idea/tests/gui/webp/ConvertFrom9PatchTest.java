@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.webp;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
-
+import static com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -30,12 +28,7 @@ import com.intellij.openapi.fileChooser.ex.FileChooserDialogImpl;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.ComponentWithMnemonics;
-import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
+import java.io.File;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -46,15 +39,34 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import javax.swing.*;
+
+import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.reflect.core.Reflection.field;
+
 @RunWith(GuiTestRemoteRunner.class)
 public class ConvertFrom9PatchTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  private IdeFrameFixture ideFrame;
 
+  @Before
+  public void setUp() throws Exception {
+
+    File projectDir = guiTest.setUpProject("ConvertFrom9Patch", null, ANDROID_GRADLE_PLUGIN_VERSION, null, null);
+    guiTest.openProjectAndWaitForProjectSyncToFinish(projectDir, Wait.seconds(540));
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame = guiTest.ideFrame();
+  }
   /**
    * Verify that .9.png and transparent images are not converted to .WebP.
    * <p>
@@ -82,12 +94,11 @@ public class ConvertFrom9PatchTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testCannotConvertFrom9PatchAndTransparentImagesToWebp() throws Exception {
-    IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("ConvertFrom9Patch");
 
     ProjectViewFixture.PaneFixture androidPane = ideFrame.getProjectView().selectAndroidPane();
 
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.png")
-      .invokeMenuPath("Create 9-Patch file...");
+      .invokeContextualMenuPath("Create 9-Patch file…");
 
     FileChooserDialogFixture.find(ideFrame.robot())
       .clickOk();
@@ -114,15 +125,17 @@ public class ConvertFrom9PatchTest {
       }
     });
 
+    //Clearing the notifications present on the screen.
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     // Check nine-patch file is created by clicking on it.
     // Reload from Disk before clicking on new generated file.
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .invokeMenuPath("Reload from Disk");
-    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png");
-
-    // Try to convert to webp and verify.
-    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res")
-      .invokeMenuPath("Convert to WebP...");
+      .invokeContextualMenuPath("Reload from Disk");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png")
+      .invokeContextualMenuPath("Convert to WebP..."); // Try to convert to webp and verify.
     WebpConversionDialogFixture webpConversionDialog = WebpConversionDialogFixture.findDialog(guiTest.robot());
     JCheckBox skip9PatchCheckBox = webpConversionDialog.getCheckBox("Skip nine-patch (.9.png) images");
     assertThat(skip9PatchCheckBox.isEnabled()).isFalse();

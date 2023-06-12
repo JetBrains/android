@@ -42,7 +42,7 @@ class WearDevicePairingModel : WizardModel() {
     val wear = selectedWearDevice.valueOrNull
     if (wear != null && removePairingOnCancel.get()) {
       GlobalScope.launch(Dispatchers.IO) {
-        WearPairingManager.removeAllPairedDevices(wear.deviceID)
+        WearPairingManager.getInstance().removeAllPairedDevices(wear.deviceID)
       }
     }
   }

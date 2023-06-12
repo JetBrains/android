@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.FakeInspectorState
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.Root
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewResource
@@ -40,11 +41,12 @@ import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.awt.Dimension
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -52,19 +54,21 @@ import kotlin.concurrent.thread
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 class AppInspectionSnapshotSupportTest {
-  private val disposableRule = DisposableRule()
-
   private val projectRule = AndroidProjectRule.withSdk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule)
+  private lateinit var inspectorClientSettings: InspectorClientSettings
+  private val inspectorRule = LayoutInspectorRule(
+    listOf(appInspectorRule.createInspectorClientProvider(getClientSettings = { inspectorClientSettings })), projectRule
+  ) {
     it.name == PROCESS.name
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(appInspectorRule).around(inspectorRule)!!
 
   @Before
   fun setUp() {
+    inspectorClientSettings = InspectorClientSettings(projectRule.project)
     inspectorRule.attachDevice(MODERN_DEVICE)
   }
 
@@ -72,7 +76,8 @@ class AppInspectionSnapshotSupportTest {
 
   @Test
   fun saveAndLoadLiveSnapshot() {
-    InspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.isCapturingModeOn = true
+    inspectorRule.inspectorModel.resourceLookup.updateConfiguration(640, 2f, Dimension(800, 1600))
     appInspectorRule.viewInspector.interceptWhen ({ it.hasCaptureSnapshotCommand() }) {
       LayoutInspectorViewProtocol.Response.newBuilder().apply {
         captureSnapshotResponseBuilder.apply {
@@ -93,16 +98,50 @@ class AppInspectionSnapshotSupportTest {
     waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
 
     inspectorRule.inspectorClient.saveSnapshot(savePath)
+    inspectorRule.inspectorModel.resourceLookup.updateConfiguration(null, null, null)
+
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
     val newModel = InspectorModel(inspectorRule.project)
     snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
     checkSnapshot(newModel, snapshotLoader)
+
+    assertThat(newModel.resourceLookup.dpi).isEqualTo(640)
+    assertThat(newModel.resourceLookup.fontScale).isEqualTo(2f)
+    assertThat(newModel.resourceLookup.screenDimension).isEqualTo(Dimension(800, 1600))
+  }
+
+  @Test
+  fun saveAndLoadLiveSnapshotWithDeepComposeNesting() {
+    inspectorClientSettings.isCapturingModeOn = true
+    val inspectorState = FakeInspectorState(appInspectorRule.viewInspector, appInspectorRule.composeInspector)
+    inspectorState.createFakeViewTree()
+    inspectorState.createFakeViewTreeAsSnapshot()
+    inspectorState.createFakeLargeComposeTree()
+    inspectorRule.processNotifier.fireConnected(PROCESS)
+    inspectorRule.processes.selectedProcess = PROCESS
+    waitForCondition(20, TimeUnit.SECONDS) { inspectorRule.inspectorModel.windows.isNotEmpty() }
+
+    inspectorRule.inspectorClient.saveSnapshot(savePath)
+    inspectorRule.inspectorModel.resourceLookup.updateConfiguration(null, null, null)
+
+    val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
+    val newModel = InspectorModel(inspectorRule.project)
+    snapshotLoader.loadFile(savePath, newModel, inspectorRule.inspectorClient.stats)
+
+    // Verify we have all 126 composables
+    for (id in -300L downTo -425L) {
+      assertThat(newModel[id]).isNotNull()
+    }
+
+    assertThat(newModel.resourceLookup.dpi).isEqualTo(240)
+    assertThat(newModel.resourceLookup.fontScale).isEqualTo(1.5f)
+    assertThat(newModel.resourceLookup.screenDimension).isEqualTo(Dimension(800, 1600))
   }
 
   @Test
   fun saveAndLoadNonLiveSnapshot() {
-    InspectorClientSettings.isCapturingModeOn = false
-    inspectorRule.inspectorClient.stopFetching()
+    inspectorClientSettings.isCapturingModeOn = false
+    runBlocking { inspectorRule.inspectorClient.stopFetching() }
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent {
         rootsEventBuilder.apply {
@@ -135,7 +174,7 @@ class AppInspectionSnapshotSupportTest {
   @Test
   fun saveNonLiveSnapshotImmediately() {
     // Connect initially in live mode
-    InspectorClientSettings.isCapturingModeOn = true
+    inspectorClientSettings.isCapturingModeOn = true
     appInspectorRule.viewInspector.interceptWhen({ it.hasStartFetchCommand() }) {
       appInspectorRule.viewInspector.connection.sendEvent {
         rootsEventBuilder.apply {
@@ -179,8 +218,8 @@ class AppInspectionSnapshotSupportTest {
     inspectorRule.processes.selectedProcess = PROCESS
 
     // Now switch to non-live
-    InspectorClientSettings.isCapturingModeOn = false
-    inspectorRule.inspectorClient.stopFetching().get()
+    inspectorClientSettings.isCapturingModeOn = false
+    runBlocking { inspectorRule.inspectorClient.stopFetching() }
 
     val startedLatch = CountDownLatch(1)
     // Try to save the snapshot right away, before we've gotten any events

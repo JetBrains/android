@@ -22,9 +22,9 @@ import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import org.junit.Test
 
 class PropertyCurveTest {
 
@@ -34,20 +34,31 @@ class PropertyCurveTest {
     // Call layoutAndDispatchEvents() so positionProxy returns correct values
     val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
 
-    val property = AnimatedProperty.Builder()
-      .add(0, ComposeUnit.IntSize(0, 0))
-      .add(50, ComposeUnit.IntSize(10, 10))
-      .add(100, ComposeUnit.IntSize(20, -20))
-      .build()!!
+    val property =
+      AnimatedProperty.Builder()
+        .add(0, ComposeUnit.IntSize(0, 0))
+        .add(50, ComposeUnit.IntSize(10, 10))
+        .add(100, ComposeUnit.IntSize(20, -20))
+        .build()!!
 
-    val propertyCurveOne = PropertyCurve.create(
-      ElementState(), property, InspectorLayout.timelineHeaderHeightScaled(), 0, slider.sliderUI.positionProxy).also {
-      it.timelineUnit = ComposeUnit.TimelineUnit("UnitOne", ComposeUnit.IntSize(1, 2))
-    }
+    val propertyCurveOne =
+      PropertyCurve.create(
+          ElementState(),
+          property,
+          InspectorLayout.timelineHeaderHeightScaled(),
+          0,
+          slider.sliderUI.positionProxy
+        )
+        .also { it.timelineUnit = ComposeUnit.TimelineUnit("UnitOne", ComposeUnit.IntSize(1, 2)) }
 
-    val propertyCurveTwo = PropertyCurve.create(
-      ElementState(), property, InspectorLayout.timelineHeaderHeightScaled() + propertyCurveOne.height,
-      1, slider.sliderUI.positionProxy)
+    val propertyCurveTwo =
+      PropertyCurve.create(
+        ElementState(),
+        property,
+        InspectorLayout.timelineHeaderHeightScaled() + propertyCurveOne.height,
+        1,
+        slider.sliderUI.positionProxy
+      )
 
     slider.sliderUI.elements.add(propertyCurveOne)
     slider.sliderUI.elements.add(propertyCurveTwo)
@@ -66,6 +77,6 @@ class PropertyCurveTest {
     }
 
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
   }
 }

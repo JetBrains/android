@@ -19,7 +19,6 @@ import com.android.build.attribution.data.AlwaysRunTaskData
 import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.GarbageCollectionData
 import com.android.build.attribution.data.PluginBuildData
-import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
@@ -27,12 +26,11 @@ import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.idea.flags.StudioFlags
-import kotlinx.collections.immutable.toImmutableMap
-import org.jetbrains.kotlin.utils.addToStdlib.ifTrue
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 interface BuildEventsAnalysisResult {
-  fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
+  fun getBuildRequestData() : GradleBuildInvoker.Request.RequestData
+  fun getBuildFinishedTimestamp() : Long
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getTotalBuildTimeMs(): Long
   fun getConfigurationPhaseTimeMs(): Long
@@ -81,6 +79,8 @@ interface BuildEventsAnalysisResult {
   fun isGCSettingSet(): Boolean?
   fun buildUsesConfigurationCache(): Boolean
   fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result
+
+  fun getTaskCategoryWarningsAnalyzerResult(): TaskCategoryWarningsAnalyzer.Result
 }
 
 /**
@@ -88,11 +88,11 @@ interface BuildEventsAnalysisResult {
  * Used to fetch the final data from the analyzers after the build is complete.
  */
 class BuildEventsAnalyzersProxy(
-  taskContainer: TaskContainer,
-  pluginContainer: PluginContainer
+  val taskContainer: TaskContainer,
+  val pluginContainer: PluginContainer
 ) {
   val alwaysRunTasksAnalyzer = AlwaysRunTasksAnalyzer(taskContainer, pluginContainer)
-  val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer)
+  val annotationProcessorsAnalyzer = AnnotationProcessorsAnalyzer(taskContainer, pluginContainer)
   val criticalPathAnalyzer = CriticalPathAnalyzer(taskContainer, pluginContainer)
   val noncacheableTasksAnalyzer = NoncacheableTasksAnalyzer(taskContainer)
   val garbageCollectionAnalyzer = GarbageCollectionAnalyzer()
@@ -100,7 +100,8 @@ class BuildEventsAnalyzersProxy(
   val tasksConfigurationIssuesAnalyzer = TasksConfigurationIssuesAnalyzer(taskContainer)
   val configurationCachingCompatibilityAnalyzer = ConfigurationCachingCompatibilityAnalyzer()
   val jetifierUsageAnalyzer = JetifierUsageAnalyzer()
-  val downloadsAnalyzer = StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get().ifTrue { DownloadsAnalyzer() }
+  val downloadsAnalyzer = if (StudioFlags.BUILD_ANALYZER_DOWNLOADS_ANALYSIS.get()) DownloadsAnalyzer() else null
+  val taskCategoryWarningsAnalyzer = TaskCategoryWarningsAnalyzer()
 
   fun getBuildFinishedTimestamp(): Long {
     return criticalPathAnalyzer.result.buildFinishedTimestamp
@@ -117,6 +118,7 @@ class BuildEventsAnalyzersProxy(
       tasksConfigurationIssuesAnalyzer,
       configurationCachingCompatibilityAnalyzer,
       jetifierUsageAnalyzer,
-      downloadsAnalyzer
+      downloadsAnalyzer,
+      taskCategoryWarningsAnalyzer
     )
 }

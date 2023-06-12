@@ -17,14 +17,16 @@ package com.android.tools.asdriver.tests;
 
 import com.android.tools.asdriver.proto.ASDriver;
 import com.android.tools.asdriver.proto.AndroidStudioGrpc;
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.util.system.CpuArch;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.system.CpuArch;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +41,7 @@ public class AndroidStudio implements AutoCloseable {
   private final AndroidStudioGrpc.AndroidStudioBlockingStub androidStudio;
   private final ProcessHandle process;
   private final AndroidStudioInstallation install;
+  private final Instant creationTime;
 
   static public AndroidStudio run(AndroidStudioInstallation installation,
                        Display display,
@@ -100,6 +103,7 @@ public class AndroidStudio implements AutoCloseable {
   private AndroidStudio(AndroidStudioInstallation install, ProcessHandle process, int port) {
     this.install = install;
     this.process = process;
+    creationTime = Instant.now();
     ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", port).usePlaintext().build();
     androidStudio = AndroidStudioGrpc.newBlockingStub(channel);
   }
@@ -126,12 +130,12 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   static private int waitForDriverPid(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", true, 30, TimeUnit.SECONDS);
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver started on pid: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
     return Integer.parseInt(matcher.group(1));
   }
 
   static private int waitForDriverServer(LogFile reader) throws IOException, InterruptedException {
-    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", true, 30, TimeUnit.SECONDS);
+    Matcher matcher = reader.waitForMatchingLine(".*STDOUT - as-driver server listening at: (\\d+).*", null, true, 30, TimeUnit.SECONDS);
     return Integer.parseInt(matcher.group(1));
   }
 
@@ -171,10 +175,39 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   /**
+   * Works around b/253431062 and b/256687010, which occur on Windows when Android Studio tries to
+   * initialize a class despite already being in the shutdown process. The specific failure is:
+   * "Sorry but parent [...] has already been disposed [...] so the child [...] will never be
+   * disposed".
+   *
+   * We hit this specifically when a test only needs to verify that Android Studio started
+   * correctly, which means we close Android Studio so quickly that we didn't give initialization
+   * time to finish.
+   *
+   * This is not intended to be a permanent solution. However, at least the impact is minimal;
+   * we end up waiting ~5 extra seconds for initialization to complete before quitting.
+   */
+  private void waitToWorkAroundWindowsIssue() throws InterruptedException {
+    if (!SystemInfo.isWindows) {
+      return;
+    }
+
+    Duration elapsedTime = Duration.between(creationTime, Instant.now());
+    Duration minimumTimeToStayOpen = Duration.ofSeconds(10);
+    if (elapsedTime.compareTo(minimumTimeToStayOpen) < 0) {
+      long msToWait = Math.max(Duration.ofSeconds(1).toMillis(), minimumTimeToStayOpen.toMillis() - elapsedTime.toMillis());
+      System.out.printf("This AndroidStudio instance was only created %dms ago, so waiting for %dms until quitting.%n", elapsedTime.toMillis(), msToWait);
+      Thread.sleep(msToWait);
+      System.out.println("Done waiting");
+    }
+  }
+
+  /**
    * Quit Studio such that Gradle and other Studio-owned processes are properly disposed of.
    */
   private void quitAndWaitForShutdown() throws IOException, InterruptedException {
     System.out.println("Quitting Studio...");
+    waitToWorkAroundWindowsIssue();
     quit(false);
     install.getIdeaLog().waitForMatchingLine(".*PersistentFSImpl - VFS dispose completed.*", 30, TimeUnit.SECONDS);
   }
@@ -199,9 +232,9 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void invokeByIcon(String icon) {
-    ComponentMatchersBuilder updateButtonBuilder = new ComponentMatchersBuilder();
-    updateButtonBuilder.addSvgIconMatch(new ArrayList<>(List.of(icon)));
-    invokeComponent(updateButtonBuilder);
+    ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
+    builder.addSvgIconMatch(new ArrayList<>(List.of(icon)));
+    invokeComponent(builder);
   }
 
   public void invokeComponent(String componentText) {
@@ -225,19 +258,53 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForIndex() {
+    System.out.println("Waiting for indexing to complete");
     ASDriver.WaitForIndexRequest rq = ASDriver.WaitForIndexRequest.newBuilder().build();
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
   }
 
-  public void openFile(String project, String file) {
-    ASDriver.OpenFileRequest rq = ASDriver.OpenFileRequest.newBuilder().setProject(project).setFile(file).build();
+  /**
+   * Opens a file and then goes to a specific line and column in the first open project's selected
+   * text editor.
+   * @param line 0-indexed line number.
+   * @param column 0-indexed column number.
+   * @see com.intellij.openapi.editor.LogicalPosition
+   */
+  public void openFile(String project, String file, Integer line, Integer column) {
+    ASDriver.OpenFileRequest.Builder builder = ASDriver.OpenFileRequest.newBuilder().setProject(project).setFile(file);
+    if (line != null) {
+      builder.setLine(line);
+    }
+    if (column != null) {
+      builder.setColumn(column);
+    }
+    ASDriver.OpenFileRequest rq = builder.build();
     ASDriver.OpenFileResponse response = androidStudio.openFile(rq);
     switch (response.getResult()) {
       case OK:
         return;
       case ERROR:
-        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\". Check the Android Studio " +
-                                                      "stderr log for the cause.", file, project));
+        throw new IllegalStateException(String.format("Could not open file \"%s\" in project \"%s\" to line %d:%d. Check the Android " +
+                                                      "Studio stderr log for the cause.", file, project, line, column));
+      default:
+        throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
+  }
+
+  public void openFile(String project, String file) {
+    openFile(project, file, null, null);
+  }
+
+  public void editFile(String file, String searchRegex, String replacement) {
+    ASDriver.EditFileRequest rq =
+      ASDriver.EditFileRequest.newBuilder().setFile(file).setSearchRegex(searchRegex).setReplacement(replacement).build();
+    ASDriver.EditFileResponse response = androidStudio.editFile(rq);
+    switch (response.getResult()) {
+      case OK:
+        return;
+      case ERROR:
+        throw new IllegalStateException(String.format("Could not edit file \"%s\" with searchRegex %s and replacement %s. Check the " +
+                                                      "Android Studio stderr log for the cause.", file, searchRegex, replacement));
       default:
         throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
@@ -277,7 +344,9 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForBuild(long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle build finished in (.*)", timeout, unit);
+    System.out.printf("Waiting up to %d %s for Gradle build%n", timeout, unit);
+    Matcher matcher = install.getIdeaLog()
+      .waitForMatchingLine(".*Gradle build finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Build took " + matcher.group(1));
   }
 
@@ -287,7 +356,9 @@ public class AndroidStudio implements AutoCloseable {
   }
 
   public void waitForSync(long timeout, TimeUnit unit) throws IOException, InterruptedException {
-    Matcher matcher = install.getIdeaLog().waitForMatchingLine(".*Gradle sync finished in (.*)", timeout, unit);
+    System.out.printf("Waiting up to %d %s for Gradle sync%n", timeout, unit);
+    Matcher matcher = install.getIdeaLog()
+      .waitForMatchingLine(".*Gradle sync finished in (.*)", ".*org\\.gradle\\.tooling\\.\\w+Exception.*", timeout, unit);
     System.out.println("Sync took " + matcher.group(1));
   }
 }

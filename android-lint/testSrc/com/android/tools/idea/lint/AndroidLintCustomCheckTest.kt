@@ -32,8 +32,7 @@ import org.junit.Test
 
 class AndroidLintCustomCheckTest {
 
-  @get:Rule
-  val myProjectRule = AndroidGradleProjectRule()
+  @get:Rule val myProjectRule = AndroidGradleProjectRule()
 
   @Before
   fun setUp() {
@@ -45,22 +44,29 @@ class AndroidLintCustomCheckTest {
       // Load project (runs Gradle sync).
       myProjectRule.load("projects/lintCustomChecks")
 
-      // Publish the library-remote module to a local maven repository so we can get custom Lint checks from its AAR.
+      // Publish the library-remote module to a local maven repository so we can get custom Lint
+      // checks from its AAR.
       myProjectRule.invokeTasks(":library-remote:publish")
 
-      // We are required (above) to run Gradle sync prior to running :library-remote:uploadArchives, but that means that the app
-      // module cannot yet have had a dependency on the remote library (otherwise Gradle sync would fail!). So,
+      // We are required (above) to run Gradle sync prior to running :library-remote:uploadArchives,
+      // but that means that the app
+      // module cannot yet have had a dependency on the remote library (otherwise Gradle sync would
+      // fail!). So,
       // we have to add the dependency dynamically afterwards and re-run Gradle sync.
       WriteCommandAction.runWriteCommandAction(myProjectRule.project) {
         val buildFile = myProjectRule.project.baseDir.findFileByRelativePath("app/build.gradle")!!
         val doc = FileDocumentManager.getInstance().getDocument(buildFile)!!
         val lineNumber = doc.getLineNumber(doc.text.indexOf("dependencies {"))
-        doc.insertString(doc.getLineEndOffset(lineNumber), "implementation 'com.example.google:library-remote:1.0'")
+        doc.insertString(
+          doc.getLineEndOffset(lineNumber),
+          "implementation 'com.example.google:library-remote:1.0'"
+        )
         FileDocumentManager.getInstance().saveDocument(doc)
       }
 
       myProjectRule.requestSyncAndWait()
-      GradleBuildInvoker.getInstance(myProjectRule.project).generateSources(ModuleManager.getInstance(myProjectRule.project).modules)
+      GradleBuildInvoker.getInstance(myProjectRule.project)
+        .generateSources(ModuleManager.getInstance(myProjectRule.project).modules)
     }
   }
 
@@ -73,7 +79,8 @@ class AndroidLintCustomCheckTest {
     ApplicationManager.getApplication().invokeAndWait {
       val file = myProjectRule.project.baseDir.findFileByRelativePath(filePath)!!
       myProjectRule.fixture.openFileInEditor(file)
-      val warnings = myProjectRule.fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }
+      val warnings =
+        myProjectRule.fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }
       assertThat(warnings, hasItem(expectedWarning))
     }
   }
@@ -82,21 +89,20 @@ class AndroidLintCustomCheckTest {
   fun dependencyOnLocalModuleWithLintChecks() {
     doTest(
       "app/src/main/java/com/example/app/MyList.java",
-      "Do not implement java.util.List directly")
+      "Do not implement java.util.List directly"
+    )
   }
 
   @Test
   fun dependencyOnLocalLibraryExportingLintChecks() {
-    doTest(
-      "app/src/main/AndroidManifest.xml",
-      "Should not specify <activity>."
-    )
+    doTest("app/src/main/AndroidManifest.xml", "Should not specify <activity>.")
   }
 
   @Test
   fun dependencyOnRemoteLibraryExportingLintChecks() {
     doTest(
       "app/src/main/java/com/example/app/MySet.java",
-      "Do not implement java.util.Set directly")
+      "Do not implement java.util.Set directly"
+    )
   }
 }

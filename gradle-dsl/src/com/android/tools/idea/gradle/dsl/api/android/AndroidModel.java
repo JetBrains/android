@@ -46,6 +46,9 @@ public interface AndroidModel extends GradleBlockModel {
   @NotNull
   BuildTypeModel addBuildType(@NotNull String buildType);
 
+  @NotNull
+  BuildTypeModel addBuildType(@NotNull String buildType, @NotNull BuildTypeModel initWith);
+
   void removeBuildType(@NotNull String buildType);
 
   @NotNull
@@ -103,6 +106,10 @@ public interface AndroidModel extends GradleBlockModel {
   ResolvedPropertyModel ndkVersion();
 
   @NotNull
+  PackagingOptionsModel packaging();
+
+  @Deprecated
+  @NotNull
   PackagingOptionsModel packagingOptions();
 
   @NotNull
@@ -110,6 +117,9 @@ public interface AndroidModel extends GradleBlockModel {
 
   @NotNull
   ProductFlavorModel addProductFlavor(@NotNull String flavor);
+
+  @NotNull
+  ProductFlavorModel addProductFlavor(@NotNull String flavor, @NotNull ProductFlavorModel initWith);
 
   void removeProductFlavor(@NotNull String flavor);
 

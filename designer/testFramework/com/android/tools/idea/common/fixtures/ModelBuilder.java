@@ -72,7 +72,6 @@ public class ModelBuilder {
   private final Function1<DesignSurface<? extends SceneManager>, InteractionHandler> myInteractionHandlerCreator;
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   private Device myDevice;
-  private String myModelDisplayName;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
                       @NotNull CodeInsightTestFixture fixture,
@@ -142,12 +141,6 @@ public class ModelBuilder {
   }
 
   @NotNull
-  public ModelBuilder setModelDisplayName(@NotNull String displayName) {
-    myModelDisplayName = displayName;
-    return this;
-  }
-
-  @NotNull
   public SyncNlModel build() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
@@ -196,7 +189,7 @@ public class ModelBuilder {
       assertNotNull(document);
 
       SyncNlModel model =
-        SyncNlModel.create(myFixture.getProject(), myComponentRegistrar, myModelDisplayName, null, myFacet, xmlFile.getVirtualFile());
+        SyncNlModel.create(myFixture.getProject(), myComponentRegistrar, null, myFacet, xmlFile.getVirtualFile());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }

@@ -1,0 +1,4 @@
+[versions]
+junitVersion = "4.14"
+[libraries]
+junit = { group="junit", name="junit", version.ref="junitVersion" }

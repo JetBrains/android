@@ -22,5 +22,5 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 interface SelectedTargetSupplier {
-  @NotNull Set<@NotNull Target> get(@NotNull Project project, @NotNull List<@NotNull Device> devices);
+  @NotNull Set<Target> get(@NotNull Project project, @NotNull List<Device> devices);
 }

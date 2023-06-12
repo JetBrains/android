@@ -5,5 +5,8 @@ android {
     mlModelBinding true
     viewBinding true
     prefab true
+    renderScript true
+    buildConfig true
+    aidl true
   }
 }

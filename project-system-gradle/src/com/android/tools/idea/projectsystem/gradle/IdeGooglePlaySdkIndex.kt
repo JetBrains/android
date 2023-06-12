@@ -58,30 +58,33 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
 
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
+    val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
     logger.warn(generatePolicyMessage(groupId, artifactId, versionString))
-    logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_IS_NON_COMPLIANT)
+    logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_NON_COMPLIANT)
   }
 
   override fun logHasCriticalIssues(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logHasCriticalIssues(groupId, artifactId, versionString, file)
+    val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
     val warnMsg =
-      if (hasLibraryBlockingIssues(groupId, artifactId, versionString))
+      if (isBlocking)
         generateBlockingCriticalMessage(groupId, artifactId, versionString)
       else
         generateCriticalMessage(groupId, artifactId, versionString)
     logger.warn(warnMsg)
-    logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_HAS_CRITICAL_ISSUES)
+    logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_HAS_CRITICAL_ISSUES)
   }
 
   override fun logOutdated(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logOutdated(groupId, artifactId, versionString, file)
+    val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
     val warnMsg =
-      if (hasLibraryBlockingIssues(groupId, artifactId, versionString))
+      if (isBlocking)
         generateBlockingOutdatedMessage(groupId, artifactId, versionString)
       else
         generateOutdatedMessage(groupId, artifactId, versionString)
     logger.warn(warnMsg)
-    logTrackerEventForLibraryVersion(groupId, artifactId, versionString, file, SDK_INDEX_LIBRARY_IS_OUTDATED)
+    logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_OUTDATED)
   }
 
   override fun logIndexLoadedCorrectly(dataSourceType: DataSourceType) {
@@ -110,9 +113,10 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
 
   override fun generateSdkLinkLintFix(groupId: String, artifactId: String, versionString: String, buildFile: File?): LintFix? {
     val url = getSdkUrl(groupId, artifactId)
+    val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
     return if (url != null)
       LintFix.ShowUrl(VIEW_DETAILS_MESSAGE, null, url, onUrlOpen = {
-        logTrackerEventForLibraryVersion(groupId, artifactId, versionString, buildFile, SDK_INDEX_LINK_FOLLOWED)
+        logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, buildFile, SDK_INDEX_LINK_FOLLOWED)
       })
     else
       null
@@ -142,11 +146,16 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   private fun logTrackerEventForLibraryVersion(groupId: String,
                                                artifactId: String,
                                                versionString: String,
+                                               isBlocking: Boolean,
                                                file: File?,
                                                kind: AndroidStudioEvent.EventKind) {
     val event = createTrackerEvent(file, kind)
     event.setSdkIndexLibraryDetails(
-      SdkIndexLibraryDetails.newBuilder().setGroupId(groupId).setArtifactId(artifactId).setVersionString(versionString))
+      SdkIndexLibraryDetails.newBuilder()
+        .setGroupId(groupId)
+        .setArtifactId(artifactId)
+        .setVersionString(versionString)
+        .setIsBlocking(isBlocking))
     UsageTracker.log(event)
   }
 

@@ -18,27 +18,29 @@ package com.android.tools.idea.compose.preview.analytics
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.surface.DesignSurface
 
-/**
- * Interface for usage tracking in the interactive preview.
- */
+/** Interface for usage tracking in the interactive preview. */
 interface InteractivePreviewUsageTracker {
   /**
-   * Logs interactive session info at the end of the session (when exiting interactive preview or closing the tab), including frames per
-   * second, duration and number of user interactions.
+   * Logs interactive session info at the end of the session (when exiting interactive preview or
+   * closing the tab), including frames per second, duration and number of user interactions.
    */
   fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int)
 
   /**
-   * Logs startup time of an interactive session. A period from the time a user enables interactive preview to the time the user can
-   * actually interact with the preview.
+   * Logs startup time of an interactive session. A period from the time a user enables interactive
+   * preview to the time the user can actually interact with the preview.
    */
   fun logStartupTime(timeMs: Int, peers: Int)
 
   companion object {
     private val NOP_TRACKER = InteractiveNopTracker()
-    private val MANAGER = DesignerUsageTrackerManager<InteractivePreviewUsageTracker, DesignSurface<*>>(
-      { executor, _, eventLogger -> InteractiveComposePreviewUsageTracker(executor, eventLogger) }, NOP_TRACKER
-    )
+    private val MANAGER =
+      DesignerUsageTrackerManager<InteractivePreviewUsageTracker, DesignSurface<*>>(
+        { executor, _, eventLogger ->
+          InteractiveComposePreviewUsageTracker(executor, eventLogger)
+        },
+        NOP_TRACKER
+      )
 
     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
   }

@@ -35,11 +35,13 @@ private val MAGNIFY_SUPPORTED = SystemInfo.isMac && Registry.`is`("actionSystem.
 class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigurable {
 
   private class EditorModeCellRenderer : SimpleListCellRenderer<AndroidEditorSettings.EditorMode>() {
-    override fun customize(list: JList<out AndroidEditorSettings.EditorMode>,
-                           value: AndroidEditorSettings.EditorMode?,
-                           index: Int,
-                           selected: Boolean,
-                           hasFocus: Boolean) {
+    override fun customize(
+      list: JList<out AndroidEditorSettings.EditorMode>,
+      value: AndroidEditorSettings.EditorMode?,
+      index: Int,
+      selected: Boolean,
+      hasFocus: Boolean,
+    ) {
       value?.let {
         text = it.displayName
         icon = it.icon
@@ -114,9 +116,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   override fun isModified(): Boolean {
     val magnifySensitivityValue = magnifySensitivity?.value
     return super<BoundConfigurable>.isModified()
-           || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
-           || preferredEditorMode.selectedItem != state.preferredEditorMode
-           || (magnifySensitivityValue != null && magnifySensitivityValue != doubleToPercentageValue(state.magnifySensitivity))
+      || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
+      || preferredEditorMode.selectedItem != state.preferredEditorMode
+      || (magnifySensitivityValue != null && magnifySensitivityValue != doubleToPercentageValue(state.magnifySensitivity))
   }
 
   @Throws(ConfigurationException::class)

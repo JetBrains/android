@@ -122,7 +122,7 @@ public class EventVisualTest extends VisualTest {
 
     // add horizontal time axis
     myTimeAxisModel = new ResizingAxisComponentModel.Builder(xTimelineRange, TimeAxisFormatter.DEFAULT).build();
-    myTimeAxis = new AxisComponent(myTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM);
+    myTimeAxis = new AxisComponent(myTimeAxisModel, AxisComponent.AxisOrientation.BOTTOM, true);
     List<Updatable> componentsList = new ArrayList<>();
     // Add the scene components to the list
     componentsList.add(myAnimatedRange);

@@ -15,49 +15,16 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.util.ReflectionUtil;
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
+import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle;
+
+import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
+import java.lang.reflect.Field;
+import java.util.Locale;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class HeapTraverseUtil {
-  // An object has overhead for header and v-table entry
-  private static final long ESTIMATED_OBJECT_OVERHEAD = 16;
-
-  // An array has additional overhead for the array size
-  private static final long ESTIMATED_ARRAY_OVERHEAD = 8;
-
-  private static final long REFERENCE_SIZE = 4;
-
-  private static final Method Unsafe_shouldBeInitialized;
-
-  private static final Logger LOG = Logger.getInstance(HeapTraverseUtil.class);
-
-  static {
-    Method shouldBeInitialized;
-    try {
-      shouldBeInitialized = ReflectionUtil.getDeclaredMethod(Class.forName("sun.misc.Unsafe"), "shouldBeInitialized", Class.class);
-    }
-    catch (ClassNotFoundException ignored) {
-      shouldBeInitialized = null;
-    }
-    Unsafe_shouldBeInitialized = shouldBeInitialized;
-  }
-
-  private static long sizeOfPrimitive(Class<?> type) {
-    if (!type.isPrimitive()) return REFERENCE_SIZE;
-    if (type == Boolean.TYPE) return 1;
-    if (type == Byte.TYPE) return 1;
-    if (type == Character.TYPE) return 2;
-    if (type == Short.TYPE) return 2;
-    if (type == Integer.TYPE) return 4;
-    if (type == Long.TYPE) return 8;
-    if (type == Float.TYPE) return 4;
-    if (type == Double.TYPE) return 8;
-    throw new IllegalArgumentException("Size computation: unknown type: " + type.getName());
-  }
+public class HeapTraverseUtil {
 
   static boolean isArrayOfPrimitives(@NotNull final Class<?> type) {
     return type.isArray() && HeapTraverseUtil.isPrimitive(type.getComponentType());
@@ -66,36 +33,9 @@ public final class HeapTraverseUtil {
   /**
    * Check that passed class was initialized.
    */
-  static boolean isInitialized(@NotNull final Class<?> type) {
-    if (Unsafe_shouldBeInitialized == null) return false;
-    boolean isInitialized = false;
-    try {
-      isInitialized = !(Boolean)Unsafe_shouldBeInitialized.invoke(ReflectionUtil.getUnsafe(), type);
-    }
-    catch (Exception e) {
-      LOG.warn(e);
-    }
-    return isInitialized;
-  }
-
-  private static long arraySize(@NotNull final Object obj) {
-    if (!obj.getClass().isArray()) {
-      return 0;
-    }
-    int componentCount = Array.getLength(obj);
-    long arraySize = componentCount * sizeOfPrimitive(obj.getClass().getComponentType());
-    // The expression: (size + 7) & ~7 adds bytes to fill a full word (8 bytes)
-    return ESTIMATED_ARRAY_OVERHEAD + ((arraySize + 7) & ~7);
-  }
-
-  public static long sizeOf(@NotNull final Object obj, @NotNull final FieldCache fieldCache) {
-    long arraySize = arraySize(obj);
-    return ESTIMATED_OBJECT_OVERHEAD + fieldCache.getInstanceFields(obj.getClass()).length * REFERENCE_SIZE + arraySize;
-  }
-
-  public static void processMask(int mask, @NotNull final Consumer<Integer> p) {
-    int trailingZeros = Integer.numberOfTrailingZeros(mask);
-    mask >>= Integer.numberOfTrailingZeros(mask);
+  public static void processMask(long mask, @NotNull final Consumer<Integer> p) {
+    int trailingZeros = Long.numberOfTrailingZeros(mask);
+    mask >>= Long.numberOfTrailingZeros(mask);
     for (int i = trailingZeros; mask != 0; i++, mask >>= 1) {
       if ((mask & 1) != 0) {
         p.accept(i);
@@ -105,5 +45,33 @@ public final class HeapTraverseUtil {
 
   public static boolean isPrimitive(@NotNull Class<?> type) {
     return type.isPrimitive();
+  }
+
+  @NotNull
+  public static String getObjectsSizePresentation(long bytes,
+                                                  SizePresentationStyle style) {
+    if (style == SizePresentationStyle.BYTES) {
+      return String.format(Locale.US, "%d bytes", bytes);
+    }
+    return HeapReportUtils.INSTANCE.toShortStringAsCount(bytes);
+  }
+
+  @NotNull
+  public static String getObjectsStatsPresentation(ObjectsStatistics statistics,
+                                                   SizePresentationStyle style) {
+    return String.format(Locale.US, "%s/%d objects",
+                         getObjectsSizePresentation(statistics.getTotalSizeInBytes(), style), statistics.getObjectsCount());
+  }
+
+  @Nullable
+  static Object getFieldValue(@NotNull Object object, @NotNull String fieldName) {
+    try {
+      Field field = object.getClass().getDeclaredField(fieldName);
+      field.setAccessible(true);
+      return field.get(object);
+    }
+    catch (ReflectiveOperationException e) {
+      throw new Error(e); // Should not happen unless there is a bug in this class.
+    }
   }
 }

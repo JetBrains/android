@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
@@ -24,51 +24,103 @@ import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManage
 import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
-import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.applyTo
-import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.android.tools.idea.preview.PreviewElement
-import com.android.tools.idea.preview.PreviewElementDebugLogger
-import com.android.tools.idea.preview.PreviewElementProvider
-import com.android.tools.idea.preview.updatePreviewsAndRefresh
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
 
-/**
- * List of available layouts for the Compose Preview Surface.
- */
-internal val PREVIEW_LAYOUT_MANAGER_OPTIONS = listOf(
-  SurfaceLayoutManagerOption(message("vertical.layout"),
-                             VerticalOnlyLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-                                                       NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA,
-                                                       SingleDirectionLayoutManager.Alignment.CENTER)),
-  SurfaceLayoutManagerOption(message("grid.layout"),
-                             GridSurfaceLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X, NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-                                                      NlConstants.SCREEN_DELTA, NlConstants.SCREEN_DELTA),
-                             DesignSurface.SceneViewAlignment.LEFT)
-)
+private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
+  // Minimum 5 at 20% and maximum 20 at 100%, responsive.
+  val min = 5
+  val max = 20
 
-/**
- * Default layout manager selected in the preview.
- */
+  when {
+    scale <= 0.2 -> min
+    scale >= 1.0 -> max
+    else ->
+      min + ((max - min) / (1 - 0.2)) * (scale - 0.2) // find interpolated value between min and max
+  }.toInt()
+}
+
+private val NO_GROUP_TRANSFORM:
+  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
+  {
+    // FIXME(b/258718991): we decide not group the previews for now.
+    listOf(it.toList())
+  }
+
+@Suppress("unused") // b/258718991
+private val GROUP_BY_GROUP_ID_TRANSFORM:
+  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
+  { contents ->
+    val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
+    for (content in contents) {
+      groups.getOrPut(content.groupId) { mutableListOf() }.add(content)
+    }
+    // Put the previews which don't have group first.
+    // TODO(b/245363234)?: Consider to sort the group by name?
+    val nulls = groups.remove(null)
+    if (nulls != null) listOf(nulls) + groups.values.toList() else groups.values.toList()
+  }
+
+/** List of available layouts for the Compose Preview Surface. */
+internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
+  if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
+    listOf(
+      SurfaceLayoutManagerOption(
+        message("vertical.layout"),
+        VerticalOnlyLayoutManager(
+          NlConstants.DEFAULT_SCREEN_OFFSET_X,
+          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+          NlConstants.SCREEN_DELTA,
+          NlConstants.SCREEN_DELTA,
+          SingleDirectionLayoutManager.Alignment.CENTER
+        )
+      ),
+      SurfaceLayoutManagerOption(
+        message("grid.layout"),
+        GridSurfaceLayoutManager(
+          NlConstants.DEFAULT_SCREEN_OFFSET_X,
+          NlConstants.DEFAULT_SCREEN_OFFSET_Y,
+          NlConstants.SCREEN_DELTA,
+          NlConstants.SCREEN_DELTA
+        ),
+        DesignSurface.SceneViewAlignment.LEFT
+      ),
+    )
+  } else {
+    listOf(
+      SurfaceLayoutManagerOption(
+        message("new.list.layout.title"),
+        GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+        DesignSurface.SceneViewAlignment.LEFT
+      ),
+      SurfaceLayoutManagerOption(
+        message("new.grid.layout.title"),
+        GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+        DesignSurface.SceneViewAlignment.LEFT
+      ),
+    )
+  }
+
+/** Default layout manager selected in the preview. */
 internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager
 
-private val COMPOSE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
+private val COMPOSE_SUPPORTED_ACTIONS =
+  setOf(NlSupportedActions.SWITCH_DESIGN_MODE, NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /**
  * Creates a [NlDesignSurface.Builder] with a common setup for the design surfaces in Compose
@@ -76,13 +128,13 @@ private val COMPOSE_SUPPORTED_ACTIONS = setOf(NlSupportedActions.SWITCH_DESIGN_M
  */
 private fun createPreviewDesignSurfaceBuilder(
   project: Project,
-  navigationHandler: NlDesignSurface.NavigationHandler,
+  navigationHandler: NavigationHandler,
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider
-): NlDesignSurface.Builder = NlDesignSurface.builder(project, parentDisposable)
-    .setIsPreview(true)
+): NlDesignSurface.Builder =
+  NlDesignSurface.builder(project, parentDisposable)
     .setNavigationHandler(navigationHandler)
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
@@ -91,141 +143,45 @@ private fun createPreviewDesignSurfaceBuilder(
       // Compose Preview manages its own render and refresh logic, and then it should avoid
       // some automatic renderings triggered in LayoutLibSceneManager
       LayoutlibSceneManager(
-        model,
-        surface,
-        sceneComponentProvider,
-        ComposeSceneUpdateListener(),
-      ) { RealTimeSessionClock() }.also {
-        it.setListenResourceChange(false) // don't re-render on resource changes
-        it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
-      }
+          model,
+          surface,
+          sceneComponentProvider,
+          ComposeSceneUpdateListener(),
+        ) {
+          RealTimeSessionClock()
+        }
+        .also {
+          it.setListenResourceChange(false) // don't re-render on resource changes
+          it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
+        }
     }
     .setDelegateDataProvider(dataProvider)
-    .setSelectionModel(NopSelectionModel)
-    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.HIDDEN)
+    .setSelectionModel(
+      if (StudioFlags.COMPOSE_PREVIEW_SELECTION.get()) DefaultSelectionModel()
+      else NopSelectionModel
+    )
+    .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
     .setShouldRenderErrorsPanel(true)
     .setScreenViewProvider(COMPOSE_SCREEN_VIEW_PROVIDER, false)
     .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
+    .setMinScale(0.01) // Allow down to 1% zoom level
 
-/**
- * Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview.
- */
+/** Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview. */
 internal fun createMainDesignSurfaceBuilder(
   project: Project,
-  navigationHandler: NlDesignSurface.NavigationHandler,
+  navigationHandler: NavigationHandler,
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
   sceneComponentProvider: ComposeSceneComponentProvider
-) = createPreviewDesignSurfaceBuilder(
-  project,
-  navigationHandler,
-  delegateInteractionHandler,
-  dataProvider, // Will be overridden by the preview provider
-  parentDisposable,
-  sceneComponentProvider
-).setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)
-
-/**
- * Creates a [NlDesignSurface.Builder] for the pinned design surface in the Compose preview.
- */
-internal fun createPinnedDesignSurfaceBuilder(
-  project: Project,
-  navigationHandler: NlDesignSurface.NavigationHandler,
-  delegateInteractionHandler: InteractionHandler,
-  dataProvider: DataProvider,
-  parentDisposable: Disposable,
-  sceneComponentProvider: ComposeSceneComponentProvider
-) = createPreviewDesignSurfaceBuilder(
-  project,
-  navigationHandler,
-  delegateInteractionHandler,
-  dataProvider,
-  parentDisposable,
-  sceneComponentProvider
-).setLayoutManager(
-  GridSurfaceLayoutManager(
-    NlConstants.DEFAULT_SCREEN_OFFSET_X,
-    NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-    NlConstants.SCREEN_DELTA,
-    NlConstants.SCREEN_DELTA
-  )
-)
-
-/**
- * Returns a number indicating how [el1] [ComposePreviewElementInstance] is to the [el2] [ComposePreviewElementInstance]. 0 meaning they
- * are equal and higher the number the more dissimilar they are. This allows for, when re-using models, the model with the most similar
- * [ComposePreviewElementInstance] is re-used. When the user is just switching groups or selecting a specific model, this allows switching
- * to the existing preview faster.
- */
-fun calcComposeElementsAffinity(el1: ComposePreviewElementInstance, el2: ComposePreviewElementInstance?): Int {
-  if (el2 == null) return 3
-
-  return when {
-    // These are the same
-    el1 == el2 -> 0
-
-    // The method and display settings are the same
-    el1.composableMethodFqn == el2.composableMethodFqn &&
-    el1.displaySettings == el2.displaySettings -> 1
-
-    // The name of the @Composable method matches but other settings might be different
-    el1.composableMethodFqn == el2.composableMethodFqn -> 2
-
-    // No match
-    else -> 4
-  }
-}
-
-/**
- * Class to wrap [ComposePreviewElementInstance]-specific debug logging functionality.
- */
-private class ComposeDebugLogger(log: Logger) : PreviewElementDebugLogger<ComposePreviewElementInstance>(log) {
-
-  override fun logPreviewElement(previewElement: ComposePreviewElementInstance, previewXmlContent: String) {
-    log("""Preview found at ${stopwatch.duration.toMillis()}ms
-        displayName=${previewElement.displaySettings.name}
-        methodName=${previewElement.composableMethodFqn}
-
-        $previewXmlContent
-     """.trimIndent())
-  }
-}
-
-/**
- * Compose-specific implementation of [updatePreviewsAndRefresh].
- *
- * If [quickRefresh] is true, the preview surfaces for the same [PreviewElement]s do not get reinflated, allowing to save time for the
- * static to animated preview transition.
- */
-internal suspend fun NlDesignSurface.updateComposePreviewsAndRefresh(
-  quickRefresh: Boolean,
-  previewElementProvider: PreviewElementProvider<ComposePreviewElementInstance>,
-  log: Logger,
-  psiFile: PsiFile,
-  parentDisposable: Disposable,
-  progressIndicator: ProgressIndicator,
-  onRenderCompleted: () -> Unit,
-  previewElementToXml: (ComposePreviewElementInstance) -> String,
-  dataContextProvider: (ComposePreviewElementInstance) -> DataContext,
-  modelToPreview: NlModel.() -> ComposePreviewElementInstance?,
-  configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<ComposePreviewElementInstance> {
-  val debugLogger = if (log.isDebugEnabled) ComposeDebugLogger(log) else null
-  return updatePreviewsAndRefresh(
-    !quickRefresh,
-    previewElementProvider,
-    debugLogger,
-    psiFile,
-    parentDisposable,
-    progressIndicator,
-    onRenderCompleted,
-    previewElementToXml,
-    dataContextProvider,
-    modelToPreview,
-    ::calcComposeElementsAffinity,
-    ComposePreviewElementInstance::applyTo,
-    ::ComposeAdapterLightVirtualFile,
-    configureLayoutlibSceneManager
-  )
-}
+) =
+  createPreviewDesignSurfaceBuilder(
+      project,
+      navigationHandler,
+      delegateInteractionHandler,
+      dataProvider, // Will be overridden by the preview provider
+      parentDisposable,
+      sceneComponentProvider
+    )
+    .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)

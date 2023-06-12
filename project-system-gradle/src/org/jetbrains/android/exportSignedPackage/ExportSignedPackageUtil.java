@@ -45,7 +45,7 @@ import org.jetbrains.android.compiler.artifact.NewKeyStoreDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class ExportSignedPackageUtil {
+public class ExportSignedPackageUtil {
   private static final Logger LOG = Logger.getInstance(ExportSignedPackageUtil.class);
 
   private ExportSignedPackageUtil() {

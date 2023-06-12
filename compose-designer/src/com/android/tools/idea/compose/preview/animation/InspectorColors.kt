@@ -35,23 +35,25 @@ object InspectorColors {
   val LINE_OUTLINE_COLOR_ACTIVE: Color = UIUtil.getTreeSelectionBorderColor()
 
   /** List of colors for graphs. */
-  val GRAPH_COLORS = arrayListOf(
-    JBColor(0xa6bcc9, 0x8da9ba),
-    JBColor(0xaee3fe, 0x86d5fe),
-    JBColor(0xf8a981, 0xf68f5b),
-    JBColor(0x89e69a, 0x67df7d),
-    JBColor(0xb39bde, 0x9c7cd4),
-    JBColor(0xea85aa, 0xe46391),
-    JBColor(0x6de9d6, 0x49e4cd),
-    JBColor(0xe3d2ab, 0xd9c28c),
-    JBColor(0x0ab4ff, 0x0095d6),
-    JBColor(0x1bb6a2, 0x138173),
-    JBColor(0x9363e3, 0x7b40dd),
-    JBColor(0xe26b27, 0xc1571a),
-    JBColor(0x4070bf, 0x335a99),
-    JBColor(0xc6c54e, 0xadac38),
-    JBColor(0xcb53a3, 0xb8388e),
-    JBColor(0x3d8eff, 0x1477ff))
+  val GRAPH_COLORS =
+    arrayListOf(
+      JBColor(0xa6bcc9, 0x8da9ba),
+      JBColor(0xaee3fe, 0x86d5fe),
+      JBColor(0xf8a981, 0xf68f5b),
+      JBColor(0x89e69a, 0x67df7d),
+      JBColor(0xb39bde, 0x9c7cd4),
+      JBColor(0xea85aa, 0xe46391),
+      JBColor(0x6de9d6, 0x49e4cd),
+      JBColor(0xe3d2ab, 0xd9c28c),
+      JBColor(0x0ab4ff, 0x0095d6),
+      JBColor(0x1bb6a2, 0x138173),
+      JBColor(0x9363e3, 0x7b40dd),
+      JBColor(0xe26b27, 0xc1571a),
+      JBColor(0x4070bf, 0x335a99),
+      JBColor(0xc6c54e, 0xadac38),
+      JBColor(0xcb53a3, 0xb8388e),
+      JBColor(0x3d8eff, 0x1477ff)
+    )
 
   /** List of semi-transparent colors for graphs. */
   val GRAPH_COLORS_WITH_ALPHA = GRAPH_COLORS.map { ColorUtil.withAlpha(it, 0.7) }
@@ -80,5 +82,4 @@ object InspectorColors {
 
   val TOOLTIP_BACKGROUND_COLOR = canvasTooltipBackground
   val TOOLTIP_TEXT_COLOR = JBColor.foreground()
-
 }

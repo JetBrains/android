@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -37,7 +38,7 @@ class ComposableElementAutomaticRenamerFactoryTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(ComposeFqNames.root)
+    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
   }
 
   @RunsInEdt

@@ -82,3 +82,5 @@ fun createTestVisualLintRenderIssue(type: VisualLintErrorType,
     .type(type)
     .build()
 }
+
+internal fun String.toTabTitle(issueCount: Int = 0): String = createTabName(this, issueCount)

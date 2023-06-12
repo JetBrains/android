@@ -16,12 +16,14 @@
 package org.jetbrains.android.dom.navigation
 
 import com.android.SdkConstants.FQCN_NAV_HOST_FRAGMENT
-import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.psi.PsiModifier
 
 /**
  * Returns true if NavHostFragment is a superclass of the specified class
@@ -63,7 +65,7 @@ fun getClassesForTag(module: Module, tag: String): Map<PsiClass, String?> {
 
   schema.getProjectClassesForTag(tag).associateWithTo(result) { null }
 
-  return result
+  return result.filterKeys { it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) != true }
 }
 
 fun dynamicModules(module: Module): List<Module> {

@@ -30,6 +30,9 @@ import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
 import org.junit.Before
@@ -37,12 +40,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @RunWith(Parameterized::class)
-internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
+internal class PreviewPickerAnnotationInspectionTest(
+  previewAnnotationPackage: String,
+  composableAnnotationPackage: String
+) {
   companion object {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
@@ -54,20 +57,20 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
   private val previewToolingPackage = previewAnnotationPackage
 
   @get:Rule
-  val rule = ComposeProjectRule(
-    previewAnnotationPackage = previewAnnotationPackage,
-    composableAnnotationPackage = composableAnnotationPackage
-  )
+  val rule =
+    ComposeProjectRule(
+      previewAnnotationPackage = previewAnnotationPackage,
+      composableAnnotationPackage = composableAnnotationPackage
+    )
 
-  private val fixture get() = rule.fixture
+  private val fixture
+    get() = rule.fixture
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Before
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.override(true)
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled = true
     (rule.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
@@ -77,7 +80,6 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
   @After
   fun teardown() {
     StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.clearOverride()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
@@ -97,7 +99,8 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
         )
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // No existing errors
@@ -109,7 +112,8 @@ internal class PreviewPickerAnnotationInspectionTest(previewAnnotationPackage: S
 
     checkInspectionErrorAndApplyFix(
       affectedText = "spec:shape=Normal,width=1080,height=1920,unit=sp",
-      errorDescription = """Bad value type for: unit.
+      errorDescription =
+        """Bad value type for: unit.
 
 Parameter: unit should be one of: px, dp.
 
@@ -133,7 +137,8 @@ Missing parameter: dpi.""",
         )
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // No existing errors
@@ -145,14 +150,16 @@ Missing parameter: dpi.""",
 
     checkInspectionErrorAndApplyFix(
       affectedText = "spec:width=1080,isRound=no,chinSize=30,orientation=vertical",
-      errorDescription = """Bad value type for: width, isRound, chinSize, orientation.
+      errorDescription =
+        """Bad value type for: width, isRound, chinSize, orientation.
 
 Parameter: width, chinSize should have Float(dp/px) value.
 Parameter: isRound should be one of: true, false.
 Parameter: orientation should be one of: portrait, landscape.
 
 Missing parameter: height.""",
-      replaceWithMessage = "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp"
+      replaceWithMessage =
+        "Replace with spec:width=1080dp,isRound=false,chinSize=30dp,orientation=portrait,height=891dp"
     )
   }
 
@@ -173,12 +180,14 @@ Missing parameter: height.""",
         )
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     checkInspectionErrorAndApplyFix(
       affectedText = "\"spec:width=1080px,\" + \"height=\" + heightPx",
-      errorDescription = """Bad value type for: height.
+      errorDescription =
+        """Bad value type for: height.
 
 Parameter: height should have Float(dp/px) value.""",
       replaceWithMessage = "Replace with spec:width=1080px,height=1900px"
@@ -195,7 +204,7 @@ Parameter: height should have Float(dp/px) value.""",
     assertEquals(affectedText, info.text)
     assertEquals(errorDescription, info.description)
 
-    val fixAction = info.findRegisteredQuickFix { desc, _ -> desc.action}
+    val fixAction = info.findRegisteredQuickFix { desc, _ -> desc.action }
     assertEquals(replaceWithMessage, fixAction.text)
 
     runUndoTransparentWriteAction {
@@ -207,10 +216,13 @@ Parameter: height should have Float(dp/px) value.""",
   }
 
   private fun annotateAndGetLintInfo(): HighlightInfo? =
-    fixture.doHighlighting().filter { it.severity == HighlightSeverity.WARNING }.let {
-      assert(it.size <= 1)
-      it.firstOrNull()
-    }
+    fixture
+      .doHighlighting()
+      .filter { it.severity == HighlightSeverity.WARNING }
+      .let {
+        assert(it.size <= 1)
+        it.firstOrNull()
+      }
 }
 
 private fun CodeInsightTestFixture.backspace(times: Int = 1) = type("\b".repeat(times))

@@ -17,6 +17,7 @@ package com.android.tools.idea.imports
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.support.AndroidxNameUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -116,7 +117,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
     if (suggestions.size == 1 || ApplicationManager.getApplication().isUnitTestMode) {
       val suggestion = suggestions.first()
-      perform(project, element, suggestion.artifactToAdd, suggestion.classToImport, sync)
+      perform(project, element, suggestion.artifactToAdd, suggestion.version, suggestion.classToImport, sync)
       return
     }
 
@@ -139,7 +140,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       }
 
       override fun onChosen(selectedValue: AutoImportVariant, finalChoice: Boolean): PopupStep<*>? {
-        perform(project, element, selectedValue.artifactToAdd, selectedValue.classToImport, sync)
+        perform(project, element, selectedValue.artifactToAdd, selectedValue.version, selectedValue.classToImport, sync)
         return FINAL_CHOICE
       }
     }
@@ -151,6 +152,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     project: Project,
     element: PsiElement,
     artifact: String,
+    artifactVersion: String?,
     importSymbol: String?,
     sync: Boolean
   ): ListenableFuture<ProjectSystemSyncManager.SyncResult>? {
@@ -159,10 +161,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     var syncFuture: ListenableFuture<ProjectSystemSyncManager.SyncResult>? = null
     WriteCommandAction.runWriteCommandAction(project) {
       if (sync) {
-        syncFuture = performWithLockAndSync(project, module, element, artifact, importSymbol)
+        syncFuture = performWithLockAndSync(project, module, element, artifact, artifactVersion, importSymbol)
       }
       else {
-        performWithLock(project, module, element, artifact, importSymbol)
+        performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
       }
     }
 
@@ -175,6 +177,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     module: Module,
     element: PsiElement,
     artifact: String,
+    artifactVersion: String?,
     importSymbol: String?
   ): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
     // Register sync action for undo.
@@ -186,7 +189,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       override fun redo() {}
     })
 
-    performWithLock(project, module, element, artifact, importSymbol)
+    performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
 
     // Register sync action for redo.
     UndoManager.getInstance(project).undoableActionPerformed(object : GlobalUndoableAction() {
@@ -210,6 +213,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     module: Module,
     element: PsiElement,
     artifact: String,
+    artifactVersion: String?,
     importSymbol: String?
   ) {
     // Import the class as well (if possible); otherwise it might be confusing that you have to invoke two
@@ -218,11 +222,11 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       addImportStatement(project, element, importSymbol)
     }
 
-    addDependency(module, artifact)
+    addDependency(module, artifact, artifactVersion)
     // Also add on an extra dependency for special cases.
     getMavenClassRegistry()
       .findExtraArtifacts(artifact)
-      .forEach { addDependency(module, it.key, it.value) }
+      .forEach { addDependency(module, it.key, artifactVersion, it.value) }
 
     // Also add dependent annotation processor?
     if (module.getModuleSystem().canRegisterDependency(DependencyType.ANNOTATION_PROCESSOR).isSupported()) {
@@ -234,7 +238,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           it
         }
 
-        addDependency(module, annotationProcessor, DependencyType.ANNOTATION_PROCESSOR)
+        addDependency(module, annotationProcessor, artifactVersion, DependencyType.ANNOTATION_PROCESSOR)
       }
     }
   }
@@ -245,7 +249,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
   override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
-    if (!module.getModuleSystem().canRegisterDependency().isSupported()) return false
+    val moduleSystem = module.getModuleSystem()
+    if (!moduleSystem.canRegisterDependency().isSupported() ||
+        (moduleSystem.usesVersionCatalogs && !StudioFlags.SUGGESTED_IMPORTS_WITH_VERSION_CATALOGS_ENABLED.get())) return false
 
     val resolvable = findResolvable(element, editor?.caretModel?.offset ?: -1) { text ->
       Resolvable.createNewOrNull(text, findLibraryData(project, text))
@@ -282,19 +288,31 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
   }
 
-  private fun addDependency(module: Module, artifact: String, type: DependencyType = DependencyType.IMPLEMENTATION) {
-    val coordinate = getCoordinate(artifact) ?: return
+  private fun addDependency(module: Module, artifact: String, version: String?, type: DependencyType = DependencyType.IMPLEMENTATION) {
+    val coordinate = getCoordinate(artifact, version) ?: return
     val moduleSystem = module.getModuleSystem()
     moduleSystem.registerDependency(coordinate, type)
   }
 
   private fun dependsOn(module: Module, artifact: String): Boolean {
+    // To check if we depend on an artifact, we don't particularly care which version is there, just whether the library is included at all.
     val coordinate = getCoordinate(artifact) ?: return false
     val moduleSystem = module.getModuleSystem()
     return moduleSystem.getRegisteredDependency(coordinate) != null
   }
 
-  private fun getCoordinate(artifact: String) = GradleCoordinate.parseCoordinateString("$artifact:+")
+  /**
+   * Generates a coordinate representing the specified artifact.
+   *
+   * @param artifact requested artifact
+   *
+   * @param version desired version, if any. This is expected to be in the form "2.5.1". The version comes from [MavenClassRegistry], and
+   * represents the minimum version of a dependency that should be added. See
+   * [b/275602080](https://issuetracker.google.com/issues/275602080#comment6) for more details.
+   */
+  private fun getCoordinate(artifact: String, version: String? = null) =
+    if (version.isNullOrEmpty()) GradleCoordinate.parseCoordinateString("$artifact:+")
+    else GradleCoordinate.parseCoordinateString("$artifact:$version")
 
   private fun findResolvable(
     element: PsiElement,

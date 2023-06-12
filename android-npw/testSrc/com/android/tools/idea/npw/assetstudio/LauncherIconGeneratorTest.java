@@ -42,6 +42,7 @@ public class LauncherIconGeneratorTest extends AdaptiveIconGeneratorTest {
     myIconGenerator.outputName().set("ic_launcher");
     myIconGenerator.foregroundLayerName().set("ic_launcher_foreground");
     myIconGenerator.backgroundLayerName().set("ic_launcher_background");
+    myIconGenerator.generateWebpIcons().set(false);
   }
 
   public void testDrawableBackgroundAndForeground() throws Exception {

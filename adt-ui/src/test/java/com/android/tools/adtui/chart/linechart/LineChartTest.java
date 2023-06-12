@@ -27,6 +27,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DefaultDataSeries;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.LineChartModel;
@@ -40,7 +41,7 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
-import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -233,13 +234,14 @@ public class LineChartTest {
     Range yRange = new Range(0, 10);
     int windowHeight = 20;
 
-    DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
-    testSeries.add(0, 0L);
-    testSeries.add(4, 2L);
-    testSeries.add(6, 4L);
-    testSeries.add(10, 6L);
-    testSeries.add(14, 8L);
-    testSeries.add(20, 10L);
+    DataSeries<Long> testSeries = range -> Arrays.asList(
+      new SeriesData<>(0, 0L),
+      new SeriesData<>(4, 2L),
+      new SeriesData<>(6, 4L),
+      new SeriesData<>(10, 6L),
+      new SeriesData<>(14, 8L),
+      new SeriesData<>(20, 10L)
+    );
 
     RangedContinuousSeries rangedSeries = new RangedContinuousSeries("test", xRange, yRange, testSeries);
     model.add(rangedSeries);
@@ -294,11 +296,12 @@ public class LineChartTest {
     LineChartModel model = newLineChartModel();
 
     // We add two data points outside of the View Range
-    DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
-    testSeries.add(2, 4L);
-    testSeries.add(3, 6L);
-    testSeries.add(4, 8L);
-    testSeries.add(5, 10L);
+    DataSeries<Long> testSeries = range -> Arrays.asList(
+      new SeriesData<>(2, 4L),
+      new SeriesData<>(3, 6L),
+      new SeriesData<>(4, 8L),
+      new SeriesData<>(5, 10L)
+    );
 
     /* We expect that our LineChart draws the points (4,8) and (5,10).
      * Since Swing's (0,0) is in the top left, our y values 8 and 10 will turn into
@@ -388,9 +391,10 @@ public class LineChartTest {
     //    * -----
     //  *   |   |
     //  2 3 4 5 6
-    DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
-    testSeries.add(2, 4L);
-    testSeries.add(3, 6L);
+    DataSeries<Long> testSeries = range -> Arrays.asList(
+      new SeriesData<>(2, 4L),
+      new SeriesData<>(3, 6L)
+    );
 
     /*
      * We expect that our LineChart draws the last point at the beginning of the range
@@ -453,9 +457,10 @@ public class LineChartTest {
     //    * -----
     //  *   |   |
     //  2 3 4 5 6
-    DefaultDataSeries<Long> testSeries = new ReturnAllDataSeries();
-    testSeries.add(2, 4L);
-    testSeries.add(3, 6L);
+    DataSeries<Long> testSeries = range -> Arrays.asList(
+      new SeriesData<>(2, 4L),
+      new SeriesData<>(3, 6L)
+    );
 
     /*
      * We expect that our LineChart draws the last point at the beginning of the range
@@ -525,13 +530,6 @@ public class LineChartTest {
     range.shift(delta);
     model.update(FakeTimer.ONE_SECOND_IN_NS);
     chart.paint(graphics);
-  }
-
-  private static final class ReturnAllDataSeries extends DefaultDataSeries<Long> {
-    @Override
-    public List<SeriesData<Long>> getDataForRange(Range range) {
-      return getAllData();
-    }
   }
 
   private LineChartModel newLineChartModel() {

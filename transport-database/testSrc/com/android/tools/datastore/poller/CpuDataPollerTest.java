@@ -30,7 +30,6 @@ import com.android.tools.datastore.TestGrpcService;
 import com.android.tools.datastore.service.CpuService;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStartRequest;
@@ -46,6 +45,7 @@ import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
+import com.android.tools.profiler.proto.Trace.TraceInfo;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
@@ -377,7 +377,7 @@ public class CpuDataPollerTest extends DataStorePollerTest {
 
   private static class FakeCpuService extends CpuServiceGrpc.CpuServiceImplBase {
 
-    private List<CpuTraceInfo> myTraceInfoResponses = new ArrayList<>();
+    private List<TraceInfo> myTraceInfoResponses = new ArrayList<>();
 
     @Override
     public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> responseObserver) {

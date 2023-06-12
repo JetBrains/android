@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.common.error.IssuePanelService.Companion.SELECTED_ISSUES
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
+import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.PlatformDataKeys
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.assertInstanceOf
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
@@ -119,5 +126,86 @@ class DesignerCommonIssuePanelTest {
     // Selecting file node should not display side panel.
     tree.selectionPath = TreePath(fileNode)
     assertNull(splitter.secondComponent)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testContextData() {
+    rule.projectRule.replaceService(DataManager::class.java, DataManagerImpl())
+
+    val file = rule.fixture.addFileToProject("res/layout/my_layout.xml", "")
+
+    val fileIssue = TestIssue(source = IssueSourceWithFile(file.virtualFile, "my_layout"), description = "layout issue")
+    val noFileIssue = TestIssue(description = "other issue")
+
+
+    val provider = DesignerCommonIssueTestProvider(listOf(fileIssue, noFileIssue))
+    val model = DesignerCommonIssueModel()
+    Disposer.register(rule.testRootDisposable, model)
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    // Make sure the Tree is added into DesignerCommonIssuePanel.
+    IdeEventQueue.getInstance().flushQueue()
+    val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
+
+    tree.isRootVisible = false
+    tree.expandRow(1)
+    tree.expandRow(0)
+
+    // Now the tree structure becomes:
+    // ------
+    // IssuedFileNode: res/layout/my_layout.xml
+    //   |- IssueNode: fileIssue
+    // NoFileNode: Layout Validation
+    //   |- IssueNode: noFileIssue
+    // --------
+
+    run {
+      // Test IssuedFileNode: res/layout/my_layout.xml
+      tree.setSelectionRow(0)
+      val context = DataManager.getInstance().getDataContext(tree)
+
+      assertInstanceOf<IssuedFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
+      assertEquals(file.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
+      assertEquals(listOf(fileIssue), context.getData(SELECTED_ISSUES))
+      assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
+    }
+
+    run {
+      // Test IssueNode: fileIssue
+      tree.setSelectionRow(1)
+      val context = DataManager.getInstance().getDataContext(tree)
+
+      assertInstanceOf<IssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
+      assertEquals(file.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
+      assertEquals(listOf(fileIssue), context.getData(SELECTED_ISSUES))
+
+      val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
+      assertInstanceOf<OpenFileDescriptor>(navigatable)
+      val descriptor = navigatable as OpenFileDescriptor
+      assertEquals(rule.project, descriptor.project)
+      assertEquals(file.virtualFile, descriptor.file)
+    }
+
+    run {
+      // Test NoFileNode: Layout Validation
+      tree.setSelectionRow(2)
+      val context = DataManager.getInstance().getDataContext(tree)
+
+      assertInstanceOf<NoFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
+      assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
+      assertEquals(listOf(noFileIssue), context.getData(SELECTED_ISSUES))
+      assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
+    }
+
+    run {
+      // Test IssueNode: noFileIssue
+      tree.setSelectionRow(3)
+      val context = DataManager.getInstance().getDataContext(tree)
+
+      assertInstanceOf<IssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
+      assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
+      assertEquals(listOf(noFileIssue), context.getData(SELECTED_ISSUES))
+      assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
+    }
   }
 }

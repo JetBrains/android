@@ -24,6 +24,12 @@ public interface Display extends AutoCloseable {
   String getDisplay();
 
   static Display createDefault() throws IOException {
-    return SystemInfo.isLinux ? new XvfbServer() : new NativeDisplay();
+    if (SystemInfo.isMac) {
+      return new MacDisplay();
+    } else if (SystemInfo.isLinux) {
+      return new XvfbServer();
+    } else {
+      return new NativeDisplay();
+    }
   }
 }

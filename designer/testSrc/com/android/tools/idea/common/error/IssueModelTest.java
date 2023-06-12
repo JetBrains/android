@@ -56,7 +56,7 @@ public class IssueModelTest {
 
   @Test
   public void setRenderErrorModel() {
-    VirtualFile file = myProjectRule.fixture.addFileToProject("res/layout/layout.xml", "").getVirtualFile();
+    VirtualFile file = myProjectRule.getFixture().addFileToProject("res/layout/layout.xml", "").getVirtualFile();
 
     RenderErrorModel.Issue issue = MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR);
     RenderErrorModel renderErrorModel = createRenderErrorModel(issue);

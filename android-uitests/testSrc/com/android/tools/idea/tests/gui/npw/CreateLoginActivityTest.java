@@ -21,8 +21,11 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,9 +33,17 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateLoginActivityTest {
 
-  private static final String LOGIN_ACTIVITY = "app/src/main/java/dev/tools/ui/login/LoginActivity.kt";
+  private static final String LOGIN_ACTIVITY = "app/src/main/java/com/google/myapplication/ui/login/LoginActivity.java";
+  //Using 'Empty Views Activity' instead of 'Empty Activity' because of b/263821848
+  protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
+
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
 
+  @Before
+  public void setUp() throws Exception {
+    WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
+    guiTest.robot().waitForIdle();
+  }
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
    * <p>TT ID: fb8a268b-b089-409b-b6d9-fd02d3dbf2f9
@@ -59,16 +70,9 @@ public class CreateLoginActivityTest {
   @Test
   public void activityTemplate() {
     // Create a new project with Login Activity.
-    guiTest.welcomeFrame().createNewProject()
-           .getChooseAndroidProjectStep()
-           .chooseActivity("Login Activity")
-           .wizard()
-           .clickNext()
-           .getConfigureNewAndroidProjectStep()
-           .enterName("LoginActApp")
-           .enterPackageName("dev.tools")
-           .wizard()
-           .clickFinishAndWaitForSyncToFinish();
+    guiTest.ideFrame()
+      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Login Views Activity")
+      .clickFinishAndWaitForSyncToFinish();
 
     // Verification.
     EditorFixture myEditor = guiTest.ideFrame().getEditor();

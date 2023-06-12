@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues
 import com.android.tools.idea.gradle.structure.configurables.PsPathRenderer
@@ -40,11 +41,12 @@ import java.util.regex.Pattern
 
 class PsAndroidModuleAnalyzer(
   val parentDisposable: Disposable,
-  private val pathRenderer: PsPathRenderer
+  val pathRenderer: PsPathRenderer
 ) : PsModelAnalyzer<PsAndroidModule>(parentDisposable) {
 
   override val supportedModelType: Class<PsAndroidModule> = PsAndroidModule::class.java
 
+  @UiThread
   override fun analyze(model: PsAndroidModule): Sequence<PsIssue> {
     return analyzeModuleVariants(model) +
            analyzeDeclaredDependencies(model) +
@@ -91,9 +93,13 @@ class PsAndroidModuleAnalyzer(
           .map { PsMessageScope(it.artifact.parent.buildTypeName, it.artifact.parent.productFlavorNames, it.artifact.name) }
           .toSet())
       val declaredVersion = spec.version
+      val message = if (declaredVersion == null)
+        "Gradle promoted library version to ${promotedTo.version}"
+      else
+        "Gradle promoted library version from $declaredVersion to ${promotedTo.version}"
       // TODO(b/110690694): Provide a detailed message showing all known places which request different versions of the same library.
       PsGeneralIssue(
-        "Gradle promoted library version from $declaredVersion to ${promotedTo.version}",
+        message,
         "in: ${scopes.joinToString("\n") { it.toString() }}",
         path,
         PROJECT_ANALYSIS,

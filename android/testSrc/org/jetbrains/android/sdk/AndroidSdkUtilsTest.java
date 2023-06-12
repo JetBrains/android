@@ -15,31 +15,28 @@
  */
 package org.jetbrains.android.sdk;
 
+import static com.android.SdkConstants.FN_ADB;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static org.mockito.Mockito.when;
 
-import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.androidTarget.MockPlatformTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.util.EnvironmentUtil;
 import java.io.File;
-import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
-import org.jetbrains.annotations.NotNull;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link AndroidSdkUtils}.
@@ -65,15 +62,7 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
     for (Sdk sdk : table.getAllJdks()) {
       table.removeJdk(sdk);
     }
-  }
-
-  public void DISABLEDtestTryToCreateAndSetAndroidSdkWithPathOfModernSdk() {
-    boolean sdkSet = AndroidSdkUtils.tryToCreateAndSetAndroidSdk(myModule, mySdkPath, TestUtils.getLatestAndroidPlatform());
-    System.out.println("Trying to set sdk for module from: " + mySdkPath + " -> " + sdkSet);
-    assertTrue(sdkSet);
-    Sdk sdk = ModuleRootManager.getInstance(myModule).getSdk();
-    assertNotNull(sdk);
-    assertTrue(FileUtil.pathsEqual(mySdkPath.getPath(), sdk.getHomePath()));
+    AndroidSdkPathStore.getInstance().setAndroidSdkPath(null);
   }
 
   public void DISABLEDtestCreateNewAndroidPlatformWithPathOfModernSdkOnly() {
@@ -85,7 +74,7 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
 
   public void testGetTargetLabel() throws Exception {
     IAndroidTarget platformTarget = new MockPlatformTarget(18, 2);
-    assertEquals("API 18: Android 4.3 (Jelly Bean)", AndroidSdkUtils.getTargetLabel(platformTarget));
+    assertEquals("API 18 (\"Jelly Bean\"; Android 4.3)", AndroidSdkUtils.getTargetLabel(platformTarget));
 
     IAndroidTarget unknownTarget = new MockPlatformTarget(-1, 1);
     assertEquals("API -1", AndroidSdkUtils.getTargetLabel(unknownTarget));
@@ -100,7 +89,7 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
         return new AndroidVersion(100, "Z");
       }
     };
-    assertEquals("API 100+: platform r100", AndroidSdkUtils.getTargetLabel(platformPreviewTarget));
+    assertEquals("API Z Preview", AndroidSdkUtils.getTargetLabel(platformPreviewTarget));
   }
 
   public void testGetDebugBridgeFromSystemPropertyOverride() throws Exception {
@@ -116,24 +105,14 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
     }
   }
 
-  public void testGetAdbInNonAndroidProject() {
+  public void testGetAdbInPath() throws Exception {
     assertWithMessage("Precondition: project with no android facets")
         .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
-
-    WriteAction.runAndWait(() -> IdeSdks.getInstance().setAndroidSdkPath(mySdkPath, null));
-    assertWithMessage("Precondition: android SDK configured").that(IdeSdks.getInstance().hasConfiguredAndroidSdk()).isTrue();
-
-    assertThat(AndroidSdkUtils.findAdb(myProject).adbPath)
-        .isEqualTo(new File(IdeSdks.getInstance().getAndroidSdkPath(), AndroidBuildCommonUtils.platformToolPath(SdkConstants.FN_ADB)));
-  }
-
-  private static void createAndroidSdk(@NotNull File androidHomePath, @NotNull String targetHashString, @NotNull Sdk javaSdk) {
-    Sdk sdk = SdkConfigurationUtil.createAndAddSDK(androidHomePath.getPath(), AndroidSdkType.getInstance());
-    assertNotNull(sdk);
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(androidHomePath);
-    assertNotNull(sdkData);
-    IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
-    assertNotNull(target);
-    AndroidSdks.getInstance().setUpSdk(sdk, target, target.getName(), Collections.singletonList(javaSdk), javaSdk);
+    try (MockedStatic<EnvironmentUtil> mockEnvironment = Mockito.mockStatic(EnvironmentUtil.class)) {
+      String separator = System.getProperty("path.separator");
+      File fakeAdb = createTempFile(FN_ADB, "");
+      when(EnvironmentUtil.getValue("PATH")).thenReturn("foo" + separator + fakeAdb.getParent() + separator + "bar");
+      assertThat(AndroidSdkUtils.findAdb(myProject).adbPath).isEqualTo(fakeAdb);
+    }
   }
 }

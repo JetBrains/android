@@ -16,20 +16,28 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.serverflags.FEATURE_SURVEY_CONFIG
 import com.android.tools.idea.serverflags.FEATURE_SURVEY_ROOT
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.FeatureSurveyConfig
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.ide.IdeEventQueue
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
 
 object FeatureSurveys {
   private var isFeatureSurveyPending = false
   private val lock = Any()
 
   fun processEvent(event: AndroidStudioEvent.Builder) {
-    val name = "${FEATURE_SURVEY_ROOT}${event.kind.valueDescriptor.name}"
+    triggerSurveyByName(event.kind.valueDescriptor.name)
+  }
+
+  fun triggerSurveyByName(surveyFileName: String) {
+    val name = "$FEATURE_SURVEY_ROOT$surveyFileName"
     val survey = ServerFlagService.instance
                    .getProtoOrNull(name, DEFAULT_SATISFACTION_SURVEY)
                  ?: return
@@ -37,30 +45,18 @@ object FeatureSurveys {
     if (!shouldInvokeFeatureSurvey(name)) {
       return
     }
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return
 
-    val eventQueue = IdeEventQueue.getInstance()
-    lateinit var runner: Runnable
+    val notification = notificationGroup.createNotification(
+      survey.title,
+      "Would you like to take a 1-question survey based on your recent activity to help us improve Android Studio?",
+      NotificationType.INFORMATION
+    )
 
-    runner = Runnable {
-      // Ensure we're invoked only once.
-      eventQueue.removeIdleListener(runner)
+    notification.addAction(FeatureSurveyNotificationAction(surveyFileName, survey))
 
-      val dialog = createDialog(survey)
-      dialog.show()
-
-      var generalInterval = config.generalIntervalCancelled
-      var specificInterval = config.specificIntervalCancelled
-
-      if (dialog.isOK) {
-        generalInterval = config.generalIntervalCompleted
-        specificInterval = config.specificIntervalCompleted
-      }
-
-      featureSurveyInvoked(name, generalInterval, specificInterval)
-      AnalyticsSettings.saveSettings()
-    }
-
-    eventQueue.addIdleListener(runner, config.idleIntervalMs)
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   // Determines whether the specified feature survey should be invoked.
@@ -100,23 +96,7 @@ object FeatureSurveys {
     return true
   }
 
-  // Indicates that a feature survey has been invoked, and the countdowns until
-  // the next feature survey should be updated
-  fun featureSurveyInvoked(name: String, generalInterval: Int, specificInterval: Int) {
-    val now = AnalyticsSettings.dateProvider.now()
-
-    AnalyticsSettings.nextFeatureSurveyDate = AndroidStudioUsageTracker.daysFromNow(now, generalInterval)
-
-    val map = AnalyticsSettings.nextFeatureSurveyDateMap ?: mutableMapOf()
-    map[name] = AndroidStudioUsageTracker.daysFromNow(now, specificInterval)
-    AnalyticsSettings.nextFeatureSurveyDateMap = map
-
-    synchronized(lock) {
-      isFeatureSurveyPending = false
-    }
-  }
-
-  private val config: FeatureSurveyConfig by lazy {
+  val config: FeatureSurveyConfig by lazy {
     val config = ServerFlagService.instance.getProtoOrNull(FEATURE_SURVEY_CONFIG, DEFAULT_FEATURE_SURVEY_CONFIG)
 
     when {
@@ -127,6 +107,38 @@ object FeatureSurveys {
       !config.hasSpecificIntervalCancelled() ||
       !config.hasIdleIntervalMs() -> DEFAULT_FEATURE_SURVEY_CONFIG
       else -> config
+    }
+  }
+
+  @VisibleForTesting
+  object FeatureSurveyChoiceLogger : ChoiceLogger {
+    override fun log(name: String, result: List<Int>) {
+      ChoiceLoggerImpl.log(name, result)
+      featureSurveyInvoked(name, config.generalIntervalCompleted, config.specificIntervalCompleted)
+    }
+
+    override fun cancel(name: String) {
+      ChoiceLoggerImpl.cancel(name)
+      featureSurveyInvoked(name, config.generalIntervalCancelled, config.generalIntervalCancelled)
+    }
+
+    // Indicates that a feature survey has been invoked, and the countdowns until
+    // the next feature survey should be updated
+    @VisibleForTesting
+    fun featureSurveyInvoked(name: String, generalInterval: Int, specificInterval: Int) {
+      val now = AnalyticsSettings.dateProvider.now()
+
+      AnalyticsSettings.nextFeatureSurveyDate = AndroidStudioUsageTracker.daysFromNow(now, generalInterval)
+
+      val map = AnalyticsSettings.nextFeatureSurveyDateMap ?: mutableMapOf()
+      map[name] = AndroidStudioUsageTracker.daysFromNow(now, specificInterval)
+      AnalyticsSettings.nextFeatureSurveyDateMap = map
+
+      AnalyticsSettings.saveSettings()
+
+      synchronized(lock) {
+        isFeatureSurveyPending = false
+      }
     }
   }
 }

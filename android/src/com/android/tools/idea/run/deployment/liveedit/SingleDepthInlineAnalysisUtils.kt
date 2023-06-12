@@ -15,29 +15,23 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.openapi.module.Module
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.codegen.inline.InlineCache
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.base.utils.fqname.getKotlinFqName
 import org.jetbrains.kotlin.idea.codeInsight.DescriptorToSourceUtilsIde
-import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
-import org.jetbrains.kotlin.psi.KtDeclarationWithBody
-import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtForExpression
-import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
-import org.jetbrains.kotlin.utils.addIfNotNull
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.HashSet
+import java.util.LinkedHashSet
 import kotlin.io.path.exists
 import kotlin.system.measureTimeMillis
 
@@ -55,14 +49,17 @@ typealias SourceInlineCandidateCache = LinkedHashMap<String, SourceInlineCandida
  * This class represent a Kotlin source file and the location (memory or file) of the compiled bytecode that can be used to be injected
  * into the inline cache of the code generation process.
  */
-data class SourceInlineCandidate (val sourceFile: KtFile, val className : String, val module: Module) {
-  var bytecode : ByteArray? = null
+data class SourceInlineCandidate (val sourceFile: KtFile, val className : String) {
+  companion object {
+    val LOGGER = Logger.getInstance(SourceInlineCandidate.javaClass)
+  }
 
+  var bytecode : ByteArray? = null
   /**
    * Return true if we can populate the KtFile's inline cache entry of the code generation process.
    * IE: Can we have the bytecode available either in memory or on disk somehow.
    */
-  private inline fun canFillInlineCache() = bytecode != null;
+  inline fun canFillInlineCache() = bytecode != null;
 
   /**
    * Fill the bytecode cache with the .class content from the last build.
@@ -78,20 +75,15 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
     var vFile = sourceFile.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
 
     if (vFile == null) {
-      // TODO REMOVE
-      println("Unable to local $className in the build system.")
+      LOGGER.warn("Unable to local $className in the build system.")
     }
 
     bytecode = vFile?.let {
       val file = Paths.get(it.path)
 
       if (!file.exists()) {
-        // TODO REMOVE
-        println("Build output $file NOT found")
+        LOGGER.warn("Build output $file NOT found")
         return
-      } else {
-        // TODO REMOVE
-        println("Build output $file found")
       }
 
       return@let Files.readAllBytes(file)
@@ -111,7 +103,6 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
    */
   fun fillInlineCache(inlineCache : InlineCache) : Boolean {
     if (canFillInlineCache()) {
-      println("Injecting $className into InlineCache")
       inlineCache.classBytes.put(className, bytecode!!)
       return true
     }
@@ -131,49 +122,31 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
  * themselves can also reference inline functions from another source file that are not part of the return set.
  */
 fun analyzeSingleDepthInlinedFunctions(
-  resolutionFacadeForFile: ResolutionFacade,
   file: KtFile,
   bindingContext: BindingContext,
   cache: SourceInlineCandidateCache): Set<SourceInlineCandidate> {
   val referencedClasses = LinkedHashSet<SourceInlineCandidate>()
-  val elapsed = measureTimeMillis {
-    analyzeElementWithOneLevelInline(
-      resolutionFacadeForFile,
-      file,
-      bindingContext,
-      referencedClasses,
-      cache)
-  }
-
-  // TODO REMOVE
-  println("analyzeSingleDepthInlinedFunctions took: $elapsed ms")
+  analyzeElementWithOneLevelInline(file, bindingContext, referencedClasses, cache)
   return referencedClasses
 }
 
 // This is mostly org.jetbrains.kotlin.idea.core.util.inlineAnalysisUtils but non-recursive and fitted with Live edit specific abstraction
 private fun analyzeElementWithOneLevelInline(
-  resolutionFacade: ResolutionFacade,
   element: KtFile,
-  fullResolveContext: BindingContext,
+  bindingContext: BindingContext,
   requestedClasses: LinkedHashSet<SourceInlineCandidate>,
   cache: SourceInlineCandidateCache){
   val project = element.project
   val declarationsWithBody = HashSet<KtDeclarationWithBody>()
-  val innerContexts = ArrayList<BindingContext>()
-  innerContexts.addIfNotNull(fullResolveContext)
   element.accept(object : KtTreeVisitorVoid() {
     override fun visitExpression(expression: KtExpression) {
       super.visitExpression(expression)
-      val bindingContext = resolutionFacade.analyze(expression)
-      innerContexts.add(bindingContext)
       val call = bindingContext.get(BindingContext.CALL, expression) ?: return
       val resolvedCall = bindingContext.get(BindingContext.RESOLVED_CALL, call)
       checkResolveCall(resolvedCall)
     }
     override fun visitDestructuringDeclaration(destructuringDeclaration: KtDestructuringDeclaration) {
       super.visitDestructuringDeclaration(destructuringDeclaration)
-      val bindingContext = resolutionFacade.analyze(destructuringDeclaration)
-      innerContexts.add(bindingContext)
       for (entry in destructuringDeclaration.entries) {
         val resolvedCall = bindingContext.get(BindingContext.COMPONENT_RESOLVED_CALL, entry)
         checkResolveCall(resolvedCall)
@@ -181,8 +154,6 @@ private fun analyzeElementWithOneLevelInline(
     }
     override fun visitForExpression(expression: KtForExpression) {
       super.visitForExpression(expression)
-      val bindingContext = resolutionFacade.analyze(expression)
-      innerContexts.add(bindingContext)
       checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_ITERATOR_RESOLVED_CALL, expression.loopRange))
       checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_HAS_NEXT_RESOLVED_CALL, expression.loopRange))
       checkResolveCall(bindingContext.get(BindingContext.LOOP_RANGE_NEXT_RESOLVED_CALL, expression.loopRange))
@@ -221,15 +192,15 @@ private fun analyzeElementWithOneLevelInline(
       val file = declaration.containingKtFile
       if (element != file) {
         requestedClasses.add(cache.computeIfAbsent(name) {
-          SourceInlineCandidate(file, it, declaration.module!!)
+          SourceInlineCandidate(file, it)
         })
       }
     } else {
-      var name = containingClass.getKotlinFqName().toString().replace(".", "/")
+      val name = containingClass.getKotlinFqName().toString().replace(".", "/")
       val file = declaration.containingKtFile
       if (element != file) {
         requestedClasses.add(cache.computeIfAbsent(name) {
-          SourceInlineCandidate(file, it, declaration.module!!)
+          SourceInlineCandidate(file, it)
         })
       }
     }

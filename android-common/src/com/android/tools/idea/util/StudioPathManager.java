@@ -1,4 +1,3 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.util;
 
 import com.intellij.ide.plugins.PluginManagerCore;
@@ -16,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * Code inside Android Studio (as opposed to code inside studio-sdk), should use the methods in this class
  * instead of {@link PathManager#getHomePath()} or {@link PluginManagerCore#isRunningFromSources()}.
  */
-public final class StudioPathManager {
+public class StudioPathManager {
 
   // When running from sources with bundled SDK, the SDK is at:
   //   $ROOT/tools/idea

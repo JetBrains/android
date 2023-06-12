@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.npw.module.recipes
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
-import com.android.tools.idea.wizard.template.ApiVersion
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.android.tools.idea.wizard.template.GradlePluginVersion
@@ -99,7 +98,7 @@ fun proguardConfig(
   }
 
 fun toAndroidFieldVersion(fieldName: String, fieldValue: String, gradlePluginVersion: GradlePluginVersion): String {
-  val isNewAGP = GradleVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("7.0.0") >= 0
+  val isNewAGP = AgpVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("7.0.0") >= 0
   val versionNumber = fieldValue.toIntOrNull()
   return when {
     isNewAGP && versionNumber == null -> "${fieldName}Preview \"${fieldValue.replace("android-", "")}\""
@@ -131,7 +130,7 @@ fun androidConfig(
   else {
     """${renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }}
     ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
-    ${toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion)}
+    ${renderIf(!isLibraryProject) { toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion) }}
     ${renderIf(!isLibraryProject) { "versionCode 1" }}
     ${renderIf(!isLibraryProject) { "versionName \"1.0\"" }}
     """
@@ -191,12 +190,14 @@ fun androidConfig(
 
 private fun resource(path: String) = File("templates/module", path)
 
-fun RecipeExecutor.copyIcons(destination: File, targetSdkVersion: ApiVersion) {
+fun RecipeExecutor.copyIcons(destination: File, minApi: Int) {
+  fun apiSuffix(api: Int) =
+    if (api > minApi) "-v$api" else ""
 
-  fun copyAdaptiveIcons(targetSdkVersion: ApiVersion) {
+  fun copyAdaptiveIcons() {
     copy(
       resource("mipmap-anydpi-v26/ic_launcher.xml"),
-      destination.resolve("mipmap-anydpi-v26/ic_launcher.xml")
+      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher.xml")
     )
     copy(
       resource("drawable/ic_launcher_background.xml"),
@@ -204,24 +205,17 @@ fun RecipeExecutor.copyIcons(destination: File, targetSdkVersion: ApiVersion) {
     )
     copy(
       resource("drawable-v24/ic_launcher_foreground.xml"),
-      destination.resolve("drawable-v24/ic_launcher_foreground.xml")
+      destination.resolve("drawable${apiSuffix(24)}/ic_launcher_foreground.xml")
     )
     copy(
       resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
-      destination.resolve("mipmap-anydpi-v26/ic_launcher_round.xml")
+      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher_round.xml")
     )
-    if (targetSdkVersion.api >= 33) {
-      // For themed app icons
-      copy(
-        resource("mipmap-anydpi-v33/ic_launcher.xml"),
-        destination.resolve("mipmap-anydpi-v33/ic_launcher.xml")
-      )
-    }
   }
 
   copyMipmapFolder(destination)
   copyMipmapFolder(destination)
-  copyAdaptiveIcons(targetSdkVersion)
+  copyAdaptiveIcons()
 }
 
 fun RecipeExecutor.copyMipmapFolder(destination: File) {
@@ -269,7 +263,8 @@ fun RecipeExecutor.addInstrumentedTests(
 /**
  * Plugin block placeholder. Used to introduce an extra space at the bottom of the block.
  */
-fun emptyPluginsBlock() = """
+fun emptyPluginsBlock(isKts: Boolean, useVersionCatalog: Boolean) = """
+${renderIf(isKts && useVersionCatalog) { "@Suppress(\"DSL_SCOPE_VIOLATION\") // TODO: Remove once KTIJ-19369 is fixed\n" }}
 plugins {
 }
 """

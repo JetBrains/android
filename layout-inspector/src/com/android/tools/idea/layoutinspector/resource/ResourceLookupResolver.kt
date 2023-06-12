@@ -51,8 +51,9 @@ import com.android.tools.idea.layoutinspector.properties.PropertyType.COLOR
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.namespacing
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.res.ResourceNamespaceContext
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.StateList
 import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.getItemPsiFile
@@ -80,8 +81,8 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.AttributeProcessingUtil
-import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.dom.attrs.AttributeDefinitions
+import com.android.tools.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import javax.swing.Icon
@@ -93,7 +94,7 @@ import javax.swing.Icon
  */
 fun findFacetFromPackage(project: Project, packageName: String): AndroidFacet? {
   return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).firstOrNull {
-    AndroidModel.get(it)?.allApplicationIds?.contains(packageName) ?: false
+    it.module.isMainModule() && AndroidModel.get(it)?.allApplicationIds?.contains(packageName) ?: false
   }
 }
 
@@ -138,7 +139,7 @@ class ResourceLookupResolver(
   private val folderConfiguration: FolderConfiguration,
   private val resolver: ResourceResolver
 ) {
-  private val projectResources = ResourceRepositoryManager.getProjectResources(appFacet)
+  private val projectResources = StudioResourceRepositoryManager.getProjectResources(appFacet)
   private val androidResourceNamespaceResolver =
     ResourceNamespace.Resolver { namespacePrefix -> if (namespacePrefix == ANDROID_NS_NAME) ANDROID_URI else null }
   private val androidNamespaceContext = ResourceNamespaceContext(ResourceNamespace.ANDROID, androidResourceNamespaceResolver)

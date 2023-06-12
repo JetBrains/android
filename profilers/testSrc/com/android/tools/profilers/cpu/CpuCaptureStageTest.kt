@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -24,7 +25,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
@@ -47,7 +47,7 @@ class CpuCaptureStageTest {
   private val transportService = FakeTransportService(timer, true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
+  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", transportService)
 
   @get:Rule
   val applicationRule = ApplicationRule()
@@ -83,7 +83,6 @@ class CpuCaptureStageTest {
 
   @Test
   fun parsingFailureGoesToNullStage() {
-    services.enableEventsPipeline(true)
     profilers.sessionsManager.importSessionFromFile(CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"))
     profilers.sessionsManager.update()
     assertThat(services.notification).isNotNull()
@@ -207,6 +206,53 @@ class CpuCaptureStageTest {
   }
 
   @Test
+  fun trackGroupModelsAreSetForPerfettoWithPower() {
+    services.enableJankDetectionUi(false)
+    // Enable power rail and battery counter tracks in min-max and zero-based display mode respectively.
+    services.setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode.MINMAX)
+    val stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
+                                       CpuProfilerTestUtils.getTraceFile("perfetto_cpu_usage_with_power.trace"), SESSION_ID)
+    profilers.stage = stage
+
+    assertThat(stage.trackGroupModels.size).isEqualTo(6)
+
+    val displayTrackGroup = stage.trackGroupModels[0]
+    assertThat(displayTrackGroup.title).isEqualTo("Display")
+    assertThat(displayTrackGroup.size).isEqualTo(4)
+    assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
+    assertThat(displayTrackGroup[1].title).isEqualTo("SurfaceFlinger")
+    assertThat(displayTrackGroup[2].title).isEqualTo("VSYNC")
+    assertThat(displayTrackGroup[3].title).isEqualTo("BufferQueue")
+
+    val coresTrackGroup = stage.trackGroupModels[1]
+    assertThat(coresTrackGroup.title).isEqualTo("CPU cores (8)")
+    assertThat(coresTrackGroup.size).isEqualTo(16)
+    assertThat(coresTrackGroup[0].title).isEqualTo("CPU 0")
+    assertThat(coresTrackGroup[1].title).isEqualTo("CPU 0 Frequency")
+
+    val rssMemoryTrackGroup = stage.trackGroupModels[2]
+    assertThat(rssMemoryTrackGroup.title).isEqualTo("Process Memory (RSS)")
+    assertThat(rssMemoryTrackGroup.size).isEqualTo(5)
+    assertThat(rssMemoryTrackGroup[0].title).isEqualTo("Total")
+    assertThat(rssMemoryTrackGroup[1].title).isEqualTo("Allocated")
+    assertThat(rssMemoryTrackGroup[2].title).isEqualTo("File Mappings")
+    assertThat(rssMemoryTrackGroup[3].title).isEqualTo("Shared")
+    assertThat(rssMemoryTrackGroup[4].title).isEqualTo("Swapped-Out")
+
+    val threadsTrackGroup = stage.trackGroupModels[3]
+    assertThat(threadsTrackGroup.title).isEqualTo("Threads (105)")
+    assertThat(threadsTrackGroup.size).isEqualTo(105)
+
+    val powerRailTrackGroup = stage.trackGroupModels[4]
+    assertThat(powerRailTrackGroup.title).isEqualTo("Power Rails")
+    assertThat(powerRailTrackGroup.size).isEqualTo(13)
+
+    val batteryDrainTrackGroup = stage.trackGroupModels[5]
+    assertThat(batteryDrainTrackGroup.title).isEqualTo("Battery")
+    assertThat(batteryDrainTrackGroup.size).isEqualTo(3)
+  }
+
+  @Test
   fun trackGroupModelsAreSetForPerfettoWithFrameLifecycle() {
     services.enableJankDetectionUi(false)
     services.setListBoxOptionsMatcher { option -> option.contains("profilertester") }
@@ -276,7 +322,6 @@ class CpuCaptureStageTest {
 
   @Test
   fun validTraceIdReturnsCaptureStage() {
-    services.enableEventsPipeline(true)
     val trace = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     val traceBytes = ByteString.readFrom(FileInputStream(trace))
     transportService.addFile("1", traceBytes)

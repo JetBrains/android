@@ -30,7 +30,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinition;
 
 public class LayoutParamsManagerTest extends AndroidTestCase {
 

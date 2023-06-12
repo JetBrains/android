@@ -25,6 +25,7 @@ import com.android.tools.profiler.proto.Common;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;

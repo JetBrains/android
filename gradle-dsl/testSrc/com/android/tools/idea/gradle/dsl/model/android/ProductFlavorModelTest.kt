@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model.android
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.LIST_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.MAP_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -25,11 +27,16 @@ import com.android.tools.idea.gradle.dsl.model.android.productFlavors.NdkOptions
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.CMakeOptionsModelImpl
 import com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalNativeBuild.NdkBuildOptionsModelImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
+import java.io.IOException
 
 /**
  * Tests for [ProductFlavorModelImpl].
@@ -38,7 +45,7 @@ import java.io.File
  * Both `android.defaultConfig {}` and `android.productFlavors.xyz {}` uses the same structure with same attributes.
  * In this test, the product flavor structure defined by [ProductFlavorModelImpl] is tested in great deal to cover all combinations using
  * the `android.defaultConfig {}` block. The general structure of `android.productFlavors {}` is tested in
- * [ProductFlavorModelTest].
+ * [ProductFlavorsElementTest].
  */
 class ProductFlavorModelTest : GradleFileModelTestCase() {
   @Test
@@ -344,7 +351,6 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testEditAndResetLiteralElements() {
-    assumeTrue("KotlinScript prefers assignment even when setters are more general", !isKotlinScript) // TODO(b/143196166)
     writeToBuildFile(TestFile.EDIT_AND_RESET_LITERAL_ELEMENTS)
 
     val buildModel = gradleBuildModel
@@ -355,9 +361,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("dimension", "abcd", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-B", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", true, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-I", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", false, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", true, defaultConfig.testHandleProfiling())
@@ -369,29 +375,29 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.applicationId().setValue("com.example.myapplication-1")
     defaultConfig.dimension().setValue("efgh")
     defaultConfig.maxSdkVersion().setValue(24)
-    defaultConfig.minSdkVersion().setValue("16")
+    defaultConfig.minSdkVersion().setValue("android-C")
     defaultConfig.multiDexEnabled().setValue(false)
-    defaultConfig.targetSdkVersion().setValue("23")
+    defaultConfig.targetSdkVersion().setValue("android-J")
     defaultConfig.testApplicationId().setValue("com.example.myapplication-1.test")
     defaultConfig.testFunctionalTest().setValue(true)
     defaultConfig.testHandleProfiling().setValue(false)
     defaultConfig.testInstrumentationRunner().setValue("efgh")
     defaultConfig.useJack().setValue(true)
-    defaultConfig.versionCode().setValue("2")
+    defaultConfig.versionCode().setValue(2)
     defaultConfig.versionName().setValue("2.0")
 
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", Integer.valueOf(2), defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     buildModel.resetState()
@@ -399,9 +405,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("dimension", "abcd", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-B", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", true, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-I", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", false, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", true, defaultConfig.testHandleProfiling())
@@ -413,17 +419,14 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     // Test the fields that also accept an integer value along with the String value.
     defaultConfig.minSdkVersion().setValue(16)
     defaultConfig.targetSdkVersion().setValue(23)
-    defaultConfig.versionCode().setValue(2)
 
     assertEquals("minSdkVersion", 16, defaultConfig.minSdkVersion())
     assertEquals("targetSdkVersion", 23, defaultConfig.targetSdkVersion())
-    assertEquals("versionCode", 2, defaultConfig.versionCode())
 
     buildModel.resetState()
 
-    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion())
-    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion())
-    assertEquals("versionCode", 1, defaultConfig.versionCode())
+    assertEquals("minSdkVersion", "android-B", defaultConfig.minSdkVersion())
+    assertEquals("targetSdkVersion", "android-I", defaultConfig.targetSdkVersion())
   }
 
   @Test
@@ -452,29 +455,29 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.applicationId().setValue("com.example.myapplication-1")
     defaultConfig.dimension().setValue("efgh")
     defaultConfig.maxSdkVersion().setValue(24)
-    defaultConfig.minSdkVersion().setValue("16")
+    defaultConfig.minSdkVersion().setValue("android-C")
     defaultConfig.multiDexEnabled().setValue(false)
-    defaultConfig.targetSdkVersion().setValue("23")
+    defaultConfig.targetSdkVersion().setValue("android-J")
     defaultConfig.testApplicationId().setValue("com.example.myapplication-1.test")
     defaultConfig.testFunctionalTest().setValue(true)
     defaultConfig.testHandleProfiling().setValue(false)
     defaultConfig.testInstrumentationRunner().setValue("efgh")
     defaultConfig.useJack().setValue(true)
-    defaultConfig.versionCode().setValue("2")
+    defaultConfig.versionCode().setValue(2)
     defaultConfig.versionName().setValue("2.0")
 
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     buildModel.resetState()
@@ -496,11 +499,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     // Test the fields that also accept an integer value along with the String valye.
     defaultConfig.minSdkVersion().setValue(16)
     defaultConfig.targetSdkVersion().setValue(23)
-    defaultConfig.versionCode().setValue(2)
 
     assertEquals("minSdkVersion", 16, defaultConfig.minSdkVersion())
     assertEquals("targetSdkVersion", 23, defaultConfig.targetSdkVersion())
-    assertEquals("versionCode", 2, defaultConfig.versionCode())
 
     buildModel.resetState()
 
@@ -559,10 +560,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
     assertEmpty("resValues", defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android.txt")
 
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.resConfigs().addListValue().setValue("abcd")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.resConfigs().addListValue()!!.setValue("abcd")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
@@ -594,9 +595,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.resConfigs().addListValue().setValue("xyz")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.resConfigs().addListValue()!!.setValue("xyz")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -666,10 +667,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
                  defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("key1").setValue(12345)
-    defaultConfig.manifestPlaceholders().getMapValue("key3").setValue(true)
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("key1")!!.setValue(12345)
+    defaultConfig.manifestPlaceholders().getMapValue("key3")!!.setValue(true)
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf<String, Any>("key1" to 12345, "key2" to "value2", "key3" to true),
                  defaultConfig.manifestPlaceholders())
@@ -695,10 +696,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1")!!.setValue("newName1")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2")!!.setValue("newName2")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
                  defaultConfig.manifestPlaceholders())
@@ -883,9 +884,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("dimension", "abcd", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-B", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", true, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-I", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", false, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", true, defaultConfig.testHandleProfiling())
@@ -897,29 +898,29 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.applicationId().setValue("com.example.myapplication-1")
     defaultConfig.dimension().setValue("efgh")
     defaultConfig.maxSdkVersion().setValue(24)
-    defaultConfig.minSdkVersion().setValue("16")
+    defaultConfig.minSdkVersion().setValue("android-C")
     defaultConfig.multiDexEnabled().setValue(false)
-    defaultConfig.targetSdkVersion().setValue("23")
+    defaultConfig.targetSdkVersion().setValue("android-J")
     defaultConfig.testApplicationId().setValue("com.example.myapplication-1.test")
     defaultConfig.testFunctionalTest().setValue(true)
     defaultConfig.testHandleProfiling().setValue(false)
     defaultConfig.testInstrumentationRunner().setValue("efgh")
     defaultConfig.useJack().setValue(true)
-    defaultConfig.versionCode().setValue("2")
+    defaultConfig.versionCode().setValue(2)
     defaultConfig.versionName().setValue("2.0")
 
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     applyChanges(buildModel)
@@ -928,15 +929,15 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     buildModel.reparse()
@@ -947,15 +948,15 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
   }
 
@@ -972,9 +973,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication", defaultConfig.applicationId())
     assertEquals("dimension", "abcd", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(23), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "15", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-B", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", true, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "22", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-I", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", false, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", true, defaultConfig.testHandleProfiling())
@@ -986,29 +987,29 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.applicationId().setValue("com.example.myapplication-1")
     defaultConfig.dimension().setValue("efgh")
     defaultConfig.maxSdkVersion().setValue(24)
-    defaultConfig.minSdkVersion().setValue("16")
+    defaultConfig.minSdkVersion().setValue("android-C")
     defaultConfig.multiDexEnabled().setValue(false)
-    defaultConfig.targetSdkVersion().setValue("23")
+    defaultConfig.targetSdkVersion().setValue("android-J")
     defaultConfig.testApplicationId().setValue("com.example.myapplication-1.test")
     defaultConfig.testFunctionalTest().setValue(true)
     defaultConfig.testHandleProfiling().setValue(false)
     defaultConfig.testInstrumentationRunner().setValue("efgh")
     defaultConfig.useJack().setValue(true)
-    defaultConfig.versionCode().setValue("2")
+    defaultConfig.versionCode().setValue(2)
     defaultConfig.versionName().setValue("2.0")
 
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     applyChanges(buildModel)
@@ -1017,15 +1018,15 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
 
     buildModel.reparse()
@@ -1036,15 +1037,15 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
     assertEquals("testInstrumentationRunner", "efgh", defaultConfig.testInstrumentationRunner())
     assertEquals("useJack", true, defaultConfig.useJack())
-    assertEquals("versionCode", "2", defaultConfig.versionCode())
+    assertEquals("versionCode", 2, defaultConfig.versionCode())
     assertEquals("versionName", "2.0", defaultConfig.versionName())
   }
 
@@ -1152,9 +1153,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.applicationId().setValue("com.example.myapplication-1")
     defaultConfig.dimension().setValue("efgh")
     defaultConfig.maxSdkVersion().setValue(24)
-    defaultConfig.minSdkVersion().setValue("16")
+    defaultConfig.minSdkVersion().setValue("android-C")
     defaultConfig.multiDexEnabled().setValue(false)
-    defaultConfig.targetSdkVersion().setValue("23")
+    defaultConfig.targetSdkVersion().setValue("android-J")
     defaultConfig.testApplicationId().setValue("com.example.myapplication-1.test")
     defaultConfig.testFunctionalTest().setValue(true)
     defaultConfig.testHandleProfiling().setValue(false)
@@ -1166,9 +1167,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
@@ -1183,9 +1184,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
@@ -1202,9 +1203,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
@@ -1240,9 +1241,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     defaultConfig.applicationId().setValue("com.example.myapplication-1")
     defaultConfig.dimension().setValue("efgh")
     defaultConfig.maxSdkVersion().setValue(24)
-    defaultConfig.minSdkVersion().setValue("16")
+    defaultConfig.minSdkVersion().setValue("android-C")
     defaultConfig.multiDexEnabled().setValue(false)
-    defaultConfig.targetSdkVersion().setValue("23")
+    defaultConfig.targetSdkVersion().setValue("android-J")
     defaultConfig.testApplicationId().setValue("com.example.myapplication-1.test")
     defaultConfig.testFunctionalTest().setValue(true)
     defaultConfig.testHandleProfiling().setValue(false)
@@ -1254,9 +1255,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
@@ -1271,9 +1272,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
@@ -1290,9 +1291,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("applicationId", "com.example.myapplication-1", defaultConfig.applicationId())
     assertEquals("dimension", "efgh", defaultConfig.dimension())
     assertEquals("maxSdkVersion", Integer.valueOf(24), defaultConfig.maxSdkVersion())
-    assertEquals("minSdkVersion", "16", defaultConfig.minSdkVersion())
+    assertEquals("minSdkVersion", "android-C", defaultConfig.minSdkVersion())
     assertEquals("multiDexEnabled", false, defaultConfig.multiDexEnabled())
-    assertEquals("targetSdkVersion", "23", defaultConfig.targetSdkVersion())
+    assertEquals("targetSdkVersion", "android-J", defaultConfig.targetSdkVersion())
     assertEquals("testApplicationId", "com.example.myapplication-1.test", defaultConfig.testApplicationId())
     assertEquals("testFunctionalTest", true, defaultConfig.testFunctionalTest())
     assertEquals("testHandleProfiling", false, defaultConfig.testHandleProfiling())
@@ -1441,10 +1442,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
     assertEmpty("resValues", defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-rules.pro")
-    defaultConfig.resConfigs().addListValue().setValue("abcd")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-rules.pro")
+    defaultConfig.resConfigs().addListValue()!!.setValue("abcd")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
@@ -1485,10 +1486,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("resConfigs", defaultConfig.resConfigs())
     assertEmpty("resValues", defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-rules.pro")
-    defaultConfig.resConfigs().addListValue().setValue("abcd")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-rules.pro")
+    defaultConfig.resConfigs().addListValue()!!.setValue("abcd")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt"), defaultConfig.consumerProguardFiles())
@@ -1532,9 +1533,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.resConfigs().addListValue().setValue("xyz")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.resConfigs().addListValue()!!.setValue("xyz")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -1586,9 +1587,9 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("resConfigs", listOf("abcd", "efgh"), defaultConfig.resConfigs())
     verifyFlavorType("resValues", listOf(listOf("abcd", "efgh", "ijkl")), defaultConfig.resValues())
 
-    defaultConfig.consumerProguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.proguardFiles().addListValue().setValue("proguard-android-1.txt")
-    defaultConfig.resConfigs().addListValue().setValue("xyz")
+    defaultConfig.consumerProguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.proguardFiles().addListValue()!!.setValue("proguard-android-1.txt")
+    defaultConfig.resConfigs().addListValue()!!.setValue("xyz")
     defaultConfig.addResValue("mnop", "qrst", "uvwx")
 
     assertEquals("consumerProguardFiles", listOf("proguard-android.txt", "proguard-rules.pro", "proguard-android-1.txt"),
@@ -1718,10 +1719,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertEquals("testInstrumentationRunnerArguments", mapOf("size" to "medium", "foo" to "bar"),
                  defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("key1").setValue(12345)
-    defaultConfig.manifestPlaceholders().getMapValue("key3").setValue(true)
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("key1")!!.setValue(12345)
+    defaultConfig.manifestPlaceholders().getMapValue("key3")!!.setValue(true)
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf("key1" to 12345, "key2" to "value2", "key3" to true),
                  defaultConfig.manifestPlaceholders())
@@ -1760,10 +1761,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1")!!.setValue("newName1")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2")!!.setValue("newName2")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
                  defaultConfig.manifestPlaceholders())
@@ -1801,10 +1802,10 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
-    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size").setValue("small")
-    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key").setValue("value")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel1")!!.setValue("newName1")
+    defaultConfig.manifestPlaceholders().getMapValue("activityLabel2")!!.setValue("newName2")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("size")!!.setValue("small")
+    defaultConfig.testInstrumentationRunnerArguments().getMapValue("key")!!.setValue("value")
 
     assertEquals("manifestPlaceholders", mapOf("activityLabel1" to "newName1", "activityLabel2" to "newName2"),
                  defaultConfig.manifestPlaceholders())
@@ -1986,21 +1987,21 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     var defaultConfig = android.defaultConfig()
     var externalNativeBuild = defaultConfig.externalNativeBuild()
     var cmake = externalNativeBuild.cmake()
-    cmake.abiFilters().addListValue().setValue("abiFilterX")
-    cmake.arguments().addListValue().setValue("argumentX")
-    cmake.cFlags().addListValue().setValue("cFlagX")
-    cmake.cppFlags().addListValue().setValue("cppFlagX")
-    cmake.targets().addListValue().setValue("targetX")
+    cmake.abiFilters().addListValue()!!.setValue("abiFilterX")
+    cmake.arguments().addListValue()!!.setValue("argumentX")
+    cmake.cFlags().addListValue()!!.setValue("cFlagX")
+    cmake.cppFlags().addListValue()!!.setValue("cppFlagX")
+    cmake.targets().addListValue()!!.setValue("targetX")
 
     var ndkBuild = externalNativeBuild.ndkBuild()
-    ndkBuild.abiFilters().addListValue().setValue("abiFilterY")
-    ndkBuild.arguments().addListValue().setValue("argumentY")
-    ndkBuild.cFlags().addListValue().setValue("cFlagY")
-    ndkBuild.cppFlags().addListValue().setValue("cppFlagY")
-    ndkBuild.targets().addListValue().setValue("targetY")
+    ndkBuild.abiFilters().addListValue()!!.setValue("abiFilterY")
+    ndkBuild.arguments().addListValue()!!.setValue("argumentY")
+    ndkBuild.cFlags().addListValue()!!.setValue("cFlagY")
+    ndkBuild.cppFlags().addListValue()!!.setValue("cppFlagY")
+    ndkBuild.targets().addListValue()!!.setValue("targetY")
 
     var ndk = defaultConfig.ndk()
-    ndk.abiFilters().addListValue().setValue("abiFilterZ")
+    ndk.abiFilters().addListValue()!!.setValue("abiFilterZ")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ADD_NATIVE_ELEMENTS_EXPECTED)
@@ -2305,6 +2306,39 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  @Throws(IOException::class)
+  fun testReadInitWith() {
+    writeToBuildFile(TestFile.OVERRIDE_WITH_INIT_WITH)
+    val productFlavorsModels = gradleBuildModel.android().productFlavors()
+    assertEquals(productFlavorsModels.size, 2)
+    val freeFlavor = productFlavorsModels[0]
+    val paidFlavor = productFlavorsModels[1]
+
+    assertEquals("free", freeFlavor.name())
+    assertEquals("paid", paidFlavor.name())
+
+    verifyFlavorType(
+      "buildConfigFields",
+      ImmutableList.of<List<Any>>(Lists.newArrayList<Any>("abcd", "efgh", "ijkl")),
+      freeFlavor.buildConfigFields()
+    )
+
+    // Check if initWith is applied
+    assertInstanceOf(paidFlavor, FlavorTypeModelImpl::class.java) // initWith is not part of the interface, need to cast
+    val referenceTo = (paidFlavor as FlavorTypeModelImpl).initWith().getRawValue(GradlePropertyModel.REFERENCE_TO_TYPE)
+    assertEquals(ReferenceTo(freeFlavor), referenceTo)
+    verifyFlavorType(
+      "buildConfigFields",
+      ImmutableList.of<List<Any>>(Lists.newArrayList<Any>("abcd", "efgh", "ijkl")),
+      paidFlavor.buildConfigFields()
+    )
+
+    // check that initWith doesn't change the target flavor
+    assertEquals(".free", freeFlavor.applicationIdSuffix().valueAsString())
+    assertEquals(".paid", paidFlavor.applicationIdSuffix().valueAsString())
+  }
+
+  @Test
   fun testParseMatchingFallbacks() {
     writeToBuildFile(TestFile.PARSE_MATCHING_FALLBACKS)
     val buildModel = gradleBuildModel
@@ -2321,8 +2355,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val demoFlavour = buildModel.android().addProductFlavor("demo")
     val resolvedPropertyModel = demoFlavour.matchingFallbacks()
     assertMissingProperty(resolvedPropertyModel)
-    resolvedPropertyModel.convertToEmptyList().addListValue().setValue("trial")
-    resolvedPropertyModel.addListValue().setValue("free")
+    resolvedPropertyModel.convertToEmptyList().addListValue()!!.setValue("trial")
+    resolvedPropertyModel.addListValue()!!.setValue("free")
     verifyListProperty(resolvedPropertyModel, listOf("trial", "free"))
 
     applyChangesAndReparse(buildModel)
@@ -2339,7 +2373,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val resolvedPropertyModel = demoFlavour.matchingFallbacks()
     verifyListProperty(resolvedPropertyModel, listOf("trial"))
 
-    resolvedPropertyModel.addListValue().setValue("free")
+    resolvedPropertyModel.addListValue()!!.setValue("free")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.APPEND_MATCHING_FALLBACKS_EXPECTED)
@@ -2448,7 +2482,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     val buildModel = gradleBuildModel
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
-    buildModel.android().defaultConfig().missingDimensionStrategies()[0].addListValue().setValue("minApi17")
+    buildModel.android().defaultConfig().missingDimensionStrategies()[0].addListValue()!!.setValue("minApi17")
     assertTrue(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
     buildModel.android().defaultConfig().missingDimensionStrategies()[0].toList()!![2].delete()
     assertFalse(buildModel.android().defaultConfig().areMissingDimensionStrategiesModified())
@@ -2534,7 +2568,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val resConfigs = buildModel.android().defaultConfig().resConfigs()
     verifyListProperty(resConfigs, listOf("en", "fr"))
 
-    resConfigs.addListValue().setValue("it")
+    resConfigs.addListValue()!!.setValue("it")
     verifyListProperty(resConfigs, listOf("en", "fr", "it"))
 
     applyChangesAndReparse(buildModel)
@@ -2551,7 +2585,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val resConfigs = buildModel.android().defaultConfig().resConfigs()
     verifyListProperty(resConfigs, listOf("en", "fr"))
 
-    resConfigs.addListValue().setValue("it")
+    resConfigs.addListValue()!!.setValue("it")
     verifyListProperty(resConfigs, listOf("en", "fr", "it"))
 
     applyChangesAndReparse(buildModel)
@@ -2609,7 +2643,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val defaultConfig = buildModel.android().defaultConfig()
     val proguardFiles = defaultConfig.proguardFiles()
     verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro"))
-    proguardFiles.addListValue().setValue("value")
+    proguardFiles.addListValue()!!.setValue("value")
     verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro", "value"))
     proguardFiles.toList()!![0].delete()
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
@@ -2633,7 +2667,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     val proguardFiles = defaultConfig.proguardFiles()
     verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro"))
     val varModel = buildModel.ext().findProperty("list")
-    varModel.addListValue().setValue("value")
+    varModel.addListValue()!!.setValue("value")
     verifyListProperty(proguardFiles, listOf("getDefaultProguardFile(${quote}proguard-android.txt${quote})", "proguard-rules.pro", "value"))
     varModel.toList()!![0].delete()
     verifyListProperty(proguardFiles, listOf("proguard-rules.pro", "value"))
@@ -2737,6 +2771,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     FUNCTION_CALL_WITH_PARENTHESES("functionCallWithParentheses"),
     ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED("ensureSdkVersionUsesApplicationSyntaxExpected"),
     ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED_400("ensureSdkVersionUsesApplicationSyntaxExpected400"),
+    OVERRIDE_WITH_INIT_WITH("overrideWithInitWith"),
     PARSE_MATCHING_FALLBACKS("parseMatchingFallbacks"),
     APPEND_MATCHING_FALLBACKS("appendMatchingFallbacks"),
     APPEND_MATCHING_FALLBACKS_EXPECTED("appendMatchingFallbacksExpected"),

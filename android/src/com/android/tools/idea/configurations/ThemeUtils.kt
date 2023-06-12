@@ -19,6 +19,7 @@ package com.android.tools.idea.configurations
 import com.android.SdkConstants
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceResolver.THEME_NAME
@@ -30,6 +31,7 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.model.ActivityAttributesSnapshot
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
@@ -229,22 +231,44 @@ fun Module.getThemeNameForActivity(activityFqcn: String): String? {
  * Returns a default theme
  */
 fun Module.getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
+  // Facet being null should not happen, but has been observed to happen in rare scenarios (such as 73332530), probably
+  // related to race condition between Gradle sync and layout rendering
+  val moduleInfo = AndroidFacet.getInstance(this)?.let { StudioAndroidModuleInfo.getInstance(it) }
+  return getDefaultTheme(moduleInfo, renderingTarget, screenSize, device)
+}
+
+/** Studio-specific implementation of [ThemeInfoProvider]. */
+class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
+  override val appThemeName: String?
+    @Slow
+    get() = module.getAppThemeName()
+  override val allActivityThemeNames: Set<String>
+    get() = module.getAllActivityThemeNames()
+
+  @Slow
+  override fun getThemeNameForActivity(activityFqcn: String): String? = module.getThemeNameForActivity(activityFqcn)
+
+  override fun getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String =
+    module.getDefaultTheme(renderingTarget, screenSize, device)
+}
+
+fun getDefaultTheme(moduleInfo: AndroidModuleInfo?, renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
   // For Android Wear and Android TV, the defaults differ
   if (device != null) {
     if (HardwareConfigHelper.isWear(device)) {
-      return "@android:style/Theme.DeviceDefault.Light"
+      return "@android:style/Theme.DeviceDefault"
     }
     else if (HardwareConfigHelper.isTv(device)) {
       return "@style/Theme.Leanback"
     }
   }
 
-  // Facet being null should not happen, but has been observed to happen in rare scenarios (such as 73332530), probably
-  // related to race condition between Gradle sync and layout rendering
-  val facet = AndroidFacet.getInstance(this) ?: return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"
+  if (moduleInfo == null) {
+    return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"
+  }
 
   // From manifest theme documentation: "If that attribute is also not set, the default system theme is used."
-  val targetSdk = AndroidModuleInfo.getInstance(facet).targetSdkVersion.apiLevel
+  val targetSdk = moduleInfo.targetSdkVersion.apiLevel
 
   val renderingTargetSdk = renderingTarget?.version?.apiLevel ?: targetSdk
 

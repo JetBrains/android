@@ -29,6 +29,9 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/assistant[module]",
     ],
 )
 
@@ -58,7 +61,7 @@ iml_module(
     # keep sorted
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -99,6 +102,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle[test]",
+        "//tools/base/lint/libs/lint-tests:studio.android.sdktools.lint.testinfrastructure[module, test]",
     ],
 )
 
@@ -106,10 +110,6 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.1.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",

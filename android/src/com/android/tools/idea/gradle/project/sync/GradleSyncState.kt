@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.repository.GradleVersion
 import com.intellij.notification.NotificationGroup
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -23,7 +22,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.util.messages.Topic
+import org.gradle.util.GradleVersion
 
 /**
  * NOTE: Do not use this interface. Most callers should use `ProjectSystemSyncManager` instead.

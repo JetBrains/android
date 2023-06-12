@@ -1,5 +1,7 @@
 package org.jetbrains.android.augment;
 
+import static org.jetbrains.android.AndroidResolveScopeEnlarger.BACKING_CLASS;
+
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -10,7 +12,7 @@ import com.android.ide.common.resources.ResourceItemWithVisibility;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Verify;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
@@ -21,6 +23,7 @@ import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypes;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -49,7 +52,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
 
   protected static final PsiType INT_ARRAY = PsiTypes.intType().createArrayType();
 
-  protected static final Predicate<@NotNull ResourceItem> ACCESSIBLE_RESOURCE_FILTER = resource -> {
+  protected static final Predicate<ResourceItem> ACCESSIBLE_RESOURCE_FILTER = resource -> {
     if (!resource.getNamespace().equals(ResourceNamespace.ANDROID) && resource.getLibraryName() == null) {
       return true; // Project resource.
     }
@@ -67,7 +70,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
 
   protected static PsiField[] buildResourceFields(@NotNull ResourceRepository repository,
                                                   @NotNull ResourceNamespace namespace,
-                                                  @Nullable ResourceRepositoryManager resourceRepositoryManager,
+                                                  @Nullable StudioResourceRepositoryManager studioResourceRepositoryManager,
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier,
                                                   @NotNull Predicate<ResourceItem> resourceFilter,
                                                   @NotNull ResourceType resourceType,
@@ -86,8 +89,8 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           List<AttrResourceValue> attributes = value.getAllAttributes();
           for (AttrResourceValue attr : attributes) {
             ResourceNamespace attrNamespace = attr.getNamespace();
-            ResourceRepository attrRepository = resourceRepositoryManager == null ?
-                                                repository : resourceRepositoryManager.getResourcesForNamespace(attrNamespace);
+            ResourceRepository attrRepository = studioResourceRepositoryManager == null ?
+                                                repository : studioResourceRepositoryManager.getResourcesForNamespace(attrNamespace);
             if (attrRepository != null) {
               List<ResourceItem> attrResources = attrRepository.getResources(attrNamespace, ResourceType.ATTR, attr.getName());
               if (!attrResources.isEmpty()) {
@@ -111,6 +114,23 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
     return buildResourceFields(otherFields, styleableFields, styleableAttrFields, resourceType, context, fieldModifier);
   }
 
+  /**
+   * Returns the inner R class int id for the given fieldName.
+   * @param innerRClass the {@link PsiClass} of the an inner class of the R class containing a specific resource type.
+   * @param fieldName the name of the field to look up.
+   * @param defaultValue a default value returned if the field can not be found.
+   */
+  @NotNull
+  private static Integer findBackingField(@Nullable PsiClass innerRClass, String fieldName, int defaultValue) {
+    if (innerRClass == null) {
+      return defaultValue;
+    }
+
+    PsiField backingField = innerRClass.findFieldByName(fieldName, false);
+    Object backingFieldValue = backingField != null ? backingField.computeConstantValue() : null;
+    return backingFieldValue instanceof Integer ? (Integer)backingFieldValue : defaultValue;
+  }
+
   @NotNull
   protected static PsiField[] buildResourceFields(@NotNull Map<String, ResourceVisibility> otherFields,
                                                   @NotNull Map<String, ResourceVisibility> styleableFields,
@@ -120,12 +140,17 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier) {
     PsiField[] result = new PsiField[otherFields.size() + styleableFields.size() + styleableAttrFields.size()];
     PsiElementFactory factory = JavaPsiFacade.getElementFactory(context.getProject());
+    SmartPsiElementPointer<PsiClass> rClassSmartPointer =
+      context.getContainingFile().getViewProvider().getVirtualFile().getUserData(BACKING_CLASS);
+    PsiClass rClass = rClassSmartPointer != null ? rClassSmartPointer.getElement() : null;
+    PsiClass innerRClass = rClass != null ? rClass.findInnerClassByName(resourceType.getName(), false) : null;
 
     int nextId = resourceType.ordinal() * 100000;
     int i = 0;
 
     for (Map.Entry<String, ResourceVisibility> entry : otherFields.entrySet()) {
-      int fieldId = nextId++;
+      int fieldId = findBackingField(innerRClass, entry.getKey(), nextId++);
+
       ResourceLightField field = new ResourceLightField(entry.getKey(),
                                                         context,
                                                         PsiTypes.intType(),
@@ -137,7 +162,8 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
     }
 
     for (Map.Entry<String, ResourceVisibility> entry : styleableFields.entrySet()) {
-      int fieldId = nextId++;
+      int fieldId = findBackingField(innerRClass, entry.getKey(), nextId++);
+
       ResourceLightField field = new ResourceLightField(entry.getKey(),
                                                         context,
                                                         INT_ARRAY,
@@ -149,7 +175,8 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
     }
 
     for (StyleableAttrFieldUrl fieldContents : styleableAttrFields) {
-      int fieldId = nextId++;
+      int fieldId = findBackingField(innerRClass, fieldContents.toFieldName(), nextId++);
+
       AndroidLightField field = new StyleableAttrLightField(fieldContents,
                                                             context,
                                                             fieldModifier,

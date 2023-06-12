@@ -36,7 +36,7 @@ class RssMemoryTrackRenderer : TrackRenderer<RssMemoryTrackModel> {
                 LineConfig(DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())).setFilled(true))
       setFillEndGap(true)
     }
-    val leftAxis = AxisComponent(trackModel.dataModel.axisComponentModel, AxisComponent.AxisOrientation.RIGHT).apply {
+    val leftAxis = AxisComponent(trackModel.dataModel.axisComponentModel, AxisComponent.AxisOrientation.RIGHT, true).apply {
       setShowAxisLine(false)
       setHideTickAtMin(true)
     }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static java.io.File.separatorChar;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,12 +28,14 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.RenderAsyncActionExecutor.RenderingPriority;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ui.UIUtil;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -59,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  * The reason the test checks for similarity is that whenever rendering includes fonts, there are some
  * platform differences in text rendering etc which does not give us a pixel for pixel match.
  */
-public final class RenderTestUtil {
+public class RenderTestUtil {
   public static final String DEFAULT_DEVICE_ID = "Nexus 4";
   public static final String HOLO_THEME = "@android:style/Theme.Holo";
   private static final float MAX_PERCENT_DIFFERENT = 1.0f;
@@ -80,7 +83,8 @@ public final class RenderTestUtil {
     RenderTestUtil.waitForRenderTaskDisposeToFinish();
   }
 
-  public static @Nullable RenderResult renderOnSeparateThread(final @NotNull RenderTask task) {
+  @Nullable
+  public static RenderResult renderOnSeparateThread(@NotNull final RenderTask task) {
     // Ensure that we don't render on the read lock (since we want to test that all parts of the
     // rendering system which needs a read lock asks for one!)
     final AtomicReference<RenderResult> holder = new AtomicReference<>();
@@ -101,7 +105,8 @@ public final class RenderTestUtil {
     return holder.get();
   }
 
-  public static @NotNull Device findDeviceById(ConfigurationManager manager, String id) {
+  @NotNull
+  public static Device findDeviceById(ConfigurationManager manager, String id) {
     for (Device device : manager.getDevices()) {
       if (device.getId().equals(id)) {
         return device;
@@ -131,7 +136,8 @@ public final class RenderTestUtil {
     }
   }
 
-  public static @NotNull Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file, @NotNull String deviceId) {
+  @NotNull
+  public static Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file, @NotNull String deviceId) {
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
     Configuration configuration = configurationManager.getConfiguration(file);
     configuration.setDevice(findDeviceById(configurationManager, deviceId), false);
@@ -139,44 +145,48 @@ public final class RenderTestUtil {
     return configuration;
   }
 
-  public static @NotNull Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file) {
+  @NotNull
+  public static Configuration getConfiguration(@NotNull Module module, @NotNull VirtualFile file) {
     return getConfiguration(module, file, DEFAULT_DEVICE_ID);
   }
 
-  public static @NotNull Configuration getConfiguration(@NotNull Module module,
-                                                        @NotNull VirtualFile file,
-                                                        @NotNull String deviceId,
-                                                        @NotNull String themeStyle) {
+  @NotNull
+  public static Configuration getConfiguration(@NotNull Module module,
+                                           @NotNull VirtualFile file,
+                                           @NotNull String deviceId,
+                                           @NotNull String themeStyle) {
     Configuration configuration = getConfiguration(module, file, deviceId);
     configuration.setTheme(themeStyle);
     return configuration;
   }
 
-  private static @NotNull RenderTask createRenderTask(@NotNull AndroidFacet facet,
-                                                      @NotNull VirtualFile file,
-                                                      @NotNull Configuration configuration,
-                                                      @NotNull RenderLogger logger) {
+  @NotNull
+  protected static RenderTask createRenderTask(@NotNull AndroidFacet facet,
+                                             @NotNull VirtualFile file,
+                                             @NotNull Configuration configuration,
+                                             @NotNull RenderLogger logger,
+                                             @NotNull RenderingPriority priority) {
     Module module = facet.getModule();
-    PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
-    assertNotNull(psiFile);
-    RenderService renderService = RenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, configuration)
-      .withLogger(logger)
-      .withPsiFile(psiFile)
+    XmlFile xmlFile = (XmlFile)ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
+    assertNotNull(xmlFile);
+    RenderService renderService = StudioRenderService.getInstance(module.getProject());
+    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, configuration, logger)
+      .withPsiFile(xmlFile)
       .disableSecurityManager()
+      .withPriority(priority)
       .build();
     RenderTask task = Futures.getUnchecked(taskFuture);
     assertNotNull(task);
     return task;
   }
 
-  private static void withRenderTask(@NotNull AndroidFacet facet,
+  protected static void withRenderTask(@NotNull AndroidFacet facet,
                                        @NotNull VirtualFile file,
                                        @NotNull Configuration configuration,
                                        @NotNull RenderLogger logger,
                                        @NotNull Consumer<RenderTask> f,
                                        boolean layoutScannerEnabled) {
-    final RenderTask task = createRenderTask(facet, file, configuration, logger);
+    final RenderTask task = createRenderTask(facet, file, configuration, logger, RenderingPriority.HIGH);
     task.setEnableLayoutScanner(layoutScannerEnabled);
     try {
       f.accept(task);
@@ -191,7 +201,7 @@ public final class RenderTestUtil {
     }
   }
 
-  static void withRenderTask(@NotNull AndroidFacet facet,
+  protected static void withRenderTask(@NotNull AndroidFacet facet,
                                         @NotNull VirtualFile file,
                                         @NotNull Configuration configuration,
                                         @NotNull RenderLogger logger,
@@ -203,19 +213,20 @@ public final class RenderTestUtil {
    * @deprecated use {@link withRenderTask} instead
    */
   @Deprecated
-  public static @NotNull RenderTask createRenderTask(@NotNull AndroidFacet facet,
+  @NotNull
+  public static RenderTask createRenderTask(@NotNull AndroidFacet facet,
                                     @NotNull VirtualFile file,
                                     @NotNull Configuration configuration) {
-    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
-    return createRenderTask(facet, file, configuration, renderService.createLogger(facet));
+    RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
+    return createRenderTask(facet, file, configuration, StudioRenderServiceKt.createLogger(renderService, facet.getModule().getProject()), RenderingPriority.HIGH);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
                                      @NotNull VirtualFile file,
                                      @NotNull Configuration configuration,
                                      @NotNull Consumer<RenderTask> f) {
-    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
-    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f);
+    RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
+    withRenderTask(facet, file, configuration, StudioRenderServiceKt.createLogger(renderService, facet.getModule().getProject()), f);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
@@ -223,8 +234,8 @@ public final class RenderTestUtil {
                                     @NotNull Configuration configuration,
                                     boolean enableLayoutScanner,
                                     @NotNull Consumer<RenderTask> f) {
-    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
-    withRenderTask(facet, file, configuration, renderService.createLogger(facet), f, enableLayoutScanner);
+    RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
+    withRenderTask(facet, file, configuration, StudioRenderServiceKt.createLogger(renderService, facet.getModule().getProject()), f, enableLayoutScanner);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
@@ -255,7 +266,8 @@ public final class RenderTestUtil {
     checkRenderedImage(image, thumbnailPath.replace('/', separatorChar));
   }
 
-  private static @NotNull BufferedImage getImage(@NotNull RenderTask task) {
+  @NotNull
+  private static BufferedImage getImage(@NotNull RenderTask task) {
     // Next try a render
     RenderResult result = Futures.getUnchecked(task.render());
     RenderResult render = renderOnSeparateThread(task);

@@ -18,11 +18,10 @@ package com.android.tools.idea.gradle.adtimport;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.projectImport.ProjectImportWizardStep;
+
 import java.util.ArrayList;
+import javax.swing.*;
 import java.util.List;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
 
 class AdtImportWarningsStep extends ProjectImportWizardStep {
   private JTextArea myWarnings;

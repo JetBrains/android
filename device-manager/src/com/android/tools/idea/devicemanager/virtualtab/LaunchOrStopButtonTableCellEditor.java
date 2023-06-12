@@ -37,17 +37,19 @@ final class LaunchOrStopButtonTableCellEditor extends IconButtonTableCellEditor 
     });
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull Object getDevice() {
+  Object getDevice() {
     return myDevice;
   }
 
+  @NotNull
   @Override
-  public @NotNull Component getTableCellEditorComponent(@NotNull JTable table,
-                                                        @NotNull Object value,
-                                                        boolean selected,
-                                                        int viewRowIndex,
-                                                        int viewColumnIndex) {
+  public Component getTableCellEditorComponent(@NotNull JTable table,
+                                               @NotNull Object value,
+                                               boolean selected,
+                                               int viewRowIndex,
+                                               int viewColumnIndex) {
     myDevice = ((VirtualDeviceTable)table).getDeviceAt(viewRowIndex);
     VirtualDevice.State state = (VirtualDevice.State)value;
 

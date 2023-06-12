@@ -20,13 +20,9 @@ import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Action that simulates that the preview has been automatically disabled because of an error.
- */
+/** Action that simulates that the preview has been automatically disabled because of an error. */
 @Suppress("ComponentNotRegistered") // Registered in compose-designer.xml
-class SimulateFastPreviewAutoDisable : AnAction(
-  "Simulate Fast Preview Auto-Disable"
-) {
+class SimulateFastPreviewAutoDisable : AnAction("Simulate Fast Preview Auto-Disable") {
   override fun update(e: AnActionEvent) {
     val project = e.project ?: return
     val fastPreviewManager = project.fastPreviewManager
@@ -38,6 +34,8 @@ class SimulateFastPreviewAutoDisable : AnAction(
     val project = e.project ?: return
     val fastPreviewManager = project.fastPreviewManager
 
-    fastPreviewManager.disable(DisableReason("Auto-Disabled", "Preview has been automatically disabled"))
+    fastPreviewManager.disable(
+      DisableReason("Auto-Disabled", "Preview has been automatically disabled")
+    )
   }
 }

@@ -19,7 +19,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.CommonBundle;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
@@ -56,12 +56,24 @@ public class CreateXmlResourceDialog extends DialogWrapper {
 
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(module.getProject());
     Function<Module, IdeResourceNameValidator> nameValidatorFactory =
-      selectedModule -> IdeResourceNameValidator.forResourceName(resourceType, ResourceRepositoryManager.getAppResources(module));
+      selectedModule -> IdeResourceNameValidator.forResourceName(resourceType, StudioResourceRepositoryManager.getAppResources(module));
     myPanel = newResourceHandler.createNewResourceValuePanel(module, resourceType, ResourceFolderType.VALUES,
                                                              predefinedName, predefinedValue, chooseName, true, true, defaultFile,
                                                              contextFile, nameValidatorFactory);
 
     init();
+  }
+
+  public CreateXmlResourceDialog(@NotNull Module module,
+                                 @NotNull final ResourceType resourceType,
+                                 @Nullable String predefinedName,
+                                 @Nullable String predefinedValue,
+                                 boolean chooseName,
+                                 @Nullable VirtualFile defaultFile,
+                                 @Nullable VirtualFile contextFile,
+                                 boolean allowValueEditing) {
+    this(module, resourceType, predefinedName, predefinedValue, chooseName, defaultFile, contextFile);
+    myPanel.setAllowValueEditing(allowValueEditing);
   }
 
   @Override

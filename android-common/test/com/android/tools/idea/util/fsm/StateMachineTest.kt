@@ -17,6 +17,9 @@ package com.android.tools.idea.util.fsm
 
 import com.android.tools.idea.util.fsm.StateMachine.Config
 import com.android.tools.idea.util.fsm.StateMachine.SelfTransitionBehavior
+import com.android.utils.time.TestTimeSource
+import com.android.utils.time.TimeSource
+import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.Logger
 import org.apache.log4j.Level
@@ -26,12 +29,7 @@ import org.junit.runners.JUnit4
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.ExperimentalTime
-import kotlin.time.TestTimeSource
-import kotlin.time.TimeMark
-import kotlin.time.TimeSource
 
-@OptIn(ExperimentalTime::class)
 @RunWith(JUnit4::class)
 class StateMachineTest {
   private val fakeLogger = FakeLogger()
@@ -88,6 +86,20 @@ class StateMachineTest {
     stateMachine.state = MyGreatFsmState.AWESOME
 
     assertThat(fakeLogger.debugLogs).containsExactly("Transition from INITIAL to AWESOME.")
+  }
+
+  @Test
+  fun illegalTransition_usesProvidedHandler_dsl() {
+    val stateMachine =
+      StateMachine.stateMachine(
+        MyGreatFsmState.INITIAL,
+        Config(logger = fakeLogger),
+        StateMachine.IllegalTransitionHandler.warn()
+      ) {}
+
+    stateMachine.state = MyGreatFsmState.AWESOME
+    assertThat(stateMachine.state).isEqualTo(MyGreatFsmState.INITIAL)
+    assertThat(fakeLogger.warnLogs).containsExactly("Illegal state transition from INITIAL to AWESOME!")
   }
 
   @Test

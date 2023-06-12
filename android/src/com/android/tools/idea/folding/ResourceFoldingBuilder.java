@@ -22,7 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.folding.FoldingBuilderEx;
@@ -238,7 +238,7 @@ public class ResourceFoldingBuilder extends FoldingBuilderEx {
     if (node != null) {
       TextRange textRange = foldElement.getTextRange();
       FoldingDescriptor descriptor = new FoldingDescriptor(node, textRange, null);
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
+      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
       if (repositoryManager == null) {
         return null;
       }

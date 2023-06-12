@@ -40,7 +40,7 @@ public final class IconButton extends JButton implements IconTableCell {
   }
 
   @Override
-  public @NotNull Optional<@NotNull Icon> getDefaultIcon() {
+  public @NotNull Optional<Icon> getDefaultIcon() {
     return Optional.ofNullable(myDefaultIcon);
   }
 

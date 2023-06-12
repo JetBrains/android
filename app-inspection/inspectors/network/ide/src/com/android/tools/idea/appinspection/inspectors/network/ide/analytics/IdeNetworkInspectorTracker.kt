@@ -67,9 +67,7 @@ class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspecto
 
   override fun trackRuleCreated() {
     track(
-      NetworkInspectorEvent.newBuilder().apply {
-        type = NetworkInspectorEvent.Type.RULE_CREATED
-      }
+      NetworkInspectorEvent.newBuilder().apply { type = NetworkInspectorEvent.Type.RULE_CREATED }
     )
   }
 
@@ -78,7 +76,8 @@ class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspecto
       NetworkInspectorEvent.newBuilder().apply {
         type = NetworkInspectorEvent.Type.RULE_UPDATED
         ruleDetailUpdatedBuilder.apply {
-          this.component = RuleUpdatedEvent.Component.values().firstOrNull { it.name == component.name }
+          this.component =
+            RuleUpdatedEvent.Component.values().firstOrNull { it.name == component.name }
         }
       }
     )
@@ -105,13 +104,15 @@ class IdeNetworkInspectorTracker(private val project: Project) : NetworkInspecto
   }
 
   private fun track(networkEvent: NetworkInspectorEvent.Builder) {
-    val inspectionEvent = AppInspectionEvent.newBuilder()
-      .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
-      .setNetworkInspectorEvent(networkEvent)
+    val inspectionEvent =
+      AppInspectionEvent.newBuilder()
+        .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
+        .setNetworkInspectorEvent(networkEvent)
 
-    val studioEvent = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
-      .setAppInspectionEvent(inspectionEvent)
+    val studioEvent =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
+        .setAppInspectionEvent(inspectionEvent)
 
     // TODO(b/153270761): Use studioEvent.withProjectId instead, after code is moved out of
     //  monolithic core module

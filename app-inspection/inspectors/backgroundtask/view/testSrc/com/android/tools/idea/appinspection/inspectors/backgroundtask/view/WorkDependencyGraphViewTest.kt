@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.util.concurrency.EdtExecutorService
+import java.awt.event.ActionEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -39,11 +40,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.event.ActionEvent
 
 class WorkDependencyGraphViewTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var scope: CoroutineScope
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
@@ -59,13 +58,24 @@ class WorkDependencyGraphViewTest {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
     uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     withContext(uiDispatcher) {
-      val backgroundTaskInspectorMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
+      val backgroundTaskInspectorMessenger =
+        BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       workMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
-      client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
-                                             WmiMessengerTarget.Resolved(workMessenger),
-                                             scope, StubBackgroundTaskInspectorTracker())
-      tab = BackgroundTaskInspectorTab(client, AppInspectionIdeServicesAdapter(), IntellijUiComponentsProvider(projectRule.project), scope,
-                                       uiDispatcher)
+      client =
+        BackgroundTaskInspectorClient(
+          backgroundTaskInspectorMessenger,
+          WmiMessengerTarget.Resolved(workMessenger),
+          scope,
+          StubBackgroundTaskInspectorTracker()
+        )
+      tab =
+        BackgroundTaskInspectorTab(
+          client,
+          AppInspectionIdeServicesAdapter(),
+          IntellijUiComponentsProvider(projectRule.project),
+          scope,
+          uiDispatcher
+        )
       selectionModel = tab.selectionModel
       entriesView = tab.component.firstComponent as BackgroundTaskEntriesView
       graphView = entriesView.graphView
@@ -79,38 +89,47 @@ class WorkDependencyGraphViewTest {
 
   @Test
   fun navigateWorks() = runBlocking {
-    val parentWorkInfo: WorkManagerInspectorProtocol.WorkInfo = WorkManagerInspectorProtocol.WorkInfo.newBuilder().apply {
-      id = "parent"
-      workerClassName = "package1.package2.ClassName2"
-      state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
-      scheduleRequestedAt = 1L
-      runAttemptCount = 1
-      constraints = WorkManagerInspectorProtocol.Constraints.getDefaultInstance()
-      isPeriodic = false
-      addAllDependents(listOf("left_child", "right_child"))
-    }.build()
+    val parentWorkInfo: WorkManagerInspectorProtocol.WorkInfo =
+      WorkManagerInspectorProtocol.WorkInfo.newBuilder()
+        .apply {
+          id = "parent"
+          workerClassName = "package1.package2.ClassName2"
+          state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
+          scheduleRequestedAt = 1L
+          runAttemptCount = 1
+          constraints = WorkManagerInspectorProtocol.Constraints.getDefaultInstance()
+          isPeriodic = false
+          addAllDependents(listOf("left_child", "right_child"))
+        }
+        .build()
 
-    val leftChildWorkInfo: WorkManagerInspectorProtocol.WorkInfo = WorkManagerInspectorProtocol.WorkInfo.newBuilder().apply {
-      id = "left_child"
-      workerClassName = "package1.package2.ClassName3"
-      state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
-      scheduleRequestedAt = 2L
-      runAttemptCount = 1
-      constraints = WorkManagerInspectorProtocol.Constraints.getDefaultInstance()
-      isPeriodic = false
-      addPrerequisites("parent")
-    }.build()
+    val leftChildWorkInfo: WorkManagerInspectorProtocol.WorkInfo =
+      WorkManagerInspectorProtocol.WorkInfo.newBuilder()
+        .apply {
+          id = "left_child"
+          workerClassName = "package1.package2.ClassName3"
+          state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
+          scheduleRequestedAt = 2L
+          runAttemptCount = 1
+          constraints = WorkManagerInspectorProtocol.Constraints.getDefaultInstance()
+          isPeriodic = false
+          addPrerequisites("parent")
+        }
+        .build()
 
-    val rightChildWorkInfo: WorkManagerInspectorProtocol.WorkInfo = WorkManagerInspectorProtocol.WorkInfo.newBuilder().apply {
-      id = "right_child"
-      workerClassName = "package1.package2.ClassName4"
-      state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
-      scheduleRequestedAt = 2L
-      runAttemptCount = 1
-      constraints = WorkManagerInspectorProtocol.Constraints.getDefaultInstance()
-      isPeriodic = false
-      addPrerequisites("parent")
-    }.build()
+    val rightChildWorkInfo: WorkManagerInspectorProtocol.WorkInfo =
+      WorkManagerInspectorProtocol.WorkInfo.newBuilder()
+        .apply {
+          id = "right_child"
+          workerClassName = "package1.package2.ClassName4"
+          state = WorkManagerInspectorProtocol.WorkInfo.State.ENQUEUED
+          scheduleRequestedAt = 2L
+          runAttemptCount = 1
+          constraints = WorkManagerInspectorProtocol.Constraints.getDefaultInstance()
+          isPeriodic = false
+          addPrerequisites("parent")
+        }
+        .build()
 
     client.sendWorkAddedEvent(parentWorkInfo)
     client.sendWorkAddedEvent(leftChildWorkInfo)

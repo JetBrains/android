@@ -56,7 +56,7 @@ public class IdeaSyncPopulateProjectTask {
       GradleSyncMessages.getInstance(myProject).removeAllMessages();
     });
     try {
-      myDataManager.importData(projectInfo, myProject  /* synchronous */);
+      myDataManager.importData(projectInfo, myProject);
     }
     catch (ProcessCanceledException ex) {
       if (syncListener != null) {
@@ -68,7 +68,9 @@ public class IdeaSyncPopulateProjectTask {
     }
     catch (Exception ex) {
       GradleSyncMessages.getInstance(myProject).report(new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, ex.getMessage()));
-      syncListener.syncFailed(myProject, ex.getMessage());
+      if (syncListener != null) {
+        syncListener.syncFailed(myProject, ex.getMessage());
+      }
       throw ex;
     }
     if (syncListener != null) {

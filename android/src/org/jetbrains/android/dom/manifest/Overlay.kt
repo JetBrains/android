@@ -15,11 +15,16 @@
  */
 package org.jetbrains.android.dom.manifest
 
+import com.intellij.util.xml.Attribute
 import com.intellij.util.xml.GenericDomValue
 import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.AndroidDomElement
 
 interface Overlay : GenericDomValue<String?>, AndroidDomElement {
+
+  @Attribute("targetPackage")
   fun getTargetPackage(): AndroidAttributeValue<String>
+
+  @Attribute("targetName")
   fun getTargetName(): AndroidAttributeValue<String>
 }

@@ -20,6 +20,7 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/base/sdklib:studio.android.sdktools.sdklib",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
     ],
     # do not sort: must match IML order
     deps = [
@@ -32,5 +33,6 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
     ],
 )

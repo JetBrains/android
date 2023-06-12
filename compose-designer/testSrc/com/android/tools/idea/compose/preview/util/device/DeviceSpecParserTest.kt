@@ -19,8 +19,10 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition
 import com.intellij.testFramework.ParsingTestCase
 
-class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpecParserDefinition()) {
-  override fun getTestDataPath() = TestUtils.resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
+class DeviceSpecParserTest :
+  ParsingTestCase("no_data_path_needed", "", DeviceSpecParserDefinition()) {
+  override fun getTestDataPath() =
+    TestUtils.resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
 
   private fun toParseTreeText(input: String): String {
     val psiFile = createPsiFile("in-memory", input)
@@ -34,7 +36,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
           PsiElement(id)('id')
           PsiElement(:)(':')
           PsiElement(STRING_T)('my_device_spec')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("id:my_device_spec")
     )
 
@@ -44,7 +47,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
           PsiElement(name)('name')
           PsiElement(:)(':')
           PsiElement(STRING_T)('A Device Name')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("name:A Device Name")
     )
 
@@ -85,8 +89,11 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
               PsiElement(=)('=')
               DeviceSpecOrientationTImpl(ORIENTATION_T)
                 PsiElement(portrait)('portrait')
-      """.trimIndent(),
-      toParseTreeText("spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait")
+      """
+        .trimIndent(),
+      toParseTreeText(
+        "spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait"
+      )
     )
   }
 
@@ -117,19 +124,21 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
               PsiElement(name)('name')
               PsiElement(=)('=')
               PsiElement(STRING_T)('my_device')
-      """.trimIndent(),
-      toParseTreeText("""
+      """
+        .trimIndent(),
+      toParseTreeText(
+        """
         spec:
           width=30dp,
           height=30px,
           name=my_device
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
     )
   }
 
-  /**
-   * Cases where a number is part of a string are parsed correctly depending on the context.
-   */
+  /** Cases where a number is part of a string are parsed correctly depending on the context. */
   fun testSpecWithNumberInIdOrName() {
     // ID, Name or parent with dimension value is considered a String token
     assertEquals(
@@ -138,7 +147,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
           PsiElement(id)('id')
           PsiElement(:)(':')
           PsiElement(STRING_T)('1080.0px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("id:1080.0px")
     )
     assertEquals(
@@ -147,7 +157,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
           PsiElement(name)('name')
           PsiElement(:)(':')
           PsiElement(STRING_T)('1080.0px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("name:1080.0px")
     )
     assertEquals(
@@ -160,7 +171,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
               PsiElement(parent)('parent')
               PsiElement(=)('=')
               PsiElement(STRING_T)('1080.0px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:parent=1080.0px")
     )
 
@@ -178,7 +190,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
                 PsiElement(NUMERIC_T)('1080.0')
                 DeviceSpecUnitImpl(UNIT)
                   PsiElement(px)('px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:width=1080.0px")
     )
     assertEquals(
@@ -194,7 +207,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
                 PsiElement(NUMERIC_T)('1080')
                 DeviceSpecUnitImpl(UNIT)
                   PsiElement(px)('px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:width= 1080px ")
     )
 
@@ -214,7 +228,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
               PsiElement(=)('=')
               DeviceSpecOrientationTImpl(ORIENTATION_T)
                 PsiElement(landscape)('landscape')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:parent=1024.0px by 1800.0px Custom,orientation=landscape")
     )
 
@@ -231,7 +246,8 @@ class DeviceSpecParserTest: ParsingTestCase("no_data_path_needed", "", DeviceSpe
           PsiElement(NUMERIC_T)('1080')
           PsiElement(px)('px')
           PsiElement(BAD_CHARACTER)('e')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:width=e 1080px e")
     )
   }

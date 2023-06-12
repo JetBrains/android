@@ -36,26 +36,58 @@ public class DnDTransferItem {
   private final boolean myFromPalette;
   private final long myModelId;
   private final ImmutableList<DnDTransferComponent> myComponents;
+  private final ImmutableList<String> myReferences;
   private boolean myIsCut;
 
   /**
    * Create a drag and drop item for a new component from the palette.
    */
   public DnDTransferItem(@NotNull DnDTransferComponent component) {
-    this(true, 0, ImmutableList.of(component));
+    this(true, 0, ImmutableList.of(component), ImmutableList.of());
   }
 
   /**
    * Create a drag and drop item for existing designer components.
    */
   public DnDTransferItem(long modelId, @NotNull ImmutableList<DnDTransferComponent> components) {
-    this(false, modelId, components);
+    this(false, modelId, components, ImmutableList.of());
   }
 
-  private DnDTransferItem(boolean fromPalette, long modelId, @NotNull ImmutableList<DnDTransferComponent> components) {
+  /**
+   * Create a drag and drop item for existing designer components and component references.
+   *
+   * Component references are represented by a list of component ids. A drop will add these ids to the "constraint_referenced_ids"
+   * of the component they are dropped on.
+   */
+  public DnDTransferItem(long modelId, @NotNull ImmutableList<DnDTransferComponent> components, @NotNull ImmutableList<String> references) {
+    this(false, modelId, components, references);
+  }
+
+  private DnDTransferItem(
+    boolean fromPalette,
+    long modelId,
+    @NotNull ImmutableList<DnDTransferComponent> components,
+    @NotNull ImmutableList<String> references
+  ) {
     myFromPalette = fromPalette;
     myModelId = modelId;
     myComponents = components;
+    myReferences = references;
+  }
+
+  /**
+   * Create a [DndTransferItem] that holds all components and references from the current [DndTransferItem] and [other].
+   *
+   * This is used when multiple items are selected in the component tree.
+   */
+  @NotNull
+  public DnDTransferItem merge(@NotNull DnDTransferItem other) {
+    return new DnDTransferItem(
+      myFromPalette,
+      myModelId,
+      ImmutableList.<DnDTransferComponent>builder().addAll(myComponents).addAll(other.myComponents).build(),
+      ImmutableList.<String>builder().addAll(myReferences).addAll(other.myReferences).build()
+    );
   }
 
   @Nullable
@@ -143,5 +175,9 @@ public class DnDTransferItem {
 
   public ImmutableList<DnDTransferComponent> getComponents() {
     return myComponents;
+  }
+
+  public ImmutableList<String> getReferences() {
+    return myReferences;
   }
 }

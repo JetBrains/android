@@ -54,6 +54,8 @@ class VisualLintIssues {
           // TODO: Check if components already exist (set instead of list)
           (original as VisualLintRenderIssue).components.addAll(issue.components)
           original.models.addAll(issue.models)
+          issue.components.forEach { original.source.addComponent(it) }
+          issue.models.forEach { original.source.addModel(it) }
         }
         else -> {
           // Same issue, same config. ignore.

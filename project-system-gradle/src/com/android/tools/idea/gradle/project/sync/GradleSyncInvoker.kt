@@ -36,17 +36,21 @@ interface GradleSyncInvoker {
 
   data class Request @JvmOverloads constructor(
     val trigger: GradleSyncStats.Trigger,
+    // Switch the current variant if not null.
     val requestedVariantChange: SwitchVariantRequest? = null,
     val dontFocusSyncFailureOutput: Boolean = false,
+    val syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION
   ) {
     val progressExecutionMode: ProgressExecutionMode
       get() = ProgressExecutionMode.IN_BACKGROUND_ASYNC
 
     companion object {
-      // Perform a variant-only sync if not null.
       @VisibleForTesting
       @JvmStatic
-      fun testRequest(): Request = Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED)
+      @JvmOverloads
+      fun testRequest(syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION): Request {
+        return Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED, syncTestMode = syncTestMode)
+      }
     }
   }
 
@@ -57,7 +61,10 @@ interface GradleSyncInvoker {
       project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SKIPPED)
     }
 
+    @WorkerThread
     override fun fetchAndMergeNativeVariants(project: Project, requestedAbis: Set<String>) = Unit
+
+    @WorkerThread
     override fun fetchGradleModels(project: Project): GradleProjectModels = GradleProjectModels(emptyList(), null)
   }
 

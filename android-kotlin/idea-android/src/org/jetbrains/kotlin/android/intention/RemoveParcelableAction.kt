@@ -29,8 +29,8 @@ import org.jetbrains.kotlin.psi.KtClass
 
 
 class RemoveParcelableAction : SelfTargetingIntention<KtClass>(
-    KtClass::class.java,
-    { AndroidBundle.message("remove.parcelable.intention.text") },
+  KtClass::class.java,
+  { AndroidBundle.message("remove.parcelable.intention.text") }
 ), HighPriorityAction {
     override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean =
         AndroidFacet.getInstance(element) != null &&

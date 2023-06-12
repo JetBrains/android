@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
+import com.android.tools.idea.editors.literals.LiveEditAnActionListener
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.intellij.ide.ActivityTracker
@@ -28,6 +31,11 @@ import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.ui.components.JBRadioButton
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.bind
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
 import com.intellij.ui.dsl.builder.bind
 import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.util.AndroidBundle.message
@@ -38,6 +46,7 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
   override fun createPanel(): DialogPanel {
     val config = LiveEditApplicationConfiguration.getInstance()
 
+    // https://plugins.jetbrains.com/docs/intellij/kotlin-ui-dsl-version-2.html
     return panel {
       buttonsGroup {
         row {
@@ -46,15 +55,32 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
         }
 
         if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
+          lateinit var rb : Cell<JBRadioButton>
           row {
             radioButton(message("live.edit.configurable.display.name"), LIVE_EDIT)
               .comment(message("live.edit.configurable.display.name.comment"))
           }
+          row { // Add a row to indent
+            this@buttonsGroup.buttonsGroup(indent = true) {
+              row {
+                radioButton(
+                  message("live.edit.mode.manual", LiveEditAnActionListener.getLiveEditTriggerShortCutString()),
+                  LE_TRIGGER_MANUAL
+                ).enabledIf(rb.selected)
+              }
+              row {
+                radioButton(
+                  message("live.edit.mode.automatic"),
+                  LE_TRIGGER_AUTOMATIC
+                ).enabledIf(rb.selected)
+              }
+            }.bind(config::leTriggerMode)
+          }
         }
 
         row {
-          radioButton(message("live.edit.disable.all"), DISABLED)
-            .comment(message("live.edit.disable.all.description"))
+          radioButton(message("live.edit.disable.all"), DISABLED
+          ).comment(message("live.edit.disable.all.description"))
         }
       }.bind(config::mode)
     }

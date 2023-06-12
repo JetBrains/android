@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
@@ -25,19 +26,24 @@ import com.android.build.attribution.ui.model.TasksDataPageModel
 import com.android.build.attribution.ui.model.WarningsDataPageModelImpl
 import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
+import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
+import com.android.buildanalyzer.common.TaskCategory
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Dimension
+import javax.swing.JEditorPane
 
 class WarningsPageViewTest {
   @get:Rule
@@ -49,18 +55,18 @@ class WarningsPageViewTest {
   @get:Rule
   val edtRule = EdtRule()
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
+  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.JAVA).apply {
     issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
   }
-  val task2 = mockTask(":app", "resources", "resources.plugin", 1000).apply {
+  val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.AlwaysRunUpToDateOverride(this))
   }
-  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000).apply {
+  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.JAVA).apply {
     issues = listOf(TaskIssueUiDataContainer.TaskSetupIssue(this, task1, ""))
     task1.issues += listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
   }
 
-  private val data = MockUiData(tasksList = listOf(task1, task2, task3))
+  private val data = MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true)
 
   private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
 
@@ -119,6 +125,26 @@ class WarningsPageViewTest {
 
   @Test
   @RunsInEdt
+  fun testTaskCategoryDetailsPageHasLinkHandlerRegistered() {
+    val page = WarningsViewDetailPagesFactory(
+      model, mockHandlers, disposableRule.disposable
+    ).createDetailsPage(model.getNodeDescriptorById(WarningsPageId.taskCategory(TaskCategory.ANDROID_RESOURCES))!!)
+
+    TreeWalker(page).descendants().filterIsInstance<JEditorPane>().let { content ->
+      assertThat(content).hasSize(1)
+
+      val htmlLinksHandler = content.first().hyperlinkListeners.find { it is HtmlLinksHandler } as? HtmlLinksHandler
+      assertThat(htmlLinksHandler).isNotNull()
+
+      assertThat(htmlLinksHandler!!.registeredLinkActions.keys).containsExactly(
+        "AndroidMigrateToNonTransitiveRClassesAction",
+        "NON_TRANSITIVE_R_CLASS"
+      )
+    }
+  }
+
+  @Test
+  @RunsInEdt
   fun testTreeNodeDeselectionTriggersActionHandlerCallWithNull() {
     // Arrange
     val nodeToSelect = model.treeRoot.lastLeaf as WarningsTreeNode
@@ -145,17 +171,24 @@ class WarningsPageViewTest {
       component.size = Dimension(600, 200)
     }
 
-    val emptyStatePanel = view.component.components.single()
-    assertThat(emptyStatePanel.isVisible).isTrue()
-    assertThat(emptyStatePanel.name).isEqualTo("empty-state")
-    val links = TreeWalker(emptyStatePanel).descendants().filterIsInstance(HyperlinkLabel::class.java)
-    assertThat(links).hasSize(2)
+    val fakeUi = FakeUi(view.component)
+    fakeUi.layoutAndDispatchEvents()
 
-    // Act / assert links handling
-    links[0].doClick()
-    Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.UNGROUPED)
+    assertThat(view.component.components.any { it.isVisible }).isFalse()
 
-    links[1].doClick()
+    val emptyStatusText = (view.component as JBPanelWithEmptyText).emptyText
+    assertThat(emptyStatusText.toStringState()).isEqualTo("""
+      java.awt.Rectangle[x=29,y=45,width=542,height=64]
+      This build has no warnings. To learn more about its performance, check out these views:| width=542 height=20
+      Tasks impacting build duration| width=193 height=20
+      Plugins with tasks impacting build duration| width=268 height=20
+    """.trimIndent())
+    // Try click on row centers. Only second and third rows should react being links.
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 10)
+    Mockito.verifyNoInteractions(mockHandlers)
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 32)
+    Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(null)
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 55)
     Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN)
   }
 }

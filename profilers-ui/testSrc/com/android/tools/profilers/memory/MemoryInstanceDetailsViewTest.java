@@ -32,7 +32,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -70,9 +69,7 @@ import org.junit.Test;
 public class MemoryInstanceDetailsViewTest {
   private final FakeTimer myTimer = new FakeTimer();
   @Rule
-  public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
-                        new FakeMemoryService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MEMORY_TEST_CHANNEL", new FakeTransportService(myTimer));
 
   private MainMemoryProfilerStage myStage;
   private MemoryInstanceDetailsView myDetailsView;

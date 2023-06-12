@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix;
+import com.android.tools.lint.detector.api.ApiConstraint;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.JavaRecursiveElementVisitor;
 import com.intellij.psi.PsiExpression;
@@ -26,6 +25,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.lint.detector.api.ExtensionSdk.ANDROID_SDK_ID;
+import static com.google.common.truth.Truth.assertThat;
 
 public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtureTestCase {
   public void testNotApplicableInJavaModules() {
@@ -56,7 +58,7 @@ public class AddTargetVersionCheckQuickFixTest extends LightJavaCodeInsightFixtu
     });
     PsiExpression expression = first.get();
     assertThat(expression).isNotNull();
-    AddTargetVersionCheckQuickFix fix = new AddTargetVersionCheckQuickFix(9);
+    AddTargetVersionCheckQuickFix fix = new AddTargetVersionCheckQuickFix(getProject(), 9, ANDROID_SDK_ID, ApiConstraint.ALL);
     assertThat(fix.getName()).isEqualTo("Surround with if (VERSION.SDK_INT >= VERSION_CODES.GINGERBREAD) { ... }");
     assertThat(AndroidFacet.getInstance(expression)).isNull();
     // Regression test for https://code.google.com/p/android/issues/detail?id=228481 :

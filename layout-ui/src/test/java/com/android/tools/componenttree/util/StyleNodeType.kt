@@ -16,7 +16,9 @@
 package com.android.tools.componenttree.util
 
 import com.android.tools.componenttree.api.NodeType
+import com.intellij.util.ui.TextTransferable
 import java.awt.Component
+import java.awt.datatransfer.Transferable
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.tree.TreeCellRenderer
@@ -31,6 +33,9 @@ class StyleNodeType : NodeType<Style> {
   override fun toSearchString(node: Style) = node.name
 
   override fun createRenderer(): TreeCellRenderer = StyleRenderer()
+
+  override fun createTransferable(node: Style): Transferable =
+    TextTransferable(StringBuffer("style:${node.name}"))
 }
 
 class StyleRenderer : TreeCellRenderer {

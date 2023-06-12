@@ -52,6 +52,11 @@ class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
   }
 
   @Test
+  fun fullProjectLintInspection() {
+    super.fullProjectLintInspection(listOf(JavaFileType.INSTANCE, KotlinFileType.INSTANCE as LanguageFileType, XmlFileType.INSTANCE), PROJECT_NAME)
+  }
+
+  @Test
   fun layoutAttributeCompletion() {
     super.layoutAttributeCompletion(
       LayoutCompletionInput(

@@ -19,8 +19,8 @@ import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
-import org.mockito.Mockito.mock
 import javax.swing.JComponent
+import org.mockito.Mockito.mock
 
 open class FakeTableView : TableView {
 
@@ -30,21 +30,23 @@ open class FakeTableView : TableView {
 
   override val component = mock(JComponent::class.java)
 
-  override fun resetView() { }
+  override fun resetView() {}
 
-  override fun startTableLoading() { }
+  override fun startTableLoading() {}
 
-  override fun showTableColumns(columns: List<ViewColumn>) { }
+  override fun showTableColumns(columns: List<ViewColumn>) {}
 
-  override fun stopTableLoading() { }
+  override fun stopTableLoading() {}
 
-  override fun reportError(message: String, t: Throwable?) { errorReported.add(Pair(message, t)) }
+  override fun reportError(message: String, t: Throwable?) {
+    errorReported.add(Pair(message, t))
+  }
 
-  override fun setFetchPreviousRowsButtonState(enable: Boolean) { }
+  override fun setFetchPreviousRowsButtonState(enable: Boolean) {}
 
-  override fun setFetchNextRowsButtonState(enable: Boolean) { }
+  override fun setFetchNextRowsButtonState(enable: Boolean) {}
 
-  override fun setEditable(isEditable: Boolean) { }
+  override fun setEditable(isEditable: Boolean) {}
 
   override fun addListener(listener: TableView.Listener) {
     listeners.add(listener)
@@ -54,19 +56,19 @@ open class FakeTableView : TableView {
     listeners.remove(listener)
   }
 
-  override fun updateRows(rowDiffOperations: List<RowDiffOperation>) { }
+  override fun updateRows(rowDiffOperations: List<RowDiffOperation>) {}
 
-  override fun setEmptyText(text: String) { }
+  override fun setEmptyText(text: String) {}
 
-  override fun setRowOffset(rowOffset: Int) { }
+  override fun setRowOffset(rowOffset: Int) {}
 
-  override fun revertLastTableCellEdit() { }
+  override fun revertLastTableCellEdit() {}
 
-  override fun setColumnSortIndicator(orderBy: OrderBy) { }
+  override fun setColumnSortIndicator(orderBy: OrderBy) {}
 
-  override fun setLiveUpdatesButtonState(state: Boolean) { }
+  override fun setLiveUpdatesButtonState(state: Boolean) {}
 
-  override fun setRefreshButtonState(state: Boolean) { }
+  override fun setRefreshButtonState(state: Boolean) {}
 
-  override fun showPageSizeValue(maxRowCount: Int) { }
+  override fun showPageSizeValue(maxRowCount: Int) {}
 }

@@ -157,12 +157,10 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface = NlDesignSurface.builder(project, this@VisualizationForm)
-      .setIsPreview(false)
       .setSceneManagerProvider { surface: NlDesignSurface, model: NlModel ->
         val sceneManager = LayoutlibSceneManager(model, surface, config)
         sceneManager.setListenResourceChange(false)
         sceneManager.setShowDecorations(VisualizationToolSettings.getInstance().globalState.showDecoration)
-        sceneManager.setRerenderWhenModelDerivedDataChanged(false)
         sceneManager.setUpdateAndRenderWhenActivated(false)
         sceneManager.setUseImagePool(false)
         // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
@@ -179,7 +177,6 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
         VisualizationInteractionHandler(surface) { myCurrentModelsProvider }
       }
       .setLayoutManager(surfaceLayoutManager)
-      .setMinScale(0.01)
       .setMaxScale(4.0)
       .setSupportedActions(VISUALIZATION_SUPPORTED_ACTIONS)
       .build()
@@ -190,7 +187,8 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     myWorkBench = WorkBench(project, "Visualization", null, this)
     myWorkBench.setLoadingText(CommonBundle.getLoadingTreeNodeText())
     myWorkBench.setToolContext(surface)
-    val mainComponent: JComponent = if (StudioFlags.NELE_VISUAL_LINT.get()) {
+    val mainComponent: JComponent = if (StudioFlags.NELE_VISUAL_LINT.get() &&
+                                        !StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
       IssuePanelSplitter(null, surface, myWorkBench)
     }
     else {
@@ -217,7 +215,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
                                        null, this, null, Alarm.ThreadToUse.POOLED_THREAD)
     myUpdateQueue.setRestartTimerOnAdd(true)
 
-    visualLintHandler = VisualizationFormVisualLintHandler(project, surface.issueModel)
+    visualLintHandler = VisualizationFormVisualLintHandler(this, project, surface.issueModel)
   }
 
   private fun createToolbarPanel(): JComponent {
@@ -247,19 +245,17 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     viewOptions.add(ToggleShowDecorationAction())
     viewOptions.isPopup = true
     group.add(viewOptions)
-    if (StudioFlags.NELE_VISUALIZATION_MULTIPLE_CUSTOM.get()) {
-      group.add(AddCustomConfigurationSetAction { createdConfigSetId: String ->
-        val configurationSets = getConfigurationSets().stream()
-          .filter { set: ConfigurationSet -> createdConfigSetId == set.id }
-          .collect(Collectors.toList())
-        if (configurationSets.isNotEmpty()) {
-          onSelectedConfigurationSetChanged(configurationSets[0])
-        }
-      })
-      group.add(RemoveCustomConfigurationSetAction(myCurrentConfigurationSet) {
-        onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
-      })
-    }
+    group.add(AddCustomConfigurationSetAction { createdConfigSetId: String ->
+      val configurationSets = getConfigurationSets().stream()
+        .filter { set: ConfigurationSet -> createdConfigSetId == set.id }
+        .collect(Collectors.toList())
+      if (configurationSets.isNotEmpty()) {
+        onSelectedConfigurationSetChanged(configurationSets[0])
+      }
+    })
+    group.add(RemoveCustomConfigurationSetAction(myCurrentConfigurationSet) {
+      onSelectedConfigurationSetChanged(ConfigurationSetProvider.defaultSet)
+    })
     // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
@@ -527,7 +523,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
     }
   }
 
-  override fun resourcesChanged(reasons: Set<ResourceNotificationManager.Reason>) {
+  override fun resourcesChanged(reasons: ImmutableSet<ResourceNotificationManager.Reason>) {
     var needsRenderModels = false
     for (reason in reasons) {
       when (reason) {
@@ -581,15 +577,15 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
 
     // This render the added components.
     for (manager in surface.sceneManagers) {
-      if (StudioFlags.NELE_VISUAL_LINT.get() && manager is LayoutlibSceneManager) {
-        visualLintHandler.setupForLayoutlibSceneManager(manager)
+      if (StudioFlags.NELE_VISUAL_LINT.get()) {
+        visualLintHandler.setupForLayoutlibSceneManager(manager) { !isActive || isRenderingCanceled.get() }
       }
       renderFuture = renderFuture.thenCompose {
         if (isRenderingCanceled.get()) {
           return@thenCompose CompletableFuture.completedFuture<Void?>(null)
         }
         else {
-          val modelUpdateFuture = (manager as LayoutlibSceneManager).updateModelAsync()
+          val modelUpdateFuture = manager.updateModelAsync()
           if (isRenderingCanceled.get()) {
             return@thenCompose CompletableFuture.completedFuture<Void?>(null)
           }
@@ -704,8 +700,7 @@ class VisualizationForm(private val project: Project, parentDisposable: Disposab
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       VisualizationToolSettings.getInstance().globalState.showDecoration = state
-      surface.models.map { model: NlModel -> surface.getSceneManager(model) }
-        .filterIsInstance<LayoutlibSceneManager>()
+      surface.models.mapNotNull { model: NlModel -> surface.getSceneManager(model) }
         .forEach { manager -> manager.setShowDecorations(state) }
       surface.requestRender().thenRun {
         if (!Disposer.isDisposed(myWorkBench)) {

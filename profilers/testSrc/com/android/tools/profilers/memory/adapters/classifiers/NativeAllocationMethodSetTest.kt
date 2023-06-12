@@ -35,7 +35,7 @@ class NativeAllocationMethodSetTest {
   fun applyFilter() {
     val callstackSet = NativeAllocationMethodSet("Test")
     val filter = Filter("Test")
-    callstackSet.applyFilter(filter, false, true)
+    callstackSet.applyFilter(filter, true)
     assertThat(filter.matches(callstackSet.stringForMatching)).isTrue()
   }
 

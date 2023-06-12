@@ -34,7 +34,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class AndroidLibsDepTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private static final String LIB_NAME_1 = "modulea";
   private static final String LIB_NAME_2 = "moduleb";
@@ -71,11 +71,11 @@ public class AndroidLibsDepTest {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, Java);
 
     DependenciesTestUtil.createAndroidLibrary(ideFrame, LIB_NAME_1);
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_1, "app", "implementation");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(guiTest, ideFrame, LIB_NAME_1, "app", "implementation");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, LIB_NAME_1, DependenciesTestUtil.CLASS_NAME_1);
 
     createAndroidLibrary(ideFrame, LIB_NAME_2);
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_2, LIB_NAME_1, "api");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(guiTest, ideFrame, LIB_NAME_2, LIB_NAME_1, "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, LIB_NAME_2, DependenciesTestUtil.CLASS_NAME_2);
 
     DependenciesTestUtil.accessLibraryClassAndVerify(ideFrame, LIB_NAME_1, LIB_NAME_2);

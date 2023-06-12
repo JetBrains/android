@@ -23,7 +23,6 @@ dependencies {
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "22.0.1"
 
     testBuildType "debug"
 
@@ -111,6 +110,10 @@ android {
         htmlReport true
         // optional path to report (default will be lint-results.html in the builddir)
         htmlOutput file("lint-report.html")
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     // Override the versionCode of the release version

@@ -18,9 +18,10 @@ package com.android.tools.idea.dagger.localization
 import com.android.tools.idea.localization.MessageBundleReference
 import org.jetbrains.annotations.PropertyKey
 
-private const val BUNDLE_NAME = "messages.DaggerBundle"
-
 internal object DaggerBundle {
+  internal const val BUNDLE_NAME = "messages.DaggerBundle"
+
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
-  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) = bundleRef.message(key, *params)
+  fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: String) =
+    bundleRef.message(key, *params)
 }

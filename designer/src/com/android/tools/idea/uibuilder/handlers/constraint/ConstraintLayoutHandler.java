@@ -491,6 +491,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
     newChild.removeAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X);
     newChild.removeAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y);
+    String id = newChild.getId();
+    if (id != null) {
+      ConstraintHelperHandler.willDelete(layout, id);
+    }
   }
 
   /**
@@ -623,7 +627,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @NotNull List<NlComponent> selectedChildren,
                                    @InputEventMask int modifiersEx) {
       presentation.setIcon(StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD);
-      boolean show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 2, 0, 0, 2);
+      boolean show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "2.0.0-beta02");
       presentation.setLabel("Convert to MotionLayout");
       presentation.setVisible(show);
     }
@@ -640,7 +644,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private static void ensureLayersAreShown(@NotNull ViewEditor editor, int duration) {
     NlDesignSurface designSurface = (NlDesignSurface)editor.getScene().getDesignSurface();
     designSurface.forceLayersPaint(true);
-    designSurface.repaint();
     Timer timer = new Timer(duration, actionEvent -> designSurface.forceLayersPaint(false));
     timer.setRepeats(false);
     timer.start();
@@ -1045,7 +1048,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
                                    @InputEventMask int modifiersEx) {
       boolean show = true;
       if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
         if (show) {
           int barriers = 0;
           int other = 0;
@@ -1066,16 +1069,16 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         }
       }
       if (myType == GROUP) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
       }
       if (myType == CONSTRAINT_SET) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
       if (myType == LAYER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
       if (myType == FLOW) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
 
       presentation.setVisible(show);
@@ -1239,7 +1242,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       }
 
       private void resolveResValue(String resourceRef) {
-        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myComponent.getModel().getFacet());
+        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myComponent.getModel().getModule());
         XmlTag tag = myComponent.getBackend().getTag();
         assert tag != null;
         ResourceResolver resolver = configurationManager.getConfiguration(tag.getContainingFile().getVirtualFile()).getResourceResolver();
@@ -1596,7 +1599,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     return builder.build();
   }
 
-  private static final class ConstraintViewActions {
+  private static class ConstraintViewActions {
     private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
                       LEFT_ALIGNED,

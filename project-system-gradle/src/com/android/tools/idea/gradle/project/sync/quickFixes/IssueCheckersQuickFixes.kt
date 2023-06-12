@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.repository.Revision
 import com.android.repository.api.RepoManager
 import com.android.repository.impl.meta.RepositoryPackages
@@ -54,6 +54,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import java.io.File
@@ -100,10 +101,10 @@ class DownloadAndroidStudioQuickFix : DescribedBuildIssueQuickFix {
  * This QuickFix upgrades the Gradle model to the version in [SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION] and Gradle
  * to the version in [SdkConstants.GRADLE_LATEST_VERSION].
  */
-class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: GradleVersion?, givenGradleVersion: GradleVersion?) : BuildIssueQuickFix {
+class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: AgpVersion?, givenGradleVersion: GradleVersion?) : BuildIssueQuickFix {
   override val id = "fix.gradle.elements"
-  val pluginVersion = givenPluginVersion ?: GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-  val gradleVersion = givenGradleVersion ?: GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
+  val pluginVersion = givenPluginVersion ?: AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val gradleVersion = givenGradleVersion ?: GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()

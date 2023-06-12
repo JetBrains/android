@@ -16,46 +16,36 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixGradleVersionInWrapperHyperlink;
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject;
 import com.android.tools.idea.gradle.util.GradleWrapper;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.utils.FileUtils;
 import com.google.common.collect.ImmutableList;
-import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncQuickFix;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link UnsupportedGradleReporter}.
  */
 public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
-  private IdeSyncIssue mySyncIssue;
-  private GradleSyncMessagesStub mySyncMessagesStub;
   private UnsupportedGradleReporter myReporter;
-  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(IdeSyncIssue.class);
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnsupportedGradleReporter();
-    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -64,29 +54,28 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
 
   public void testReport() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
-
     String expectedText = "Hello World!";
-    when(mySyncIssue.getMessage()).thenReturn(expectedText);
-    when(mySyncIssue.getData()).thenReturn("2.14.1");
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_WARNING,
+      0 /* unspecified? */,
+      "2.14.1",
+      expectedText,
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, appModule, null);
+    final var message = messages.get(0);
 
-    SyncMessage message = mySyncMessagesStub.getFirstReportedMessage();
     assertNotNull(message);
-    assertThat(message.getText()).hasLength(1);
+    assertThat(message.getText()).isEqualTo(expectedText);
+    assertThat(message.getGroup()).isEqualTo("Gradle Sync Issues");
 
-    // @formatter:off
-    Truth.assertAbout(SyncMessageSubject.syncMessage()).that(message).hasGroup("Gradle Sync Issues")
-                                            .hasMessageLine(expectedText, 0);
-    // @formatter:on
-
-    List<NotificationHyperlink> quickFixes = message.getQuickFixes();
+    final var quickFixes = message.getQuickFixes();
     assertThat(quickFixes).hasSize(3);
 
-    NotificationHyperlink quickFix = quickFixes.get(0);
+    var quickFix = quickFixes.get(0);
     assertThat(quickFix).isInstanceOf(FixGradleVersionInWrapperHyperlink.class);
     FixGradleVersionInWrapperHyperlink hyperlink = (FixGradleVersionInWrapperHyperlink)quickFix;
     assertEquals("2.14.1", hyperlink.getGradleVersion());
@@ -100,17 +89,17 @@ public class UnsupportedGradleReporterTest extends AndroidGradleTestCase {
       ImmutableList.of(
         GradleSyncIssue
           .newBuilder()
-          .setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK)
+          .setType(GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
+          .addOfferedQuickFixes(GradleSyncQuickFix.FIX_GRADLE_VERSION_IN_WRAPPER_HYPERLINK)
+          .addOfferedQuickFixes(GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
+          .addOfferedQuickFixes(GradleSyncQuickFix.OPEN_GRADLE_SETTINGS_HYPERLINK)
           .build()),
-      myUsageReporter.getCollectedIssue());
+      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
   }
 
-  private static void verifyOpenGradleWrapperPropertiesFile(@NotNull Project project, @NotNull NotificationHyperlink link) {
-    assertThat(link).isInstanceOf(OpenFileHyperlink.class);
-    OpenFileHyperlink openFileHyperlink = (OpenFileHyperlink)link;
+  private static void verifyOpenGradleWrapperPropertiesFile(@NotNull Project project, @NotNull SyncMessageFragment link) {
+    assertThat(link).isInstanceOf(OpenFileSyncMessageHyperlink.class);
+    final var openFileHyperlink = (OpenFileSyncMessageHyperlink)link;
     assertTrue(openFileHyperlink.toHtml().contains("Open Gradle wrapper properties"));
     assertThat(openFileHyperlink.getFilePath()).isEqualTo(
       FileUtils.toSystemIndependentPath(GradleWrapper.find(project).getPropertiesFilePath().getAbsolutePath()));

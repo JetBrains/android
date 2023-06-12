@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorLineModel
@@ -33,9 +34,12 @@ import com.android.tools.property.panel.impl.model.TitleLineModel
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.ptable.PTableModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
@@ -46,7 +50,6 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 
 class PropertiesPageTest {
-
   companion object {
     @JvmField
     @ClassRule
@@ -67,6 +70,8 @@ class PropertiesPageTest {
     val controlTypeProvider = mock(ControlTypeProvider::class.java) as ControlTypeProvider<PropertyItem>
     val editorProvider = mock(EditorProvider::class.java) as EditorProvider<PropertyItem>
     disposable = Disposer.newDisposable()
+    ApplicationManager.getApplication().registerOrReplaceServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(),
+                                                                         disposable!!)
     tableUI = TableUIProvider(controlTypeProvider, editorProvider)
     tableModel = mock(PTableModel::class.java)
     page = PropertiesPage(disposable!!)
@@ -84,6 +89,21 @@ class PropertiesPageTest {
 
   private val pageLines: List<InspectorLineModel>
     get() = page?.inspectorModel?.lines ?: error("No lines found")
+
+  @Test
+  fun testStartLeftFractionTakenFromProperties() {
+    assertThat(page!!.nameColumnFraction.value).isEqualTo(0.4f)
+
+    PropertiesComponent.getInstance().setValue(LEFT_FRACTION_KEY, 0.8f, 0.4f)
+    val other = PropertiesPage(disposable!!)
+    assertThat(other.nameColumnFraction.value).isEqualTo(0.8f)
+  }
+
+  @Test
+  fun testStartLeftFractionSavedToProperties() {
+    page!!.nameColumnFraction.value = 0.7f
+    assertThat(PropertiesComponent.getInstance().getFloat(LEFT_FRACTION_KEY, 0.4f)).isEqualTo(0.7f)
+  }
 
   @Test
   fun testSeparatorAddedBeforeFirstEditorComponent() {

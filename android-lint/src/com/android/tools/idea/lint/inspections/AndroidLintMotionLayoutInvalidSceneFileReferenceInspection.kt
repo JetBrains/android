@@ -24,15 +24,22 @@ import com.android.tools.lint.checks.MotionLayoutDetector
 import com.android.tools.lint.detector.api.LintFix
 import com.intellij.psi.PsiElement
 
-class AndroidLintMotionLayoutInvalidSceneFileReferenceInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.motion.layout.invalid.scene.file.reference"),
-  MotionLayoutDetector.INVALID_SCENE_FILE_REFERENCE) {
+class AndroidLintMotionLayoutInvalidSceneFileReferenceInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message(
+      "android.lint.inspections.motion.layout.invalid.scene.file.reference"
+    ),
+    MotionLayoutDetector.INVALID_SCENE_FILE_REFERENCE
+  ) {
 
-  override fun getQuickFixes(startElement: PsiElement,
-                             endElement: PsiElement,
-                             message: String,
-                             fixData: LintFix?): Array<LintIdeQuickFix> {
-    return generateMotionSceneFix(fixData) ?: super.getQuickFixes(startElement, endElement, message, fixData)
+  override fun getQuickFixes(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    message: String,
+    fixData: LintFix?
+  ): Array<LintIdeQuickFix> {
+    return generateMotionSceneFix(fixData)
+      ?: super.getQuickFixes(startElement, endElement, message, fixData)
   }
 
   private fun generateMotionSceneFix(fixData: LintFix?): Array<LintIdeQuickFix>? {
@@ -41,5 +48,3 @@ class AndroidLintMotionLayoutInvalidSceneFileReferenceInspection : AndroidLintIn
     return arrayOf(GenerateMotionSceneFix(url))
   }
 }
-
-

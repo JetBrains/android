@@ -25,13 +25,6 @@ import kotlinx.coroutines.future.await
 suspend fun LayoutlibSceneManager.executeCallbacks(): ExecuteCallbacksResult = executeCallbacksAsync().await()
 
 /**
- * Suspendable equivalent to [LayoutlibSceneManager.executeInRenderSessionAsync].
- */
-suspend fun LayoutlibSceneManager.executeInRenderSession(block: () -> Unit) {
-  executeInRenderSessionAsync(block).await()
-}
-
-/**
  * Returns whether the [SceneView] has failed to render or has rendered with errors.
  */
 fun SceneView.hasRenderErrors() = (sceneManager as? LayoutlibSceneManager)?.renderResult?.logger?.hasErrors() == true

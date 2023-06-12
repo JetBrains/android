@@ -109,7 +109,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     myTestDataRelativePath = testDataRelativePath;
   }
   protected static final String SUB_MODULE_NAME = "gradleModelTest";
-  @NotNull private static final String GROOVY_LANGUAGE = "Groovy";
+  @NotNull protected static final String GROOVY_LANGUAGE = "Groovy";
   @NotNull private static final String KOTLIN_LANGUAGE = "Kotlin";
 
   protected String myTestDataRelativePath;
@@ -124,6 +124,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected VirtualFile mySettingsFile;
   protected VirtualFile myBuildFile;
+  protected VirtualFile myProjectBuildFile;
   protected VirtualFile myPropertiesFile;
   protected VirtualFile mySubModuleBuildFile;
   protected VirtualFile mySubModulePropertiesFile;
@@ -193,7 +194,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     ApplicationManager.getApplication().runWriteAction(runnable);
   }
 
-  private static void saveFileUnderWrite(@NotNull VirtualFile file, @NotNull String text) throws IOException {
+  protected static void saveFileUnderWrite(@NotNull VirtualFile file, @NotNull String text) throws IOException {
     runWriteAction(() -> {
       saveText(file, text);
       return null;
@@ -218,6 +219,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       VirtualFile moduleVirtualDir = fs.refreshAndFindFileByNioFile(moduleDirPath);
       myBuildFile = moduleVirtualDir.createChildData(this, getBuildFileName());
       assertTrue(myBuildFile.isWritable());
+      myProjectBuildFile = myProjectBasePath.createChildData(this, getBuildFileName());
+      assertTrue(myProjectBuildFile.isWritable());
       myPropertiesFile = moduleVirtualDir.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(myPropertiesFile.isWritable());
 
@@ -281,6 +284,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     });
   }
 
+  protected void createCatalogFile(String name) throws IOException {
+    VirtualFile gradlePath = myProjectBasePath.findChild("gradle");
+    runWriteAction(() ->
+      gradlePath.createChildData(this, name)
+    );
+  }
+
   protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull VirtualFile destination)
     throws IOException {
     final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
@@ -306,6 +316,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     prepareAndInjectInformationForTest(fileName, myBuildFile);
   }
 
+  protected void writeToProjectBuildFile(@NotNull TestFileName fileName) throws IOException {
+    prepareAndInjectInformationForTest(fileName, myProjectBuildFile);
+  }
+
   protected void writeToBuildSrcBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, myBuildSrcBuildFile);
   }
@@ -319,6 +333,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void writeToVersionCatalogFile(@NotNull String text) throws IOException {
     saveFileUnderWrite(myVersionCatalogFile, text);
+  }
+
+  protected void removeVersionCatalogFile() throws IOException {
+    runWriteAction(() -> {
+      myVersionCatalogFile.delete(this);
+      return null;
+    });
   }
 
   protected String getContents(@NotNull TestFileName fileName) throws IOException {
@@ -446,6 +467,11 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     assertFalse(buildModel.isModified());
   }
 
+  protected void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
+    runWriteCommandAction(myProject, () -> settingsModel.applyChanges());
+    assertFalse(settingsModel.isModified());
+  }
+
   protected void applyChanges(@NotNull final ProjectBuildModel buildModel) {
     runWriteCommandAction(myProject, buildModel::applyChanges);
   }
@@ -477,16 +503,17 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void removeListValue(@NotNull GradlePropertyModel model, @NotNull Object valueToRemove) {
-    assertEquals(LIST, model.getValueType());
     GradlePropertyModel itemModel = model.getListValue(valueToRemove);
-    assertNotNull(itemModel);
-    itemModel.delete();
+    if (itemModel != null) {
+      itemModel.delete();
+    }
   }
 
   protected void replaceListValue(@NotNull GradlePropertyModel model, @NotNull Object valueToRemove, @NotNull Object valueToAdd) {
     GradlePropertyModel itemModel = model.getListValue(valueToRemove);
-    assertNotNull(itemModel);
-    itemModel.setValue(valueToAdd);
+    if (itemModel != null) {
+      itemModel.setValue(valueToAdd);
+    }
   }
 
   protected void verifyPropertyModel(@NotNull GradlePropertyModel propertyModel,

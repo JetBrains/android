@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Language;
 import java.io.File;
 import javax.swing.JComboBox;
@@ -85,7 +86,9 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
 
   @NotNull
   public ConfigureNewAndroidProjectStepFixture<W> selectMinimumSdkApi(int minSdkApi) {
-    new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "minSdkComboBox", JComboBox.class)).selectApiLevel(minSdkApi);
+    ApiLevelComboBoxFixture apiLevelComboBoxFixture = new ApiLevelComboBoxFixture(robot(), robot().finder().findByName(target(), "minSdkComboBox", JComboBox.class));
+    apiLevelComboBoxFixture.click();
+    apiLevelComboBoxFixture.selectApiLevel(minSdkApi);
     return this;
   }
 
@@ -102,8 +105,9 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
   }
 
   @NotNull
-  public ConfigureNewAndroidProjectStepFixture<W> setUseKtsBuildFiles(boolean select) {
-    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
+  public ConfigureNewAndroidProjectStepFixture<W> selectBuildConfigurationLanguage(BuildConfigurationLanguageForNewProject language) {
+    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "buildConfigurationLanguageCombo", JComboBox.class, true))
+      .selectItem(language.toString());
     return this;
   }
 }

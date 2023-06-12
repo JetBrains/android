@@ -21,21 +21,14 @@ import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.adblib.DeviceSelector
 import com.android.adblib.deviceCache
 import com.android.adblib.shellAsText
-import com.android.annotations.concurrency.UiThread
-import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.avdmanager.EmulatorAdvFeatures
-import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.AndroidSdks
-import com.android.utils.ILogger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
 import java.time.Duration
 
 private const val SCREEN_RECORDER_DEVICE_PATH = "/system/bin/screenrecord"
-private val COMMAND_TIMEOUT = Duration.ofSeconds(2)
+private val COMMAND_TIMEOUT = Duration.ofSeconds(5)
 private val IS_SUPPORTED_RETRY_TIMEOUT = Duration.ofSeconds(2)
 
 /**
@@ -47,30 +40,28 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
   private val adbSession: AdbSession = AdbLibService.getSession(project)
   private val cacheKey = Key<Boolean>("ScreenRecordingSupportedCache")
 
-  @UiThread
   override fun isScreenRecordingSupported(serialNumber: String, sdk: Int): Boolean {
-    return adbSession.deviceCache(serialNumber)
-      .getOrPutSuspending(cacheKey,
-                          fastDefaultValue = { false },
-                          defaultValue = { computeIsSupported(serialNumber, sdk) })
+    return adbSession.deviceCache(serialNumber).getOrPutSuspending(
+        cacheKey, fastDefaultValue = { false }, defaultValue = { computeIsSupported(serialNumber, sdk) })
   }
 
   private suspend fun computeIsSupported(serialNumber: String, sdk: Int): Boolean {
     // The default value (from the cache) is "false" until this function terminates,
     // so we try every 2 seconds until we can answer without error.
-    while (true)
+    while (true) {
       try {
         return when {
-          serialNumber.isEmulator() && isEmulatorRecordingEnabled() -> true
+          serialNumber.isEmulator() -> true
           isWatch(serialNumber) && sdk < 30 -> false
           sdk < 19 -> false
           else -> hasBinary(serialNumber)
         }
       }
       catch (e: Throwable) {
-        thisLogger().info("Failure to retrieve screen recording support status for device $serialNumber, retrying in 2 seconds", e)
+        thisLogger().warn("Failure to retrieve screen recording support status for device $serialNumber, retrying in 2 seconds", e)
         delay(IS_SUPPORTED_RETRY_TIMEOUT.toMillis())
       }
+    }
   }
 
   private suspend fun isWatch(serialNumber: String): Boolean {
@@ -89,10 +80,3 @@ internal class ScreenRecordingSupportedCacheImpl(project: Project) : ScreenRecor
 }
 
 private fun String.isEmulator() = startsWith("emulator-")
-
-private fun isEmulatorRecordingEnabled(): Boolean {
-  val handler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-  val indicator = StudioLoggerProgressIndicator(ScreenRecorderAction::class.java)
-  val logger: ILogger = LogWrapper(ScreenRecorderAction::class.java)
-  return EmulatorAdvFeatures.emulatorSupportsScreenRecording(handler, indicator, logger)
-}

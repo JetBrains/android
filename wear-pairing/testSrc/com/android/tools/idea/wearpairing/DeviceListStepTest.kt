@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -39,6 +40,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeFalse
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
@@ -68,10 +70,12 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   )
 
   override fun setUp() {
+    // Studio Icons must be of type CachedImageIcon for image asset
+    IconLoaderRule.enableIconLoading()
     super.setUp()
     BatchInvoker.setOverrideStrategy(invokeStrategy)
     UsageTracker.setWriterForTest(usageTracker)
-    WearPairingManager.loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
+    WearPairingManager.getInstance().loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
   }
 
   override fun tearDown() {
@@ -243,7 +247,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
 
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
+    runBlocking { WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
 
     model.phoneList.set(listOf(phoneDevice))
     fakeUi.layoutAndDispatchEvents()
@@ -263,7 +267,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   fun showTooltipIfDeviceNotAllowed() {
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking { WearPairingManager.createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
+    runBlocking { WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
 
     model.phoneList.set(listOf(
       phoneDevice.copy(deviceID = "id3", displayName = "My Phone2", apiLevel = 29),

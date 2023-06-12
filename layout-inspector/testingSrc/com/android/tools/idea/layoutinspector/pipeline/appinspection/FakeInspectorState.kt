@@ -35,8 +35,10 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.FakeViewLayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotResponse.WindowSnapshot
 import com.google.common.truth.Truth.assertThat
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetParameterDetailsCommand
 
 // Hand-crafted state loosely based on new basic activity app. Real data would look a lot more scattered.
@@ -772,6 +774,44 @@ class FakeInspectorState(
     }
   }
 
+  fun createFakeViewTreeAsSnapshot() {
+    viewInspector.interceptWhen({ it.hasCaptureSnapshotCommand() }) { _ ->
+      LayoutInspectorViewProtocol.Response.newBuilder().apply {
+        captureSnapshotResponseBuilder.apply {
+          windowRootsBuilder.apply {
+            addAllIds(layoutTrees.map { it.id })
+          }.build()
+          layoutTrees.forEach { rootNode ->
+            addWindowSnapshots(WindowSnapshot.newBuilder().apply {
+              layoutBuilder.apply {
+                addAllStrings(viewStrings)
+                this.rootView = rootNode
+                configurationBuilder.apply {
+                  density = Density.HIGH.dpiValue
+                  fontScale = 1.5f
+                }
+                appContextBuilder.apply {
+                  theme = ViewResource(208, 210, 223)
+                  screenWidth = 800
+                  screenHeight = 1600
+                }
+                propertiesBuilder.apply {
+                  for (id in propertyGroups.keys) {
+                    addPropertyGroupsBuilder().apply {
+                      rootId = rootNode.id
+                      addAllStrings(viewStrings)
+                      addAllPropertyGroups(propertyGroups[rootNode.id])
+                    }
+                  }
+                }
+              }.build()
+            }.build())
+          }
+        }.build()
+      }.build()
+    }
+  }
+
   fun createFakeViewAttributes() {
     viewInspector.interceptWhen({ it.hasGetPropertiesCommand() }) { command ->
       getPropertiesRequestCount.compute(command.getPropertiesCommand.viewId) { _, prev -> (prev ?: 0) + 1 }
@@ -799,6 +839,36 @@ class FakeInspectorState(
           if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
             addAllStrings(composeStrings)
             addRoots(if (withSemantics) composableRoot else composableRootWithoutSemantics)
+          }
+        }
+      }.build()
+    }
+  }
+
+  fun createFakeLargeComposeTree(latch: CommandLatch? = null) {
+    composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { command ->
+      latch?.incomingCommand()
+      LayoutInspectorComposeProtocol.Response.newBuilder().apply {
+        getComposablesResponseBuilder.apply {
+          if (command.getComposablesCommand.rootViewId == layoutTrees[0].id) {
+            addAllStrings(composeStrings)
+            val idValue = -300L
+            var node: ComposableNode? = null
+            for (i in 0..125) {
+              node = ComposableNode.newBuilder().apply {
+                id = idValue - i
+                name = 8
+                packageHash = 1
+                filename = 3
+                if (node != null) {
+                  addChildren(node)
+                }
+              }.build()
+            }
+            addRootsBuilder().apply {
+              viewId = 6
+              addNodes(node)
+            }
           }
         }
       }.build()
@@ -887,6 +957,8 @@ class FakeInspectorState(
           }
           appContextBuilder.apply {
             theme = ViewResource(208, 210, 223)
+            screenWidth = 800
+            screenHeight = 1600
           }
         }
       }

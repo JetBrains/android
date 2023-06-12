@@ -4,6 +4,7 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
     useLibrary 'org.apache.http.legacy'
+    namespace "google.simpleapplication"
 
     defaultConfig {
         applicationId "google.simpleapplication"
@@ -20,6 +21,10 @@ android {
     }
     lintOptions {
         abortOnError false
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 }
 

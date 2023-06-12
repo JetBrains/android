@@ -23,8 +23,8 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
+import com.android.tools.res.CacheableResourceRepository;
 import com.google.common.collect.ListMultimap;
-import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -127,7 +127,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * </p>
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements ModificationTracker {
+public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements CacheableResourceRepository {
   protected static final AtomicLong ourModificationCounter = new AtomicLong();
 
   private final String myDisplayName;
@@ -149,11 +149,6 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
   @NotNull
   public String getDisplayName() {
     return myDisplayName;
-  }
-
-  @Nullable
-  public String getLibraryName() {
-    return null;
   }
 
   public void addParent(@NotNull MultiResourceRepository parent) {

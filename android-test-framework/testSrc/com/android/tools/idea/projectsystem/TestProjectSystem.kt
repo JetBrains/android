@@ -60,6 +60,10 @@ class TestProjectSystem @JvmOverloads constructor(
   private val androidLibraryDependencies: Collection<ExternalAndroidLibrary> = emptySet()
 ) : AndroidProjectSystem {
 
+  override fun getBootClasspath(module: Module): Collection<String> {
+    return emptyList()
+  }
+
   /**
    * Injects this project system into the [project] it was created for.
    */
@@ -74,6 +78,7 @@ class TestProjectSystem @JvmOverloads constructor(
   private val coordinateToFakeRegisterDependencyError: HashMap<GradleCoordinate, String>
   var namespace: String? = null
   var manifestOverrides = ManifestOverrides()
+  var useAndroidX: Boolean = false
 
   init {
     val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
@@ -201,6 +206,9 @@ class TestProjectSystem @JvmOverloads constructor(
       }
 
       override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
+
+      override val useAndroidX: Boolean
+        get() = this@TestProjectSystem.useAndroidX
     }
 
     return TestAndroidModuleSystemImpl()
@@ -257,6 +265,10 @@ class TestProjectSystem @JvmOverloads constructor(
     error("not supported for the test implementation")
   }
 
+  override fun supportsProfilingMode(): Boolean {
+    error("not supported for the test implementation")
+  }
+
   override fun getPsiElementFinders() = emptyList<PsiElementFinder>()
 
   override fun getLightResourceClassService(): LightResourceClassService {
@@ -273,7 +285,6 @@ class TestProjectSystem @JvmOverloads constructor(
   override fun getClassJarProvider(): ClassJarProvider {
     return object: ClassJarProvider {
       override fun getModuleExternalLibraries(module: Module): List<File> = emptyList()
-      override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean  = false
     }
   }
 

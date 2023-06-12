@@ -16,13 +16,14 @@
 package com.android.tools.idea.lint
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.project.upgrade.findPluginInfo
 import com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade
@@ -64,13 +65,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
+import java.io.File
+import java.util.EnumSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
-import java.io.File
-import java.util.EnumSet
+import org.toml.lang.psi.TomlFileType
 
 class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry(): IssueRegistry {
@@ -87,14 +89,14 @@ class AndroidLintIdeSupport : LintIdeSupport() {
         if (baselineFile != null) {
           return baselineFile
         }
-      }
-      catch (unsupported: Throwable) {
-      }
+      } catch (unsupported: Throwable) {}
     }
 
     // Baselines can also be configured via lint.xml
     module.getModuleDir()?.let { dir ->
-      client.getConfiguration(dir)?.baselineFile?.let { baseline -> return baseline }
+      client.getConfiguration(dir)?.baselineFile?.let { baseline ->
+        return baseline
+      }
     }
 
     return null
@@ -107,9 +109,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       val options = model.androidProject.lintOptions
       try {
         return options.severityOverrides
-      }
-      catch (unsupported: Throwable) {
-      }
+      } catch (unsupported: Throwable) {}
     }
     return null
   }
@@ -127,7 +127,14 @@ class AndroidLintIdeSupport : LintIdeSupport() {
           if (def != null) {
             val variants = def.values
             if (variants.isNotEmpty()) {
-              return Messages.showEditableChooseDialog(message, title, Messages.getQuestionIcon(), variants, variants[0], null)
+              return Messages.showEditableChooseDialog(
+                message,
+                title,
+                Messages.getQuestionIcon(),
+                variants,
+                variants[0],
+                null
+              )
             }
           }
         }
@@ -143,19 +150,22 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       return false
     }
     val fileType = file.fileType
-    if (fileType === JavaFileType.INSTANCE
-        || fileType === KotlinFileType.INSTANCE
-        || fileType === PropertiesFileType.INSTANCE) {
+    if (
+      fileType === JavaFileType.INSTANCE ||
+        fileType === KotlinFileType.INSTANCE ||
+        fileType === PropertiesFileType.INSTANCE ||
+        fileType === TomlFileType
+    ) {
       return true
     }
     if (fileType === XmlFileType.INSTANCE) {
-      return facet != null && (ModuleResourceManagers.getInstance(
-        facet).localResourceManager.getFileResourceFolderType(file) != null || ANDROID_MANIFEST_XML == file.name)
-    }
-    else if (fileType === FileTypes.PLAIN_TEXT) {
+      return facet != null &&
+        (ModuleResourceManagers.getInstance(facet)
+          .localResourceManager
+          .getFileResourceFolderType(file) != null || ANDROID_MANIFEST_XML == file.name)
+    } else if (fileType === FileTypes.PLAIN_TEXT) {
       return super.canAnnotate(file, module)
-    }
-    else if (file.isGradleFile()) {
+    } else if (file.isGradleFile()) {
       // Ensure that we're listening to the PSI structure for Gradle file edit notifications
       val project = file.project
       if (project.requiresAndroidModel()) {
@@ -176,15 +186,21 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   // Projects
-  override fun createProject(client: LintIdeClient,
-                             files: List<VirtualFile>?,
-                             vararg modules: Module): List<com.android.tools.lint.detector.api.Project> {
-    return AndroidLintIdeProject.create(client, files, *modules);
+  override fun createProject(
+    client: LintIdeClient,
+    files: List<VirtualFile>?,
+    vararg modules: Module
+  ): List<com.android.tools.lint.detector.api.Project> {
+    return AndroidLintIdeProject.create(client, files, *modules)
   }
 
-  override fun createProjectForSingleFile(client: LintIdeClient,
-                                          file: VirtualFile?,
-                                          module: Module): Pair<com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project> {
+  override fun createProjectForSingleFile(
+    client: LintIdeClient,
+    file: VirtualFile?,
+    module: Module
+  ): Pair<
+    com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project
+  > {
     return AndroidLintIdeProject.createForSingleFile(client, file, module)
   }
 
@@ -211,33 +227,41 @@ class AndroidLintIdeSupport : LintIdeSupport() {
       val latest = SdkMavenRepository.getCoordinateFromSdkPath(p.path)
       if (latest != null) { // should always be the case unless the version suffix is somehow wrong
         module.getModuleSystem().updateLibrariesToVersion(listOf(latest))
-        module.project.getProjectSystem().getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_DEPENDENCY_UPDATED)
+        module.project
+          .getProjectSystem()
+          .getSyncManager()
+          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_DEPENDENCY_UPDATED)
       }
     }
   }
 
-  override fun recommendedAgpVersion(project: Project): GradleVersion? {
+  override fun recommendedAgpVersion(project: Project): AgpVersion? {
     val current = project.findPluginInfo()?.pluginVersion ?: return null
-    val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-    val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+    val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val published = IdeGoogleMavenRepository.getAgpVersions()
     val state = computeGradlePluginUpgradeState(current, latestKnown, published)
     return when (state.importance) {
-      RECOMMEND -> state.target
+      RECOMMEND,
+      STRONGLY_RECOMMEND -> state.target
       else -> null
     }
   }
   override fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean {
-    return shouldRecommendPluginUpgrade(project)
+    return shouldRecommendPluginUpgrade(project).upgrade
   }
   override fun updateAgpToLatest(project: Project) {
-    ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
+    ApplicationManager.getApplication().executeOnPooledThread {
+      performRecommendedPluginUpgrade(project)
+    }
   }
 
   override fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) = true
 
   override fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
     ApplicationManager.getApplication().executeOnPooledThread {
-      project.getService(AssistantInvoker::class.java).performDeprecatedConfigurationsUpgrade(project, element)
+      project
+        .getService(AssistantInvoker::class.java)
+        .performDeprecatedConfigurationsUpgrade(project, element)
     }
   }
 
@@ -252,15 +276,15 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun canRequestFeedback(): Boolean = ProvideLintFeedbackPanel.canRequestFeedback()
 
   override fun requestFeedbackFix(issue: Issue): LocalQuickFix = ProvideLintFeedbackFix(issue.id)
-  override fun requestFeedbackIntentionAction(issue: Issue): IntentionAction = ProvideLintFeedbackIntentionAction(issue.id)
+  override fun requestFeedbackIntentionAction(issue: Issue): IntentionAction =
+    ProvideLintFeedbackIntentionAction(issue.id)
 
   // Random number generator used by logSession below. We're using a seed of 0 because
   // we don't need true randomness, just an even distribution. This generator is
   // visible such that tests can reset the seed each time such that the test order
   // does not matter (and therefore we're using java.util.Random instead of kotlin.Random
   // to get access to setSeed()
-  @VisibleForTesting
-  val random: java.util.Random = java.util.Random(0)
+  @VisibleForTesting val random: java.util.Random = java.util.Random(0)
 
   override fun logSession(lint: LintDriver, lintResult: LintEditorResult) {
     // Lint creates a LOT of session data (since it runs after every edit pause in the editor.
@@ -268,16 +292,32 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     // relative importance of lint checks.
     if (random.nextDouble() < 0.01) { // nextDouble() ~20% faster than nextInt()
       val analytics = LintIdeAnalytics(lintResult.getModule().project)
-      analytics.logSession(LintSession.AnalysisType.IDE_FILE, lint, lintResult.getModule(), lintResult.problems, null)
+      analytics.logSession(
+        LintSession.AnalysisType.IDE_FILE,
+        lint,
+        lintResult.getModule(),
+        lintResult.problems,
+        null
+      )
     }
   }
 
   override fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {
     val analytics = LintIdeAnalytics(lintResult.project)
-    analytics.logSession(LintSession.AnalysisType.IDE_BATCH, lint, module, null, lintResult.problemMap)
+    analytics.logSession(
+      LintSession.AnalysisType.IDE_BATCH,
+      lint,
+      module,
+      null,
+      lintResult.problemMap
+    )
   }
 
-  override fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix: String?): String {
+  override fun ensureNamespaceImported(
+    file: XmlFile,
+    namespaceUri: String,
+    suggestedPrefix: String?
+  ): String {
     return com.android.tools.idea.res.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
   }
 }

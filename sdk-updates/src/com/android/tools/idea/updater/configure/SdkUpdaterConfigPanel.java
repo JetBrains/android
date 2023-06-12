@@ -111,6 +111,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -452,10 +454,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
   }
 
   private static void setAndroidSdkLocation(final File sdkLocation) {
-    ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> {
-      // TODO Do we have to pass the default project here too instead of null?
-      IdeSdks.getInstance().setAndroidSdkPath(sdkLocation, null);
-    });
+    ApplicationUtils.invokeWriteActionAndWait(ModalityState.any(), () -> IdeSdks.getInstance().setAndroidSdkPath(sdkLocation));
   }
 
   /**

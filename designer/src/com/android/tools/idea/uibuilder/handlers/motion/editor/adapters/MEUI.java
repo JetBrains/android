@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
-import com.android.tools.adtui.stdui.menu.CommonPopupMenuUI;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.popup.Balloon;
@@ -30,6 +29,7 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -43,7 +43,6 @@ import java.awt.image.BufferedImage;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
@@ -51,9 +50,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The access to platform independent UI features allow us to run using the JB components as well as the stand alone.
  */
-public final class MEUI {
+public class MEUI {
 
-  static float userScaleFactor = 1;
   public static final Color ourMySelectedTextColor = new JBColor(0xEAEAEA, 0xCCCCCC);
 
   public static int scale(int i) {
@@ -82,11 +80,11 @@ public final class MEUI {
     ApplicationManager.getApplication().invokeLater(runnable);
   }
 
-  public static final Color getBorderColor() {
+  public static Color getBorderColor() {
     return JBColor.border();
   }
 
-  public static final Border getPanelBottomBorder() {
+  public static Border getPanelBottomBorder() {
     return JBUI.Borders.customLine(MEUI.getBorderColor(), 0, 0,1,0);
   }
 
@@ -94,11 +92,8 @@ public final class MEUI {
     return JBColor.namedColor(name, new JBColor(rgb, darkRGB));
   }
 
-  static boolean dark = false;
-
   public static final int ourLeftColumnWidth = JBUIScale.scale(150);
   public static final int ourHeaderHeight = JBUIScale.scale(30);
-  public static final int ourGraphHeight = scale(60);
 
   public static final Color ourErrorColor = makeColor("UIDesigner.motion.Error.foreground", 0x8f831b, 0xffa31b);
   public static final Color ourBannerColor = makeColor("UIDesigner.motion.Notification.background", 0xfff8d1, 0x1d3857);
@@ -109,27 +104,19 @@ public final class MEUI {
   public static final Color ourSecondaryPanelBackground = makeColor("UIDesigner.motion.SecondaryPanel.background", 0xfcfcfc, 0x313435);
   public static final Color ourAvgBackground = makeColor("UIDesigner.motion.ourAvg.background", 0xf8f8f8, 0x2f3133);
   public static final Color ourBorder = makeColor("UIDesigner.motion.borderColor", 0xc9c9c9, 0x242627);
-  public static final Color ourBorderLight = makeColor("UIDesigner.motion.light.borderColor", 0xe8e6e6, 0x3c3f41);
   public static final Color ourTextColor = makeColor("UIDesigner.motion.Component.foreground", 0x2C2C2C, 0x9E9E9E);
+  public static final Color ourSelectedAndFocusedTextColor = UIUtil.getTableSelectionForeground(true);
   public static final Color ourSecondaryPanelHeaderTitleColor = makeColor("UIDesigner.motion.SecondaryPanel.header.foreground", 0x000000, 0xbababa);
   public static final Color ourSecondaryHeaderBackgroundColor = makeColor("UIDesigner.motion.SecondaryPanel.header.background", 0xf2f2f2, 0x3c3f40);
 
-  //Do we need these below?
-  public static final Color myTimeCursorStartColor =
-    makeColor("UIDesigner.motion.TimeCursor.Start.selectedForeground", 0xff3da1f1, 0xff3dd1f1);
-  public static final Color myTimeCursorEndColor = makeColor("UIDesigner.motion.TimeCursor.End.selectedForeground", 0xff3da1f1, 0xff3dd1f1);
-  public static final Color myUnSelectedLineColor = new Color(0xe0759a);
-  public static final Color ourMySelectedLineColor = new Color(0x3879d9);
-  public static final Color ourAddConstraintColor = makeColor("UIDesigner.motion.AddConstraintColor", 0xff838383, 0xff666666);
-  public static final Color ourAddConstraintPlus = makeColor("UIDesigner.motion.AddConstraintPlus", 0xffc9c9c9, 0xff333333);
-
-  public static final Color ourInteractiveBackgroundColor = makeColor("UIDesigner.Interactive.Preview.background", 0xCBD2D9, 0x46454D);
+  public static final Color ourMySelectedLineColor = UIUtil.getTableSelectionBackground(false);
+  public static final Color ourMySelectedAndFocusedLineColor = UIUtil.getTableSelectionBackground(true);
 
   public static BufferedImage createImage(int w, int h, int type) {
     return ImageUtil.createImage(w, h, type);
   }
 
-  private static double alpha = 0.7;
+  private static final double alpha = 0.7;
   /** List of colors for graphs. */
   public static JBColor[] graphColors = {
     (JBColor) ColorUtil.withAlpha(new JBColor(0xa6bcc9, 0x8da9ba), alpha),
@@ -169,18 +156,15 @@ public final class MEUI {
   }
 
   //0c283e
-  public static final class CSPanel {
+  public static class CSPanel {
     public static final Color our_SelectedFocusBackground =
-      makeColor("UIDesigner.motion.CSPanel.SelectedFocusBackground", 0x3973d6, 0x2E65CA);
+      UIUtil.getTableSelectionBackground(true);
     public static final Color our_SelectedBackground =
-      makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0xD3D3D3, 0x0C283E);
+      UIUtil.getTableSelectionBackground(false);
   }
 
-  public static final class Overview {
-    public static final Color ourCS = makeColor("UIDesigner.motion.ConstraintSet.background", 0xFFFFFF, 0x515658);
-    public static final Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText.foreground", 0x000000, 0xC7C7C7);
+  public static class Overview {
     public static final Color ourCS_Background = makeColor("UIDesigner.motion.ourCS.background", 0xFFFFFF, 0x515658);
-    public static final Color ourCS_Hover = makeColor("UIDesigner.motion.HoverColor.disabledBackground", 0XEAF2FE, 0X6E869B);
     public static final Color ourCS_SelectedBackground =
       makeColor("UIDesigner.motion.ourCS_SelectedBackground.selectionInactiveBackground", 0xD3D3D3, 0x797B7C);
     public static final Color ourCS_SelectedFocusBackground =
@@ -200,14 +184,12 @@ public final class MEUI {
     public static final Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0XF0A732, 0XF0A732);
   }
 
-  public static final class Graph {
+  public static class Graph {
     public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraph.background", 0xfcfcfc, 0x313334);
     public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine.lineSeparatorColor", 0xE66F9A, 0xA04E6C);
     public static final Color ourCursorTextColor = makeColor("UIDesigner.motion.CursorTextColor.foreground", 0xFFFFFF, 0x000000);
   }
 
-  public static final Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);
-  public static final Color ourConstraintSet = new JBColor(0xF0F1F0, 0xF0F1F0);
   public static final Color ourDashedLineColor = new JBColor(0xA0A0A0, 0xBBBBBB);
 
   public static final int DIR_LEFT = 0;
@@ -225,12 +207,6 @@ public final class MEUI {
 
   public static JButton createToolBarButton(Icon icon, Icon disable_icon, String tooltip) {
     return new MEActionButton(icon, disable_icon, tooltip);
-  }
-
-  public static JPopupMenu createPopupMenu() {
-    JPopupMenu ret = new JPopupMenu();
-    ret.setUI(new CommonPopupMenuUI());
-    return ret;
   }
 
   public interface Popup {

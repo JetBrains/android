@@ -105,7 +105,7 @@ class BuildAnalyzerViewControllerTest {
 
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.verifyComboBoxPageChangeEvent(
       from = BuildAttributionUiEvent.Page.PageType.BUILD_SUMMARY,
-      to = BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
+      to = BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASKS_ROOT
     )
   }
 
@@ -190,6 +190,34 @@ class BuildAnalyzerViewControllerTest {
 
   @Test
   @RunsInEdt
+  fun testOpenTasksLinkClickedWithTaskCategoriesData() {
+    val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = true), warningSuppressions = warningSuppressions)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.changeViewToTasksLinkClicked(null)
+
+    // Assert
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
+    assertThat(model.tasksPageModel.selectedGrouping).isEqualTo(TasksDataPageModel.Grouping.BY_TASK_CATEGORY)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testOpenTasksLinkClickedWithNoTaskCategoriesData() {
+    val model = BuildAnalyzerViewModel(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryInfo = false), warningSuppressions = warningSuppressions)
+    val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
+
+    // Act
+    controller.changeViewToTasksLinkClicked(null)
+
+    // Assert
+    assertThat(model.selectedData).isEqualTo(BuildAnalyzerViewModel.DataSet.TASKS)
+    assertThat(model.tasksPageModel.selectedGrouping).isEqualTo(TasksDataPageModel.Grouping.UNGROUPED)
+  }
+
+  @Test
+  @RunsInEdt
   fun testOpenTasksGroupedByPluginLinkClicked() {
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
 
@@ -257,7 +285,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.GROUPING_CHANGED)
-      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT)
+      assertThat(currentPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASKS_ROOT)
       assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT)
     }
   }
@@ -279,7 +307,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASK_PAGE)
     }
   }
 
@@ -301,7 +329,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_LINK_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASK_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASK_PAGE)
     }
   }
 
@@ -309,7 +337,7 @@ class BuildAnalyzerViewControllerTest {
   @RunsInEdt
   fun testTasksDetailsLinkClickedOnPlugin() {
     val controller = BuildAnalyzerViewController(model, projectRule.project, analytics, issueReporter)
-    val pluginPageId = TasksPageId.plugin(model.reportUiData.criticalPathPlugins.plugins[0])
+    val pluginPageId = TasksPageId.plugin(model.reportUiData.criticalPathPlugins.entries[0])
 
     // Act
     controller.tasksDetailsLinkClicked(pluginPageId)
@@ -343,7 +371,7 @@ class BuildAnalyzerViewControllerTest {
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == EventKind.BUILD_ATTRIBUTION_UI_EVENT }
     buildAttributionEvents.single().studioEvent.buildAttributionUiEvent.apply {
       assertThat(eventType).isEqualTo(BuildAttributionUiEvent.EventType.PAGE_CHANGE_TREE_CLICK)
-      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.ALWAYS_RUN_NO_OUTPUTS_PAGE)
+      assertThat(targetPage.pageType).isEqualTo(BuildAttributionUiEvent.Page.PageType.CONFIGURATION_CACHE_ROOT)
     }
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies;
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import com.intellij.psi.PsiElement;
 import java.util.List;
@@ -35,11 +36,18 @@ public interface DependenciesModel extends GradleBlockModel {
 
   boolean containsArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
 
+  void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference);
+
   void addArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
 
   void addArtifact(@NotNull String configurationName,
                    @NotNull ArtifactDependencySpec dependency,
                    @NotNull List<ArtifactDependencySpec> excludes);
+
+  void addPlatformArtifact(@NotNull String configurationName, @NotNull String compactNotation, boolean enforced);
+  void addPlatformArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference, boolean enforced);
+  void addPlatformArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency, boolean enforced);
+  // TODO(xof): consider supporting excludes, as in addArtifact() above.
 
   /**
    * Replaces the artifact dependency which contains the given {@link PsiElement} with a new dependency given by

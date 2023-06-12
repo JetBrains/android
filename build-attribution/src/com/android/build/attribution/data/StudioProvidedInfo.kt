@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.data
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
@@ -24,13 +24,15 @@ import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import org.gradle.util.GradleVersion
+import org.jetbrains.android.refactoring.ENABLE_JETIFIER_PROPERTY
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.refactoring.isEnableJetifier
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 
 data class StudioProvidedInfo(
-  val agpVersion: GradleVersion?,
+  val agpVersion: AgpVersion?,
   val gradleVersion: GradleVersion?,
   val configurationCachingGradlePropertyState: String?,
   val buildInvocationType: BuildInvocationType,
@@ -42,7 +44,8 @@ data class StudioProvidedInfo(
   val isInConfigurationCacheTestFlow: Boolean get() = buildInvocationType == BuildInvocationType.CONFIGURATION_CACHE_TRIAL
 
   companion object {
-    private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
+    private const val CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache"
+    private const val CONFIGURATION_CACHE_PROPERTY_NAME = "org.gradle.configuration-cache"
 
     fun fromProject(project: Project, buildRequest: BuildRequestHolder, buildInvocationType: BuildInvocationType) = StudioProvidedInfo(
       agpVersion = AndroidPluginInfo.find(project)?.pluginVersion,
@@ -58,14 +61,26 @@ data class StudioProvidedInfo(
       buildRequestHolder = buildRequest
     )
 
-    fun turnOnConfigurationCacheInProperties(project: Project) {
-      project.getProjectProperties(createIfNotExists = true)?.apply {
-        val property = WriteCommandAction.writeCommandAction(project, this.containingFile).compute<IProperty, Throwable> {
-          findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.apply { setValue("true") }
-          ?: addProperty(CONFIGURATION_CACHE_PROPERTY_NAME, "true")
+    fun turnOnConfigurationCacheInProperties(project: Project, useStableFeatureProperty: Boolean) {
+      project.getProjectProperties(createIfNotExists = true)?.let { propertiesFile ->
+        val propertyName = if (useStableFeatureProperty) CONFIGURATION_CACHE_PROPERTY_NAME else CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME
+        val property = WriteCommandAction.writeCommandAction(project, propertiesFile.containingFile).compute<IProperty, Throwable> {
+          propertiesFile.findPropertyByKey(propertyName)?.apply { setValue("true") }
+          ?: propertiesFile.addProperty(propertyName, "true")
         }
         val propertyOffset = property?.psiElement?.textOffset ?: -1
-        OpenFileDescriptor(project, virtualFile, propertyOffset).navigate(true)
+        OpenFileDescriptor(project, propertiesFile.virtualFile, propertyOffset).navigate(true)
+      }
+    }
+
+    fun disableJetifier(project: Project, runAfterDisabling: (IProperty?) -> Unit) {
+      project.getProjectProperties(createIfNotExists = true)?.let { propertiesFile ->
+        WriteCommandAction.writeCommandAction(project, propertiesFile.containingFile).run<Throwable> {
+          propertiesFile.findPropertyByKey(ENABLE_JETIFIER_PROPERTY).let {
+            it?.setValue("false")
+            runAfterDisabling(it)
+          }
+        }
       }
     }
 
@@ -73,10 +88,20 @@ data class StudioProvidedInfo(
       val propertiesFileResult = runCatching {
         PropertiesFiles.getProperties(GradleUtil.getUserGradlePropertiesFile(project))
       }
-      return propertiesFileResult.getOrNull()?.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME)
+      return propertiesFileResult.getOrNull()?.let{ properties ->
+        sequence {
+          yield(properties.getProperty(CONFIGURATION_CACHE_PROPERTY_NAME))
+          yield(properties.getProperty(CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME))
+        }.filterNotNull().firstOrNull()
+      }
     }
 
     private fun getProjectPropertiesConfigurationCachePropertyState(project: Project) =
-      project.getProjectProperties(createIfNotExists = false)?.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME)?.value
+      project.getProjectProperties(createIfNotExists = false)?.let { properties ->
+        sequence {
+          yield(properties.findPropertyByKey(CONFIGURATION_CACHE_PROPERTY_NAME))
+          yield(properties.findPropertyByKey(CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME))
+        }.filterNotNull().map { it.value }.firstOrNull()
+      }
   }
 }

@@ -23,12 +23,6 @@ import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import javax.swing.JLabel
 import javax.swing.JSlider
 import kotlin.test.assertEquals
@@ -36,12 +30,17 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
 class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   companion object {
     @JvmStatic
@@ -68,7 +67,6 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     assertEquals(listOf("0", "5000", "10000").sorted(), slider.getLabels())
   }
 
-
   @Test
   fun `label and tick distance should change after size has changed`() = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider().apply { maximum = 10000 }
@@ -82,8 +80,11 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     slider.parent.setSize(1000, 500)
     ui.layoutAndDispatchEvents()
     assertEquals(1000, slider.majorTickSpacing)
-    assertEquals(listOf("0", "1000", "2000", "3000", "4000", "5000", "6000", "7000", "8000", "9000", "10000").sorted(),
-                 slider.getLabels())
+    assertEquals(
+      listOf("0", "1000", "2000", "3000", "4000", "5000", "6000", "7000", "8000", "9000", "10000")
+        .sorted(),
+      slider.getLabels()
+    )
 
     // Tick spacing with default 10_000 as maximum value and width 150
     slider.parent.setSize(150, 500)
@@ -91,7 +92,6 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     assertEquals(10000, slider.majorTickSpacing)
     assertEquals(listOf("0", "10000").sorted(), slider.getLabels())
   }
-
 
   @Test
   fun `label and tick distance should change after maximum has changed`() = invokeAndWaitIfNeeded {
@@ -110,7 +110,6 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     assertEquals(4, slider.majorTickSpacing)
     assertEquals(listOf("0", "4").sorted(), slider.getLabels())
   }
-
 
   @Test
   fun `hovering elements`() = invokeAndWaitIfNeeded {
@@ -159,13 +158,10 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     assertNull(slider.sliderUI.activeElement)
   }
 
-
   @Test
   fun `dragging timeline`() = invokeAndWaitIfNeeded {
     val slider = TestUtils.createTestSlider()
-    slider.sliderUI.apply {
-      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
-    }
+    slider.sliderUI.apply { elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy)) }
     val ui = FakeUi(slider.parent)
     // Nothing is selected.
     assertNull(slider.sliderUI.activeElement)
@@ -176,7 +172,6 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     assertEquals(0, slider.sliderUI.elements.first().offsetPx)
     assertEquals(TimelineElementStatus.Inactive, slider.sliderUI.elements.first().status)
   }
-
 
   @Test
   fun `pressing element`() = invokeAndWaitIfNeeded {
@@ -199,7 +194,6 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     ui.mouse.release()
     assertEquals(TimelineElementStatus.Hovered, slider.sliderUI.activeElement?.status)
   }
-
 
   @Test
   fun `dragging element`() = invokeAndWaitIfNeeded {
@@ -267,7 +261,6 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     assertEquals(0, endOfDragCallback)
   }
 
-
   @Test
   fun `hovering group of elements`() = invokeAndWaitIfNeeded {
     // Only if coordination drag is enabled.
@@ -276,7 +269,8 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     val ui = FakeUi(slider.parent)
     val child1 = TestUtils.TestTimelineElement(50, 50, slider.sliderUI.positionProxy)
     val child2 = TestUtils.TestTimelineElement(100, 100, slider.sliderUI.positionProxy)
-    val parent = ParentTimelineElement(ElementState(), listOf(child1, child2), slider.sliderUI.positionProxy)
+    val parent =
+      ParentTimelineElement(ElementState(), listOf(child1, child2), slider.sliderUI.positionProxy)
     slider.sliderUI.elements.add(parent)
     // Nothing is selected.
     assertNull(slider.sliderUI.activeElement)
@@ -300,41 +294,35 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     assertEquals(TimelineElementStatus.Inactive, child2.status)
   }
 
-
   @Test
   fun `dragging element out of slider to the left`(): Unit = invokeAndWaitIfNeeded {
     // Only if coordination drag is enabled.
     if (!enableCoordinationDrag) return@invokeAndWaitIfNeeded
     val slider = TestUtils.createTestSlider()
-    slider.sliderUI.apply {
-      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
-    }
+    slider.sliderUI.apply { elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy)) }
     val ui = FakeUi(slider.parent)
     // Drag element
     ui.mouse.moveTo(149, 55)
     ui.mouse.drag(149, 55, -149, 0)
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     // First element can't move outside of the slider.
     assertEquals(-138, slider.sliderUI.elements[0].offsetPx)
     assertTrue { slider.sliderUI.elements[0].state.valueOffset < 0 }
   }
-
 
   @Test
   fun `dragging element out of slider to the right`(): Unit = invokeAndWaitIfNeeded {
     // Only if coordination drag is enabled.
     if (!enableCoordinationDrag) return@invokeAndWaitIfNeeded
     val slider = TestUtils.createTestSlider()
-    slider.sliderUI.apply {
-      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
-    }
+    slider.sliderUI.apply { elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy)) }
     val ui = FakeUi(slider.parent)
     // Drag element
     ui.mouse.moveTo(51, 55)
     ui.mouse.drag(51, 55, 248, 0)
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     // First element can't move outside of the slider.
     assertEquals(237, slider.sliderUI.elements[0].offsetPx)
     assertTrue { slider.sliderUI.elements[0].state.valueOffset > 0 }
@@ -345,15 +333,15 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     invokeAndWaitIfNeeded {
       val slider = TestUtils.createTestSlider()
       // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      val ui = FakeUi(slider.parent).apply {
-        layoutAndDispatchEvents()
-      }
+      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
       slider.sliderUI.apply {
         elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
         elements.add(TestUtils.TestTimelineElement(50, 100, positionProxy))
       }
-      assertEquals(setOf(TooltipInfo("50", "50"), TooltipInfo("50", "100")),
-                   slider.scanForTooltips())
+      assertEquals(
+        setOf(TooltipInfo("50", "50"), TooltipInfo("50", "100")),
+        slider.scanForTooltips()
+      )
       assertNotNull(slider.tooltip)
       // Hover first element
       ui.mouse.moveTo(51, 51)
@@ -376,34 +364,22 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
 
   @Test
   fun `ui with frozen elements`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      value = 1000
-    }
+    val slider = TestUtils.createTestSlider().apply { value = 1000 }
     (slider.ui as TimelineSliderUI).apply {
-      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy).apply {
-        frozen = true
-      })
-      elements.add(TestUtils.TestTimelineElement(50, 150, positionProxy).apply {
-        frozen = false
-      })
-      elements.add(TestUtils.TestTimelineElement(50, 250, positionProxy).apply {
-        frozen = true
-      })
-      elements.add(TestUtils.TestTimelineElement(50, 350, positionProxy).apply {
-        frozen = false
-      })
+      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy).apply { frozen = true })
+      elements.add(TestUtils.TestTimelineElement(50, 150, positionProxy).apply { frozen = false })
+      elements.add(TestUtils.TestTimelineElement(50, 250, positionProxy).apply { frozen = true })
+      elements.add(TestUtils.TestTimelineElement(50, 350, positionProxy).apply { frozen = false })
     }
     val ui = FakeUi(slider.parent)
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     assertNotNull(ui)
   }
 
   @Test
   fun `ui with all unfrozen elements`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      value = 1000
-    }
+    val slider = TestUtils.createTestSlider().apply { value = 1000 }
     (slider.ui as TimelineSliderUI).apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
       elements.add(TestUtils.TestTimelineElement(50, 150, positionProxy))
@@ -412,41 +388,34 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     }
     val ui = FakeUi(slider.parent)
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     assertNotNull(ui)
-
   }
 
   @Test
   fun `ui with one unfrozen element`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      value = 1000
-    }
+    val slider = TestUtils.createTestSlider().apply { value = 1000 }
     (slider.ui as TimelineSliderUI).apply {
       elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy))
     }
     val ui = FakeUi(slider.parent)
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     assertNotNull(ui)
   }
 
   @Test
   fun `ui with one frozen element`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      value = 1000
-    }
+    val slider = TestUtils.createTestSlider().apply { value = 1000 }
     (slider.ui as TimelineSliderUI).apply {
-      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy).apply {
-        frozen = true
-      })
+      elements.add(TestUtils.TestTimelineElement(50, 50, positionProxy).apply { frozen = true })
     }
     val ui = FakeUi(slider.parent)
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     assertNotNull(ui)
   }
 
-  private fun JSlider.getLabels() = this.labelTable.elements().asSequence().map { (it as JLabel).text }.toList().sorted()
-
+  private fun JSlider.getLabels() =
+    this.labelTable.elements().asSequence().map { (it as JLabel).text }.toList().sorted()
 }

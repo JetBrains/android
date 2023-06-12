@@ -16,7 +16,6 @@
 package com.android.build.attribution.ui.data.builder
 
 import com.android.build.attribution.data.AnnotationProcessorData
-import com.android.testutils.MockitoKt.mock
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.time.Duration
@@ -26,14 +25,7 @@ class AnnotationProcessorsReportBuilderTest : AbstractBuildAttributionReportBuil
   @Test
   fun testTasksCriticalPath() {
     val analyzerResults = object : MockResultsProvider() {
-      override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> = listOf(
-        AnnotationProcessorData("com.google.auto.value.processor.AutoAnnotationProcessor", Duration.ofMillis(123)),
-        AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
-        AnnotationProcessorData("com.google.auto.value.processor.AutoOneOfProcessor", Duration.ofMillis(789)),
-        AnnotationProcessorData("com.google.auto.value.processor.AutoValueProcessor", Duration.ofMillis(101)),
-        AnnotationProcessorData("com.google.auto.value.extension.memoized.processor.MemoizedValidator", Duration.ofMillis(102)),
-        AnnotationProcessorData("dagger.internal.codegen.ComponentProcessor", Duration.ofMillis(103))
-      )
+      override fun getBuildFinishedTimestamp(): Long = 12345
 
       override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> = listOf(
         AnnotationProcessorData("com.google.auto.value.processor.AutoValueBuilderProcessor", Duration.ofMillis(456)),
@@ -42,7 +34,7 @@ class AnnotationProcessorsReportBuilderTest : AbstractBuildAttributionReportBuil
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.annotationProcessors.nonIncrementalProcessors.size).isEqualTo(3)
     assertThat(report.annotationProcessors.nonIncrementalProcessors[0].className).isEqualTo(

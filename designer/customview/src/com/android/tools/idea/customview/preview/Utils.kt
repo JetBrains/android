@@ -17,10 +17,10 @@ package com.android.tools.idea.customview.preview
 
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
-import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.concurrency.runReadActionWithWritePriority
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
-import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.FakeLightVirtualFile
+import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.vfs.VirtualFile
@@ -34,13 +34,13 @@ import org.jetbrains.android.util.AndroidSlowOperations
 internal const val CUSTOM_VIEW_PREVIEW_ID = "android-custom-view"
 
 /**
- * [FakeLightVirtualFile] for custom views.
+ * [InMemoryLayoutVirtualFile] for custom views.
  */
-internal class CustomViewLightVirtualFile(
+class CustomViewLightVirtualFile(
   name: String,
   content: String,
   originFileProvider: () -> VirtualFile?
-) : FakeLightVirtualFile(name, content, originFileProvider)
+) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
 internal fun PsiClass.extendsView(): Boolean = AndroidSlowOperations.allowSlowOperationsInIdea<Boolean, Throwable> {
   InheritanceUtil.isInheritor(this, CLASS_VIEW)
@@ -50,7 +50,7 @@ internal suspend fun PsiFile.containsViewSuccessor(): Boolean = withContext(work
   // Quickly reject non-custom view files. A custom view constructor should have Context and AttributeSet as parameters
   // (https://developer.android.com/training/custom-views/create-view#subclassview).
   // Heuristic to check that the code in the file uses android.util.AttributeSet
-  if (runReadAction { viewProvider.document?.charsSequence?.contains("AttributeSet") } == false) {
+  if (readAction { viewProvider.document?.charsSequence?.contains("AttributeSet") } == false) {
     return@withContext false
   }
 

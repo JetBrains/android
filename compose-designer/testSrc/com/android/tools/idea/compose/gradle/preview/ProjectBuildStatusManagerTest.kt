@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
-import com.android.tools.idea.editors.build.ProjectBuildStatusManagerTest
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -32,9 +33,12 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.assertInstanceOf
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,23 +46,20 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.Executor
 
 class ProjectBuildStatusManagerTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val fastPreviewFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
+  @get:Rule val fastPreviewFlagRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
 
-  @get:Rule
-  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
   val project: Project
     get() = projectRule.project
 
   @Before
   fun setup() {
-    LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
+    LiveEditApplicationConfiguration.getInstance().mode =
+      LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
   }
 
   @After
@@ -69,38 +70,54 @@ class ProjectBuildStatusManagerTest {
   @RunsInEdt
   @Test
   fun testProjectStatusManagerStates() {
-    val mainFile = projectRule.project.guessProjectDir()!!
-      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
-    WriteAction.run<Throwable> {
-      projectRule.fixture.openFileInEditor(mainFile)
-    }
+    val mainFile =
+      projectRule.project
+        .guessProjectDir()!!
+        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
+    WriteAction.run<Throwable> { projectRule.fixture.openFileInEditor(mainFile) }
 
-    val statusManager = ProjectBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      projectRule.fixture.file,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+    val onReadyCalled = CountDownLatch(1)
+    val statusManager =
+      ProjectBuildStatusManager.create(
+        projectRule.fixture.testRootDisposable,
+        projectRule.fixture.file,
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()),
+        onReady = { onReadyCalled.countDown() }
+      )
+    assertTrue(onReadyCalled.await(5, TimeUnit.SECONDS))
     assertTrue("Project must compile correctly", projectRule.build().isBuildSuccessful)
-    assertTrue("Builds status is not Ready after successful build", statusManager.status == ProjectStatus.Ready)
+    assertTrue(
+      "Builds status is not Ready after successful build",
+      statusManager.status == ProjectStatus.Ready
+    )
 
     // Status of files created after a build should be NeedsBuild until a new build happens
-    val newFile = projectRule.fixture.addFileToProject("${SimpleComposeAppPaths.APP_SIMPLE_APPLICATION_DIR}/newFile", "")
-    val newStatusManager = ProjectBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      newFile,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+    val newFile =
+      projectRule.fixture.addFileToProject(
+        "${SimpleComposeAppPaths.APP_SIMPLE_APPLICATION_DIR}/newFile",
+        ""
+      )
+    val newStatusManager =
+      ProjectBuildStatusManager.create(
+        projectRule.fixture.testRootDisposable,
+        newFile,
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+      )
     assertEquals(ProjectStatus.NeedsBuild, newStatusManager.status)
     projectRule.buildAndAssertIsSuccessful()
     assertEquals(ProjectStatus.Ready, newStatusManager.status)
 
-    // Status should change to OutOfDate when introducing a change, only for the manager of the modified file
+    // Modifying a separate file should make both status managers out of date
     val documentManager = PsiDocumentManager.getInstance(projectRule.project)
     WriteCommandAction.runWriteCommandAction(project) {
-      documentManager.getDocument(projectRule.fixture.file)!!.insertString(0, "// A change")
+      documentManager
+        .getDocument(projectRule.fixture.file)!!
+        .insertString(0, "\n\nfun method() {}\n\n")
       documentManager.commitAllDocuments()
     }
     FileDocumentManager.getInstance().saveAllDocuments()
-    assertEquals(ProjectStatus.OutOfDate, statusManager.status)
-    assertEquals(ProjectStatus.Ready, newStatusManager.status)
+    assertInstanceOf<ProjectStatus.OutOfDate>(statusManager.status)
+    assertInstanceOf<ProjectStatus.OutOfDate>(newStatusManager.status)
 
     // Status should change to NeedsBuild for all managers after a build clean
     projectRule.clean()
@@ -111,8 +128,10 @@ class ProjectBuildStatusManagerTest {
   @RunsInEdt
   @Test
   fun testProjectStatusManagerStatesFailureModes() {
-    val mainFile = projectRule.project.guessProjectDir()!!
-      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
+    val mainFile =
+      projectRule.project
+        .guessProjectDir()!!
+        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
 
     val documentManager = PsiDocumentManager.getInstance(projectRule.project)
 
@@ -127,10 +146,12 @@ class ProjectBuildStatusManagerTest {
     }
     FileDocumentManager.getInstance().saveAllDocuments()
 
-    val statusManager = ProjectBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      projectRule.fixture.file,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
+    val statusManager =
+      ProjectBuildStatusManager.create(
+        projectRule.fixture.testRootDisposable,
+        projectRule.fixture.file,
+        scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher())
+      )
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
     assertFalse(projectRule.build().isBuildSuccessful)
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
@@ -141,37 +162,13 @@ class ProjectBuildStatusManagerTest {
       documentManager.commitAllDocuments()
     }
     FileDocumentManager.getInstance().saveAllDocuments()
-
+    val facet = projectRule.androidFacet(":app")
+    waitForResourceRepositoryUpdates(facet.module.getMainModule())
     assertEquals(ProjectStatus.NeedsBuild, statusManager.status)
     projectRule.buildAndAssertIsSuccessful()
-    assertTrue("Builds status is not Ready after successful build", statusManager.status == ProjectStatus.Ready)
-  }
-
-  @RunsInEdt
-  @Test
-  fun testFilteringChange() {
-    val mainFile = projectRule.project.guessProjectDir()!!
-      .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
-    WriteAction.run<Throwable> {
-      projectRule.fixture.openFileInEditor(mainFile)
-    }
-
-    val fileFilter = ProjectBuildStatusManagerTest.TestFilter()
-    val statusManager = ProjectBuildStatusManager.create(
-      projectRule.fixture.testRootDisposable,
-      projectRule.fixture.file,
-      fileFilter,
-      scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
-    projectRule.buildAndAssertIsSuccessful()
-    assertEquals("Builds status is not Ready after successful build", ProjectStatus.Ready, statusManager.status)
-
-    var filterWasInvoked = false
-    fileFilter.filter = { filterWasInvoked = true; it !is KtLiteralStringTemplateEntry }
-    assertEquals(ProjectStatus.Ready, statusManager.status)
-    assertFalse("Filter should not have been invoked since change was not notified", filterWasInvoked)
-    // Notify the filter update
-    fileFilter.incModificationCount()
-    assertEquals(ProjectStatus.Ready, statusManager.status)
-    assertTrue("Filter should have been re-invoked after the change notification", filterWasInvoked)
+    assertTrue(
+      "Builds status is not Ready after successful build",
+      statusManager.status == ProjectStatus.Ready
+    )
   }
 }

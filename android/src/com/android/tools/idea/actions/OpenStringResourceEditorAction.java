@@ -17,6 +17,7 @@ package com.android.tools.idea.actions;
 
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -39,6 +40,11 @@ public class OpenStringResourceEditorAction extends AnAction {
       show = StringResourceEditorProvider.canViewTranslations(project, file);
     }
     e.getPresentation().setEnabledAndVisible(show);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

@@ -21,9 +21,7 @@ package com.android.tools.idea.appinspection.inspector.api
  * To be used with AppInspectionJarCopier to copy inspector jar from studio to device.
  */
 data class AppInspectorJar(
-  /**
-   * Name of the jar.
-   */
+  /** Name of the jar. */
   val name: String,
 
   /**
@@ -36,7 +34,8 @@ data class AppInspectorJar(
   /**
    * The development path of the jar relative to tools/idea.
    *
-   * For example: ../../prebuilts/tools/common/m2/repository/androidx/inspection/inspection/1.0.0-SNAPSHOT
+   * For example:
+   * ../../prebuilts/tools/common/m2/repository/androidx/inspection/inspection/1.0.0-SNAPSHOT
    */
   val developmentDirectory: String? = null
 )

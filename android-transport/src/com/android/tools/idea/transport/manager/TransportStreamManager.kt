@@ -159,20 +159,36 @@ class TransportStreamChannel(
       .flowOn(dispatcher)
   }
 
-  fun processesFlow(filter: (isAlive: Boolean, process: Common.Process) -> Boolean): Flow<Common.Process> {
-    val processIdToState = mutableMapOf<Int, Common.Process.State>()
-    return flow {
+  fun processesFlow(
+    filter: (isAlive: Boolean, process: Common.Process) -> Boolean,
+    doQuery: suspend () -> List<Common.Process> = {
+      StreamQueryUtils.queryForProcesses(client, stream.streamId, filter)
+    }
+  ): Flow<Common.Process> {
+    return flow<Common.Process> {
+      val processes = mutableMapOf<Int, Common.Process>()
       while (true) {
         // The query will return a list of all processes the transport pipeline is aware of, whether they
         // are alive or dead. Therefore, in order to check for updates to the processes' states, we need
         // to reconcile it with the cached state from a previous query.
-        StreamQueryUtils.queryForProcesses(client, stream.streamId, filter).forEach { process ->
-          val previousState = processIdToState[process.pid]
-          if (previousState != process.state) {
-            processIdToState[process.pid] = process.state
+        val queryResult = doQuery()
+        val queriedPids = queryResult.map { it.pid }.toSet()
+        val deadProcesses = processes.filterNot { it.key in queriedPids }.values
+
+        // Due to the nature of polling, we might miss DEAD process updates because, for example, the process
+        // was restarted. We check for this case by looking for known pids that have disappeared from the
+        // current query result.
+        deadProcesses.forEach { process -> emit(process.toBuilder().setState(Common.Process.State.DEAD).build()) }
+
+        // Emit updates in the order they were received
+        queryResult.forEach { process ->
+          if (process.state != processes[process.pid]?.state || process.pid !in processes.keys) {
             emit(process)
           }
         }
+
+        processes.clear()
+        processes.putAll(queryResult.associateBy { it.pid })
         delay(DELAY_MILLIS)
       }
     }

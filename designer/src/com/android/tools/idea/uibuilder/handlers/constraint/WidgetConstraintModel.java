@@ -56,6 +56,7 @@ import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintAnchorConstants;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -383,7 +384,7 @@ public class WidgetConstraintModel implements SelectionListener {
     String[][] marginsAttr = rtl ? ourMarginString_rtl : ourMarginString_ltr;
 
     AndroidFacet facet = component.getModel().getFacet();
-    AndroidModuleInfo info = AndroidModuleInfo.getInstance(facet);
+    AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(facet);
     int minSdkVersion = info.getMinSdkVersion().getApiLevel();
     int targetSdkVersion = info.getTargetSdkVersion().getApiLevel();
 

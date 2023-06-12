@@ -21,24 +21,25 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.SqliteValue
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
 import java.util.concurrent.Executor
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 
 /**
- * Takes a [SqliteStatement] and returns a [PreparedStatement] by assigning values to parameters in the statement.
+ * Takes a [SqliteStatement] and returns a [PreparedStatement] by assigning values to parameters in
+ * the statement.
  */
 fun Connection.resolvePreparedStatement(sqliteStatement: SqliteStatement): PreparedStatement {
   val preparedStatement = prepareStatement(sqliteStatement.sqliteStatementText)
   sqliteStatement.parametersValues.forEachIndexed { index, value ->
     when (value) {
-      is SqliteValue.StringValue -> preparedStatement.setString(index+1, value.value)
-      is SqliteValue.NullValue -> preparedStatement.setNull(index+1, Types.VARCHAR)
+      is SqliteValue.StringValue -> preparedStatement.setString(index + 1, value.value)
+      is SqliteValue.NullValue -> preparedStatement.setNull(index + 1, Types.VARCHAR)
     }
   }
   return preparedStatement
@@ -57,16 +58,17 @@ fun Connection.getColumnNamesInPrimaryKey(tableName: String): List<String> {
   if (tableName.isEmpty()) return emptyList()
 
   val keySet = metaData.getPrimaryKeys(null, null, tableName)
-  return keySet.map {
-    getString("COLUMN_NAME")
-  }.toList()
+  return keySet.map { getString("COLUMN_NAME") }.toList()
 }
 
 fun selectAllAndRowIdFromTable(table: SqliteTable): String {
-  // We need to set an alias for rowid because even if the query is something like "SELECT *, _rowid_ FROM table",
+  // We need to set an alias for rowid because even if the query is something like "SELECT *,
+  // _rowid_ FROM table",
   // in the result set the column corresponding to rowid is always called "rowid".
   // But in [SqliteTable] we save the name of the rowid column as "rowid", "_rowid_" or "oid"
-  val columnsToSelect = table.rowIdName?.let { rowIdName -> "*, ${rowIdName.stringName} as ${rowIdName.stringName}" } ?: "*"
+  val columnsToSelect =
+    table.rowIdName?.let { rowIdName -> "*, ${rowIdName.stringName} as ${rowIdName.stringName}" }
+      ?: "*"
   return "SELECT $columnsToSelect FROM ${AndroidSqlLexer.getValidName(table.name)}"
 }
 
@@ -81,8 +83,7 @@ suspend fun openJdbcDatabaseConnection(
       val url = "jdbc:sqlite:${virtualFile.path}"
       val connection = DriverManager.getConnection(url)
       JdbcDatabaseConnection(parentDisposable, connection, virtualFile, workerExecutor)
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       throw RuntimeException("Error while opening Sqlite database file '${virtualFile.path}'", e)
     }
   }

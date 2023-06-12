@@ -203,6 +203,17 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
       assertThat(updatedModules.get(1).path().toString()).isEqualTo(":xyz");
     }
 
+    // After the change: 0 testCompile  -> androidTest
+    //                   1 testCompile  -> testCompile
+    //                   2 compile :klm -> api :klm
+    //                   3 compile :    -> compile : / implementation :pqr (in Groovy)
+    //                   4 compile :pqr -> implementation :pqr / compile : (in Groovy)
+    //
+    // Note: The renamed element will become the first in the group in Groovy
+    //       In Kotlin Script each element is separate from each other
+    final int compileIdx = isKotlinScript() ? 3 : 4;
+    final int implementationIdx = isKotlinScript() ? 4 : 3;
+
     {
       // Rename both elements of the same group and rename some of them twice.
       modules.get(2).setConfigurationName("zapi");
@@ -211,16 +222,16 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
       modules.get(4).setConfigurationName("implementation");
       List<ModuleDependencyModel> updatedModules = buildModel.dependencies().modules();
       assertSize(5, updatedModules);
-      // Note: The renamed element becomes the first in the group.
+
       assertThat(updatedModules.get(2).configurationName()).isEqualTo("api");
       assertThat(updatedModules.get(2).path().toString()).isEqualTo(":klm");
 
-      assertThat(updatedModules.get(3).configurationName()).isEqualTo("implementation");
-      assertThat(updatedModules.get(3).path().toString()).isEqualTo(":pqr");
-      assertThat(updatedModules.get(3).configuration().toString()).isEqualTo("config");
+      assertThat(updatedModules.get(implementationIdx).configurationName()).isEqualTo("implementation");
+      assertThat(updatedModules.get(implementationIdx).path().toString()).isEqualTo(":pqr");
+      assertThat(updatedModules.get(implementationIdx).configuration().toString()).isEqualTo("config");
 
-      assertThat(updatedModules.get(4).configurationName()).isEqualTo("compile");
-      assertThat(updatedModules.get(4).path().toString()).isEqualTo(":");
+      assertThat(updatedModules.get(compileIdx).configurationName()).isEqualTo("compile");
+      assertThat(updatedModules.get(compileIdx).path().toString()).isEqualTo(":");
     }
 
     applyChangesAndReparse(buildModel);
@@ -237,12 +248,12 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     assertThat(modules.get(2).configurationName()).isEqualTo("api");
     assertThat(modules.get(2).path().toString()).isEqualTo(":klm");
 
-    assertThat(modules.get(3).configurationName()).isEqualTo("implementation");
-    assertThat(modules.get(3).path().toString()).isEqualTo(":pqr");
-    assertThat(modules.get(3).configuration().toString()).isEqualTo("config");
+    assertThat(modules.get(implementationIdx).configurationName()).isEqualTo("implementation");
+    assertThat(modules.get(implementationIdx).path().toString()).isEqualTo(":pqr");
+    assertThat(modules.get(implementationIdx).configuration().toString()).isEqualTo("config");
 
-    assertThat(modules.get(4).configurationName()).isEqualTo("compile");
-    assertThat(modules.get(4).path().toString()).isEqualTo(":");
+    assertThat(modules.get(compileIdx).configurationName()).isEqualTo("compile");
+    assertThat(modules.get(compileIdx).path().toString()).isEqualTo(":");
   }
 
   @Test

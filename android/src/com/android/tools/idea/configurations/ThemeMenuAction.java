@@ -133,7 +133,7 @@ public class ThemeMenuAction extends DropDownAction {
 
     Configuration config = myRenderContext.getConfiguration();
     if (config != null) {
-      Project project = config.getModule().getProject();
+      Project project = config.getConfigModule().getProject();
 
       // Add recent used themes
       // Don't show any theme added above as recent Theme.
@@ -252,9 +252,9 @@ public class ThemeMenuAction extends DropDownAction {
       // The theme in here must be one of default theme, project themes, recommend themes, or recent used themes.
       // It doesn't need to be added to recent used theme since it is in the dropdown menu already.
       configuration.setTheme(myTheme);
-      if (ThemeUtils.getRecentlyUsedThemes(configuration.getModule().getProject()).contains(myTheme)) {
+      if (ThemeUtils.getRecentlyUsedThemes(configuration.getConfigModule().getProject()).contains(myTheme)) {
         // Add this theme to recent Themes again to make it as the most recent one.
-        ThemeUtils.addRecentlyUsedTheme(configuration.getModule().getProject(), myTheme);
+        ThemeUtils.addRecentlyUsedTheme(configuration.getConfigModule().getProject(), myTheme);
       }
     }
   }
@@ -275,7 +275,7 @@ public class ThemeMenuAction extends DropDownAction {
           String theme = dialog.getTheme();
           if (theme != null) {
             configuration.setTheme(theme);
-            ThemeUtils.addRecentlyUsedTheme(configuration.getModule().getProject(), theme);
+            ThemeUtils.addRecentlyUsedTheme(configuration.getConfigModule().getProject(), theme);
           }
         }
       }

@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.resources.Density.DEFAULT_DENSITY
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.layoutinspector.common.StringTable
@@ -43,8 +42,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import javax.swing.Icon
 
-const val DEFAULT_FONT_SCALE = 1.0f
-
 /**
  * Utility for looking up resources in a project.
  *
@@ -62,22 +59,28 @@ class ResourceLookup(private val project: Project) {
     get() = resolver != null
 
   /**
-   * The dpi of the device we are currently inspecting or -1 if unknown.
+   * The dpi of the device we are currently inspecting or <code>null</code> if unknown.
+   *
+   * This is unknown for older saved snapshots.
    */
-  var dpi: Int = DEFAULT_DENSITY
+  var dpi: Int? = null
     @VisibleForTesting set
 
   /**
-   * The fontScale currently used on the device.
+   * The fontScale currently used on the device or <code>null</code> if unknown.
+   *
+   * This is unknown for the legacy client and older saved snapshots.
    */
-  var fontScale: Float = DEFAULT_FONT_SCALE
+  var fontScale: Float? = null
     @VisibleForTesting set
 
   /**
-   * The screen dimension in pixels
+   * The screen dimension in pixels <code>null</code> if unknown.
+   *
+   * This is unknown for the legacy client and older saved snapshots.
    */
-  var screenDimension: Dimension = Dimension()
-    private set
+  var screenDimension: Dimension? = null
+    @VisibleForTesting set
 
   /**
    * Updates the configuration after a possible configuration change detected on the device.
@@ -90,20 +93,20 @@ class ResourceLookup(private val project: Project) {
     stringTable: StringTable,
     process: ProcessDescriptor
   ) {
-    dpi = folderConfig.densityQualifier?.value?.dpiValue ?: DEFAULT_DENSITY
-    fontScale = if (fontScaleFromConfig != 0.0f) fontScaleFromConfig else DEFAULT_FONT_SCALE
+    dpi = folderConfig.densityQualifier?.value?.dpiValue?.takeIf { it > 0 }
+    fontScale = fontScaleFromConfig.takeIf { it > 0f }
     resolver = createResolver(folderConfig, appContext, stringTable, process)
-    screenDimension = Dimension(appContext.screenWidth, appContext.screenHeight)
+    screenDimension = Dimension(appContext.screenWidth, appContext.screenHeight).takeIf { it.height > 0 && it.width > 0 }
   }
 
   /**
-   * Update the configuration after a legacy reload.
+   * Update the configuration after a legacy reload, or snapshot load.
    */
-  fun updateLegacyConfiguration(deviceDpi: Int) {
-    dpi = deviceDpi
-    fontScale = DEFAULT_FONT_SCALE
+  fun updateConfiguration(deviceDpi: Int?, deviceFontScale: Float? = null, screenSize: Dimension? = null) {
+    dpi = deviceDpi?.takeIf { it > 0 }
+    fontScale = deviceFontScale?.takeIf { it > 0f }
     resolver = null
-    screenDimension = Dimension()
+    screenDimension = screenSize
   }
 
   @Slow
@@ -116,7 +119,7 @@ class ResourceLookup(private val project: Project) {
     val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, process.name) } ?: return null
     val theme = appContext.theme.createReference(stringTable)
     val themeStyle = mapReference(facet, theme)?.resourceUrl?.toString() ?: return null
-    val mgr = ConfigurationManager.getOrCreateInstance(facet)
+    val mgr = ConfigurationManager.getOrCreateInstance(facet.module)
     val cache = mgr.resolverCache
     val resourceResolver = ReadAction.compute<ResourceResolver, RuntimeException> {
       cache.getResourceResolver(mgr.target, themeStyle, folderConfig)
@@ -152,6 +155,7 @@ class ResourceLookup(private val project: Project) {
   /**
    * Find the lambda source location.
    */
+  @Slow
   fun findLambdaLocation(
     packageName: String,
     fileName: String,

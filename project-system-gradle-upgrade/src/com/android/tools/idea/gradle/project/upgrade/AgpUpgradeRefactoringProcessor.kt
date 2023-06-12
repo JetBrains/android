@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -30,13 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVer
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_PAST
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
 import com.google.common.annotations.VisibleForTesting
@@ -51,18 +45,16 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentEvent
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind
-import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.EXECUTE
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.FIND_USAGES
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.PREVIEW_REFACTORING
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_FAILED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_SKIPPED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.SYNC_SUCCEEDED
+import com.google.wireless.android.sdk.stats.UpgradeAssistantEventInfo.UpgradeAssistantEventKind.BLOCKED
 import com.google.wireless.android.sdk.stats.UpgradeAssistantProcessorEvent
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
-import com.intellij.notification.NotificationListener
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.diagnostic.Logger
@@ -127,8 +119,9 @@ abstract class GradleBuildModelRefactoringProcessor : BaseRefactoringProcessor {
   val project: Project
   val projectBuildModel: ProjectBuildModel
 
-  private val otherAffectedFiles = mutableSetOf<PsiFile>()
+  val otherAffectedFiles = mutableSetOf<PsiFile>()
   val psiSpoilingUsageInfos = mutableListOf<UsageInfo>()
+  val undoHooks = mutableListOf<UndoHook>()
 
   var foundUsages: Boolean = false
 
@@ -254,10 +247,15 @@ abstract class SpoilingGradleBuildModelUsageInfo(
   }
 }
 
+data class UndoHook(
+  val undo: () -> Unit,
+  val redo: () -> Unit
+)
+
 class AgpUpgradeRefactoringProcessor(
   project: Project,
-  val current: GradleVersion,
-  val new: GradleVersion
+  val current: AgpVersion,
+  val new: AgpVersion
 ) : GradleBuildModelRefactoringProcessor(project) {
 
   val uuid = UUID.randomUUID().toString()
@@ -269,10 +267,21 @@ class AgpUpgradeRefactoringProcessor(
     GMavenRepositoryRefactoringProcessor(this),
     GradleVersionRefactoringProcessor(this),
     GradlePluginsRefactoringProcessor(this),
+    ProjectJdkRefactoringProcessor(this),
     Java8DefaultRefactoringProcessor(this),
     CompileRuntimeConfigurationRefactoringProcessor(this),
     FabricCrashlyticsRefactoringProcessor(this),
+    RedundantPropertiesRefactoringProcessor(this),
+    AndroidManifestPackageToNamespaceRefactoringProcessor(this),
+    R8FullModeDefaultRefactoringProcessor(this),
+    RenderScriptDefaultRefactoringProcessor(this),
+    BuildConfigDefaultRefactoringProcessor(this),
+    NonTransitiveRClassDefaultRefactoringProcessor(this),
+    NonConstantRClassDefaultRefactoringProcessor(this),
+    AidlDefaultRefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
+    AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
+    AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
@@ -282,14 +291,11 @@ class AgpUpgradeRefactoringProcessor(
     MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor(this),
     MIGRATE_LINT_OPTIONS_TO_LINT.RefactoringProcessor(this),
     REWRITE_DEPRECATED_OPERATORS.RefactoringProcessor(this),
-    RedundantPropertiesRefactoringProcessor(this),
-    AndroidManifestPackageToNamespaceRefactoringProcessor(this),
-    R8FullModeDefaultRefactoringProcessor(this),
   )
 
   val targets = mutableListOf<PsiElement>()
   var usages: Array<UsageInfo> = listOf<UsageInfo>().toTypedArray()
-  private var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
+  var executedUsages: Array<out UsageInfo> = listOf<UsageInfo>().toTypedArray()
 
   final fun blockProcessorExecution() =
     componentRefactoringProcessors.any { it.isEnabled && it.isBlocked }
@@ -592,14 +598,18 @@ class AgpUpgradeRefactoringProcessor(
     syncRequestCallback?.invoke()
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener)
     UndoManager.getInstance(project).undoableActionPerformed(object : BasicUndoableAction() {
-      override fun undo(): Unit =
+      override fun undo() {
+        undoHooks.reversed().forEach { it.undo.invoke() }
         GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_MODIFIER_ACTION_UNDONE))
-      override fun redo(): Unit =
+      }
+      override fun redo() {
+        undoHooks.forEach { it.redo.invoke() }
         GradleSyncInvoker.getInstance().requestProjectSync(project, GradleSyncInvoker.Request(TRIGGER_MODIFIER_ACTION_REDONE))
+      }
     })
   }
 
-  private var myCommandName: String = AndroidBundle.message("project.upgrade.agpUpgradeRefactoringProcessor.commandName", current, new)
+  var myCommandName: String = AndroidBundle.message("project.upgrade.agpUpgradeRefactoringProcessor.commandName", current, new)
 
   override fun getCommandName() = myCommandName
 
@@ -619,39 +629,40 @@ class AgpUpgradeRefactoringProcessor(
     // being done; on the other hand it is cancellable, shows numeric progress and takes around 30 seconds for a project with 1k modules.
     //
     // Moving to an asynchronous process would involve modifying callers to do the subsequent work after parsing in callbacks.
-    progressManager.runProcessWithProgressSynchronously(
-      {
-        val indicator = progressManager.progressIndicator
-        projectBuildModel.getAllIncludedBuildModels { seen, total ->
-          indicator?.let {
-            indicator.checkCanceled()
-            // both "Parsing file ..." and "Parsing module ..." here are in general slightly wrong (given included and settings files).
-            indicator.text = "Parsing file $seen${if (total != null) " of $total" else ""}"
-            indicator.isIndeterminate = total == null
-            total?.let { indicator.fraction = seen.toDouble() / total.toDouble() }
+
+    DumbService.getInstance(project).runWhenSmart {
+      // we must be in smart mode before starting the modal progress display, otherwise attempts to use indexes in
+      // processors (with e.g. runReadActionInSmartMode) will softlock if indexes are not ready.
+      progressManager.runProcessWithProgressSynchronously(
+        {
+          val indicator = progressManager.progressIndicator
+          projectBuildModel.getAllIncludedBuildModels { seen, total ->
+            indicator?.let {
+              indicator.checkCanceled()
+              // both "Parsing file ..." and "Parsing module ..." here are in general slightly wrong (given included and settings files).
+              indicator.text = "Parsing file $seen${if (total != null) " of $total" else ""}"
+              indicator.isIndeterminate = total == null
+              total?.let { indicator.fraction = seen.toDouble() / total.toDouble() }
+            }
           }
-        }
-        // Ensure that we have the information about no-ops, which might also involve inspecting Psi directly (and thus should not be
-        // done on the EDT).
-        componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
-      },
-      commandName, true, project)
+          // Ensure that we have the information about no-ops, which might also involve inspecting Psi directly (and thus should not be
+          // done on the EDT).
+          componentRefactoringProcessors.forEach { it.initializeComponentCaches() }
+        },
+        commandName, true, project)
+    }
   }
 }
 
-internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefactoringProcessor) {
-  val current = processor.current
-  val new = processor.new
-  val listener = NotificationListener { notification, _ ->
-    notification.expire()
-    ApplicationManager.getApplication().executeOnPooledThread {
-      showAndInvokeAgpUpgradeRefactoringProcessor(project, current, new)
-    }
-  }
-  val notification = ProjectUpgradeNotification(
+internal fun notifyCancelledUpgrade(project: Project, current: AgpVersion) {
+  // TODO(xof): this is now only called from the forced upgrade flow, where this notification is probably not the right one: we should
+  //  probably re-show the forced upgrade modal dialog instead.
+  val notification = UpgradeSuggestion(
     AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.title"),
     AndroidBundle.message("project.upgrade.notifyCancelledUpgrade.body"),
-    listener)
+    project,
+    current
+  )
   notification.notify(project)
 }
 
@@ -659,7 +670,7 @@ internal fun notifyCancelledUpgrade(project: Project, processor: AgpUpgradeRefac
  * This function is a default entry point to the AGP Upgrade Assistant, responsible for showing suitable UI for gathering user input
  * to the process, and then running the processor under that user input's direction.
  */
-fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: GradleVersion, new: GradleVersion) {
+fun showAndInvokeAgpUpgradeRefactoringProcessor(project: Project, current: AgpVersion, new: AgpVersion) {
   DumbService.getInstance(project).smartInvokeLater {
     val contentManager = project.getService(ContentManager::class.java)
     contentManager.showContent(new)
@@ -711,38 +722,39 @@ enum class AgpUpgradeComponentNecessity {
   MANDATORY_INDEPENDENT,
   OPTIONAL_CODEPENDENT,
   OPTIONAL_INDEPENDENT,
+}
 
-  ;
-
-  companion object {
-    fun standardPointNecessity(current: GradleVersion, new: GradleVersion, change: GradleVersion) = when {
-      current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
-      current >= change && new >= change -> IRRELEVANT_PAST
-      current < change && new >= change -> MANDATORY_CODEPENDENT
-      current < change && new < change -> IRRELEVANT_FUTURE
-      else -> throw RuntimeException("cannot happen")
-    }
-
-    /** [replacementAvailable] must be less than [originalRemoved]. */
-    fun standardRegionNecessity(
-      current: GradleVersion,
-      new: GradleVersion,
-      replacementAvailable: GradleVersion,
-      originalRemoved: GradleVersion
-    ): AgpUpgradeComponentNecessity {
-      return when {
-        current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
-        replacementAvailable > originalRemoved ->
-          throw IllegalArgumentException("internal error: replacementAvailable ($replacementAvailable) > originalRemoved ($originalRemoved")
-        current >= originalRemoved && new >= originalRemoved -> IRRELEVANT_PAST
-        current < replacementAvailable && new < replacementAvailable -> IRRELEVANT_FUTURE
-        current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
-        current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
-        current < replacementAvailable && new >= replacementAvailable -> OPTIONAL_CODEPENDENT
-        current >= replacementAvailable && new < originalRemoved -> OPTIONAL_INDEPENDENT
-        else -> throw RuntimeException("cannot happen")
-      }
-    }
+abstract class AgpUpgradeComponentNecessityInfo {
+  abstract fun computeNecessity(current: AgpVersion, new: AgpVersion): AgpUpgradeComponentNecessity
+}
+object AlwaysNeeded : AgpUpgradeComponentNecessityInfo() {
+  override fun computeNecessity(current: AgpVersion, new: AgpVersion) = MANDATORY_CODEPENDENT
+}
+data class PointNecessity(val change: AgpVersion) : AgpUpgradeComponentNecessityInfo() {
+  override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
+    current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
+    current >= change && new >= change -> IRRELEVANT_PAST
+    current < change && new >= change -> MANDATORY_CODEPENDENT
+    current < change && new < change -> IRRELEVANT_FUTURE
+    else -> throw RuntimeException("cannot happen")
+  }
+}
+/** [replacementAvailable] must be less than [originalRemoved]. */
+data class RegionNecessity(
+  val replacementAvailable: AgpVersion,
+  val originalRemoved: AgpVersion
+) : AgpUpgradeComponentNecessityInfo() {
+  override fun computeNecessity(current: AgpVersion, new: AgpVersion) = when {
+    current > new -> throw IllegalArgumentException("inconsistency: current ($current) > new ($new)")
+    replacementAvailable > originalRemoved ->
+      throw IllegalArgumentException("internal error: replacementAvailable ($replacementAvailable) > originalRemoved ($originalRemoved")
+    current >= originalRemoved && new >= originalRemoved -> IRRELEVANT_PAST
+    current < replacementAvailable && new < replacementAvailable -> IRRELEVANT_FUTURE
+    current < replacementAvailable && new >= originalRemoved -> MANDATORY_CODEPENDENT
+    current < originalRemoved && new >= originalRemoved -> MANDATORY_INDEPENDENT
+    current < replacementAvailable && new >= replacementAvailable -> OPTIONAL_CODEPENDENT
+    current >= replacementAvailable && new < originalRemoved -> OPTIONAL_INDEPENDENT
+    else -> throw RuntimeException("cannot happen")
   }
 }
 
@@ -751,10 +763,10 @@ enum class AgpUpgradeComponentNecessity {
 // for findUsages (and implicitly for performing the refactoring, implemented as methods on the UsageInfos).  However, there may be
 // a need for chained upgrades in the future, where each individual refactoring processor would run independently.
 abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactoringProcessor {
-  val current: GradleVersion
-  val new: GradleVersion
+  val current: AgpVersion
+  val new: AgpVersion
   val uuid: String
-  private val hasParentProcessor: Boolean
+  val hasParentProcessor: Boolean
   private var _isEnabled: Boolean? = null
   var isEnabled: Boolean
     set(value) {
@@ -780,13 +792,13 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     }
     get() {
       if (_isAlwaysNoOpForProject == null) {
-        _isAlwaysNoOpForProject = runReadAction { computeIsAlwaysNoOpForProject() }
+        DumbService.getInstance(project).runReadActionInSmartMode {_isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject() }
       }
       return _isAlwaysNoOpForProject!!
     }
 
   internal fun initializeComponentCaches() {
-    runReadAction {
+    DumbService.getInstance(project).runReadActionInSmartMode {
       _isAlwaysNoOpForProject = computeIsAlwaysNoOpForProject()
       _cachedUsages = findComponentUsages().toList()
       initializeComponentExtraCaches()
@@ -802,7 +814,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   sealed class BlockReason(
     val shortDescription: String,
     val description: String? = null,
-    val helpLinkUrl: String? = null
+    val readMoreUrl: ReadMoreUrlRedirect? = null
   )
 
   open fun blockProcessorReasons(): List<BlockReason> = listOf()
@@ -810,7 +822,7 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   val isBlocked: Boolean
     get() = blockProcessorReasons().isNotEmpty()
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project) {
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project) {
     this.current = current
     this.new = new
     this.uuid = UUID.randomUUID().toString()
@@ -824,7 +836,9 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
     this.hasParentProcessor = true
   }
 
-  abstract fun necessity(): AgpUpgradeComponentNecessity
+  abstract val necessityInfo: AgpUpgradeComponentNecessityInfo
+
+  fun necessity() = necessityInfo.computeNecessity(current, new)
 
   private var _cachedUsages = listOf<UsageInfo>()
   internal val cachedUsages
@@ -872,7 +886,12 @@ abstract class AgpUpgradeComponentRefactoringProcessor: GradleBuildModelRefactor
   open val groupingName
     get() = commandName
 
-  open fun getReadMoreUrl(): String? = null
+  data class ReadMoreUrlRedirect(val leaf: String) {
+    val url: String
+      get() = "https://developer.android.com/r/tools/upgrade-assistant/$leaf"
+  }
+  protected open val readMoreUrlRedirect: ReadMoreUrlRedirect? = null
+  fun getReadMoreUrl(): String? = readMoreUrlRedirect?.url
 
   open fun getShortDescription(): String? = null
 
@@ -895,8 +914,8 @@ interface PropertiesOperationInfo {
 }
 
 data class PropertiesOperationsRefactoringInfo(
-  val optionalFromVersion: GradleVersion,
-  val requiredFromVersion: GradleVersion,
+  val optionalFromVersion: AgpVersion,
+  val requiredFromVersion: AgpVersion,
   val commandNameSupplier: Supplier<String>,
   val shortDescriptionSupplier: Supplier<String>,
   val processedElementsHeaderSupplier: Supplier<String>,
@@ -905,10 +924,10 @@ data class PropertiesOperationsRefactoringInfo(
 ) {
 
   inner class RefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-    constructor(project: Project, current: GradleVersion, new: GradleVersion) : super(project, current, new)
+    constructor(project: Project, current: AgpVersion, new: AgpVersion) : super(project, current, new)
     constructor(processor: AgpUpgradeRefactoringProcessor) : super(processor)
 
-    override fun necessity() = standardRegionNecessity(current, new, optionalFromVersion, requiredFromVersion)
+    override val necessityInfo = RegionNecessity(optionalFromVersion, requiredFromVersion)
 
     override fun getCommandName(): String = commandNameSupplier.get()
 
@@ -956,10 +975,9 @@ data class MovePropertiesInfo(
     sourceToDestinationPropertyModelGetters.forEach { (sourceGetter, destinationGetter) ->
       val sourceModel = buildModel.(sourceGetter)()
       if (sourceModel.getValue(OBJECT_TYPE) != null) {
-        val destinationModel = buildModel.(destinationGetter)()
         val psiElement = sourceModel.psiElement ?: return@forEach
         val wrappedPsiElement = WrappedPsiElement(psiElement, processor, usageType)
-        val usageInfo = this.MovePropertyUsageInfo(wrappedPsiElement, sourceModel, destinationModel)
+        val usageInfo = this.MovePropertyUsageInfo(wrappedPsiElement, sourceModel, buildModel, destinationGetter)
         usages.add(usageInfo)
       }
     }
@@ -968,8 +986,9 @@ data class MovePropertiesInfo(
 
   inner class MovePropertyUsageInfo(
     element: WrappedPsiElement,
-    private val sourcePropertyModel: ResolvedPropertyModel,
-    private val destinationPropertyModel: ResolvedPropertyModel,
+    val sourcePropertyModel: ResolvedPropertyModel,
+    val buildModel: GradleBuildModel,
+    val destinationPropertyModelGetter: GradleBuildModel.() -> ResolvedPropertyModel,
   ) : GradleBuildModelUsageInfo(element) {
     override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
       val valueModel = sourcePropertyModel.unresolvedModel
@@ -980,7 +999,7 @@ data class MovePropertiesInfo(
         else -> valueModel.getValue(OBJECT_TYPE) ?: return
       }
 
-      destinationPropertyModel.setValue(value)
+      buildModel.(destinationPropertyModelGetter)().setValue(value)
       sourcePropertyModel.delete()
     }
 
@@ -1073,25 +1092,25 @@ class AgpComponentUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement): UsageType? = (element as? WrappedPsiElement)?.usageType
 }
 
-internal fun isUpdatablePluginDependency(toVersion: GradleVersion, model: ArtifactDependencyModel): ThreeState {
+internal fun isUpdatablePluginDependency(toVersion: AgpVersion, model: ArtifactDependencyModel): ThreeState {
   val artifactId = model.name().forceString()
   val groupId = model.group().toString()
   if (!AndroidPluginInfo.isAndroidPlugin(artifactId, groupId)) {
     return ThreeState.UNSURE
   }
-  val versionValue = model.version().toString()
-  return if (StringUtil.isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
+  val versionValue = AgpVersion.tryParse(model.version().toString()) ?: return ThreeState.UNSURE
+  return if (toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
 
-internal fun isUpdatablePluginRelatedDependency(toVersion: GradleVersion, model: ArtifactDependencyModel): ThreeState {
+internal fun isUpdatablePluginRelatedDependency(toVersion: AgpVersion, model: ArtifactDependencyModel): ThreeState {
   val artifactId = model.name().forceString()
   val groupId = model.group().toString()
   if (!AndroidPluginInfo.isAndroidPluginOrApi(artifactId, groupId)) {
     return ThreeState.UNSURE
   }
 
-  val versionValue = model.version().toString()
-  return if (StringUtil.isEmpty(versionValue) || toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
+  val versionValue = AgpVersion.tryParse(model.version().toString()) ?: return ThreeState.UNSURE
+  return if (toVersion.compareTo(versionValue) != 0) ThreeState.YES else ThreeState.NO
 }
 
 /**

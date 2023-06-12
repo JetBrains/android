@@ -7,7 +7,7 @@ import android.view.View
 class MyActivity: Activity() {
     inner class SubView constructor(context: Context): View(context) {
         fun test() {
-            val b = context.getString(R.string.resource_id)
+            val b = context.getString(R.string.some_string)
         }
     }
 }

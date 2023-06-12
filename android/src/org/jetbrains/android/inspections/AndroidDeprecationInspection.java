@@ -27,7 +27,6 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.codeInspection.options.OptPane;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.JavaElementVisitor;
 import com.intellij.psi.JavaPsiFacade;
@@ -68,7 +67,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectionTool {
 
-  @SuppressWarnings("InspectionDescriptionNotFoundInspection")
   @NonNls public static final String SHORT_NAME = DeprecationUtil.DEPRECATION_SHORT_NAME;
   @NonNls public static final String ID = DeprecationUtil.DEPRECATION_ID;
   public static final String DISPLAY_NAME = DeprecationUtil.getDeprecationDisplayName();
@@ -119,11 +117,10 @@ public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectio
   @Override
   public @NotNull OptPane getOptionsPane() {
     return pane(
-      checkbox("IGNORE_INSIDE_DEPRECATED", "Ignore inside deprecated members"),
-      checkbox("IGNORE_IMPORT_STATEMENTS", "Ignore inside non-static imports"),
-      checkbox("IGNORE_ABSTRACT_DEPRECATED_OVERRIDES",
-               "<html>Ignore overrides of deprecated abstract methods from non-deprecated supers</html>"),
-      checkbox(IGNORE_METHODS_OF_DEPRECATED_NAME, "Ignore members of deprecated classes"));
+      checkbox("Ignore inside deprecated members", "IGNORE_INSIDE_DEPRECATED"),
+      checkbox("Ignore inside non-static imports", "IGNORE_IMPORT_STATEMENTS"),
+      checkbox("<html>Ignore overrides of deprecated abstract methods from non-deprecated supers</html>", "IGNORE_ABSTRACT_DEPRECATED_OVERRIDES"),
+      checkbox("Ignore members of deprecated classes", IGNORE_METHODS_OF_DEPRECATED_NAME));
   }
 
   private static class DeprecationElementVisitor extends JavaElementVisitor {
@@ -296,13 +293,6 @@ public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectio
   public static void checkDeprecated(PsiElement refElement,
                                      PsiElement elementToHighlight,
                                      @Nullable TextRange rangeInElement,
-                                     ProblemsHolder holder) {
-    checkDeprecated(refElement, elementToHighlight, rangeInElement, false, false, true, holder);
-  }
-
-  public static void checkDeprecated(PsiElement refElement,
-                                     PsiElement elementToHighlight,
-                                     @Nullable TextRange rangeInElement,
                                      boolean ignoreInsideDeprecated,
                                      boolean ignoreImportStatements,
                                      boolean ignoreMethodsOfDeprecated,
@@ -330,7 +320,7 @@ public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectio
     String symbolName = HighlightMessageUtil.getSymbolName(refElement, PsiSubstitutor.EMPTY);
     String description = JavaErrorBundle.message("deprecated.symbol", symbolName);
 
-    List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>(4);
+    List<LocalQuickFix> fixes = new ArrayList<>(4);
     for (DeprecationFilter filter : getFilters()) {
       if (filter.isExcluded(refElement, elementToHighlight, symbolName)) {
         return;
@@ -344,27 +334,15 @@ public class AndroidDeprecationInspection extends AbstractBaseJavaLocalInspectio
                            fixes.toArray(LocalQuickFix.EMPTY_ARRAY));
   }
 
-  // Android Studio: TEMPORARY local version of part of our deprecation filter implementation,
-  // until we decide how to proceed with
-  //   https://android-review.googlesource.com/149417
-  // (This part does not depend on Android APIs; the full AndroidDeprecationFilter is here:
-  //  https://android-review.googlesource.com/149601 )
-
   @NotNull
   public static DeprecationFilter[] getFilters() {
-    // Replace with actual extension lookup later:
-    //return DeprecationFilter.EP_NAME.getExtensions();
-    return DEPRECATION_FILTERS;
+    return new DeprecationFilter[]{new AndroidDeprecationFilter()};
   }
-
-  private static final DeprecationFilter[] DEPRECATION_FILTERS = new DeprecationFilter[]{new AndroidDeprecationFilter()};
 
   /**
    * Filter which allows plugins to customize the inspection results for deprecated elements
    */
   public static abstract class DeprecationFilter {
-    public static final ExtensionPointName<DeprecationFilter>
-      EP_NAME = new ExtensionPointName<>("com.intellij.deprecationFilter");
 
     /**
      * For a deprecated element, returns true to remove the deprecation warnings for this element,

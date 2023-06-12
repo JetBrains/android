@@ -22,7 +22,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import org.jetbrains.annotations.NotNull;
 
-public final class ToolWindows {
+public class ToolWindows {
   public static void activateProjectView(@NotNull Project project) {
     ToolWindowManager manager = ToolWindowManager.getInstance(project);
     manager.invokeLater(() -> {

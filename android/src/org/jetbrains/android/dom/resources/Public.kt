@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.resourceNamespace
 import com.intellij.psi.PsiElement
@@ -73,7 +73,7 @@ class PublicResourceNameConverter: StringConverter() {
     val module = context.module ?: return emptyList()
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
     val elementType = element.getType()?.value
-    val moduleResources = ResourceRepositoryManager.getInstance(facet).moduleResources
+    val moduleResources = StudioResourceRepositoryManager.getInstance(facet).moduleResources
     return if (elementType == null) {
       // No type attribute set, show all resources.
       moduleResources.allResources.stream().map { obj: ResourceItem -> obj.name }.collect(Collectors.toList())

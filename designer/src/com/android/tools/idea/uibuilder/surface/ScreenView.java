@@ -20,8 +20,10 @@ import static com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
@@ -32,6 +34,9 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.layer.BorderLayer;
+import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer;
+import com.android.tools.idea.uibuilder.surface.layer.OverlayLayer;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
@@ -81,7 +86,15 @@ public class ScreenView extends ScreenViewBase {
         HardwareConfig config =
           new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
 
-        outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
+        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+          float densityRatio = Density.DEFAULT_DENSITY * 1.0f / config.getDensity().getDpiValue();
+          int dpWidth = Math.round(config.getScreenWidth() * densityRatio);
+          int dpHeight = Math.round(config.getScreenHeight() * densityRatio);
+          outDimension.setSize(dpWidth, dpHeight);
+        }
+        else {
+          outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
+        }
       }
     }
   };
@@ -105,7 +118,11 @@ public class ScreenView extends ScreenViewBase {
         ViewInfo viewInfo = result.getSystemRootViews().get(0);
 
         try {
-          outDimension.setSize(viewInfo.getRight(), viewInfo.getBottom());
+          if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+            outDimension.setSize(Coordinates.pxToDp(screenView, viewInfo.getRight()), Coordinates.pxToDp(screenView, viewInfo.getBottom()));
+          } else {
+            outDimension.setSize(viewInfo.getRight(), viewInfo.getBottom());
+          }
           // Save in case a future render fails. This way we can keep a constant size for failed
           // renders.
           if (cachedDimension == null) {
@@ -135,7 +152,7 @@ public class ScreenView extends ScreenViewBase {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
     if (screenView.hasBorderLayer()) {
-      builder.add(new BorderLayer(screenView));
+      builder.add(new BorderLayer(screenView, () -> screenView.getSurface().getRotateSurfaceDegree()));
     }
     builder.add(new ScreenViewLayer(screenView));
 
@@ -149,7 +166,7 @@ public class ScreenView extends ScreenViewBase {
     }
 
     if (screenView.myIsResizeable && screenView.getSceneManager().getModel().getType().isEditable()) {
-      builder.add(new CanvasResizeLayer(surface, screenView));
+      builder.add(new CanvasResizeLayer(screenView, () -> { surface.repaint(); return null; }));
     }
 
     if (NELE_RENDER_DIAGNOSTICS.get()) {

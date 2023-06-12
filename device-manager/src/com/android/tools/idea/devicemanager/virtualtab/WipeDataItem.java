@@ -16,41 +16,52 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
+import com.android.tools.idea.devicemanager.Key;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.FluentFuture;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.Component;
+import java.util.concurrent.Executor;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 final class WipeDataItem extends JBMenuItem {
-  private final @NotNull Consumer<@NotNull Component> myShowCannotWipeARunningAvdDialog;
-  private final @NotNull BiPredicate<@NotNull Object, @NotNull Component> myShowConfirmDataWipeDialog;
-  private final @NotNull Supplier<@NotNull AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull Consumer<Component> myShowCannotWipeARunningAvdDialog;
+  private final @NotNull BiPredicate<Object, Component> myShowConfirmDataWipeDialog;
+  private final @NotNull Supplier<AvdManagerConnection> myGetDefaultAvdManagerConnection;
+  private final @NotNull Function<VirtualDeviceTable, FutureCallback<Key>> myNewSetSelectedDeviceFutureCallback;
 
   WipeDataItem(@NotNull VirtualDevicePopUpMenuButtonTableCellEditor editor) {
     this(editor,
          WipeDataItem::showCannotWipeARunningAvdDialog,
          WipeDataItem::showConfirmDataWipeDialog,
-         AvdManagerConnection::getDefaultAvdManagerConnection);
+         AvdManagerConnection::getDefaultAvdManagerConnection,
+         WipeDataItem::newSetSelectedDeviceFutureCallback);
   }
 
   @VisibleForTesting
   WipeDataItem(@NotNull VirtualDevicePopUpMenuButtonTableCellEditor editor,
-               @NotNull Consumer<@NotNull Component> showCannotWipeARunningAvdDialog,
-               @NotNull BiPredicate<@NotNull Object, @NotNull Component> showConfirmDataWipeDialog,
-               @NotNull Supplier<@NotNull AvdManagerConnection> getDefaultAvdManagerConnection) {
+               @NotNull Consumer<Component> showCannotWipeARunningAvdDialog,
+               @NotNull BiPredicate<Object, Component> showConfirmDataWipeDialog,
+               @NotNull Supplier<AvdManagerConnection> getDefaultAvdManagerConnection,
+               @NotNull Function<VirtualDeviceTable, FutureCallback<Key>> newSetSelectedDeviceFutureCallback) {
     super("Wipe Data");
 
     myShowCannotWipeARunningAvdDialog = showCannotWipeARunningAvdDialog;
     myShowConfirmDataWipeDialog = showConfirmDataWipeDialog;
     myGetDefaultAvdManagerConnection = getDefaultAvdManagerConnection;
+    myNewSetSelectedDeviceFutureCallback = newSetSelectedDeviceFutureCallback;
 
     setToolTipText("Wipe the user data of this AVD");
 
@@ -73,8 +84,12 @@ final class WipeDataItem extends JBMenuItem {
         return;
       }
 
-      myGetDefaultAvdManagerConnection.get().wipeUserData(device.getAvdInfo());
-      table.reloadDevice(device.getKey());
+      Executor executor = EdtExecutorService.getInstance();
+
+      // noinspection UnstableApiUsage
+      FluentFuture.from(myGetDefaultAvdManagerConnection.get().wipeUserDataAsync(device.getAvdInfo()))
+        .transformAsync(succeeded -> table.reloadDevice(device.getKey()), executor)
+        .addCallback(myNewSetSelectedDeviceFutureCallback.apply(table), executor);
     });
   }
 
@@ -87,5 +102,10 @@ final class WipeDataItem extends JBMenuItem {
 
   private static boolean showConfirmDataWipeDialog(@NotNull Object device, @NotNull Component component) {
     return MessageDialogBuilder.yesNo("Confirm Data Wipe", "Do you really want to wipe user files from " + device + "?").ask(component);
+  }
+
+  @VisibleForTesting
+  static @NotNull FutureCallback<Key> newSetSelectedDeviceFutureCallback(@NotNull VirtualDeviceTable table) {
+    return new DeviceManagerFutureCallback<>(WipeDataItem.class, table::setSelectedDevice);
   }
 }

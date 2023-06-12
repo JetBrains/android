@@ -17,11 +17,12 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
 import com.android.tools.idea.gradle.project.sync.internal.dumpAndroidIdeModel
-import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest.TestDef
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_31
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
@@ -29,9 +30,13 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_81
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.ModelVersion
+import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
 import com.android.tools.idea.testing.nameProperties
@@ -56,9 +61,9 @@ data class IdeModelSnapshotComparisonTestDefinition(
   override val testProject: TestProject,
   val skipV1toV2Comparison: Boolean = false,
   val v1toV2PropertiesToSkip: Set<String> = emptySet(),
-  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = {  it >= AGP_41 },
+  val isCompatibleWith: (AgpVersionSoftwareEnvironmentDescriptor) -> Boolean = { it >= AGP_41 },
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
-) : TestDef {
+) : SyncedProjectTestDef {
 
   companion object {
     fun tests(): List<IdeModelSnapshotComparisonTestDefinition> = listOf(
@@ -82,14 +87,21 @@ data class IdeModelSnapshotComparisonTestDefinition(
         skipV1toV2Comparison = true
       ),
       IdeModelSnapshotComparisonTestDefinition(
+        TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR,
+        skipV1toV2Comparison = true
+      ),
+      IdeModelSnapshotComparisonTestDefinition(
         TestProject.TRANSITIVE_DEPENDENCIES_NO_TARGET_SDK_IN_LIBS,
-          isCompatibleWith = { it >= AGP_35 }
+        isCompatibleWith = { it >= AGP_35 }
       ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.WITH_GRADLE_METADATA),
       IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC_CMAKE_APP),
       IdeModelSnapshotComparisonTestDefinition(TestProject.PSD_SAMPLE_GROOVY),
       IdeModelSnapshotComparisonTestDefinition(TestProject.COMPOSITE_BUILD),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.NON_STANDARD_SOURCE_SETS),
+      IdeModelSnapshotComparisonTestDefinition(
+        TestProject.NON_STANDARD_SOURCE_SETS,
+        skipV1toV2Comparison = true  // TODO(b/234749386): Remove when V1 supports optional libraries.
+      ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(
         TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND,
@@ -133,7 +145,8 @@ data class IdeModelSnapshotComparisonTestDefinition(
         v1toV2PropertiesToSkip = setOf("provided")
       ), // Skip __wrapped_aars__.
       IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.PRIVACY_SANDBOX_SDK, skipV1toV2Comparison = true)
+      IdeModelSnapshotComparisonTestDefinition(TestProject.PRIVACY_SANDBOX_SDK, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, skipV1toV2Comparison = true)
     )
   }
 
@@ -153,17 +166,19 @@ data class IdeModelSnapshotComparisonTestDefinition(
         project,
         kotlinModels = { CapturePlatformModelsProjectResolverExtension.getKotlinModel(it) },
         kaptModels = { CapturePlatformModelsProjectResolverExtension.getKaptModel(it) },
-        mppModels = {CapturePlatformModelsProjectResolverExtension.getMppModel(it) },
+        mppModels = { CapturePlatformModelsProjectResolverExtension.getMppModel(it) },
         externalProjects = { if (agpVersion >= AGP_41) CapturePlatformModelsProjectResolverExtension.getExternalProjectModel(it) else null }
       )
     }
     v2snapshots.assertIsEqualToSnapshot(dump)
     // Do not remove `return`.
     return when (agpVersion) {
-      AGP_CURRENT -> testV1vsV2(AGP_CURRENT_V1, AGP_CURRENT)
       AGP_72 -> testV1vsV2(AGP_72_V1, AGP_72)
       // Do not replace with when.
-      AGP_32 -> Unit
+      AGP_31 -> Unit
+      AGP_33_WITH_5_3_1 -> Unit
+      AGP_33 -> Unit
+      AGP_35_JDK_8 -> Unit
       AGP_35 -> Unit
       AGP_40 -> Unit
       AGP_41 -> Unit
@@ -172,11 +187,13 @@ data class IdeModelSnapshotComparisonTestDefinition(
       AGP_71 -> Unit
       AGP_72_V1 -> Unit
       AGP_73 -> Unit
-      AGP_CURRENT_V1 -> Unit
+      AGP_74 -> Unit
+      AGP_80 -> Unit
+      AGP_81 -> Unit
     }
   }
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 
@@ -192,10 +209,16 @@ data class IdeModelSnapshotComparisonTestDefinition(
         .nameProperties()
         .filter { (property, line) ->
           !PROPERTIES_TO_SKIP.any { property.endsWith(it) } &&
-            !ENTITIES_TO_SKIP.any { property.contains(it) } &&
-            !v1toV2PropertiesToSkip.any { property.endsWith(it) }
+          !ENTITIES_TO_SKIP.any { property.contains(it) } &&
+          !v1toV2PropertiesToSkip.any { property.endsWith(it) }
         }
-        .filter { (property, line) -> !VALUES_TO_SUPPRESS.any { property.endsWith(it.key) and it.value.any { value -> line.contains(value) } } }
+        .filter { (property, line) ->
+          !VALUES_TO_SUPPRESS.any {
+            property.endsWith(it.key) and it.value.any { value ->
+              line.contains(value)
+            }
+          }
+        }
         .map { it.first + " <> " + it.second }
         .joinToString(separator = "\n")
 
@@ -221,18 +244,23 @@ private fun Sequence<String>.nameProperties() = nameProperties(this)
  * [com.android.tools.idea.gradle.model.IdeVariant.deprecatedPreMergedApplicationId] as not present in V2
  * [com.android.tools.idea.gradle.model.IdeVariant.deprecatedPreMergedTestApplicationId] as not present in V2
  * [com.android.builder.model.v2.ModelSyncFile] as these are not present in V1.
- * `runetimeClasspath` as it is not available in V1.
+ * [com.android.tools.idea.gradle.model.IdeAndroidArtifact.desugaredMethodsFiles] as not present in V1
+ * [com.android.tools.idea.gradle.model.IdeBaseArtifact.runtimeClasspath] as it is not available in V1.
+ * LIBRARY_TABLE/library as the V2 model contains extra libraries not present in the V1 version
  */
 private val PROPERTIES_TO_SKIP = setOf(
-  "/Dependencies/compileClasspath/androidLibraries/target/lintJar",
+  "/Dependencies/compileClasspath/lintJar",
   "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedApplicationId",
-  "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedTestApplicationId"
+  "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedTestApplicationId",
+  "MODULE/IdeVariants/IdeVariant/MainArtifact/DesugaredMethodFiles",
+  "MODULE/IdeVariants/IdeVariant/AndroidTestArtifact/DesugaredMethodFiles",
 )
 
 private val ENTITIES_TO_SKIP = setOf(
-  "/Dependencies/compileClasspath/moduleDependencies/target",
+  "/Dependencies/compileClasspath",
   "/Dependencies/runtimeClasspath",
   "/MainArtifact/ModelSyncFile",
+  "LIBRARY_TABLE/library",
 )
 
 /**
@@ -243,9 +271,8 @@ private val ENTITIES_TO_SKIP = setOf(
  * AndroidLibrary.ArtifactAddress: the same rules from above apply to ArtifactAddress as well, plus the distinction of local aars paths.
  */
 private val VALUES_TO_SUPPRESS = mapOf(
-  "/Dependencies/compileClasspath/androidLibraries" to listOf("__wrapped_aars__", "artifacts"),
-  "/Dependencies/compileClasspath/androidLibraries/target" to listOf("__wrapped_aars__", "artifacts"),
-  "/Dependencies/compileClasspath/androidLibraries/target/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
+  "/Dependencies/compileClasspath" to listOf("__wrapped_aars__", "artifacts"),
+  "/Dependencies/compileClasspath/artifactAddress" to listOf("__local_aars__", "__wrapped_aars__", "artifacts")
 )
 
 private const val IDE_MODEL_SNAPSHOT_DIR = "tools/adt/idea/android/testData/snapshots/ideModels"

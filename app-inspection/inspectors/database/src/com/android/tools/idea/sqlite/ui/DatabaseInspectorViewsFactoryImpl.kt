@@ -33,8 +33,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 
 class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
-    companion object {
-    @JvmStatic fun getInstance() = ApplicationManager.getApplication().getService(DatabaseInspectorViewsFactoryImpl::class.java)!!
+  companion object {
+    @JvmStatic
+    fun getInstance() =
+      ApplicationManager.getApplication()
+        .getService(DatabaseInspectorViewsFactoryImpl::class.java)!!
   }
 
   override fun createTableView() = TableViewImpl()
@@ -45,8 +48,8 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
     tableView: TableView
   ) = SqliteEvaluatorViewImpl(project, tableView, schemaProvider)
 
-  override fun createParametersBindingView(project: Project, sqliteStatementText: String)
-    = ParametersBindingDialogViewImpl(sqliteStatementText, project, true)
+  override fun createParametersBindingView(project: Project, sqliteStatementText: String) =
+    ParametersBindingDialogViewImpl(sqliteStatementText, project, true)
 
   override fun createExportToFileView(
     project: Project,
@@ -54,8 +57,12 @@ class DatabaseInspectorViewsFactoryImpl : DatabaseInspectorViewsFactory {
     analyticsTracker: DatabaseInspectorAnalyticsTracker
   ): ExportToFileDialogView = ExportToFileDialogViewImpl(project, params)
 
-  override fun createExportInProgressView(project: Project, job: Job, taskDispatcher: CoroutineDispatcher): ExportInProgressView =
-    ExportInProgressViewImpl(project, job, taskDispatcher)
+  override fun createExportInProgressView(
+    project: Project,
+    job: Job,
+    taskDispatcher: CoroutineDispatcher
+  ): ExportInProgressView = ExportInProgressViewImpl(project, job, taskDispatcher)
 
-  override fun createDatabaseInspectorView(project: Project) = DatabaseInspectorViewImpl(project, project)
+  override fun createDatabaseInspectorView(project: Project) =
+    DatabaseInspectorViewImpl(project, project)
 }

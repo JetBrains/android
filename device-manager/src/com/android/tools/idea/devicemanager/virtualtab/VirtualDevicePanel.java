@@ -18,6 +18,8 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DevicePanel;
+import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
@@ -26,6 +28,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
+import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -39,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class VirtualDevicePanel extends DevicePanel {
   private final @Nullable Project myProject;
+  private @Nullable VirtualDeviceTableWatcherListener myWatcherListener;
+  private final @NotNull VirtualDeviceWatcher myWatcher;
 
   private final @NotNull JButton myCreateButton;
   private final @NotNull JSeparator mySeparator;
@@ -46,14 +51,21 @@ public final class VirtualDevicePanel extends DevicePanel {
   private final @NotNull JButton myHelpButton;
 
   public VirtualDevicePanel(@Nullable Project project, @NotNull Disposable parent) {
+    this(project, parent, VirtualDeviceWatcher.getInstance());
+  }
+
+  @VisibleForTesting
+  public VirtualDevicePanel(@Nullable Project project, @NotNull Disposable parent, @NotNull VirtualDeviceWatcher watcher) {
     super(project);
+
     myProject = project;
+    myWatcher = watcher;
 
     initReloadButton();
     initTable();
     initScrollPane();
 
-    myCreateButton = new JButton("Create device");
+    myCreateButton = new JButton("Create Device");
     myCreateButton.addActionListener(new BuildVirtualDeviceConfigurationWizardActionListener(myCreateButton,
                                                                                              project,
                                                                                              (VirtualDeviceTable)myTable));
@@ -68,6 +80,11 @@ public final class VirtualDevicePanel extends DevicePanel {
 
     initDetailsPanelPanel();
     layOut();
+
+    if (StudioFlags.VIRTUAL_DEVICE_WATCHER_ENABLED.get()) {
+      myWatcherListener = new VirtualDeviceTableWatcherListener(getTable());
+      myWatcher.addVirtualDeviceWatcherListener(myWatcherListener);
+    }
 
     Disposer.register(parent, this);
   }
@@ -87,10 +104,12 @@ public final class VirtualDevicePanel extends DevicePanel {
 
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
-    return new VirtualDeviceDetailsPanel(((VirtualDeviceTable)myTable).getSelectedDevice().orElseThrow(AssertionError::new), myProject);
+    Optional<DetailsPanel> panel = getTable().getSelectedDevice().map(device -> new VirtualDeviceDetailsPanel(device, myProject));
+    return panel.orElseGet(super::newDetailsPanel);
   }
 
-  @NotNull VirtualDeviceTable getTable() {
+  @NotNull
+  VirtualDeviceTable getTable() {
     return (VirtualDeviceTable)myTable;
   }
 
@@ -119,5 +138,12 @@ public final class VirtualDevicePanel extends DevicePanel {
     layout.setVerticalGroup(verticalGroup);
 
     setLayout(layout);
+  }
+
+  @Override
+  public void dispose() {
+    if (myWatcherListener != null) {
+      myWatcher.removeVirtualDeviceWatcherListener(myWatcherListener);
+    }
   }
 }

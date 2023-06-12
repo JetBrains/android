@@ -35,6 +35,8 @@ class SystemTraceCpuCapture(traceId: Long,
                             override val cpuUtilizationSeries: List<SeriesData<Long>>,
                             override val cpuCounters: List<Map<String, List<SeriesData<Long>>>>,
                             override val memoryCounters: Map<String, List<SeriesData<Long>>>,
+                            override val powerRailCounters: Map<String, List<SeriesData<Long>>>,
+                            override val batteryDrainCounters: Map<String, List<SeriesData<Long>>>,
                             private val blastBufferQueueCounter: List<SeriesData<Long>>,
                             private val frameManager: SystemTraceFrameManager,
                             private val surfaceflingerManager: SystemTraceSurfaceflingerManager,
@@ -51,7 +53,7 @@ class SystemTraceCpuCapture(traceId: Long,
   override val surfaceflingerEvents get() = surfaceflingerManager.surfaceflingerEvents
   override val vsyncCounterValues get() = surfaceflingerManager.vsyncCounterValues
   override val renderThreadId get() = frameManager.renderThreadId
-  private val gpuThreadId by lazy { threads.first { it.isGpuThread }.id }
+  val gpuThreadId by lazy { threads.first { it.isGpuThread }.id }
 
   // Each search is a full scan over the thread's nodes, and GPU's result is dependent on Render's,
   // and this is potentially called many times during rendering, so we cache the few most recent ones.

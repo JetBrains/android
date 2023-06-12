@@ -1,11 +1,10 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.uibuilder.handlers.motion;
 
 import com.intellij.openapi.application.ApplicationBundle;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public final class MotionSceneString {
+public class MotionSceneString {
   public static final String TransitionTitle = "Transition";
   public static final String KeyAttributesTitle = "Targeted Attributes";
   public static final String KeyPositionTitle = "Position";

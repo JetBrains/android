@@ -35,7 +35,7 @@ class LogcatColorSettingsPageTest {
 
     assertThat(descriptors.size).isEqualTo(LogLevel.values().size * 2)
     for (level in LogLevel.values()) {
-      val name = level.name.toLowerCase(Locale.getDefault()).usLocaleCapitalize()
+      val name = level.name.lowercase(Locale.getDefault()).usLocaleCapitalize()
       assertThat(descriptors).containsEntry(LogcatBundle.message("logcat.color.page.indicator", name), colors.getLogLevelKey(level))
       assertThat(descriptors).containsEntry(LogcatBundle.message("logcat.color.page.message", name), colors.getMessageKey(level))
     }

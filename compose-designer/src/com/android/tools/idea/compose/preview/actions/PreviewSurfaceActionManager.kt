@@ -15,106 +15,97 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.flags.ifEnabled
 import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
 
-/**
- * [ActionManager] to be used by the Compose Preview.
- */
-internal class PreviewSurfaceActionManager(private val surface: DesignSurface<LayoutlibSceneManager>) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
-  private val copyResultImageAction = CopyResultImageAction(
-    {
-      // Copy the model of the current selected object (if any)
-      surface.selectionModel.primary?.model?.let {
-        return@CopyResultImageAction surface.getSceneManager(it) as LayoutlibSceneManager
-      }
+/** [ActionManager] to be used by the Compose Preview. */
+internal class PreviewSurfaceActionManager(
+  private val surface: DesignSurface<LayoutlibSceneManager>
+) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
 
-      surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
-    },
-    message("copy.result.image.action.title"),
-    message("copy.result.image.action.done.text")
-  )
+  private val sceneManagerProvider: () -> LayoutlibSceneManager? = {
+    // Copy the model of the current selected object (if any)
+    surface.selectionModel.primary?.model?.let { surface.getSceneManager(it) }
+      ?: surface.sceneViewAtMousePosition?.sceneManager as? LayoutlibSceneManager
+  }
+
+  private val copyResultImageAction =
+    CopyResultImageAction(
+      sceneManagerProvider,
+      message("copy.result.image.action.title"),
+      message("copy.result.image.action.done.text")
+    )
 
   override fun registerActionsShortcuts(component: JComponent) {
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
-  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup = DefaultActionGroup().apply {
-    add(copyResultImageAction)
+  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
+    // Copy Image
+    val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
+
+    val sceneView = surface.sceneViewAtMousePosition ?: return actionGroup
+    // Zoom to Selection
+    (surface as? NlDesignSurface)?.let {
+      actionGroup.add(ZoomToSelectionAction(surface, sceneView))
+    }
+    // Jump to Definition
+    ((surface as? NlDesignSurface)?.navigationHandler as? ComposePreviewNavigationHandler)?.let {
+      actionGroup.add(JumpToDefinitionAction(surface, it, sceneView))
+    }
+    return actionGroup
   }
 
   override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
 
   override fun getSceneViewContextToolbar(sceneView: SceneView): JComponent =
-    ActionManagerEx.getInstanceEx().createActionToolbar(
-      "sceneView",
-      DefaultActionGroup(
-        listOf(Separator()) +
-        listOfNotNull(
-          StudioFlags.COMPOSE_PIN_PREVIEW.ifEnabled {
-            StudioFlags.COMPOSE_INDIVIDUAL_PIN_PREVIEW.ifEnabled {
-              PinPreviewElementAction { sceneView.scene.sceneManager.model.dataContext }
-            }
-          },
-          AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
-          EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
-          DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
-        ).disabledIfRefreshingOrRenderErrors(sceneView).visibleOnlyInComposeStaticPreview()
-      ),
-      true,
-      false,
-      true
-    ).apply {
-      // Do not allocate space for the "see more" chevron if not needed
-      setReservePlaceAutoPopupIcon(false)
-      setShowSeparatorTitles(true)
-      targetComponent = sceneView.surface
-    }.component.apply {
-      isOpaque = false
-      border = JBUI.Borders.empty()
-    }
+    ActionManagerEx.getInstanceEx()
+      .createActionToolbar(
+        "sceneView",
+        DefaultActionGroup(
+          listOf(Separator()) +
+            listOfNotNull(
+                AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
+                EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
+                DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
+              )
+              .disabledIfRefreshingOrRenderErrors(sceneView)
+              .hideIfRenderErrors(sceneView)
+              .visibleOnlyInComposeStaticPreview()
+        ),
+        true,
+        false
+      )
+      .apply {
+        // Do not allocate space for the "see more" chevron if not needed
+        setReservePlaceAutoPopupIcon(false)
+        setShowSeparatorTitles(true)
+        targetComponent = sceneView.surface
+      }
+      .component
+      .apply {
+        isOpaque = false
+        border = JBUI.Borders.empty()
+      }
 
-  override fun getSceneViewStatusIcon(sceneView: SceneView): JComponent {
-    val component = ActionManagerEx.getInstanceEx().createActionToolbar(
-      "sceneView",
-      DefaultActionGroup(ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview()),
-      true,
-      false,
-      true
-    ).apply {
-      targetComponent = sceneView.surface
-      (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
-    }.component.apply {
-      isOpaque = false
-      border = JBUI.Borders.empty()
-    }
-
-    return JPanel(BorderLayout()).apply {
-      border = JBUI.Borders.empty()
-      isOpaque = false
-      isVisible = true
-      add(component, BorderLayout.LINE_END)
-
-      // Make the size to be fixed, even when the no icon is visible
-      minimumSize = component.minimumSize
-      preferredSize = component.minimumSize
-    }
-  }
+  override fun getSceneViewStatusIcon(sceneView: SceneView) =
+    createStatusIcon(
+      ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview(),
+      sceneView.surface
+    )
 }

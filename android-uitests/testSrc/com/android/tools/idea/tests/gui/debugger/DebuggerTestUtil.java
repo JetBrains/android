@@ -158,11 +158,9 @@ public class DebuggerTestUtil {
    * necessary for this test.
    */
   public static void setupSpecialSdk(@NotNull AvdTestRule avdRule) {
-    GuiTask.execute(() -> {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
-      });
-    });
+    GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation());
+    }));
   }
 
   public static void symlinkLldb() throws IOException {

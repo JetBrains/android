@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
@@ -29,13 +31,11 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
 
-    StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.override(true)
     myFixture.addWearDependenciesToProject()
   }
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.clearOverride()
   }
 
   @Test
@@ -83,13 +83,40 @@ class AndroidWatchFaceRunConfigurationProducerTest : AndroidTestCase() {
     assertEquals(myModule, configurationFromClass.module)
   }
 
+  @Test
+  fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
+    val watchFaceFile = myFixture.addFileToProject(
+      "src/com/example/myapplication/MyTestWatchFace.kt",
+      """
+      package com.example.myapplication
+
+      import android.support.wearable.watchface.WatchFaceService
+
+      /**
+       * Some comment
+       */
+      class MyTestWatchFace : WatchFaceService() {
+      }
+      """.trimIndent())
+
+    val classElement = watchFaceFile.findElementByText("class")
+    val context = mock<ConfigurationContext>()
+    whenever(context.psiLocation).thenReturn(classElement)
+    whenever(context.module).thenReturn(null)
+
+    val producer = AndroidWatchFaceRunConfigurationProducer()
+    assertThat(producer.setupConfigurationFromContext(createRunConfiguration(), context, Ref(context.psiLocation))).isFalse()
+  }
+
   private fun createConfigurationFromElement(element: PsiElement): AndroidWatchFaceConfiguration {
     val context = ConfigurationContext(element)
-    val runConfiguration =
-      AndroidWatchFaceConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidWatchFaceConfiguration
+    val runConfiguration = createRunConfiguration()
     val producer = AndroidWatchFaceRunConfigurationProducer()
     producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
 
     return runConfiguration
   }
+
+  private fun createRunConfiguration() =
+    AndroidWatchFaceConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidWatchFaceConfiguration
 }

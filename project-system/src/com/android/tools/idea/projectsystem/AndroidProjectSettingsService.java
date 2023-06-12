@@ -20,7 +20,6 @@ import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
 public interface AndroidProjectSettingsService {
-  void openSigningConfiguration(@NotNull Module module);
 
   void openSdkSettings();
 

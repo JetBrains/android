@@ -30,16 +30,15 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
-import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.RecordingOptionsView
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
@@ -63,28 +62,23 @@ private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testDat
 class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   private val myTimer = FakeTimer()
   private val myComponents = FakeIdeProfilerComponents()
-  private val myIdeServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(true)
-  }
-
-  private val myCpuService = FakeCpuService()
-
+  private val myIdeServices = FakeIdeProfilerServices()
   private val myTransportService = if (isTestingProfileable) {
     FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
   }
   else FakeTransportService(myTimer)
 
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel(
-    "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
-    FakeMemoryService(), FakeEventService()
-  )
+  val myGrpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", myTransportService, FakeEventService())
 
   @get:Rule
   val myEdtRule = EdtRule()
 
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var myStage: CpuProfilerStage
 
@@ -101,7 +95,7 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     myStage = CpuProfilerStage(profilers)
     myStage.studioProfilers.stage = myStage
     myStage.enter()
-    myProfilersView = StudioProfilersView(profilers, myComponents)
+    myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
   }
 
   @Test
@@ -241,7 +235,6 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
       myStage.enter()
     }
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
-    assertThat(myStage.profilerMode).isEqualTo(ProfilerMode.EXPANDED)
 
     val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
     assertThat(splitter.secondComponent).isNotNull()

@@ -36,6 +36,7 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/r8",
     ],
 )
@@ -76,6 +77,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
     ],
+    test_shard_count = 2,
     test_srcs = [
         "android-extensions-idea/tests",
         "idea-android/tests",
@@ -99,6 +101,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
     ],
 )
 

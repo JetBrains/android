@@ -17,64 +17,64 @@
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.ProductFlavorsWithDimensions
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
-fun buildGradle(
-  packageName: String,
-  buildApiString: String,
-  minApi: String,
-  targetApiString: String,
-  language: Language,
-  gradlePluginVersion: GradlePluginVersion,
+fun macrobenchmarksBuildGradle(
+  newModule: ModuleTemplateData,
+  flavors: ProductFlavorsWithDimensions,
   useGradleKts: Boolean,
   targetModule: Module,
   benchmarkBuildTypeName: String,
+  useVersionCatalog: Boolean
 ): String {
-  fun String.addReceiverIfKts() = when {
-    useGradleKts -> "it.$this"
-    else -> this
-  }
+  val packageName = newModule.packageName
+  val apis = newModule.apis
+  val language = newModule.projectTemplateData.language
+  val gradlePluginVersion = newModule.projectTemplateData.gradlePluginVersion
+  // TODO(b/149203281): Fix support for composite builds.
+  val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
+  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, useGradleKts)
 
-  val benchmarkBuildType: String = when {
-    useGradleKts -> """create("$benchmarkBuildTypeName")"""
-    else -> benchmarkBuildTypeName
-  }
+  val benchmarkBuildType: String
+  val debugSigningConfig: String
+  val matchingFallbacks: String
+  val addReceiverIfKts: String.() -> String
 
-  val debugSigningConfig: String = when {
-    useGradleKts -> """getByName("debug").signingConfig"""
-    else -> "debug.signingConfig"
+  if (useGradleKts) {
+    benchmarkBuildType = """create("$benchmarkBuildTypeName")"""
+    debugSigningConfig = """getByName("debug").signingConfig"""
+    matchingFallbacks = "matchingFallbacks += listOf(\"release\")"
+    addReceiverIfKts = { "it.$this" }
+  }
+  else {
+    benchmarkBuildType = benchmarkBuildTypeName
+    debugSigningConfig = "debug.signingConfig"
+    matchingFallbacks = "matchingFallbacks = [\"release\"]"
+    addReceiverIfKts = { this }
   }
 
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
-   kotlinOptions {
-      jvmTarget = "1.8"
-   }
-  """
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+    """
   }
 
-  // TODO(b/149203281): Fix support for composite builds.
-  val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
-
-  val matchingFallbacks =
-    if (useGradleKts) {
-      "matchingFallbacks += listOf(\"release\")"
-    } else {
-      "matchingFallbacks = [\"release\"]"
-    }
-
   return """
-${emptyPluginsBlock()}
+${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
 
 android {
     namespace '$packageName'
-    ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
+    ${toAndroidFieldVersion("compileSdk", apis.buildApi.apiString, gradlePluginVersion)}
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -84,8 +84,8 @@ android {
     $kotlinOptionsBlock
 
     defaultConfig {
-        ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
-        ${toAndroidFieldVersion("targetSdk", targetApiString, gradlePluginVersion)}
+        ${toAndroidFieldVersion("minSdk", apis.minApi.apiString, gradlePluginVersion)}
+        ${toAndroidFieldVersion("targetSdk", apis.targetApi.apiString, gradlePluginVersion)}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -101,6 +101,8 @@ android {
         }
     }
 
+    $flavorsConfiguration
+
     targetProjectPath = "$targetModuleGradlePath"
     experimentalProperties["android.experimental.self-instrumenting"] = true
 }
@@ -110,7 +112,7 @@ dependencies {
 
 androidComponents {
     beforeVariants(selector().all()) {
-        ${"enabled".addReceiverIfKts()} = ${"buildType".addReceiverIfKts()} == "$benchmarkBuildTypeName"
+        ${"enable".addReceiverIfKts()} = ${"buildType".addReceiverIfKts()} == "$benchmarkBuildTypeName"
     }
 }
 

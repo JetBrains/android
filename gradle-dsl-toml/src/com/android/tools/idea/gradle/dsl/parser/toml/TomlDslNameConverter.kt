@@ -27,6 +27,7 @@ import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlPsiFactory
 import org.toml.lang.psi.ext.TomlLiteralKind
 import org.toml.lang.psi.ext.kind
+import java.lang.IllegalStateException
 
 interface TomlDslNameConverter: GradleDslNameConverter {
   override fun getKind() = TOML
@@ -40,7 +41,12 @@ interface TomlDslNameConverter: GradleDslNameConverter {
   }
 
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
-    val literal = TomlPsiFactory(context.dslFile.project, true).createLiteral(referenceText)
+    val literal = try {
+      TomlPsiFactory(context.dslFile.project, true).createLiteral(referenceText)
+    }
+    catch (e: Exception) {
+      throw IllegalStateException("Cannot create reference out of literal $referenceText", e)
+    }
     val name = when (val kind = literal.kind) {
       is TomlLiteralKind.String -> kind.value
       else -> referenceText

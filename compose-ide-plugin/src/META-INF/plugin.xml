@@ -13,22 +13,20 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>androidx.compose.plugins.idea</id>
   <name>Jetpack Compose</name>
-  <description><![CDATA[
-  Adds support for building native UI on Android via the <a href="https://developer.android.com/jetpack/compose">Jetpack Compose</a> toolkit.
-]]></description>
+  <description><![CDATA[The Jetpack Compose IDE plugin]]></description>
   <vendor url="http://www.android.com">Android, JetBrains</vendor>
 
   <depends>org.jetbrains.android</depends>
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableCallChecker"/>
-    <storageComponentContainerContributor implementation="com.android.tools.compose.ComposableDeclarationChecker"/>
-    <diagnosticSuppressor implementation="com.android.tools.compose.ComposeDiagnosticSuppressor"/>
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableCallChecker"/>
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableDeclarationChecker"/>
+    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.ComposeDiagnosticSuppressor"/>
+    <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -36,10 +34,9 @@
 
     <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
 
-    <annotator
-        language="kotlin"
-        implementationClass="com.android.tools.compose.ComposableAnnotator"/>
-    <additionalTextAttributes scheme="Default" file="colorschemes/IdeComposableAnnotatorColorSchemeDefault.xml"/>
+    <additionalTextAttributes scheme="Default" file="colorschemes/ComposableHighlighterExtensionColorSchemeDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposableHighlighterExtensionColorSchemeDarcula.xml"/>
+
     <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
 
     <intentionAction>
@@ -72,10 +69,6 @@
     <codeStyleSettingsProvider implementation="com.android.tools.compose.settings.ComposeFormattingCodeStyleSettingsProvider"/>
 
     <projectService serviceImplementation="com.android.tools.compose.ComposeAutoDocumentation"/>
-    <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService"
-                    serviceImplementation="com.android.tools.compose.ComposeKDocLinkResolutionService"
-                    overrides="true"
-    />
     <postStartupActivity implementation="com.android.tools.compose.ComposeAutoDocumentation$MyStartupActivity"/>
 
     <completion.contributor language="kotlin"
@@ -101,14 +94,19 @@
              id="android.compose"
              order="first"/>
 
+    <weigher key="proximity"
+             implementationClass="com.android.tools.compose.code.actions.ComposeProximityWeigher"
+             id="composeProximityWeigher"
+             order="before javaInheritance" />
+
     <lang.inspectionSuppressor language="kotlin" implementationClass="com.android.tools.compose.ComposeSuppressor"/>
-    <lang.inspectionSuppressor language="Groovy" implementationClass="com.android.tools.compose.ComposeGradleInspectionSuppressor"/>
 
     <postFormatProcessor implementation="com.android.tools.compose.formatting.ComposePostFormatProcessor"/>
 
     <automaticRenamerFactory implementation="com.android.tools.compose.ComposableElementAutomaticRenamerFactory"/>
 
     <debugger.positionManagerFactory implementation="com.android.tools.compose.debug.ComposePositionManagerFactory"/>
+    <debugger.kotlinStackFrameValueContributor implementation="com.android.tools.compose.debug.recomposition.ComposeValueContributor"/>
     <debuggerClassFilterProvider implementation="com.android.tools.compose.debug.ComposeDebuggerClassesFilterProvider"/>
     <xdebugger.settings implementation="com.android.tools.compose.debug.ComposeDebuggerSettings"/>
     <debugger.compoundRendererProvider id="SnapshotMutableStateImplRenderer"
@@ -130,17 +128,43 @@
     <debugger.compoundRendererProvider id="KotlinMapEntryRenderer"
                                        implementation="com.android.tools.compose.debug.render.KotlinMapEntryRenderer"
                                        order="first"/>
+
+    <itemPresentationProvider
+        forClass="org.jetbrains.kotlin.psi.KtFunction"
+        implementationClass="com.android.tools.compose.ComposableItemPresentationProvider"
+        order="first"
+    />
+
+    <iconProvider implementation="com.android.tools.compose.ComposableIconProvider" order="first" />
+
+    <registryKey key="androidx.compose.debugger.recomposition.node"
+                 description="Add a node to the debugger view of a composable function that describes why the function is being recomposed"
+                 defaultValue="false"
+                 restartRequired="false"/>
+
+    <overrideImplementsAnnotationsFilter id="ComposeOverrideImplementsAnnotationsFilter"
+                                         implementation="com.android.tools.compose.ComposeOverrideImplementsAnnotationsFilter"/>
+
+    <codeInsight.lineMarkerProvider language="kotlin"
+                                    implementationClass="com.android.tools.compose.code.ComposeLineMarkerProviderDescriptor" />
+
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-    <typeResolutionInterceptorExtension implementation="com.android.tools.compose.ComposePluginTypeResolutionInterceptorExtension"/>
+    <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.ComposeTypeResolutionInterceptorExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeDelegateStateImportFixContributor"/>
-    <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
     <additionalExtractableAnalyser implementation="com.android.tools.compose.ComposableFunctionExtractableAnalyser"/>
     <irGenerationExtension implementation="com.android.tools.compose.ComposePluginIrGenerationExtension"/>
   </extensions>
 
+  <actions>
+    <action id="android.device.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup">
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="first"/>
+    </action>
+  </actions>
+
+  <xi:include href="plugin.k1.xml" includeUnless="idea.kotlin.plugin.use.k2" />
+  <xi:include href="plugin.k2.xml" includeIf="idea.kotlin.plugin.use.k2"/>
 </idea-plugin>

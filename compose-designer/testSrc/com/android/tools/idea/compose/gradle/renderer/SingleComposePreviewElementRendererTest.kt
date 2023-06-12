@@ -15,75 +15,84 @@
  */
 package com.android.tools.idea.compose.gradle.renderer
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
+import com.android.ide.common.rendering.api.RenderSession
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
+import com.android.tools.idea.compose.preview.PreviewConfiguration
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
+import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
-import com.android.tools.idea.compose.preview.util.PreviewConfiguration
-import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
-import org.jetbrains.kotlin.descriptors.runtime.components.tryLoadClass
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Paths
 
 class SingleComposePreviewElementRendererTest {
-  @get:Rule
-  val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
 
-  @get:Rule
-  val resetFastPreviewFlag = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
+  @get:Rule val resetFastPreviewFlag = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
 
-  /**
-   * Checks that trying to render an non-existent preview returns a null image
-   */
+  /** Checks that trying to render an non-existent preview returns a null image */
   @Test
   fun testInvalidPreview() {
     assertNull(
       renderPreviewElement(
-        projectRule.androidFacet(":app"),
-        SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.InvalidPreview")
-      ).get()
+          projectRule.androidFacet(":app"),
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.MainActivityKt.InvalidPreview"
+          )
+        )
+        .get()
     )
   }
 
-  /**
-   * Checks the rendering of the default `@Preview` in the Compose template.
-   */
+  /** Checks the rendering of the default `@Preview` in the Compose template. */
   @Test
   fun testDefaultPreviewRendering() {
-    val defaultRender = renderPreviewElement(
-      projectRule.androidFacet(":app"),
-      SingleComposePreviewElementInstance.forTesting("google.simpleapplication.MainActivityKt.DefaultPreview")
-    ).get()!!
+    val defaultRender =
+      renderPreviewElement(
+          projectRule.androidFacet(":app"),
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.MainActivityKt.DefaultPreview"
+          )
+        )
+        .get()!!
     assertImageSimilar(
-      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"),
+      Paths.get(
+        "${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender.png"
+      ),
       defaultRender,
       0.1,
       1
     )
   }
 
-  /**
-   * Checks the rendering of the default `@Preview` in the Compose template with a background
-   */
+  /** Checks the rendering of the default `@Preview` in the Compose template with a background */
   @Test
   fun testDefaultPreviewRenderingWithBackground() {
-    val defaultRenderWithBackground = renderPreviewElement(
-      projectRule.androidFacet(":app"),
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.MainActivityKt.DefaultPreview",
-        showBackground = true,
-        backgroundColor = "#F00"
-      )
-    ).get()!!
+    val defaultRenderWithBackground =
+      renderPreviewElement(
+          projectRule.androidFacet(":app"),
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.MainActivityKt.DefaultPreview",
+            showBackground = true,
+            backgroundColor = "#F00"
+          )
+        )
+        .get()!!
     assertImageSimilar(
-      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"),
+      Paths.get(
+        "${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withBackground.png"
+      ),
       defaultRenderWithBackground,
       0.1,
       1
@@ -91,44 +100,74 @@ class SingleComposePreviewElementRendererTest {
   }
 
   /**
-   * Checks that the [RenderTask#dispose] releases the `WindowRecomposer#animationScale` that could potentially cause leaks.
+   * Checks that the [RenderTask#dispose] releases the `WindowRecomposer#animationScale` that could
+   * potentially cause leaks.
    *
-   * Regression test for b/244234828.
+   * Regression test for b/179195773, b/244234828 and b/247681348.
    */
   @Test
-  fun testDisposeOfAnimationScale() {
-    val renderTaskFuture = createRenderTaskFuture(
-      projectRule.androidFacet(":app"),
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.MainActivityKt.DefaultPreview",
-        showBackground = true,
-        backgroundColor = "#F00"
-      ), false)
+  fun testDisposeOfComposeLeaks() {
+    val renderTaskFuture =
+      createRenderTaskFuture(
+        projectRule.androidFacet(":app"),
+        SingleComposePreviewElementInstance.forTesting(
+          "google.simpleapplication.MainActivityKt.DefaultPreview",
+          showBackground = true,
+          backgroundColor = "#F00"
+        ),
+        false
+      )
     val renderTask = renderTaskFuture.get()!!
     val result = renderTask.render().get()
     val classLoader = result!!.rootViews.first().viewObject.javaClass.classLoader
     // Check the WindowRecomposer animationScale is empty
-    val windowRecomposer = classLoader.loadClass("androidx.compose.ui.platform.WindowRecomposer_androidKt")
-    val animationScaleField = windowRecomposer.getDeclaredField("animationScale").apply {
-      isAccessible = true
-    }
+    val windowRecomposer =
+      classLoader.loadClass("androidx.compose.ui.platform.WindowRecomposer_androidKt")
+    val animationScaleField =
+      windowRecomposer.getDeclaredField("animationScale").apply { isAccessible = true }
+
+    val fontRequestWorker = classLoader.loadClass("androidx.core.provider.FontRequestWorker")
+    val pendingRepliesField =
+      fontRequestWorker.getDeclaredField("PENDING_REPLIES").apply { isAccessible = true }
+    val pendingReplies = pendingRepliesField.get(fontRequestWorker)
 
     assertTrue((animationScaleField.get(windowRecomposer) as Map<*, *>).isNotEmpty())
+
+    val snapshotKt = classLoader.loadClass("androidx.compose.runtime.snapshots.SnapshotKt")
+    val applyObserversField =
+      snapshotKt.getDeclaredField("applyObservers").apply { isAccessible = true }
+    val applyObservers = applyObserversField.get(null) as List<*>
+
+    assertTrue(applyObservers.isNotEmpty())
+
     renderTask.dispose().get()
-    assertTrue("animationScale should have been cleared", (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty())
+    assertTrue(
+      "animationScale should have been cleared",
+      (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty()
+    )
+
+    val size = pendingReplies::class.java.getMethod("size").invoke(pendingReplies) as Int
+    assertEquals("FontRequestWorker.PENDING_REPLIES size must be 0 after dispose", 0, size)
+
+    assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
   }
 
   @Test
   fun testDefaultPreviewRenderingWithDifferentLocale() {
-    val defaultRenderWithLocale = renderPreviewElement(
-      projectRule.androidFacet(":app"),
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.MainActivityKt.DefaultPreview",
-        configuration = PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null)
-      )
-    ).get()!!
+    val defaultRenderWithLocale =
+      renderPreviewElement(
+          projectRule.androidFacet(":app"),
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.MainActivityKt.DefaultPreview",
+            configuration =
+              PreviewConfiguration.cleanAndGet(null, null, null, null, "en-rUS", null, null, null)
+          )
+        )
+        .get()!!
     assertImageSimilar(
-      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withEnUsLocale.png"),
+      Paths.get(
+        "${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultRender-withEnUsLocale.png"
+      ),
       defaultRenderWithLocale,
       0.1,
       1
@@ -136,21 +175,25 @@ class SingleComposePreviewElementRendererTest {
   }
 
   /**
-   * Check that rendering a Preview with unsigned types does not throw an exception.
-   * And also that limit values for signed and unsigned integers are correctly handled and rendered
-   * Regression test for b/204986515
+   * Check that rendering a Preview with unsigned types does not throw an exception. And also that
+   * limit values for signed and unsigned integers are correctly handled and rendered Regression
+   * test for b/204986515
    */
   @Test
   fun testPreviewWithUnsignedTypes() {
-    val withUnsignedTypesRender = renderPreviewElement(
-      projectRule.androidFacet(":app"),
-      SingleComposePreviewElementInstance.forTesting(
-        "google.simpleapplication.OtherPreviewsKt.PreviewWithUnsignedTypes",
-        showBackground = true,
-      )
-    ).get()!!
+    val withUnsignedTypesRender =
+      renderPreviewElement(
+          projectRule.androidFacet(":app"),
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.OtherPreviewsKt.PreviewWithUnsignedTypes",
+            showBackground = true,
+          )
+        )
+        .get()!!
     assertImageSimilar(
-      Paths.get("${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/withUnsignedTypesRender.png"),
+      Paths.get(
+        "${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/withUnsignedTypesRender.png"
+      ),
       withUnsignedTypesRender,
       0.1,
       1
@@ -158,15 +201,88 @@ class SingleComposePreviewElementRendererTest {
   }
 
   /**
-   * Checks the rendering that rendering an empty preview does not throw an exception.
-   * Regression test for b/144722608.
+   * Checks the rendering that rendering an empty preview does not throw an exception. Regression
+   * test for b/144722608.
    */
   @Test
   fun testEmptyRender() {
-    val defaultRender = renderPreviewElement(
-      projectRule.androidFacet(":app"),
-      SingleComposePreviewElementInstance.forTesting("google.simpleapplication.OtherPreviewsKt.EmptyPreview")).get()!!
+    val defaultRender =
+      renderPreviewElement(
+          projectRule.androidFacet(":app"),
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.OtherPreviewsKt.EmptyPreview"
+          )
+        )
+        .get()!!
 
     assertTrue(defaultRender.width > 0 && defaultRender.height > 0)
+  }
+
+  /** Checks that key events are correctly dispatched to Compose Preview. */
+  @Test
+  fun testKeyEvent() {
+    val renderTaskFuture =
+      createRenderTaskFuture(
+        projectRule.androidFacet(":app"),
+        SingleComposePreviewElementInstance.forTesting(
+          "google.simpleapplication.OtherPreviewsKt.TextFieldPreview"
+        ),
+        false
+      )
+    val frameNanos = 16000000L
+    val renderTask = renderTaskFuture.get(1, TimeUnit.MINUTES)
+    try {
+      renderTask.render().get(1, TimeUnit.MINUTES)
+      renderTask.executeCallbacks(0).get(5, TimeUnit.SECONDS)
+
+      // Start by clicking on the text field to make it focused
+      val clickX = 30
+      val clickY = 30
+      renderTask
+        .triggerTouchEvent(RenderSession.TouchEventType.PRESS, clickX, clickY, 1000)
+        .get(5, TimeUnit.SECONDS)
+      renderTask
+        .triggerTouchEvent(RenderSession.TouchEventType.RELEASE, clickX, clickY, 2000)
+        .get(5, TimeUnit.SECONDS)
+
+      var time = 10 * frameNanos
+      // Give time for the setup of the TextField
+      repeat(5) {
+        renderTask.render().get(5, TimeUnit.SECONDS)
+        renderTask.executeCallbacks(time).get(5, TimeUnit.SECONDS)
+        time += 10 * frameNanos
+      }
+
+      // Press letter 'p'
+      val event =
+        KeyEvent(
+          JPanel(),
+          KeyEvent.KEY_PRESSED,
+          time + 1000,
+          0,
+          KeyEvent.VK_P,
+          'p',
+          KEY_LOCATION_STANDARD
+        )
+      renderTask.triggerKeyEvent(event, time + 1000).get(5, TimeUnit.SECONDS)
+
+      time += 10 * frameNanos
+      renderTask.render().get(5, TimeUnit.SECONDS)
+      renderTask.executeCallbacks(time).get(5, TimeUnit.SECONDS)
+
+      val renderResult = renderTask.render().get(5, TimeUnit.SECONDS)
+      renderResult.renderedImage.copy?.let {
+        assertImageSimilar(
+          Paths.get(
+            "${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/keyEventRender.png"
+          ),
+          it,
+          0.1,
+          1
+        )
+      }
+    } finally {
+      renderTask.dispose().get(5, TimeUnit.SECONDS)
+    }
   }
 }

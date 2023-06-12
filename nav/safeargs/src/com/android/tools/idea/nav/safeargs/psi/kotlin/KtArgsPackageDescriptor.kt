@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.SafeArgsModuleInfo
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
@@ -40,7 +40,7 @@ import org.jetbrains.kotlin.utils.alwaysTrue
  */
 class KtArgsPackageDescriptor(
   private val containingModuleInfo: SafeArgsModuleInfo,
-  private val navigationVersion: GradleVersion,
+  private val navigationVersion: Version,
   fqName: FqName,
   val className: Name,
   private val destination: NavDestinationData,

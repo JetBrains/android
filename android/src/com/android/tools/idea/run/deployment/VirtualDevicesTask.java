@@ -42,17 +42,17 @@ import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice>> {
   private final @NotNull ExecutorService myExecutorService;
-  private final @NotNull Supplier<@NotNull Collection<@NotNull AvdInfo>> myGetAvds;
+  private final @NotNull Supplier<Collection<AvdInfo>> myGetAvds;
 
-  private final @NotNull Function<@NotNull AvdInfo, @NotNull AndroidDevice> myNewLaunchableAndroidDevice;
+  private final @NotNull Function<AvdInfo, AndroidDevice> myNewLaunchableAndroidDevice;
 
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
   static final class Builder {
     private @Nullable ExecutorService myExecutorService;
-    private @Nullable Supplier<@NotNull Collection<@NotNull AvdInfo>> myGetAvds;
-    private @Nullable Function<@NotNull AvdInfo, @NotNull AndroidDevice> myNewLaunchableAndroidDevice;
+    private @Nullable Supplier<Collection<AvdInfo>> myGetAvds;
+    private @Nullable Function<AvdInfo, AndroidDevice> myNewLaunchableAndroidDevice;
     private @Nullable LaunchCompatibilityChecker myChecker;
 
     @NotNull Builder setExecutorService(@NotNull ExecutorService executorService) {
@@ -60,12 +60,12 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
       return this;
     }
 
-    @NotNull Builder setGetAvds(@NotNull Supplier<@NotNull Collection<@NotNull AvdInfo>> getAvds) {
+    @NotNull Builder setGetAvds(@NotNull Supplier<Collection<AvdInfo>> getAvds) {
       myGetAvds = getAvds;
       return this;
     }
 
-    @NotNull Builder setNewLaunchableAndroidDevice(@NotNull Function<@NotNull AvdInfo, @NotNull AndroidDevice> newLaunchableAndroidDevice) {
+    @NotNull Builder setNewLaunchableAndroidDevice(@NotNull Function<AvdInfo, AndroidDevice> newLaunchableAndroidDevice) {
       myNewLaunchableAndroidDevice = newLaunchableAndroidDevice;
       return this;
     }
@@ -165,7 +165,7 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     return new Snapshot(snapshotDirectory, name);
   }
 
-  private @NotNull VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avd, @NotNull Collection<@NotNull Snapshot> snapshots) {
+  private @NotNull VirtualDevice newDisconnectedDevice(@NotNull AvdInfo avd, @NotNull Collection<Snapshot> snapshots) {
     AndroidDevice device = myNewLaunchableAndroidDevice.apply(avd);
 
     VirtualDevice.Builder builder = new VirtualDevice.Builder()

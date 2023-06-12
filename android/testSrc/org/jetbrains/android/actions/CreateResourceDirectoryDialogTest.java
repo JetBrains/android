@@ -15,53 +15,75 @@
  */
 package org.jetbrains.android.actions;
 
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
-import org.jetbrains.android.AndroidTestCase;
+import java.util.Objects;
 import org.jetbrains.android.actions.CreateResourceDirectoryDialogBase.ValidatorFactory;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.Mockito;
 
-public final class CreateResourceDirectoryDialogTest extends AndroidTestCase {
+public final class CreateResourceDirectoryDialogTest {
+  @Rule
+  public AndroidProjectRule myProjectRule = AndroidProjectRule.withAndroidModels();
   private PsiDirectory myResDirectory;
   private CreateResourceDirectoryDialog myDialog;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    VirtualFile resVirtualFile = Iterables.getOnlyElement(ResourceFolderManager.getInstance(myFacet).getFolders());
-    myResDirectory = PsiManager.getInstance(myModule.getProject()).findDirectory(resVirtualFile);
+  @Before
+  public void setUp() throws Throwable {
+    ApplicationManager.getApplication().invokeAndWait((Runnable)() -> {
+      myProjectRule.setupProjectFrom(new AndroidModuleModelBuilder(":", "debug", new AndroidProjectBuilder()));
+    });
+    AndroidFacet facet = AndroidFacet.getInstance(Objects.requireNonNull(gradleModule(myProjectRule.getProject(), ":")));
+    assertNotNull(facet);
+    myProjectRule.getFixture().addFileToProject("src/main/res/create", "");
+    VirtualFile resVirtualFile = Iterables.getOnlyElement(ResourceFolderManager.getInstance(facet).getFolders());
+    myResDirectory =
+      ReadAction.compute((ThrowableComputable<PsiDirectory, Throwable>)() -> PsiManager.getInstance(myProjectRule.getProject())
+        .findDirectory(resVirtualFile));
   }
 
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      if (myDialog != null) {
-        ApplicationManager.getApplication().invokeAndWait(() -> Disposer.dispose(myDialog.getDisposable()));
-      }
-    }
-    finally {
-      super.tearDown();
+  @After
+  public void tearDown() throws Exception {
+    if (myDialog != null) {
+      ApplicationManager.getApplication().invokeAndWait(() -> Disposer.dispose(myDialog.getDisposable()));
     }
   }
 
   private void initDialog(boolean forceDirectoryDoesNotExist) {
-    Project project = myModule.getProject();
+    Project project = myProjectRule.getProject();
     Application application = ApplicationManager.getApplication();
     ValidatorFactory factory = Mockito.mock(ValidatorFactory.class);
 
     application.invokeAndWait(() -> myDialog =
-      new CreateResourceDirectoryDialog(project, myModule, null, myResDirectory, null, factory, forceDirectoryDoesNotExist));
+      new CreateResourceDirectoryDialog(project, myProjectRule.getModule(), null, myResDirectory, null, factory,
+                                        forceDirectoryDoesNotExist));
   }
 
+  @Test
   public void testDoValidateWhenSubdirectoryDoesNotExist() {
     initDialog(false);
 
@@ -69,25 +91,37 @@ public final class CreateResourceDirectoryDialogTest extends AndroidTestCase {
     assertNull(myDialog.doValidate());
   }
 
-  public void testDoValidateWhenSubdirectoryExists() {
+  @Test
+  public void testDoValidateWhenSubdirectoryExists() throws Throwable {
     initDialog(false);
 
-    Computable<PsiFileSystemItem> createLayoutSubdirectory = () -> myResDirectory.createSubdirectory("layout");
-    PsiFileSystemItem subdirectory = ApplicationManager.getApplication().runWriteAction(createLayoutSubdirectory);
+    ThrowableComputable<PsiFileSystemItem, Throwable> createLayoutSubdirectory = () -> myResDirectory.createSubdirectory("layout");
+    PsiFileSystemItem subdirectory = WriteAction.computeAndWait(createLayoutSubdirectory);
 
     myDialog.getDirectoryNameTextField().setText("layout");
 
     String expected = subdirectory.getVirtualFile().getPresentableUrl() + " already exists. Use a different qualifier.";
-    assertEquals(expected, myDialog.doValidate().message);
+    assertEquals(expected, ReadAction.compute((ThrowableComputable<String, Throwable>)() -> myDialog.doValidate().message));
   }
 
-  public void testCanIgnoreSubdirectoryCreation() {
+  @Test
+  public void testCanIgnoreSubdirectoryCreation() throws Throwable {
     initDialog(true);
 
-    Computable<PsiFileSystemItem> createLayoutSubdirectory = () -> myResDirectory.createSubdirectory("layout");
-    PsiFileSystemItem subdirectory = ApplicationManager.getApplication().runWriteAction(createLayoutSubdirectory);
+    ThrowableComputable<PsiFileSystemItem, Throwable> createLayoutSubdirectory = () -> myResDirectory.createSubdirectory("layout");
+    PsiFileSystemItem subdirectory = WriteAction.computeAndWait(createLayoutSubdirectory);
 
     myDialog.getDirectoryNameTextField().setText("layout");
-    assertNull(myDialog.doValidate());
+    assertNull(ReadAction.compute((ThrowableComputable<ValidationInfo, Throwable>)() -> myDialog.doValidate()));
+  }
+
+  @Test
+  public void testSourceSets() {
+    myResDirectory = null;
+    initDialog(true);
+
+    assertEquals(
+      "_main_ (src/main/res), debug (src/debug/res), release (src/release/res), _android_test_ (src/androidTest/res), androidTestDebug (src/androidTestDebug/res)",
+      String.join(", ", myDialog.getSourceSets()));
   }
 }

@@ -49,7 +49,7 @@ public final class Tables {
   }
 
   @VisibleForTesting
-  static @Nullable Border getBorder(boolean selected, boolean focused, @NotNull Function<@NotNull Object, @Nullable Border> getBorder) {
+  static @Nullable Border getBorder(boolean selected, boolean focused, @NotNull Function<Object, Border> getBorder) {
     if (!focused) {
       return getBorder.apply("Table.cellNoFocusBorder");
     }

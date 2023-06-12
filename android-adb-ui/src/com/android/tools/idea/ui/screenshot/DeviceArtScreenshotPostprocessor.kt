@@ -41,6 +41,9 @@ internal class DeviceArtScreenshotPostprocessor : ScreenshotPostprocessor {
     return ImageUtils.cropBlank(framedImage, null) ?: throw IllegalArgumentException("The screenshot is completely transparent")
   }
 
+  override val canClipToDisplayShape: Boolean
+    get() = false
+
   @Suppress("UndesirableClassUsage")
   private fun circularClip(image: BufferedImage, backgroundColor: Color?): BufferedImage {
     val mask = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)

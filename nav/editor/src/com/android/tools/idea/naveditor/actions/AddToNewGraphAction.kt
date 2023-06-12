@@ -20,10 +20,13 @@ import com.android.tools.idea.naveditor.model.createNestedGraph
 import com.android.tools.idea.naveditor.model.moveIntoNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class AddToNewGraphAction(val surface: NavDesignSurface) : AnAction("New Graph") {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun actionPerformed(e: AnActionEvent) {
     if (moveIntoNestedGraph(surface) { surface.currentNavigation.createNestedGraph() }) {
       NavUsageTracker.getInstance(surface.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_NESTED_GRAPH)

@@ -31,22 +31,24 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
+import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executor
 
 /**
  * Class used to receive asynchronous events from the on-device inspector.
+ *
  * @param messenger Communication channel with the on-device inspector.
  * @param onErrorEventListener Function called when a ErrorOccurred event is received.
  * @param onDatabaseAddedListener Function called when a DatabaseOpened event is received.
  * @param taskExecutor to parse responses from on-device inspector
  * @param errorsSideChannel side channel to error logging
- * @param scope the coroutine scoped used to send messages to inspector.
- * The job in this scope must be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
+ * @param scope the coroutine scoped used to send messages to inspector. The job in this scope must
+ *   be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
-class DatabaseInspectorClient constructor(
+class DatabaseInspectorClient
+constructor(
   private val messenger: AppInspectorMessenger,
   private val parentDisposable: Disposable,
   private val onErrorEventListener: (errorMessage: String) -> Unit,
@@ -57,14 +59,11 @@ class DatabaseInspectorClient constructor(
   scope: CoroutineScope,
   errorsSideChannel: ErrorsSideChannel = { _, _ -> }
 ) : DatabaseInspectorClientCommandsChannel {
-  private val dbMessenger = DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
+  private val dbMessenger =
+    DatabaseInspectorMessenger(messenger, scope, taskExecutor, errorsSideChannel)
 
   init {
-    scope.launch {
-      messenger.eventFlow.collect { eventData ->
-        onRawEvent(eventData)
-      }
-    }
+    scope.launch { messenger.eventFlow.collect { eventData -> onRawEvent(eventData) } }
   }
 
   @VisibleForTesting
@@ -74,8 +73,15 @@ class DatabaseInspectorClient constructor(
       event.hasDatabaseOpened() -> {
         val openedDatabase = event.databaseOpened
         invokeLater {
-          val databaseId = SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId)
-          val databaseConnection = LiveDatabaseConnection(parentDisposable, dbMessenger, openedDatabase.databaseId, taskExecutor)
+          val databaseId =
+            SqliteDatabaseId.fromLiveDatabase(openedDatabase.path, openedDatabase.databaseId)
+          val databaseConnection =
+            LiveDatabaseConnection(
+              parentDisposable,
+              dbMessenger,
+              openedDatabase.databaseId,
+              taskExecutor
+            )
           onDatabaseAddedListener(databaseId, databaseConnection)
         }
       }
@@ -84,7 +90,12 @@ class DatabaseInspectorClient constructor(
       }
       event.hasDatabaseClosed() -> {
         invokeLater {
-          onDatabaseClosed(SqliteDatabaseId.fromLiveDatabase(event.databaseClosed.path, event.databaseClosed.databaseId))
+          onDatabaseClosed(
+            SqliteDatabaseId.fromLiveDatabase(
+              event.databaseClosed.path,
+              event.databaseClosed.databaseId
+            )
+          )
         }
       }
       event.hasErrorOccurred() -> {
@@ -95,8 +106,8 @@ class DatabaseInspectorClient constructor(
     }
   }
   /**
-   * Sends a command to the on-device inspector to start looking for database connections.
-   * When the on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
+   * Sends a command to the on-device inspector to start looking for database connections. When the
+   * on-device inspector discovers a connection, it sends back an asynchronous databaseOpen event.
    */
   suspend fun startTrackingDatabaseConnections() {
     dbMessenger.sendCommand(
@@ -105,14 +116,16 @@ class DatabaseInspectorClient constructor(
   }
 
   /**
-   * If [keepOpen] is true, sends a command to the on-device inspector to force connections to databases to stay open,
-   * even after the app closes them.
-   * Return a future boolean that is true if `KeepDatabasesOpen` is enabled, false otherwise and null if the command failed.
+   * If [keepOpen] is true, sends a command to the on-device inspector to force connections to
+   * databases to stay open, even after the app closes them. Return a future boolean that is true if
+   * `KeepDatabasesOpen` is enabled, false otherwise and null if the command failed.
    */
   override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> {
-    val response = dbMessenger.sendCommandAsync(
-      Command.newBuilder().setKeepDatabasesOpen(KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen))
-    )
+    val response =
+      dbMessenger.sendCommandAsync(
+        Command.newBuilder()
+          .setKeepDatabasesOpen(KeepDatabasesOpenCommand.newBuilder().setSetEnabled(keepOpen))
+      )
 
     return response.transform(taskExecutor) {
       return@transform when (it.oneOfCase) {
@@ -123,27 +136,32 @@ class DatabaseInspectorClient constructor(
   }
 
   override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> {
-    return dbMessenger.sendCommandAsync(
-      Command.newBuilder()
-        .setAcquireDatabaseLock(AcquireDatabaseLockCommand.newBuilder().setDatabaseId(databaseId))
-    ).transform(taskExecutor) { response ->
-      when (response.oneOfCase) {
-        Response.OneOfCase.ACQUIRE_DATABASE_LOCK -> response.acquireDatabaseLock.lockId
-        Response.OneOfCase.ERROR_OCCURRED -> null // TODO(161081452): log the error
-        else -> null // TODO(161081452): log an error
+    return dbMessenger
+      .sendCommandAsync(
+        Command.newBuilder()
+          .setAcquireDatabaseLock(AcquireDatabaseLockCommand.newBuilder().setDatabaseId(databaseId))
+      )
+      .transform(taskExecutor) { response ->
+        when (response.oneOfCase) {
+          Response.OneOfCase.ACQUIRE_DATABASE_LOCK -> response.acquireDatabaseLock.lockId
+          Response.OneOfCase.ERROR_OCCURRED -> null // TODO(161081452): log the error
+          else -> null // TODO(161081452): log an error
+        }
       }
-    }
   }
 
   override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> {
-    return dbMessenger.sendCommandAsync(
-      Command.newBuilder().setReleaseDatabaseLock(ReleaseDatabaseLockCommand.newBuilder().setLockId(lockId))
-    ).transform(taskExecutor) { response ->
-      when (response.oneOfCase) {
-        Response.OneOfCase.ACQUIRE_DATABASE_LOCK -> Unit
-        Response.OneOfCase.ERROR_OCCURRED -> Unit // TODO(161081452): log the error
-        else -> Unit // TODO(161081452): log an error
+    return dbMessenger
+      .sendCommandAsync(
+        Command.newBuilder()
+          .setReleaseDatabaseLock(ReleaseDatabaseLockCommand.newBuilder().setLockId(lockId))
+      )
+      .transform(taskExecutor) { response ->
+        when (response.oneOfCase) {
+          Response.OneOfCase.ACQUIRE_DATABASE_LOCK -> Unit
+          Response.OneOfCase.ERROR_OCCURRED -> Unit // TODO(161081452): log the error
+          else -> Unit // TODO(161081452): log an error
+        }
       }
-    }
   }
 }

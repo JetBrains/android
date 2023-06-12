@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,37 +34,49 @@ abstract class PlatformArtifactDependencyModelImpl extends ArtifactDependencyMod
     super(configurationElement, configurationName, maintainer);
   }
 
-  static class MapNotation extends ArtifactDependencyModelImpl.MapNotation implements PlatformDependencyModel {
+  private static @NotNull GradleDslLiteral createArgument(@NotNull GradlePropertiesDslElement parent,
+                                                          @NotNull String configurationName,
+                                                          boolean enforced) {
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    String methodName = enforced ? "enforcedPlatform" : "platform";
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, methodName);
+    GradleDslLiteral argument = new GradleDslLiteral(methodCall, GradleNameElement.empty());
+    methodCall.addNewArgument(argument);
+    parent.setNewElement(methodCall);
+    return argument;
+  }
+
+  private static void initializeArgument(@NotNull GradleDslLiteral argument, @NotNull Object value) {
+    argument.setValue(value);
+  }
+
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ArtifactDependencySpec dependency,
+                        boolean enforced) {
+    GradleDslLiteral argument = createArgument(parent, configurationName, enforced);
+    initializeArgument(argument, createCompactNotationForLiterals(argument, dependency));
+  }
+
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ReferenceTo reference,
+                        boolean enforced) {
+    GradleDslLiteral argument = createArgument(parent, configurationName, enforced);
+    initializeArgument(argument, reference);
+  }
+
+  static class DynamicNotation extends ArtifactDependencyModelImpl.DynamicNotation implements PlatformDependencyModel{
     String methodName;
 
-    MapNotation(@NotNull String configurationName,
-                @NotNull GradleDslExpressionMap dslElement,
+    DynamicNotation(@NotNull String configurationName,
+                @NotNull GradleDslExpression dslExpression,
                 @Nullable GradleDslClosure configurationElement,
                 @NotNull Maintainer maintainer,
                 @NotNull String methodName) {
-      super(configurationName, dslElement, configurationElement, maintainer);
-      this.methodName = methodName;
-    }
-
-    @Override
-    public boolean enforced() {
-      return methodName.equals("enforcedPlatform");
-    }
-  }
-
-  static class CompactNotation extends ArtifactDependencyModelImpl.CompactNotation implements PlatformDependencyModel {
-    String methodName;
-
-    CompactNotation(@NotNull String configurationName,
-                    @NotNull GradleDslSimpleExpression dslExpression,
-                    @Nullable GradleDslClosure configurationElement,
-                    @NotNull Maintainer maintainer,
-                    @NotNull String methodName) {
       super(configurationName, dslExpression, configurationElement, maintainer);
       this.methodName = methodName;
     }
-
-    @Override
     public boolean enforced() {
       return methodName.equals("enforcedPlatform");
     }

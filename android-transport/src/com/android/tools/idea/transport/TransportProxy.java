@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -109,6 +110,16 @@ public class TransportProxy {
     myProxyService.disconnect();
     // Shutdown instead of shutdown now so that the proxy services have a chance to finish sending through their data.
     myProxyServer.shutdown();
+
+    if (!myTransportChannel.isShutdown()) {
+      myTransportChannel.shutdown();
+    }
+    try {
+      myTransportChannel.awaitTermination(2, TimeUnit.SECONDS);
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @NotNull

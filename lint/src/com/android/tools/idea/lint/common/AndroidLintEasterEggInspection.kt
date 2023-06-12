@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.CommentDetector
 
-class AndroidLintEasterEggInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.easter.egg"), CommentDetector.EASTER_EGG
-)
+class AndroidLintEasterEggInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.easter.egg"),
+    CommentDetector.EASTER_EGG
+  )

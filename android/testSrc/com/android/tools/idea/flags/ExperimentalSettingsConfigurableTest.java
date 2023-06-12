@@ -42,19 +42,19 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
   }
 
   public void testIsModified() {
-    myConfigurable.setUseL2DependenciesInSync(true);
+    myConfigurable.enableL2DependenciesInSync(true);
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     assertTrue(myConfigurable.isModified());
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
     assertFalse(myConfigurable.isModified());
 
-    myConfigurable.setSkipGradleTasksList(true);
+    myConfigurable.enableConfigureAllGradleTasks(false);
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
     assertTrue(myConfigurable.isModified());
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
     assertFalse(myConfigurable.isModified());
 
-    myConfigurable.setTraceGradleSync(true);
+    myConfigurable.enableTraceGradleSync(true);
     mySettings.TRACE_GRADLE_SYNC = false;
     assertTrue(myConfigurable.isModified());
     mySettings.TRACE_GRADLE_SYNC = true;
@@ -72,20 +72,27 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
     assertFalse(myConfigurable.isModified());
 
-    myConfigurable.setEnableParallelSync(true);
+    myConfigurable.enableParallelSync(true);
     mySettings.ENABLE_PARALLEL_SYNC = false;
     assertTrue(myConfigurable.isModified());
     mySettings.ENABLE_PARALLEL_SYNC = true;
     assertFalse(myConfigurable.isModified());
+
+    myConfigurable.enableGradleApiOptimization(true);
+    mySettings.ENABLE_GRADLE_API_OPTIMIZATION = false;
+    assertTrue(myConfigurable.isModified());
+    mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
+    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
-    myConfigurable.setUseL2DependenciesInSync(true);
-    myConfigurable.setSkipGradleTasksList(true);
-    myConfigurable.setTraceGradleSync(true);
+    myConfigurable.enableL2DependenciesInSync(true);
+    myConfigurable.enableConfigureAllGradleTasks(false);
+    myConfigurable.enableTraceGradleSync(true);
     myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
     myConfigurable.setTraceProfileSelection(DEFAULT);
-    myConfigurable.setEnableParallelSync(true);
+    myConfigurable.enableParallelSync(true);
+    myConfigurable.enableGradleApiOptimization(true);
 
     myConfigurable.apply();
 
@@ -95,15 +102,15 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals("/tmp/text1.profile", mySettings.TRACE_PROFILE_LOCATION);
     assertEquals(DEFAULT, mySettings.TRACE_PROFILE_SELECTION);
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
-    assertTrue(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
+    assertTrue(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
 
-    myConfigurable.setUseL2DependenciesInSync(false);
-    myConfigurable.setSkipGradleTasksList(false);
-    myConfigurable.setTraceGradleSync(false);
+    myConfigurable.enableL2DependenciesInSync(false);
+    myConfigurable.enableConfigureAllGradleTasks(true);
+    myConfigurable.enableTraceGradleSync(false);
     myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
     myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
-    myConfigurable.setEnableParallelSync(false);
-    myConfigurable.setEnableVersionCatalogParsing(false);
+    myConfigurable.enableParallelSync(false);
+    myConfigurable.enableGradleApiOptimization(false);
 
     myConfigurable.apply();
 
@@ -113,7 +120,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals("/tmp/text2.profile", mySettings.TRACE_PROFILE_LOCATION);
     assertEquals(SPECIFIED_LOCATION, mySettings.TRACE_PROFILE_SELECTION);
     assertFalse(mySettings.ENABLE_PARALLEL_SYNC);
-    assertFalse(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
+    assertFalse(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
   }
 
   public void testReset() {
@@ -123,15 +130,17 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.TRACE_PROFILE_LOCATION = "/tmp/text1.profile";
     mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
     mySettings.ENABLE_PARALLEL_SYNC = true;
+    mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
 
     myConfigurable.reset();
 
-    assertTrue(myConfigurable.isUseL2DependenciesInSync());
-    assertTrue(myConfigurable.skipGradleTasksList());
-    assertTrue(myConfigurable.traceGradleSync());
+    assertTrue(myConfigurable.isL2DependenciesInSyncEnabled());
+    assertFalse(myConfigurable.isConfigureAllGradleTasksEnabled());
+    assertTrue(myConfigurable.isTraceGradleSyncEnabled());
     assertEquals("/tmp/text1.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(DEFAULT, myConfigurable.getTraceProfileSelection());
-    assertTrue(myConfigurable.enableParallelSync());
+    assertTrue(myConfigurable.isParallelSyncEnabled());
+    assertTrue(myConfigurable.isGradleApiOptimizationEnabled());
 
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
@@ -139,19 +148,21 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.TRACE_PROFILE_LOCATION = "/tmp/text2.profile";
     mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
     mySettings.ENABLE_PARALLEL_SYNC = false;
+    mySettings.ENABLE_GRADLE_API_OPTIMIZATION = false;
 
     myConfigurable.reset();
 
-    assertFalse(myConfigurable.isUseL2DependenciesInSync());
-    assertFalse(myConfigurable.skipGradleTasksList());
-    assertFalse(myConfigurable.traceGradleSync());
+    assertFalse(myConfigurable.isL2DependenciesInSyncEnabled());
+    assertTrue(myConfigurable.isConfigureAllGradleTasksEnabled());
+    assertFalse(myConfigurable.isTraceGradleSyncEnabled());
     assertEquals("/tmp/text2.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(SPECIFIED_LOCATION, myConfigurable.getTraceProfileSelection());
-    assertFalse(myConfigurable.enableParallelSync());
+    assertFalse(myConfigurable.isParallelSyncEnabled());
+    assertFalse(myConfigurable.isGradleApiOptimizationEnabled());
   }
 
   public void testIsTraceProfileValid() {
-    myConfigurable.setTraceGradleSync(true);
+    myConfigurable.enableTraceGradleSync(true);
     myConfigurable.setTraceProfileLocation("");
     myConfigurable.setTraceProfileSelection(DEFAULT);
     assertFalse(myConfigurable.isTraceProfileInvalid());

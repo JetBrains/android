@@ -70,6 +70,11 @@ import java.util.IdentityHashMap
  * recognized. It provides a minimal set of capabilities and opts out of most optional behaviors.
  */
 class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
+
+  override fun getBootClasspath(module: Module): Collection<String> {
+    throw IllegalStateException("Not implemented")
+  }
+
   override val id: String = ""
 
   override fun getDefaultApkFile(): VirtualFile? = null
@@ -152,14 +157,11 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
         return AndroidRootUtil.getExternalLibraries(module).map { file: VirtualFile? -> VfsUtilCore.virtualToIoFile(file!!) }
       }
 
-      override fun isClassFileOutOfDate(module: Module, fqcn: String, classFile: VirtualFile): Boolean {
-        return false
-      }
     }
   }
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
-    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders {
+    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
       return createSourceProvidersForLegacyModule(facet)
     }
   }
@@ -174,4 +176,5 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       .filter { facet -> facet.sourceProviders.mainManifestFile?.let(projectScope::contains) == true }
       .toList()
   }
+
 }

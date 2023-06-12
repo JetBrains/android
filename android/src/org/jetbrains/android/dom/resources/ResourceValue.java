@@ -21,8 +21,8 @@ import static com.android.SdkConstants.PREFIX_THEME_REF;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.utils.DataBindingUtils;
 import com.android.utils.HashCodes;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.pom.java.LanguageLevel;
@@ -76,7 +76,7 @@ public class ResourceValue {
     if (s == null) {
       return null;
     }
-    if ((s.startsWith(PREFIX_RESOURCE_REF) || s.startsWith(PREFIX_THEME_REF)) && !DataBindingUtil.isBindingExpression(s)) {
+    if ((s.startsWith(PREFIX_RESOURCE_REF) || s.startsWith(PREFIX_THEME_REF)) && !DataBindingUtils.isBindingExpression(s)) {
       ResourceValue reference = reference(s, true);
       return reference != null && (!requireValid || reference.isValidReference()) ? reference : null;
     }

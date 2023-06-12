@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang
 
+import com.android.tools.idea.lint.common.findAnnotation
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
@@ -41,7 +42,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -124,7 +124,8 @@ class IntDefCompletionContributorJava : CompletionContributor() {
    * Returns values for the first encountered @IntDef annotation.
    */
   private fun PsiReferenceExpression.getIntDefValues(): List<String>? {
-    when (val call = parentOfType<PsiCall>() ?: parentOfType<PsiAnnotation>()) {
+    val call = parentOfType<PsiCall>() ?: parentOfType<PsiAnnotation>()
+    when (call) {
       is PsiCall -> {
         val calleeElement = call.resolveMethod() ?: return null
         val argumentIndex = call.argumentList?.expressions?.indexOf(this) ?: return null
@@ -137,7 +138,7 @@ class IntDefCompletionContributorJava : CompletionContributor() {
         }
         if (calleeElement == null) return null
 
-        val argumentName = this.parent.safeAs<PsiNameValuePair>()?.name
+        val argumentName = (this.parent as? PsiNameValuePair)?.name
         return getIntDefValues(calleeElement.navigationElement, -1, argumentName)
       }
     }
@@ -202,7 +203,7 @@ private fun valuesFromPsiAnnotation(intDefAnnotation: PsiAnnotation): List<Strin
  */
 private fun valuesFromKtAnnotationEntry(intDefAnnotation: KtAnnotationEntry): List<String> {
   val values = intDefAnnotation.valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == valuesAttrName }?.getArgumentExpression()
-  val ktNamedReferences = values.safeAs<KtCollectionLiteralExpression>()?.getInnerExpressions() ?: return emptyList()
+  val ktNamedReferences = (values as? KtCollectionLiteralExpression)?.getInnerExpressions() ?: return emptyList()
   return ktNamedReferences.mapNotNull { it.text }
 }
 

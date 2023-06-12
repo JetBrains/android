@@ -1,0 +1,14 @@
+dependencies {
+  implementation gradleApi()
+}
+
+apply plugin: "java-gradle-plugin"
+
+gradlePlugin {
+  plugins {
+    sample {
+      id = 'AlwaysRunningBuildSrcPlugin'
+      implementationClass = 'org.example.buildsrc.AlwaysRunningBuildSrcPlugin'
+    }
+  }
+}

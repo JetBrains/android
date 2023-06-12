@@ -188,7 +188,7 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
 
     // Check that recreating AppResourceRepository object doesn't affect the ResourceNotificationManager.
     clear(called1, calledValue1, called2, calledValue2);
-    ResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
+    StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
     IdeResourcesUtil.createValueResource(getProject(), resourceDir, "color4", ResourceType.COLOR, "colors.xml",
                                          Collections.singletonList("values"), "#ff2300");
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);

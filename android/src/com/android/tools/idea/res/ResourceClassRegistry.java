@@ -40,7 +40,7 @@ public class ResourceClassRegistry {
   /**
    * Adds definition of a new R class to the registry. The R class will contain resources from the given repo in the given namespace and
    * will be generated when the {@link #findClassDefinition} is called with a class name that matches the {@code packageName} and
-   * the {@code repo} resource repository can be found in the {@link ResourceRepositoryManager} passed to {@link #findClassDefinition}.
+   * the {@code repo} resource repository can be found in the {@link StudioResourceRepositoryManager} passed to {@link #findClassDefinition}.
    *
    * <p>Note that the {@link ResourceClassRegistry} is a project-level component, so the same R class may be generated in different ways
    * depending on the repository used. In non-namespaced project, the repository is the full {@link AppResourceRepository} of the module
@@ -65,7 +65,7 @@ public class ResourceClassRegistry {
 
   /** Looks up a class definition for the given name, if possible */
   @Nullable
-  public byte[] findClassDefinition(@NotNull String className, @NotNull ResourceRepositoryManager repositoryManager) {
+  public byte[] findClassDefinition(@NotNull String className, @NotNull StudioResourceRepositoryManager repositoryManager) {
     int index = className.lastIndexOf('.');
     if (index > 1 && className.charAt(index + 1) == 'R' && (index == className.length() - 2 || className.charAt(index + 2) == '$')) {
       // If this is an R class or one of its inner classes.

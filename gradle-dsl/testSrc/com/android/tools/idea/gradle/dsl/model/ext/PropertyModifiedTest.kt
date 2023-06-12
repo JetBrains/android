@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext
 
+import com.android.tools.idea.gradle.dsl.TestFileNameImpl
 import com.android.tools.idea.gradle.dsl.TestFileNameImpl.PROPERTY_MODIFIED_TEST_FILE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
+import org.junit.Assume
 import org.junit.Test
 
 class PropertyModifiedTest : GradleFileModelTestCase() {
@@ -164,7 +166,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
     val prop5Model = extModel.findProperty("prop5")
     assertFalse(prop5Model.isModified)
-    val newListValue = prop5Model.addListValue()
+    val newListValue = prop5Model.addListValue()!!
     // List values are created in the call to addListValue
     assertTrue(newListValue.isModified)
     newListValue.setValue(55)
@@ -193,7 +195,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     assertTrue(prop5Model.isModified)
 
     // Add it back
-    val newListVal = prop5Model.addListValueAt(1)
+    val newListVal = prop5Model.addListValueAt(1)!!
     assertTrue(newListVal.isModified)
     newListVal.setValue("val2")
     assertFalse(newListVal.isModified)
@@ -270,6 +272,7 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
 
   @Test
   fun testIsModifiedDependencies() {
+    Assume.assumeTrue("Only groovy parser create dependency as list model", isGroovy)
     writeToBuildFile(PROPERTY_MODIFIED_TEST_FILE)
 
     val buildModel = gradleBuildModel
@@ -313,6 +316,16 @@ class PropertyModifiedTest : GradleFileModelTestCase() {
     assertFalse(secondDependencyModel.extension().isModified)
     assertFalse(secondDependencyModel.version().isModified)
     assertFalse(secondDependencyModel.completeModel().isModified)
+  }
+
+  @Test
+  fun testIsModifiedDependency2(){
+    writeToBuildFile(TestFileNameImpl.PROPERTY_MODIFIED_TEST_FILE2)
+
+    val buildModel = gradleBuildModel
+    val firstDependencyModel = buildModel.dependencies().artifacts()[0]!!
+
+    assertFalse(firstDependencyModel.group().isModified)
   }
 
   @Test

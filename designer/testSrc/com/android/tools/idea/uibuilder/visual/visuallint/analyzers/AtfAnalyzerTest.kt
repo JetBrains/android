@@ -86,7 +86,7 @@ class AtfAnalyzerTest {
     val file = psiFile.virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file)
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, file, configuration)
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
 
     RenderTestUtil.withRenderTask(facet, file, configuration, true) { task: RenderTask ->
       task.setDecorations(false)

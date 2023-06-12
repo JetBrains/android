@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyn
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
-import com.android.tools.idea.gradle.dsl.parser.elements.FakeMethodElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -33,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
@@ -115,7 +115,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     return element.psiElement
   }
 
-  private fun maybeQuoteBits(parts: List<String>) = parts.map { if (it.contains('.')) "`$it`" else it }.joinToString(".")
+  internal fun maybeQuoteBits(parts: List<String>) = parts.map { if (it.contains('.')) "`$it`" else it }.joinToString(".")
 
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
@@ -453,7 +453,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
-    val fakeElement = FakeMethodElement(methodCall)
+    val fakeElement = GradleDslLiteral(methodParent, GradleNameElement.fake(methodCall.methodName))
     val methodName = maybeTrimForParent(fakeElement, this).externalNameParts.joinToString(".")
 
     val statementText =
@@ -657,18 +657,28 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     maybeUpdateName(expressionMap, this)
   }
 
-  private fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
+  fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
     expression.psiElement?.also { return it }
 
     val parentPsi = expression.parent?.create() ?: return null
-    val firstLiteral = expression.currentElements[0] as? GradleDslLiteral ?: return null
-
-    expression.psiElement = parentPsi
-    val literalPsi = createDslElement(firstLiteral)
-    expression.psiElement = literalPsi
-    applyDslLiteral(firstLiteral)
-    firstLiteral.reset()
-    firstLiteral.commit()
+    when (val firstElement = expression.currentElements[0]) {
+      is GradleDslLiteral -> {
+        expression.psiElement = parentPsi
+        val literalPsi = createDslElement(firstElement)
+        expression.psiElement = literalPsi
+        applyDslLiteral(firstElement)
+        firstElement.reset()
+        firstElement.commit()
+      }
+      is GradleDslMethodCall -> {
+        expression.psiElement = parentPsi
+        val methodCallPsi = createDslMethodCall(firstElement)
+        expression.psiElement = methodCallPsi
+        applyDslMethodCall(firstElement)
+        firstElement.commit()
+      }
+      else -> return null
+    }
     return expression.psiElement
   }
 

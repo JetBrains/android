@@ -50,10 +50,11 @@ class DesignAssetCellRenderer(
 
     val iconProvider: AssetIconProvider = assetPreviewManager.getPreviewProvider(assetToRender.type)
     label.icon = iconProvider.getIcon(assetToRender,
-                           thumbnailSize.width,
-                           thumbnailSize.height,
-                           { list.getCellBounds(index, index)?.let(list::repaint) },
-                           { index in list.firstVisibleIndex..list.lastVisibleIndex })
+                                      thumbnailSize.width,
+                                      thumbnailSize.height,
+                                      list,
+                                      { list.getCellBounds(index, index)?.let(list::repaint) },
+                                      { index in list.firstVisibleIndex..list.lastVisibleIndex })
     // DefaultIconProvider provides an empty icon, to avoid comparison, we just set the thumbnail to null.
     assetView.thumbnail = if (iconProvider is DefaultIconProvider) null else label
     assetView.withChessboard = iconProvider.supportsTransparency

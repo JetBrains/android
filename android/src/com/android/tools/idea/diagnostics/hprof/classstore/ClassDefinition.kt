@@ -157,6 +157,8 @@ class ClassDefinition(val name: String,
     return ClassDefinition(newName, id, superClassId, instanceSize, superClassOffset, refInstanceFields, primitiveInstanceFields,
                            constantFields, staticFields)
   }
+
+  fun hasRefField(fieldName: String): Boolean = refInstanceFields.any { field -> field.name == fieldName }
 }
 
 

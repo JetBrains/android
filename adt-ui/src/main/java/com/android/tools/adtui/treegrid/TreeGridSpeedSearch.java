@@ -42,19 +42,8 @@ public class TreeGridSpeedSearch<T> extends SpeedSearchBase<TreeGrid<T>> {
   }
 
   public TreeGridSpeedSearch(@NotNull TreeGrid<T> grid, @Nullable Function<T, String> converter) {
-    super(grid, null);
+    super(grid);
     myConverter = converter;
-  }
-
-  public static <T> TreeGridSpeedSearch<T> installOn(@NotNull TreeGrid<T> grid, @Nullable Function<T, String> converter) {
-    TreeGridSpeedSearch<T> search = new TreeGridSpeedSearch<>(grid, converter);
-    search.setupListeners();
-    return search;
-  }
-
-  @Override
-  public void setupListeners() {
-    super.setupListeners();
     addChangeListener(event -> popupChange());
   }
 

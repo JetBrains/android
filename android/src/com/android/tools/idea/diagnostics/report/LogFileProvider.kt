@@ -21,10 +21,7 @@ import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import java.nio.file.Paths
 
-private val THREAD_DUMP_REGEX = Regex("^threadDumps-.*")
-private val UI_FREEZE_REGEX = Regex("^uiFreeze-.*")
 private val JVM_CRASH_REGEX = Regex("^java_error_in_STUDIO_[0-9]+.log$")
-private val HEAP_REPORT_REGEX = Regex("heapReports")
 
 /**
  * PathProvider contains various system paths used by the log file provider. It is used as a parameter in
@@ -42,6 +39,7 @@ val DefaultPathProvider = PathProvider(PathManager.getLogPath(),
  * that they can be included in the diagnostic summary report.
  */
 class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSummaryFileProvider {
+  override val name: String = "Logs"
   override fun getFiles(project: Project?): List<FileInfo> {
     val fileInfo = mutableListOf<FileInfo>()
 
@@ -56,18 +54,15 @@ class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSumma
 
     pathProvider.customOptionsDir?.let {
       val customOptionsPath = Paths.get(it)
-      val propertiesFilePath = Paths.get(PathManager.PROPERTIES_FILE_NAME)
-      fileInfo.add(FileInfo(customOptionsPath.resolve(propertiesFilePath), propertiesFilePath))
+      val propertiesFileName = Paths.get(PathManager.PROPERTIES_FILE_NAME)
+      val propertiesFilePath = customOptionsPath.resolve(propertiesFileName)
+      fileInfo.add(FileInfo(propertiesFilePath, propertiesFileName))
     }
 
     pathProvider.homeDir?.let {
       fileInfo.addAll(getFiles(Paths.get(it)))
     }
 
-    // add all files located in thread dump directories, ui freeze directories, and heap report directory
-    for (regex in arrayOf(THREAD_DUMP_REGEX, UI_FREEZE_REGEX, HEAP_REPORT_REGEX)) {
-      fileInfo.addAll(getFilesInDirectories(logDirPath, regex).toList())
-    }
     return fileInfo
   }
 
@@ -78,30 +73,6 @@ class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSumma
     val files = root.toFile().listFiles() ?: return@sequence
     for (file in files) {
       if (file.isFile && file.name.matches(JVM_CRASH_REGEX)) {
-        val path = file.toPath()
-        yield(FileInfo(path, root.relativize(path)))
-      }
-    }
-  }
-
-  /**
-   * getFilesInDirectories
-   * For all directories matching the regex string, return all files located in those directories.
-   * This will not recurse into subdirectories of matching directories.
-   */
-  private fun getFilesInDirectories(root: Path, regex: Regex) = sequence {
-    val directories = root.toFile().listFiles { _, name ->
-      val matches = name.matches(regex)
-      val isDir = root.resolve(name).toFile().isDirectory
-      matches && isDir
-    } ?: return@sequence
-
-    for (dir in directories) {
-      val files = dir.listFiles { file, name: String ->
-        file.resolve(name).isFile
-      } ?: continue
-
-      for (file in files) {
         val path = file.toPath()
         yield(FileInfo(path, root.relativize(path)))
       }

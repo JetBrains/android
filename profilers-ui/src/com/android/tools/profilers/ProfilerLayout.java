@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Common layout constants that are shared across profiler views.
  */
-public final class ProfilerLayout {
+public class ProfilerLayout {
 
   /**
    * Common length for spacing between axis tick markers

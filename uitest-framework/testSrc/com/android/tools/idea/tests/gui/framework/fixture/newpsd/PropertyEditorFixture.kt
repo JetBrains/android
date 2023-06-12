@@ -23,7 +23,6 @@ import org.fest.swing.edt.GuiQuery
 import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTextComponentFixture
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Container
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
@@ -43,6 +42,11 @@ class PropertyEditorFixture(
   fun selectItem(text: String) {
     val comboBoxFixture = createComboBoxFixture()
     comboBoxFixture.selectItem(text)
+  }
+
+  fun selectItemWithIndex(index: Int) {
+    val comboBoxFixture = createComboBoxFixture()
+    comboBoxFixture.selectItem(index)
   }
 
   fun selectItemWithKeyboard(text: String, andTab: Boolean = false) {
@@ -90,7 +94,7 @@ class PropertyEditorFixture(
       val renderer = comboBox.renderer
       val rendererComponent = renderer.getListCellRendererComponent(
           REFERENCE_JLIST, item, index, true, true)
-      rendererComponent.safeAs<SimpleColoredComponent>()?.toString().orEmpty()
+      (rendererComponent as? SimpleColoredComponent)?.toString().orEmpty()
     }
     return comboBoxFixture
   }

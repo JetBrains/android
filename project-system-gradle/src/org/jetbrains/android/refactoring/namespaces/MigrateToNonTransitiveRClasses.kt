@@ -15,7 +15,8 @@
  */
 package org.jetbrains.android.refactoring.namespaces
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.annotations.concurrency.UiThread
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -99,14 +100,17 @@ class MigrateToNonTransitiveRClassesAction : BaseRefactoringAction() {
  * Since there's no user input required to start the refactoring, it just runs a fresh [MigrateToResourceNamespacesProcessor].
  */
 class MigrateToNonTransitiveRClassesHandler : RefactoringActionHandler {
+  @UiThread
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) = invoke(project)
+
+  @UiThread
   override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) = invoke(project)
 
   private fun invoke(project: Project) {
     val pluginInfo = AndroidPluginInfo.find(project)
 
     // If for some reason Android Gradle Plugin version cannot be found, assume users have the correct version for the refactoring ie. 7.0.0
-    val pluginVersion = pluginInfo?.pluginVersion ?: GradleVersion(7,0,0)
+    val pluginVersion = pluginInfo?.pluginVersion ?: AgpVersion(7, 0, 0)
 
     // Android Gradle Plugin version less than 4.2.0 is not supported.
     if (!pluginVersion.isAtLeast(4, 2, 0,"alpha", 0, true)) {
@@ -130,29 +134,32 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
   project: Project,
   private val facetsToMigrate: Collection<AndroidFacet>,
   private val updateTopLevelGradleProperties: Boolean,
-  private val gradleVersion: GradleVersion
+  private val agpVersion: AgpVersion
 ) : BaseRefactoringProcessor(project) {
 
   val uuid = UUID.randomUUID().toString()
 
   companion object {
+    private val AGP_NON_TRANSITIVE_ENABLED_BY_DEFAULT = AgpVersion.parse("8.0.0-alpha08")
+    private val AGP_NON_TRANSITIVE_V2 = AgpVersion.parse("7.0.0-alpha01")
+    private val AGP_NON_TRANSITIVE_V1 = AgpVersion.parse("4.2.0-alpha01")
     private val LOG = Logger.getInstance(BaseRefactoringProcessor::class.java)
 
-    fun forSingleModule(facet: AndroidFacet, gradleVersion: GradleVersion): MigrateToNonTransitiveRClassesProcessor {
+    fun forSingleModule(facet: AndroidFacet, agpVersion: AgpVersion): MigrateToNonTransitiveRClassesProcessor {
       return MigrateToNonTransitiveRClassesProcessor(
         facet.module.project,
         setOf(facet),
         updateTopLevelGradleProperties = false,
-        gradleVersion
+        agpVersion
       )
     }
 
-    fun forEntireProject(project: Project, gradleVersion: GradleVersion): MigrateToNonTransitiveRClassesProcessor {
+    fun forEntireProject(project: Project, agpVersion: AgpVersion): MigrateToNonTransitiveRClassesProcessor {
       return MigrateToNonTransitiveRClassesProcessor(
         project,
         facetsToMigrate = findFacetsToMigrate(project),
         updateTopLevelGradleProperties = true,
-        gradleVersion
+        agpVersion
       )
     }
   }
@@ -176,7 +183,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     trackProcessorUsage(FIND_USAGES, usages.size)
     if (updateTopLevelGradleProperties) {
       val propertiesFile = myProject.getProjectProperties(createIfNotExists = false)
-      if (propertiesFile != null ) {
+      if (propertiesFile != null) {
         return usages.toTypedArray<UsageInfo>() + PropertiesUsageInfo(NON_TRANSITIVE_R_CLASSES_PROPERTY, propertiesFile.containingFile)
       }
     }
@@ -184,8 +191,7 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
   }
 
   override fun customizeUsagesView(viewDescriptor: UsageViewDescriptor, usageView: UsageView) {
-    val shouldRecommendPluginUpgrade = gradleVersion.isAtLeast(4, 2, 0,"alpha", 0, true) &&
-                                       !gradleVersion.isAtLeast(7, 0, 0, "alpha", 0, true)
+    val shouldRecommendPluginUpgrade = agpVersion >= AGP_NON_TRANSITIVE_V1 && agpVersion < AGP_NON_TRANSITIVE_V2
     val hasUncommittedChanges = doesProjectHaveUncommittedChanges()
     if (hasUncommittedChanges || shouldRecommendPluginUpgrade) {
       val panel = JBPanel<JBPanel<*>>(VerticalLayout(5))
@@ -237,28 +243,30 @@ class MigrateToNonTransitiveRClassesProcessor private constructor(
     }
 
     if (updateTopLevelGradleProperties) {
-      val propertiesFile = myProject.getProjectProperties(createIfNotExists = true)
+      val onByDefault = agpVersion >= AGP_NON_TRANSITIVE_ENABLED_BY_DEFAULT
+      val propertiesFile = myProject.getProjectProperties(createIfNotExists = !onByDefault)
       if (propertiesFile != null) {
         when {
-          gradleVersion.isAtLeast(7, 0, 0, "alpha", 0, true) -> {
+          onByDefault -> {
+            // Only set to true if the property exists, otherwise do nothing.
+            propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true")
+          }
+          agpVersion >= AGP_NON_TRANSITIVE_V2 -> {
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
               NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
           }
-          gradleVersion.isAtLeast(4, 2, 0, "alpha", 0, true) -> {
+          agpVersion >= AGP_NON_TRANSITIVE_V1 -> {
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
               NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
             propertiesFile.findPropertyByKey(NON_TRANSITIVE_APP_R_CLASSES_PROPERTY)?.setValue("true") ?: propertiesFile.addProperty(
               NON_TRANSITIVE_APP_R_CLASSES_PROPERTY, "true")
           }
           else -> {
-            LOG.error("Gradle version too low for MigrateToNonTransitiveRClasses $gradleVersion")
+            LOG.error("AGP version too low for MigrateToNonTransitiveRClasses: $agpVersion")
           }
         }
       }
 
-      myProject.getProjectProperties(createIfNotExists = true)?.apply {
-        findPropertyByKey(NON_TRANSITIVE_R_CLASSES_PROPERTY)?.setValue("true") ?: addProperty(NON_TRANSITIVE_R_CLASSES_PROPERTY, "true")
-      }
       val listener = object : GradleSyncListener {
         override fun syncSkipped(project: Project) = trackProcessorUsage(SYNC_SKIPPED)
         override fun syncFailed(project: Project, errorMessage: String) = trackProcessorUsage(SYNC_FAILED)

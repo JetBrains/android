@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
+import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
@@ -24,6 +25,16 @@ import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
+
+private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
+  ConfigurationListener.CFG_DEVICE or
+  ConfigurationListener.CFG_DEVICE_STATE or
+  ConfigurationListener.CFG_UI_MODE or
+  ConfigurationListener.CFG_NIGHT_MODE or
+  ConfigurationListener.CFG_THEME or
+  ConfigurationListener.CFG_TARGET or
+  ConfigurationListener.CFG_LOCALE or
+  ConfigurationListener.CFG_FONT_SCALE
 
 object ColorBlindModeModelsProvider : VisualizationModelsProvider {
 
@@ -34,18 +45,22 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     }
 
     val virtualFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
 
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
     val models = mutableListOf<NlModel>()
     for (mode in ColorBlindMode.values()) {
-      models.add(NlModel.builder(facet, virtualFile, defaultConfig)
+      val config = defaultConfig.clone()
+      val model = NlModel.builder(facet, virtualFile, config)
                    .withParentDisposable(parent)
-                   .withModelDisplayName(mode.displayName)
                    .withModelTooltip(defaultConfig.toHtmlTooltip())
                    .withComponentRegistrar(NlComponentRegistrar)
-                   .build())
+                   .build()
+      model.modelDisplayName = mode.displayName
+      models.add(model)
+
+      registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)
     }
     return models
   }

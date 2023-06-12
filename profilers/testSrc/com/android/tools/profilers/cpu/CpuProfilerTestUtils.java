@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.cpu.FakeCpuService.FAKE_STOPPING_TIME_MS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestUtils;
@@ -23,12 +22,12 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
-import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
-import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StartTrace;
+import com.android.tools.idea.transport.faketransport.commands.StopTrace;
 import com.android.tools.profiler.proto.Commands;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,10 +41,12 @@ import org.jetbrains.annotations.NotNull;
  * Common constants and methods used across CPU profiler tests.
  * Should not be instantiated.
  */
-public final class CpuProfilerTestUtils {
+public class CpuProfilerTestUtils {
 
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
   public static final String ATRACE_DATA_FILE = CPU_TRACES_DIR + "atrace.ctrace";
+  public static final long FAKE_TRACE_ID = 6L;
+  public static final int FAKE_STOPPING_DURATION_MS = 123;
 
   private CpuProfilerTestUtils() {
   }
@@ -68,33 +69,33 @@ public final class CpuProfilerTestUtils {
   }
 
   public static CpuCapture getValidCapture() throws ExecutionException, InterruptedException {
-    return getCapture(getTraceFile("valid_trace.trace"), CpuTraceType.ART);
+    return getCapture(getTraceFile("valid_trace.trace"), TraceType.ART);
   }
 
   public static CpuCapture getCapture(@NotNull String fullFileName) {
     try {
       File file = TestUtils.resolveWorkspacePath(fullFileName).toFile();
-      return getCapture(file, CpuTraceType.ART);
+      return getCapture(file, TraceType.ART);
     }
     catch (Exception e) {
       throw new RuntimeException("Failed with exception", e);
     }
   }
 
-  public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile, CpuTraceType profilerType) {
+  public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile, TraceType profilerType) {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, profilerType, 0, "");
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "");
   }
 
   public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile,
-                                                               CpuTraceType profilerType,
+                                                               TraceType profilerType,
                                                                int processIdHint,
                                                                String processNameHint) {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, profilerType, processIdHint, processNameHint);
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint);
   }
 
-  public static CpuCapture getCapture(File traceFile, CpuTraceType profilerType) throws ExecutionException, InterruptedException {
+  public static CpuCapture getCapture(File traceFile, TraceType profilerType) throws ExecutionException, InterruptedException {
     return getCaptureFuture(traceFile, profilerType, 0, "").get();
   }
 
@@ -169,9 +170,9 @@ public final class CpuProfilerTestUtils {
   static void startCapturing(CpuProfilerStage stage, FakeTransportService transportService, boolean success)
     throws InterruptedException {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
-    ((StartCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_CPU_TRACE))
-      .setStartStatus(Cpu.TraceStartStatus.newBuilder()
-                        .setStatus(success ? Cpu.TraceStartStatus.Status.SUCCESS : Cpu.TraceStartStatus.Status.FAILURE)
+    ((StartTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE))
+      .setStartStatus(Trace.TraceStartStatus.newBuilder()
+                        .setStatus(success ? Trace.TraceStartStatus.Status.SUCCESS : Trace.TraceStartStatus.Status.FAILURE)
                         .build());
 
     CountDownLatch latch;
@@ -209,11 +210,11 @@ public final class CpuProfilerTestUtils {
     throws InterruptedException {
     // Trace id is needed for the stop response.
     long traceId = stage.getStudioProfilers().getUpdater().getTimer().getCurrentTimeNs();
-    StopCpuTrace stopTraceCommand = (StopCpuTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+    StopTrace stopTraceCommand = (StopTrace)transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE);
     stopTraceCommand.setStopStatus(
-      Cpu.TraceStopStatus.newBuilder()
-        .setStatus(success ? Cpu.TraceStopStatus.Status.SUCCESS : Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED)
-        .setStoppingTimeNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_TIME_MS))
+      Trace.TraceStopStatus.newBuilder()
+        .setStatus(success ? Trace.TraceStopStatus.Status.SUCCESS : Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED)
+        .setStoppingDurationNs(TimeUnit.MILLISECONDS.toNanos(FAKE_STOPPING_DURATION_MS))
         .build());
     stopTraceCommand.setTraceDurationNs(traceDurationNs);
 

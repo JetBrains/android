@@ -54,7 +54,6 @@ import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
-
 @RunWith(JUnit4::class)
 class RemoveKeysActionTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -93,43 +92,31 @@ class RemoveKeysActionTest {
   @Test
   fun doUpdate_disabled_tooFew() {
     // Do not select any rows.
-    whenever(table.selectedRowCount).thenReturn(0)
+    whenever(table.hasSelectedCell()).thenReturn(false)
     removeKeysAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
   }
 
   @Test
   fun doUpdate_enabled() {
-    whenever(table.selectedRowCount).thenReturn(1)
-    removeKeysAction.update(event)
-    assertThat(event.presentation.isEnabled).isTrue()
-  }
-
-  @Test
-  fun doUpdate_enabled_multiple() {
-    whenever(table.selectedRowCount).thenReturn(10)
+    whenever(table.hasSelectedCell()).thenReturn(true)
     removeKeysAction.update(event)
     assertThat(event.presentation.isEnabled).isTrue()
   }
 
   @Test
   fun actionPerformed_nothingSelected() {
-    whenever(table.selectedModelRowIndices).thenReturn(intArrayOf())
+    whenever(table.selectedModelRowIndex).thenReturn(-1)
 
     removeKeysAction.actionPerformed(event)
 
-    val callbackRunnableCaptor: ArgumentCaptor<Runnable> = argumentCaptor()
-    verify(stringResourceWriter)
-        .safeDelete(eq(projectRule.project), eq(emptyList()), capture(callbackRunnableCaptor))
-    verify(panel, never()).reloadData()
-    callbackRunnableCaptor.value.run()
-    verify(panel).reloadData()
     verifyNoMoreInteractions(stringResourceWriter)
   }
 
   @Test
   fun actionPerformed() {
-    whenever(table.selectedModelRowIndices).thenReturn(intArrayOf(3, 5, 7))
+    val index = 3
+    whenever(table.selectedModelRowIndex).thenReturn(index)
 
     removeKeysAction.actionPerformed(event)
 
@@ -137,7 +124,7 @@ class RemoveKeysActionTest {
     verify(stringResourceWriter)
         .safeDelete(
             eq(projectRule.project),
-            eq(resourceItems[3] + resourceItems[5] + resourceItems[7]),
+            eq(resourceItems[index]),
             capture(callbackRunnableCaptor))
     verify(panel, never()).reloadData()
     callbackRunnableCaptor.value.run()

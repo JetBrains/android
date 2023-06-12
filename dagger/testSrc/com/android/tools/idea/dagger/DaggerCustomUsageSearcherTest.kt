@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
-import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.find.FindManager
 import com.intellij.find.impl.FindManagerImpl
@@ -25,7 +26,6 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -33,25 +33,40 @@ import com.intellij.usages.impl.UsageViewImpl
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.junit.Assert
+import org.junit.Ignore
 
-class DaggerCustomUsageSearcherTest : DaggerTestCase() {
+abstract class DaggerCustomUsageSearcherTestBase(private val daggerUsingIndexEnabled: Boolean) :
+  DaggerTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.DAGGER_USING_INDEX_ENABLED.override(daggerUsingIndexEnabled)
+  }
+
+  override fun tearDown() {
+    StudioFlags.DAGGER_USING_INDEX_ENABLED.clearOverride()
+    super.tearDown()
+  }
 
   private fun findAllUsages(targetElement: PsiElement): MutableSet<Usage> {
     val usagesManager = (FindManager.getInstance(project) as FindManagerImpl).findUsagesManager
     val handler = usagesManager.getFindUsagesHandler(targetElement, false)
     Assert.assertNotNull("Cannot find handler for: $targetElement", handler)
-    val usageView = usagesManager.doFindUsages(handler!!.primaryElements,
-                                               handler.secondaryElements,
-                                               handler,
-                                               handler.findUsagesOptions,
-                                               false) as UsageViewImpl
+    val usageView =
+      usagesManager.doFindUsages(
+        handler!!.primaryElements,
+        handler.secondaryElements,
+        handler,
+        handler.findUsagesOptions,
+        false
+      ) as UsageViewImpl
 
     return usageView.usages
   }
 
   fun testProviders() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package myExample;
 
@@ -62,11 +77,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
-      //language=JAVA
+      // language=JAVA
       JavaFileType.INSTANCE,
       """
         package myExample;
@@ -76,15 +92,17 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject String ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val trackerService = TestDaggerAnalyticsTracker()
     project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
@@ -92,81 +110,50 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyModule (1)
       |      provider() (1)
       |       8@Provides String provider() {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
 
     assertThat(trackerService.calledMethods).hasSize(1)
-    assertThat(trackerService.calledMethods.last()).startsWith("trackFindUsagesNodeWasDisplayed owner: CONSUMER time:")
-    assertThat(trackerService.calledMethods.last()
-                 .removePrefix("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ").toInt()).isNotNull()
+    assertThat(trackerService.calledMethods.last())
+      .startsWith("trackFindUsagesNodeWasDisplayed owner: CONSUMER time:")
+    assertThat(
+        trackerService.calledMethods
+          .last()
+          .removePrefix("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ")
+          .toInt()
+      )
+      .isNotNull()
 
-    val usage = findAllUsages(myFixture.elementAtCaret).filterIsInstance<UsageInfo2UsageAdapter>().first()
+    val usage =
+      findAllUsages(myFixture.elementAtCaret).filterIsInstance<UsageInfo2UsageAdapter>().first()
 
     assertThat(trackerService.calledMethods).hasSize(2)
-    assertThat(trackerService.calledMethods.last()).startsWith("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ")
-    assertThat(trackerService.calledMethods.last()
-                 .removePrefix("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ").toInt()).isNotNull()
+    assertThat(trackerService.calledMethods.last())
+      .startsWith("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ")
+    assertThat(
+        trackerService.calledMethods
+          .last()
+          .removePrefix("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ")
+          .toInt()
+      )
+      .isNotNull()
 
     usage.navigate(false)
 
-    assertThat(trackerService.calledMethods.last()).isEqualTo("trackNavigation CONTEXT_USAGES CONSUMER PROVIDER")
+    assertThat(trackerService.calledMethods.last())
+      .isEqualTo("trackNavigation CONTEXT_USAGES CONSUMER PROVIDER")
   }
 
-  fun testProvidersFromKotlin() {
-    myFixture.addFileToProject(
-      "MyClass.kt",
-      //language=kotlin
-      """
-        package example
-
-        import dagger.Provides
-        import dagger.BindsInstance
-        import dagger.Module
-
-        @Module
-        class MyModule {
-          @Provides fun provider():String {}
-          @Provides fun providerInt():Int {}
-          @BindsInstance fun bindsMethod():String {}
-          fun builder(@BindsInstance str:String) {}
-        }
-      """.trimIndent()
-    )
-
-    myFixture.configureByText(
-      //language=JAVA
-      JavaFileType.INSTANCE,
-      """
-        package example;
-
-        import javax.inject.Inject;
-
-        class MyClass {
-          @Inject String ${caret}injectedString;
-        }
-      """.trimIndent()
-    )
-
-    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
-      | Usages in Project Files (3)
-      |  Providers (3)
-      |   ${module.name} (3)
-      |     (3)
-      |     MyClass.kt (3)
-      |      MyModule (3)
-      |       builder (1)
-      |        12fun builder(@BindsInstance str:String) {}
-      |       9@Provides fun provider():String {}
-      |       11@BindsInstance fun bindsMethod():String {}
-      """.trimMargin()
-    )
-  }
+  // The V1 version of this test includes @BindsInstance used in an incorrect way. Unfortunately V1
+  // doesn't recognize the attribute when it's correctly defined. This test method is abstract so
+  // that the two versions can set up the test differently, and then verify the slightly different
+  // resulting usages.
+  abstract fun testProvidersFromKotlin()
 
   fun testInjectedConstructor() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package myExample;
 
@@ -175,11 +162,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         public class MyProvider {
           @Inject public MyProvider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
-      //language=JAVA
+      // language=JAVA
       JavaFileType.INSTANCE,
       """
         package myExample;
@@ -189,12 +177,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject MyProvider ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
@@ -202,23 +192,25 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyProvider (1)
       |      MyProvider() (1)
       |       6@Inject public MyProvider() {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testInjectedConstructor_kotlin() {
     myFixture.addFileToProject(
       "MyProvider.kt",
-      //language=kotlin
+      // language=kotlin
       """
         import javax.inject.Inject
 
         class MyProvider @Inject constructor()
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
-      //language=JAVA
+      // language=JAVA
       JavaFileType.INSTANCE,
       """
         import javax.inject.Inject;
@@ -226,12 +218,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject MyProvider ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
@@ -239,13 +233,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyProvider.kt (1)
       |      MyProvider (1)
       |       3class MyProvider @Inject constructor()
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testBinds() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package myExample;
 
@@ -256,11 +251,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         abstract class MyModule {
           @Binds abstract String bindsMethod(String s) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
-      //language=JAVA
+      // language=JAVA
       JavaFileType.INSTANCE,
       """
         package myExample;
@@ -270,12 +266,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject String ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
@@ -283,14 +281,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyModule (1)
       |      bindsMethod(String) (1)
       |       8@Binds abstract String bindsMethod(String s) {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testBindsFromKotlin() {
     myFixture.addFileToProject(
       "MyClass.kt",
-      //language=kotlin
+      // language=kotlin
       """
         package example
 
@@ -302,11 +301,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           @Binds abstract fun bindsMethod(s: String):String {}
           @Binds abstract fun bindsMethodInt(i: Int):Int {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
-      //language=JAVA
+      // language=JAVA
       JavaFileType.INSTANCE,
       """
         package example;
@@ -316,12 +316,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject String ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
@@ -329,14 +331,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyClass.kt (1)
       |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testBinds_for_param() {
     myFixture.addFileToProject(
       "MyClass.kt",
-      //language=kotlin
+      // language=kotlin
       """
         package example
 
@@ -348,12 +351,13 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           @Binds abstract fun bindsMethod(s: String):String {}
           @Binds abstract fun bindsMethodInt(i: Int):Int {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // JAVA consumer
     myFixture.configureByText(
-      //language=JAVA
+      // language=JAVA
       JavaFileType.INSTANCE,
       """
         package example;
@@ -363,12 +367,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject MyClass(String ${caret}str) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     var presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
@@ -376,23 +382,26 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyClass.kt (1)
       |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
 
     // kotlin consumer
     myFixture.configureByText(
-      //language=kotlin
+      // language=kotlin
       KotlinFileType.INSTANCE,
       """
         import javax.inject.Inject
 
         class MyClass @Inject constructor(${caret}strKotlin: String)
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       | Usages in Project Files (1)
       |  Providers (1)
       |   ${module.name} (1)
@@ -400,15 +409,18 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyClass.kt (1)
       |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testDaggerConsumer() {
     // Dagger provider.
-    myFixture.loadNewFile("example/MyProvider.java",
-      //language=JAVA
-                          """
+    myFixture
+      .loadNewFile(
+        "example/MyProvider.java",
+        // language=JAVA
+        """
         package example;
 
         import javax.inject.Inject;
@@ -416,14 +428,16 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         public class MyProvider {
           @Inject public MyProvider() {}
         }
-      """.trimIndent()
-    ).containingFile
+      """
+          .trimIndent()
+      )
+      .containingFile
 
-    val provider = myFixture.moveCaret("public MyProvi|der()").parentOfType<PsiMethod>()!!
+    val provider: PsiMethod = myFixture.findParentElement("public MyProvi|der()")
 
     // Dagger consumer as param of @Provides-annotated method.
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package example;
 
@@ -434,12 +448,13 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider(MyProvider consumer) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Dagger consumer as param of @Inject-annotated constructor.
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package example;
 
@@ -448,12 +463,13 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         public class MyClass {
           @Inject public MyClass(MyProvider consumer) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Dagger consumer as @Inject-annotated field.
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package example;
 
@@ -462,13 +478,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         public class MyClassWithInjectedField {
           @Inject MyProvider consumer;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Dagger consumer as @Inject-annotated field in Kotlin.
     myFixture.addFileToProject(
       "example/MyClassWithInjectedFieldKt.kt",
-      //language=kotlin
+      // language=kotlin
       """
         package example
 
@@ -477,12 +494,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClassWithInjectedFieldKt {
           @Inject val consumer:MyProvider
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(provider)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Consumers (4)
       |   ${module.name} (4)
       |    example (4)
@@ -497,15 +516,18 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyModule (1)
       |      provider(MyProvider) (1)
       |       8@Provides String provider(MyProvider consumer) {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testDaggerComponentMethods() {
-    val classFile = myFixture.addFileToProject(
-      "test/MyClass.java",
-      //language=JAVA
-      """
+    val classFile =
+      myFixture
+        .addFileToProject(
+          "test/MyClass.java",
+          // language=JAVA
+          """
       package test;
 
       import javax.inject.Inject;
@@ -513,13 +535,17 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       public class MyClass {
         @Inject public MyClass() {}
       }
-    """.trimIndent()
-    ).virtualFile
+    """
+            .trimIndent()
+        )
+        .virtualFile
 
-    val componentFile = myFixture.addFileToProject(
-      "test/MyComponent.java",
-      //language=JAVA
-      """
+    val componentFile =
+      myFixture
+        .addFileToProject(
+          "test/MyComponent.java",
+          // language=JAVA
+          """
       package test;
       import dagger.Component;
 
@@ -527,46 +553,54 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       public interface MyComponent {
         MyClass getMyClass();
       }
-    """.trimIndent()
-    ).virtualFile
+    """
+            .trimIndent()
+        )
+        .virtualFile
 
     myFixture.configureFromExistingVirtualFile(componentFile)
-    val componentMethod = myFixture.moveCaret("getMyCl|ass").parentOfType<PsiMethod>()!!
+    val componentMethod: PsiMethod = myFixture.findParentElement("getMyCl|ass")
 
     var presentation = myFixture.getUsageViewTreeTextRepresentation(componentMethod)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Providers (1)
       |   ${module.name} (1)
       |    test (1)
       |     MyClass (1)
       |      MyClass() (1)
       |       6@Inject public MyClass() {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
 
     myFixture.configureFromExistingVirtualFile(classFile)
-    val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
+    val classProvider: PsiMethod = myFixture.findParentElement("@Inject public MyCla|ss")
 
     presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Exposed by components (1)
       |   ${module.name} (1)
       |    test (1)
       |     MyComponent (1)
       |      getMyClass() (1)
       |       6MyClass getMyClass();
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testEntryPointMethodsForProvider() {
-    val classFile = myFixture.addClass(
-      //language=JAVA
-      """
+    val classFile =
+      myFixture
+        .addClass(
+          // language=JAVA
+          """
       package test;
 
       import javax.inject.Inject;
@@ -574,12 +608,17 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       public class MyClass {
         @Inject public MyClass() {}
       }
-    """.trimIndent()
-    ).containingFile.virtualFile
+    """
+            .trimIndent()
+        )
+        .containingFile
+        .virtualFile
 
-    val entryPointFile = myFixture.addClass(
-      //language=JAVA
-      """
+    val entryPointFile =
+      myFixture
+        .addClass(
+          // language=JAVA
+          """
       package test;
       import dagger.hilt.EntryPoint;
 
@@ -587,96 +626,126 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       public interface MyEntryPoint {
         MyClass getMyClassInEntryPoint();
       }
-    """.trimIndent()
-    ).containingFile.virtualFile
+    """
+            .trimIndent()
+        )
+        .containingFile
+        .virtualFile
 
     myFixture.configureFromExistingVirtualFile(entryPointFile)
-    val entryPointMethod = myFixture.moveCaret("getMyClassInEntry|Point").parentOfType<PsiMethod>()!!
+    val entryPointMethod: PsiMethod = myFixture.findParentElement("getMyClassInEntry|Point")
 
     var presentation = myFixture.getUsageViewTreeTextRepresentation(entryPointMethod)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Providers (1)
       |   ${module.name} (1)
       |    test (1)
       |     MyClass (1)
       |      MyClass() (1)
       |       6@Inject public MyClass() {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
 
     myFixture.configureFromExistingVirtualFile(classFile)
-    val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
+    val classProvider: PsiMethod = myFixture.findParentElement("@Inject public MyCla|ss")
 
     presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Exposed by entry points (1)
       |   ${module.name} (1)
       |    test (1)
       |     MyEntryPoint (1)
       |      getMyClassInEntryPoint() (1)
       |       6MyClass getMyClassInEntryPoint();
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testUsagesForModules() {
-    val moduleFile = myFixture.addClass(
-      //language=JAVA
-      """
+    val moduleFile =
+      myFixture
+        .addClass(
+          // language=JAVA
+          """
         package test;
         import dagger.Module;
 
         @Module
         class MyModule {}
-      """.trimIndent()
-    ).containingFile.virtualFile
+      """
+            .trimIndent()
+        )
+        .containingFile
+        .virtualFile
 
     // Java Component
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
       import dagger.Component;
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Component
-    myFixture.addFileToProject("test/MyComponentKt.kt",
-      //language=kotlin
-                               """
+    myFixture.addFileToProject(
+      "test/MyComponentKt.kt",
+      // language=kotlin
+      """
       package test
       import dagger.Component
 
       @Component(modules = [MyModule::class])
       interface MyComponentKt
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Java Module
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package test;
         import dagger.Module;
 
         @Module(includes = { MyModule.class })
         class MyModule2 {}
-      """.trimIndent()
+      """
+        .trimIndent()
+    )
+
+    // Subcomponent
+    myFixture.addClass(
+      // language=JAVA
+      """
+        package test;
+        import dagger.Subcomponent;
+
+        @Subcomponent(modules = { MyModule.class })
+        class MySubcomponent {}
+      """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
-    val module = myFixture.moveCaret("class MyMod|ule {}").parentOfType<PsiClass>()!!
+    val module: PsiClass = myFixture.findParentElement("class MyMod|ule {}")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(module)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Included in components (2)
       |   ${myFixture.module.name} (2)
       |    test (2)
@@ -689,66 +758,85 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |    test (1)
       |     MyModule2.java (1)
       |      5class MyModule2 {}
-      """.trimMargin()
-    )
+      |  Included in subcomponents (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     MySubcomponent.java (1)
+      |      5class MySubcomponent {}
+      """
+          .trimMargin()
+      )
   }
 
   fun testDependantComponentsForComponent() {
     // Java Component
-    val componentFile = myFixture.addClass(
-      //language=JAVA
-      """
+    val componentFile =
+      myFixture
+        .addClass(
+          // language=JAVA
+          """
       package test;
       import dagger.Component;
 
       @Component
       public interface MyComponent {}
-    """.trimIndent()
-    ).containingFile.virtualFile
+    """
+            .trimIndent()
+        )
+        .containingFile
+        .virtualFile
 
     // Kotlin Component
     myFixture.addFileToProject(
       "test/MyDependantComponent.kt",
-      //language=kotlin
+      // language=kotlin
       """
       package test
       import dagger.Component
 
       @Component(dependencies = [MyComponent::class])
       interface MyDependantComponent
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(componentFile)
-    val component = myFixture.moveCaret("MyCompon|ent {}").parentOfType<PsiClass>()!!
+    val component: PsiClass = myFixture.findParentElement("MyCompon|ent {}")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Parent components (1)
       |   ${myFixture.module.name} (1)
       |    test (1)
       |     MyDependantComponent.kt (1)
       |      5interface MyDependantComponent
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testParentsForSubcomponent() {
     // Java Subcomponent
-    val subcomponentFile = myFixture.addClass(
-      //language=JAVA
-      """
+    val subcomponentFile =
+      myFixture
+        .addClass(
+          // language=JAVA
+          """
       package test;
       import dagger.Subcomponent;
 
       @Subcomponent
       public interface MySubcomponent {}
-    """.trimIndent()
-    ).containingFile.virtualFile
+    """
+            .trimIndent()
+        )
+        .containingFile
+        .virtualFile
 
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package test;
 
@@ -756,53 +844,57 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java Component
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
       import dagger.Component;
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Component
     myFixture.addFileToProject(
       "test/MyComponentKt.kt",
-      //language=kotlin
+      // language=kotlin
       """
       package test
       import dagger.Component
 
       @Component(modules = [ MyModule::class])
       interface MyComponentKt
-    """.trimIndent()
+    """
+        .trimIndent()
     )
-
 
     // Java Subcomponent
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
       import dagger.Subcomponent;
 
       @Subcomponent(modules = { MyModule.class })
       public interface MyParentSubcomponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(subcomponentFile)
-    val component = myFixture.moveCaret("MySubcompon|ent").parentOfType<PsiClass>()!!
+    val component: PsiClass = myFixture.findParentElement("MySubcompon|ent")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Parent components (3)
       |   ${myFixture.module.name} (3)
       |    test (3)
@@ -812,25 +904,27 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |      5public interface MyComponent {}
       |     MyParentSubcomponent.java (1)
       |      5public interface MyParentSubcomponent {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testSubcomponentsForSubcomponent() {
     // Java Subcomponent
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
       import dagger.Subcomponent;
 
       @Subcomponent
       public interface MySubcomponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package test;
 
@@ -838,41 +932,48 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java parent Subcomponent
-    val file = myFixture.addClass(
-      //language=JAVA
-      """
+    val file =
+      myFixture
+        .addClass(
+          // language=JAVA
+          """
       package test;
       import dagger.Subcomponent;
 
       @Subcomponent(modules = { MyModule.class })
       public interface MyParentSubcomponent {}
-    """.trimIndent()
-    ).containingFile.virtualFile
-
+    """
+            .trimIndent()
+        )
+        .containingFile
+        .virtualFile
 
     myFixture.configureFromExistingVirtualFile(file)
-    val component = myFixture.moveCaret("MyParent|Subcomponent").parentOfType<PsiClass>()!!
+    val component: PsiClass = myFixture.findParentElement("MyParent|Subcomponent")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Subcomponents (1)
       |   ${myFixture.module.name} (1)
       |    test (1)
       |     MySubcomponent.java (1)
       |      5public interface MySubcomponent {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testSubcomponentAndModulesForComponent() {
     // Java Subcomponent
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
       import dagger.Subcomponent;
@@ -882,24 +983,26 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         @Subcomponent.Builder
           interface Builder {}
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Subcomponent
     myFixture.addFileToProject(
       "test/MySubcomponent2.kt",
-      //language=kotlin
+      // language=kotlin
       """
       package test
       import dagger.Subcomponent
 
       @Subcomponent
       interface MySubcomponent2
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package test;
 
@@ -907,27 +1010,34 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class, MySubcomponent2.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java Component
-    val file = myFixture.addClass(
-      //language=JAVA
-      """
+    val file =
+      myFixture
+        .addClass(
+          // language=JAVA
+          """
       package test;
       import dagger.Component;
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
-    ).containingFile.virtualFile
+    """
+            .trimIndent()
+        )
+        .containingFile
+        .virtualFile
 
     myFixture.configureFromExistingVirtualFile(file)
-    val component = myFixture.moveCaret("MyCompon|ent").parentOfType<PsiClass>()!!
+    val component: PsiClass = myFixture.findParentElement("MyCompon|ent")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Subcomponents (2)
       |   ${myFixture.module.name} (2)
       |    test (2)
@@ -935,62 +1045,72 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |      5interface MySubcomponent2
       |     MySubcomponent.java (1)
       |      5public interface MySubcomponent {
-      """.trimMargin()
-    )
-
-    assertThat(presentation).contains(
       """
+          .trimMargin()
+      )
+
+    assertThat(presentation)
+      .contains(
+        """
       |  Modules included (1)
       |   ${myFixture.module.name} (1)
       |    test (1)
       |     MyModule.java (1)
       |      6class MyModule { }
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
-
   fun testObjectClassInKotlin() {
-    val moduleFile = myFixture.addFileToProject("test/MyModule.kt",
-      //language=kotlin
-                                                """
+    val moduleFile =
+      myFixture
+        .addFileToProject(
+          "test/MyModule.kt",
+          // language=kotlin
+          """
         package test
         import dagger.Module
 
         @Module
         object MyModule
-      """.trimIndent()
-    ).virtualFile
+      """
+            .trimIndent()
+        )
+        .virtualFile
 
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
       package test;
       import dagger.Component;
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
-    val module = myFixture.moveCaret("MyMod|ule").parentOfType<KtClassOrObject>()!!
+    val module: KtClassOrObject = myFixture.findParentElement("MyMod|ule")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(module)
 
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Included in components (1)
       |   ${myFixture.module.name} (1)
       |    test (1)
       |     MyComponent.java (1)
       |      5public interface MyComponent {}
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testProvidersKotlin() {
     myFixture.addClass(
-      //language=JAVA
+      // language=JAVA
       """
         package example;
 
@@ -1001,24 +1121,27 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
         import javax.inject.Inject
 
         class MyClass {
           @Inject val injected<caret>String:String
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
           | Usages in Project Files (1)
           |  Providers (1)
           |   ${myFixture.module.name} (1)
@@ -1026,14 +1149,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           |     MyModule (1)
           |      provider() (1)
           |       8@Provides String provider() {}
-          """.trimMargin()
-    )
+          """
+          .trimMargin()
+      )
   }
 
   fun testFromKotlinComponentToKotlinSubcomponent() {
     myFixture.addFileToProject(
       "test/MySubcomponent.kt",
-      //language=kotlin
+      // language=kotlin
       """
       package test
 
@@ -1041,11 +1165,13 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Subcomponent
       interface MySubcomponent
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     myFixture.loadNewFile(
       "test/MyComponent.kt",
-      //language=kotlin
+      // language=kotlin
       """
       package test
 
@@ -1057,25 +1183,28 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = [ MyModule::class])
       interface MyComponen<caret>t
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
           |  Subcomponents (1)
           |   ${myFixture.module.name} (1)
           |    test (1)
           |     MySubcomponent.kt (1)
           |      6interface MySubcomponent
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testFromKotlinModuleToKotlinComponent() {
     myFixture.addFileToProject(
       "test/MyComponent.kt",
-      //language=kotlin
+      // language=kotlin
       """
       package test
 
@@ -1083,13 +1212,13 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = [MyModule::class])
       interface MyComponent
-    """.trimIndent()
+    """
+        .trimIndent()
     )
-
 
     myFixture.loadNewFile(
       "test/MyModule.kt",
-      //language=kotlin
+      // language=kotlin
       """
       package test
 
@@ -1097,25 +1226,28 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Module
       class MyModu<caret>le
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  Included in components (1)
       |   ${myFixture.module.name} (1)
       |    test (1)
       |     MyComponent.kt (1)
       |      6interface MyComponent
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testFromKotlinAssistedInjectedConstructorToKotlinAssistedFactoryMethod() {
     myFixture.loadNewFile(
       "test/FooFactory.kt",
-      //language=kotlin
+      // language=kotlin
       """
       import dagger.assisted.AssistedFactory
 
@@ -1124,10 +1256,11 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           // Is a factory method
           fun create(id: String): Foo
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     myFixture.configureByText(
-      //language=kotlin
+      // language=kotlin
       KotlinFileType.INSTANCE,
       """
       import dagger.assisted.Assisted
@@ -1136,25 +1269,28 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       class Foo @AssistedInject con<caret>structor(
           @Assisted val id: String
       )
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  AssistedFactory methods (1)
       |   ${myFixture.module.name} (1)
       |    test (1)
       |     FooFactory.kt (1)
       |      FooFactory (1)
       |       6fun create(id: String): Foo
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
   }
 
   fun testFromKotlinAssistedFactoryMethodToKotlinAssistedInjectedConstructor() {
     myFixture.loadNewFile(
       "test/Foo.kt",
-      //language=kotlin
+      // language=kotlin
       """
       import dagger.assisted.Assisted
       import dagger.assisted.AssistedInject
@@ -1162,11 +1298,12 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       class Foo @AssistedInject constructor(
           @Assisted val id: String
       )
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
-      //language=kotlin
+      // language=kotlin
       """
       import dagger.assisted.AssistedFactory
 
@@ -1175,28 +1312,170 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           // Is a factory method
           fun cre<caret>ate(id: String): Foo
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val trackerService = TestDaggerAnalyticsTracker()
     project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
-    assertThat(presentation).contains(
-      """
+    assertThat(presentation)
+      .contains(
+        """
       |  AssistedInject constructors (1)
       |   ${myFixture.module.name} (1)
       |    test (1)
       |     Foo.kt (1)
       |      Foo (1)
       |       4class Foo @AssistedInject constructor(
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
 
     assertThat(trackerService.calledMethods).hasSize(1)
-    assertThat(trackerService.calledMethods.last()).startsWith("trackFindUsagesNodeWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
-    assertThat(trackerService.calledMethods.last()
-                 .removePrefix("trackFindUsagesNodeWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ").toInt()).isNotNull()
+    assertThat(trackerService.calledMethods.last())
+      .startsWith("trackFindUsagesNodeWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
+    assertThat(
+        trackerService.calledMethods
+          .last()
+          .removePrefix("trackFindUsagesNodeWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
+          .toInt()
+      )
+      .isNotNull()
+  }
+}
 
+class DaggerCustomUsageSearcherTestV1 :
+  DaggerCustomUsageSearcherTestBase(daggerUsingIndexEnabled = false) {
+
+  override fun testProvidersFromKotlin() {
+    myFixture.addFileToProject(
+      "MyClass.kt",
+      // language=kotlin
+      """
+      package example
+
+      import dagger.Provides
+      import dagger.BindsInstance
+      import dagger.Module
+
+      @Module
+      class MyModule {
+        @Provides fun provider():String {}
+        @Provides fun providerInt():Int {}
+        @BindsInstance fun bindsMethod():String {}
+        fun builder(@BindsInstance str:String) {}
+      }
+      """
+        .trimIndent()
+    )
+
+    myFixture.configureByText(
+      // language=JAVA
+      JavaFileType.INSTANCE,
+      """
+      package example;
+
+      import javax.inject.Inject;
+
+      class MyClass {
+        @Inject String ${caret}injectedString;
+      }
+      """
+        .trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation)
+      .contains(
+        """
+        | Usages in Project Files (3)
+        |  Providers (3)
+        |   ${module.name} (3)
+        |     (3)
+        |     MyClass.kt (3)
+        |      MyModule (3)
+        |       builder (1)
+        |        12fun builder(@BindsInstance str:String) {}
+        |       9@Provides fun provider():String {}
+        |       11@BindsInstance fun bindsMethod():String {}
+        """
+          .trimMargin()
+      )
+  }
+}
+
+@Ignore // TODO(b/265846405): Start running test when index is enabled
+class DaggerCustomUsageSearcherTestV2 :
+  DaggerCustomUsageSearcherTestBase(daggerUsingIndexEnabled = true) {
+
+  override fun testProvidersFromKotlin() {
+    myFixture.addFileToProject(
+      "MyClass.kt",
+      // language=kotlin
+      """
+      package example
+
+      import dagger.Component
+      import dagger.Provides
+      import dagger.BindsInstance
+      import dagger.Module
+
+      @Module
+      class MyModule {
+        @Provides fun provider(): String {}
+        @Provides fun providerInt(): Int {}
+      }
+
+      @Component
+      interface MyComponent {
+        @Component.Builder
+        interface MyComponentBuilder {
+          @BindsInstance fun bindsStringValue(boundStringValue: String): MyComponentBuilder
+        }
+        @Component.Factory
+        interface MyComponentFactory {
+          fun newMyComponent(@BindsInstance boundStringValue: String): MyComponent
+        }
+      }
+      """
+        .trimIndent()
+    )
+
+    myFixture.configureByText(
+      // language=JAVA
+      JavaFileType.INSTANCE,
+      """
+      package example;
+
+      import javax.inject.Inject;
+
+      class MyClass {
+        @Inject String ${caret}injectedString;
+      }
+      """
+        .trimIndent()
+    )
+
+    val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
+    assertThat(presentation)
+      .contains(
+        """
+        | Usages in Project Files (3)
+        |  Providers (3)
+        |   ${module.name} (3)
+        |     (3)
+        |     MyClass.kt (3)
+        |      MyComponent (2)
+        |       MyComponentBuilder (1)
+        |        18@BindsInstance fun bindsStringValue(boundStringValue: String): MyComponentBuilder
+        |       MyComponentFactory (1)
+        |        22fun newMyComponent(@BindsInstance boundStringValue: String): MyComponent
+        |      MyModule (1)
+        |       10@Provides fun provider(): String {}
+        """
+          .trimMargin()
+      )
   }
 }

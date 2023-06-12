@@ -28,7 +28,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
-        "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module]",
+        "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow[module]",
     ],
 )
 
@@ -41,7 +41,10 @@ iml_module(
             "tags": ["no_windows"],
             "test_filter": "com.android.tools.idea.sqlite.ui.ExportToFileDialogTest",
         },
-        "other": {},
+        "other": {
+            # b/182573662, b/217469630
+            "tags": ["very_flaky"],
+        },
     },
     test_class = "com.android.tools.idea.debuggers.AndroidDebuggersTestSuite",
     test_data = ["//prebuilts/studio/sdk:platform-tools"],
@@ -76,6 +79,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
-        "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
+        "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow[module, test]",
     ],
 )

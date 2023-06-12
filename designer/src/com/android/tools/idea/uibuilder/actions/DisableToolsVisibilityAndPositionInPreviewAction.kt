@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.idea.actions.LAYOUT_PREVIEW_HANDLER_KEY
 import com.android.tools.idea.actions.LayoutPreviewHandler
-import com.android.tools.idea.flags.StudioFlags.NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons.LayoutEditor.Toolbar.TOOLS_ATTRIBUTE_OFF
@@ -36,7 +35,7 @@ object DisableToolsVisibilityAndPositionInPreviewAction : ToggleAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isVisible = NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get()
+    e.presentation.isVisible = true
     e.presentation.isEnabled = e.getPreviewHandler() != null
     e.presentation.icon = if (isSelected(e)) TOOLS_ATTRIBUTE_OFF else TOOLS_ATTRIBUTE_ON
   }

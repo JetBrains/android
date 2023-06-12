@@ -9,7 +9,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.emulator" />
+    <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
@@ -36,13 +36,13 @@
     <orderEntry type="module" module-name="intellij.android.dagger" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
     <orderEntry type="module" module-name="intellij.android.testRetention" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.workmanager.ide" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.ide" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.ide" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />
+    <orderEntry type="module" module-name="intellij.android.device" />
     <orderEntry type="module" module-name="intellij.android.logcat" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" />
-    <orderEntry type="module" module-name="intellij.android.device-monitor" />
+    <orderEntry type="module" module-name="intellij.android.device-file-explorer-toolwindow" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
     <orderEntry type="module" module-name="intellij.android.templates" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -50,11 +50,14 @@
     <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="intellij.android.device-manager" />
     <orderEntry type="module" module-name="intellij.android.wear-pairing" />
+    <orderEntry type="module" module-name="intellij.android.device-manager-v2" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.ide" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.ide" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
   </component>
 </module>

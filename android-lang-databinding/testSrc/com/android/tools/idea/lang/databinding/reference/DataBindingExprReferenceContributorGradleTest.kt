@@ -16,21 +16,19 @@
 package com.android.tools.idea.lang.databinding.reference
 
 import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.lang.databinding.LangDataBindingTestData.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.lang.databinding.getTestDataPath
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Assert
 import org.junit.Assume.assumeTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,10 +47,16 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
                          DataBindingMode.ANDROIDX)
   }
 
-  private val projectRule = AndroidGradleProjectRule()
-
   @get:Rule
-  val ruleChain = org.junit.rules.RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val projectRule =
+    AndroidProjectRule.testProject(
+      testProjectTemplateFromPath(
+        path = when (mode) {
+          DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
+          else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
+        }, testDataPath = getTestDataPath()
+      )
+    )
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -65,16 +69,7 @@ class DataBindingExprReferenceContributorGradleTest(private val mode: DataBindin
    * to type.
    */
   private val fixture: JavaCodeInsightTestFixture
-    get() = projectRule.fixture as JavaCodeInsightTestFixture
-
-  @Before
-  fun setUp() {
-    fixture.testDataPath = getTestDataPath()
-    projectRule.load(when (mode) {
-                       DataBindingMode.SUPPORT -> PROJECT_WITH_DATA_BINDING_SUPPORT
-                       else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
-                     })
-  }
+    get() = projectRule.fixture
 
   private fun moveCaretToString(substring: String) {
     val editor = fixture.editor

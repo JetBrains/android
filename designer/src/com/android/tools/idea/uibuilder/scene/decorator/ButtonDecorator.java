@@ -50,7 +50,7 @@ public class ButtonDecorator extends SceneDecorator {
                float scale,
                int fontSize,
                String string) {
-      super(x, y, width, height, mode, baseLineOffset, string, true, true,
+      super(x, y, width, height, mode, baseLineOffset, string, true, false,
             TEXT_ALIGNMENT_CENTER, TEXT_ALIGNMENT_VIEW_START, fontSize, scale);
       mHorizontalPadding = (int)(4 * scale);
       mVerticalPadding = (int)(8 * scale);
@@ -103,7 +103,6 @@ public class ButtonDecorator extends SceneDecorator {
     public void paint(Graphics2D g, SceneContext sceneContext) {
       ColorSet colorSet = sceneContext.getColorSet();
       if (colorSet.drawBackground()) {
-        int round = sceneContext.getSwingDimensionDip(5);
         Stroke stroke = g.getStroke();
         int strokeWidth = sceneContext.getSwingDimensionDip(2);
         g.setStroke(new BasicStroke(strokeWidth));
@@ -138,6 +137,6 @@ public class ButtonDecorator extends SceneDecorator {
 
   @NotNull
   protected String getContentText(NlComponent nlComponent) {
-    return ConstraintUtilities.getResolvedText(nlComponent);
+    return nlComponent.getTagName();
   }
 }

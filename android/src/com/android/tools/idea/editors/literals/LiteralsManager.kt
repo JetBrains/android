@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.RangeHighlighter
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -37,9 +38,16 @@ import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.psi.impl.PsiExpressionEvaluator
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.isActive
 import org.jetbrains.concurrency.await
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.base.KtConstantValue
+import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.refactoring.getLineNumber
 import org.jetbrains.kotlin.name.FqName
@@ -116,6 +124,7 @@ private object DefaultPsiElementLiteralUsageReferenceProvider : PsiElementLitera
         LiteralUsageReference(FqName("$className.$methodName"), virtualFilePath, range,
                               element.getLineNumber())
       }
+
       else -> {
         val className = PsiTreeUtil.getContextOfType(element, PsiClass::class.java)?.qualifiedName?.let { "$it." } ?: ""
         val methodName = PsiTreeUtil.getContextOfType(element, PsiMethod::class.java)?.name ?: "<init>"
@@ -173,15 +182,34 @@ interface ConstantEvaluator {
   fun range(expression: PsiElement): TextRange = expression.textRange ?: TextRange.EMPTY_RANGE
 }
 
-/**
- * [ConstantEvaluator] for Kotlin.
- */
-object KotlinConstantEvaluator : ConstantEvaluator {
-  override fun evaluate(expression: PsiElement): Any? {
-    require(expression is KtExpression)
+/** Abstract [ConstantEvaluator] for Kotlin expressions. */
+abstract class KotlinConstantEvaluator : ConstantEvaluator {
+  abstract fun evaluate(expression: KtExpression): Any?
 
-    return ConstantExpressionEvaluator.getConstant(expression, expression.analyze())?.getValue(TypeUtils.NO_EXPECTED_TYPE)
+  final override fun evaluate(expression: PsiElement): Any? {
+    require(expression is KtExpression) { "Unexpected non-Kotlin expression" }
+    return evaluate(expression as KtExpression)
   }
+}
+
+/**
+ * [ConstantEvaluator] for Kotlin (K1 compiler/FE1.0).
+ */
+object KotlinFe10ConstantEvaluator : KotlinConstantEvaluator() {
+  override fun evaluate(expression: KtExpression): Any? =
+    ConstantExpressionEvaluator.getConstant(expression, expression.analyze())?.getValue(TypeUtils.NO_EXPECTED_TYPE)
+}
+
+/**
+ * [ConstantEvaluator] for Kotlin (K2 compiler/Analysis API).
+ */
+object KotlinAnalysisApiConstantEvaluator : KotlinConstantEvaluator() {
+  override fun evaluate(expression: KtExpression): Any? =
+    analyze(expression) {
+      expression.evaluate(KtConstantEvaluationMode.CONSTANT_LIKE_EXPRESSION_EVALUATION)
+        ?.takeUnless { it is KtConstantValue.KtErrorConstantValue }
+        ?.value
+    }
 }
 
 /**
@@ -289,13 +317,14 @@ private class LiteralReferenceImpl(originalElement: PsiElement,
     get() = ReadAction.compute<Boolean, Throwable> { elementPointer.range != null }
 
   override val constantValue: Any?
-    get() = element?.let {
-      ReadAction.compute<Any?, Throwable> {
-        try {
-          constantEvaluator.evaluate(it)
-        } catch (_: IndexNotReadyException) {
+    get() = ReadAction.compute<Any?, Throwable> {
+      element?.let {
+        if (DumbService.isDumb(it.project)) {
           // If not in smart mode, just return the last cached value
           lastCachedConstantValue
+        }
+        else {
+          constantEvaluator.evaluate(it)
         }
       }
     }
@@ -392,83 +421,122 @@ class LiteralsManager(
   )
   private val LOG = Logger.getInstance(LiteralsManager::class.java)
 
+  /**
+   * The result of a [findLiterals] call.
+   */
+  sealed class FindResult {
+    /**
+     * A successful result containing a result snapshot.
+     */
+    data class Snapshot(val snapshot: LiteralReferenceSnapshot): FindResult()
+
+    /**
+     * The project is indexing. A future retry might succeed.
+     */
+    object IndexNotReady: FindResult()
+
+    /**
+     * The file passed to the [findLiterals] call is not supported by the [LiteralsManager].
+     */
+    object Unsupported: FindResult()
+  }
+
   private suspend fun findLiterals(root: PsiElement,
                                    constantType: Collection<Class<*>>,
                                    constantEvaluator: ConstantEvaluator,
-                                   elementFilter: (PsiElement) -> Boolean): LiteralReferenceSnapshot {
-    val savedLiterals = ReadAction.nonBlocking(Callable<Collection<LiteralReferenceImpl>> {
-      val savedLiterals = mutableListOf<LiteralReferenceImpl>()
-      try {
-        root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
-          override fun visitElement(element: PsiElement) {
-            if (!elementFilter(element) || !element.isValid || element.containingFile == null) return
+                                   elementFilter: (PsiElement) -> Boolean): FindResult = coroutineScope {
+    return@coroutineScope ReadAction.nonBlocking(Callable<FindResult> {
+        LOG.debug("Find literals start $root")
+        try {
+          val savedLiterals = mutableListOf<LiteralReferenceImpl>()
+          root.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
+            override fun visitElement(element: PsiElement) {
+              if (!elementFilter(element) || !element.isValid || element.containingFile == null) return
 
-            // Special case for string templates
-            if (element is KtStringTemplateExpression) {
-              // A template can generate multiple constants. For example "Hello $name!!" will generate two:
-              //  - "Hello "
-              //  - "!!"
-              // This is not currently supported by the ConstantExpressionEvaluator in the plugin so we handle it here.
-              if (element.entries.size == 1 || element.entries.any { it !is KtLiteralStringTemplateEntry }) {
-                element.entries.forEach {
-                  if (it is KtLiteralStringTemplateEntry) {
-                    savedLiterals.add(
-                      LiteralReferenceImpl(it,
-                                           uniqueIdProvider,
-                                           literalUsageReferenceProvider,
-                                           it.text,
-                                           PsiTextConstantEvaluator,
-                                           Companion::markAsManaged))
+              // Special case for string templates
+              if (element is KtStringTemplateExpression) {
+                // A template can generate multiple constants. For example "Hello $name!!" will generate two:
+                //  - "Hello "
+                //  - "!!"
+                // This is not currently supported by the ConstantExpressionEvaluator in the plugin so we handle it here.
+                if (element.entries.size == 1 || element.entries.any { it !is KtLiteralStringTemplateEntry }) {
+                  element.entries.forEach {
+                    if (it is KtLiteralStringTemplateEntry) {
+                      LOG.debug("Found literal for $root: $it")
+                      savedLiterals.add(
+                        LiteralReferenceImpl(
+                          it,
+                          uniqueIdProvider,
+                          literalUsageReferenceProvider,
+                          it.text,
+                          PsiTextConstantEvaluator,
+                          Companion::markAsManaged
+                        )
+                      )
+                    }
                   }
+                } else {
+                  LOG.debug("Found literal for $root: $element")
+                  // All sub elements are string entries so handle as one string
+                  savedLiterals.add(
+                    LiteralReferenceImpl(
+                      element, uniqueIdProvider, literalUsageReferenceProvider,
+                      KotlinLiteralTemplateConstantEvaluator.evaluate(element) as String,
+                      KotlinLiteralTemplateConstantEvaluator,
+                      Companion::markAsManaged
+                    )
+                  )
                 }
+                return
               }
-              else {
-                // All sub elements are string entries so handle as one string
-                savedLiterals.add(
-                  LiteralReferenceImpl(element, uniqueIdProvider, literalUsageReferenceProvider,
-                                       KotlinLiteralTemplateConstantEvaluator.evaluate(element) as String,
-                                       KotlinLiteralTemplateConstantEvaluator,
-                                       Companion::markAsManaged))
+
+              if (constantType.any { it.isInstance(element) }) {
+                constantEvaluator.evaluate(element)?.let {
+                  LOG.debug("Found literal for $root: $element")
+
+                  // This is a regular constant, save it.
+                  savedLiterals.add(
+                    LiteralReferenceImpl(
+                      element,
+                      uniqueIdProvider,
+                      literalUsageReferenceProvider,
+                      it,
+                      constantEvaluator,
+                      Companion::markAsManaged
+                    )
+                  )
+                }
+                return
               }
-              return
+
+              super.visitElement(element)
             }
+          })
 
-            if (constantType.any { it.isInstance(element) }) {
-              constantEvaluator.evaluate(element)?.let {
-                // This is a regular constant, save it.
-                savedLiterals.add(LiteralReferenceImpl(element,
-                                                       uniqueIdProvider,
-                                                       literalUsageReferenceProvider,
-                                                       it,
-                                                       constantEvaluator,
-                                                       Companion::markAsManaged))
-              }
-              return
-            }
-
-            super.visitElement(element)
-          }
-        })
-      } catch (_: IndexNotReadyException) {}
-      savedLiterals
-    }).submit(literalReadingExecutor).await()
-
-    return if (savedLiterals.isNotEmpty()) LiteralReferenceSnapshotImpl(savedLiterals) else EmptyLiteralReferenceSnapshot
+          return@Callable FindResult.Snapshot(if (savedLiterals.isNotEmpty()) LiteralReferenceSnapshotImpl(savedLiterals) else EmptyLiteralReferenceSnapshot)
+        } catch(_: IndexNotReadyException) {
+          return@Callable FindResult.IndexNotReady
+        }
+      })
+        .expireWhen { !isActive }
+        .submit(literalReadingExecutor)
+        .await()
   }
 
   /**
    * Finds the literals in the given tree root [PsiElement] and returns a [LiteralReferenceSnapshot].
    */
-  suspend fun findLiterals(root: PsiElement): LiteralReferenceSnapshot =
+  suspend fun findLiterals(root: PsiElement): FindResult =
     if (root.language == KotlinLanguage.INSTANCE) {
-      findLiterals(root, literalsTypes, KotlinConstantEvaluator) {
+      val evaluator = if (isK2Plugin()) KotlinAnalysisApiConstantEvaluator else KotlinFe10ConstantEvaluator
+      findLiterals(root, literalsTypes, evaluator) {
         it !is KtAnnotationEntry // Exclude annotations since we do not process literals in them.
         && it !is KtSimpleNameExpression // Exclude variable constants.
       }
     }
     else {
       LOG.warn("Only Kotlin is supported for LiveLiterals")
-      EmptyLiteralReferenceSnapshot
+      FindResult.Unsupported
     }
 
   companion object {
@@ -486,7 +554,8 @@ class LiteralsManager(
     /**
      * Marks the given element as managed.
      */
-    private fun markAsManaged(element: PsiElement, literalReference: LiteralReference) = element.putCopyableUserData(MANAGED_KEY, literalReference)
+    private fun markAsManaged(element: PsiElement, literalReference: LiteralReference) = element.putCopyableUserData(MANAGED_KEY,
+                                                                                                                     literalReference)
   }
 }
 

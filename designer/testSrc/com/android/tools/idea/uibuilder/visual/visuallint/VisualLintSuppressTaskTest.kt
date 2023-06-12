@@ -26,13 +26,12 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
-import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.Assert.assertEquals
 import org.jetbrains.kotlin.idea.util.application.executeCommand
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.junit.Rule
 import org.junit.Test
 
@@ -83,13 +82,11 @@ class VisualLintSuppressTaskTest {
     val type = BoundsAnalyzer.type
     // It should not suppress again.
     val model = createModel("test.xml")
-    runInEdt {
-      runWriteAction {
-        rule.project.executeCommand("") {
-          model.components.first().startAttributeTransaction().apply {
-            setAttribute(TOOLS_URI, ATTR_IGNORE, type.ignoredAttributeValue)
-          }.commit()
-        }
+    runWriteAction {
+      rule.project.executeCommand("") {
+        model.components.first().startAttributeTransaction().apply {
+          setAttribute(TOOLS_URI, ATTR_IGNORE, type.ignoredAttributeValue)
+        }.commit()
       }
     }
     VisualLintSuppressTask(type, model.components).run()

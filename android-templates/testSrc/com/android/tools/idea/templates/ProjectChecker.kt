@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.SdkConstants
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.Projects.getBaseDirPath
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
@@ -41,7 +42,9 @@ import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.Thumb
 import com.android.tools.idea.wizard.template.WizardParameterData
+import com.android.utils.FileUtils
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.project.guessProjectDir
@@ -136,16 +139,19 @@ data class ProjectChecker(
     )
 
     // TODO(qumeric): why doesn't it work with one executor?
-    val executor2 = DefaultRecipeExecutor(context)
-    val executor3 = DefaultRecipeExecutor(context)
+    val moduleRecipeExecutor = DefaultRecipeExecutor(context)
+    val templateRecipeExecutor = DefaultRecipeExecutor(context)
 
     WizardParameterData(moduleState.packageName!!, false, "main", template.parameters)
     (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value = moduleState.packageName!!
 
     projectRule.load(TestProjectPaths.NO_MODULES) {
       runWriteActionAndWait {
-        moduleRecipe.render(context, executor2)
-        template.render(context, executor3)
+        writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
+        moduleRecipe.render(context, moduleRecipeExecutor)
+        // Executor for the template needs to apply changes so that the toml file is visible in the executor
+        templateRecipeExecutor.applyChanges()
+        template.render(context, templateRecipeExecutor)
       }
     }
     verifyLastLoggedUsage(usageTracker, template.name, template.formFactor, moduleState.build())
@@ -154,5 +160,14 @@ data class ProjectChecker(
     assertNotEquals(template.thumb(), Thumb.NoThumb)
     // Make sure project root is set up correctly
     assertEquals(projectRoot, projectRule.project.guessProjectDir()!!.toIoFile())
+  }
+
+  private fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecutor) {
+    WriteCommandAction.writeCommandAction(project).run<IOException> {
+      executor.copy(
+        File(FileUtils.join("fileTemplates", "internal", "Version Catalog File.versions.toml.ft")),
+        File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)))
+      executor.applyChanges()
+    }
   }
 }

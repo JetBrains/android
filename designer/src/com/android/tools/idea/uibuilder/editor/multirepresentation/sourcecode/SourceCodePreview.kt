@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.editors.setupChangeListener
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.DumbService.Companion.DUMB_MODE
 import com.intellij.psi.PsiFile
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * A [MultiRepresentationPreview] tailored to the source code files.
@@ -33,21 +33,38 @@ import com.intellij.psi.PsiFile
  * @param providers list of [PreviewRepresentationProvider] for this file type.
  */
 internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers: Collection<PreviewRepresentationProvider>) :
-  MultiRepresentationPreview(psiFile, textEditor, providers, psiFile.project.coroutineScope) {
+  MultiRepresentationPreview(psiFile, textEditor, providers) {
 
   val project = psiFile.project
 
+  private val afterSyncUpdateScheduled = AtomicBoolean(false)
+
   init {
-    project.messageBus.connect(this).subscribe(DUMB_MODE, object : DumbService.DumbModeListener {
-      override fun exitDumbMode() {
-        updateRepresentations()
+    project.messageBus.connect().subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
+      /**
+       * In case we are at the project startup we do not want to get [updateRepresentationsAsync] executed simply on the [exitDumbMode] for
+       * the project is not started yet and AndroidModel is not initialized. Instead, we want to schedule [runWhenSmartAndSynced] during
+       * the Dumb Mode so that it gets scheduled with [DumbService.runWhenSmart] that waits for the project to finish initialization.
+       */
+      override fun enteredDumbMode() {
+        if (afterSyncUpdateScheduled.getAndSet(true)) {
+          return
+        }
+        project.runWhenSmartAndSynced(
+          parentDisposable = this@SourceCodePreview,
+          callback = {
+            afterSyncUpdateScheduled.set(false)
+            updateRepresentationsAsync()
+          }
+        )
       }
     })
 
-    project.runWhenSmartAndSynced(parentDisposable = this, callback = { updateRepresentations() })
-
     setupChangeListener(project, psiFile, {
-      updateRepresentations()
+      if (project.getSyncManager().isSyncInProgress()) {
+        return@setupChangeListener
+      }
+      updateRepresentationsAsync()
     }, this)
   }
 }

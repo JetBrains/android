@@ -42,6 +42,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.testFramework.ApplicationRule;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -61,6 +62,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.core.SubstringMatcher;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginKindProviderKt;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 public class StudioCrashReporterTest {
@@ -78,8 +81,11 @@ public class StudioCrashReporterTest {
   private static final Throwable ourException =
     createExceptionFromDesc(SAMPLE_EXCEPTION, new RuntimeException("This is a test exception message"));
 
+  @ClassRule
+  public static ApplicationRule appRule = new ApplicationRule();
+
   @Test
-  public void ideBrandIncludedInExceptionReport() throws Exception {
+  public void testIdeBrandIncludedInExceptionReport() throws Exception {
     UsageTrackerWriter usageTracker = NullUsageTracker.INSTANCE;
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.ANDROID_STUDIO);
     try {
@@ -97,7 +103,29 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void serializeNonGracefulExit() throws Exception {
+  public void testNewUIIncludedInExceptionReport() throws Exception {
+    CrashReport report =
+      new StudioExceptionReport.Builder()
+        .setThrowable(new RuntimeException("Test Exception Message"), false, false)
+        .build();
+
+    String content = getSerializedContent(report);
+
+    assertRequestContainsField(content, "isNewUI", "false");
+  }
+
+  @Test
+  public void testKotlinK2IncludedInExceptionReport() throws Exception {
+    CrashReport report =
+      new StudioExceptionReport.Builder()
+        .setThrowable(new RuntimeException("Test Exception Message"), false, false)
+        .build();
+    String content = getSerializedContent(report);
+    assertRequestContainsField(content, "isKotlinK2", Boolean.toString(KotlinPluginKindProviderKt.isK2Plugin()));
+  }
+
+  @Test
+  public void testSerializeNonGracefulExit() throws Exception {
     CrashReport report =
       new StudioCrashReport.Builder()
         .setDescriptions(Lists.newArrayList("1.2.3.4\n1.8.0_152-release-1136-b01"))
@@ -109,7 +137,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void serializeJvmCrash() throws Exception {
+  public void testSerializeJvmCrash() throws Exception {
     CrashReport report =
       new StudioCrashReport.Builder()
         .setDescriptions(Lists.newArrayList("1.2.3.4\n1.8.0_152-release-1136-b01"))
@@ -130,7 +158,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void serializeUserReportedException() throws Exception {
+  public void testSerializeUserReportedException() throws Exception {
     CrashReport report =
       new StudioExceptionReport.Builder()
         .setThrowable(ourException, true, false)
@@ -141,7 +169,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void serializeNonUserReportedException() throws Exception {
+  public void testSerializeNonUserReportedException() throws Exception {
     CrashReport report =
       new StudioExceptionReport.Builder()
         .setThrowable(ourException, false, false)
@@ -152,7 +180,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void serializeKotlinException() throws Exception {
+  public void testSerializeKotlinException() throws Exception {
     final String exceptionWithKotlinString =
       "java.lang.RuntimeException: Kotlin message\n" +
       "\tat com.intellij.util.UniqueResultsQuery.forEach(UniqueResultsQuery.java:57)\n" +
@@ -171,7 +199,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void sendHeapReportFieldAsFile() throws IOException {
+  public void testSendHeapReportFieldAsFile() throws IOException {
     AnalyzedHeapReport analyzedHeapReport =
       new AnalyzedHeapReport("heap report text",
                              new HeapReportProperties(MemoryReportReason.UserInvoked, "stats"),
@@ -183,7 +211,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void sendHistogramReportField() throws IOException {
+  public void testSendHistogramReportField() throws IOException {
     String reasonName = "foobar";
     MemoryReportReason mockMemoryReportReason = mock(MemoryReportReason.class);
     when(mockMemoryReportReason.name()).thenReturn(reasonName);
@@ -199,22 +227,22 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void sendFreezeReportFields() throws IOException {
-    Boolean timedOut = true;
-    Long totalDuration = 100L;
+  public void testSendFreezeReportFields() throws IOException {
+    boolean timedOut = true;
+    long totalDuration = 100L;
     String description = "description";
     FreezeReport freezeReport =
       new FreezeReport(null,
-                          new HashMap(),
-                          new HashMap(),
+                          new HashMap<>(),
+                          new HashMap<>(),
                           timedOut,
                           totalDuration,
                           description);
     CrashReport crashReport = freezeReport.asCrashReport();
     String request = getSerializedContent(crashReport);
 
-    assertRequestContainsField(request, "totalDuration", totalDuration.toString());
-    assertRequestContainsField(request, "timedOut", timedOut.toString());
+    assertRequestContainsField(request, "totalDuration", Long.toString(totalDuration));
+    assertRequestContainsField(request, "timedOut", Boolean.toString(timedOut));
   }
 
   private static void assertRequestContainsFile(final String requestBody, final String name, final String filename, final String value) {
@@ -239,7 +267,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void serializePerformanceReportInvalidThreadDump() throws Exception {
+  public void testSerializePerformanceReportInvalidThreadDump() throws Exception {
     CrashReport report = new PerformanceThreadDumpCrashReport(
       new DiagnosticReportProperties(),
       "threadDump.txt", "Not a thread dump"
@@ -250,7 +278,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void serializePerformanceReportValidThreadDump() throws Exception {
+  public void testSerializePerformanceReportValidThreadDump() throws Exception {
       CrashReport report = new PerformanceThreadDumpCrashReport(
         new DiagnosticReportProperties(),
         "threadDump.txt",
@@ -268,7 +296,7 @@ public class StudioCrashReporterTest {
   }
 
   @Test
-  public void serializeFreezeReportEmpty() throws Exception {
+  public void testSerializeFreezeReportEmpty() throws Exception {
     CrashReport report = new FreezeReport(null, new TreeMap<>(), new TreeMap<>(), false, null, null).asCrashReport();
 
     String request = getSerializedContent(report);
@@ -421,10 +449,10 @@ public class StudioCrashReporterTest {
 
   private static class RegexMatcher extends SubstringMatcher {
 
-    private Pattern myPattern;
+    private final Pattern myPattern;
 
     public RegexMatcher(@NonNull String patternString) {
-      super(patternString);
+      super("matches regular expression", true, patternString);
       myPattern = Pattern.compile(patternString);
     }
 
@@ -433,7 +461,7 @@ public class StudioCrashReporterTest {
       return myPattern.matcher(string).matches();
     }
 
-    @Override
+    //@Override
     protected String relationship() {
       return "matches regular expression";
     }

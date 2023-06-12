@@ -20,6 +20,7 @@ import com.android.utils.FileUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Pattern;
 
 public class AndroidProject {
@@ -30,6 +31,13 @@ public class AndroidProject {
 
   public AndroidProject(String path) {
     this.path = path;
+
+    // For projects created through the test, targetProject is the same as the original path.
+    this.targetProject = Paths.get(path);
+
+    // By default, we set the distribution to the version that most integration tests should be
+    // using. This version corresponds to `INTEGRATION_TEST_GRADLE_VERSION` in Bazel.
+    setDistribution("tools/external/gradle/gradle-7.5-bin.zip");
   }
 
   public void setDistribution(String path) {

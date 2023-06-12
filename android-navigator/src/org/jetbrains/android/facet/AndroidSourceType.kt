@@ -40,29 +40,6 @@ sealed class AndroidSourceType(
 ) : Comparable<AndroidSourceType> {
 
   companion object {
-    /** The inbuilt types supported by the Android Gradle Plugin.
-     *
-     * The order here determines the sort order in the UI
-     */
-    @JvmField
-    val BUILT_IN_TYPES: List<AndroidSourceType> =
-      listOf(
-        MANIFEST,
-        JAVA,
-        KOTLIN,
-        GENERATED_JAVA,
-        CPP,
-        AIDL,
-        RENDERSCRIPT,
-        SHADERS,
-        ASSETS,
-        JNILIBS,
-        RES,
-        GENERATED_RES,
-        RESOURCES,
-        ML,
-      )
-
     private const val JAVA_NAME = "java"
     private const val RES_NAME = "res"
 
@@ -177,6 +154,13 @@ sealed class AndroidSourceType(
     override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.mlModelsDirectories)
   }
 
+  object BASELINE_PROFILES : AndroidSourceType(
+    "baselineProfiles",
+    AllIcons.Modules.SourceRoot,
+  ) {
+    override fun getSources(provider: IdeaSourceProvider): List<VirtualFile> = copyOf(provider.baselineProfileDirectories)
+  }
+
   class Custom(name: String) : AndroidSourceType(
     name,
     AllIcons.Modules.ResourcesRoot,
@@ -206,3 +190,26 @@ sealed class AndroidSourceType(
   }
 
 }
+
+/** The inbuilt types supported by the Android Gradle Plugin.
+ *
+ * The order here determines the sort order in the UI
+ */
+val BUILT_IN_TYPES: List<AndroidSourceType> =
+  listOf(
+    AndroidSourceType.MANIFEST,
+    AndroidSourceType.JAVA,
+    AndroidSourceType.KOTLIN,
+    AndroidSourceType.GENERATED_JAVA,
+    AndroidSourceType.CPP,
+    AndroidSourceType.AIDL,
+    AndroidSourceType.RENDERSCRIPT,
+    AndroidSourceType.SHADERS,
+    AndroidSourceType.ASSETS,
+    AndroidSourceType.JNILIBS,
+    AndroidSourceType.RES,
+    AndroidSourceType.GENERATED_RES,
+    AndroidSourceType.RESOURCES,
+    AndroidSourceType.ML,
+    AndroidSourceType.BASELINE_PROFILES,
+  )

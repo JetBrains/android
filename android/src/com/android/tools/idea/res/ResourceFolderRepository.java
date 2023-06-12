@@ -141,7 +141,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.sdk.AndroidPlatforms;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -690,7 +691,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   void scheduleScan(@NotNull VirtualFile virtualFile) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+    ResourceFolderType folderType = ResourceFilesUtil.getFolderType(virtualFile);
     if (folderType != null) {
       scheduleScan(virtualFile, folderType);
     }
@@ -965,7 +966,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void scan(@NotNull VirtualFile file) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+    ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
     if (folderType == null || !isResourceFile(file) || !isRelevantFile(file)) {
       return;
     }
@@ -1065,7 +1066,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (myFacet.isDisposed()) {
         return;
       }
-      ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(myFacet);
+      ConfigurationManager configurationManager = ConfigurationManager.findExistingInstance(myFacet.getModule());
       if (configurationManager == null) {
         return;
       }
@@ -1073,7 +1074,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (target == null) {
         return;
       }
-      consumer.accept(AndroidTargetData.getTargetData(target, myFacet.getModule()));
+      consumer.accept(AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(myFacet.getModule())));
     });
   }
 
@@ -1306,7 +1307,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           }
 
           // Some child was removed within a file.
-          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+          ResourceFolderType folderType = ResourceFilesUtil.getFolderType(virtualFile);
           if (folderType != null && isResourceFile(virtualFile)) {
             PsiElement child = event.getChild();
             PsiElement parent = event.getParent();
@@ -1443,7 +1444,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             // That's the case if the XML edited is not a resource file (e.g. the manifest file),
             // or if it's within a file that is not a value file or an id-generating file (layouts and menus),
             // such as editing the content of a drawable XML file.
-            ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+            ResourceFolderType folderType = ResourceFilesUtil.getFolderType(virtualFile);
             if (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
                 psiFile.getFileType() == XmlFileType.INSTANCE) {
               // The only way the edit affected the set of resources was if the user added or removed an
@@ -1961,11 +1962,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (file.isDirectory()) {
       for (var iterator = mySources.entrySet().iterator(); iterator.hasNext(); ) {
         var entry = iterator.next();
-        iterator.remove();
         VirtualFile sourceFile = entry.getKey();
         if (VfsUtilCore.isAncestor(file, sourceFile, true)) {
           ResourceItemSource<?> source = entry.getValue();
           removeSource(sourceFile, source);
+          iterator.remove();
         }
       }
     }
@@ -1987,7 +1988,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       invalidateParentCaches(this, ResourceType.values());
     }
 
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+    ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
     if (folderType != null) {
       clearLayoutlibCaches(file, folderType);
     }
@@ -2307,7 +2308,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       }
     }
 
-    protected byte @NotNull [] getCacheFileHeader(@NotNull ResourceFolderRepositoryCachingData cachingData) {
+    protected byte[] getCacheFileHeader(@NotNull ResourceFolderRepositoryCachingData cachingData) {
       return ResourceSerializationUtil.getCacheFileHeader(stream -> {
         stream.write(CACHE_FILE_HEADER);
         stream.writeString(CACHE_FILE_FORMAT_VERSION);

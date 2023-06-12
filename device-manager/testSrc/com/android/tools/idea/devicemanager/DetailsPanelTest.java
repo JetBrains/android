@@ -66,7 +66,7 @@ public final class DetailsPanelTest {
     InfoSection.setText(infoSection2.addNameAndValueLabels("Name 1"), "Value 1");
     InfoSection.setText(infoSection2.addNameAndValueLabels("Name 2"), "Value 2");
 
-    DetailsPanel panel = new DetailsPanel("Device", () -> toolkit);
+    var panel = new DetailsPanel("Device", null, () -> toolkit);
     panel.mySummarySection = new InfoSection("Summary Section");
     panel.myInfoSections.add(infoSection1);
     panel.myInfoSections.add(infoSection2);

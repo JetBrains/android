@@ -17,7 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
-import com.android.tools.idea.common.surface.InteractionManager.CURSOR_RECEIVER
+import com.android.tools.idea.common.surface.GuiInputHandler.CURSOR_RECEIVER
 import com.intellij.ide.DataManager
 import java.awt.Component
 import javax.swing.JComponent
@@ -30,7 +30,7 @@ interface Interactable {
   fun repaintComponent()
 }
 
-class SurfaceInteractable(private val surface: DesignSurface<*>): Interactable {
+open class SurfaceInteractable(private val surface: DesignSurface<*>) : Interactable {
   override val pannable: Pannable get() = surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface
   override val interactionPane: JComponent get() = surface.interactionPane
   override val cursorReceiver: Component? get() = DataManager.getInstance().getDataContext(surface).getData(CURSOR_RECEIVER)

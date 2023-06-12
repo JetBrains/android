@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.hprof
 
 import com.intellij.openapi.Disposable
+import java.lang.Boolean
 
 class ObjectTreeTestWrapper {
 
@@ -28,6 +29,12 @@ class ObjectTreeTestWrapper {
   fun register(parent: Disposable, child: Disposable) {
     val method = treeClazz.getDeclaredMethod("register", Disposable::class.java, Disposable::class.java).apply { isAccessible = true }
     method.invoke(tree, parent, child)
+  }
+
+  fun dispose(d: Disposable) {
+    // calls: executeAll(@NotNull Disposable object, boolean processUnregistered)
+    val method = treeClazz.getDeclaredMethod("executeAll", Disposable::class.java, Boolean.TYPE).apply { isAccessible = true }
+    method.invoke(tree, d, true)
   }
 
   companion object {

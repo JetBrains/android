@@ -16,12 +16,12 @@
 package com.android.tools.componenttree.treetable
 
 import com.android.SdkConstants
-import com.android.flags.junit.SetFlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.adtui.swing.laf.HeadlessTreeUI
 import com.android.tools.componenttree.api.ComponentTreeBuildResult
@@ -30,11 +30,12 @@ import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.api.IconColumn
 import com.android.tools.componenttree.api.createIntColumn
+import com.android.tools.componenttree.treetable.ViewTreeCellRenderer.ColoredViewRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.componenttree.util.fragments
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.advanced.AdvancedSettingType
@@ -48,7 +49,9 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.JBColor
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.EmptyIcon
+import com.intellij.util.ui.TextTransferable
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons
 import org.junit.After
 import org.junit.Before
@@ -56,12 +59,16 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.junit.runners.model.Statement
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.Transferable
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.Icon
@@ -83,8 +90,7 @@ class TreeTableImplTest {
 
   @get:Rule
   val chain = RuleChain
-    .outerRule(SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true))
-    .around(MockitoCleanerRule())
+    .outerRule(MockitoCleanerRule())
     .around(EdtRule())
     .around(IconLoaderRule())
     .around(disposableRule)!!
@@ -98,17 +104,21 @@ class TreeTableImplTest {
   private val contextPopup = object : ContextPopupHandler {
     var popupInvokeCount = 0
       private set
+    var lastItem: Any? = null
 
-    override fun invoke(component: JComponent, x: Int, y: Int) {
+    override fun invoke(item: Any, component: JComponent, x: Int, y: Int) {
       popupInvokeCount++
+      lastItem = item
     }
   }
   private val doubleClickHandler = object : DoubleClickHandler {
     var clickCount = 0
       private set
+    var lastItem: Any? = null
 
-    override fun invoke() {
+    override fun invoke(item: Any) {
       clickCount++
+      lastItem = item
     }
   }
   private val badgeItem = object : IconColumn("b1") {
@@ -195,6 +205,7 @@ class TreeTableImplTest {
     val ui = FakeUi(table)
     ui.mouse.rightClick(10, 10)
     assertThat(contextPopup.popupInvokeCount).isEqualTo(1)
+    assertThat(contextPopup.lastItem).isSameAs(item1)
     assertThat(badgeItem.lastPopupItem).isNull()
   }
 
@@ -289,6 +300,7 @@ class TreeTableImplTest {
     val ui = FakeUi(tree)
     ui.mouse.doubleClick(10, 10)
     assertThat(doubleClickHandler.clickCount).isEqualTo(1)
+    assertThat(doubleClickHandler.lastItem).isSameAs(item1)
   }
 
   @Test
@@ -419,6 +431,7 @@ class TreeTableImplTest {
     table.removeNotify()
     table.addNotify()
     assertThat(table.tableHeader.isShowing).isFalse()
+    table.removeNotify()
   }
 
   @Test
@@ -563,7 +576,7 @@ class TreeTableImplTest {
   }
 
   @Test
-  fun testSelectionIsMaintainedOnUpdates() {
+  fun testSelectionAndExpansionIsMaintainedOnUpdates() {
     val result = createTree()
     val table = result.focusComponent as TreeTableImpl
     val selectionModel = result.selectionModel
@@ -578,6 +591,7 @@ class TreeTableImplTest {
     ui.mouse.click(cell.centerX.toInt(), cell.centerY.toInt())
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
     assertThat(selections).isEqualTo(1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2)
 
     // Simulate a model change.
     item1.add(item4)
@@ -587,6 +601,81 @@ class TreeTableImplTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
     assertThat(selections).isEqualTo(1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2)
+  }
+
+  @Test
+  fun testFullExpansionOnRootUpdates() {
+    val result = createTree {
+      withExpandAllOnRootChange()
+    }
+    val table = result.focusComponent as TreeTableImpl
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2, style1)
+    val model = result.model
+    table.tree.collapseRow(1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1)
+
+    // Simulate a model change with no root change:
+    model.treeRoot = item1
+
+    // Make sure the expansions are still intact:
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1)
+
+    // Simulate a model change with a root change:
+    model.treeRoot = item2
+
+    // The tree should be fully expanded:
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item2, style1)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testCreateTransferable() {
+    val table = createTreeTable()
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    table.setRowSelectionInterval(1, 2) // item2 & style1
+    val transferHandler = table.transferHandler as TreeTableImpl.TreeTableTransferHandler
+    val transferable = transferHandler.createTransferableForTests(table)
+    val str = transferable?.getTransferData(DataFlavor.stringFlavor) as? String
+    assertThat(str).isEqualTo("(${item2.tagName},style:${style1.name})")
+    assertThat(transferHandler.draggedItems).containsExactly(item2, style1)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testFontHeight() {
+    val table = createTreeTable()
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
+
+    PortableUiFontRule(scale = 4f).apply(object : Statement() {
+      override fun evaluate() {
+        table.updateUI()
+        assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
+      }
+    }, mock()).evaluate()
+  }
+
+  @Test
+  fun testExpand() {
+    val table = createTreeTable()
+    val otherColumnsWidth = listOf(1,2,3).sumOf { table.getCellRect(0, it, true).width }
+    setScrollPaneSize(table, table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1), 800)
+    table.tree.size = Dimension(table.width - otherColumnsWidth, table.height)
+    val cellRenderer = table.tree.cellRenderer
+    val renderer1 = cellRenderer.getTreeCellRendererComponent(table.tree, item1, false, true, false, 0, false) as ColoredViewRenderer
+    renderer1.adjustForPainting()
+    assertThat(renderer1.fragments[0].text).endsWith("Layout")
+
+    setScrollPaneSize(table, table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1) - 1, 800)
+    table.tree.size = Dimension(table.width - otherColumnsWidth, table.height)
+    val renderer2 = cellRenderer.getTreeCellRendererComponent(table.tree, item1, false, true, false, 0, false) as ColoredViewRenderer
+    renderer2.adjustForPainting()
+    assertThat(renderer2.fragments[0].text).endsWith("...")
   }
 
   private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {
@@ -615,11 +704,11 @@ class TreeTableImplTest {
   private fun getScrollPane(table: TreeTableImpl): JScrollPane =
     table.parent.parent as JScrollPane
 
-  private fun createTreeTable(): TreeTableImpl =
-    createTree().focusComponent as TreeTableImpl
+  private fun createTreeTable(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }): TreeTableImpl =
+    createTree(customChange).focusComponent as TreeTableImpl
 
-  private fun createTree(): ComponentTreeBuildResult {
-    val result = createTreeWithScrollPane()
+  private fun createTree(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }): ComponentTreeBuildResult {
+    val result = createTreeWithScrollPane(customChange)
     val table = result.focusComponent as TreeTableImpl
     result.model.treeRoot = item1
 
@@ -628,7 +717,7 @@ class TreeTableImplTest {
     return result
   }
 
-  private fun createTreeWithScrollPane(): ComponentTreeBuildResult {
+  private fun createTreeWithScrollPane(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder): ComponentTreeBuildResult {
     return ComponentTreeBuilder()
       .withNodeType(ItemNodeType())
       .withNodeType(StyleNodeType())
@@ -640,7 +729,16 @@ class TreeTableImplTest {
       .withDoubleClick(doubleClickHandler)
       .withoutTreeSearch()
       .withInvokeLaterOption { it.run() }
+      .withMultipleSelection()
+      .withDnD(::merge, deleteOriginOfInternalMove = false)
+      .customChange()
       .build()
+  }
+
+  private fun merge(t1: Transferable, t2: Transferable): Transferable {
+    val s1 = t1.getTransferData(DataFlavor.stringFlavor) as String
+    val s2 = t2.getTransferData(DataFlavor.stringFlavor) as String
+    return TextTransferable(StringBuffer("($s1,$s2)"))
   }
 
   private val Rectangle.bottom

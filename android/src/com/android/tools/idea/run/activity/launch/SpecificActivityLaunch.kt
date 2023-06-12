@@ -38,7 +38,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 
-class SpecificActivityLaunch : ActivityLaunchOption<SpecificActivityLaunch.State?>() {
+class SpecificActivityLaunch : ActivityLaunchOption<SpecificActivityLaunch.State>() {
   override fun getId(): String {
     return AndroidRunConfiguration.LAUNCH_SPECIFIC_ACTIVITY
   }

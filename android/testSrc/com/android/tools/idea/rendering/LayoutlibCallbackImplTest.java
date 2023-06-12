@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
 import static org.mockito.Mockito.mock;
 
+import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
@@ -26,15 +27,27 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.collect.Lists;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.PsiTestUtil;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
+import org.jetbrains.android.uipreview.ModuleRenderContexts;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
   /**
@@ -73,14 +86,14 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, psiFile.getVirtualFile());
     RenderLogger logger = mock(RenderLogger.class);
     RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
-      LayoutLibrary layoutlib = RenderService.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
+      LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
-      LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
 
-      ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
-      ModuleClassLoader classLoader = ModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
+      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
+      RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
       LayoutlibCallbackImpl layoutlibCallback =
-        new LayoutlibCallbackImpl(task, layoutlib, appResources, myModule, myFacet, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+        new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
       ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
         ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
       ));
@@ -94,7 +107,80 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       }
       String startDestination = parser.getAttributeValue(ANDROID_URI, ATTR_LAYOUT);
       assertEquals("@layout/fragment_blank", startDestination);
-      ModuleClassLoaderManager.get().release(classLoader, this);
+      StudioModuleClassLoaderManager.get().release(classLoader, this);
     });
+  }
+
+  // b/248473636
+  public void testFontFromAarIsAccessible() throws IOException {
+    @Language("XML") final String main = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                         "    android:layout_width=\"wrap_content\"\n" +
+                                         "    android:layout_height=\"wrap_content\">\n" +
+                                         "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/main.xml", main);
+
+    File fontsFolder = createAarDependencyWithFont(myModule, "foobar");
+
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, psiFile.getVirtualFile());
+    RenderLogger logger = mock(RenderLogger.class);
+    RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
+      LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
+        ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
+
+      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
+      RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
+      LayoutlibCallbackImpl layoutlibCallback =
+        new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+
+      assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
+
+      StudioModuleClassLoaderManager.get().release(classLoader, this);
+    });
+
+  }
+
+  private static File createAarDependencyWithFont(Module module, String libraryName) throws IOException {
+    File aarDir = FileUtil.createTempDirectory(libraryName, "_exploded");
+    createManifest(aarDir, "com.foo.bar");
+    File resFolder = new File(aarDir,"res");
+    resFolder.mkdirs();
+    File fontsFolder = new File(resFolder, "font");
+    fontsFolder.mkdirs();
+
+    ClassLoader resourceClassLoader = LayoutlibCallbackImplTest.class.getClassLoader();
+
+    String[] fontFileNames = new String[] {"aar_font_family.xml", "aar_font1.ttf"};
+    for (String fontToCopy : fontFileNames) {
+      File newFile = new File(fontsFolder, fontToCopy);
+      try (InputStream is = resourceClassLoader.getResourceAsStream("fonts/" + fontToCopy)) {
+        byte[] bytes = is.readAllBytes();
+        try (FileOutputStream fo = new FileOutputStream(newFile)) {
+          fo.write(bytes);
+        }
+      }
+    }
+
+    Library library = PsiTestUtil.addProjectLibrary(
+      module,
+      libraryName + ".aar",
+      Lists.newArrayList(VfsUtil.findFileByIoFile(resFolder, true)),
+      Collections.emptyList()
+    );
+
+    ModuleRootModificationUtil.addDependency(module, library);
+
+    return fontsFolder;
+  }
+
+  private static void createManifest(File aarDir, String packageName) throws IOException {
+    aarDir.mkdirs();
+    String content = "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"" + packageName + "\">\n" +
+                     "</manifest>";
+    File manifest = new File(aarDir, SdkConstants.FN_ANDROID_MANIFEST_XML);
+    try (FileOutputStream out = new FileOutputStream(manifest)) {
+      out.write(content.getBytes(StandardCharsets.UTF_8));
+    }
   }
 }

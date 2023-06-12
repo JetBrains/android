@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
@@ -25,7 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
-import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
+import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
@@ -34,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescript
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
 import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
+import java.util.ArrayList
 
 /**
  * Set of classes whose properties should not be merged into each other.
@@ -202,4 +204,14 @@ fun maybeTrimForParent(element: GradleDslElement, converter: GradleDslNameConver
   val externalNameInfo = converter.externalNameForParent(lastNamePart, parent)
   parts.addAll(externalNameInfo.externalNameParts)
   return ExternalNameInfo(parts, externalNameInfo.syntax, name.isFake)
+}
+
+fun GradlePropertiesDslElement.setMaybeIndirectedElement(propertyElement: GradleDslElement, originalFile: GradleDslFile) {
+  if (dslFile == originalFile) {
+    setParsedElement(propertyElement)
+    return
+  }
+  originalFile.setParsedElement(propertyElement)
+  originalFile.hideProperty(propertyElement)
+  addAppliedProperty(propertyElement)
 }

@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">blah with a \' mark</string>
+    <string name="blah_with_a_mark">blah with a \' mark</string>
 </resources>

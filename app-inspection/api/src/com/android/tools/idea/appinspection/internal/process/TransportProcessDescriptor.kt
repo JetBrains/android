@@ -19,13 +19,12 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.profiler.proto.Common
 
-/**
- * A [ProcessDescriptor] implementation build using transport-related protos.
- */
+/** A [ProcessDescriptor] implementation build using transport-related protos. */
 data class TransportProcessDescriptor(
   override val device: DeviceDescriptor,
   override val abiCpuArch: String,
   override val name: String,
+  override val packageName: String,
   override val isRunning: Boolean,
   override val pid: Int,
   override val streamId: Long
@@ -37,6 +36,7 @@ data class TransportProcessDescriptor(
     stream.device.toDeviceDescriptor(),
     process.abiCpuArch,
     process.name,
+    process.packageName,
     process.state != Common.Process.State.DEAD,
     process.pid,
     stream.streamId

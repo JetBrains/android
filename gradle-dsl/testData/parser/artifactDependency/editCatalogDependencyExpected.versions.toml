@@ -1,0 +1,6 @@
+[versions]
+compose-ui = "1.0.0"
+[libraries]
+junit = "junit:junit:4.14"
+core-ktx = { module = "androidx.core:core-ktx", version = "1.9.1" }
+ui = { module = "androidx.compose.ui:ui", version = "1.0.1" }

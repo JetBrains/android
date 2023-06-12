@@ -15,26 +15,28 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.psi.PsiFile
 
-class TestComposePreviewManager(initialInteractiveMode: ComposePreviewManager.InteractiveMode = ComposePreviewManager.InteractiveMode.DISABLED) : ComposePreviewManager {
+class TestComposePreviewManager(
+  initialInteractiveMode: ComposePreviewManager.InteractiveMode =
+    ComposePreviewManager.InteractiveMode.DISABLED
+) : ComposePreviewManager {
 
-  var currentStatus = ComposePreviewManager.Status(hasRuntimeErrors = false,
-                                                   hasSyntaxErrors = false,
-                                                   isOutOfDate = false,
-                                                   isRefreshing = false,
-                                                   interactiveMode = initialInteractiveMode)
+  var currentStatus =
+    ComposePreviewManager.Status(
+      hasRuntimeErrors = false,
+      hasSyntaxErrors = false,
+      isOutOfDate = false,
+      areResourcesOutOfDate = false,
+      isRefreshing = false,
+      interactiveMode = initialInteractiveMode
+    )
   var interactiveMode: ComposePreviewManager.InteractiveMode = initialInteractiveMode
     set(value) {
       field = value
       currentStatus = currentStatus.copy(interactiveMode = value)
     }
   override fun status(): ComposePreviewManager.Status = currentStatus
-
-  override fun invalidateSavedBuildStatus() {
-    // do nothing
-  }
 
   override val availableGroups: Collection<PreviewGroup> = emptyList()
   override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
@@ -50,6 +52,14 @@ class TestComposePreviewManager(initialInteractiveMode: ComposePreviewManager.In
   override fun stopInteractivePreview() {
     interactivePreviewElementInstance = null
   }
+
+  override fun invalidate() {}
+
+  override var isInspectionTooltipEnabled: Boolean = false
+
+  override var isFilterEnabled: Boolean = false
+
+  override var atfChecksEnabled: Boolean = false
 
   override fun dispose() {}
 }

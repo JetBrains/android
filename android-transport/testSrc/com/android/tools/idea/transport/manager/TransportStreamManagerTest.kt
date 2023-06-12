@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.take
@@ -34,7 +35,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.Timeout
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -48,9 +48,6 @@ class TransportStreamManagerTest {
   private val fakeProcess2 = FakeTransportService.FAKE_PROCESS.toBuilder().setDeviceId(fakeDevice2.deviceId).build()
   private lateinit var executorService: ExecutorService
   private lateinit var dispatcher: CoroutineDispatcher
-
-  @get:Rule
-  val timeout = Timeout.seconds(10)
 
   @get:Rule
   val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService)
@@ -237,5 +234,40 @@ class TransportStreamManagerTest {
 
     timer.currentTimeNs += 1
     transportService.addDevice(FakeTransportService.FAKE_OFFLINE_DEVICE)
+  }
+
+  @Test
+  fun `add and remove processes`() = runBlocking {
+    val manager =
+      TransportStreamManager
+        .createManager(TransportClient(grpcServerRule.name).transportStub, dispatcher)
+
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+
+    val queryChannel = Channel<List<Common.Process>>(capacity = 1)
+
+    manager.streamActivityFlow()
+      .take(1)
+      .collect { activity ->
+        queryChannel.send(listOf(FakeTransportService.FAKE_PROCESS, FakeTransportService.FAKE_PROFILEABLE_PROCESS))
+        activity.streamChannel.processesFlow({ _, _ -> true }) {
+          queryChannel.receive()
+        }
+          .take(4)
+          .collectIndexed { index, process ->
+            when (index) {
+              0 -> assertThat(process).isEqualTo(FakeTransportService.FAKE_PROCESS)
+              1 -> {
+                assertThat(process).isEqualTo(FakeTransportService.FAKE_PROFILEABLE_PROCESS)
+                queryChannel.send(listOf(FakeTransportService.FAKE_OFFLINE_PROCESS))
+              }
+
+              2 -> assertThat(process).isEqualTo(
+                FakeTransportService.FAKE_PROFILEABLE_PROCESS.toBuilder().setState(Common.Process.State.DEAD).build())
+
+              3 -> assertThat(process).isEqualTo(FakeTransportService.FAKE_OFFLINE_PROCESS)
+            }
+          }
+      }
   }
 }

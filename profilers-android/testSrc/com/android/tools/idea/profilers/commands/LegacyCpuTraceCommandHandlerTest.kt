@@ -31,6 +31,7 @@ import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.google.common.truth.Truth.assertThat
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.profiler.proto.Trace
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -64,8 +65,8 @@ class LegacyCpuTraceCommandHandlerTest {
     timer.currentTimeNs = startTimestamp
     commandHandler.execute(buildStartCommand(testPid, 1))
 
-    val expectedStartStatus = Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS).build()
-    val expectedTraceInfo = Cpu.CpuTraceInfo.newBuilder().apply {
+    val expectedStartStatus = Trace.TraceStartStatus.newBuilder().setStatus(Trace.TraceStartStatus.Status.SUCCESS).build()
+    val expectedTraceInfo = Trace.TraceInfo.newBuilder().apply {
       traceId = startTimestamp
       configuration = TRACE_CONFIG
       fromTimestamp = startTimestamp
@@ -74,9 +75,9 @@ class LegacyCpuTraceCommandHandlerTest {
     }
     val startStatusEvent = Common.Event.newBuilder().apply {
       pid = testPid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       commandId = 1
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
+      traceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStartStatus = expectedStartStatus
       }.build()
     }.build()
@@ -85,8 +86,8 @@ class LegacyCpuTraceCommandHandlerTest {
       kind = Common.Event.Kind.CPU_TRACE
       groupId = startTimestamp
       timestamp = startTimestamp
-      cpuTrace = Cpu.CpuTraceData.newBuilder().apply {
-        traceStarted = Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(expectedTraceInfo).build()
+      traceData = Trace.TraceData.newBuilder().apply {
+        traceStarted = Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(expectedTraceInfo).build()
       }.build()
     }.build()
     assertThat(eventQueue).containsExactly(startStatusEvent, startTrackingEvent)
@@ -95,16 +96,16 @@ class LegacyCpuTraceCommandHandlerTest {
     timer.currentTimeNs = endTimestamp
     commandHandler.execute(buildStopCommand(testPid, 2))
 
-    val expectedEndStatus = Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.SUCCESS).build()
+    val expectedEndStatus = Trace.TraceStopStatus.newBuilder().setStatus(Trace.TraceStopStatus.Status.SUCCESS).build()
     expectedTraceInfo.apply {
       toTimestamp = endTimestamp
       stopStatus = expectedEndStatus
     }
     val stopStatusEvent = Common.Event.newBuilder().apply {
       pid = testPid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       commandId = 2
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().apply {
+      traceStatus = Trace.TraceStatusData.newBuilder().apply {
         traceStopStatus = expectedEndStatus
       }.build()
     }.build()
@@ -113,8 +114,8 @@ class LegacyCpuTraceCommandHandlerTest {
       kind = Common.Event.Kind.CPU_TRACE
       groupId = startTimestamp
       timestamp = endTimestamp
-      cpuTrace = Cpu.CpuTraceData.newBuilder().apply {
-        traceEnded = Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
+      traceData = Trace.TraceData.newBuilder().apply {
+        traceEnded = Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(expectedTraceInfo).build()
       }.build()
     }.build()
     assertThat(eventQueue).containsExactly(stopStatusEvent, stopTrackingEvent)
@@ -165,10 +166,9 @@ class LegacyCpuTraceCommandHandlerTest {
 
   companion object {
     private val FAKE_TRACE_BYTES = byteArrayOf('a'.code.toByte())
-    private val TRACE_CONFIG = Cpu.CpuTraceConfiguration.newBuilder().apply {
-      userOptions = Cpu.CpuTraceConfiguration.UserOptions.newBuilder().apply {
-        traceMode = Cpu.CpuTraceMode.INSTRUMENTED
-        traceType = Cpu.CpuTraceType.ART
+    private val TRACE_CONFIG = Trace.TraceConfiguration.newBuilder().apply {
+      artOptions = Trace.ArtOptions.newBuilder().apply {
+        traceMode = Trace.TraceMode.INSTRUMENTED
       }.build()
     }.build()
 
@@ -178,6 +178,7 @@ class LegacyCpuTraceCommandHandlerTest {
         whenever(methodProfilingStatus).thenReturn(ClientData.MethodProfilingStatus.TRACER_ON)
       }
       val mockDevice = mock(IDevice::class.java).apply {
+        whenever(serialNumber).thenReturn("")
         whenever(getClientName(ArgumentMatchers.anyInt())).thenReturn("TestClient")
         whenever(getClient(ArgumentMatchers.anyString())).thenReturn(thisClient)
       }
@@ -189,16 +190,22 @@ class LegacyCpuTraceCommandHandlerTest {
 
     fun buildStartCommand(testPid: Int, testCommandId: Int): Commands.Command = Commands.Command.newBuilder().apply {
       pid = testPid
-      type = Commands.Command.CommandType.START_CPU_TRACE
+      type = Commands.Command.CommandType.START_TRACE
       commandId = testCommandId
-      startCpuTrace = Cpu.StartCpuTrace.newBuilder().setConfiguration(TRACE_CONFIG).build()
+      startTrace = Trace.StartTrace.newBuilder()
+        .setProfilerType(Trace.ProfilerType.CPU)
+        .setConfiguration(TRACE_CONFIG)
+        .build()
     }.build()
 
     fun buildStopCommand(testPid: Int, testCommandId: Int): Commands.Command = Commands.Command.newBuilder().apply {
       pid = testPid
-      type = Commands.Command.CommandType.STOP_CPU_TRACE
+      type = Commands.Command.CommandType.STOP_TRACE
       commandId = testCommandId
-      stopCpuTrace = Cpu.StopCpuTrace.newBuilder().setConfiguration(TRACE_CONFIG).build()
+      stopTrace = Trace.StopTrace.newBuilder()
+        .setProfilerType(Trace.ProfilerType.CPU)
+        .setConfiguration(TRACE_CONFIG)
+        .build()
     }.build()
   }
 }

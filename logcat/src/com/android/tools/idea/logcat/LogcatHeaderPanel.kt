@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.adblib.AdbSession
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBox
-import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTracker
-import com.android.tools.idea.logcat.filters.FilterTextComponent
+import com.android.tools.idea.logcat.filters.FilterTextField
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
@@ -49,19 +47,13 @@ internal class LogcatHeaderPanel(
   private val filterParser: LogcatFilterParser,
   filter: String,
   initialDevice: Device?,
-  adbSession: AdbSession,
 ) : JPanel() {
-  private val deviceComboBox = DeviceComboBox(
-    logcatPresenter,
-    initialDevice,
-    DeviceComboBoxDeviceTracker(project, initialDevice, adbSession))
-
-  private val filterComponent: FilterTextComponent = FilterTextComponent.createComponent(project, logcatPresenter, filterParser, filter)
-
+  private val deviceComboBox = DeviceComboBox(project, initialDevice)
+  private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter)
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
 
   init {
-    filterComponent.apply {
+    filterTextField.apply {
       font = Font.getFont(Font.MONOSPACED)
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
@@ -77,6 +69,7 @@ internal class LogcatHeaderPanel(
         layout = if (width > JBUI.scale(500)) createWideLayout() else createNarrowLayout()
       }
     })
+    layout = createWideLayout()
 
     helpIcon.let {
       toolTipText = LogcatBundle.message("logcat.help.tooltip")
@@ -91,31 +84,29 @@ internal class LogcatHeaderPanel(
   fun trackSelectedDevice(): Flow<Device> = deviceComboBox.trackSelectedDevice()
 
   var filter: String
-    get() = filterComponent.text
+    get() = filterTextField.text
     set(value) {
-      filterComponent.text = value
+      filterTextField.text = value
     }
 
   fun getSelectedDevice(): Device? = deviceComboBox.selectedItem as? Device
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)
-    val minWidth = ComboBox<String>().minimumSize.width
-    val maxWidth = JBUI.scale(400)
 
     layout.autoCreateContainerGaps = true
     layout.autoCreateGaps = true
 
     layout.setHorizontalGroup(
       layout.createSequentialGroup()
-        .addComponent(deviceComboBox, minWidth, GroupLayout.DEFAULT_SIZE, maxWidth)
-        .addComponent(filterComponent.component)
+        .addComponent(deviceComboBox, ComboBox<String>().minimumSize.width, GroupLayout.DEFAULT_SIZE, JBUI.scale(400))
+        .addComponent(filterTextField, JBUI.scale(350), GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
         .addComponent(helpIcon)
     )
     layout.setVerticalGroup(
       layout.createParallelGroup(GroupLayout.Alignment.CENTER)
         .addComponent(deviceComboBox)
-        .addComponent(filterComponent.component)
+        .addComponent(filterTextField)
         .addComponent(helpIcon)
     )
     return layout
@@ -129,12 +120,12 @@ internal class LogcatHeaderPanel(
     layout.setHorizontalGroup(
       layout.createParallelGroup()
         .addGroup(layout.createSequentialGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createSequentialGroup().addComponent(filterComponent.component))
+        .addGroup(layout.createSequentialGroup().addComponent(filterTextField))
     )
     layout.setVerticalGroup(
       layout.createSequentialGroup()
         .addGroup(layout.createParallelGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterComponent.component))
+        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterTextField))
     )
     return layout
   }

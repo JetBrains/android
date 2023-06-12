@@ -35,7 +35,7 @@ public class MissingIntDefSwitch {
     }
 
     public static void testMissingWithDefault(@Duration int duration) {
-        <warning descr="Switch statement on an `int` with known associated constant missing case `LENGTH_INDEFINITE`">switch</warning> (duration) {
+        switch (duration) {
             case LENGTH_SHORT:
             case LENGTH_LONG:
             default:

@@ -53,7 +53,7 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
         "  <string name=\"app_name\">This app_name definition should win</string>\n" +
         "</resources>");
     commitAllDocumentsAndWaitForUpdatesToPropagate();
-    LocalResourceRepository repository = ResourceRepositoryManager.getModuleResources(myAndroidFacet);
+    LocalResourceRepository repository = StudioResourceRepositoryManager.getModuleResources(myAndroidFacet);
     List<ResourceItem> resources = repository.getResources(RES_AUTO, ResourceType.STRING, "app_name");
     assertThat(resources).hasSize(1);
     // Check that the debug version of app_name takes precedence over the default on.

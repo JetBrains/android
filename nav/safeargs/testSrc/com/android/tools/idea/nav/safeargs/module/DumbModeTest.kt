@@ -80,7 +80,7 @@ class DumbModeTest {
     }
     // still 1 NavArgumentData due to dumb mode --previously cached results are returned
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
-
+    
     DumbServiceImpl.getInstance(project).isDumb = false
     // fresh results are generated since smart mode
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)

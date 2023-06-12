@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.SdkConstants
 import com.android.resources.ResourceType
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -38,7 +39,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.Consumer
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Component

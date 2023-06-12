@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 24
     buildToolsVersion '25.0.0'
+    namespace "com.bug204792.myapplication"
 
     defaultConfig {
         applicationId "com.bug204792.myapplication"

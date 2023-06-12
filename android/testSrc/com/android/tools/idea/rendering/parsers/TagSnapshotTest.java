@@ -24,10 +24,10 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.XmlElementFactory;
-import com.intellij.psi.xml.XmlTag;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.intellij.lang.annotations.Language;
@@ -53,7 +53,7 @@ public class TagSnapshotTest {
     AtomicInteger callCount = new AtomicInteger(0);
 
     TagSnapshot snapshot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-      XmlTag linearLayout = XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(layoutString);
+      RenderXmlTag linearLayout = new PsiXmlTag(XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(layoutString));
       return TagSnapshot.createTagSnapshot(linearLayout, (tag) -> {
         callCount.incrementAndGet();
 
@@ -72,7 +72,7 @@ public class TagSnapshotTest {
     // Once per element
     assertThat(callCount.get()).isEqualTo(3);
     TagSnapshot synthetic = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-      XmlTag tag = XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText("<transformed />");
+      RenderXmlTag tag = new PsiXmlTag(XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText("<transformed />"));
       return TagSnapshot.createSyntheticTag(tag, "synthetic", null, null,
                                             Collections.emptyList(), Collections.emptyList(), null);
     });
@@ -102,7 +102,7 @@ public class TagSnapshotTest {
                                                 "</ImageView>";
 
     TagSnapshot root = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-      XmlTag image = XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(imageString);
+      RenderXmlTag image = new PsiXmlTag(XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(imageString));
       return TagSnapshot.createTagSnapshot(image, null);
     });
     String expectedId = Long.toString(AaptAttrAttributeSnapshot.ourUniqueId.get() - 1);
@@ -124,7 +124,7 @@ public class TagSnapshotTest {
                                                 "  tools:useTag=\"Button\" />";
 
     TagSnapshot button = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-      XmlTag image = XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(imageString);
+      RenderXmlTag image = new PsiXmlTag(XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(imageString));
       return TagSnapshot.createTagSnapshot(image, null);
     });
     assertThat(button.toString()).isEqualTo(
@@ -140,7 +140,7 @@ public class TagSnapshotTest {
                                                 "  android:layout_height=\"wrap_content\" />";
 
     TagSnapshot button = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
-      XmlTag image = XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(imageString);
+      RenderXmlTag image = new PsiXmlTag(XmlElementFactory.getInstance(myProjectRule.getProject()).createTagFromText(imageString));
       return TagSnapshot.createTagSnapshot(image, null);
     });
     assertThat(button.toString()).isEqualTo(

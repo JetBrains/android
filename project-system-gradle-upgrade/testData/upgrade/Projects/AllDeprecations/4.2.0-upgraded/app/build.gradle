@@ -20,7 +20,6 @@ plugins {
 
 android {
     compileSdkVersion 30
-    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.example.myapplication"
@@ -73,7 +72,6 @@ android {
             pickFirsts += ['readme.md']
         }
     }
-    namespace 'com.example.myapplication'
 }
 
 dependencies {

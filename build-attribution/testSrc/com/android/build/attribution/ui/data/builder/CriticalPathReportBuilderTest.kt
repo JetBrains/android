@@ -39,6 +39,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
@@ -47,7 +48,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(1500)
     assertThat(report.criticalPathTasks.criticalPathDuration).isEqualTo(TimeWithPercentage(1000, 1500))
@@ -73,6 +74,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
@@ -81,21 +83,21 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
       )
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.criticalPathPlugins.criticalPathDuration).isEqualTo(TimeWithPercentage(1000, 1500))
     assertThat(report.criticalPathPlugins.miscStepsTime).isEqualTo(TimeWithPercentage(500, 1500))
-    assertThat(report.criticalPathPlugins.plugins.size).isEqualTo(2)
-    assertThat(report.criticalPathPlugins.plugins[0].name).isEqualTo("pluginB")
-    assertThat(report.criticalPathPlugins.plugins[0].criticalPathTasks.size).isEqualTo(2)
-    report.criticalPathPlugins.plugins[0].criticalPathTasks.tasks[0].verifyValues(":app", "taskB", pluginB, TimeWithPercentage(400, 1000))
-    report.criticalPathPlugins.plugins[0].criticalPathTasks.tasks[1].verifyValues(":app", "taskD", pluginB, TimeWithPercentage(200, 1000))
-    assertThat(report.criticalPathPlugins.plugins[0].criticalPathDuration).isEqualTo(TimeWithPercentage(600, 1000))
-    assertThat(report.criticalPathPlugins.plugins[1].name).isEqualTo("pluginA")
-    assertThat(report.criticalPathPlugins.plugins[1].criticalPathTasks.size).isEqualTo(2)
-    report.criticalPathPlugins.plugins[1].criticalPathTasks.tasks[0].verifyValues(":lib", "taskC", pluginA, TimeWithPercentage(300, 1000))
-    report.criticalPathPlugins.plugins[1].criticalPathTasks.tasks[1].verifyValues(":app", "taskA", pluginA, TimeWithPercentage(100, 1000))
-    assertThat(report.criticalPathPlugins.plugins[1].criticalPathDuration).isEqualTo(TimeWithPercentage(400, 1000))
+    assertThat(report.criticalPathPlugins.entries.size).isEqualTo(2)
+    assertThat(report.criticalPathPlugins.entries[0].name).isEqualTo("pluginB")
+    assertThat(report.criticalPathPlugins.entries[0].criticalPathTasks.size).isEqualTo(2)
+    report.criticalPathPlugins.entries[0].criticalPathTasks[0].verifyValues(":app", "taskB", pluginB, TimeWithPercentage(400, 1000))
+    report.criticalPathPlugins.entries[0].criticalPathTasks[1].verifyValues(":app", "taskD", pluginB, TimeWithPercentage(200, 1000))
+    assertThat(report.criticalPathPlugins.entries[0].criticalPathDuration).isEqualTo(TimeWithPercentage(600, 1000))
+    assertThat(report.criticalPathPlugins.entries[1].name).isEqualTo("pluginA")
+    assertThat(report.criticalPathPlugins.entries[1].criticalPathTasks.size).isEqualTo(2)
+    report.criticalPathPlugins.entries[1].criticalPathTasks[0].verifyValues(":lib", "taskC", pluginA, TimeWithPercentage(300, 1000))
+    report.criticalPathPlugins.entries[1].criticalPathTasks[1].verifyValues(":app", "taskA", pluginA, TimeWithPercentage(100, 1000))
+    assertThat(report.criticalPathPlugins.entries[1].criticalPathDuration).isEqualTo(TimeWithPercentage(400, 1000))
   }
 
   @Test
@@ -106,13 +108,14 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
 
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA)
       override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(PluginBuildData(plugin, 1500))
       override fun buildUsesConfigurationCache(): Boolean = true
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     //Sorted by time descending
     assertThat(report.criticalPathTasks.tasks[0].pluginUnknownBecauseOfCC).isTrue()

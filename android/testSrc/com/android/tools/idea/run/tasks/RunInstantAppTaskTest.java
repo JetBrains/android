@@ -16,9 +16,9 @@
 package com.android.tools.idea.run.tasks;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -27,15 +27,16 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.RunHandler;
 import com.google.android.instantapps.sdk.api.StatusCode;
 import com.google.common.collect.ImmutableList;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -56,10 +57,10 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   @Mock private Project project;
   @Mock private Executor executor;
   @Mock private IDevice device;
-  @Mock private LaunchStatus launchStatus;
-  @Mock private ConsolePrinter consolePrinter;
+  @Mock private ConsoleView consolePrinter;
   @Mock private ProcessHandler handler;
   @Mock private ProgressIndicator indicator;
+  @Mock private ExecutionEnvironment env;
 
   @Override
   public void setUp() throws Exception {
@@ -68,31 +69,26 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
     instantAppSdks = new IdeComponents(null, getTestRootDisposable()).mockApplicationService(InstantAppSdks.class);
     when(instantAppSdks.loadLibrary()).thenReturn(sdkLib);
     when(sdkLib.getRunHandler()).thenReturn(runHandler);
-
+    when(env.getProject()).thenReturn(project);
+    when(env.getExecutor()).thenReturn(executor);
     when(device.getSerialNumber()).thenReturn(DEVICE_ID);
-    when(launchStatus.isLaunchTerminated()).thenReturn(false);
-  }
-
-  @Test
-  public void testPerformWithlaunchTerminated() {
-    when(launchStatus.isLaunchTerminated()).thenReturn(true);
-
-    RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "");
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
-      .isEqualTo(LaunchResult.Result.ERROR);
-    verifyNoMoreInteractions(runHandler);
   }
 
   @Test
   public void testPerformWithNoZipFile() {
     RunInstantAppTask task = new RunInstantAppTask(ImmutableList.of(), "");
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
-      .isEqualTo(LaunchResult.Result.ERROR);
+    try {
+      task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
+      fail("Run should fail");
+    }
+    catch (ExecutionException e) {
+      assertThat(e.getMessage()).isEqualTo("Uploading and launching Instant App: Package not found or not unique");
+    }
     verifyNoMoreInteractions(runHandler);
   }
 
   @Test
-  public void testPerformWithEmptyStringUrl() {
+  public void testPerformWithEmptyStringUrl() throws ExecutionException {
     RunInstantAppTask task = new RunInstantAppTask(apkInfoListForZip, "");
     // Note here that an empty string URL should be transformed to null in the call to runInstantApp
     when(runHandler.runZip(
@@ -104,8 +100,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
-      .isEqualTo(LaunchResult.Result.SUCCESS);
+    task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
   }
 
   @Test
@@ -120,8 +115,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* resultStream= */ any(),
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
-      .isEqualTo(LaunchResult.Result.SUCCESS);
+    task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
   }
 
   @Test
@@ -148,8 +142,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
       /* progressIndicator= */ any()))
       .thenReturn(StatusCode.SUCCESS);
 
-    assertThat(task.run(new LaunchContext(project, executor, device, launchStatus, consolePrinter, handler, indicator)).getResult())
-      .isEqualTo(LaunchResult.Result.SUCCESS);
+    task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
 
     verify(runHandler).runApks(
       /* apkFiles= */ eq(ImmutableList.of(apk1, apk2)),

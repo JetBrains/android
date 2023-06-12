@@ -34,7 +34,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
   }
 
   @Override
-  public boolean submit(IdeaLoggingEvent @NotNull [] events,
+  public boolean submit(@NotNull IdeaLoggingEvent [] events,
                         @Nullable String description,
                         @Nullable Component parentComponent,
                         @NotNull Consumer<? super SubmittedReportInfo> callback) {

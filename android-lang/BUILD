@@ -16,7 +16,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-IntelliLang",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-langInjection",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
@@ -34,6 +34,7 @@ iml_module(
     ],
     test_class = "com.android.tools.idea.lang.AndroidLangTestSuite",
     test_data = glob(["testData/**"]) + [
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",

@@ -17,50 +17,79 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.model.IdeSyncIssue
+import org.gradle.tooling.model.ProjectIdentifier
 import java.util.regex.Pattern
 
 /**
  * Marker interface for all exceptions that are triggered via Android specific errors in project import.
  */
 open class AndroidSyncException : RuntimeException {
-  constructor(message: String) : super(message)
-  constructor() : super()
+  /**
+   *  The root directory of the current build where this exception originated.
+   *  For included build in a composite build, this points
+   *  to the root directory(dir that hold settings.gradle) of the included build.
+   *  For root build in a composite build, this points to the root directory of root build.
+   */
+  val myBuildPath: String?
+
+  /**
+   * Path of the module that can be used as an identifier for module within a given build.
+   */
+  val myModulePath: String?
+
+  /**
+   * Issues encountered during the gradle sync.
+   */
+  val mySyncIssues: List<IdeSyncIssue>?
+
+  constructor(message: String, buildPath: String? = null, modulePath: String? = null, syncIssues: List<IdeSyncIssue>? = null) : super(message) {
+    mySyncIssues = syncIssues
+    myModulePath = modulePath
+    myBuildPath = buildPath
+  }
+
+  constructor() : super() {
+    myBuildPath = null
+    myModulePath = null
+    mySyncIssues = null
+  }
 }
 
-class AgpVersionTooOld(agpVersion: GradleVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionTooOld(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
   companion object {
     private const val LEFT = "The project is using an incompatible version (AGP "
     private const val RIGHT = ") of the Android Gradle plugin. Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION."
-    private fun generateMessage(agpVersion: GradleVersion) = "$LEFT$agpVersion$RIGHT"
+    private fun generateMessage(agpVersion: AgpVersion) = "$LEFT$agpVersion$RIGHT"
     val PATTERN: Pattern = Pattern.compile("${Pattern.quote(LEFT)}(.+)${Pattern.quote(RIGHT)}")
     val ALWAYS_PRESENT_STRINGS = listOf(LEFT, RIGHT)
   }
 }
 
-class AgpVersionTooNew(agpVersion: GradleVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionTooNew(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
   companion object {
     private const val LEFT = "The project is using an incompatible version (AGP "
     private const val RIGHT = ") of the Android Gradle plugin. Latest supported version is AGP "
-    private fun generateMessage(agpVersion: GradleVersion) = "$LEFT$agpVersion$RIGHT$ANDROID_GRADLE_PLUGIN_VERSION"
+    private fun generateMessage(agpVersion: AgpVersion) = "$LEFT$agpVersion$RIGHT$ANDROID_GRADLE_PLUGIN_VERSION"
     val PATTERN: Pattern =
       Pattern.compile("${Pattern.quote(LEFT)}(.+)${Pattern.quote(RIGHT)}${Pattern.quote(ANDROID_GRADLE_PLUGIN_VERSION)}")
     val ALWAYS_PRESENT_STRINGS = listOf(LEFT, RIGHT)
   }
 }
 
-class AgpVersionIncompatible(agpVersion: GradleVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionIncompatible(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
   companion object {
     private const val A = "The project is using an incompatible preview version (AGP "
     private const val B = ") of the Android Gradle plugin. Current compatible "
     private const val PREVIEW = "preview "
     private val C = "version is AGP $ANDROID_GRADLE_PLUGIN_VERSION."
-    private fun generateMessage(agpVersion: GradleVersion): String {
-      val latestKnown = GradleVersion.parseAndroidGradlePluginVersion(ANDROID_GRADLE_PLUGIN_VERSION)
+    private fun generateMessage(agpVersion: AgpVersion): String {
+      val latestKnown = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
       return "$A$agpVersion$B${if (latestKnown.isPreview) PREVIEW else ""}$C"
     }
 
-    val PATTERN: Pattern = GradleVersion.parseAndroidGradlePluginVersion(ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
+    val PATTERN: Pattern = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
       Pattern.compile(
         "${Pattern.quote(A)}(.+)${Pattern.quote(B)}${if (latestKnown.isPreview) Pattern.quote(PREVIEW) else ""}${Pattern.quote(C)}")
     }
@@ -68,16 +97,16 @@ class AgpVersionIncompatible(agpVersion: GradleVersion) : AndroidSyncException(g
   }
 }
 
-class AgpVersionsMismatch(agpVersions: List<Pair<String, String>>) : AndroidSyncException(generateMessage(agpVersions)) {
+class AgpVersionsMismatch(agpVersions: List<Pair<AgpVersion, String>>) : AndroidSyncException(generateMessage(agpVersions)) {
   companion object {
-    private fun generateMessage(agpVersions: List<Pair<String, String>>): String {
+    private fun generateMessage(agpVersions: List<Pair<AgpVersion, String>>): String {
       return "$MESSAGE_START ${agpVersions.map { it.first }.distinct()}" +
              " $MESSAGE_CORE.\n$MESSAGE_END ${agpVersions.map { it.second }.distinct()}.\n"
     }
 
-    private const val MESSAGE_START = "Using multiple versions of the Android Gradle Plugin"
-    private const val MESSAGE_CORE = "across Gradle builds is not allowed"
-    private const val MESSAGE_END = "Affected builds:"
+    const val MESSAGE_START = "Using multiple versions of the Android Gradle Plugin"
+    const val MESSAGE_CORE = "across Gradle builds is not allowed"
+    const val MESSAGE_END = "Affected builds:"
     val INCOMPATIBLE_AGP_VERSIONS = Pattern.compile("$MESSAGE_START (.*) $MESSAGE_CORE\\.\n$MESSAGE_END (.*)\\.\n")
   }
 }

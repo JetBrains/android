@@ -15,34 +15,53 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 
-internal class SyncVariantResultCore(
+internal sealed class SyncVariantResultCore(
   val moduleConfiguration: ModuleConfiguration,
-  val module: AndroidModule,
+  val module: AndroidModule
+)
+
+internal class SyncVariantResultCoreSuccess(
+  moduleConfiguration: ModuleConfiguration,
+  module: AndroidModule,
   val ideVariant: IdeVariantWithPostProcessor,
   val nativeVariantAbi: NativeVariantAbiResult,
   val unresolvedDependencies: List<IdeUnresolvedDependency>
-)
+) : SyncVariantResultCore(moduleConfiguration, module)
 
-internal class SyncVariantResult(
+internal class SyncVariantResultCoreFailure(
+  moduleConfiguration: ModuleConfiguration,
+  module: AndroidModule,
+) : SyncVariantResultCore(moduleConfiguration, module)
+
+internal sealed class SyncVariantResult(
   val core: SyncVariantResultCore,
-  val moduleDependencies: List<ModuleConfiguration>
 ) {
   val moduleConfiguration: ModuleConfiguration get() = core.moduleConfiguration
   val module: AndroidModule get() = core.module
-  val ideVariant: IdeVariantWithPostProcessor get() = core.ideVariant
-  val nativeVariantAbi: NativeVariantAbiResult get() = core.nativeVariantAbi
-  val unresolvedDependencies: List<IdeUnresolvedDependency> get() = core.unresolvedDependencies
 }
 
-internal fun SyncVariantResultCore.getModuleDependencyConfigurations(
+internal class SyncVariantResultSuccess(
+  val coreSuccess: SyncVariantResultCoreSuccess,
+  val moduleDependencies: List<ModuleConfiguration>
+) : SyncVariantResult(coreSuccess) {
+  val ideVariant: IdeVariantWithPostProcessor get() = coreSuccess.ideVariant
+  val nativeVariantAbi: NativeVariantAbiResult get() = coreSuccess.nativeVariantAbi
+  val unresolvedDependencies: List<IdeUnresolvedDependency> get() = coreSuccess.unresolvedDependencies
+}
+
+internal class SyncVariantResultFailure(
+  core: SyncVariantResultCoreFailure,
+) : SyncVariantResult(core)
+
+internal fun SyncVariantResultCoreSuccess.getModuleDependencyConfigurations(
   selectedVariants: SelectedVariants,
   androidModulesById: Map<String, AndroidModule>,
-  libraryResolver: (LibraryReference) -> IdeLibrary
+  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary
 ): List<ModuleConfiguration> {
   val selectedVariantDetails = selectedVariants.selectedVariants[moduleConfiguration.id]?.details
 
@@ -71,7 +90,7 @@ internal fun SyncVariantResultCore.getModuleDependencyConfigurations(
     return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate)
   }
 
-  fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): List<ModuleConfiguration> {
+  fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): List<ModuleConfiguration> {
     return (ideVariant.mainArtifact.compileClasspathCore.dependencies
       + ideVariant.unitTestArtifact?.compileClasspathCore?.dependencies.orEmpty()
       + ideVariant.androidTestArtifact?.compileClasspathCore?.dependencies.orEmpty()

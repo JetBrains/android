@@ -16,17 +16,16 @@
 package com.android.tools.idea.compose.annotator.check.device
 
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.compose.preview.pickers.properties.AvailableDevicesKey
-import com.android.tools.idea.compose.preview.pickers.properties.DeviceConfig
-import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
-import com.android.tools.idea.compose.preview.pickers.properties.Shape
-import com.android.tools.idea.compose.preview.pickers.properties.utils.createDeviceInstance
+import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
+import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
+import com.android.tools.idea.compose.pickers.preview.property.DimUnit
+import com.android.tools.idea.compose.pickers.preview.property.Shape
+import com.android.tools.idea.compose.pickers.preview.utils.createDeviceInstance
 import com.intellij.openapi.actionSystem.DataProvider
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-
 
 internal class DeviceIdParameterRuleTest {
 
@@ -53,18 +52,44 @@ internal class DeviceIdParameterRuleTest {
 }
 
 /**
- * Returns a list of different devices with incremental IDs described by: `id0, id1, id2, ..., idN-1`
+ * Returns a list of different devices with incremental IDs described by: `id0, id1, id2, ...,
+ * idN-1`
  */
 private fun buildMockDevices(): List<Device> {
   var idCount = 0
   return listOf(
-    DeviceConfig(width = 1080f, height = 1920f, dimUnit = DimUnit.px, dpi = 320, shape = Shape.Normal),
-    DeviceConfig(width = 1080f, height = 1920f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
-    DeviceConfig(width = 1080f, height = 2280f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Normal),
-    DeviceConfig(width = 600f, height = 600f, dimUnit = DimUnit.px, dpi = 480, shape = Shape.Round)
-  ).map {
-    Device.Builder(it.createDeviceInstance()).also { builder ->
-      builder.setId("id${idCount++}")
-    }.build()
-  }
+      DeviceConfig(
+        width = 1080f,
+        height = 1920f,
+        dimUnit = DimUnit.px,
+        dpi = 320,
+        shape = Shape.Normal
+      ),
+      DeviceConfig(
+        width = 1080f,
+        height = 1920f,
+        dimUnit = DimUnit.px,
+        dpi = 480,
+        shape = Shape.Normal
+      ),
+      DeviceConfig(
+        width = 1080f,
+        height = 2280f,
+        dimUnit = DimUnit.px,
+        dpi = 480,
+        shape = Shape.Normal
+      ),
+      DeviceConfig(
+        width = 600f,
+        height = 600f,
+        dimUnit = DimUnit.px,
+        dpi = 480,
+        shape = Shape.Round
+      )
+    )
+    .map {
+      Device.Builder(it.createDeviceInstance())
+        .also { builder -> builder.setId("id${idCount++}") }
+        .build()
+    }
 }

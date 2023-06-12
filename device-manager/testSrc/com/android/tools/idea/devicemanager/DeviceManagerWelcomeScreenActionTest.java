@@ -17,10 +17,12 @@ package com.android.tools.idea.devicemanager;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 import com.android.annotations.Nullable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +38,7 @@ public final class DeviceManagerWelcomeScreenActionTest {
     Presentation presentation = new Presentation();
 
     myEvent = Mockito.mock(AnActionEvent.class);
-    Mockito.when(myEvent.getPresentation()).thenReturn(presentation);
+    when(myEvent.getPresentation()).thenReturn(presentation);
   }
 
   @Test
@@ -65,5 +67,16 @@ public final class DeviceManagerWelcomeScreenActionTest {
     myAction.update(myEvent);
 
     assertFalse(myEvent.getPresentation().isEnabled());
+  }
+
+  @Test
+  public void projectIsOpen() {
+    myAction = new DeviceManagerWelcomeScreenAction(() -> false, () -> true);
+
+    when(myEvent.getProject()).thenReturn(Mockito.mock(Project.class));
+    myAction.update(myEvent);
+
+    assertFalse(myEvent.getPresentation().isEnabled());
+    assertFalse(myEvent.getPresentation().isVisible());
   }
 }

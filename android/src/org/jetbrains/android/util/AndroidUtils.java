@@ -1,19 +1,29 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+/*
+ * Copyright 2000-2011 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.util;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-import static com.android.SdkConstants.ATTR_CONTEXT;
-import static com.android.SdkConstants.TOOLS_URI;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 import com.android.SdkConstants;
-import com.android.resources.ResourceFolderType;
 import com.android.sdklib.internal.project.ProjectProperties;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.rendering.AndroidXmlFiles;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.util.CommonAndroidUtil;
@@ -25,8 +35,6 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.actions.ConfigurationContext;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.facet.FacetManager;
-import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.ide.wizard.CommitStepException;
@@ -37,7 +45,6 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -71,7 +78,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IncorrectOperationException;
@@ -141,7 +147,7 @@ public class AndroidUtils extends CommonAndroidUtil {
   private static final String[] ANDROID_COMPONENT_CLASSES = new String[]{ACTIVITY_BASE_CLASS_NAME,
     SERVICE_CLASS_NAME, RECEIVER_CLASS_NAME, PROVIDER_CLASS_NAME};
 
-  private static final class LazyHolder {
+  private static class LazyHolder {
     static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
   }
 
@@ -275,37 +281,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     }
 
     return qualifiedName.substring(start + 1);
-  }
-
-  @NotNull
-  public static AndroidFacet addAndroidFacetInWriteAction(@NotNull Module module,
-                                                          @NotNull VirtualFile contentRoot,
-                                                          boolean library) {
-    return WriteAction.compute(() -> addAndroidFacet(module, contentRoot, library));
-  }
-
-  @NotNull
-  public static AndroidFacet addAndroidFacet(Module module, @NotNull VirtualFile contentRoot,
-                                             boolean library) {
-    FacetManager facetManager = FacetManager.getInstance(module);
-    ModifiableFacetModel model = facetManager.createModifiableModel();
-    AndroidFacet facet = model.getFacetByType(AndroidFacet.ID);
-
-    if (facet == null) {
-      facet = facetManager.createFacet(AndroidFacet.getFacetType(), "Android", null);
-      setUpAndroidFacetConfiguration(facet, contentRoot.getPath());
-      if (library) {
-        facet.getConfiguration().setProjectType(PROJECT_TYPE_LIBRARY);
-      }
-      model.addFacet(facet);
-    }
-    model.commit();
-
-    return facet;
-  }
-
-  public static void setUpAndroidFacetConfiguration(@NotNull AndroidFacet androidFacet, @NotNull String baseDirectoryPath) {
-    setUpAndroidFacetConfiguration(androidFacet.getModule(), androidFacet.getConfiguration(), baseDirectoryPath);
   }
 
   public static void setUpAndroidFacetConfiguration(@NotNull Module module,
@@ -700,17 +675,7 @@ public class AndroidUtils extends CommonAndroidUtil {
    */
   @Nullable
   public static String getDeclaredContextFqcn(@NotNull Module module, @NotNull XmlFile xmlFile) {
-    String context = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_CONTEXT, TOOLS_URI);
-    if (context != null && !context.isEmpty()) {
-      boolean startsWithDot = context.charAt(0) == '.';
-      if (startsWithDot || context.indexOf('.') == -1) {
-        // Prepend application package
-        String pkg = ProjectSystemUtil.getModuleSystem(module).getPackageName();
-        return startsWithDot ? pkg + context : pkg + '.' + context;
-      }
-      return context;
-    }
-    return null;
+    return AndroidXmlFiles.getDeclaredContextFqcn(ProjectSystemUtil.getModuleSystem(module).getPackageName(), new PsiXmlFile(xmlFile));
   }
 
   /**
@@ -727,25 +692,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     if (fqn != null) {
       Project project = module.getProject();
       return JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
-    }
-    return null;
-  }
-
-  /**
-   * Returns the root tag for the given {@link PsiFile}, if any, acquiring the read
-   * lock to do so if necessary
-   *
-   * @param file the file to look up the root tag for
-   * @return the corresponding root tag, if any
-   */
-  @Nullable
-  public static String getRootTagName(@NotNull PsiFile file) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
-    if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
-      if (file instanceof XmlFile) {
-        XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(((XmlFile)file));
-        return rootTag == null ? null : rootTag.getName();
-      }
     }
     return null;
   }

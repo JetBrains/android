@@ -81,6 +81,8 @@ object RecipeUtils {
       // FIXME(qumeric): sourceFiles.filter { it.name == SdkConstants.FN_ANDROID_MANIFEST_XML }
 
       // Ignore test configurations here.
+      // TODO: This should always be empty (for AGP >= 3.0) since it's reading from the "compile"
+      // configuration rather than "implementation"
       dependencies[SdkConstants.GRADLE_COMPILE_CONFIGURATION].forEach {
         metadata.dependencies.add(it!!)
       }
@@ -143,7 +145,8 @@ object RecipeUtils {
             tagName: String,
             attributes: Attributes
           ) {
-            if (tagName == SdkConstants.TAG_USES_PERMISSION ||
+            if (
+              tagName == SdkConstants.TAG_USES_PERMISSION ||
                 tagName == SdkConstants.TAG_USES_PERMISSION_SDK_23 ||
                 tagName == SdkConstants.TAG_USES_PERMISSION_SDK_M
             ) {

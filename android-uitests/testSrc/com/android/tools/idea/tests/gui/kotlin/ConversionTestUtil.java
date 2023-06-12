@@ -16,13 +16,11 @@
 package com.android.tools.idea.tests.gui.kotlin;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.kotlin.idea.versions.KotlinRuntimeLibraryUtilKt.bundledRuntimeVersion;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ConfigureKotlinDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredDialogFixture;
-import com.android.tools.idea.wizard.template.Language;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
 import java.io.IOException;
@@ -34,29 +32,6 @@ import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 public class ConversionTestUtil {
-
-  @NotNull
-  protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
-                                                    @NotNull String template,
-                                                    @NotNull String appName,
-                                                    @NotNull String appPackageName,
-                                                    int minSdkApi,
-                                                    @NotNull Language language) {
-    return guiTest
-      .welcomeFrame()
-      .createNewProject()
-      .getChooseAndroidProjectStep()
-      .chooseActivity(template)
-      .wizard()
-      .clickNext()
-      .getConfigureNewAndroidProjectStep()
-      .enterName(appName)
-      .enterPackageName(appPackageName)
-      .selectMinimumSdkApi(minSdkApi)
-      .setSourceLanguage(language)
-      .wizard()
-      .clickFinishAndWaitForSyncToFinish();
-  }
 
   @NotNull
   protected static void removeCodeForGradleSyncToPass(@NotNull GuiTestRule guiTest) throws Exception {
@@ -71,11 +46,6 @@ public class ConversionTestUtil {
       .open("app/build.gradle")
       .getCurrentFileContents();
 
-    String kotlinVersion = bundledRuntimeVersion();
-    int dash = kotlinVersion.indexOf('-');
-    if (dash != -1) {
-      kotlinVersion = kotlinVersion.substring(0, dash);
-    }
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "mavenCentral\\(\\)",
       ""
@@ -126,7 +96,7 @@ public class ConversionTestUtil {
   }
 
   @NotNull
-  protected static void changeKotlinVersion(@NotNull GuiTestRule guiTest) throws Exception {
+  public static void changeKotlinVersion(@NotNull GuiTestRule guiTest) throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     // TODO: the following is a hack. See http://b/79752752 for removal of the hack
@@ -136,21 +106,21 @@ public class ConversionTestUtil {
     Wait.seconds(15)
       .expecting("Gradle project sync in progress...")
       .until(() ->
-               ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("kotlin")
+               ideFrameFixture.getEditor().open("build.gradle.kts").getCurrentFileContents().contains("kotlin")
       );
 
     String buildGradleContents = ideFrameFixture.getEditor()
-      .open("build.gradle")
+      .open("build.gradle.kts")
       .getCurrentFileContents();
 
     //String kotlinVersion = kotlinCompilerVersionShort();
     String newBuildGradleContents = buildGradleContents.replaceAll(
-        "id\\s\\'org\\.jetbrains\\.kotlin\\.android\\'\\sversion\\s\\'\\d+\\.\\d+\\.\\d+\\'\\sapply\\sfalse",
-        "id 'org.jetbrains.kotlin.android' version '1.6.21' apply false"
+        "id\\(\"org\\.jetbrains\\.kotlin\\.android\"\\) *version *\"\\d+\\.\\d+\\.\\d+\" *apply *false",
+        "id(\"org.jetbrains.kotlin.android\") version \"1.7.21\" apply false"
       );
 
     OutputStream buildGradleOutput = ideFrameFixture.getEditor()
-      .open("build.gradle")
+      .open("build.gradle.kts")
       .getCurrentFile()
       .getOutputStream(null);
     Ref<IOException> ioErrors = new Ref<>();

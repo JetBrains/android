@@ -114,7 +114,7 @@ public final class IntelliJCodeElement implements CodeElement {
     }
 
     // JavaPsiFacade can't deal with inner classes, so we'll need to strip the class name down to just the outer class name.
-    className = CodeLocation.getOuterClass(className);
+    className = myCodeLocation.getOuterClass();
 
     PsiClass psiClass = JavaPsiFacade.getInstance(myProject).findClass(className, GlobalSearchScope.allScope(myProject));
     if (psiClass == null) {

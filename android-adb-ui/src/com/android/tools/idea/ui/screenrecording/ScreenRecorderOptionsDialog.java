@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.ui.screenrecording;
 
-import com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions;
+import static com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.MAX_RECORDING_DURATION_MINUTES;
+import static com.android.tools.idea.ui.screenrecording.ScreenRecorderAction.MAX_RECORDING_DURATION_MINUTES_LEGACY;
+
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.ui.components.JBLabel;
 import javax.swing.Action;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -49,13 +52,14 @@ class ScreenRecorderOptionsDialog extends DialogWrapper {
   @VisibleForTesting JCheckBox myShowTouchCheckBox;
   private JCheckBox myEmulatorRecordingCheckBox;
   private JComboBox<Integer> myResolutionPercentComboBox;
+  private JBLabel myRecordingLengthLabel;
 
-  public ScreenRecorderOptionsDialog(@NotNull Project project, boolean isEmulator) {
+  public ScreenRecorderOptionsDialog(@NotNull Project project, boolean isEmulator, int apiLevel) {
     super(project, true);
 
-    myResolutionPercentComboBox.setModel(myComboBoxModel);
-
     ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();
+
+    myResolutionPercentComboBox.setModel(myComboBoxModel);
     myComboBoxModel.setSelectedItem(options.getResolutionPercent());
 
     if (options.getBitRateMbps() > 0) {
@@ -65,9 +69,18 @@ class ScreenRecorderOptionsDialog extends DialogWrapper {
     myShowTouchCheckBox.setSelected(options.getShowTaps());
     myEmulatorRecordingCheckBox.setSelected(options.getUseEmulatorRecording());
     myEmulatorRecordingCheckBox.setVisible(isEmulator);
+    myEmulatorRecordingCheckBox.addItemListener(event -> updateMaxRecordingLengthLabel(isEmulator, apiLevel));
+
+    updateMaxRecordingLengthLabel(isEmulator, apiLevel);
 
     setTitle("Screen Recorder Options");
     init();
+  }
+
+  private void updateMaxRecordingLengthLabel(boolean isEmulator, int apiLevel) {
+    int maxRecordingDurationMin = isEmulator && myEmulatorRecordingCheckBox.isSelected() || apiLevel >= 34 ?
+                                  MAX_RECORDING_DURATION_MINUTES : MAX_RECORDING_DURATION_MINUTES_LEGACY;
+    myRecordingLengthLabel.setText(AndroidAdbUiBundle.message("screenrecord.options.info", maxRecordingDurationMin));
   }
 
   @Nullable

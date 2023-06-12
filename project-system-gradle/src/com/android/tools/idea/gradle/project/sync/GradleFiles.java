@@ -23,7 +23,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.concurrency.AndroidIoManager;
+import com.android.tools.concurrency.AndroidIoManager;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
@@ -407,7 +407,6 @@ public class GradleFiles {
     } else {
       // If we are not running in tests, schedule ourselves on a background thread so that we don't accidentally freeze the UI if our
       // disk IO is slow.
-      //noinspection deprecation
       ProjectUtilKt.executeOnPooledIoThread(myProject, this::updateFileHashes);
     }
   }

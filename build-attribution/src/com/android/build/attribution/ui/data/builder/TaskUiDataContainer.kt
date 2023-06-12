@@ -22,6 +22,8 @@ import com.android.build.attribution.ui.data.PluginSourceType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import com.android.buildanalyzer.common.TaskCategory
+import com.android.buildanalyzer.common.TaskCategoryIssue
 
 /**
  * This class holds [TaskUiData] representations for [TaskData] objects provided from build analyzers.
@@ -30,12 +32,12 @@ import com.android.build.attribution.ui.data.TimeWithPercentage
 class TaskUiDataContainer(
   buildAnalysisResult: BuildEventsAnalysisResult,
   val issuesContainer: TaskIssueUiDataContainer,
+  val taskCategoryIssuesContainer: TaskCategoryIssueUiDataContainer,
   private val criticalPathDuration: Long
 ) {
 
   private val tasksCache: MutableMap<TaskData, TaskUiData> = HashMap()
   private val tasksDeterminingBuildDuration: Set<TaskData> = buildAnalysisResult.getTasksDeterminingBuildDuration().toHashSet()
-  private val totalBuildTimeMs: Long = buildAnalysisResult.getTotalBuildTimeMs()
   private val configurationCacheUsed: Boolean = buildAnalysisResult.buildUsesConfigurationCache()
 
   fun getByTaskData(task: TaskData): TaskUiData = tasksCache.computeIfAbsent(task) {
@@ -47,7 +49,7 @@ class TaskUiDataContainer(
         task.originPlugin.isGradlePlugin() -> PluginSourceType.ANDROID_PLUGIN
         task.originPlugin.isJavaPlugin() -> PluginSourceType.ANDROID_PLUGIN
         task.originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN ||
-        task.originPlugin.pluginType == PluginData.PluginType.SCRIPT -> PluginSourceType.BUILD_SRC
+        task.originPlugin.pluginType == PluginData.PluginType.SCRIPT -> PluginSourceType.BUILD_SCRIPT
         else -> PluginSourceType.THIRD_PARTY
       }
       override val pluginUnknownBecauseOfCC: Boolean = task.originPlugin.pluginType == PluginData.PluginType.UNKNOWN &&
@@ -65,6 +67,11 @@ class TaskUiDataContainer(
       override val reasonsToRun: List<String> = task.executionReasons
       override val issues: List<TaskIssueUiData>
         get() = issuesContainer.issuesForTask(task)
+      override val primaryTaskCategory: TaskCategory = task.primaryTaskCategory
+      override val secondaryTaskCategories: List<TaskCategory> = task.secondaryTaskCategories
+      override val relatedTaskCategoryIssues = taskCategoryIssuesContainer.issuesForCategory(
+        task.primaryTaskCategory, TaskCategoryIssue.Severity.WARNING
+      )
     }
   }
 }

@@ -18,10 +18,12 @@ package com.android.tools.idea.compose
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
-import org.junit.Rule
-import org.junit.Test
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 /**
  * Note: the "Kotlin" in the name of this is because the test ensures Compose Preview works on
@@ -29,25 +31,36 @@ import java.util.concurrent.TimeUnit
  */
 class ComposePreviewKotlin {
 
-  @get:Rule
-  val system = AndroidSystem.standard()
+  @get:Rule val system = AndroidSystem.standard()
 
-  @Test
-  fun basic() {
+  @get:Rule var watcher = MemoryDashboardNameProviderWatcher()
+
+  private lateinit var project: AndroidProject
+
+  @Before
+  fun setup() {
     // Create a new android project, and set a fixed distribution
-    val project = AndroidProject("tools/adt/idea/compose-designer/testData/projects/composepreview")
+    project = AndroidProject("tools/adt/idea/compose-designer/testData/projects/composepreview")
     project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
 
     system.installRepo(MavenRepo("tools/adt/idea/compose-designer/compose_preview_deps.manifest"))
 
     // Enable ComposePreviewKotlin
-    system.installation.addVmOption("-Didea.log.debug.categories=#com.android.tools.idea.compose.preview.ComposePreviewRepresentation")
+    system.installation.addVmOption(
+      "-Didea.log.debug.categories=#com.android.tools.idea.compose.preview.ComposePreviewRepresentation"
+    )
+  }
 
-    system.runStudio(project) { studio ->
+  @Test
+  fun composePreviewKotlinBasicTest() {
+    system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
 
-      val path: Path = project.targetProject.resolve("app/src/main/java/com/example/composepreviewtest/MainActivity.kt")
+      val path: Path =
+        project.targetProject.resolve(
+          "app/src/main/java/com/example/composepreviewtest/MainActivity.kt"
+        )
       studio.openFile("ComposePreviewTest", path.toString())
 
       // Ensure the instructions component is visible. It's the one that says "A successful build
@@ -55,9 +68,15 @@ class ComposePreviewKotlin {
       studio.waitForComponentByClass("InstructionsComponent")
       // A build is necessary for Compose Preview to show.
       studio.executeAction("MakeGradleProject")
+      studio.waitForBuild()
       studio.waitForComponent("DefaultPreview")
 
-      val matcher = system.installation.ideaLog.waitForMatchingLine(".*Render completed (.*)", 30, TimeUnit.SECONDS)
+      val matcher =
+        system.installation.ideaLog.waitForMatchingLine(
+          ".*Render completed (.*)",
+          2,
+          TimeUnit.MINUTES
+        )
       println("Render took ${matcher.group()}")
     }
   }

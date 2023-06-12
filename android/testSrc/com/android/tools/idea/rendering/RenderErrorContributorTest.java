@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc;
+import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
@@ -23,6 +25,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
@@ -37,7 +40,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,8 +139,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     Configuration configuration = configurationManager.getConfiguration(file);
     assertSame(target, configuration.getRealTarget());
 
-    RenderService renderService = RenderService.getInstance(myModule.getProject());
-    RenderLogger logger = renderService.createLogger(facet);
+    RenderLogger logger = new RenderLogger(myModule.getProject());
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
 
     RenderTestUtil.withRenderTask(facet, file, configuration, logger, task -> {
@@ -183,11 +185,11 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     assertHtmlEquals(
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
-      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"\">Set to wrap_content</A>, <A HREF=\"\">Set to match_parent</A><BR/>" +
       "&lt;LinearLayout> does not set the required layout_height attribute: <BR/>" +
-      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:2\">Set to wrap_content</A>, <A HREF=\"command:3\">Set to match_parent</A><BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"\">Set to wrap_content</A>, <A HREF=\"\">Set to match_parent</A><BR/>" +
       "<BR/>" +
-      "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
+      "Or: <A HREF=\"\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
   }
 
   public void testDataBindingAttributes() {
@@ -204,11 +206,11 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     assertHtmlEquals(
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
-      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:0\">Set to wrap_content</A>, <A HREF=\"command:1\">Set to match_parent</A><BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"\">Set to wrap_content</A>, <A HREF=\"\">Set to match_parent</A><BR/>" +
       "&lt;LinearLayout> does not set the required layout_height attribute: <BR/>" +
-      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"command:2\">Set to wrap_content</A>, <A HREF=\"command:3\">Set to match_parent</A><BR/>" +
+      "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"\">Set to wrap_content</A>, <A HREF=\"\">Set to match_parent</A><BR/>" +
       "<BR/>" +
-      "Or: <A HREF=\"command:4\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
+      "Or: <A HREF=\"\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
   }
 
   public void testTypo() {
@@ -300,7 +302,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
-        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "<A HREF=\"\">Copy stack to clipboard</A><BR/>" +
         "<BR/>Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
     else {
@@ -313,7 +315,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
-        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>" +
+        "<A HREF=\"\">Copy stack to clipboard</A><BR/><BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
   }
@@ -487,22 +489,22 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at java.io.File.list(File.java:971)<BR/>" +
         "&nbsp;&nbsp;at java.io.File.listFiles(File.java:1051)<BR/>" +
         "&nbsp;&nbsp;at com.example.app.MyButton.onDraw(<A HREF=\"open:com.example.app.MyButton#onDraw;MyButton.java:70\">MyButton.java:70</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-32/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-32/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14433\">View.java:14433</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-32/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-32/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14316\">View.java:14316</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-32/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-32/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14318\">View.java:14318</A>)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
-        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-32/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/>" +
+        "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
+        "<A HREF=\"\">Copy stack to clipboard</A><BR/>" +
         "<BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
@@ -531,7 +533,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
-        "<A HREF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>" +
+        "<A HREF=\"\">Copy stack to clipboard</A><BR/><BR/>" +
         "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     }
   }
@@ -542,8 +544,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(1, issues);
     assertHtmlEquals("The graphics preview in the layout editor may not be accurate:<BR/>" +
-                     "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"runnable:0\">(Ignore for this session)</A>" +
-                     "<BR/></DL><A HREF=\"runnable:1\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(0));
+                     "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
+                     "<BR/></DL><A HREF=\"\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(0));
 
     operation = (logger, render) -> {
       logger.fidelityWarning("Fidelity", "Fidelity issue", null, null, null);
@@ -554,8 +556,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     // The ERROR should go first in the list (higher priority)
     assertHtmlEquals("An error<BR/><BR/>Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
     assertHtmlEquals("The graphics preview in the layout editor may not be accurate:<BR/>" +
-                     "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"runnable:0\">(Ignore for this session)</A>" +
-                     "<BR/></DL><A HREF=\"runnable:1\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(1));
+                     "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
+                     "<BR/></DL><A HREF=\"\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(1));
   }
 
   //
@@ -601,8 +603,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     assertSize(1, issues);
     assertHtmlEquals("The following classes could not be instantiated:<DL><DD>-&NBS" +
                      "P;com.example.myapplication.MyButton (<A HREF=\"openClass:com." +
-                     "example.myapplication.MyButton\">Open Class</A>, <A HREF=\"runn" +
-                     "able:0\">Show Exception</A>, <A HREF=\"clearCacheAndNotify\">Clear Cac" +
+                     "example.myapplication.MyButton\">Open Class</A>, <A HREF=\"" +
+                     "\">Show Exception</A>, <A HREF=\"clearCacheAndNotify\">Clear Cac" +
                      "he</A>)</DL>Tip: Use <A HREF=\"http://developer.android.com/re" +
                      "ference/android/view/View.html#isInEditMode()\">View.isInEditM" +
                      "ode()</A> in your custom views to skip code or show sample da" +
@@ -614,7 +616,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                      "ion: / by zero<BR/>&nbsp;&nbsp;at com.example.myapplication.M" +
                      "yButton.&lt;init>(<A HREF=\"open:com.example.myapplication.MyB" +
                      "utton#<init>;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
-                     "REF=\"runnable:1\">Copy stack to clipboard</A><BR/><BR/>", issues.get(0));
+                     "REF=\"\">Copy stack to clipboard</A><BR/><BR/>", issues.get(0));
   }
 
   public void testAppCompatException() {
@@ -684,10 +686,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   public void testNoDuplicateIssues() {
       LogOperation operation = (logger, render) -> {
         // MANUALLY register errors
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error 1"));
+        logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
+        logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
+        logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
+        logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
       };
 
       List<RenderErrorModel.Issue> issues =
@@ -701,8 +703,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   public void testIssueSeverity() {
     LogOperation operation = (logger, render) -> {
       // MANUALLY register errors
-      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error"));
-      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning"));
+      logger.addMessage(RenderProblem.createPlain(ERROR, "Error"));
+      logger.addMessage(RenderProblem.createPlain(WARNING, "Warning"));
     };
 
     List<RenderErrorModel.Issue> issues =
@@ -713,13 +715,17 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   }
 
   private String stripSdkHome(@NotNull String html) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
     assertNotNull(platform);
     String location = platform.getSdkData().getLocation().toString();
     location = FileUtil.toSystemIndependentName(location);
     html = html.replace(location, "$SDK_HOME")
       .replace("file:///", "file://"); // On Windows JavaDoc source may start with /
     return html;
+  }
+
+  private String stripSdkVersion(@NotNull String html) {
+    return html.replaceAll("android-\\d\\d", "android-XX");
   }
 
   // We should just use assertEquals(String,String) here, wch works well when running unit tests
@@ -730,6 +736,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     String actual = issue.getHtmlContent();
     actual = stripSdkHome(actual);
     actual = stripImages(actual);
+    actual = stripSdkVersion(actual);
 
     if (!expected.equals(actual)) {
       System.out.println("Render unit test failed: " + getName());

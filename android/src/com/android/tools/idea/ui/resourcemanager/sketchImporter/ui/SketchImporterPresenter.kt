@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.sketchImporter.ui
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.resources.Density
 import com.android.resources.ResourceType
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.ui.resourcemanager.importer.DesignAssetImporter
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
@@ -33,7 +34,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import java.awt.Color
 import java.awt.event.ItemEvent
 

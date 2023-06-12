@@ -40,8 +40,8 @@
         implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterSyntaxHighlighterFactory"
     />
 
-    <!-- TODO(b/236246692): Restore this registration when Logcat V2 is mainstream -->
-    <!--    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>-->
+    <colorSettingsPage implementation="com.android.tools.idea.logcat.messages.LogcatColorSettingsPage"/>
+    <colorSettingsPage implementation="com.android.tools.idea.logcat.filters.LogcatFilterColorSettingsPage"/>
 
     <completion.contributor
         language="LogcatFilter"
@@ -57,15 +57,29 @@
     <applicationService serviceImplementation="com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatNamedFilters"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory"/>
+    <applicationService serviceImplementation="com.android.tools.idea.ui.screenrecording.ScreenRecorderPersistentOptions"/>
+    <applicationService
+        serviceInterface="com.android.tools.idea.logcat.util.TempFileFactory"
+        serviceImplementation="com.android.tools.idea.logcat.util.TempFileFactoryImpl"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.logcat.service.LogcatService"
+        serviceImplementation="com.android.tools.idea.logcat.service.LogcatServiceImpl"/>
     <projectService
         serviceInterface="com.android.tools.idea.logcat.ProjectApplicationIdsProvider"
         serviceImplementation="com.android.tools.idea.logcat.ProjectApplicationIdsProviderImpl"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory"
+        serviceImplementation="com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactoryImpl"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.logcat.devices.DeviceFinder"
+        serviceImplementation="com.android.tools.idea.logcat.devices.ConnectedDeviceFinder"/>
 
     <additionalTextAttributes scheme="Default" file="colorSchemes/LogcatColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/LogcatColorSchemeDarcula.xml"/>
 
     <annotator language="LogcatFilter" implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterErrorAnnotator"/>
 
+    <keymapExtension implementation="com.android.tools.idea.logcat.actions.LogcatKeymapExtension"/>
   </extensions>
 
   <actions>
@@ -73,8 +87,23 @@
       <action id="Logcat.ToggleViewFormat"
               class="com.android.tools.idea.logcat.actions.ToggleViewFormatAction"
               text="Toggle Logcat Formatting"
-              description="Toggle between Standard and Compact view">
-      </action>
+              description="Toggle between Standard and Compact view"/>
+      <action id="Logcat.ClearLogcat"
+              class="com.android.tools.idea.logcat.actions.ClearLogcatAction"
+              text="Clear Logcat Panel"
+              description="Clear the Logcat panel and logcat buffer on the device"/>
+      <action id="Logcat.PauseResumeLogcat"
+              class="com.android.tools.idea.logcat.actions.PauseLogcatAction"
+              text="Pause/Resume Logcat"
+              description="Pause/Resume the Logcat panel"/>
+      <action id="Logcat.RestartLogcat"
+              class="com.android.tools.idea.logcat.actions.RestartLogcatAction"
+              text="Restart Logcat"
+              description="Restart Logcat monitoring"/>
+      <action id="Logcat.ToggleSoftWrap"
+              class="com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarAction"
+              text="Soft-Wrap"
+              description="Toggle soft wrap of Logcat messages"/>
     </group>
   </actions>
 

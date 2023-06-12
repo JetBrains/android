@@ -25,8 +25,8 @@ import com.intellij.openapi.project.Project
 /**
  * A [NotificationHyperlink] that stops showing a warning when the JDK used by Studio is not the same as Java Home.
  */
-class DoNotShowJdkHomeWarningAgainHyperlink : SyncIssueNotificationHyperlink(
-  "doNotShowJdkHomeWarning", "Do not show this warning again", null) {
+class DoNotShowJdkHomeWarningAgainHyperlink : NotificationHyperlink(
+  "doNotShowJdkHomeWarning", "Do not show this warning again") {
 
   public override fun execute(project: Project) {
     val msg = "Warnings about JDK location not being JAVA_HOME were disabled.\n" +

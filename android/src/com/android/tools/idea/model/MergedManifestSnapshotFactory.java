@@ -58,7 +58,8 @@ import com.android.resources.ResourceUrl;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.res.ResourceNamespacing;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -81,7 +82,7 @@ import org.w3c.dom.Node;
  * Factory of {@link MergedManifestSnapshot}. The created snapshots represent the merged manifest state at a
  * point in time and are immutable.
  */
-final class MergedManifestSnapshotFactory {
+class MergedManifestSnapshotFactory {
 
   /**
    * A resource value defined by the manifest. Unlike its base class, does not need to keep a reference
@@ -194,9 +195,9 @@ final class MergedManifestSnapshotFactory {
         throw new MergedManifestException.MissingAttribute(TAG_MANIFEST, null, ATTRIBUTE_PACKAGE, mergedManifestInfo);
       }
 
-      Namespacing namespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
+      ResourceNamespacing namespacing = StudioResourceRepositoryManager.getInstance(facet).getNamespacing();
       ResourceNamespace namespace =
-        namespacing == Namespacing.DISABLED ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(packageName);
+        namespacing == ResourceNamespacing.DISABLED ? ResourceNamespace.RES_AUTO : ResourceNamespace.fromPackageName(packageName);
 
       String versionCodeStr = getAttributeValue(root, ANDROID_URI, ATTR_VERSION_CODE);
       Integer versionCode = null;

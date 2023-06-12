@@ -15,8 +15,8 @@
  */
 package com.android.build.attribution.analyzers
 
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData.JavaInfo
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData.JavaInfo
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

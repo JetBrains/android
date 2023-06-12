@@ -25,6 +25,8 @@ import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
 import java.io.PrintWriter
 import java.io.StringWriter
 
+private object TestClassLoadingUtils
+
 internal fun loadClassBytes(c: Class<*>): ByteArray {
   val className = "${Type.getInternalName(c)}.class"
   c.classLoader.getResourceAsStream(className)!!.use { return it.readBytes() }
@@ -36,7 +38,6 @@ internal fun textifyClass(c: ByteArray): String {
 
   return stringWriter.toString()
 }
-
 
 /**
  * Sets up a new [TestClassLoader].
@@ -66,6 +67,6 @@ internal fun setupTestClassLoaderWithTransformation(
     newClassName to classOutputWriter.toByteArray()
   }.toMap()
 
-  return TestClassLoader(LiveLiteralsTransformTest::class.java.classLoader,
+  return TestClassLoader(TestClassLoadingUtils::class.java.classLoader,
                          redefinedClasses)
 }

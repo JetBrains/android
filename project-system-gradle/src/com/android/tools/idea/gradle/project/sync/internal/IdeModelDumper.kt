@@ -19,8 +19,10 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
@@ -31,33 +33,43 @@ import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModelSyncFile
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
+import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.IdeVariantBuildInformation
 import com.android.tools.idea.gradle.model.IdeViewBindingOptions
+import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
@@ -84,6 +96,8 @@ fun ProjectDumper.dumpAndroidIdeModel(
         .resolveIn(project)
         ?.let { dump(it) }
 
+      dumpLibraryTable(project)
+
       ModuleManager.getInstance(project).modules.sortedBy { it.name }.forEach { module ->
         head("MODULE") { module.name }
         nest {
@@ -99,9 +113,9 @@ fun ProjectDumper.dumpAndroidIdeModel(
             if (!module.isHolderModule()) return@let
             head("CurrentVariantReportedVersions")
             nest {
-              AndroidModuleInfo.getInstance(module)?.minSdkVersion?.dump("minSdk")
-              AndroidModuleInfo.getInstance(module)?.runtimeMinSdkVersion?.get()?.dump("runtimeMinSdk")
-              AndroidModuleInfo.getInstance(module)?.targetSdkVersion?.dump("targetSdk")
+              StudioAndroidModuleInfo.getInstance(module)?.minSdkVersion?.dump("minSdk")
+              StudioAndroidModuleInfo.getInstance(module)?.runtimeMinSdkVersion?.get()?.dump("runtimeMinSdk")
+              StudioAndroidModuleInfo.getInstance(module)?.targetSdkVersion?.dump("targetSdk")
             }
             dump(it.androidProject)
             // Dump all the fetched Ide variants.
@@ -143,6 +157,7 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Grad
     with(ideModelDumper(this)) {
       androidModuleModel.let { androidModuleModel ->
         dump(androidModuleModel.androidProject)
+        dumpLibraryTable(androidModuleModel.project)
         // Dump all the fetched Ide variants.
         head("IdeVariants")
         nest {
@@ -157,15 +172,6 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Grad
 
 private val jbModelDumpers = listOf(
   SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
-  },
-  SpecializedDumper(property = IdeDependencies::androidLibraries) {
-    prop(propertyName, it.asUnordered())
-  },
-  SpecializedDumper(property = IdeDependencies::javaLibraries) {
-    prop(propertyName, it.asUnordered())
-  },
-  SpecializedDumper(property = IdeDependencies::moduleDependencies) {
-    prop(propertyName, it.asUnordered())
   },
   SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome) {
     // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
@@ -211,22 +217,33 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidModel.dependenciesInfo?.let { dump(it) }
       ideAndroidModel.lintChecksJars?.forEach { prop("lintChecksJars") { it.path.toPrintablePath() } }
 
-      head("DefaultConfig")
-      nest {
-        dump(ideAndroidModel.defaultConfig)
+      ideAndroidModel.multiVariantData?.defaultConfig?.let { defaultConfig ->
+        head("DefaultConfig")
+        nest {
+          head("ProductFlavor")
+          nest {
+            dump(defaultConfig)
+          }
+          dump(ideAndroidModel.defaultSourceProvider)
+        }
+      } ?: run {
+        head("DefaultSourceProvider")
+        nest {
+          dump(ideAndroidModel.defaultSourceProvider)
+        }
       }
-      if (ideAndroidModel.buildTypes.isNotEmpty()) {
+      ideAndroidModel.multiVariantData?.buildTypes?.takeIf { it.isNotEmpty() }?.let { buildTypes ->
         head("BuildTypes")
         nest {
-          ideAndroidModel.buildTypes.forEach {
+          buildTypes.forEach {
             dump(it)
           }
         }
       }
-      if (ideAndroidModel.productFlavors.isNotEmpty()) {
+      ideAndroidModel.multiVariantData?.productFlavors?.takeIf { it.isNotEmpty() }?.let { productFlavors ->
         head("ProductFlavors")
         nest {
-          ideAndroidModel.productFlavors.forEach {
+          productFlavors.forEach {
             dump(it)
           }
         }
@@ -325,6 +342,26 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
+    fun dumpLibraryTable(project: Project) {
+      // Dump library table - this allows us to just use artifact addresses while dumping the dependency graphs for each artifact
+      // It also centralizes all library information in one place.
+      DataNodeCaches.getInstance(project).cachedProjectData?.let { projectData ->
+        val libraryTable = ExternalSystemApiUtil.find(projectData, AndroidProjectKeys.IDE_LIBRARY_TABLE)
+        head("LIBRARY_TABLE")
+        nest {
+          libraryTable?.data?.let {
+            dump(it)
+          }
+        }
+      }
+    }
+
+    fun dump(libraryTable: IdeResolvedLibraryTable) {
+      libraryTable.libraries.forEach { library ->
+        modelDumper.dumpModel(projectDumper, "library", library)
+      }
+    }
+
     fun dump(compositeBuildMap: IdeCompositeBuildMap) {
       modelDumper.dumpModel(projectDumper, "CompositeBuildMap", compositeBuildMap)
     }
@@ -337,10 +374,43 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       prop("CodeShrinker") { ideAndroidArtifact.codeShrinker.toString() }
       dump(ideAndroidArtifact.buildInformation)
       ideAndroidArtifact.generatedResourceFolders.forEach { prop("GeneratedResourceFolders") { it.path.toPrintablePath() } }
+      ideAndroidArtifact.desugaredMethodsFiles.forEach { prop("DesugaredMethodFiles") { it.path.toPrintablePath() } }
       ideAndroidArtifact.additionalRuntimeApks.forEach { prop("AdditionalRuntimeApks") { it.path.toPrintablePath() } }
       ideAndroidArtifact.testOptions?.let { dump(it) }
       ideAndroidArtifact.abiFilters.forEach { prop("AbiFilters") { it } }
       ideAndroidArtifact.modelSyncFiles.forEach { dump(it) }
+    }
+
+    private fun dump(property: String, ideDependencies: IdeDependencies) {
+      fun IdeLibrary.toDisplayString(): String = when (this) {
+        is IdeArtifactLibrary -> artifactAddress
+        is IdeModuleLibrary -> "${buildId}-${projectPath}-${sourceSet}"
+        is IdeUnknownLibrary -> key
+      }.replaceKnownPaths()
+
+      fun IdeLibrary.toLibraryType(): String = when (this) {
+        is IdeAndroidLibrary -> "androidLibrary"
+        is IdeJavaLibrary -> "javaLibrary"
+        is IdeModuleLibrary -> "module"
+        is IdeUnknownLibrary -> "unknown"
+      }
+
+      head(property)
+      nest {
+        ideDependencies.unresolvedDependencies.forEach { dependency ->
+          ideDependencies.resolver.resolve(dependency).forEach {
+            prop(it.toLibraryType()) { it.toDisplayString() }
+          }
+          nest {
+            // All the dependencies are included in unresolvedDependencies so we only need to dump the first level of children
+            dependency.dependencies?.map { ideDependencies.unresolvedDependencies[it] }?.forEach { nestedDependency ->
+              ideDependencies.resolver.resolve(nestedDependency).forEach { lib ->
+                prop(lib.toLibraryType()) { lib.toDisplayString() }
+              }
+            }
+          }
+        }
+      }
     }
 
     private fun dump(ideBaseArtifact: IdeBaseArtifact) {
@@ -365,8 +435,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
       head("Dependencies")
       nest {
-        modelDumper.dumpModel(this@with, "compileClasspath", ideBaseArtifact.compileClasspath)
-        modelDumper.dumpModel(this@with, "runtimeClasspath", ideBaseArtifact.runtimeClasspath)
+        dump("compileClasspath", ideBaseArtifact.compileClasspath)
+        dump("runtimeClasspath", ideBaseArtifact.runtimeClasspath)
       }
       val runtimeNames =
         (ideBaseArtifact.runtimeClasspath.androidLibraries + ideBaseArtifact.runtimeClasspath.javaLibraries).map { it.target.name }.toSet()
@@ -492,6 +562,19 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
+    private fun dump(ideSourceProviderContainer: IdeSourceProviderContainer) {
+      head("SourceProvider")
+      nest {
+        dump(ideSourceProviderContainer.sourceProvider)
+      }
+      head("ExtraSourceProviders")
+      nest {
+        ideSourceProviderContainer.extraSourceProviders.forEach {
+          dump(it)
+        }
+      }
+    }
+
     private fun dump(ideSourceProvider: IdeSourceProvider?) {
       if (ideSourceProvider == null) return
       prop("Name") { ideSourceProvider.name }
@@ -513,9 +596,10 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
           prop("Directory") { it.directory.path.toPrintablePath() }
         }
       }
+      ideSourceProvider.baselineProfileDirectories.forEach { prop("BaselineProfileDirectories") { it.path.toPrintablePath() } }
     }
 
-    private fun dump(extraSourceProvider: IdeSourceProviderContainer) {
+    private fun dump(extraSourceProvider: IdeExtraSourceProvider) {
       head("ExtraSourceProvider")
       nest {
         prop("ArtifactName") { extraSourceProvider.artifactName }
@@ -640,6 +724,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("ApplicationRClassConstantIds") { agpFlags.applicationRClassConstantIds.toString() }
         prop("AestRClassConstantIds") { agpFlags.testRClassConstantIds.toString() }
         prop("TransitiveRClasses") { agpFlags.transitiveRClasses.toString() }
+        prop("UseAndroidX") { agpFlags.useAndroidX.toString() }
         prop("UsesCompose") { agpFlags.usesCompose.toString() }
         prop("MlModelBindingEnabled") { agpFlags.mlModelBindingEnabled.toString() }
       }
@@ -709,7 +794,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("buildFile") { model.buildFile?.path?.toPrintablePath() }
         prop("buildFilePath") { model.buildFilePath?.path?.toPrintablePath() }
         prop("rootFolderPath") { model.rootFolderPath.path.toPrintablePath() }
-        model.gradlePlugins.forEach { prop("- gradlePlugins") { it } }
+        prop("hasSafeArgsJava") { model.hasSafeArgsJavaPlugin().toString() }
+        prop("hasSafeArgsKotlin") { model.hasSafeArgsKotlinPlugin().toString() }
         model.taskNames.forEach { prop("- taskNames") { it } }
       }
     }
@@ -736,7 +822,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
 class DumpProjectIdeModelAction : DumbAwareAction("Dump Project IDE Models") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
-    val dumper = ProjectDumper()
+    val dumper = ProjectDumper(projectJdk = ProjectRootManager.getInstance(project).projectSdk)
     dumper.dumpAndroidIdeModel(project, { null }, { null }, { null }, { null })
     val dump = dumper.toString().trimIndent()
     val outputFile = File(File(project.basePath), sanitizeFileName(project.name) + ".project_ide_models_dump")

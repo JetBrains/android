@@ -404,14 +404,25 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
    */
   protected abstract fun createSubClassifier(): Classifier
 
-  // Apply filter and update allocation information
-  // Filter children classifierSets that neither match the pattern nor have any matched ancestors
-  // Update information base on unfiltered children classifierSets
-  fun applyFilter(filter: Filter, hasMatchedAncestor: Boolean, filterChanged: Boolean) {
+  fun applyFilter(filter: Filter, filterChanged: Boolean) {
+    applyFilter(filter, false, true, filterChanged)
+  }
+
+  /**
+   * Apply filter and update allocation information
+   * Filter children classifierSets that neither match the pattern nor have any matched ancestors
+   * Update information base on unfiltered children classifierSets
+   *
+   * @param filter a pattern to search for in stringForMatching.
+   * @param hasMatchedAncestor true if any ancestors matched the pattern.
+   * @param isTopLevel true if this has no ancestors.
+   * @param filterChanged true if the filter has changed from the last pass.
+   */
+  private fun applyFilter(filter: Filter, hasMatchedAncestor: Boolean, isTopLevel: Boolean, filterChanged: Boolean) {
     if (!filterChanged && !needsRefiltering) {
       return
     }
-    isMatched = filter.matches(stringForMatching)
+    isMatched = !isTopLevel && filter.matches(stringForMatching)
     filterMatchCount = if (isMatched) 1 else 0
     when (val s = ensurePartitioned()) {
       is State.Coalesced.Leaf -> {
@@ -431,7 +442,7 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
         totalObjectSetCount = s.classifier.allClassifierSets.size
         filteredObjectSetCount = 0
         for (classifierSet in s.classifier.allClassifierSets) {
-          classifierSet.applyFilter(filter, hasMatchedAncestor || isMatched, filterChanged)
+          classifierSet.applyFilter(filter, hasMatchedAncestor || isMatched, false, filterChanged)
           totalObjectSetCount += classifierSet.totalObjectSetCount
           if (!classifierSet.isFiltered) {
             myIsFiltered = false

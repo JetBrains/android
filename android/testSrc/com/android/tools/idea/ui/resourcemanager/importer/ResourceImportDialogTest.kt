@@ -42,6 +42,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.Description
+import org.junit.runners.model.Statement
 import java.io.File
 import javax.swing.JButton
 import javax.swing.JComboBox
@@ -222,17 +223,25 @@ fun getAssets(path: String): List<DesignAsset> {
 private val staticRule = AndroidProjectRule.onDisk()
 
 fun main(vararg args: String) {
-  staticRule.before(Description.createSuiteDescription(
-    ResourceImportDialogTest::class.java))
-  staticRule.fixture.testDataPath = getTestDataDirectory() + "/assets"
-  runInEdt {
-    UIManager.setLookAndFeel(DarculaLaf())
-    JFrame().apply {
-      contentPane = ResourceImportDialog(
-        ResourceImportDialogViewModel(staticRule.module.androidFacet!!, getAssets(
-          staticRule.fixture.testDataPath).asSequence())).root
-      pack()
-      isVisible = true
+  val statement: Statement = object: Statement() {
+    override fun evaluate() {
+      staticRule.fixture.testDataPath = getTestDataDirectory() + "/assets"
+      runInEdt {
+        UIManager.setLookAndFeel(DarculaLaf())
+        JFrame().apply {
+          contentPane = ResourceImportDialog(
+            ResourceImportDialogViewModel(staticRule.module.androidFacet!!, getAssets(
+              staticRule.fixture.testDataPath).asSequence())).root
+          pack()
+          isVisible = true
+        }
+      }
     }
   }
+  staticRule
+    .apply(
+      statement,
+      Description.createSuiteDescription(ResourceImportDialogTest::class.java)
+    )
+    .evaluate()
 }

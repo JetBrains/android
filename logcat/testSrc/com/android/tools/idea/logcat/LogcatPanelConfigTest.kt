@@ -75,7 +75,7 @@ class LogcatPanelConfigTest {
     """.trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
-      .isEqualTo(Device.createPhysical("HT85F1A00630", false, 11, 30, "Google", "Pixel 2"))
+      .isEqualTo(Device.createPhysical("HT85F1A00630", false, "11", 30, "Google", "Pixel 2"))
   }
 
   @Test
@@ -103,7 +103,7 @@ class LogcatPanelConfigTest {
     """.trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
-      .isEqualTo(Device.createEmulator("emulator-5554", false, 11, 30, "Pixel_4_API_30"))
+      .isEqualTo(Device.createEmulator("emulator-5554", false, "11", 30, "Pixel_4_API_30"))
   }
 
   @Test
@@ -128,7 +128,7 @@ class LogcatPanelConfigTest {
       }    """.trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
-      .isEqualTo(Device.createPhysical("HT85F1A00630", false, 11, 30, "Google", "Pixel 2"))
+      .isEqualTo(Device.createPhysical("HT85F1A00630", false, "11", 30, "Google", "Pixel 2"))
   }
 
   @Test
@@ -151,7 +151,7 @@ class LogcatPanelConfigTest {
     }""".trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
-      .isEqualTo(Device.createPhysical("0A091FDD4002XX", false, 12, 32, "Google", "Pixel 5").copy(model = ""))
+      .isEqualTo(Device.createPhysical("0A091FDD4002XX", false, "12", 32, "Google", "Pixel 5").copy(model = ""))
   }
 
 }

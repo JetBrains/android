@@ -37,28 +37,35 @@ fun SourceProviders.buildNamedModuleTemplatesFor(
   moduleRoot: File?,
   sourceProviders: Collection<NamedIdeaSourceProvider>
 ): List<NamedModuleTemplate> {
-  return buildTripletsFrom(sourceProviders)
-    .map { triplet ->
-      NamedModuleTemplate(triplet.name, AndroidModulePathsImpl(
-        moduleRoot = moduleRoot,
-        manifestDirectory = triplet.sources?.manifestDirectoryUrls?.first()?.toFile(),
-        srcRoot = triplet.sources?.javaDirectoryUrls?.firstOrNull()?.toFile(),
-        unitTestRoot = triplet.unitTests?.javaDirectoryUrls?.firstOrNull()?.toFile(),
-        testRoot = triplet.androidTests?.javaDirectoryUrls?.firstOrNull()?.toFile(),
-        aidlRoot = triplet.sources?.aidlDirectoryUrls?.firstOrNull()?.toFile(),
-        resDirectories = triplet.sources?.resDirectoryUrls?.map { it.toFile() }.orEmpty(),
-        mlModelsDirectories = triplet.sources?.mlModelsDirectoryUrls?.map { it.toFile() }.orEmpty()
-      ))
-    }
-}
+  val unitTestProviders = this.currentUnitTestSourceProviders.associateBy { it.coreName }
+  val androidTestProviders = this.currentAndroidTestSourceProviders.associateBy { it.coreName }
 
-private data class SourceProviderTriplet(
-  val name: String,
-  val sources: NamedIdeaSourceProvider?,
-  val unitTests: NamedIdeaSourceProvider?,
-  val androidTests: NamedIdeaSourceProvider?,
-  val testFixtures: NamedIdeaSourceProvider?
-)
+  return sourceProviders.map { provider ->
+    val srcRoot = if (provider.scopeType == ScopeType.MAIN) provider.javaDirectoryUrls.firstOrNull()?.toFile()
+    else null
+
+    val coreName = provider.coreName // Main source provider should also contain unit tests and Android tests
+    val unitTestRoot = if (provider.scopeType == ScopeType.MAIN || provider.scopeType == ScopeType.UNIT_TEST)
+      unitTestProviders[coreName]?.javaDirectoryUrls?.firstOrNull()?.toFile()
+    else null
+
+    // Main and Unit Test source provider should also contain Android tests
+    val testRoot = if (provider.scopeType == ScopeType.MAIN || provider.scopeType == ScopeType.ANDROID_TEST || provider.scopeType == ScopeType.UNIT_TEST)
+      androidTestProviders[coreName]?.javaDirectoryUrls?.firstOrNull()?.toFile()
+    else null
+
+    NamedModuleTemplate(provider.name, AndroidModulePathsImpl(
+      moduleRoot = moduleRoot,
+      manifestDirectory = provider.manifestDirectoryUrls.firstOrNull()?.toFile(),
+      srcRoot = srcRoot,
+      unitTestRoot = unitTestRoot,
+      testRoot = testRoot,
+      aidlRoot = provider.aidlDirectoryUrls.firstOrNull()?.toFile(),
+      resDirectories = provider.takeIf { it.scopeType.canHaveAndroidResources }?.resDirectoryUrls?.map { it.toFile() }.orEmpty(),
+      mlModelsDirectories = provider.mlModelsDirectoryUrls.map { it.toFile() }
+    ))
+  }
+}
 
 private fun String.stripPrefix(scopeType: ScopeType): String {
   fun String.stripPrefix(prefix: String) = (removePrefix(prefix).nullize() ?: "main").usLocaleDecapitalize()
@@ -73,22 +80,5 @@ private fun String.stripPrefix(scopeType: ScopeType): String {
 }
 
 private val NamedIdeaSourceProvider.coreName: String get() = name.stripPrefix(scopeType)
-
-private fun SourceProviders.buildTripletsFrom(selectedSourceProviders: Collection<NamedIdeaSourceProvider>): List<SourceProviderTriplet> {
-  val unitTestProviders = this.currentUnitTestSourceProviders.associateBy { it.coreName }
-  val androidTestProviders = this.currentAndroidTestSourceProviders.associateBy { it.coreName }
-  val testFixturesProviders = this.currentTestFixturesSourceProviders.associateBy { it.coreName }
-  return selectedSourceProviders
-    .map {
-      val coreName = it.coreName
-      SourceProviderTriplet(
-        name = it.name,
-        sources = it.takeIf { it.scopeType == ScopeType.MAIN },
-        unitTests = unitTestProviders[coreName],
-        androidTests = androidTestProviders[coreName],
-        testFixtures = testFixturesProviders[coreName]
-      )
-    }
-}
 
 private fun String.toFile(): File = File(VfsUtilCore.urlToPath(this))

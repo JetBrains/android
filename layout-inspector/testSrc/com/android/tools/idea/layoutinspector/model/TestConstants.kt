@@ -21,6 +21,8 @@ const val VIEW1 = 2L
 const val VIEW2 = 3L
 const val VIEW3 = 4L
 const val VIEW4 = 5L
+const val VIEW5 = 6L
 
 const val COMPOSE1 = -2L
 const val COMPOSE2 = -3L
+const val COMPOSE3 = -4L

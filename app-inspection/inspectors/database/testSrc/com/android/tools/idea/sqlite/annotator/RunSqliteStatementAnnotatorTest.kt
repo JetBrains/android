@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.ide.PooledThreadExecutor
@@ -55,21 +56,54 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     """.trimIndent())
 
     val model = DatabaseInspectorModelImpl()
-    databaseInspectorProjectService = DatabaseInspectorProjectServiceImpl(
-      project = project,
-      model = model,
-      fileDatabaseManager = mock(),
-      createController = { _, _, _, _ ->
-        FakeDatabaseInspectorController(DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()), model)
-      }
-    )
+    databaseInspectorProjectService =
+      DatabaseInspectorProjectServiceImpl(
+        project = project,
+        model = model,
+        fileDatabaseManager = mock(),
+        createController = { _, _, _, _ ->
+          FakeDatabaseInspectorController(
+            DatabaseRepositoryImpl(project, EdtExecutorService.getInstance()),
+            model
+          )
+        }
+      )
 
     ideComponents = IdeComponents(myFixture)
-    ideComponents.replaceProjectService(DatabaseInspectorProjectService::class.java, databaseInspectorProjectService)
+    ideComponents.replaceProjectService(
+      DatabaseInspectorProjectService::class.java,
+      databaseInspectorProjectService
+    )
+  }
+
+  fun testNoIconWhenDatabaseIsNotOpen() {
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+        package com.example;
+        class Foo {
+          void bar() {
+            // language=RoomSql
+            String query = "select * from Foo";${caret}
+          }
+        }
+        """
+        .trimIndent()
+    )
+
+    myFixture.doHighlighting()
+
+    val highlightInfo = myFixture.findGuttersAtCaret()
+    assertThat(highlightInfo).hasSize(1)
+    assertThat(highlightInfo.first().icon).isEqualTo(EmptyIcon.ICON_0)
   }
 
   fun testRunIconWhenDatabaseIsOpen() {
-    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
+    databaseInspectorProjectService.openSqliteDatabase(
+      sqliteDatabaseId1,
+      getMockLiveDatabaseConnection()
+    )
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
@@ -82,17 +116,24 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
             String query = "select * from Foo";${caret}
           }
         }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
     myFixture.doHighlighting()
 
     val highlightInfo = myFixture.findGuttersAtCaret()
     assertThat(highlightInfo).hasSize(1)
-    assertThat(highlightInfo.first().icon).isEqualTo(StudioIcons.DatabaseInspector.NEW_QUERY)
+    assertThat(
+      highlightInfo.first().icon).isEqualTo(
+      StudioIcons.DatabaseInspector.NEW_QUERY
+    )
   }
 
   fun testRendererVisibleWhenSqlStatementMadeOfMultipleStrings() {
-    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
+    databaseInspectorProjectService.openSqliteDatabase(
+      sqliteDatabaseId1,
+      getMockLiveDatabaseConnection()
+    )
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
@@ -105,17 +146,24 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
             String query = "select " +"*" +" from Foo";${caret}
           }
         }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
     myFixture.doHighlighting()
 
     val highlightInfo = myFixture.findGuttersAtCaret()
     assertThat(highlightInfo).hasSize(1)
-    assertThat(highlightInfo.first().icon).isEqualTo(StudioIcons.DatabaseInspector.NEW_QUERY)
+    assertThat(
+      highlightInfo.first().icon).isEqualTo(
+      StudioIcons.DatabaseInspector.NEW_QUERY
+    )
   }
 
   fun testAnnotatorWorksWithKotlin() {
-    databaseInspectorProjectService.openSqliteDatabase(sqliteDatabaseId1, getMockLiveDatabaseConnection())
+    databaseInspectorProjectService.openSqliteDatabase(
+      sqliteDatabaseId1,
+      getMockLiveDatabaseConnection()
+    )
 
     myFixture.configureByText(
       JavaFileType.INSTANCE,
@@ -128,7 +176,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
             val query = "select * from Foo" ${caret}
           }
         }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
     myFixture.doHighlighting()
 
@@ -139,6 +188,11 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
 
   private fun getMockLiveDatabaseConnection(): LiveDatabaseConnection {
     val databaseInspectorMessenger = DatabaseInspectorMessenger(mock(), scope, taskExecutor)
-    return LiveDatabaseConnection(testRootDisposable, databaseInspectorMessenger, 0, EdtExecutorService.getInstance())
+    return LiveDatabaseConnection(
+      testRootDisposable,
+      databaseInspectorMessenger,
+      0,
+      EdtExecutorService.getInstance()
+    )
   }
 }

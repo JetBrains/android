@@ -38,5 +38,8 @@ class NlVisibilityButtonCellRendererTest {
     assertNotNull(button)
     assertTrue(button is NlVisibilityButton)
     assertEquals(presentation.visibility, (button as NlVisibilityButton).visibility)
+    list.currHovered = 1
+    list.dispose()
+    assertEquals(-1, list.currHovered)
   }
 }

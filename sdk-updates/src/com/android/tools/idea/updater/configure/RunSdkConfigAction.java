@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
-
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.intellij.facet.ProjectFacetManager;
@@ -32,10 +31,11 @@ import com.intellij.openapi.options.ex.ConfigurableExtensionPointUtil;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
 /**
  * Action to open the Android SDK pane in Settings.
@@ -72,6 +72,6 @@ public class RunSdkConfigAction extends DumbAwareAction {
     }
     Configurable configurable =
       ConfigurableExtensionPointUtil.createApplicationConfigurableForProvider(SdkUpdaterConfigurableProvider.class);
-    ShowSettingsUtil.getInstance().showSettingsDialog(null, configurable.getClass());
+    ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), configurable.getClass());
   }
 }

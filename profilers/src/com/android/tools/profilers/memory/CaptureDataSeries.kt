@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit
 object CaptureDataSeries {
   @JvmStatic
   fun ofAllocationInfos(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
-    of({ getAllocationInfosForSession(client, session, it, stage.studioProfilers.ideServices) },
+    of({ getAllocationInfosForSession(client, session, it) },
        { it.startTime }, { it.endTime },
        { if (it.legacy) LegacyAllocationCaptureObject(client, session, it, tracker)
          else LiveAllocationCaptureObject(client, session, it.startTime, null, stage) },
@@ -47,7 +47,7 @@ object CaptureDataSeries {
 
   @JvmStatic
   fun ofHeapDumpSamples(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
-    of({ getHeapDumpsForSession(client, session, it, stage.studioProfilers.ideServices) },
+    of({ getHeapDumpsForSession(client, session, it) },
        { it.startTime }, { it.endTime },
        { HeapDumpCaptureObject(client, session, it, null, tracker, stage.studioProfilers.ideServices) },
        { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, HeapDumpCaptureObject::class.java)})
@@ -55,14 +55,15 @@ object CaptureDataSeries {
   @JvmStatic
   fun ofNativeAllocationSamples(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
     of({ getNativeHeapSamplesForSession(client, session, it) },
-       { it.startTime }, { it.endTime },
+       { it.fromTimestamp }, { it.toTimestamp },
        { NativeAllocationSampleCaptureObject(client, session, it, stage) },
        { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, NativeAllocationSampleCaptureObject::class.java)})
 
   private fun<C: CaptureObject,T> of(getSamples: (Range) -> List<T>,
                                      startTimeNs: (T) -> Long, endTimeNs: (T) -> Long,
                                      makeCapture: (T) -> C,
-                                     makeDurationData: (Long, T, CaptureEntry<C>) -> CaptureDurationData<out CaptureObject>) = DataSeries { range ->
+                                     makeDurationData: (Long, T, CaptureEntry<C>) -> CaptureDurationData<out CaptureObject>) =
+    DataSeries.using { range ->
       getSamples(range).map {
         val startNs = startTimeNs(it)
         val endNs = endTimeNs(it)

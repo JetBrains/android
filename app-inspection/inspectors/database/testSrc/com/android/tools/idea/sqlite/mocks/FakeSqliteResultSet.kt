@@ -27,10 +27,11 @@ import com.google.common.util.concurrent.ListenableFuture
 
 class FakeSqliteResultSet(
   size: Int = 100,
-  columns: List<ResultSetSqliteColumn> = listOf(
-    ResultSetSqliteColumn("id", SqliteAffinity.INTEGER, true, false),
-    ResultSetSqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
-  )
+  columns: List<ResultSetSqliteColumn> =
+    listOf(
+      ResultSetSqliteColumn("id", SqliteAffinity.INTEGER, true, false),
+      ResultSetSqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
+    )
 ) : SqliteResultSet {
   val _columns = columns
   val rows = mutableListOf<SqliteRow>()
@@ -39,15 +40,15 @@ class FakeSqliteResultSet(
 
   init {
     for (i in 0 until size) {
-      rows.add(
-        SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(i)) })
-      )
+      rows.add(SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(i)) }))
     }
   }
 
-  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() = Futures.immediateFuture(_columns)
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>>
+    get() = Futures.immediateFuture(_columns)
 
-  override val totalRowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rows.size)
+  override val totalRowCount: ListenableFuture<Int>
+    get() = Futures.immediateFuture(rows.size)
 
   override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> {
     assert(rowOffset >= 0)
@@ -60,11 +61,13 @@ class FakeSqliteResultSet(
     return Futures.immediateFuture(rows)
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   fun insertRowAtIndex(index: Int, value: Int) {
-    rows.add(index, SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(value)) }))
+    rows.add(
+      index,
+      SqliteRow(_columns.map { SqliteColumnValue(it.name, SqliteValue.fromAny(value)) })
+    )
   }
 
   fun deleteRowAtIndex(index: Int) {

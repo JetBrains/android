@@ -25,33 +25,43 @@ import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.mockTask
+import com.android.buildanalyzer.common.TaskCategory
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
+import org.junit.Rule
 import org.junit.Test
 
 class WarningsDataPageModelImplTest {
 
-  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000).apply {
+  @get:Rule
+  var disposableRule = DisposableRule()
+
+  val task1 = mockTask(":app", "compile", "compiler.plugin", 2000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this))
   }
-  val task2 = mockTask(":app", "resources", "resources.plugin", 1000).apply {
+  val task2 = mockTask(":app", "resources", "resources.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.AlwaysRunUpToDateOverride(this))
   }
-  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000).apply {
+  val task3 = mockTask(":lib", "compile", "compiler.plugin", 1000, taskCategory = TaskCategory.ANDROID_RESOURCES).apply {
     issues = listOf(TaskIssueUiDataContainer.TaskSetupIssue(this, task1, ""))
     task1.issues += listOf(TaskIssueUiDataContainer.TaskSetupIssue(task1, this, ""))
   }
 
-  val mockData = MockUiData(tasksList = listOf(task1, task2, task3))
+  val mockData = MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true)
 
   var modelUpdateListenerCallsCount = 0
-  val model: WarningsDataPageModel = WarningsDataPageModelImpl(mockData).apply {
-    addModelUpdatedListener { modelUpdateListenerCallsCount++ }
+  val model: WarningsDataPageModel by lazy {
+    WarningsDataPageModelImpl(mockData).apply {
+      addModelUpdatedListener(disposableRule.disposable) { modelUpdateListenerCallsCount++ }
+    }
   }
 
   @Test
   fun testInitialSelection() {
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -62,7 +72,6 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
@@ -80,6 +89,8 @@ class WarningsDataPageModelImplTest {
     assertThat(model.selectedNode).isEqualTo(lastChild)
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -90,7 +101,6 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |=>JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
@@ -109,6 +119,8 @@ class WarningsDataPageModelImplTest {
     assertThat(model.selectedNode).isNull()
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -119,7 +131,6 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(2)
@@ -134,6 +145,8 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |===>ALWAYS_RUN_TASKS-:app:resources
@@ -144,7 +157,6 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
@@ -159,6 +171,8 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -169,7 +183,6 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(0)
@@ -178,18 +191,19 @@ class WarningsDataPageModelImplTest {
   @Test
   fun testNoTaskSetupIssuesDetected() {
     // Arrange
-    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task2)))
+    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task2), createTaskCategoryWarning = true))
 
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
-      |  ALWAYS_RUN_TASKS
-      |    ALWAYS_RUN_TASKS-:app:resources
+      |  CONFIGURATION_CACHING
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
+      |  ALWAYS_RUN_TASKS
+      |    ALWAYS_RUN_TASKS-:app:resources
+      |  ANDROID_RESOURCES
       |  JETIFIER_USAGE
     """.trimMargin())
   }
@@ -197,7 +211,7 @@ class WarningsDataPageModelImplTest {
   @Test
   fun testNoAnnotationProcessorsWarningsIssuesDetected() {
     // Arrange
-    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3)).apply {
+    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true).apply {
       annotationProcessors = object : AnnotationProcessorsReport {
         override val nonIncrementalProcessors: List<AnnotationProcessorUiData> = emptyList()
       }
@@ -206,13 +220,14 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
       |  TASK_SETUP_ISSUE
       |    TASK_SETUP_ISSUE-:app:compile
       |    TASK_SETUP_ISSUE-:lib:compile
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
     """.trimMargin())
   }
@@ -225,11 +240,13 @@ class WarningsDataPageModelImplTest {
 
   private fun testNoJetifierWarningShown(jetifierData: JetifierUsageAnalyzerResult) {
     // Arrange
-    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3)).apply {
+    val model = WarningsDataPageModelImpl(MockUiData(tasksList = listOf(task1, task2, task3), createTaskCategoryWarning = true).apply {
       this.jetifierData = jetifierData
     })
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |    ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
@@ -240,9 +257,8 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
     """.trimMargin())
-    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 8, Filtered: 8")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 9")
   }
 
   @Test
@@ -255,22 +271,22 @@ class WarningsDataPageModelImplTest {
     // Assert
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |=>JETIFIER_USAGE
     """.trimMargin())
   }
 
   @Test
   fun testTreeHeader() {
-    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 9")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 10, Filtered: 10")
   }
 
   @Test
-  fun testAllWarningsFilteredOut() {
+  fun testAllWarningsFilteredOutExceptTaskCategoryIssues() {
     model.filter = WarningsFilter.DEFAULT.copy(
       showTaskWarningTypes = setOf(),
       showAnnotationProcessorWarnings = false,
@@ -279,9 +295,10 @@ class WarningsDataPageModelImplTest {
     )
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  ANDROID_RESOURCES
     """.trimMargin())
 
-    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 9, Filtered: 0")
+    assertThat(model.treeHeaderText).isEqualTo("Warnings - Total: 10, Filtered: 1")
   }
 
   @Test
@@ -297,10 +314,11 @@ class WarningsDataPageModelImplTest {
 
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  ALWAYS_RUN_TASKS
       |===>ALWAYS_RUN_TASKS-:app:compile
       |    ALWAYS_RUN_TASKS-:app:resources
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
@@ -318,6 +336,8 @@ class WarningsDataPageModelImplTest {
 
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  TASK_SETUP_ISSUE
       |    TASK_SETUP_ISSUE-:app:compile
       |    TASK_SETUP_ISSUE-:lib:compile
@@ -325,7 +345,6 @@ class WarningsDataPageModelImplTest {
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
       |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)
@@ -337,16 +356,17 @@ class WarningsDataPageModelImplTest {
 
     assertThat(model.print()).isEqualTo("""
       |ROOT
+      |  CONFIGURATION_CACHING
+      |  ANDROID_RESOURCES
       |  compiler.plugin
       |    :app:compile
       |    :lib:compile
-      |  resources.plugin
-      |    :app:resources
       |  ANNOTATION_PROCESSORS
       |    com.google.auto.value.processor.AutoAnnotationProcessor
       |    com.google.auto.value.processor.AutoValueBuilderProcessor
       |    com.google.auto.value.processor.AutoOneOfProcessor
-      |  CONFIGURATION_CACHING
+      |  resources.plugin
+      |    :app:resources
       |  JETIFIER_USAGE
     """.trimMargin())
     assertThat(modelUpdateListenerCallsCount).isEqualTo(1)

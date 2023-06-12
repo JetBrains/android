@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 private val IDENTITY: (String) -> String = { it }
 
@@ -33,7 +33,7 @@ class PropertyDefinition(
   /**
    * The type of this property.
    */
-  val type: Type,
+  val type: PropertyType,
 
   /**
    * A mapper lambda to convert legacy values into a more readable form.

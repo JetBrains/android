@@ -17,5 +17,7 @@
   <name>Android Run/Debug Tests</name>
   <id>com.android.tools.idea.adb.tests</id>
   <depends>com.intellij.modules.platform</depends>
+
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

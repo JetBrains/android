@@ -9,16 +9,14 @@ import org.jetbrains.org.objectweb.asm.commons.GeneratorAdapter
 import org.jetbrains.org.objectweb.asm.commons.Method
 import kotlin.reflect.jvm.javaMethod
 
-class ProcessAborted(message: String) : RuntimeException(message)
-
-object LoopBreaker {
+object CooperativeInterruptTransformLoopBreaker {
   @JvmStatic
   fun checkLoop() {
     if (Thread.currentThread().isInterrupted) throw InterruptedException()
   }
 }
 
-object ThreadLocalRandom {
+object CooperativeInterruptTransformThreadLocalRandom {
   @JvmStatic
   fun nextInt(min: Int, max: Int): Int = java.util.concurrent.ThreadLocalRandom.current().nextInt(min, max)
 }
@@ -34,19 +32,20 @@ private fun java.lang.reflect.Method.toMethodType(): Method = Method(name, Type.
  * of the loops.
  * @param shouldInstrument callback that receives class and method name determines whether it should be transformed.
  */
-class CooperativeInterruptTransform(delegate: ClassVisitor,
-                                    private val checkPercentage: Int = 1,
-                                    private val shouldInstrument: (String, String) -> Boolean = { _, _ -> true }) :
-  ClassVisitor(Opcodes.ASM7, delegate), ClassVisitorUniqueIdProvider {
+class CooperativeInterruptTransform @JvmOverloads constructor(
+  delegate: ClassVisitor,
+  private val checkPercentage: Int = 1,
+  private val shouldInstrument: (String, String) -> Boolean = { _, _ -> true }) :
+  ClassVisitor(Opcodes.ASM9, delegate), ClassVisitorUniqueIdProvider {
   init {
     if (checkPercentage !in 1..100) throw IllegalArgumentException("checkPercentage must be in [1, 100]")
   }
 
   override val uniqueId: String = "${CooperativeInterruptTransform::className},$checkPercentage,$shouldInstrument"
-  private val loopBreakerType = Type.getType(LoopBreaker::class.java)
-  private val loopCheckMethod = LoopBreaker::checkLoop.javaMethod!!.toMethodType()
-  private val threadLocalRandomType = Type.getType(ThreadLocalRandom::class.java)
-  private val threadLocalRandomNextIntMethod = ThreadLocalRandom::nextInt.javaMethod!!.toMethodType()
+  private val loopBreakerType = Type.getType(CooperativeInterruptTransformLoopBreaker::class.java)
+  private val loopCheckMethod = CooperativeInterruptTransformLoopBreaker::checkLoop.javaMethod!!.toMethodType()
+  private val threadLocalRandomType = Type.getType(CooperativeInterruptTransformThreadLocalRandom::class.java)
+  private val threadLocalRandomNextIntMethod = CooperativeInterruptTransformThreadLocalRandom::nextInt.javaMethod!!.toMethodType()
   private var className = ""
 
   override fun visit(version: Int, access: Int, name: String?, signature: String?, superName: String?, interfaces: Array<out String>?) {
@@ -61,7 +60,7 @@ class CooperativeInterruptTransform(delegate: ClassVisitor,
                            exceptions: Array<out String>?): MethodVisitor {
     val delegate = super.visitMethod(access, name, descriptor, signature, exceptions)
     return if (shouldInstrument(className, name ?: "")) {
-      object : GeneratorAdapter(Opcodes.ASM7, delegate, access, name, descriptor) {
+      object : GeneratorAdapter(Opcodes.ASM9, delegate, access, name, descriptor) {
         override fun visitJumpInsn(opcode: Int, label: Label?) {
           val skipCheck = Label()
           // Min random value
@@ -70,7 +69,7 @@ class CooperativeInterruptTransform(delegate: ClassVisitor,
           push(100)
           invokeStatic(threadLocalRandomType, threadLocalRandomNextIntMethod)
           push(checkPercentage)
-          ifICmp(GE, skipCheck)
+          ifICmp(GT, skipCheck)
           invokeStatic(loopBreakerType, loopCheckMethod)
           visitLabel(skipCheck)
 

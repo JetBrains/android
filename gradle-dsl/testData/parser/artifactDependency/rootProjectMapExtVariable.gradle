@@ -1,0 +1,5 @@
+def dep = [:]
+dep.version="1.1.4"
+dep.group = "androidx.core"
+dep.name = "core-ktx"
+ext.dep = dep

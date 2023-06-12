@@ -17,7 +17,7 @@
 
 package com.android.tools.idea.gradle.structure.model.helpers
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.sdklib.AndroidTargetHash
 import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil.parseFromGradleString
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
@@ -103,12 +103,12 @@ fun parseHashString(text: String) =
   else ParsedValue.Set.Parsed(text, DslText.Literal).annotated()
 
 
-fun parseGradleVersion(text: String): Annotated<ParsedValue<GradleVersion>> =
+fun parseGradleVersion(text: String): Annotated<ParsedValue<Version>> =
   if (text == "")
     ParsedValue.NotSet.annotated()
   else
     try {
-      ParsedValue.Set.Parsed(GradleVersion.parse(text), DslText.Literal).annotated()
+      ParsedValue.Set.Parsed(Version.parse(text), DslText.Literal).annotated()
     }
     catch (ex: IllegalArgumentException) {
       ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText(text))

@@ -26,12 +26,14 @@ import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,13 +49,16 @@ class BottomUpDetailsViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private lateinit var profilersView: StudioProfilersView
   private val capture = CpuProfilerUITestUtils.validCapture()
 
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test
@@ -75,6 +80,7 @@ class BottomUpDetailsViewTest {
     val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(ClockType.GLOBAL, Range(),
                                                        listOf(capture.getCaptureNode(capture.mainThreadId)!!),
                                                        capture, Utils::runOnUi) as CaptureDetails.BottomUp
+    assertThat(bottomUp.model?.root?.base).isInstanceOf(Aggregate.BottomUp.Root::class.java)
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructionsList = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().filter {

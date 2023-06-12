@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.daemon.analysis
 
 import com.android.testutils.junit4.OldAgpTest
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.structure.configurables.PsContextImpl
 import com.android.tools.idea.gradle.structure.configurables.PsPathRendererImpl
 import com.android.tools.idea.gradle.structure.model.PsIssue
@@ -24,51 +26,57 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.gradle.structure.model.testResolve
 import com.android.tools.idea.gradle.structure.quickfix.PsDependencyConfigurationQuickFixPath
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
-import com.intellij.openapi.util.Disposer
-import com.intellij.util.PathUtil
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
-import java.io.File
+import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
 
 @OldAgpTest(agpVersions = ["3.5.0"], gradleVersions = ["5.5"])
-class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
+@RunsInEdt
+class PsModuleDependencyConfigurationsAnalyzerTest {
+
+  @get:Rule
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private val gradleVersion = "5.5"
 
+  @Test
   fun testObsoleteTestCompileConfigurationInLibrary() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("obsoleteScopesLibrary") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val issues = analyzer.analyze(module)
 
-      checkIssuesFor(issues.toList(),
-                     "junit:junit:4.12",
-                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
-                     setOf("testCompile" to "testImplementation"))
-    } finally {
-      Disposer.dispose(disposable)
+      checkIssuesFor(
+        issues.toList(),
+        "junit:junit:4.12",
+        setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
+        setOf("testCompile" to "testImplementation")
+      )
     }
   }
 
+  @Test
   fun testObsoleteCompileConfigurationInLibrary() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("obsoleteScopesLibrary") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
@@ -78,20 +86,18 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "androidx.appcompat:appcompat:1.0.2",
                      setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "api", "compile" to "implementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
+  @Test
   fun testObsoleteTestCompileConfigurationInApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("app") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
@@ -101,20 +107,18 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "junit:junit:4.12",
                      setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
+  @Test
   fun testObsoleteCompileConfigurationInApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("app") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
@@ -132,21 +136,19 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "compile/libs",
                      setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
   // no testObsoleteCompileTestConfigurationInTest() because com.android.test does not support compileTest dependencies
+  @Test
   fun testObsoleteCompileConfigurationInTest() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("obsoleteScopesTest") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
@@ -156,21 +158,19 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "androidx.appcompat:appcompat:1.0.2",
                      setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
   // testCompile not supported by com.android.instantapp plugin
+  @Test
   fun testObsoleteCompileConfigurationInInstantApp() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("instantApp") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
@@ -180,20 +180,19 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "androidx.appcompat:appcompat:1.0.2",
                      setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "implementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
   // TODO(b/129135682): enable when bug is fixed. Also, should use "3.5.0"?
+  @Ignore("b/129135682")
+  @Test
   fun laterTestObsoleteTestCompileConfigurationInFeature() {
-    loadProject(TestProjectPaths.PSD_UPGRADE)
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("obsoleteScopesFeature") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
@@ -203,20 +202,19 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "junit:junit:4.12",
                      setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
   // TODO(b/129135682): enable when bug is fixed. Also, should use "3.5.0"?
+  @Ignore("b/129135682")
+  @Test
   fun laterTestObsoleteCompileConfigurationInFeature() {
-    loadProject(TestProjectPaths.PSD_UPGRADE)
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("obsoleteScopesFeature") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
@@ -226,20 +224,18 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "androidx.appcompat:appcompat:1.0.2",
                      setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "api", "compile" to "implementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
+  @Test
   fun testObsoleteTestCompileScopeInJava() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("obsoleteScopesJava") as PsJavaModule
 
       val analyzer = PsJavaModuleAnalyzer(context)
@@ -249,20 +245,18 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "junit:junit:4.12",
                      setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
                      setOf("testCompile" to "testImplementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
+  @Test
   fun testObsoleteCompileConfigurationInJava() {
     // Use a plugin with instant app support
-    loadProject(TestProjectPaths.PSD_UPGRADE, null, gradleVersion, "3.5.0")
-    val resolvedProject = myFixture.project
-    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    val disposable = Disposer.newDisposable()
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    try {
-      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("obsoleteScopesJava") as PsJavaModule
 
       val analyzer = PsJavaModuleAnalyzer(context)
@@ -272,8 +266,6 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
                      "androidx.appcompat:appcompat:1.0.2",
                      setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
                      setOf("compile" to "api", "compile" to "implementation"))
-    } finally {
-      Disposer.dispose(disposable)
     }
   }
 
@@ -303,7 +295,5 @@ class PsModuleDependencyConfigurationsAnalyzerTest : AndroidGradleTestCase() {
       .map { quickFix -> quickFix.oldConfigurationName to quickFix.newConfigurationName }
       .toSet()
   }
-
-  override fun getAdditionalRepos() = listOf(File(getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
 }
 

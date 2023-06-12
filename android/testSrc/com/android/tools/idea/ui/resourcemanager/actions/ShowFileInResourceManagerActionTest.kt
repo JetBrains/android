@@ -72,7 +72,7 @@ class ShowFileInResourceManagerActionTest {
     val resourceManagerAction = findResourceManagerAction()
     val testActionEvent = checkActionWithFile(resourceManagerAction, newFile.virtualFile)
     assertTrue { testActionEvent.presentation.isEnabledAndVisible }
-    assertEquals(resourceManagerAction.templatePresentation.text, testActionEvent.presentation.text)
+    assertEquals("Show In Resource Manager", testActionEvent.presentation.text)
   }
 
   @Test
@@ -87,7 +87,7 @@ class ShowFileInResourceManagerActionTest {
     val newFile = rule.fixture.loadNewFile("res/drawable-hdpi/icon.xml", "<drawable></drawable>")
     val resourceExplorer = runInEdtAndGet { ResourceExplorer.createForToolWindow(rule.module.androidFacet!!) }
     val resourceExplorerView = UIUtil.findComponentOfType(resourceExplorer, ResourceExplorerView::class.java)!!
-    Disposer.register(rule.project, resourceExplorer)
+    Disposer.register(rule.fixture.projectDisposable, resourceExplorer)
 
     waitAndAssert<SectionList>(resourceExplorerView) {
       it != null && (it.getLists().getOrNull(0)?.model?.size ?: 0) > 0
@@ -116,7 +116,7 @@ class ShowFileInResourceManagerActionTest {
     // Open ResourceManager with facet of app2
     val resourceExplorer = runInEdtAndGet {
       ResourceExplorer.createForToolWindow(facet2).also {
-        Disposer.register(rule.project, it)
+        Disposer.register(rule.fixture.projectDisposable, it)
       }
     }
 

@@ -21,7 +21,7 @@ package com.android.tools.idea.npw.project
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.builder.model.SourceProvider
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
@@ -34,6 +34,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 import java.io.File
 import java.io.IOException
 
@@ -77,10 +78,10 @@ fun setGradleWrapperExecutable(projectRoot: File) {
 
 /** Find the most appropriate Gradle Plugin version for the specified project. */
 @Slow
-fun determineGradlePluginVersion(project: Project, isNewProject: Boolean): GradleVersion {
-  val defaultGradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+fun determineAgpVersion(project: Project, isNewProject: Boolean): AgpVersion {
+  val defaultAgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
   if (isNewProject) {
-    return defaultGradleVersion
+    return defaultAgpVersion
   }
 
   val versionInUse =
@@ -90,7 +91,18 @@ fun determineGradlePluginVersion(project: Project, isNewProject: Boolean): Gradl
   }
   // Use slow method
   val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
-  return androidPluginInfo?.pluginVersion ?: defaultGradleVersion
+  return androidPluginInfo?.pluginVersion ?: defaultAgpVersion
+}
+
+/** Find the most appropriate Kotlin plugin version for the specified project. */
+@Slow
+fun determineKotlinVersion(project: Project, isNewProject: Boolean): String {
+  // See IdeaKotlinVersionProviderService.getKotlinVersionFromCompiler().
+  val defaultKotlinVersion = KotlinPluginLayout.standaloneCompilerVersion.artifactVersion
+  if (isNewProject) return defaultKotlinVersion
+
+  val versionInUse = project.basePath?.let { GradleProjectSystemUtil.getKotlinVersionInUse(project, it) }
+  return versionInUse ?: defaultKotlinVersion
 }
 
 /** Call detector to check whether Version Catalogs are in use.  Is (very occasionally) slow if cached value has been invalidated. */

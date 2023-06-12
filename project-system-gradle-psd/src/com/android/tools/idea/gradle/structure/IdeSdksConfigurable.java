@@ -21,9 +21,9 @@ import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.OpenGradleSettingsHyperlink.showGradleSettings;
 import static com.android.tools.idea.gradle.structure.NdkProjectStructureUtilKt.supportsSideBySideNdk;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
+import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.fileChooser.FileChooser.chooseFile;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
@@ -32,7 +32,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.tools.adtui.validation.Validator;
@@ -45,11 +45,13 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.StudioProgressRunner;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
+import com.android.tools.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidSdkPath;
+import com.android.tools.sdk.SdkPaths.ValidationResult;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
@@ -102,7 +104,6 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -154,7 +155,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
     boolean supportsSideBySideNdk = true;
     if (myProject != null) {
-      GradleVersion gradleModelNumber = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project);
+      AgpVersion gradleModelNumber = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project);
       if (gradleModelNumber != null) {
         supportsSideBySideNdk = supportsSideBySideNdk(gradleModelNumber);
       }
@@ -250,7 +251,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
       saveAndroidNdkPath();
 
       IdeSdks ideSdks = IdeSdks.getInstance();
-      ideSdks.setAndroidSdkPath(getSdkLocation(), null, myProject);
+      ideSdks.setAndroidSdkPath(getSdkLocation());
 
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
         IdeSdks.updateWelcomeRunAndroidSdkAction();
@@ -705,7 +706,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
     IdeSdks ideSdks = IdeSdks.getInstance();
 
     boolean validJdk = ideSdks.isUsingEmbeddedJdk() || (!jdkPath.isEmpty() && checkForJdk(Paths.get(jdkPath)));
-    boolean validSdk = !sdkPath.isEmpty() && ideSdks.isValidAndroidSdkPath(new File(sdkPath));
+    boolean validSdk = !sdkPath.isEmpty() && AndroidSdkPath.isValid(new File(sdkPath));
 
     return !validJdk || !validSdk;
   }

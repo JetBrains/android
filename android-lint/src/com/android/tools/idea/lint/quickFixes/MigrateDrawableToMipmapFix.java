@@ -29,7 +29,7 @@ import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
@@ -82,7 +82,7 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
     final Set<PsiElement> references = new HashSet<>();
 
     GlobalSearchScope useScope = GlobalSearchScope.projectScope(project);
-    LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(facet);
+    LocalResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(facet);
     List<ResourceItem> resourceItems = projectResources.getResources(ResourceNamespace.TODO(), myUrl.type, myUrl.name);
     for (ResourceItem item : resourceItems) {
       PsiFile file = IdeResourcesUtil.getItemPsiFile(project, item);

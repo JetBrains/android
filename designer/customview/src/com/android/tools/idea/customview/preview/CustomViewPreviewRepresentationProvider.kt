@@ -16,11 +16,12 @@
 package com.android.tools.idea.customview.preview
 
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
-import com.android.tools.idea.uibuilder.editor.multirepresentation.devkit.CommonRepresentationEditorFileType
+import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -44,12 +45,11 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
    * Checks if the input [psiFile] contains custom views and therefore can be provided with the [PreviewRepresentation] of them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
-    val virtualFile = runReadAction { psiFile.virtualFile }
-    if (!virtualFile.isSourceFileType()) {
-      return false
-    }
+    val virtualFile = readAction { psiFile.virtualFile }
+    if (!virtualFile.isSourceFileType()) return false
+    if (DumbService.isDumb(project)) return false
 
-    return runReadAction { PsiManager.getInstance(project).findFile(virtualFile)!! }.containsViewSuccessor()
+    return readAction { PsiManager.getInstance(project).findFile(virtualFile)!! }.containsViewSuccessor()
   }
 
   /**
@@ -60,5 +60,4 @@ class CustomViewPreviewRepresentationProvider : PreviewRepresentationProvider {
   }
 
   override val displayName = "Custom views"
-
 }

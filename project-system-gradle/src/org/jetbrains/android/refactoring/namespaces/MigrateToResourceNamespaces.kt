@@ -17,14 +17,16 @@ package org.jetbrains.android.refactoring.namespaces
 
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.URI_PREFIX
+import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.model.Namespacing
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.AndroidDependenciesCache
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.res.ResourceNamespacing
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_REFACTOR_MIGRATE_TO_RESOURCE_NAMESPACES
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.Language
@@ -68,7 +70,6 @@ import org.jetbrains.android.dom.converters.AttrNameConverter
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.refactoring.module
 import org.jetbrains.android.refactoring.offerToCreateBackupAndRun
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
@@ -89,7 +90,7 @@ class MigrateToResourceNamespacesAction : BaseRefactoringAction() {
   override fun isEnabledOnElements(elements: Array<PsiElement>) = isEnabledOnModule(ModuleUtil.findModuleForPsiElement(elements.first()))
 
   private fun isEnabledOnModule(module: Module?): Boolean {
-    return ResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == Namespacing.DISABLED
+    return StudioResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == ResourceNamespacing.DISABLED
   }
 }
 
@@ -99,10 +100,12 @@ class MigrateToResourceNamespacesAction : BaseRefactoringAction() {
  * Since there's no user input required to start the refactoring, it just runs a fresh [MigrateToResourceNamespacesProcessor].
  */
 class MigrateToResourceNamespacesHandler : RefactoringActionHandler {
+  @UiThread
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) {
     dataContext?.module?.let(this::invoke)
   }
 
+  @UiThread
   override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext?) {
     dataContext?.module?.let(this::invoke)
   }
@@ -192,8 +195,8 @@ class MigrateToResourceNamespacesProcessor(
     val psiManager = PsiManager.getInstance(myProject)
 
     for (facet in allFacets) {
-      val repositoryManager = ResourceRepositoryManager.getInstance(facet)
-      if (repositoryManager.namespacing != Namespacing.DISABLED) continue
+      val repositoryManager = StudioResourceRepositoryManager.getInstance(facet)
+      if (repositoryManager.namespacing != ResourceNamespacing.DISABLED) continue
 
       for (resourceDir in repositoryManager.moduleResources.resourceDirs) {
         // TODO(b/78765120): process the files in parallel?
@@ -235,7 +238,7 @@ class MigrateToResourceNamespacesProcessor(
 
     val result = mutableListOf<ResourceUsageInfo>()
     val domManager = DomManager.getDomManager(myProject)
-    val moduleRepo = ResourceRepositoryManager.getModuleResources(currentFacet)
+    val moduleRepo = StudioResourceRepositoryManager.getModuleResources(currentFacet)
 
     fun referenceNeedsRewriting(resourceType: ResourceType, name: String): Boolean {
       return !moduleRepo.hasResources(ResourceNamespace.RES_AUTO, resourceType, name)

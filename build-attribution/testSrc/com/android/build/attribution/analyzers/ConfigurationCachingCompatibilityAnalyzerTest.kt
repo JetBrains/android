@@ -16,13 +16,15 @@
 package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
+import com.android.build.AgpVersionInBuildAttributionTest
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.BuildAttributionManagerImpl
 import com.android.build.attribution.KnownGradlePluginsService
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginData
+import com.android.build.attribution.getSuccessfulResult
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.junit4.OldAgpTest
@@ -69,7 +71,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     pluginsSectionInRoot: String = "",
     useNewPluginsDsl: Boolean = false,
     entryInGradleProperties: Boolean? = null,
-    agpVersion: String? = null,
+    agpVersion: AgpVersionInBuildAttributionTest = AgpVersionInBuildAttributionTest.CURRENT,
   ) {
     myProjectRule.load(TestProjectPaths.SIMPLE_APPLICATION, agpVersion = agpVersion) { projectRoot ->
       // Add plugins application to `app/build.gradle`.
@@ -139,10 +141,10 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.5"])
   fun testOldKotlinDetected() {
     projectSetup(
-      agpVersion = "7.1.0",
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "apply plugin: 'kotlin-android'"
     )
@@ -153,7 +155,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = GradleVersion.parse("1.3.72"),
+        currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
       )))
     }
@@ -173,7 +175,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
      */
 
     projectSetup(
-      agpVersion = "7.1.0",
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "",
       pluginsApply = "id 'org.jetbrains.kotlin.android'",
       pluginsSectionInRoot = "plugins { id 'org.jetbrains.kotlin.android' version '1.3.72' apply false }",
@@ -186,17 +188,17 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = GradleVersion.parse("1.3.72"),
+        currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
       )))
     }
   }
 
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.5"])
   @Test
   fun testOldKotlinDetectedAppliedInPluginDslWithExplicitDependency() {
     projectSetup(
-      agpVersion = "7.1.0",
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "id 'kotlin-android'",
       useNewPluginsDsl = true
@@ -208,17 +210,17 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     (result as IncompatiblePluginsDetected).upgradePluginWarnings.let { warnings ->
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = GradleVersion.parse("1.3.72"),
+        currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
       )))
     }
   }
 
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.5"])
   @Test
   fun testOldKotlinDetectedAppliedAsPluginClass() {
     projectSetup(
-      agpVersion = "7.1.0",
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "apply plugin: org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"
     )
@@ -230,7 +232,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
       assertThat(warnings).isEqualTo(listOf(IncompatiblePluginWarning(
         //TODO (mlazeba): discuss in sync:in this case we report the name by which it was applied. Is it correct?
         plugin = PluginData(PluginData.PluginType.BINARY_PLUGIN, "org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper"),
-        currentVersion = GradleVersion.parse("1.3.72"),
+        currentVersion = Version.parse("1.3.72"),
         pluginInfo = kotlinPluginInfo()
       )))
     }
@@ -266,7 +268,8 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     val buildRequest = (myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl)
       .currentBuildRequest
 
-    ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project).scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest, true, {}, {})
+    ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project)
+      .scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest.data, true, {}, {})
 
     // test metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
@@ -278,10 +281,10 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
   }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.5"])
   fun testFailedConfigurationCacheTrial() {
     projectSetup(
-      agpVersion = "7.1.0",
+      agpVersion = AgpVersionInBuildAttributionTest.AGP_71_GRADLE_75,
       dependencies = "classpath \"org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72\"",
       pluginsApply = "apply plugin: 'kotlin-android'"
     )
@@ -293,7 +296,8 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     val buildRequest = (myProjectRule.project.getService(BuildAttributionManager::class.java) as BuildAttributionManagerImpl)
       .currentBuildRequest
 
-    ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project).scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest, true, {}, {})
+    ConfigurationCacheTestBuildFlowRunner.getInstance(myProjectRule.project)
+      .scheduleRebuildWithCCOptionAndRunOnSuccess(buildRequest.data, true, {}, {})
 
     // test metrics sent
     val buildAttributionEvents = tracker.usages.filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_ATTRIBUTION_STATS }
@@ -308,7 +312,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     myProjectRule.invokeTasksRethrowingErrors("assembleDebug")
 
     val buildAnalyzerStorageManager = myProjectRule.project.getService(BuildAnalyzerStorageManager::class.java)
-    val results = buildAnalyzerStorageManager.getLatestBuildAnalysisResults()
+    val results = buildAnalyzerStorageManager.getSuccessfulResult()
 
     return results.getConfigurationCachingCompatibility()
   }

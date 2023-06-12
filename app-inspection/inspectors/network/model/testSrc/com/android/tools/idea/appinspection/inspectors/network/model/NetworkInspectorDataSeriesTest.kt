@@ -24,18 +24,14 @@ import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
 class NetworkInspectorDataSeriesTest {
   @Test
   fun getDataForRange() {
-    val event1 = Event.newBuilder().setTimestamp(1000)
-      .setSpeedEvent(SpeedEvent.getDefaultInstance())
-      .build()
-    val event2 = Event.newBuilder().setTimestamp(2000)
-      .setSpeedEvent(SpeedEvent.getDefaultInstance())
-      .build()
+    val event1 =
+      Event.newBuilder().setTimestamp(1000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
+    val event2 =
+      Event.newBuilder().setTimestamp(2000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
     val source = FakeNetworkInspectorDataSource(speedEventList = listOf(event1, event2))
 
     val foundEvents = mutableListOf<Event>()
-    val series = NetworkInspectorDataSeries(source) { event ->
-      foundEvents.add(event)
-    }
+    val series = NetworkInspectorDataSeries(source) { event -> foundEvents.add(event) }
     series.getDataForRange(Range(1.0, 2.0))
 
     assertThat(foundEvents).containsExactly(event1, event2)

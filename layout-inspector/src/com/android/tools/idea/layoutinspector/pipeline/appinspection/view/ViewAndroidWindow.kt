@@ -41,6 +41,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import java.awt.Rectangle
 import java.awt.geom.Ellipse2D
+import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.zip.Inflater
@@ -61,7 +62,8 @@ class ViewAndroidWindow(
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit)
   : AndroidWindow(root, root.drawId, event.screenshot.type.toImageType()) {
 
-  private var bytes = event.screenshot.bytes.toByteArray()
+  // capturing screenshots can be disabled, in which case the event will have no screenshot
+  private var screenshotBytes = if (event.hasScreenshot()) event.screenshot.bytes.toByteArray() else null
 
   override val deviceClip =
     if (folderConfiguration.screenRoundQualifier?.value == ScreenRound.ROUND) {
@@ -78,24 +80,34 @@ class ViewAndroidWindow(
   override fun copyFrom(other: AndroidWindow) {
     super.copyFrom(other)
     if (other is ViewAndroidWindow) {
-      bytes = other.bytes
+      screenshotBytes = other.screenshotBytes
     }
   }
 
   @Slow
   override fun refreshImages(scale: Double) {
-    if (bytes.isNotEmpty()) {
-      try {
-        when (imageType) {
-          ImageType.BITMAP_AS_REQUESTED -> processBitmap(bytes)
-          ImageType.SKP, ImageType.SKP_PENDING -> processSkp(bytes, skiaParser, project, scale)
-          else -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+    try {
+      val immutableScreenshotBytes = screenshotBytes
+      if (immutableScreenshotBytes == null) {
+        createDrawChildren(null)
+      }
+      else {
+        if (immutableScreenshotBytes.isNotEmpty()) {
+            when (imageType) {
+              ImageType.BITMAP_AS_REQUESTED -> {
+                val bufferedImage = processBitmap(immutableScreenshotBytes)
+                createDrawChildren(bufferedImage)
+                logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
+              }
+              ImageType.SKP, ImageType.SKP_PENDING -> processSkp(immutableScreenshotBytes, skiaParser, project, scale)
+              else -> logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_NO_PICTURE) // Shouldn't happen
+            }
         }
       }
-      catch (ex: Exception) {
-        // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
-        Logger.getInstance(LayoutInspector::class.java).warn(ex)
-      }
+    }
+    catch (ex: Exception) {
+      // TODO: it seems like grpc can run out of memory landing us here. We should check for that.
+      Logger.getInstance(LayoutInspector::class.java).warn(ex)
     }
   }
 
@@ -124,7 +136,7 @@ class ViewAndroidWindow(
     val (rootViewFromSkiaImage, errorMessage) = getViewTree(bytes, requestedNodeInfo, skiaParser, scale)
 
     if (errorMessage != null) {
-      InspectorBannerService.getInstance(project).setNotification(errorMessage)
+      InspectorBannerService.getInstance(project)?.addNotification(errorMessage)
     }
     if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id != 0L) {
       logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER)
@@ -132,7 +144,10 @@ class ViewAndroidWindow(
     }
   }
 
-  private fun processBitmap(bytes: ByteArray) {
+  /**
+   * Converts [bytes] into a [BufferedImage].
+   */
+  private fun processBitmap(bytes: ByteArray): BufferedImage {
     val inf = Inflater().also { it.setInput(bytes) }
     val baos = ByteArrayOutputStream()
     val buffer = ByteArray(4096)
@@ -148,15 +163,22 @@ class ViewAndroidWindow(
     val width = inflatedBytes.toInt()
     val height = inflatedBytes.sliceArray(4..7).toInt()
     val bitmapType = BitmapType.fromByteVal(inflatedBytes[8])
-    val image = bitmapType.createImage(ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE), width,
+    return bitmapType.createImage(ByteBuffer.wrap(inflatedBytes, BITMAP_HEADER_SIZE, inflatedBytes.size - BITMAP_HEADER_SIZE), width,
                                        height)
+  }
 
+  /**
+   * Creates the [DrawViewImage] and [DrawViewChild]ren, which will be used to render the image and borders.
+   * The image is optional, so the [DrawViewImage] might not be created.
+   */
+  private fun createDrawChildren(image: BufferedImage?) {
     ViewNode.writeAccess {
       root.flatten().forEach { it.drawChildren.clear() }
-      root.drawChildren.add(DrawViewImage(image, root, deviceClip))
+      if (image != null) {
+        root.drawChildren.add(DrawViewImage(image, root, deviceClip))
+      }
       root.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
     }
-    logEvent(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS)
   }
 
   private fun getViewTree(

@@ -1,5 +1,10 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <notificationGroup id="Threading Violation Notification" displayType="STICKY_BALLOON" />
+    <notificationGroup id="Threading Violation Notification" displayType="STICKY_BALLOON"/>
   </extensions>
+  <actions>
+    <action id="ThreadingChecker.ForceViolation"
+            class="com.android.tools.idea.instrumentation.threading.TriggerSampleThreadingViolationAction"
+            internal="true"/>
+  </actions>
 </idea-plugin>

@@ -31,22 +31,33 @@ class PagedLiveSqliteResultSet(
   private val taskExecutor: Executor
 ) : LiveSqliteResultSet(sqliteStatement, messenger, connectionId, taskExecutor) {
 
-  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> get() =
-    sendQueryCommand(sqliteStatement.toSelectLimitOffset(0, 1)).mapToColumns(taskExecutor)
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>>
+    get() = sendQueryCommand(sqliteStatement.toSelectLimitOffset(0, 1)).mapToColumns(taskExecutor)
 
   override val totalRowCount: ListenableFuture<Int>
-    get() = sendQueryCommand(sqliteStatement.toRowCountStatement()).transform(taskExecutor) { response ->
-      // TODO(b/157652844): remove the cast to Int since it's possible to go over the 2^31 limit
-      response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.longValue?.toInt() ?: 0
-    }
+    get() =
+      sendQueryCommand(sqliteStatement.toRowCountStatement()).transform(taskExecutor) { response ->
+        // TODO(b/157652844): remove the cast to Int since it's possible to go over the 2^31 limit
+        response.query.rowsList.firstOrNull()?.valuesList?.firstOrNull()?.longValue?.toInt() ?: 0
+      }
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long?): ListenableFuture<List<SqliteRow>> {
+  override fun getRowBatch(
+    rowOffset: Int,
+    rowBatchSize: Int,
+    responseSizeByteLimitHint: Long?
+  ): ListenableFuture<List<SqliteRow>> {
     checkOffsetAndSize(rowOffset, rowBatchSize)
-    return sendQueryCommand(sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize), responseSizeByteLimitHint)
+    return sendQueryCommand(
+        sqliteStatement.toSelectLimitOffset(rowOffset, rowBatchSize),
+        responseSizeByteLimitHint
+      )
       .transform(taskExecutor) { response ->
         val columnNames = response.query.columnNamesList
         response.query.rowsList.map {
-          val sqliteColumnValues = it.valuesList.mapIndexed { index, cellValue -> cellValue.toSqliteColumnValue(columnNames[index]) }
+          val sqliteColumnValues =
+            it.valuesList.mapIndexed { index, cellValue ->
+              cellValue.toSqliteColumnValue(columnNames[index])
+            }
           SqliteRow(sqliteColumnValues)
         }
       }

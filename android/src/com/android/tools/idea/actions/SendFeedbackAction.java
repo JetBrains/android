@@ -16,9 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.tools.idea.diagnostics.report.DiagnosticSummaryAction;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.ui.SendFeedbackDialog;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -29,10 +27,12 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.intellij.util.io.URLUtil;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,22 +49,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    if (StudioFlags.ENABLE_NEW_SEND_FEEDBACK_DIALOG.get()) {
-      Path path = null;
-      try {
-        String destination = DiagnosticSummaryAction.createSummaryFile(e.getProject());
-        path = Paths.get(destination);
-      }
-      catch (Exception ex) {
-        String message = "Error creating diagnostics report: " + ex.getMessage();
-        Messages.showErrorDialog(e.getProject(), message, "Diagnostics Summary File");
-      }
-      String user = "someuser@gmail.com";
-      new SendFeedbackDialog(null, path, user).show();
-    }
-    else {
-      submit(e.getProject());
-    }
+    submit(e.getProject());
   }
 
   public static void submit(@Nullable Project project) {
@@ -78,7 +63,10 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
         ApplicationInfoEx applicationInfo = ApplicationInfoEx.getInstanceEx();
-        String feedbackUrl = applicationInfo.getFeedbackUrl();
+        String feedbackUrl = StudioFlags.ENABLE_NEW_COLLECT_LOGS_DIALOG.get()
+                             ? getNewFeedbackUrl()
+                             : applicationInfo.getFeedbackUrl();
+
         String version = getVersion(applicationInfo);
         feedbackUrl = feedbackUrl.replace("$STUDIO_VERSION", version);
 
@@ -153,5 +141,53 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     if (e.getPresentation().isEnabled()) {
       e.getPresentation().setEnabled(SystemInfo.isMac || SystemInfo.isLinux || SystemInfo.isWindows);
     }
+  }
+
+  private static String getNewFeedbackUrl() {
+    String instructions = """
+      ####################################################
+
+      Please provide all of the following information, otherwise we may not be able to route your bug report.
+
+      ####################################################
+
+
+      1. Describe the bug or issue that you're seeing.
+
+
+
+      2. Attach log files from Android Studio
+        2A. In the IDE, select the Help..Collect Logs and Diagnostic Data menu option.
+        2B. Create a diagnostic report and save it to your local computer.
+        2C. Attach the report to this bug using the Add attachments button.
+
+      3. If you know what they are, write the steps to reproduce:
+
+         3A.
+         3B.
+         3C.
+
+      In addition to logs, please attach a screenshot or recording that illustrates the problem.
+
+      For more information on how to get your bug routed quickly, see https://developer.android.com/studio/report-bugs.html
+      """;
+
+    ApplicationInfoEx app = ApplicationInfoEx.getInstanceEx();
+    String buildNumber = app.getBuild().asString();
+    Date date = app.getBuildDate().getTime();
+    DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmm", Locale.US);
+    String strDate = dateFormat.format(date);
+
+    return "https://issuetracker.google.com/issues/new?" +
+           "component=192708" +
+           "&template=840533" +
+           "&foundIn=$STUDIO_VERSION" +
+           "&format=MARKDOWN" +
+           "&description=" +
+           "%60%60%60%0A" +
+           URLUtil.encodeURIComponent(instructions) + "%0A" +
+           "Build%3A%20" + buildNumber + "%2C%20" + strDate +
+           "$DESCR" +
+           "%60%60%60";
   }
 }

@@ -29,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -203,6 +204,12 @@ object TemplateUtils {
     Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
 }
 
+/**
+ * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository.
+ *
+ * @param minRev the minimum revision to accept
+ * @see RepositoryUrlManager.resolveDynamicCoordinate
+ */
 fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): GradleCoordinate {
   val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
 
@@ -220,9 +227,6 @@ fun getAppNameForTheme(appName: String): String {
     .joinToString("") {
       it.usLocaleCapitalize()
     }
-    .filter {
-      // The characters need to be valid characters for Java because name is used for resource names
-      Character.isJavaIdentifierPart(it)
-    }
-  return if (result.isEmpty()) { "App" } else result
+  // The characters need to be valid characters for Kotlin because name is used for resource names
+  return StringUtil.sanitizeJavaIdentifier(result).takeIf { it.isNotEmpty() } ?: "App"
 }

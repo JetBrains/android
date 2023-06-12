@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.ProjectSyncIssues
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.LegacyApplicationIdModel
@@ -25,9 +25,9 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
-import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeAndroidProject
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
 import com.android.tools.idea.gradle.model.ndk.v2.IdeNativeModule
 import com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId
+import com.android.utils.findGradleBuildFile
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.gradle.BasicGradleProject
@@ -52,15 +53,21 @@ typealias IdeVariantFetcher = (
   androidProjectPathResolver: AndroidProjectPathResolver,
   module: AndroidModule,
   configuration: ModuleConfiguration
-) -> IdeVariantWithPostProcessor?
+) -> ModelResult<IdeVariantWithPostProcessor>
 
 sealed class GradleModule(val gradleProject: BasicGradleProject) {
   val findModelRoot: Model get() = gradleProject
   val id = createUniqueModuleId(gradleProject)
   val moduleId: ModuleId = gradleProject.toModuleId()
   var projectSyncIssues: List<IdeSyncIssue> = emptyList(); private set
+  val exceptions: MutableList<Throwable> = mutableListOf()
+
   fun setSyncIssues(issues: List<IdeSyncIssue>) {
     projectSyncIssues = issues
+  }
+
+  fun recordExceptions(throwables: List<Throwable>) {
+    exceptions += throwables
   }
 
   /**
@@ -81,16 +88,15 @@ class JavaModule(
   override fun getFetchSyncIssuesAction(): ActionToRun<Unit>?= null
 
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
-    return DeliverableJavaModule(gradleProject, projectSyncIssues, kotlinGradleModel, kaptGradleModel)
+    return DeliverableJavaModule(gradleProject, projectSyncIssues, exceptions, kotlinGradleModel, kaptGradleModel)
   }
 }
 
 /**
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
-@VisibleForTesting
 sealed class AndroidModule constructor(
-  val agpVersion: GradleVersion?,
+  val agpVersion: AgpVersion?,
   val buildName: String,
   val buildNameMap: Map<String, BuildId>,
   val buildIdMap: Map<BuildId, String>,
@@ -136,12 +142,12 @@ sealed class AndroidModule constructor(
   /** Returns the list of all libraries this currently selected variant depends on (and temporarily maybe some
    * libraries other variants depend on).
    **/
-  fun getLibraryDependencies(libraryResolver: (LibraryReference) -> IdeLibrary): Collection<ArtifactIdentifier> {
+  fun getLibraryDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): Collection<ArtifactIdentifier> {
     return collectIdentifiers(listOfNotNull(syncedVariant?.variant), libraryResolver)
   }
 
   class V1(
-    agpVersion: GradleVersion?,
+    agpVersion: AgpVersion?,
     buildName: String,
     buildNameMap: Map<String, BuildId>,
     buildIdMap: Map<BuildId, String>,
@@ -192,7 +198,7 @@ sealed class AndroidModule constructor(
   }
 
   class V2(
-    agpVersion: GradleVersion?,
+    agpVersion: AgpVersion?,
     buildName: String,
     buildNameMap: Map<String, BuildId>,
     buildIdMap: Map<BuildId, String>,
@@ -250,7 +256,6 @@ sealed class AndroidModule constructor(
       return if (this.projectType != IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE) this
       else copy(baseFeature = indexedModels.dynamicFeatureToBaseFeatureMap[moduleId]?.gradlePath)
     }
-
     // For now, use one model cache per module. It is does deliver the smallest memory footprint, but this is what we get after
     // models are deserialized from the DataNode cache anyway. This will be replaced with a model cache per sync when shared libraries
     // are moved out of `IdeAndroidProject` and delivered to the IDE separately.
@@ -258,10 +263,14 @@ sealed class AndroidModule constructor(
       syncedVariant?.name
         ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
         ?: throw AndroidSyncException(
-          "No variants found for '${gradleProject.path}'. Check build files to ensure at least one variant exists.")
+          "No variants found for '${gradleProject.path}'. Check ${findGradleBuildFile(gradleProject.projectDirectory).absolutePath} to ensure at least one variant exists and address any sync warnings and errors.",
+          gradleProject.projectIdentifier.buildIdentifier.rootDir.path,
+          gradleProject.path,
+          projectSyncIssues)
     return DeliverableAndroidModule(
       gradleProject = gradleProject,
       projectSyncIssues = projectSyncIssues,
+      exceptions = exceptions,
       selectedVariantName = selectedVariantName,
       selectedAbiName = syncedNativeVariantAbiName,
       androidProject = androidProject.patchForKapt(kaptGradleModel).populateBaseFeature(),
@@ -332,7 +341,7 @@ class NativeVariantsAndroidModule private constructor(
   }
 
   override fun prepare(indexedModels: IndexedModels): DeliverableGradleModule {
-    return DeliverableNativeVariantsAndroidModule(gradleProject, projectSyncIssues, nativeVariants)
+    return DeliverableNativeVariantsAndroidModule(gradleProject, projectSyncIssues, exceptions, nativeVariants)
   }
 }
 
@@ -341,7 +350,7 @@ fun Collection<String>.getDefaultOrFirstItem(defaultValue: String): String? =
 
 private fun collectIdentifiers(
   variants: Collection<IdeVariantCoreImpl>,
-  libraryResolver: (LibraryReference) -> IdeLibrary
+  libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary
 ): List<ArtifactIdentifier> {
   return variants.asSequence()
     .flatMap {
@@ -356,7 +365,7 @@ private fun collectIdentifiers(
     .flatMap { it.dependencies.asSequence() }
     .mapNotNull { (libraryResolver(it.target) as? IdeArtifactLibrary)?.artifactAddress }
     .mapNotNull { GradleCoordinate.parseCoordinateString(it) }
-    .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version?.toString().orEmpty()) }
+    .map { ArtifactIdentifierImpl(it.groupId, it.artifactId, it.lowerBoundVersion?.toString().orEmpty()) }
     .distinct()
     .toList()
 }

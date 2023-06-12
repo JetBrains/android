@@ -15,16 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.SCROLL_VIEW;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -33,8 +23,13 @@ import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.android.SdkConstants.*;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.*;
 
 public class ScrollViewHandlerTest extends LayoutTestCase {
 

@@ -25,7 +25,7 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
 
   @Test
   fun testBuilderOnEmptyResults() {
-    val report = BuildAttributionReportBuilder(MockResultsProvider(), 0, mock()).build()
+    val report = BuildAttributionReportBuilder(MockResultsProvider()).build()
 
     assertThat(report.buildSummary.buildFinishedTimestamp).isEqualTo(0)
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(0)
@@ -34,6 +34,7 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
   @Test
   fun testBuildSummary() {
     val analyzerResults = object : MockResultsProvider() {
+      override fun getBuildFinishedTimestamp(): Long = 12345
       override fun getTotalBuildTimeMs(): Long = 1500
       override fun getTasksDeterminingBuildDuration(): List<TaskData> {
         return listOf(
@@ -43,7 +44,7 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
       }
     }
 
-    val report = BuildAttributionReportBuilder(analyzerResults, 12345, mock()).build()
+    val report = BuildAttributionReportBuilder(analyzerResults).build()
 
     assertThat(report.buildSummary.buildFinishedTimestamp).isEqualTo(12345)
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(1500)

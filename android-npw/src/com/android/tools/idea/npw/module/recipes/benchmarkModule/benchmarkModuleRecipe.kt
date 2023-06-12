@@ -27,12 +27,13 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.androidManifestXml as testAndroidManifestXml
 
-private const val minRev = "1.1.0-beta04"
+private const val minRev = "1.1.1"
 private const val exampleBenchmarkName = "ExampleBenchmark"
 
 fun RecipeExecutor.generateBenchmarkModule(
   moduleData: ModuleTemplateData,
-  useGradleKts: Boolean
+  useGradleKts: Boolean,
+  useVersionCatalog: Boolean
 ) {
   val projectData = moduleData.projectTemplateData
   val testOut = moduleData.testDir
@@ -47,13 +48,14 @@ fun RecipeExecutor.generateBenchmarkModule(
   save(benchmarkProguardRules(), moduleOut.resolve("benchmark-proguard-rules.pro"))
 
   val bg = buildGradle(
-    packageName,
-    buildApi.apiString,
-    minApi.apiString,
-    targetApi.apiString,
-    language,
-    projectData.gradlePluginVersion,
-    useGradleKts
+    packageName = packageName,
+    buildApiString = buildApi.apiString,
+    minApi = minApi.apiString,
+    targetApiString = targetApi.apiString,
+    language = language,
+    gradlePluginVersion = projectData.gradlePluginVersion,
+    useGradleKts = useGradleKts,
+    useVersionCatalog = useVersionCatalog
   )
   val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 

@@ -16,12 +16,12 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.SdkConstants
+import com.android.tools.idea.compose.pickers.PsiPickerManager
+import com.android.tools.idea.compose.pickers.spring.model.SpringPickerPropertiesModel
 import com.android.tools.idea.compose.preview.DECLARATION_FLOAT_SPEC
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING_SPEC
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.pickers.PsiPickerManager
-import com.android.tools.idea.compose.preview.pickers.properties.SpringPickerPropertyModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -48,10 +48,11 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.toUElementOfType
 
-private val SpringTypesFqNames = setOf(
-  // TODO(b/190058778): Support more types for Spring
-  JAVA_LANG_FLOAT
-)
+private val SpringTypesFqNames =
+  setOf(
+    // TODO(b/190058778): Support more types for Spring
+    JAVA_LANG_FLOAT
+  )
 
 class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
   private val log = Logger.getInstance(this.javaClass)
@@ -66,12 +67,13 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     if (!element.isValid) return null
     if (element.getModuleSystem()?.isSpringPickerEnabled() != true) return null
 
-    val hasGenericType = when (element.text) {
-      DECLARATION_SPRING_SPEC,
-      DECLARATION_SPRING -> true
-      DECLARATION_FLOAT_SPEC -> false
-      else -> return null
-    }
+    val hasGenericType =
+      when (element.text) {
+        DECLARATION_SPRING_SPEC,
+        DECLARATION_SPRING -> true
+        DECLARATION_FLOAT_SPEC -> false
+        else -> return null
+      }
 
     val module = element.module ?: return null
 
@@ -82,18 +84,28 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       log.warn("Unable to resolve package for SpringSpec call")
       return null
     }
-    if (!resolvedPackage.startsWith(Name.identifier(SdkConstants.PACKAGE_COMPOSE_ANIMATION))) return null
+    if (!resolvedPackage.startsWith(Name.identifier(SdkConstants.PACKAGE_COMPOSE_ANIMATION)))
+      return null
 
     if (hasGenericType) {
       val uCallElement = callElement.toUElementOfType<UCallExpression>() ?: return null
-      val resolvedType = (uCallElement.getExpressionType() as? PsiClassType)?.parameters?.firstOrNull() as? PsiClassType ?: return null
-      val qualifiedName = (resolvedType as? PsiClassReferenceType)?.reference?.qualifiedName ?: return null
+      val resolvedType =
+        (uCallElement.getExpressionType() as? PsiClassType)?.parameters?.firstOrNull()
+          as? PsiClassType
+          ?: return null
+      val qualifiedName =
+        (resolvedType as? PsiClassReferenceType)?.reference?.qualifiedName ?: return null
       if (!SpringTypesFqNames.contains(qualifiedName)) {
         log.debug("Unsupported SpringSpec type: $qualifiedName")
         return null
       }
     }
-    val model = SpringPickerPropertyModel(project = module.project, module = module, resolvedCall = resolvedCall)
+    val model =
+      SpringPickerPropertiesModel(
+        project = module.project,
+        module = module,
+        resolvedCall = resolvedCall
+      )
 
     return LineMarkerInfo<PsiElement>(
       element,

@@ -121,7 +121,7 @@ public class CpuCaptureMinimapView {
 
   private static JComponent createAxis(@NotNull Range cpuUsageRange) {
     AxisComponent timeAxis = new AxisComponent(
-      new ClampedAxisComponentModel.Builder(cpuUsageRange, TimeAxisFormatter.DEFAULT).build(), AxisComponent.AxisOrientation.TOP);
+      new ClampedAxisComponentModel.Builder(cpuUsageRange, TimeAxisFormatter.DEFAULT).build(), AxisComponent.AxisOrientation.TOP, true);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
     // Hide the axis line so it doesn't stack with panel border.

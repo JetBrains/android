@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.converters
 
 import com.android.SdkConstants
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.res.NO_PREFIX_PACKAGES_FOR_VIEW
 import com.intellij.util.xml.ConvertContext
 import org.jetbrains.android.facet.AndroidFacet
@@ -32,7 +32,7 @@ class ViewClassConverter : PackageClassConverter(false, NO_PREFIX_PACKAGES_FOR_V
   // Returning packages should be aligned with [IdeResourcesUtil.isViewPackageNeeded]
   override fun getExtraBasePackages(context: ConvertContext): Array<String> {
     val facet = AndroidFacet.getInstance(context) ?: return emptyArray()
-    val apiLevel = AndroidModuleInfo.getInstance(facet).moduleMinApi
+    val apiLevel = StudioAndroidModuleInfo.getInstance(facet).moduleMinApi
     return if (apiLevel >= 20) EXTENDED_NO_PREFIX_PACKAGES_FOR_VIEW else NO_PREFIX_PACKAGES_FOR_VIEW
   }
 }

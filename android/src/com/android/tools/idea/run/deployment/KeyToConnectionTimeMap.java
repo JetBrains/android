@@ -19,8 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.NotNull;
 
 final class KeyToConnectionTimeMap {
@@ -36,7 +36,7 @@ final class KeyToConnectionTimeMap {
 
   @VisibleForTesting
   KeyToConnectionTimeMap(@NotNull Clock clock) {
-    myMap = new HashMap<>();
+    myMap = new ConcurrentHashMap<>();
     myClock = clock;
   }
 

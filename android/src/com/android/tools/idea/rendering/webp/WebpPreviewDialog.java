@@ -231,7 +231,7 @@ public class WebpPreviewDialog extends DialogWrapper implements ChangeListener, 
   }
 
   @Override
-  protected @NotNull Action @NotNull [] createActions() {
+  protected @NotNull Action[] createActions() {
     myPrevAction = new PrevAction();
     myNextAction = new NextAction();
     myAcceptAll = new AcceptAllAction();

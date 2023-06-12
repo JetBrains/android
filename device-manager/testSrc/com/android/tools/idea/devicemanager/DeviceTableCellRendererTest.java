@@ -18,7 +18,7 @@ package com.android.tools.idea.devicemanager;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.android.flags.junit.SetFlagRule;
+import com.android.flags.junit.FlagRule;
 import com.android.tools.idea.devicemanager.physicaltab.TestPhysicalDevices;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.ConnectionState;
@@ -28,7 +28,7 @@ import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.intellij.ui.table.JBTable;
 import icons.StudioIcons;
-import java.util.Collections;
+import java.util.List;
 import javax.swing.JTable;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,20 +39,20 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class DeviceTableCellRendererTest {
   @Rule
-  public SetFlagRule<Boolean> setWearPairingFlag = new SetFlagRule<>(StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED, true);
+  public FlagRule<Boolean> setWearPairingFlag = new FlagRule<>(StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED, true);
 
+  private final WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
   private final JTable myTable = new JBTable();
 
   @Test
   public void getTableCellRendererComponentDeviceIsOnline() {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, myManager);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3, false, false, 0, 0);
 
     // Assert
-    assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getIcon(), renderer.getIconLabel().getIcon());
     assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getName(), renderer.getNameLabel().getText());
     assertEquals(StudioIcons.Avd.STATUS_DECORATOR_ONLINE, renderer.getStateLabel().getIcon());
     assertEquals(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3.getTarget(), renderer.getLine2Label().getText());
@@ -71,10 +71,9 @@ public final class DeviceTableCellRendererTest {
     PhoneWearPair pair = new PhoneWearPair(phoneDevice, wearDevice);
     pair.setPairingStatus(PairingState.CONNECTED);
 
-    WearPairingManager manager = Mockito.mock(WearPairingManager.class);
-    Mockito.when(manager.getPairsForDevice("86UX00F4R")).thenReturn(Collections.singletonList(pair));
+    Mockito.when(myManager.getPairsForDevice("86UX00F4R")).thenReturn(List.of(pair));
 
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, manager);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, myManager);
     assert renderer.getPairedLabel().getIcon() == null;
 
     // Act
@@ -97,10 +96,9 @@ public final class DeviceTableCellRendererTest {
     PhoneWearPair pair = new PhoneWearPair(phoneDevice, wearDevice);
     pair.setPairingStatus(PairingState.UNKNOWN);
 
-    WearPairingManager manager = Mockito.mock(WearPairingManager.class);
-    Mockito.when(manager.getPairsForDevice("86UX00F4R")).thenReturn(Collections.singletonList(pair));
+    Mockito.when(myManager.getPairsForDevice("86UX00F4R")).thenReturn(List.of(pair));
 
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, manager);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, myManager);
     assert renderer.getPairedLabel().getIcon() == null;
 
     // Act
@@ -113,13 +111,12 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getTableCellRendererComponent() {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, myManager);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);
 
     // Assert
-    assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getIcon(), renderer.getIconLabel().getIcon());
     assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getName(), renderer.getNameLabel().getText());
     assertNull(renderer.getStateLabel().getIcon());
     assertEquals(TestPhysicalDevices.GOOGLE_PIXEL_3.getTarget(), renderer.getLine2Label().getText());
@@ -128,7 +125,7 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getForegroundSelected() {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, myManager);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, true, false, 0, 0);
@@ -140,7 +137,7 @@ public final class DeviceTableCellRendererTest {
   @Test
   public void getForeground() {
     // Arrange
-    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class);
+    DeviceTableCellRenderer<Device> renderer = new DeviceTableCellRenderer<>(Device.class, myManager);
 
     // Act
     renderer.getTableCellRendererComponent(myTable, TestPhysicalDevices.GOOGLE_PIXEL_3, false, false, 0, 0);

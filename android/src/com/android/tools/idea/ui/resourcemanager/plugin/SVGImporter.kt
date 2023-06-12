@@ -51,7 +51,7 @@ class SVGImporter : ResourceImporter {
   private fun convertSVGToVectorDrawable(it: File): LightVirtualFile? {
     val byteArrayOutputStream = ByteArrayOutputStream()
     val errors = try {
-      Svg2Vector.parseSvgToXml(it, byteArrayOutputStream)
+      Svg2Vector.parseSvgToXml(it.toPath(), byteArrayOutputStream)
     } catch (e: Exception) {
       Logger.getInstance(SVGImporter::class.java).warn("Error converting ${it.absolutePath} to vector drawable - ${e.localizedMessage}")
       return null

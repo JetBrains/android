@@ -27,13 +27,12 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.LightVirtualFile;
+import java.io.IOException;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.io.IOException;
 
 public class SampleDataItemsTest {
   @Rule

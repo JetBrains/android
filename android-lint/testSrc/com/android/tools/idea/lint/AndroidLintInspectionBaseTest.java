@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintIgnoreWithoutReasonInspection;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidLintUnknownNullnessInspection;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.inspections.AndroidLintHardcodedTextInspection;
+import com.android.tools.idea.lint.inspections.AndroidLintObjectAnimatorBindingInspection;
+import com.android.tools.idea.lint.inspections.AndroidLintSdCardPathInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintTypographyDashesInspection;
+import com.android.tools.idea.lint.inspections.AndroidLintUnusedResourcesInspection;
 import com.android.tools.lint.client.api.IssueRegistry;
 import com.android.tools.lint.client.api.Vendor;
 import com.android.tools.lint.detector.api.Issue;
@@ -146,5 +150,16 @@ public class AndroidLintInspectionBaseTest extends LightJavaCodeInsightFixtureAd
     // Ideally we'd use NORMAL here but all intention actions have to be HIGH or above, otherwise they'll
     // filter below other random IntelliJ generic actions (like Git rollback changes on current line etc)
     assertEquals(Priority.HIGH, fixes[2].getPriority());
+  }
+
+  public void testWorksInBatchMode() {
+    // implementation scope requires multiple file, no analysis scopes
+    assertTrue(new AndroidLintUnusedResourcesInspection().worksInBatchModeOnly());
+    // implementation scope only specifies a single file type (java/kotlin)
+    assertFalse(new AndroidLintSdCardPathInspection().worksInBatchModeOnly());
+    // implementation scope specifies two scopes, but one of them is TEST_SOURCES
+    assertFalse(new AndroidLintIgnoreWithoutReasonInspection().worksInBatchModeOnly());
+    // implementation scope requires multiple files, but one of the analysis scopes is single file
+    assertFalse(new AndroidLintObjectAnimatorBindingInspection().worksInBatchModeOnly());
   }
 }

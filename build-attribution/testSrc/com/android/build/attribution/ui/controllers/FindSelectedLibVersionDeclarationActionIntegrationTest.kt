@@ -27,7 +27,6 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil

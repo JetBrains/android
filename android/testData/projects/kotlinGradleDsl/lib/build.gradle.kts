@@ -8,6 +8,7 @@ apply {
 }
 
 configure<LibraryExtension> {
+    namespace = "com.example.lib"
     compileSdkVersion(27)
 
     defaultConfig {

@@ -47,19 +47,19 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
     this(surface, CopyPasteManager.getInstance());
   }
 
+  @NotNull
+  protected abstract DataFlavor getFlavor();
+
   protected DesignSurfaceActionHandler(@NotNull DesignSurface<?> surface, @NotNull CopyPasteManager copyPasteManager) {
     mySurface = surface;
     myCopyPasteManager = copyPasteManager;
   }
 
+  @NotNull
   @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
+  public ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.EDT;
   }
-
-  @NotNull
-  protected abstract DataFlavor getFlavor();
-
 
   @Override
   public void performCopy(@NotNull DataContext dataContext) {
@@ -200,16 +200,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
 
   @Nullable
   private DnDTransferItem getClipboardData() {
-    CopyPasteManager instance = CopyPasteManager.getInstance();
-    Transferable contents = instance.getContents();
-    if (contents == null) {
-      return null;
-    }
-    try {
-      return (DnDTransferItem)contents.getTransferData(getFlavor());
-    }
-    catch (UnsupportedFlavorException | IOException e) {
-      return null;
-    }
+    Transferable contents = myCopyPasteManager.getContents();
+    return contents != null ? DnDTransferItem.getTransferItem(contents, false) : null;
   }
 }

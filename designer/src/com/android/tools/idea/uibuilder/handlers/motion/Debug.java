@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
-public final class Debug {
+public class Debug {
   private static int max;
 
   public static final void println(String str) {

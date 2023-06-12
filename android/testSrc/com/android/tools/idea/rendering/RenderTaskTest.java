@@ -18,8 +18,10 @@ package com.android.tools.idea.rendering;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
+import static com.android.tools.idea.rendering.RenderTestUtil.createRenderTask;
+import static com.intellij.util.TimeoutUtil.sleep;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.isNotNull;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,6 +36,8 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.Wallpaper;
+import com.android.tools.idea.rendering.RenderAsyncActionExecutor.RenderingPriority;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
@@ -56,6 +60,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
@@ -66,7 +71,6 @@ import javax.tools.ToolProvider;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
 
 public class RenderTaskTest extends AndroidTestCase {
   // Using native rendering should have less variation between machines than Java rendering
@@ -127,7 +131,7 @@ public class RenderTaskTest extends AndroidTestCase {
         throw new RuntimeException(ex);
       }
 
-      verify(mockCrashReporter, times(1)).submit(ArgumentMatchers.<CrashReport>isNotNull());
+      verify(mockCrashReporter, times(1)).submit((CrashReport)isNotNull());
     });
   }
 
@@ -247,7 +251,7 @@ public class RenderTaskTest extends AndroidTestCase {
       .getVirtualFile();
 
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
-    RenderLogger logger = new RenderLogger(null, null);
+    RenderLogger logger = new RenderLogger();
 
     RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
       try {
@@ -682,6 +686,75 @@ public class RenderTaskTest extends AndroidTestCase {
     });
   }
 
+  public void testDynamicTheming() {
+    @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_height=\"match_parent\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:orientation=\"vertical\"\n" +
+                                            "    android:background=\"#FFF\">\n" +
+                                            "\n" +
+                                            "    <TextView\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\"\n" +
+                                            "        android:background=\"@android:color/system_accent1_500\"\n" +
+                                            "        android:textSize=\"50sp\"\n" +
+                                            "        android:text=\"Dynamic Theming\"/>\n" +
+                                            "    \n" +
+                                            "\n" +
+                                            "</LinearLayout>";
+
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", content).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
+        ImageDiffUtil.assertImageSimilar(Path.of(getTestDataPath(), "layouts/dynamic_theming_0.png"), result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+
+    configuration.setWallpaperPath(Wallpaper.RED.getResourcePath());
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
+        ImageDiffUtil.assertImageSimilar(Path.of(getTestDataPath(), "layouts/dynamic_theming_1.png"), result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+
+    configuration.setWallpaperPath(Wallpaper.GREEN.getResourcePath());
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
+        ImageDiffUtil.assertImageSimilar(Path.of(getTestDataPath(), "layouts/dynamic_theming_2.png"), result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+
+    configuration.setWallpaperPath(null);
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
+        ImageDiffUtil.assertImageSimilar(Path.of(getTestDataPath(), "layouts/dynamic_theming_0.png"), result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+  }
+
   public void testMacroTagSupport() {
     @Language("XML") final String content = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                                             "    android:layout_height=\"match_parent\"\n" +
@@ -774,5 +847,95 @@ public class RenderTaskTest extends AndroidTestCase {
         assertNotNull(getMSystemValue(task));
       }).join();
     });
+  }
+
+  public void testAdapterBindingWithInclude() {
+    @Language("XML") final String spinnerItem = "<TextView xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    style=\"?android:attr/spinnerDropDownItemStyle\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:layout_height=\"wrap_content\"\n" +
+                                            "    android:text=\"This is a spinner item\" />";
+    myFixture.addFileToProject("res/layout/spinner_item.xml", spinnerItem);
+
+    @Language("XML") final String spinner = "<Spinner xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                                            "    android:id=\"@+id/spinner\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:layout_height=\"wrap_content\"\n" +
+                                            "    tools:listitem=\"@layout/item_spinner_simple\" />";
+    myFixture.addFileToProject("res/layout/spinner.xml", spinner);
+
+    @Language("XML") final String include = "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                            "    android:layout_width=\"match_parent\"\n" +
+                                            "    android:layout_height=\"wrap_content\"\n" +
+                                            "    android:orientation=\"vertical\">\n" +
+                                            "    <include\n" +
+                                            "        layout=\"@layout/spinner\"\n" +
+                                            "        android:layout_width=\"wrap_content\"\n" +
+                                            "        android:layout_height=\"wrap_content\" />\n" +
+                                            "</LinearLayout>";
+    VirtualFile file = myFixture.addFileToProject("res/layout/include.xml", include).getVirtualFile();
+
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
+      task.setDecorations(false);
+      try {
+        BufferedImage result = task.render().get().getRenderedImage().getCopy();
+
+        BufferedImage goldenImage = ImageIO.read(new File(getTestDataPath() + "/layouts/spinner.png"));
+        assert result != null;
+        ImageDiffUtil.assertImageSimilar("spinner", goldenImage, result, IMAGE_DIFF_THRESHOLD_PERCENT);
+      }
+      catch (Exception ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+  }
+
+  /**
+   * Checks that disposing of render tasks is not delayed by adding more tasks to the rendering queue.
+   */
+  public void testDisposePriority() {
+    VirtualFile file = myFixture.addFileToProject("res/layout/layout.xml", SIMPLE_LAYOUT).getVirtualFile();
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, file);
+    RenderLogger logger = mock(RenderLogger.class);
+
+    RenderTask task1 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.LOW);
+    RenderTask task2 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.HIGH);
+    RenderTask task3 = createRenderTask(myFacet, file, configuration, logger, RenderingPriority.LOW);
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    // Do a render to ensure there is RenderSession to dispose inside the task
+    try {
+      task1.render().get(5, TimeUnit.SECONDS);
+    }
+    catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+
+    task2.runAsyncRenderAction(() -> {
+      // Wait until both task3 and the dispose of task1 are added to the rendering queue
+      // before allowing the higher priority task to be executed.
+      while (((RenderExecutor)RenderService.getRenderAsyncActionExecutor()).getNumPendingActions() < 2) {
+        sleep(50);
+      }
+      return null;
+    });
+    task3.runAsyncRenderAction(() -> {
+      latch.await();
+      return null;
+    });
+    try {
+      task1.dispose().get(5, TimeUnit.SECONDS);
+      latch.countDown();
+      task2.dispose().get(5, TimeUnit.SECONDS);
+      task3.dispose().get(5, TimeUnit.SECONDS);
+    }
+    catch (Exception e) {
+      fail("RenderTask dispose not happening before low priority render tasks.");
+    }
   }
 }

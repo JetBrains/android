@@ -17,18 +17,17 @@ package com.android.tools.idea.layoutinspector.pipeline.legacy
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
+import kotlinx.coroutines.CoroutineScope
 import java.nio.file.Path
 
 /**
@@ -39,13 +38,21 @@ class LegacyClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
-  private val metrics: LayoutInspectorMetrics,
+  private val metrics: LayoutInspectorSessionMetrics,
+  coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(process, isInstantlyAutoConnected, SessionStatisticsImpl(LEGACY_CLIENT, model), parentDisposable) {
+) : AbstractInspectorClient(
+  LEGACY_CLIENT,
+  model.project,
+  process,
+  isInstantlyAutoConnected,
+  SessionStatisticsImpl(LEGACY_CLIENT),
+  coroutineScope,
+  parentDisposable
+) {
 
   private val lookup: ViewNodeAndResourceLookup = model
-  private val project = model.project
 
   override val isCapturing = false
 
@@ -82,14 +89,8 @@ class LegacyClient(
     loggedInitialRender = false
   }
 
-  override fun doConnect(): ListenableFuture<Nothing> {
-    return try {
-      doAttach()
-      Futures.immediateFuture(null)
-    }
-    catch (exception: Exception) {
-      Futures.immediateFailedFuture(exception)
-    }
+  override suspend fun doConnect() {
+    doAttach()
   }
 
   /**
@@ -118,10 +119,10 @@ class LegacyClient(
   @Slow
   override fun saveSnapshot(path: Path) {
     val startTime = System.currentTimeMillis()
-    val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, process)
+    val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, process, model)
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorMetrics(project, process, snapshotMetadata = snapshotMetadata)
+    val saveMetrics = LayoutInspectorSessionMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
@@ -144,17 +145,16 @@ class LegacyClient(
     return true
   }
 
-  override fun doDisconnect(): ListenableFuture<Nothing> {
+  override suspend fun doDisconnect() {
     logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
     latestScreenshots.clear()
-    return Futures.immediateFuture(null)
   }
 
   class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")
 
-  override fun startFetching() = throw LegacyFetchingUnsupportedOperationException()
+  override suspend fun startFetching() = throw LegacyFetchingUnsupportedOperationException()
 
-  override fun stopFetching() = throw LegacyFetchingUnsupportedOperationException()
+  override suspend fun stopFetching() = throw LegacyFetchingUnsupportedOperationException()
 }
 
 data class LegacyEvent(val windowId: String, val propertyUpdater: LegacyPropertiesProvider.Updater, val allWindows: List<String>)

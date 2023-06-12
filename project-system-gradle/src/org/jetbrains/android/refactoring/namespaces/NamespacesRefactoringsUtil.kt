@@ -22,7 +22,7 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
 import com.android.tools.idea.kotlin.getNextInQualifiedChain
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.packageToRClass
 import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.Maps
@@ -139,7 +139,7 @@ internal class CodeUsageInfo(
 internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<CodeUsageInfo> {
   val result = mutableListOf<CodeUsageInfo>()
   val module = facet.module
-  val moduleRepo = ResourceRepositoryManager.getModuleResources(facet)
+  val moduleRepo = StudioResourceRepositoryManager.getModuleResources(facet)
   val project = module.project
 
   val rClasses = project.getProjectSystem()
@@ -255,7 +255,7 @@ internal fun inferPackageNames(
     ProgressManager.checkCanceled()
 
     val facet = resourceUsageInfo.element?.androidFacet ?: return@forEachIndexed
-    val leafRepos = ResourceRepositoryManager.getAppResources(facet).leafResourceRepositories
+    val leafRepos = StudioResourceRepositoryManager.getAppResources(facet).leafResourceRepositories
 
     resourceUsageInfo.inferredPackage = inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
       for (repo in leafRepos) {

@@ -42,7 +42,7 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testReceiveMessageFromTopic() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project, EmptyFilter)
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter)
 
     val listener = mock(Runnable::class.java)
     provider.registerUpdateListener(listener)
@@ -58,7 +58,7 @@ class DesignerCommonIssueProviderTest {
   @Test
   fun testUpdateIssuesFromSameSource() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project, EmptyFilter)
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter)
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -70,25 +70,25 @@ class DesignerCommonIssueProviderTest {
     val issueD = TestIssue(summary = "IssueD")
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueA, issueB))
-    assertEquals(listOf(issueA, issueB), provider.getFilteredIssues())
+    assertEquals(setOf(issueA, issueB), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueA, issueB, issueC))
-    assertEquals(listOf(issueA, issueB, issueC), provider.getFilteredIssues())
+    assertEquals(setOf(issueA, issueB, issueC), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueB, issueC))
-    assertEquals(listOf(issueB, issueC), provider.getFilteredIssues())
+    assertEquals(setOf(issueB, issueC), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, listOf(issueB, issueD))
-    assertEquals(listOf(issueB, issueD), provider.getFilteredIssues())
+    assertEquals(setOf(issueB, issueD), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(issueSource, emptyList())
-    assertEquals(emptyList<Issue>(), provider.getFilteredIssues())
+    assertEquals(setOf<Issue>(), provider.getFilteredIssues().toSet())
   }
 
   @Test
   fun testUpdateIssuesFromMultipleSource() {
     val project = projectRule.project
-    val provider = DesignToolsIssueProvider(project, EmptyFilter)
+    val provider = DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter)
 
     assertEmpty(provider.getFilteredIssues())
 
@@ -101,22 +101,22 @@ class DesignerCommonIssueProviderTest {
     val issueD = TestIssue(summary = "IssueD")
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, listOf(issueA, issueB))
-    assertEquals(listOf(issueA, issueB), provider.getFilteredIssues())
+    assertEquals(setOf(issueA, issueB), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, listOf(issueC))
-    assertEquals(listOf(issueA, issueB, issueC), provider.getFilteredIssues())
+    assertEquals(setOf(issueA, issueB, issueC), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, listOf(issueB))
-    assertEquals(listOf(issueB, issueC), provider.getFilteredIssues())
+    assertEquals(setOf(issueB, issueC), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, listOf(issueD))
-    assertEquals(listOf(issueB, issueD), provider.getFilteredIssues())
+    assertEquals(setOf(issueB, issueD), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, emptyList())
-    assertEquals(listOf(issueD), provider.getFilteredIssues())
+    assertEquals(setOf(issueD), provider.getFilteredIssues().toSet())
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, emptyList())
-    assertEquals(emptyList<Issue>(), provider.getFilteredIssues())
+    assertEquals(setOf<Issue>(), provider.getFilteredIssues().toSet())
   }
 
   @Test

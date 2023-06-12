@@ -20,7 +20,7 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOk
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitTreeForPopup;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
 
-import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.impl.EditConfigurationsDialog;

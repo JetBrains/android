@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames
@@ -41,17 +41,17 @@ import java.util.Locale
 
 class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
+  override val necessityInfo = AlwaysNeeded
 
   object AgpVersionNotFound: BlockReason(
     shortDescription = "Cannot find AGP version in build files.",
     description = "Cannot locate the version specification for the Android Gradle Plugin dependency, \n" +
-                  "possibly because the project's build files use features not currently support by the \n" +
+                  "possibly because the project's build files use features not currently supported by the \n" +
                   "Upgrade Assistant (for example: using constants defined in buildSrc).",
-    helpLinkUrl = "https://developer.android.com/studio/build/agp-upgrade-assistant#project-structure"
+    readMoreUrl = ReadMoreUrlRedirect("agp-version-not-found")
   )
 
   object Pre80MavenPublish: BlockReason(
@@ -60,8 +60,28 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
                   "components for the maven-publish plugin.  You will have to adapt the publishing \n" +
                   "blocks to use the new API (and mark the project as migrated by adding \n" +
                   "<tt>android.disableAutomaticComponentCreation=true</tt> to the project's gradle.properties \n" +
-                  "file.",
-    helpLinkUrl = "https://developer.android.com/studio/publish-library"
+                  "file).",
+    readMoreUrl = ReadMoreUrlRedirect("pre-80-maven-publish")
+  )
+
+  object UncompressedNativeLibsDisabled: BlockReason(
+    shortDescription = "Uncompressed native libs in bundle is a deprecated property.",
+    // Note: packagingOptions is deprecated in 8.0 but packaging, its replacement, is not available in 7.x, so use
+    // packagingOptions in this snippet as that will work with all relevant AGP versions.
+    description =
+    """
+      Starting with version 8.1, Android Gradle Plugin will no longer support the
+      android.bundle.enableUncompressedNativeLibs flag. To disable uncompressed native
+      libs, add the following to your build.gradle file:
+      android {
+          packagingOptions {
+              jniLibs {
+                  useLegacyPackaging = true
+              }
+          }
+      }
+    """.trimIndent(),
+    readMoreUrl = ReadMoreUrlRedirect("uncompressed-native-libs-false")
   )
 
   private var _isPre80MavenPublish: Boolean? = null
@@ -72,6 +92,13 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
       }
       return _isPre80MavenPublish!!
     }
+
+  private val isUncompressedNativeLibsDisabled: Boolean =
+    projectBuildModel.projectBuildModel?.propertiesModel?.declaredProperties
+        ?.firstOrNull { it.name == "android.bundle.enableUncompressedNativeLibs" }
+        ?.run { getValue(STRING_TYPE) }
+        ?.run { lowercase(Locale.US) == "false" }
+      ?: false
 
   private fun computeIsPre80MavenPublish(): Boolean {
     val mavenPublishUsed = projectBuildModel.allIncludedBuildModels.flatMap { it.plugins() }.any { it.name().toString() == "maven-publish" }
@@ -91,14 +118,18 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   override fun blockProcessorReasons(): List<BlockReason> =
     listOfNotNull(
       AgpVersionNotFound.takeIf { isAlwaysNoOpForProject && current != new },
-      Pre80MavenPublish.takeIf { isPre80MavenPublish && current < GradleVersion.parse("8.0.0-alpha01") && new >= GradleVersion.parse("8.0.0-alpha01") },
+      Pre80MavenPublish.takeIf { isPre80MavenPublish && current < AgpVersion.parse("8.0.0-alpha01") && new >= AgpVersion.parse("8.0.0-alpha01") },
+      UncompressedNativeLibsDisabled.takeIf {
+        current < AgpVersion.parse("8.1.0-alpha01") && new >= AgpVersion.parse("8.1.0-alpha01") && isUncompressedNativeLibsDisabled
+      }
     )
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     fun addUsagesFor(plugin: PluginModel) {
       if (plugin.name().toString().startsWith("com.android")) {
-        val version = GradleVersion.tryParse(plugin.version().toString()) ?: return
+        val versionString = plugin.version().getValue(STRING_TYPE) ?: return
+        val version = AgpVersion.tryParse(versionString) ?: return
         if (version == current && version < new)  {
           val resultModel = when (plugin.version().valueType) {
             GradlePropertyModel.ValueType.INTERPOLATED -> {
@@ -171,7 +202,10 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
       // Examine plugins for plugin Dsl declarations.
       model.plugins().forEach(::addUsagesFor)
     }
-    projectBuildModel.projectSettingsModel?.pluginManagement()?.plugins()?.plugins()?.forEach(::addUsagesFor)
+    projectBuildModel.projectSettingsModel?.let {
+      it.pluginManagement()?.plugins()?.plugins()?.forEach(::addUsagesFor)
+      it.plugins()?.plugins()?.forEach(::addUsagesFor)
+    }
     return usages.toTypedArray()
   }
 
@@ -208,8 +242,8 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
 class AgpVersionUsageInfo(
   element: WrappedPsiElement,
-  val current: GradleVersion,
-  val new: GradleVersion,
+  val current: AgpVersion,
+  val new: AgpVersion,
   private val resultModel: GradlePropertyModel
 ) : GradleBuildModelUsageInfo(element) {
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.agpVersionUsageInfo.tooltipText", current, new)

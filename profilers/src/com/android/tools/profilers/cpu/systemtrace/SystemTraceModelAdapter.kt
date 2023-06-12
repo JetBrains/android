@@ -17,8 +17,8 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import perfetto.protos.PerfettoTrace
 import java.io.Serializable
 import java.util.SortedMap
@@ -45,7 +45,11 @@ interface SystemTraceModelAdapter {
 
   fun getCpuCores(): List<CpuCoreModel>
 
-  fun getSystemTraceTechnology(): Cpu.CpuTraceType
+  fun getSystemTraceTechnology(): TraceType
+
+  fun getPowerRails(): List<CounterModel>
+
+  fun getBatteryDrain(): List<CounterModel>
 
   /**
    * @return true if there is potentially missing data from the capture.
@@ -184,7 +188,7 @@ data class AndroidFrameTimelineEvent(
   val onTimeFinish: Boolean,
   val gpuComposition: Boolean,
   val layoutDepth: Int
-) {
+) : Serializable {
   val expectedDurationUs get() = expectedEndUs - expectedStartUs
   val actualDurationUs get() = actualEndUs - expectedStartUs
   val isJank get() = appJankType != PerfettoTrace.FrameTimelineEvent.JankType.JANK_NONE

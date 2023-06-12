@@ -15,133 +15,184 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import com.google.common.collect.ImmutableList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import com.android.tools.idea.serverflags.ServerFlagService;
+import com.android.tools.idea.serverflags.protos.MemoryUsageComponent;
+import com.android.tools.idea.serverflags.protos.MemoryUsageComponentCategory;
+import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
+import com.google.common.io.Resources;
+import com.google.protobuf.TextFormat;
+import com.intellij.openapi.diagnostic.Logger;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public final class ComponentsSet {
 
-  private static final int COMPONENT_NOT_FOUND = -1;
+  private static final Logger LOG = Logger.getInstance(ComponentsSet.class);
+
+  public static final String MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME =
+    "diagnostics/memory_usage_reporting";
+
+  private static final String INTEGRATION_TEST_CONFIG_RESOURCE_NAME = "/diagnostics/integration_test_memory_usage_config.textproto";
+
+  static final String UNCATEGORIZED_CATEGORY_LABEL = "android:uncategorized";
+  static final String UNCATEGORIZED_COMPONENT_LABEL = "uncategorized_main";
 
   @NotNull
-  private final List<Component> myComponents;
+  private final Component uncategorizedComponent;
   @NotNull
-  private final Object2IntMap<String> myClassNameToComponentId;
+  private final List<Component> components;
   @NotNull
-  private final Object2IntMap<String> myPackageNameToComponentIdCache;
+  private final List<ComponentCategory> componentCategories;
+  @NotNull
+  private final Map<String, Component> classNameToComponent;
+  @NotNull
+  private final Map<String, Component> packageNameToComponentCache;
+  private final long sharedClusterExtendedReportThreshold;
 
+  static final private long TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD = 100_000_000;
+
+  @TestOnly
   ComponentsSet() {
-    myPackageNameToComponentIdCache = new Object2IntOpenHashMap<>();
-    myClassNameToComponentId = new Object2IntOpenHashMap<>();
-    myComponents = new ArrayList<>();
+    this(TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD, TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD);
+  }
+
+  ComponentsSet(long sharedClusterExtendedReportThreshold, long uncategorizedComponentThreshold) {
+    packageNameToComponentCache = new HashMap<>();
+    classNameToComponent = new HashMap<>();
+    components = new ArrayList<>();
+    componentCategories = new ArrayList<>();
+    this.sharedClusterExtendedReportThreshold = sharedClusterExtendedReportThreshold;
+    uncategorizedComponent =
+      registerComponent(UNCATEGORIZED_COMPONENT_LABEL,
+                        uncategorizedComponentThreshold,
+                        registerCategory(UNCATEGORIZED_CATEGORY_LABEL, uncategorizedComponentThreshold));
+  }
+
+  public long getSharedClusterExtendedReportThreshold() {
+    return sharedClusterExtendedReportThreshold;
   }
 
   @NotNull
-  public static ComponentsSet getComponentSet() {
-    ComponentsSet components = new ComponentsSet();
-    components.addComponentWithPackages("android: resourceManager", "org.jetbrains.android.resourceManagers");
-    components.addComponentWithPackages("android: resourceRepository", "org.jetbrains.android.facet", "com.android.tools.idea.res");
-    components.addComponentWithPackages("android: rendering", "android", "androidx", "com.android.tools.idea.rendering");
-    components.addComponentWithPackages("intellij: psi", "com.intellij.psi");
-    components.addComponentWithPackages("android: layoutlib", "com.android.layoutlib", "com.android.tools.idea.layoutlib");
-    components.addComponentWithPackages("android: naveditor", "com.android.tools.idea.naveditor");
-    components.addComponentWithPackages("android: gradle", "com.android.tools.idea.gradle", "org.jetbrains.plugins.gradle");
-    components.addComponentWithPackages("android: profiler", "com.android.tools.profiling",
-                                        "com.android.tools.profilers",
-                                        "com.android.tools.profiler",
-                                        "com.android.tools.datastore",
-                                        "com.android.tools.idea.profilers");
-    components.addComponentWithPackages("android: templates", "com.android.tools.idea.templates");
-    components.addComponentWithPackages("android: runDebug", "com.android.tools.idea.ddms",
-                                        "com.android.ddmlib",
-                                        "com.android.tools.idea.debug",
-                                        "com.android.tools.idea.logcat",
-                                        "com.android.tools.idea.apk.viewer",
-                                        "com.android.tools.idea.run");
-    components.addComponentWithPackages("android: inspections", "org.jetbrains.android.inspections");
-    components.addComponentWithPackages("android: lint", "com.android.tools.lint",
-                                        "com.android.tools.idea.lint",
-                                        "com.android.tools.idea.common.lint");
-    components.addComponentWithPackages("android: c++", "com.android.tools.ndk",
-                                        "com.jetbrains.cidr");
-    components.addComponentWithPackages("android: avdmanager", "com.android.tools.idea.avdmanager",
-                                        "com.android.sdklib.internal.avd");
-    components.addComponentWithPackages("android: layoutEditor",
-                                        "com.android.tools.idea.common.surface",
-                                        "com.android.tools.idea.common.scene",
-                                        "com.android.tools.idea.common.editor",
-                                        "com.android.tools.idea.uibuilder",
-                                        "com.android.tools.idea.configurations");
-    components.addComponentWithPackages("android: editors", "com.android.tools.idea.editors");
-    components.addComponentWithPackages("android: diagnostics", "com.android.tools.idea.diagnostics", "com.android.tools.analytics");
-    components.addComponentWithPackages("android: dataBinding", "com.android.tools.idea.databinding",
-                                        "com.android.tools.idea.lang.databinding");
-    components.addComponentWithPackages("intellij: kotlin", "org.jetbrains.kotlin");
-    components.addComponentWithPackages("intellij: project", "com.intellij.openapi.project");
-    components.addComponentWithPackages("intellij: application", "com.intellij.openapi.application");
-    components.addComponentWithPackages("intellij: module", "com.intellij.workspaceModel.ide.impl.legacyBridge.module",
-                                        "com.intellij.openapi.module");
-    components.addComponentWithPackagesAndClassNames("intellij: vfs", ImmutableList.of("com.intellij.openapi.vfs"),
-                                                     "com.intellij.workspaceModel.ide.impl.IdeVirtualFileUrlManagerImpl",
-                                                     "com.intellij.workspaceModel.ide.impl.legacyBridge.watcher.VirtualFileUrlWatcher");
-    components.addComponentWithPackages("intellij: editor", "com.intellij.openapi.editor", "com.intellij.openapi.fileEditor");
-    components.addComponentWithPackages("android: sdk", "com.android.sdklib", "org.jetbrains.android.sdk");
-    components.addComponentWithPackagesAndClassNames("ide: IdeEventQueue", Collections.emptyList(), "com.intellij.ide.IdeEventQueue");
-    return components;
+  public static MemoryUsageReportConfiguration getServerFlagConfiguration() {
+    return ServerFlagService.Companion.getInstance()
+      .getProto(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME,
+                MemoryUsageReportConfiguration.getDefaultInstance());
+  }
+
+  @NotNull
+  public static MemoryUsageReportConfiguration getIntegrationTestConfiguration() {
+    MemoryUsageReportConfiguration.Builder builder = MemoryUsageReportConfiguration.newBuilder();
+    try {
+      TextFormat.merge(
+        Resources.toString(
+          Resources.getResource(ComponentsSet.class, INTEGRATION_TEST_CONFIG_RESOURCE_NAME),
+          StandardCharsets.UTF_8),
+        builder);
+    }
+    catch (IOException e) {
+      LOG.error("Failed to read memory usage components configuration", e);
+    }
+    return builder.build();
+  }
+
+  @NotNull
+  public List<ComponentCategory> getComponentsCategories() {
+    return componentCategories;
+  }
+
+  @NotNull
+  public Component getUncategorizedComponent() {
+    return uncategorizedComponent;
   }
 
   @NotNull
   public List<Component> getComponents() {
-    return myComponents;
+    return components;
   }
 
   @NotNull
-  private Component registerComponent(@NotNull final String componentName) {
-    Component component = new Component(componentName, myComponents.size());
-    myComponents.add(component);
+  Component registerComponent(@NotNull final String componentLabel,
+                              long extendedReportCollectionThresholdBytes,
+                              @NotNull final ComponentCategory category) {
+    Component component = new Component(componentLabel, extendedReportCollectionThresholdBytes, components.size(), category);
+    components.add(component);
     return component;
   }
 
-  void addComponentWithPackages(@NotNull final String componentName,
-                                String... packageNames) {
-    Component newComponent = registerComponent(componentName);
-
-    for (String name : packageNames) {
-      myPackageNameToComponentIdCache.put(name, newComponent.myId);
-    }
+  @TestOnly
+  ComponentCategory registerCategory(@NotNull final String componentCategoryLabel) {
+    return registerCategory(componentCategoryLabel, TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD);
   }
 
-  void addComponentWithPackagesAndClassNames(@NotNull final String componentName,
+  @TestOnly
+  void addComponentWithPackagesAndClassNames(@NotNull final String componentLabel,
+                                             @NotNull final ComponentCategory componentCategory,
                                              @NotNull final List<String> packageNames,
-                                             String... classNames) {
-    Component newComponent = registerComponent(componentName);
+                                             @NotNull final List<String> classNames) {
+    addComponentWithPackagesAndClassNames(componentLabel, TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD, componentCategory, packageNames,
+                                          classNames);
+  }
+
+  ComponentCategory registerCategory(@NotNull final String componentCategoryLabel, long extendedReportCollectionThresholdBytes) {
+    ComponentCategory category =
+      new ComponentCategory(componentCategoryLabel, componentCategories.size(), extendedReportCollectionThresholdBytes);
+    componentCategories.add(category);
+    return category;
+  }
+
+  ComponentCategory registerCategory(@NotNull final MemoryUsageComponentCategory protoCategory) {
+    return registerCategory(protoCategory.getLabel(), protoCategory.hasExtendedReportThresholdBytes()
+                                                      ? protoCategory.getExtendedReportThresholdBytes()
+                                                      : Long.MAX_VALUE);
+  }
+
+  void addComponentWithPackagesAndClassNames(@NotNull final ComponentCategory componentCategory,
+                                             @NotNull final MemoryUsageComponent component) {
+    addComponentWithPackagesAndClassNames(component.getLabel(), component.hasExtendedReportThresholdBytes()
+                                                                ? component.getExtendedReportThresholdBytes()
+                                                                : Long.MAX_VALUE,
+                                          componentCategory, component.getPackageNamesList(), component.getClassNamesList());
+  }
+
+  void addComponentWithPackagesAndClassNames(@NotNull final String componentLabel,
+                                             long extendedReportCollectionThresholdBytes,
+                                             @NotNull final ComponentCategory componentCategory,
+                                             @NotNull final List<String> packageNames,
+                                             @NotNull final List<String> classNames) {
+    Component newComponent = registerComponent(componentLabel, extendedReportCollectionThresholdBytes, componentCategory);
 
     for (String name : classNames) {
-      myClassNameToComponentId.put(name, newComponent.myId);
+      classNameToComponent.put(name, newComponent);
     }
 
     for (String name : packageNames) {
-      myPackageNameToComponentIdCache.put(name, newComponent.myId);
+      packageNameToComponentCache.put(name, newComponent);
     }
   }
 
-  public int getComponentId(@NotNull final Object obj) {
-    return (obj instanceof Class) ? getClassComponentId((Class<?>)obj) : getObjectComponentId(obj);
+  @Nullable
+  public Component getComponentOfObject(@NotNull final Object obj) {
+    return (obj instanceof Class) ? getClassComponent((Class<?>)obj) : getObjectComponent(obj);
   }
 
-  private int getObjectComponentId(@NotNull final Object obj) {
-    return getClassComponentId(obj.getClass());
+  @Nullable
+  private Component getObjectComponent(@NotNull final Object obj) {
+    return getClassComponent(obj.getClass());
   }
 
-  private int getClassComponentId(@NotNull final Class<?> aClass) {
+  @Nullable
+  private Component getClassComponent(@NotNull final Class<?> aClass) {
     String objClassName = aClass.getName();
 
-    if (myClassNameToComponentId.containsKey(objClassName)) {
-      return myClassNameToComponentId.getInt(objClassName);
+    if (classNameToComponent.containsKey(objClassName)) {
+      return classNameToComponent.get(objClassName);
     }
     String packageName = aClass.getPackageName();
 
@@ -149,32 +200,114 @@ public final class ComponentsSet {
     String packageNamePrefix = packageName;
     do {
       packageNamePrefix = packageNamePrefix.substring(0, lastDot);
-      if (myPackageNameToComponentIdCache.containsKey(packageNamePrefix)) {
-        int ans = myPackageNameToComponentIdCache.getInt(packageNamePrefix);
-        myPackageNameToComponentIdCache.put(packageName, ans);
+      if (packageNameToComponentCache.containsKey(packageNamePrefix)) {
+        Component ans = packageNameToComponentCache.get(packageNamePrefix);
+        packageNameToComponentCache.put(packageName, ans);
         return ans;
       }
       lastDot = packageNamePrefix.lastIndexOf('.');
     }
     while (lastDot > 0);
 
-    myPackageNameToComponentIdCache.put(packageName, COMPONENT_NOT_FOUND);
-    return COMPONENT_NOT_FOUND;
+    packageNameToComponentCache.put(packageName, null);
+    return null;
+  }
+
+  private static ComponentsSet buildComponentSetFromConfiguration(MemoryUsageReportConfiguration configuration) {
+    ComponentsSet components =
+      new ComponentsSet(configuration.getSharedClusterExtendedReportThresholdBytes(),
+                        configuration.getUncategorizedComponentExtendedReportThresholdBytes());
+
+    for (MemoryUsageComponentCategory protoCategory : configuration.getCategoriesList()) {
+      ComponentCategory category = components.registerCategory(protoCategory);
+      for (MemoryUsageComponent component : protoCategory.getComponentsList()) {
+        components.addComponentWithPackagesAndClassNames(category, component);
+      }
+    }
+
+    for (int i = 0; i < components.getComponents().size(); i++) {
+      assert components.getComponents().get(i).getId() == i;
+    }
+
+    for (int i = 0; i < components.getComponentsCategories().size(); i++) {
+      assert components.getComponentsCategories().get(i).getId() == i;
+    }
+
+    return components;
+  }
+
+  @NotNull
+  public static ComponentsSet buildComponentSet() {
+    return buildComponentSetFromConfiguration(getServerFlagConfiguration());
+  }
+
+  @NotNull
+  public static ComponentsSet buildComponentSetForIntegrationTesting() {
+    return buildComponentSetFromConfiguration(getIntegrationTestConfiguration());
   }
 
   public static final class Component {
+    private final int id;
+    private final long extendedReportCollectionThresholdBytes;
     @NotNull
-    private final String myComponentName;
-    private final int myId;
+    private final String componentLabel;
 
-    private Component(@NotNull final String componentName, int id) {
-      myComponentName = componentName;
-      myId = id;
+    @NotNull
+    private final ComponentCategory componentCategory;
+
+    private Component(@NotNull final String componentLabel,
+                      long extendedReportCollectionThresholdBytes,
+                      int id,
+                      @NotNull final ComponentCategory category) {
+      this.componentLabel = componentLabel;
+      this.extendedReportCollectionThresholdBytes = extendedReportCollectionThresholdBytes;
+      this.id = id;
+      componentCategory = category;
     }
 
     @NotNull
-    String getComponentName() {
-      return myComponentName;
+    public ComponentCategory getComponentCategory() {
+      return componentCategory;
+    }
+
+    @NotNull
+    public String getComponentLabel() {
+      return componentLabel;
+    }
+
+    public int getId() {
+      return id;
+    }
+
+    public long getExtendedReportCollectionThresholdBytes() {
+      return extendedReportCollectionThresholdBytes;
+    }
+  }
+
+  public static final class ComponentCategory {
+    private final int id;
+    @NotNull
+    private final String label;
+    private final long extendedReportCollectionThresholdBytes;
+
+    private ComponentCategory(@NotNull final String label,
+                              int id, long extendedReportCollectionThresholdBytes) {
+      this.label = label;
+      this.id = id;
+      this.extendedReportCollectionThresholdBytes = extendedReportCollectionThresholdBytes;
+    }
+
+    @NotNull
+    public String getComponentCategoryLabel() {
+      return label;
+    }
+
+    public int getId() {
+      return id;
+    }
+
+    public long getExtendedReportCollectionThresholdBytes() {
+      return extendedReportCollectionThresholdBytes;
     }
   }
 }

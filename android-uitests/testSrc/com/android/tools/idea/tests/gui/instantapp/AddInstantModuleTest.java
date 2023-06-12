@@ -59,7 +59,7 @@ public class AddInstantModuleTest {
    *   3. The project build to success
    * </pre>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void addInstantModuleTest() throws Exception {
     IdeFrameFixture ideFrame =

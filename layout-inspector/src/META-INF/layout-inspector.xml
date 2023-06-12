@@ -19,6 +19,17 @@
     <action id="Android.RunLayoutInspector" class="com.android.tools.idea.layoutinspector.ShowLayoutInspectorAction">
       <add-to-group group-id="AndroidToolsGroup" />
     </action>
+
+    <action
+        id="com.android.tools.idea.layoutinspector.toggle.layout.inspector.action"
+        class="com.android.tools.idea.layoutinspector.runningdevices.ToggleLayoutInspectorAction"
+        text="Toggle Layout Inspector"
+        description="Toggles Layout Inspection on and off for this device."
+        icon="AllIcons.Actions.Find" >
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
+    </action>
+
+
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -34,15 +45,27 @@
     <projectService serviceImplementation="com.android.tools.idea.layoutinspector.ui.InspectorBannerService"/>
 
     <fileEditorProvider implementation="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditor$Provider"/>
+
+    <applicationConfigurable groupId="experimental" id="layout.inspector.configurable"
+                             provider="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableProvider"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings"/>
+
+    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.LayoutInspectorProjectService"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager"
+        serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerImpl"/>
+    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver" />
   </extensions>
 
-  <extensions defaultExtensionNs="com.android.run">
-    <androidLaunchTaskContributor implementation="com.android.tools.idea.layoutinspector.LayoutInspectorLaunchTaskContributor"/>
-  </extensions>
+  <projectListeners>
+    <listener class="com.android.tools.idea.layoutinspector.LayoutInspectorExecutionListener"
+              topic="com.intellij.execution.ExecutionListener"/>
+  </projectListeners>
 
   <applicationListeners>
     <listener
-        class="com.android.tools.idea.layoutinspector.pipeline.TransportDeviceManagerListenerImpl"
+        class="com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionOnDeviceFlagController"
         topic="com.intellij.openapi.project.ProjectManagerListener"
     />
   </applicationListeners>

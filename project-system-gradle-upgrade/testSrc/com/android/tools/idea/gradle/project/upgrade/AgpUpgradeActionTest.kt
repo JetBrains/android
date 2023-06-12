@@ -59,7 +59,10 @@ class AgpUpgradeActionTest {
     fun ready(): Boolean {
       return ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")?.contentManager?.contents?.isNotEmpty() ?: false
     }
-    PlatformTestUtil.waitWithEventsDispatching("Upgrade Assistant content not provided", ::ready, 5)
+    // TODO(b/247414701): this 10s timeout is arbitrary and seems excessive, but we get sporadic failures with a timeout of 5.  If 10
+    //  appears to cure the problem, great; if not, then this test needs reworking (there would probably be no need for it if the
+    //  ContentManagerImpl for the Upgrade Assissant were already registered and initialized).
+    PlatformTestUtil.waitWithEventsDispatching("Upgrade Assistant content not provided", ::ready, 10)
     assertThat(ToolWindowManager.getInstance(project).getToolWindow("Upgrade Assistant")!!.contentManager.contents).hasLength(1)
   }
 }

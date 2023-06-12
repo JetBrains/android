@@ -15,26 +15,27 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
-import static com.android.tools.idea.project.messages.MessageType.INFO;
-
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
+
+import static com.android.tools.idea.project.messages.MessageType.INFO;
 
 class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   @NotNull private final EncodingProjectManager myEncodings;
   @NotNull private final Charset myProjectEncoding;
-  @NotNull private final GradleVersion myOneDotTwoPluginVersion;
+  @NotNull private final AgpVersion myOneDotTwoPluginVersion;
 
   @Nullable private String myMismatchingEncoding;
 
@@ -47,12 +48,12 @@ class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
     super(project);
     myEncodings = encodings;
     myProjectEncoding = myEncodings.getDefaultCharset();
-    myOneDotTwoPluginVersion = new GradleVersion(1, 2, 0);
+    myOneDotTwoPluginVersion = new AgpVersion(1, 2, 0);
   }
 
   @Override
   void validate(@NotNull Module module, @NotNull GradleAndroidModel androidModel) {
-    GradleVersion modelVersion = (androidModel.getAgpVersion());
+    AgpVersion modelVersion = (androidModel.getAgpVersion());
     if (modelVersion != null) {
       boolean isOneDotTwoOrNewer = modelVersion.compareIgnoringQualifiers(myOneDotTwoPluginVersion) >= 0;
 

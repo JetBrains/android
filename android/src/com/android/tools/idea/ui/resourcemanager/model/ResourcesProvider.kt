@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.StyleItemResourceValue
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceRepository
@@ -30,7 +29,7 @@ import com.android.resources.ResourceVisibility
 import com.android.resources.aar.AarResourceRepository
 import com.android.tools.idea.editors.theme.ResolutionUtils
 import com.android.tools.idea.res.AndroidDependenciesCache
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiBinaryFile
@@ -44,7 +43,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 @Slow
 fun getModuleResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): ResourceSection {
-  val moduleRepository = ResourceRepositoryManager.getModuleResources(forFacet)
+  val moduleRepository = StudioResourceRepositoryManager.getModuleResources(forFacet)
   val sortedResources = moduleRepository.namespaces.flatMap { namespace ->
     moduleRepository.getResourcesAndApplyFilters(namespace, type, true, typeFilters, forFacet)
   }.sortedBy { it.name }
@@ -65,7 +64,7 @@ fun getDependentModuleResources(forFacet: AndroidFacet,
                                 typeFilters: List<TypeFilter>): List<ResourceSection> {
   return AndroidDependenciesCache.getAndroidResourceDependencies(forFacet.module).asSequence()
     .flatMap { dependentFacet ->
-      val moduleRepository = ResourceRepositoryManager.getModuleResources(dependentFacet)
+      val moduleRepository = StudioResourceRepositoryManager.getModuleResources(dependentFacet)
       moduleRepository.namespaces.asSequence()
         .map { namespace -> moduleRepository.getResourcesAndApplyFilters(namespace, type, true, typeFilters, forFacet) }
         .filter { it.isNotEmpty() }
@@ -78,7 +77,7 @@ fun getDependentModuleResources(forFacet: AndroidFacet,
  */
 @Slow
 fun getLibraryResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): List<ResourceSection> {
-  val repoManager = ResourceRepositoryManager.getInstance(forFacet)
+  val repoManager = StudioResourceRepositoryManager.getInstance(forFacet)
   return repoManager.libraryResources
     .flatMap { lib ->
       // Create a section for each library
@@ -92,7 +91,7 @@ fun getLibraryResources(forFacet: AndroidFacet, type: ResourceType, typeFilters:
 /** Returns [ResourceType.SAMPLE_DATA] resources that match the content type of the requested [type]. E.g: Images for Drawables. */
 @Slow
 fun getSampleDataResources(forFacet: AndroidFacet, type: ResourceType): ResourceSection {
-  val repoManager = ResourceRepositoryManager.getInstance(forFacet).appResources
+  val repoManager = StudioResourceRepositoryManager.getInstance(forFacet).appResources
   val resources = repoManager.namespaces.flatMap { namespace ->
     repoManager.getResources(namespace, ResourceType.SAMPLE_DATA) { sampleItem ->
       if (sampleItem is SampleDataResourceItem) {
@@ -114,7 +113,7 @@ fun getSampleDataResources(forFacet: AndroidFacet, type: ResourceType): Resource
  */
 @Slow
 fun getAndroidResources(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): ResourceSection? {
-  val repoManager = ResourceRepositoryManager.getInstance(forFacet)
+  val repoManager = StudioResourceRepositoryManager.getInstance(forFacet)
   val languages = if (type == ResourceType.STRING) repoManager.languagesInProject else emptySet<String>()
   val frameworkRepo = repoManager.getFrameworkResources(languages) ?: return null
   val resources = frameworkRepo.namespaces.flatMap { namespace ->
@@ -135,7 +134,7 @@ fun getThemeAttributes(forFacet: AndroidFacet,
                        type: ResourceType,
                        typeFilters: List<TypeFilter>,
                        resourceResolver: ResourceResolver): ResourceSection {
-  val repoManager = ResourceRepositoryManager.getInstance(forFacet)
+  val repoManager = StudioResourceRepositoryManager.getInstance(forFacet)
   val projectThemeAttributes =
     repoManager.projectResources.let { resourceRepository ->
       resourceRepository.getNonPrivateAttributeResources(resourceRepository.namespaces.toList(),
@@ -154,7 +153,7 @@ fun getThemeAttributes(forFacet: AndroidFacet,
   }
   // Framework resources should have visibility properly defined. So we only get the public ones.
   val languages = if (type == ResourceType.STRING) repoManager.languagesInProject else emptySet<String>()
-  val frameworkResources = ResourceRepositoryManager.getInstance(forFacet).getFrameworkResources(languages)
+  val frameworkResources = StudioResourceRepositoryManager.getInstance(forFacet).getFrameworkResources(languages)
   val androidThemeAttributes = frameworkResources?.let {
     frameworkResources.getPublicOnlyAttributeResources(listOf(ResourceNamespace.ANDROID),
                                                        resourceResolver,
@@ -175,11 +174,7 @@ fun getThemeAttributes(forFacet: AndroidFacet,
   return createResourceSection("Theme attributes", themeAttributes, type)
 }
 
-private fun userReadableLibraryName(lib: AarResourceRepository) =
-  lib.libraryName?.let {
-    GradleCoordinate.parseCoordinateString(it)?.artifactId ?: it
-  }
-  ?: "library - failed name"
+private fun userReadableLibraryName(lib: AarResourceRepository) = lib.displayName
 
 private fun ResourceRepository.getResourcesAndApplyFilters(namespace: ResourceNamespace,
                                                            type: ResourceType,

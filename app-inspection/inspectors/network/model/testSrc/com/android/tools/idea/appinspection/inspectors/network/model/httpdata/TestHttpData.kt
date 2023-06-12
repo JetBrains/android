@@ -16,8 +16,6 @@
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.idea.protobuf.ByteString
-import java.util.concurrent.TimeUnit
-
 
 const val FAKE_RESPONSE_CODE = 302
 const val FAKE_RESPONSE_DESCRIPTION = "Found"
@@ -40,13 +38,13 @@ fun fakeStackTrace(id: Long): String {
   return """
             com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)
             com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:$id)
-            """.trimIndent()
-
+            """
+    .trimIndent()
 }
 
 fun fakeResponseFields(id: Long, contentType: String? = FAKE_CONTENT_TYPE): String {
   return "status line = HTTP/1.1 $FAKE_RESPONSE_CODE $FAKE_RESPONSE_DESCRIPTION" +
-         "\nContent-Type = $contentType;\nconnId = $id\n Content-Length = ${fakeContentSize(id)}\n"
+    "\nContent-Type = $contentType;\nconnId = $id\n Content-Length = ${fakeContentSize(id)}\n"
 }
 
 fun createFakeHttpData(
@@ -64,14 +62,20 @@ fun createFakeHttpData(
   requestPayload: ByteString = FAKE_REQUEST,
   responseFields: String = fakeResponseFields(id),
   responsePayload: ByteString = FAKE_RESPONSE
-) = HttpData.createHttpData(
-  id, requestStartTimeUs, requestCompleteTimeUs, responseStartTimeUs, responseCompleteTimeUs, connectionEndTimeUs, threads,
-  url, method, trace, requestFields, requestPayload, responseFields, responsePayload
-)
-
-fun createFakeHttpData(
-  id: Long,
-  startS: Long,
-  endS: Long
-) = createFakeHttpData(id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(endS),
-                       TimeUnit.SECONDS.toMicros(endS), TimeUnit.SECONDS.toMicros(endS))
+) =
+  HttpData.createHttpData(
+    id,
+    requestStartTimeUs,
+    requestCompleteTimeUs,
+    responseStartTimeUs,
+    responseCompleteTimeUs,
+    connectionEndTimeUs,
+    threads,
+    url,
+    method,
+    trace,
+    requestFields,
+    requestPayload,
+    responseFields,
+    responsePayload
+  )

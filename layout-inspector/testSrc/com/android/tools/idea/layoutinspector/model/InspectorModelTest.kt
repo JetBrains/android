@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.io.readImage
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
@@ -37,7 +37,8 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class InspectorModelTest {
   @get:Rule
-  val highlightFlag = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true)
+  val highlightFlag =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true)
 
   @Test
   fun testUpdatePropertiesOnly() {
@@ -544,6 +545,22 @@ class InspectorModelTest {
 
     // At no time should both threads be waiting for each other:
     assertThat(countdownStopped).isFalse()
+  }
+
+  @Test
+  fun testClear() {
+    val model = model {
+      view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") {
+        view(VIEW1, 4, 3, 2, 1, qualifiedName = "v1Type") {
+          view(VIEW3, 5, 6, 7, 8, qualifiedName = "v3Type")
+        }
+        view(VIEW2, 8, 7, 6, 5, qualifiedName = "v2Type")
+      }
+    }
+
+    model.foldInfo = InspectorModel.FoldInfo(97, InspectorModel.Posture.HALF_OPEN, InspectorModel.FoldOrientation.VERTICAL)
+    model.clear()
+    assertThat(model.foldInfo).isNull()
   }
 
   private fun children(view: ViewNode): List<ViewNode> =

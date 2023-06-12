@@ -37,6 +37,7 @@ class TemplateUtilsTest : TestCase() {
     assertThat(getAppNameForTheme("  My Application  withSpace  ")).isEqualTo("MyApplicationWithSpace")
     assertThat(getAppNameForTheme("my application")).isEqualTo("MyApplication")
     assertThat(getAppNameForTheme("My-Application")).isEqualTo("MyApplication")
+    assertThat(getAppNameForTheme("1MyApplication")).isEqualTo("_1MyApplication")
     assertThat(getAppNameForTheme("--")).isEqualTo("App")
   }
 }

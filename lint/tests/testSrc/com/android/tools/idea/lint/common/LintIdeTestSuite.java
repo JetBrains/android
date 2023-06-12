@@ -17,15 +17,9 @@ package com.android.tools.idea.lint.common;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(LintIdeTestSuite.class)  // a suite mustn't contain itself
 public class LintIdeTestSuite extends IdeaTestSuiteBase {
-  static {
-  }
-
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 }

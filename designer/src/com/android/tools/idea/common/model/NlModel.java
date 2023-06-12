@@ -22,12 +22,10 @@ import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -37,12 +35,11 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -90,14 +87,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Model for an XML file
  */
-public class NlModel implements Disposable, ModificationTracker {
+public class NlModel implements ModificationTracker, DataContextHolder {
 
   /**
    * Responsible for updating {@link NlModel} once results from LayoutLibSceneManager is available as {@link TagSnapshotTreeNode}.
    */
   public interface NlModelUpdaterInterface {
 
-    void update(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots);
+    void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots);
+
+    void updateFromViewInfo(@NotNull NlModel model, @NotNull List<ViewInfo> viewInfos);
   }
 
   public static final int DELAY_AFTER_TYPING_MS = 250;
@@ -111,7 +110,7 @@ public class NlModel implements Disposable, ModificationTracker {
   @NotNull private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
   /** Model name. This can be used when multiple models are displayed at the same time */
-  @Nullable private String myModelDisplayName;
+  @Nullable private String myModelDisplayName = null;
   /** Text to display when displaying a tooltip related to this model */
   @Nullable private String myModelTooltip;
   @Nullable private NlComponent myRootComponent;
@@ -143,9 +142,21 @@ public class NlModel implements Disposable, ModificationTracker {
    */
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
 
-  @NotNull private final NlModelUpdaterInterface myModelUpdater;
+  /**
+   * Adds information to the model from a render result.
+   * A given model can use different updaters depending on what its usage requires.
+   * E.g. interactive preview may need less information from an {@link NlModel} than
+   * a standard preview, so different updaters can be used in those cases.
+   */
+  @NotNull private NlModelUpdaterInterface myModelUpdater;
 
   @NotNull private DataContext myDataContext;
+
+  /**
+   * Indicate which group this NlModel belongs. This can be used to categorize the NlModel when rendering or layouting.
+   */
+  @Nullable
+  private String myGroupId = null;
 
   @NotNull
   public static NlModelBuilder builder(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
@@ -158,7 +169,6 @@ public class NlModel implements Disposable, ModificationTracker {
   @Slow
   @NotNull
   static NlModel create(@Nullable Disposable parent,
-                        @Nullable String modelDisplayName,
                         @Nullable String modelTooltip,
                         @NotNull AndroidFacet facet,
                         @NotNull VirtualFile file,
@@ -167,23 +177,21 @@ public class NlModel implements Disposable, ModificationTracker {
                         @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider,
                         @Nullable NlModelUpdaterInterface modelUpdater,
                         @NotNull DataContext dataContext) {
-    return new NlModel(parent, modelDisplayName, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
+    return new NlModel(parent, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
   protected NlModel(@Nullable Disposable parent,
-                    @Nullable String modelDisplayName,
                     @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar,
                     @NotNull DataContext dataContext) {
-    this(parent, modelDisplayName, modelTooltip, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
+    this(parent, modelTooltip, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
   }
 
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
-                    @Nullable String modelDisplayName,
                     @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
@@ -194,7 +202,6 @@ public class NlModel implements Disposable, ModificationTracker {
                     @NotNull DataContext dataContext) {
     myFacet = facet;
     myXmlFileProvider = xmlFileProvider;
-    myModelDisplayName = modelDisplayName;
     myModelTooltip = modelTooltip;
     myFile = file;
     myConfiguration = configuration;
@@ -275,7 +282,7 @@ public class NlModel implements Disposable, ModificationTracker {
       return; // A new update has already been scheduled.
     }
     try {
-      ResourceResolver resolver = getResourceResolver();
+      ResourceResolver resolver = myConfiguration.getResourceResolver();
       if (resolver.getTheme(themeUrl.name, themeUrl.isFramework()) == null) {
         String theme = myConfiguration.getConfigurationManager().computePreferredTheme(myConfiguration);
         if (myThemeUpdateComputation.get() != computationToken) {
@@ -289,20 +296,6 @@ public class NlModel implements Disposable, ModificationTracker {
         Disposer.dispose(computationToken);
       }
     }
-  }
-
-  @Slow
-  private @NotNull ResourceResolver getResourceResolver() {
-    String theme = myConfiguration.getTheme();
-    Device device = myConfiguration.getDevice();
-    ResourceResolverCache resolverCache = myConfiguration.getConfigurationManager().getResolverCache();
-    FolderConfiguration config = myConfiguration.getFullConfig();
-    if (device != null && Configuration.CUSTOM_DEVICE_ID.equals(device.getId())) {
-      // Remove the old custom device configuration only if it's different from the new one
-      resolverCache.replaceCustomConfig(theme, config);
-    }
-    IAndroidTarget target = myConfiguration.getTarget();
-    return resolverCache.getResourceResolver(target, theme, config);
   }
 
   private void deactivate() {
@@ -375,10 +368,14 @@ public class NlModel implements Disposable, ModificationTracker {
   }
 
   public void syncWithPsi(@NotNull XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
-    myModelUpdater.update(this, newRoot, roots);
+    myModelUpdater.updateFromTagSnapshot(this, newRoot, roots);
   }
 
-  protected void setRootComponent(NlComponent root) {
+  public void updateAccessibility(@NotNull List<ViewInfo> viewInfos) {
+    myModelUpdater.updateFromViewInfo(this, viewInfos);
+  }
+
+  protected void setRootComponent(@Nullable NlComponent root) {
     myRootComponent = root;
   }
 
@@ -704,14 +701,6 @@ public class NlModel implements Disposable, ModificationTracker {
   }
 
   /**
-   * TODO: Needs remove after refactor.
-   */
-  @NotNull
-  public Consumer<NlComponent> getComponentRegistrar() {
-    return myComponentRegistrar;
-  }
-
-  /**
    * Simply create a component. In most cases you probably want
    * {@link #createComponent(XmlTag, NlComponent, NlComponent, InsertType)}.
    */
@@ -887,7 +876,7 @@ public class NlModel implements Disposable, ModificationTracker {
    */
   @NotNull
   public Set<String> getIds() {
-    LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(getFacet());
+    LocalResourceRepository resources = StudioResourceRepositoryManager.getAppResources(getFacet());
     Set<String> ids = new HashSet<>(resources.getResources(ResourceNamespace.TODO(), ResourceType.ID).keySet());
     Set<String> pendingIds = getPendingIds();
     if (!pendingIds.isEmpty()) {
@@ -961,6 +950,10 @@ public class NlModel implements Disposable, ModificationTracker {
     }
 
     myListeners.clear();
+  }
+
+  public boolean isDisposed() {
+    return myDisposed;
   }
 
   @NotNull
@@ -1056,14 +1049,29 @@ public class NlModel implements Disposable, ModificationTracker {
    * The {@link DataContext} might change at any point so make sure you always call this method to obtain the latest data.
    */
   @NotNull
+  @Override
   public final DataContext getDataContext() {
     return myDataContext;
+  }
+
+  @Nullable
+  public final String getGroupId() {
+    return myGroupId;
+  }
+
+  public final void setGroupId(@Nullable String groupId) {
+    myGroupId = groupId;
   }
 
   /**
    * Updates the NlModel data context with the given one.
    */
+  @Override
   public final void setDataContext(@NotNull DataContext dataContext) {
     myDataContext = dataContext;
+  }
+
+  public void setModelUpdater(@NotNull NlModelUpdaterInterface modelUpdater) {
+    myModelUpdater = modelUpdater;
   }
 }

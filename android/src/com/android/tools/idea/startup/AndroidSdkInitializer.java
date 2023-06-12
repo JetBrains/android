@@ -17,7 +17,6 @@ package com.android.tools.idea.startup;
 
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.sdk.AndroidSdkUtils.DEFAULT_JDK_NAME;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.createNewAndroidPlatform;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 
@@ -26,6 +25,7 @@ import com.android.prefs.AndroidLocationsSingleton;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -45,10 +45,11 @@ import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +99,14 @@ public class AndroidSdkInitializer implements Runnable {
     }
 
     if (androidSdkPath != null) {
+      int androidPlatformToAutocreate = StudioFlags.ANDROID_PLATFORM_TO_AUTOCREATE.get();
+      if (androidPlatformToAutocreate != 0) {
+        LOG.info(
+          String.format(Locale.US, "Automatically creating an Android platform using SDK path==%s and SDK version==%d", androidSdkPath,
+                        androidPlatformToAutocreate));
+        AndroidSdkUtils.createNewAndroidPlatform(androidSdkPath.toString(), false);
+      }
+
       AndroidSdkHandler handler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, androidSdkPath.toPath());
       new PatchInstallingRestarter(handler).restartAndInstallIfNecessary();
       // We need to start the system info monitoring even in case when user never
@@ -136,17 +145,6 @@ public class AndroidSdkInitializer implements Runnable {
           SdkModificator sdkModificator = newSdk.getSdkModificator();
           sdkModificator.setName(sdkNamePrefix + newSdk.getName().substring(sdkNamePrefix.length()));
           sdkModificator.commitChanges();
-
-          // Rename the JDK that goes along with this SDK.
-          AndroidSdkAdditionalData additionalData = AndroidSdks.getInstance().getAndroidSdkAdditionalData(newSdk);
-          if (additionalData != null) {
-            Sdk jdk = additionalData.getJavaSdk();
-            if (jdk != null) {
-              sdkModificator = jdk.getSdkModificator();
-              sdkModificator.setName(DEFAULT_JDK_NAME);
-              sdkModificator.commitChanges();
-            }
-          }
 
           // Fill out any missing build APIs for this new SDK.
           IdeSdks.getInstance().createAndroidSdkPerAndroidTarget(androidSdkPath);

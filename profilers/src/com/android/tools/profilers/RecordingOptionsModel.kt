@@ -16,6 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.adtui.model.AspectModel
+import com.google.common.annotations.VisibleForTesting
 import java.util.Collections
 import javax.swing.DefaultComboBoxModel
 import javax.swing.ListModel
@@ -26,7 +27,7 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
     private set
 
   var selectedOption: RecordingOption? = null
-    private set(newOption) {
+    @VisibleForTesting set(newOption) {
       if (newOption != field) {
         require (!isRecording && newOption.isValid())
         field = newOption
@@ -91,7 +92,6 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   fun stop() {
     if (canStop()) {
       selectedOption?.stopAction?.run()
-      setFinished()
     }
   }
 
@@ -148,7 +148,17 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
    */
   private fun RecordingOption?.isValid(): Boolean = this == null || this in builtInOptionList || this in customConfigurationModel
 
-  private inner class ConfigModel(configs: Array<RecordingOption>): DefaultComboBoxModel<RecordingOption>(configs) {
+  private inner class ConfigModel(configs: Array<RecordingOption>) : DefaultComboBoxModel<RecordingOption>(configs) {
+    override fun setSelectedItem(anObject: Any?) {
+      super.setSelectedItem(anObject)
+      // Because this method is fired on custom option dropdown selected change,
+      // the overall option selection should only change if a custom option is
+      // already selected.
+      if (isSelectedOptionCustom) {
+        selectCurrentCustomConfiguration()
+      }
+    }
+
     override fun addAll(c: MutableCollection<out RecordingOption>?) = trackEmptinessChanged { super.addAll(c) }
     override fun addAll(index: Int, c: MutableCollection<out RecordingOption>?) = trackEmptinessChanged { super.addAll(index, c) }
     override fun addElement(anObject: RecordingOption?) = trackEmptinessChanged { super.addElement(anObject) }
@@ -181,9 +191,13 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   }
 }
 
-class RecordingOption @JvmOverloads constructor(val title: String, val description: String,
-                                                val startAction: Runnable, val stopAction: Runnable? = null) {
+open class RecordingOption @JvmOverloads constructor(val title: String, val description: String,
+                                                     val startAction: Runnable, val stopAction: Runnable? = null) {
   override fun toString() = title
 }
+
+// Singleton object for the prototype display value
+// of the custom config dropdown.
+object PrototypeDisplayRecordingOption: RecordingOption("", "", {})
 
 private operator fun<T> ListModel<T>?.contains(item: T?): Boolean = this != null && (0 until size).any { getElementAt(it) == item }

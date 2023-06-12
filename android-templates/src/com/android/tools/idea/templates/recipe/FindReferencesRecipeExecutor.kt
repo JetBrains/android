@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.recipe
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
@@ -54,11 +55,19 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
     context.plugins.add(plugin)
   }
 
+  override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
+    context.plugins.add(plugin)
+  }
+
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
     context.classpathEntries.add(mavenCoordinate)
   }
 
   override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
+    context.dependencies.put(configuration, mavenCoordinate)
+  }
+
+  override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
@@ -75,6 +84,8 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun setExtVar(name: String, value: String) {
   }
+
+  override fun getExtVar(name: String, valueIfNotFound: String): String = valueIfNotFound
 
   override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
   override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound

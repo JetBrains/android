@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
  * configuration page (see {@link AndroidGradleFacetEditorForIdea}).
  */
 public class GradleFacetConfiguration implements FacetConfiguration {
-  @NonNls public String GRADLE_PROJECT_PATH;
   @NonNls public String LAST_SUCCESSFUL_SYNC_AGP_VERSION;
   @NonNls public String LAST_KNOWN_AGP_VERSION;
 

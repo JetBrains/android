@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.intellij.ui.ExperimentalUI.isNewUI;
+
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
@@ -28,7 +30,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.openapi.util.text.Strings;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
@@ -47,6 +48,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +84,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String DEFAULT_PHONE = "Pixel 2";
   private static final String DEFAULT_TABLET = "Pixel C";
   private static final String DEFAULT_WEAR = "Wear OS Square";
-  private static final String DEFAULT_TV = "Android TV (1080p)";
+  private static final String DEFAULT_TV = "Television (1080p)";
   private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
   private static final String DEFAULT_DESKTOP = "Medium Desktop";
   private static final String TV = "TV";
@@ -130,27 +132,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       @NonNull
       @Override
       public Comparator<Device> getComparator() {
-        return (o1, o2) -> {
-          String name1 = valueOf(o1);
-          String name2 = valueOf(o2);
-          if (Strings.areSameInstance(name1, name2)) {
-            return 0;
-          }
-          if (name1.isEmpty() || name2.isEmpty()) {
-            return -1;
-          }
-          char firstChar1 = name1.charAt(0);
-          char firstChar2 = name2.charAt(0);
-          // Prefer letters to anything else
-          if (Character.isLetter(firstChar1) && !Character.isLetter(firstChar2)) {
-            return 1;
-          }
-          else if (Character.isLetter(firstChar2) && !Character.isLetter(firstChar1)) {
-            return -1;
-          }
-          // Fall back to string comparison
-          return name1.compareTo(name2);
-        };
+        return new NameComparator();
       }
     }, new PlayStoreColumnInfo("Play Store") {
     }, new DeviceColumnInfo("Size") {
@@ -398,6 +380,9 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         notifyCategoryListeners(selectedCategory, newItems);
       }
     }
+    else if (Objects.equals(selectedCategory, SEARCH_RESULTS)) {
+      updateSearchResults(mySearchTextField.getText());
+    }
   }
 
   private void notifyCategoryListeners(@Nullable String selectedCategory, @Nullable List<Device> items) {
@@ -424,12 +409,14 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       int index = CATEGORY_ORDER.indexOf(category);
       return index >= 0 ? index : Integer.MAX_VALUE;
     }));
+    Collection<String> selection = myCategoryList.getSelection();
     myCategoryModel.setItems(categories);
+    myCategoryList.setSelection(selection);
   }
 
   /**
-   * @return the category of the specified device. One of: 
-   * Automotive TV, Wear, Tablet, and Phone, or Other if the category 
+   * @return the category of the specified device. One of:
+   * Automotive TV, Wear, Tablet, and Phone, or Other if the category
    * cannot be determined.
    */
   @VisibleForTesting
@@ -630,7 +617,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
           label.setForeground(table.getSelectionForeground());
           label.setOpaque(true);
           if (theIcon != null) {
-            label.setIcon(highlightedPlayStoreIcon);
+            label.setIcon(isNewUI() ? StudioIcons.Avd.DEVICE_PLAY_STORE : highlightedPlayStoreIcon);
           }
         }
         return label;

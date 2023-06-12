@@ -14,7 +14,7 @@ iml_module(
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/adt/idea/emulator:intellij.android.emulator[module]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module]",
@@ -31,6 +31,7 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.whatsnew.assistant.WhatsNewTestSuite",
     test_data = [
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",

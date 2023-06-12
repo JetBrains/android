@@ -18,36 +18,32 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 import com.android.tools.adtui.LegendComponent
 import com.android.tools.adtui.LegendConfig
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.FixedLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
-import com.android.tools.adtui.stdui.ContentType
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.NO_STATUS_CODE
 import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionsStateChart
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkState
-import com.android.tools.idea.appinspection.inspectors.network.view.UiComponentsProvider
-import com.android.tools.idea.appinspection.inspectors.network.view.constants.STANDARD_FONT
-import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.android.tools.inspectors.common.ui.dataviewer.ImageDataViewer
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.labels.BoldLabel
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.PlatformColors
 import com.intellij.util.ui.UIUtil
+import java.awt.Color
 import java.awt.Cursor
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.font.TextAttribute
 import java.awt.image.BufferedImage
 import java.util.concurrent.TimeUnit
 import java.util.function.LongFunction
@@ -62,10 +58,9 @@ import javax.swing.SwingConstants
 /**
  * Tab which shows a bunch of useful, high level information for a network request.
  *
- *
  * This tab will be the first one shown to the user when they first select a request.
  */
-class OverviewTabContent(private val componentsProvider: UiComponentsProvider) : TabContent() {
+class OverviewTabContent : TabContent() {
   private lateinit var contentPanel: JPanel
   override val title = "Overview"
 
@@ -75,28 +70,33 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
     contentPanel.border = JBUI.Borders.empty(PAGE_VGAP, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
     val overviewScroll: JBScrollPane = createVerticalScrollPane(contentPanel)
     overviewScroll.verticalScrollBar.unitIncrement = SCROLL_UNIT
-    overviewScroll.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent) {
-        layout.setRowSizing(
-          0,
-          TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, (overviewScroll.viewport.height * 0.4f).toInt())
-        )
-        layout.layoutContainer(contentPanel)
+    overviewScroll.addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent) {
+          layout.setRowSizing(
+            0,
+            TabularLayout.SizingRule(
+              TabularLayout.SizingRule.Type.FIXED,
+              (overviewScroll.viewport.height * 0.4f).toInt()
+            )
+          )
+          layout.layoutContainer(contentPanel)
+        }
       }
-    })
+    )
     return overviewScroll
   }
 
-  override fun populateFor(data: HttpData?) {
+  override fun populateFor(data: HttpData?, httpDataComponentFactory: HttpDataComponentFactory) {
     contentPanel.removeAll()
     if (data == null) {
       return
     }
-    val mimeType = data.responseHeader.contentType.mimeType
-    val payloadViewer = componentsProvider.createDataViewer(
-      data.responsePayload.toByteArray(), ContentType.fromMimeType(mimeType),
-      DataViewer.Style.PRETTY
-    )
+    val payloadViewer =
+      httpDataComponentFactory.createDataViewer(
+        HttpDataComponentFactory.ConnectionType.RESPONSE,
+        false
+      )
     val responsePayloadComponent: JComponent = payloadViewer.component
     responsePayloadComponent.name = ID_RESPONSE_PAYLOAD_VIEWER
     contentPanel.add(responsePayloadComponent, TabularLayout.Constraint(0, 0))
@@ -140,11 +140,6 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
   }
 
   /**
-   * This is a label with bold font and does not wrap.
-   */
-  private class NoWrapBoldLabel(text: String) : BoldLabel("<nobr>$text</nobr>")
-
-  /**
    * This is a hyperlink which will break and wrap when it hits the right border of its container.
    */
   private class WrappedHyperlink(url: String) : JTextArea(url) {
@@ -152,15 +147,20 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
       lineWrap = true
       isEditable = false
       background = UIUtil.getLabelBackground()
-      font = STANDARD_FONT.deriveFont(
-        mapOf(
-          TextAttribute.FOREGROUND to PlatformColors.BLUE,
-          TextAttribute.BACKGROUND to UIUtil.getLabelBackground()
-        )
-      )
+      foreground = PlatformColors.BLUE
+      font = JBFont.label().asPlain()
       val mouseAdapter = getMouseAdapter(url)
       addMouseListener(mouseAdapter)
       addMouseMotionListener(mouseAdapter)
+    }
+
+    override fun setBackground(ignored: Color?) {
+      // ignore the input color and explicitly set the color provided by UIUtil.getLabelBackground()
+      super.setBackground(UIUtil.getLabelBackground())
+    }
+    override fun setFont(ignored: Font?) {
+      // ignore the input font and explicitly set the label font provided by JBFont
+      super.setFont(JBFont.label().asPlain())
     }
 
     private fun getMouseAdapter(url: String): MouseAdapter {
@@ -180,7 +180,9 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
         }
 
         override fun mouseMoved(e: MouseEvent) {
-          cursor = if (isMouseOverText(e)) Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) else Cursor.getDefaultCursor()
+          cursor =
+            if (isMouseOverText(e)) Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+            else Cursor.getDefaultCursor()
         }
 
         private fun isMouseOverText(e: MouseEvent): Boolean {
@@ -191,12 +193,10 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
   }
 
   companion object {
-    private val TIME_FORMATTER: LongFunction<String> = LongFunction<String> { time: Long ->
-      if (time >= 0) StringUtil.formatDuration(
-        TimeUnit.MICROSECONDS.toMillis(time)
-      )
-      else "*"
-    }
+    private val TIME_FORMATTER: LongFunction<String> =
+      LongFunction<String> { time: Long ->
+        if (time >= 0) StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) else "*"
+      }
     private const val ID_CONTENT_TYPE = "CONTENT_TYPE"
     private const val ID_SIZE = "SIZE"
     private const val ID_URL = "URL"
@@ -246,9 +246,7 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
           val contentLengthLabel = JLabel(StringUtil.formatFileSize(contentLength.toLong()))
           contentLengthLabel.name = ID_SIZE
           myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
-        }
-        catch (ignored: NumberFormatException) {
-        }
+        } catch (ignored: NumberFormatException) {}
       }
 
       row++
@@ -294,17 +292,19 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
       val timingBar: JComponent = createTimingBar(httpData)
       timingBar.name = ID_TIMING
       myFieldsPanel.add(timingBar, TabularLayout.Constraint(row, 2))
-      TreeWalker(myFieldsPanel).descendants().forEach(::adjustFont)
       return myFieldsPanel
     }
 
     private fun createTimingBar(httpData: HttpData): JComponent {
       val panel = JPanel()
       panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
-      val range = Range(
-        httpData.requestStartTimeUs.toDouble(),
-        (if (httpData.connectionEndTimeUs > 0) httpData.connectionEndTimeUs else httpData.requestStartTimeUs + 1).toDouble()
-      )
+      val range =
+        Range(
+          httpData.requestStartTimeUs.toDouble(),
+          (if (httpData.connectionEndTimeUs > 0) httpData.connectionEndTimeUs
+            else httpData.requestStartTimeUs + 1)
+            .toDouble()
+        )
       val connectionsChart = ConnectionsStateChart(httpData, range)
       connectionsChart.component.minimumSize = Dimension(0, JBUI.scale(28))
       connectionsChart.setHeightGap(0f)
@@ -314,8 +314,7 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
       if (httpData.responseStartTimeUs > 0) {
         sentTime = httpData.responseStartTimeUs - httpData.requestStartTimeUs
         receivedTime = httpData.responseCompleteTimeUs - httpData.responseStartTimeUs
-      }
-      else if (httpData.connectionEndTimeUs > 0) {
+      } else if (httpData.connectionEndTimeUs > 0) {
         sentTime = httpData.connectionEndTimeUs - httpData.requestStartTimeUs
         receivedTime = 0
       }
@@ -326,15 +325,24 @@ class OverviewTabContent(private val componentsProvider: UiComponentsProvider) :
       legendModel.add(receivedLegend)
 
       // TODO: Add waiting time in (currently hidden because it's always 0)
-      val legend: LegendComponent = LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUI.scale(8)).build()
-      legend.font = STANDARD_FONT
+      val legend: LegendComponent =
+        LegendComponent.Builder(legendModel)
+          .setLeftPadding(0)
+          .setVerticalPadding(JBUI.scale(8))
+          .build()
       legend.configure(
         sentLegend,
-        LegendConfig(LegendConfig.IconType.BOX, connectionsChart.colors.getColor(NetworkState.SENDING))
+        LegendConfig(
+          LegendConfig.IconType.BOX,
+          connectionsChart.colors.getColor(NetworkState.SENDING)
+        )
       )
       legend.configure(
         receivedLegend,
-        LegendConfig(LegendConfig.IconType.BOX, connectionsChart.colors.getColor(NetworkState.RECEIVING))
+        LegendConfig(
+          LegendConfig.IconType.BOX,
+          connectionsChart.colors.getColor(NetworkState.RECEIVING)
+        )
       )
       panel.add(legend)
       return panel

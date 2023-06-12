@@ -33,9 +33,9 @@ import org.jetbrains.annotations.NotNull;
 public class RenderscriptParserDefinition implements ParserDefinition {
 
   private static class TokenSets {
-    private static final TokenSet WHITESPACE_TOKENS = TokenSet.WHITE_SPACE;
-    private static final TokenSet COMMENT_TOKENS = TokenSet.create(RenderscriptTokenType.COMMENT);
-    private static final TokenSet STRING_TOKENS = TokenSet.create(RenderscriptTokenType.STRING);
+    static final TokenSet WHITESPACE_TOKENS = TokenSet.WHITE_SPACE;
+    static final TokenSet COMMENT_TOKENS = TokenSet.create(RenderscriptTokenType.COMMENT);
+    static final TokenSet STRING_TOKENS = TokenSet.create(RenderscriptTokenType.STRING);
   }
 
   public static final IFileElementType FILE =

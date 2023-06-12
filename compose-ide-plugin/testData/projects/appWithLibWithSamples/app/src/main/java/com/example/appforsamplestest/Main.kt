@@ -1,6 +1,6 @@
 package com.example.appforsamplestest
 
-import androidx.main.myFunction
+import app.main.myFunction
 
 fun main() {
     myFunction()

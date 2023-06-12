@@ -34,7 +34,7 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
         ?.productFlavors()
         ?.map { PsProductFlavorKey(it.dimension().asString() ?: silentDimension, it.name()) }.orEmpty())
     result.addAll(
-      from.resolvedModel?.androidProject
+      from.resolvedModel?.androidProject?.multiVariantData
         ?.productFlavors
         ?.map { PsProductFlavorKey(it.productFlavor.dimension.orEmpty(), it.productFlavor.name) }.orEmpty())
     return result
@@ -45,7 +45,7 @@ internal class PsProductFlavorCollection(parent: PsAndroidModule)
 
   override fun update(key: PsProductFlavorKey, model: PsProductFlavor) {
     model.init(
-      parent.resolvedModel?.androidProject?.productFlavors?.map { it.productFlavor }?.firstOrNull { it.name == key.name },
+      parent.resolvedModel?.androidProject?.multiVariantData?.productFlavors?.map { it.productFlavor }?.firstOrNull { it.name == key.name },
       parent.parsedModel?.android()?.productFlavors()?.firstOrNull { it.name() == key.name }
     )
   }

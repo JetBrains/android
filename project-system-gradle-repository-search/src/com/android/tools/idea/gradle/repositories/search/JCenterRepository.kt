@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.JsonParser
 import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_JCENTER
@@ -148,7 +148,7 @@ object JCenterRepository : ArtifactRepository(PROJECT_STRUCTURE_DIALOG_REPOSITOR
       try {
         val versions = root.getAsJsonArray("versions")
         val systemIds = root.getAsJsonArray("system_ids")
-        val availableVersions = versions.mapNotNull { GradleVersion.tryParse(it.asString) }.toSet()
+        val availableVersions = versions.mapNotNull { Version.parse(it.asString) }.toSet()
 
         systemIds.mapNotNull { name ->
           name

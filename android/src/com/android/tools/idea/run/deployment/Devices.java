@@ -35,7 +35,7 @@ final class Devices {
       .anyMatch(name::equals);
   }
 
-  static @NotNull Optional<@NotNull String> getBootOption(@NotNull Device device,
+  static @NotNull Optional<String> getBootOption(@NotNull Device device,
                                                           @NotNull Target target,
                                                           @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
     if (!selectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean()) {

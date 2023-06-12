@@ -16,11 +16,17 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.testutils.TestUtils.getSdk;
-import static com.android.tools.idea.sdk.IdeSdks.ANDROID_STUDIO_DEFAULT_JDK_NAME;
-import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_12;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_14;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_15;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_16;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_18;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_19;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
@@ -44,8 +50,11 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
+import com.android.tools.idea.sdk.extensions.SdkExtensions;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -68,8 +77,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -165,7 +173,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     localProperties.save();
 
     List<Sdk> sdks =
-      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, null));
+      ApplicationManager.getApplication().runWriteAction((Computable<List<Sdk>>)() -> myIdeSdks.setAndroidSdkPath(myAndroidSdkPath));
     assertOneSdkPerAvailableTarget(sdks);
 
     localProperties = new LocalProperties(myProject);
@@ -187,7 +195,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     assertEquals(platformTargets.size(), sdks.size());
 
     for (Sdk sdk : sdks) {
-      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(sdk);
+      AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(sdk);
       assertNotNull(androidPlatform);
       IAndroidTarget target = androidPlatform.getTarget();
       platformTargets.remove(target);
@@ -289,6 +297,20 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     myAndroidSdks.setSdkData(androidSdkData);
   }
 
+  public void testIsJdkVersionCompatible() {
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_7)).isFalse();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_8)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_9)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_11)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_12)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_14)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_15)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_16)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_17)).isTrue();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_18)).isFalse();
+    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_19)).isFalse();
+  }
+
   public void testExistingJdkIsNotDuplicated() {
     Jdks spyJdks = spy(Jdks.getInstance());
     new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
@@ -308,26 +330,9 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
   }
 
   /**
-   * Confirm that the default JDK is used when it is in the JDK table
-   */
-  public void testDefaultJdkIsUsed() throws IOException {
-    Sdk currentJdk = myIdeSdks.getJdk();
-    assertThat(currentJdk).isNotNull();
-    String homePath = currentJdk.getHomePath();
-    assertThat(homePath).isNotNull();
-    assertThat(homePath).isNotEqualTo("");
-
-    Sdk jdk8 = IdeSdks.findOrCreateJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME,
-                                       Paths.get(getEmbeddedJdk8Path()));
-    assertThat(jdk8).isNotNull();
-    Sdk newJdk = myIdeSdks.getJdk();
-    assertThat(newJdk).isSameAs(jdk8);
-  }
-
-  /**
    * Verify that the field's and method's names in ProjectJDKImpl have not changed, to try to catch changes in its implementation.
    * If this test fails, we need to confirm the changes are included as needed in
-   * {@link IdeSdks#jdksWithDifferentSettings(ProjectJdkImpl, ProjectJdkImpl)}..
+   * {@link SdkExtensions#isEqualTo(Sdk, Sdk)}
    */
   public void testProjectJdkImplFieldsAndMethods() {
     List<String> expectedFieldNames = Arrays.asList("ATTRIBUTE_VALUE", "ELEMENT_ADDITIONAL", "ELEMENT_NAME", "ELEMENT_TYPE");

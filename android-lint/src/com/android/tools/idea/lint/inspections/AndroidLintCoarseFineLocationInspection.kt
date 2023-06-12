@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.FineLocationDetector
 
-class AndroidLintCoarseFineLocationInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.coarse.fine.location"), FineLocationDetector.ISSUE
-)
+class AndroidLintCoarseFineLocationInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.coarse.fine.location"),
+    FineLocationDetector.ISSUE
+  )

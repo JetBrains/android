@@ -32,7 +32,7 @@ object PackageNameProvider {
    * On devices with api lower than R, the package name will just be inferred from the process name.
    */
   fun getPackageName(project: Project, deviceSerialNumber: String, processName: String): ListenableFuture<String> {
-    val adb = AdbFileProvider.fromProject(project)?.adbFile ?: throw IllegalStateException("adb not found")
+    val adb = AdbFileProvider.fromProject(project).get() ?: throw IllegalStateException("adb not found")
 
     return AdbService.getInstance().getDebugBridge(adb).transform(taskExecutor) { androidDebugBridge ->
       val device = androidDebugBridge.devices.find { deviceSerialNumber == it.serialNumber }

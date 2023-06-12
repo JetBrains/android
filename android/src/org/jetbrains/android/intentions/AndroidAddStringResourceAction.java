@@ -33,6 +33,7 @@ import com.intellij.CommonBundle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.template.Expression;
@@ -215,6 +216,10 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
                                  ResourceType type) {
     String value = getStringLiteralValue(project, element, file, type);
     assert value != null;
+
+    if (resName == null) {
+      resName = IdeResourcesUtil.buildResourceNameFromStringValue(value);
+    }
 
     final AndroidFacet facet = AndroidFacet.getInstance(file);
     assert facet != null;
@@ -485,6 +490,32 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     }
 
     return null;
+  }
+
+  @Override
+  public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+    PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
+    if (element == null) {
+      return super.generatePreview(project, editor, file);
+    }
+
+    // Create a simple preview (since we don't want to pop up a dialog to ask for the resource name in previews)
+    PsiElement parent = element.getParent();
+    if (parent instanceof XmlAttributeValue) {
+      String defaultName = getType().getName() + "_name";
+      PsiElement parentParent = parent.getParent();
+      if (parentParent instanceof XmlAttribute && getType() == ResourceType.STRING) {
+        final String value = ((XmlAttribute)parentParent).getValue();
+        if (value != null) {
+          defaultName = IdeResourcesUtil.buildResourceNameFromStringValue(value);
+        }
+      }
+      int start = element.getTextOffset();
+      int end = start + element.getTextLength();
+      editor.getDocument().replaceString(start, end, "@" + getType().getName() + "/" + defaultName);
+      return IntentionPreviewInfo.DIFF;
+    }
+    return super.generatePreview(project, editor, file);
   }
 
   private static class MyVarOfTypeExpression extends VariableOfTypeMacro {

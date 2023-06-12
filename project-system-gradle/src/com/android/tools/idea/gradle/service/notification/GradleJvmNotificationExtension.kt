@@ -45,7 +45,6 @@ import java.nio.file.Paths
  * "Invalid Gradle JDK configuration found.<Cause of invalid JDK error, if a reason was found>\n
  *  <Notification message suffix>\n
  *  <Use embedded JDK quickfix (if applicable)\n>
- *  <Use default JDK quickfix (if applicable)\n>
  *  <Change JDK location link (if not added already)\n>
  * "
  *
@@ -180,15 +179,13 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       // Suggest use embedded
       var registeredListeners = notificationData.registeredListenerIds
       val embeddedJdkPath = ideSdks.embeddedJdkPath
-      if (embeddedJdkPath != null) {
-        if (ideSdks.validateJdkPath(embeddedJdkPath) != null) {
-          val absolutePath = embeddedJdkPath.toAbsolutePath().toString()
-          val listener = UseJdkAsProjectJdkListener(project, absolutePath, ".embedded")
-          if (!registeredListeners.contains(listener.id)) {
-            notificationData.message += "<a href=\"${listener.id}\">Use Embedded JDK ($absolutePath)</a>\n"
-            notificationData.setListener(listener.id, listener)
-            registeredListeners = notificationData.registeredListenerIds
-          }
+      if (ideSdks.validateJdkPath(embeddedJdkPath) != null) {
+        val absolutePath = embeddedJdkPath.toAbsolutePath().toString()
+        val listener = UseJdkAsProjectJdkListener(project, absolutePath, ".embedded")
+        if (!registeredListeners.contains(listener.id)) {
+          notificationData.message += "<a href=\"${listener.id}\">Use Embedded JDK ($absolutePath)</a>\n"
+          notificationData.setListener(listener.id, listener)
+          registeredListeners = notificationData.registeredListenerIds
         }
       }
       // Suggest IdeSdks.jdk (if different to embedded)
@@ -196,7 +193,7 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       val defaultPath = defaultJdk?.homePath
       if (defaultPath != null) {
         if (ideSdks.validateJdkPath(Paths.get(defaultPath)) != null) {
-          if (embeddedJdkPath == null || (!FileUtils.isSameFile(embeddedJdkPath.toFile(), File(defaultPath)))) {
+          if (!FileUtils.isSameFile(embeddedJdkPath.toFile(), File(defaultPath))) {
             val listener = UseJdkAsProjectJdkListener(project, defaultPath)
             if (!registeredListeners.contains(listener.id)) {
               notificationData.message += "<a href=\"${listener.id}\">Use JDK ${defaultJdk.name} ($defaultPath)</a>\n"

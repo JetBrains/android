@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.device.Resolution;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.scale.JBUIScale;

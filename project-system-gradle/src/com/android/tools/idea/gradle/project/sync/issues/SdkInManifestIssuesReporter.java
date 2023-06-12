@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.RemoveSdkFromManifestHyperlink;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
@@ -94,10 +95,10 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
 
   @Override
   @NotNull
-  protected OpenFileHyperlink createModuleLink(@NotNull Project project,
-                                               @NotNull Module module,
-                                               @NotNull List<IdeSyncIssue> syncIssues,
-                                               @NotNull VirtualFile buildFile) {
+  protected OpenFileSyncMessageHyperlink createModuleLink(@NotNull Project project,
+                                                          @NotNull Module module,
+                                                          @NotNull List<IdeSyncIssue> syncIssues,
+                                                          @NotNull VirtualFile buildFile) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     if (androidFacet != null) {
       Manifest manifest = Manifest.getMainManifest(androidFacet);
@@ -115,7 +116,7 @@ public abstract class SdkInManifestIssuesReporter extends SimpleDeduplicatingSyn
       VirtualFile manifestFile = getPrimaryManifestFile(androidFacet);
       if (manifestFile != null) {
         int lineNumber = element != null ? getLineNumberForElement(project, element) : -1;
-        return new OpenFileHyperlink(manifestFile.getPath(), module.getName(), lineNumber, -1);
+        return new OpenFileSyncMessageHyperlink(manifestFile.getPath(), module.getName(), lineNumber, -1);
       }
     }
     return super.createModuleLink(project, module, syncIssues, buildFile);

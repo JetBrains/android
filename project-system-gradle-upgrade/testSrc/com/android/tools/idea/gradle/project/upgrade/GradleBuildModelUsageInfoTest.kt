@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.PluginModel
@@ -37,6 +37,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.impl.rules.UsageType
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -83,9 +84,9 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
     val resolvedPropertyModel = mock(ResolvedPropertyModel::class.java)
 
     val usageInfos = listOf(
-      AgpVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("4.0.0"), GradleVersion.parse("4.1.0"), gradlePropertyModel),
+      AgpVersionUsageInfo(wrappedPsiElement, AgpVersion.parse("4.0.0"), AgpVersion.parse("4.1.0"), gradlePropertyModel),
       RepositoriesNoGMavenUsageInfo(wrappedPsiElement, repositoriesModel),
-      GradleVersionUsageInfo(wrappedPsiElement, GradleVersion.parse("6.1.1"), "https://services.gradle.org/distributions/gradle-6.1.1-bin.zip"),
+      GradleVersionUsageInfo(wrappedPsiElement, GradleVersion.version("6.1.1"), "https://services.gradle.org/distributions/gradle-6.1.1-bin.zip"),
       WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, artifactDependencyModel, gradlePropertyModel, "1.3.72"),
       WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, pluginModel, gradlePropertyModel, "1.3.72"),
       JavaLanguageLevelUsageInfo(wrappedPsiElement, languageLevelPropertyModel, false, INSERT_OLD_DEFAULT, "sourceCompatibility"),
@@ -108,11 +109,13 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
       AddFirebaseCrashlyticsNdkUsageInfo(wrappedPsiElement, dependenciesModel),
       RemoveCrashlyticsEnableNdkUsageInfo(wrappedPsiElement, gradleBuildModel),
       AddBuildTypeFirebaseCrashlyticsUsageInfo(wrappedPsiElement, buildTypeModel),
-      VIEW_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
-      DATA_BINDING_ENABLED_INFO.MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+      VIEW_BINDING_ENABLED_INFO
+        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, gradleBuildModel, { resolvedPropertyModel }),
+      DATA_BINDING_ENABLED_INFO
+        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, gradleBuildModel, { resolvedPropertyModel }),
       SOURCE_SET_JNI_INFO.RemovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel),
       (MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.propertiesOperationInfos[0] as MovePropertiesInfo)
-        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, resolvedPropertyModel),
+        .MovePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel, gradleBuildModel, { resolvedPropertyModel }),
       // TODO(xof): do something so we don't have to explicitly construct this stuff here
       RewriteObsoletePropertiesInfo({ listOf(resolvedPropertyModel) }, { "" }, UsageType(""))
         .RewritePropertyUsageInfo(wrappedPsiElement, resolvedPropertyModel),

@@ -39,12 +39,9 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import javax.swing.border.MatteBorder
 
-/**
- * Tabs panel with enabled navigation.
- */
+/** Tabs panel with enabled navigation. */
 class AnimationTabs(surface: DesignSurface<*>) : JBTabsImpl(surface.project, surface.project) {
-  private val decoration = UiDecorator.UiDecoration(labelInsets = Insets(5, 10, 5, 2))
-
+  private val decoration = UiDecorator.UiDecoration(null, Insets(5, 10, 5, 2))
   init {
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
     ActionToolbarUtil.makeToolbarNavigable(moreToolbar!!)
@@ -55,7 +52,8 @@ class AnimationTabs(surface: DesignSurface<*>) : JBTabsImpl(surface.project, sur
 
   fun addTabWithCloseButton(info: TabInfo, closeAction: (tabInfo: TabInfo) -> Unit): TabInfo {
     return super.addTab(info).also { tabInfo ->
-      getTabLabel(tabInfo).add(CloseButton(CloseActionListener(tabInfo, closeAction)), BorderLayout.EAST)
+      getTabLabel(tabInfo)
+        .add(CloseButton(CloseActionListener(tabInfo, closeAction)), BorderLayout.EAST)
     }
   }
 
@@ -73,15 +71,23 @@ class AnimationTabs(surface: DesignSurface<*>) : JBTabsImpl(surface.project, sur
 
   private inner class CloseActionListener(
     private val tabInfo: TabInfo,
-    private val closeAction: (tabInfo: TabInfo) -> Unit) : ActionListener {
+    private val closeAction: (tabInfo: TabInfo) -> Unit
+  ) : ActionListener {
     override fun actionPerformed(e: ActionEvent?) {
       removeTab(tabInfo)
       closeAction(tabInfo)
     }
   }
 
-  private class CloseButton(actionListener: ActionListener?) : InplaceButton(
-    IconButton(message("animation.inspector.action.close.tab"), AllIcons.Actions.Close, AllIcons.Actions.CloseHovered), actionListener) {
+  private class CloseButton(actionListener: ActionListener?) :
+    InplaceButton(
+      IconButton(
+        message("animation.inspector.action.close.tab"),
+        AllIcons.Actions.Close,
+        AllIcons.Actions.CloseHovered
+      ),
+      actionListener
+    ) {
     init {
       preferredSize = JBUI.size(16)
       minimumSize = preferredSize // Prevent layout phase from squishing this button
@@ -94,33 +100,38 @@ class AnimationTabs(surface: DesignSurface<*>) : JBTabsImpl(surface.project, sur
 
     init {
       if (mouseListeners.size != 1) {
-        logger<FocusableTabLabel>().warn("FocusableTabLabel is expected to have a single MouseListener.")
+        logger<FocusableTabLabel>()
+          .warn("FocusableTabLabel is expected to have a single MouseListener.")
       }
       mouseListeners.getOrNull(0)?.let {
-        val ignoreRightClickListener = object : MouseAdapter() {
-          override fun mouseClicked(e: MouseEvent?) {
-            if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
-            it.mouseClicked(e)
-          }
+        val ignoreRightClickListener =
+          object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent?) {
+              if (SwingUtilities.isRightMouseButton(e))
+                return // Ignore right-click events, so we don't show the context menu popup
+              it.mouseClicked(e)
+            }
 
-          override fun mousePressed(e: MouseEvent?) {
-            if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
-            it.mousePressed(e)
-          }
+            override fun mousePressed(e: MouseEvent?) {
+              if (SwingUtilities.isRightMouseButton(e))
+                return // Ignore right-click events, so we don't show the context menu popup
+              it.mousePressed(e)
+            }
 
-          override fun mouseReleased(e: MouseEvent?) {
-            if (SwingUtilities.isRightMouseButton(e)) return // Ignore right-click events, so we don't show the context menu popup
-            it.mouseReleased(e)
-          }
+            override fun mouseReleased(e: MouseEvent?) {
+              if (SwingUtilities.isRightMouseButton(e))
+                return // Ignore right-click events, so we don't show the context menu popup
+              it.mouseReleased(e)
+            }
 
-          override fun mouseEntered(e: MouseEvent?) {
-            it.mouseEntered(e)
-          }
+            override fun mouseEntered(e: MouseEvent?) {
+              it.mouseEntered(e)
+            }
 
-          override fun mouseExited(e: MouseEvent?) {
-            it.mouseExited(e)
+            override fun mouseExited(e: MouseEvent?) {
+              it.mouseExited(e)
+            }
           }
-        }
         removeMouseListener(it)
         addMouseListener(ignoreRightClickListener)
       }

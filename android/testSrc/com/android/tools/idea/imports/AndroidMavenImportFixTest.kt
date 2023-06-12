@@ -75,7 +75,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     // Wait for the sync
     requestSyncAndWait() // this is redundant but we can't get a handle on the internal sync state of the first action
 
-    assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+    assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
   }
 
   fun testSuggestedImport_unresolvedAttrName() {
@@ -125,7 +125,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     // Wait for the sync
     requestSyncAndWait() // this is redundant but we can't get a handle on the internal sync state of the first action
 
-    assertBuildGradle(project) { it.contains("implementation 'com.google.android.gms:play-services-maps:") }
+    assertBuildGradle(project) { it.contains("implementation 'com.google.android.gms:play-services-maps:17.0.1") }
   }
 
   fun testSuggestedImport_undo() {
@@ -169,7 +169,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     // Undo.
     UndoManager.getInstance(myFixture.project).undo(myFixture.fileEditor)
     waitForCondition(1, TimeUnit.SECONDS) {
-      checkBuildGradle(project) { !it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+      checkBuildGradle(project) { !it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
     }
   }
 
@@ -221,7 +221,7 @@ class AndroidMavenImportFixTest : AndroidGradleTestCase() {
     // Redo.
     undoManager.redo(myFixture.fileEditor)
     waitForCondition(1, TimeUnit.SECONDS) {
-      checkBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+      checkBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
     }
   }
 }

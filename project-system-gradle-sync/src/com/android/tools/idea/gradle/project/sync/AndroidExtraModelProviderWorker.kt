@@ -16,8 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.builder.model.v2.models.Versions
-import com.android.ide.common.repository.GradleVersion
-import com.android.ide.gradle.model.GradlePluginModel
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
@@ -26,6 +25,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 
@@ -76,13 +76,15 @@ internal class AndroidExtraModelProviderWorker(
             val modules: List<BasicIncompleteGradleModule> = syncCounters.projectListPhase { getBasicIncompleteGradleModules() }
             val v2AndroidGradleModules = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>()
 
-            modules.filterIsInstance<BasicIncompleteAndroidModule>().forEach { checkAgpVersionCompatibility(it.agpVersion, syncOptions) }
+            modules.filterIsInstance<BasicIncompleteAndroidModule>().forEach {
+              checkAgpVersionCompatibility(it.minimumModelConsumerVersion, it.agpVersion, syncOptions)
+            }
             verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules)
 
             val gradleVersion = safeActionRunner.runAction { it.getModel(BuildEnvironment::class.java).gradle.gradleVersion }
             val v2ModelBuildersSupportParallelSync =
               v2AndroidGradleModules
-                .all { canUseParallelSync(GradleVersion.tryParseAndroidGradlePluginVersion(it.versions.agp), gradleVersion) }
+                .all { canUseParallelSync(AgpVersion.tryParse(it.versions.agp), gradleVersion) }
 
             val configuredSyncActionRunner = safeActionRunner.enableParallelFetchForV2Models(v2ModelBuildersSupportParallelSync)
 
@@ -113,7 +115,13 @@ internal class AndroidExtraModelProviderWorker(
     catch (e: AndroidSyncException) {
       consumer.consume(
         buildInfo.rootBuild,
-        IdeAndroidSyncError(e.message.orEmpty(), e.stackTrace.map { it.toString() }),
+        IdeAndroidSyncError(
+          message = e.message.orEmpty(),
+          stackTrace = e.stackTrace.map { it.toString() },
+          buildPath = e.myBuildPath,
+          modulePath = e.myModulePath,
+          syncIssues = e.mySyncIssues
+        ),
         IdeAndroidSyncError::class.java
       )
     }
@@ -131,23 +139,21 @@ internal class AndroidExtraModelProviderWorker(
             if (syncOptions.flags.studioFlagUseV2BuilderModels) {
               // First request the Versions model to make sure we can fetch V2 models.
               val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
-              if (versions != null && canFetchV2Models(GradleVersion.tryParseAndroidGradlePluginVersion(versions.agp))) {
+              if (versions != null && canFetchV2Models(AgpVersion.tryParse(versions.agp))) {
                 // This means we can request V2.
-                return BasicV2AndroidModuleGradleProject(gradleProject, buildName, versions)
+                return BasicV2AndroidModuleGradleProject(gradleProject, buildName, versions, syncOptions)
               }
             }
             // We cannot request V2 models.
             // Check if we have android projects that cannot be requested using V2, but can be requested using V1.
-            controller.findModel(gradleProject, GradlePluginModel::class.java)?.also {
-              val legacyV1AgpVersionModel = controller.findModel(gradleProject, LegacyV1AgpVersionModel::class.java)
-              // LegacyV1AgpVersionModel is always available if `com.android.base` plugin is applied.
-              if (legacyV1AgpVersionModel != null)
-                return BasicV1AndroidModuleGradleProject(
-                  gradleProject,
-                  buildName,
-                  legacyV1AgpVersionModel
-                )
-            }
+            val legacyV1AgpVersionModel = controller.findModel(gradleProject, LegacyV1AgpVersionModel::class.java)
+            // LegacyV1AgpVersionModel is always available if `com.android.base` plugin is applied.
+            if (legacyV1AgpVersionModel != null)
+              return BasicV1AndroidModuleGradleProject(
+                gradleProject,
+                buildName,
+                legacyV1AgpVersionModel
+              )
 
             return BasicNonAndroidIncompleteGradleModule(gradleProject, buildName) // Check here tha Version does not return anything.
           },
@@ -168,7 +174,7 @@ private fun verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules: List<Basi
     throw AgpVersionsMismatch(agpVersionsAndGradleBuilds)
 }
 
-private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
+private fun canFetchV2Models(gradlePluginVersion: AgpVersion?): Boolean {
   return gradlePluginVersion != null && gradlePluginVersion.isAtLeast(7, 2, 0, "alpha", 1, true)
 }
 
@@ -181,9 +187,9 @@ private fun canFetchV2Models(gradlePluginVersion: GradleVersion?): Boolean {
  * - using at least AGP 7.3.0-alpha-04.
  *  @returns true if we can fetch the V2 models in parallel, otherwise, returns false.
  */
-private fun canUseParallelSync(agpVersion: GradleVersion?, gradleVersion: String): Boolean {
-  return org.gradle.util.GradleVersion.version(gradleVersion) >= org.gradle.util.GradleVersion.version("7.4.2") &&
-    agpVersion != null &&
-    ((agpVersion >= GradleVersion(7, 2, 0) && agpVersion < "7.3.0-alpha01") ||
-      agpVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
+private fun canUseParallelSync(agpVersion: AgpVersion?, gradleVersion: String): Boolean {
+  return GradleVersion.version(gradleVersion) >= GradleVersion.version("7.4.2") &&
+         agpVersion != null &&
+         ((agpVersion >= AgpVersion(7, 2, 0) && agpVersion < "7.3.0-alpha01") ||
+          agpVersion.isAtLeast(7, 3, 0, "alpha", 4, true))
 }

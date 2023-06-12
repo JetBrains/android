@@ -1,6 +1,8 @@
 package com.android.tools.idea.editors.literals
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
@@ -11,6 +13,8 @@ import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.LogLevel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -21,8 +25,8 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
@@ -33,7 +37,7 @@ internal class LiveLiteralsServiceTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   @get:Rule
-  val liveEditFlagRule = SetFlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
+  val liveEditFlagRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
 
   private val project: Project
     get() = projectRule.project
@@ -47,6 +51,11 @@ internal class LiveLiteralsServiceTest {
 
   @Before
   fun setup() {
+    Logger.getInstance(LiveLiteralsService::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiteralsManager::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiveLiteralsFinder::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiveLiteralsDeploymentReportService::class.java).setLevel(LogLevel.ALL)
+
     LiveEditApplicationConfiguration.getInstance().mode = LIVE_LITERALS
     file1 = projectRule.fixture.addFileToProject("src/main/java/com/literals/test/Test.kt", """
       package com.literals.test
@@ -169,6 +178,14 @@ internal class LiveLiteralsServiceTest {
     // Wait for the modification to be notified
     latch.await(5, TimeUnit.SECONDS)
     assertEquals(2, modifications.size)
+    for (modification in modifications) {
+      val expectedNewValue: Any = when (modification.initialConstantValue) {
+        "ClassHello" -> "ClassBye"
+        999f -> 555f
+        else -> fail("Unexpected modified constant ${modification.initialConstantValue}")
+      }
+      assertEquals(expectedNewValue, modification.constantValue)
+    }
   }
 
   @Test

@@ -26,6 +26,7 @@ import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -149,7 +150,7 @@ public class ProjectFontsTest extends FontTestCase {
     Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file);
     ResourceResolver resolver = configuration.getResourceResolver();
     assert resolver != null;
-    return new ProjectFonts(myFacet);
+    return new ProjectFonts(StudioResourceRepositoryManager.getInstance(myFacet));
   }
 
   @NotNull

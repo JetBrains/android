@@ -29,7 +29,6 @@ class IdeAndroidModels(
   val fetchedVariants: List<IdeVariantCoreImpl>,
   val selectedVariantName: String,
   val selectedAbiName: String?,
-  val syncIssues: List<IdeSyncIssue>,
   val v2NativeModule: IdeNativeModule?,
   val v1NativeProject: IdeNativeAndroidProject?,
   val v1NativeVariantAbi: IdeNativeVariantAbi?,
@@ -38,15 +37,32 @@ class IdeAndroidModels(
 
 class IdeAndroidNativeVariantsModels(
   val v1NativeVariantAbis: List<IdeNativeVariantAbi>?, // null if v2.
-  val syncIssues: List<IdeSyncIssue>
 ) : Serializable
 
 /**
- * A model to represent errors usually passed via exceptions. This is necessary to workaround exception serialization issues across
- * different JVM versions.
+ * A model to represent sync issues and unexpected exceptions/errors suppressed during sync.
+ *
+ * In the Gradle phase of sync, if an unexpected exception is suppressed it likely results in invalid/incomplete sync results, however it is
+ * likely to be a better outcome for the user than not having any result at all. [IdeAndroidSyncIssuesAndExceptions] module level model is used to
+ * report sync exceptions suppressed while building IDE models and sync issues to the IDE process where they are supposed to be logged as errors. The IDE phase
+ * of sync should also generate a sync issue notifying the user about potentially incompletely synced state of the project.
  */
-class IdeAndroidSyncError(val message: String, val stackTrace: List<String>) : Serializable
+class IdeAndroidSyncIssuesAndExceptions(val syncIssues: List<IdeSyncIssue>, val exceptions: List<Throwable>): Serializable
+
+/**
+ * A model to represent a fatal sync error such as one that would normally be passed as an exception. This is necessary to workaround
+ * exception serialization issues across different JVM versions.
+ */
+class IdeAndroidSyncError(
+  val message: String,
+  val stackTrace: List<String>,
+  val buildPath: String? = null,
+  val modulePath: String? = null,
+  val syncIssues: List<IdeSyncIssue>? = null) : Serializable
 
 @JvmName("ideAndroidSyncErrorToException")
 fun IdeAndroidSyncError.toException(): AndroidSyncException =
-  AndroidSyncException("$message at:\n${stackTrace.joinToString(separator = "\n  ") { it }}")
+  AndroidSyncException(message = "$message at:\n${stackTrace.joinToString(separator = "\n  ") { it }}",
+                       buildPath = buildPath,
+                       modulePath = modulePath,
+                       syncIssues = syncIssues)

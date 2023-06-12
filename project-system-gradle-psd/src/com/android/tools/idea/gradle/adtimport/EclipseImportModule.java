@@ -26,6 +26,7 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.lint.client.api.LintXmlConfiguration;
+
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;

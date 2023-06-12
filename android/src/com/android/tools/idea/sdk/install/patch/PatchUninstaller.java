@@ -21,6 +21,8 @@ import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.AbstractUninstaller;
 import com.android.repository.io.FileOpUtils;
+import com.android.utils.PathUtils;
+import java.io.IOException;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +41,10 @@ class PatchUninstaller extends AbstractUninstaller implements PatchOperation {
     myEmptyDir = FileOpUtils.getNewTempDir("PatchUninstaller", p.getLocation().getFileSystem());
     registerStateChangeListener((op, progress) -> {
       if (getInstallStatus() == InstallStatus.COMPLETE) {
-        FileOpUtils.deleteFileOrFolder(getLocation(progress));
+        try {
+          PathUtils.deleteRecursivelyIfExists(getLocation(progress));
+        }
+        catch (IOException ignore) {}
       }
     });
   }

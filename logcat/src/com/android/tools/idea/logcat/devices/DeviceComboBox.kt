@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
-import com.android.tools.idea.logcat.devices.DeviceEvent.TrackingReset
 import com.android.tools.idea.logcat.util.LOGGER
-import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.ColoredListCellRenderer
@@ -33,12 +31,12 @@ import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
 import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import java.awt.event.ActionListener
 import javax.swing.JList
 
 /**
@@ -51,13 +49,11 @@ import javax.swing.JList
  * first device added will be selected.
  */
 internal class DeviceComboBox(
-  parentDisposable: Disposable,
+  project: Project,
   private val initialDevice: Device?,
-  private val deviceTracker: IDeviceComboBoxDeviceTracker,
-  coroutineScope: CoroutineScope = AndroidCoroutineScope(parentDisposable, workerThread)
 ) : ComboBox<Device>() {
-
-  private val selectionChannel = Channel<Device>(1)
+  private val deviceTracker: IDeviceComboBoxDeviceTracker =
+    project.service<DeviceComboBoxDeviceTrackerFactory>().createDeviceComboBoxDeviceTracker(initialDevice)
 
   private val deviceModel: DeviceModel
     get() = model as DeviceModel
@@ -69,29 +65,27 @@ internal class DeviceComboBox(
     AccessibleContextUtil.setName(this, LogcatBundle.message("logcat.device.combo.accessible.name"))
     renderer = DeviceComboBoxRenderer()
     model = DeviceModel()
+  }
 
-    addActionListener {
-      coroutineScope.launch {
-        selectedDevice?.let {
-          selectionChannel.send(it)
-        }
-      }
+  fun trackSelectedDevice(): Flow<Device> = callbackFlow {
+    val listener = ActionListener {
+      selectedDevice?.let { trySendBlocking(it) }
     }
-
-    coroutineScope.launch {
+    addActionListener(listener)
+    launch {
       deviceTracker.trackDevices().collect {
         LOGGER.debug("trackDevices: $it")
         when (it) {
           is Added -> deviceAdded(it.device)
           is StateChanged -> deviceStateChanged(it.device)
-          is TrackingReset -> makeDevicesOffline()
         }
       }
-      selectionChannel.close()
+      this@callbackFlow.close()
+    }
+    awaitClose {
+      removeActionListener(listener)
     }
   }
-
-  fun trackSelectedDevice(): Flow<Device> = selectionChannel.consumeAsFlow()
 
   private fun deviceAdded(device: Device) {
     if (deviceModel.containsDevice(device)) {
@@ -107,25 +101,12 @@ internal class DeviceComboBox(
     }
   }
 
-  fun selectDevice(serialNumber: String) {
-    val device = deviceModel.items.find { it.serialNumber == serialNumber }
-    if (device != null) {
-      selectDevice(device)
-    }
-  }
-
   private fun selectDevice(device: Device) {
     selectedItem = device
   }
 
   private fun deviceStateChanged(device: Device) {
     (model as DeviceModel).replaceItem(device, device.deviceId == selectedDevice?.deviceId)
-  }
-
-  private fun makeDevicesOffline() {
-    deviceModel.items.forEach {
-      deviceStateChanged(it.copy(isOnline = false))
-    }
   }
 
   // Renders a Device.
@@ -151,7 +132,7 @@ internal class DeviceComboBox(
       if (device.isOnline) {
         append(" (${device.serialNumber})", REGULAR_ATTRIBUTES)
       }
-      append(LogcatBundle.message("logcat.device.combo.version", device.release.toString(), device.sdk.toString()), GRAY_ATTRIBUTES)
+      append(LogcatBundle.message("logcat.device.combo.version", device.release, device.sdk.toString()), GRAY_ATTRIBUTES)
       if (!device.isOnline) {
         append(LogcatBundle.message("logcat.device.combo.offline"), GRAYED_BOLD_ATTRIBUTES)
       }

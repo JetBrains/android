@@ -27,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.File;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.After;
@@ -50,9 +49,6 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
 
     fakeAdbServer = new FakeAdbServer.Builder()
       .installDefaultCommandHandlers()
-      // This test needs to query the device for ABIs, so we need some expanded functionality for the
-      // getprop command handler:
-      .addDeviceHandler(new GetAbiListPropCommandHandler(Arrays.asList("x86")))
       .build();
 
     DeviceState device = fakeAdbServer.connectDevice(
@@ -63,6 +59,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
       "31",
       DeviceState.HostConnectionType.LOCAL
     ).get();
+    device.getProperties().put("ro.product.cpu.abilist", "x86");
     device.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
     device.setActivityManager((args, serviceOutput) -> {
       if ("start".equals(args.get(0))) {
@@ -98,7 +95,7 @@ public class X86AbiSplitApksTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void x86AbiSplitApks() throws Exception {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/BasicCmakeAppForUI", Wait.seconds(TIMEOUT_SECONDS));

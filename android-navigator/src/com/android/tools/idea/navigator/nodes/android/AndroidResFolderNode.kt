@@ -17,9 +17,12 @@ package com.android.tools.idea.navigator.nodes.android
 
 import com.android.resources.ResourceFolderType
 import com.intellij.ide.projectView.ViewSettings
+import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
+import com.intellij.ide.projectView.impl.nodes.PsiFileNode
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
 
@@ -35,6 +38,8 @@ class AndroidResFolderNode internal constructor(
    * their [ResourceFolderType].
    */
   override fun getChildren(): Collection<AbstractTreeNode<*>> {
+    val children = mutableListOf<AbstractTreeNode<*>>()
+
     val foldersByResourceType = sourceFolders.asSequence()
       .flatMap { it.subdirectories.asSequence() }    // collect all res folders from all source providers
       .mapNotNull {
@@ -42,13 +47,21 @@ class AndroidResFolderNode internal constructor(
       }
       .groupBy({ it.first }, { it.second })
 
-    return foldersByResourceType.entries
+    foldersByResourceType.entries
       .map {(type, folders) ->
         AndroidResFolderTypeNode(
           myProject, androidFacet, ArrayList(folders), settings,
           type
         )
-      }
+      }.forEach(children::add)
+
+    val resourcesPropertiesFile = sourceFolders.find { it.parentDirectory?.name == "main" }?.files?.find { it.name == "resources.properties"}
+    if (resourcesPropertiesFile != null) {
+      val (first, _) = findSourceProvider(resourcesPropertiesFile.virtualFile)
+      children.add(AndroidPsiFileNode(myProject, resourcesPropertiesFile, settings, first))
+    }
+
+    return children
   }
 
   private val androidFacet: AndroidFacet

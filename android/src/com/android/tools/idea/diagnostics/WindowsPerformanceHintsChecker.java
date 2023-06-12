@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
+
 import com.android.annotations.concurrency.Slow;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.windows.VirusCheckerStatusProvider;
 import com.android.tools.idea.diagnostics.windows.WindowsDefenderPowerShellStatusProvider;
 import com.android.tools.idea.diagnostics.windows.WindowsDefenderRegistryStatusProvider;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.build.BuildContext;
-import com.android.tools.idea.gradle.project.build.BuildStatus;
-import com.android.tools.idea.gradle.project.build.GradleBuildListener;
-import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WindowsDefenderStatus;
@@ -35,14 +33,13 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionNotApplicableException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
@@ -58,7 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -72,44 +69,61 @@ public class WindowsPerformanceHintsChecker {
   private static final Pattern WINDOWS_ENV_VAR_PATTERN = Pattern.compile("%([^%]+?)%");
   private static final Pattern WINDOWS_DEFENDER_WILDCARD_PATTERN = Pattern.compile("[?*]");
 
-  private AndroidStudioSystemHealthMonitor systemHealthMonitor;
+  private final AndroidStudioSystemHealthMonitor systemHealthMonitor;
+  private final VirusCheckerStatusProvider myVirusCheckerStatusProvider;
 
-  private VirusCheckerStatusProvider myVirusCheckerStatusProvider;
-
-  public WindowsPerformanceHintsChecker() {
+  private WindowsPerformanceHintsChecker() {
     this.systemHealthMonitor = AndroidStudioSystemHealthMonitor.getInstance();
     this.myVirusCheckerStatusProvider =
       StudioFlags.ANTIVIRUS_CHECK_USE_REGISTRY.get() ? new WindowsDefenderRegistryStatusProvider()
                                                      : new WindowsDefenderPowerShellStatusProvider();
   }
 
-  public void run() {
-    if (SystemInfo.isWindows && (StudioFlags.ANTIVIRUS_METRICS_ENABLED.get() || StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.get())) {
-      Application application = ApplicationManager.getApplication();
-      application.getMessageBus().connect().subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
-        @Override
-        public void projectOpened(@NotNull Project project) {
-          // perform check, but do not show dialog, when project is opened.
-          application.executeOnPooledThread(() -> checkWindowsDefender(project, false));
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+  private static boolean isEnabled() {
+    return SystemInfo.isWindows && (StudioFlags.ANTIVIRUS_METRICS_ENABLED.get() || StudioFlags.ANTIVIRUS_NOTIFICATION_ENABLED.get());
+  }
 
-          // perform check again and possibly show notification after a successful build
-          GradleBuildState.subscribe(project, new GradleBuildListener() {
-            @Override
-            public void buildStarted(@NotNull BuildContext context) { }
+  /** Runs checks a few seconds after a project is opened. */
+  public static class MyProjectStartupActivity implements StartupActivity.Background {
 
-            @Override
-            public void buildFinished(@NotNull BuildStatus status, @Nullable BuildContext context) {
-              BuildMode mode = context != null ? context.getBuildMode() : null;
-              if (status.isBuildSuccessful()) {
-                if (mode == BuildMode.ASSEMBLE || mode == BuildMode.REBUILD ||
-                    mode == BuildMode.BUNDLE || mode == BuildMode.APK_FROM_BUNDLE) {
-                  application.executeOnPooledThread(() -> checkWindowsDefender(project, true));
-                }
-              }
-            }
-          });
+    public MyProjectStartupActivity() {
+      if (!isEnabled()) throw ExtensionNotApplicableException.create();
+    }
+
+    @Override
+    public void runActivity(@NotNull Project project) {
+      // Check antivirus status for metrics only; do not show any notifications.
+      var app = ApplicationManager.getApplication();
+      var checker = new WindowsPerformanceHintsChecker();
+      app.executeOnPooledThread(() -> checker.checkWindowsDefender(project, false));
+      if (isEnabled()) {
+        getProjectSystem(project).getBuildManager().addBuildListener(project, new MyBuildListener(project));
+      }
+    }
+  }
+
+  /** Runs checks after a Gradle build. */
+  public static class MyBuildListener implements ProjectSystemBuildManager.BuildListener {
+
+    private final Project myProject;
+
+    public MyBuildListener(@NotNull Project project) {
+      myProject = project;
+      if (!isEnabled()) throw ExtensionNotApplicableException.create();
+    }
+
+    @Override
+    public void buildCompleted(@NotNull ProjectSystemBuildManager.BuildResult result) {
+      // Check antivirus status after a successful build, and possibly show a notification.
+      if (result.getStatus() == ProjectSystemBuildManager.BuildStatus.SUCCESS ) {
+        final var mode = result.getMode();
+        if (mode == ProjectSystemBuildManager.BuildMode.ASSEMBLE) {
+          var app = ApplicationManager.getApplication();
+          var checker = new WindowsPerformanceHintsChecker();
+          app.executeOnPooledThread(() -> checker.checkWindowsDefender(myProject, true));
         }
-      });
+      }
     }
   }
 
@@ -247,7 +261,7 @@ public class WindowsPerformanceHintsChecker {
       return ContainerUtil.map(excludedPaths, path -> wildcardsToRegex(expandEnvVars(path)));
     }
     catch (IOException exception) {
-      LOG.warn("Error retrieving list of excluded patterns", exception);
+      LOG.warn("Error retrieving list of excluded patterns: " + exception.getMessage());
       return null;
     }
   }

@@ -26,6 +26,7 @@ import com.android.tools.idea.profilers.eventpreprocessor.EnergyUsagePreprocesso
 import com.android.tools.idea.profilers.eventpreprocessor.SimpleperfPipelinePreprocessor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
+import com.android.tools.idea.transport.FailedToStartServerException;
 import com.android.tools.idea.transport.TransportDeviceManager;
 import com.android.tools.idea.transport.TransportProxy;
 import com.android.tools.idea.transport.TransportService;
@@ -68,11 +69,15 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
   }
 
   @Override
-  public void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception) {
+  public void onTransportDaemonException(@NotNull Common.Device device, @NotNull Exception exception) {
   }
 
   @Override
   public void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception) {
+  }
+
+  @Override
+  public void onStartTransportDaemonServerFail(@NotNull Common.Device device, @NotNull FailedToStartServerException exception) {
   }
 
   @Override
@@ -97,14 +102,14 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
                                          TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()),
                                          proxy.getEventQueue(),
                                          proxy.getBytesCache());
-      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_CPU_TRACE, cpuTraceHandler);
-      proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_CPU_TRACE, cpuTraceHandler);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_TRACE, cpuTraceHandler);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.STOP_TRACE, cpuTraceHandler);
     } else if (StudioFlags.PERFETTO_SDK_TRACING.get() &&
                device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.R) {
       CpuTraceInterceptCommandHandler cpuTraceHandler =
         new CpuTraceInterceptCommandHandler(device,
                                          TransportServiceGrpc.newBlockingStub(proxy.getTransportChannel()));
-      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_CPU_TRACE, cpuTraceHandler);
+      proxy.registerProxyCommandHandler(Commands.Command.CommandType.START_TRACE, cpuTraceHandler);
     }
 
     // Instantiate and register energy usage preprocessor, which preprocesses unified events and periodically insert energy usage events
@@ -124,7 +129,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       .setCommon(
         configBuilder.getCommonBuilder()
           .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-          .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
+          .setProfilerUnifiedPipeline(true)
           .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get()))
       .setCpu(
         Transport.DaemonConfig.CpuConfig.newBuilder()
@@ -142,7 +147,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       .setCommon(
         configBuilder.getCommonBuilder()
           .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-          .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
+          .setProfilerUnifiedPipeline(true)
           .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get())
           .setProfilerKeyboardEvent(StudioFlags.PROFILER_KEYBOARD_EVENT.get()))
       .setMem(
@@ -157,13 +162,13 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       // Delay JVMTI instrumentation until the user stops the native heap sample recording.
       // This prevents a bug in heapprofd from terminating early.
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_NATIVE_HEAP_SAMPLE);
+      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_TRACE);
     }
     else if (runConfig != null && runConfig.getProfilerState().isCpuStartupProfilingEnabled()) {
       // Delay JVMTI instrumentation when a user is doing a startup cpu capture.
       // This is for consistency with native memory recording.
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.ON_COMMAND);
-      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_CPU_TRACE);
+      configBuilder.setAttachCommand(Commands.Command.CommandType.STOP_TRACE);
     }
     else {
       configBuilder.setAttachMethod(Agent.AgentConfig.AttachAgentMethod.INSTANT);

@@ -22,6 +22,7 @@ import com.android.utils.HtmlBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBDimension
 import javax.swing.JComponent
 import javax.swing.event.HyperlinkListener
@@ -55,6 +56,11 @@ class WiFiPairingDialog(project: Project, canBeParent: Boolean, ideModalityType:
   fun createCenterPanel(): JComponent {
     // Set a preferred size so that the containing dialog shows big enough
     pairingPanel.rootComponent.preferredSize = panelPreferredSize
+
+    // TODO(b/260240804): remove this hack when b/260240804 is properly fixed
+    if (SystemInfo.isMac) {
+      pairingPanel.rootComponent.minimumSize = panelPreferredSize
+    }
     pairingPanel.pairingCodePairInvoked = { service -> this.pairingCodePairInvoked(service) }
     pairingPanel.qrCodeScanAgainInvoked = { this.qrCodeScanAgainInvoked() }
     return pairingPanel.rootComponent

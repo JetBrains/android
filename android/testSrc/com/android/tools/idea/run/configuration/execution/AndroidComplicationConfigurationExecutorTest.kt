@@ -17,16 +17,18 @@ package com.android.tools.idea.run.configuration.execution
 
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestResources
 import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.DefaultStudioProgramRunner
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
-import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
-import com.android.tools.idea.run.configuration.AppRunSettings
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
@@ -39,6 +41,7 @@ import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.util.ExceptionUtil
 import org.junit.Ignore
 import org.junit.Test
@@ -78,29 +81,31 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   private val clearDebugAppAm = "clear-debug-app"
   private val clearDebugAppBroadcast = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation 'clear-debug-app'"
 
+  private val runner = DefaultStudioProgramRunner()
+
   @Test
   fun test() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
-    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings,
                                    project)
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"2\"")
-        setComplicationSlot1 -> serviceOutput.writeStdout("Broadcast completed: result=1")
-        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
-        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot1 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
       }
     }
 
@@ -123,7 +128,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       override val module = myModule
     }
     val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                                TestApksProvider(appId)))
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
@@ -132,12 +137,12 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.run().blockingGet(10, TimeUnit.SECONDS)!!
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
     // Verify commands sent to device.
 
@@ -164,7 +169,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val consoleOutput = consoleOutputPromise.get(10, TimeUnit.SECONDS)
     assertThat(consoleOutput)
       .contains("Warning: The chosen Wear device may kill background services if they take too long to respond, which can " +
-                "affect debugging. To avoid this, please update the Wear OS app on your device to the latest version.")
+                "affect debugging. To avoid this, please update the Wear OS companion app on your device to the latest version.")
   }
 
   @Test
@@ -173,7 +178,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
 
     // Use DefaultDebugExecutor executor.
-    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
+    val env = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), runner, configSettings,
                                    project)
 
     val processTerminatedLatch = CountDownLatch(1)
@@ -181,24 +186,24 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"2\"")
         setComplicationSlot1 -> {
           deviceState.startClient(1234, 1235, appId, true)
-          serviceOutput.writeStdout("Broadcast completed: result=1")
+          shellCommandOutput.writeStdout("Broadcast completed: result=1")
         }
-        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
-        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         unsetWatchFace -> {
           deviceState.stopClient(1234)
-          serviceOutput.writeStdout("Broadcast completed: result=1")
+          shellCommandOutput.writeStdout("Broadcast completed: result=1")
         }
 
         clearDebugAppAm -> processTerminatedLatch.countDown()
@@ -225,7 +230,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     }
 
     val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                                TestApksProvider(appId)))
 
     // Mock installation that returns app.
@@ -235,13 +240,12 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.debug().blockingGet(10, TimeUnit.SECONDS)
-    assertThat(runContentDescriptor!!.processHandler).isNotNull()
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
 
     // Stop configuration.
     runContentDescriptor.processHandler!!.destroyProcess()
@@ -279,25 +283,24 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
-    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), AndroidConfigurationProgramRunner(), configSettings,
-                                   project)
+    val env = ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, project)
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"2\"")
-        setComplicationSlot1 -> serviceOutput.writeStdout("Broadcast completed: result=1")
-        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot1 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         // Unsuccessful show watchface case.
-        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=2")
+        showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=2")
       }
     }
 
@@ -318,7 +321,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     }
 
     val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                                TestApksProvider(appId)))
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
@@ -327,12 +330,12 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )
     )
-    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
     // Mock the binary xml extraction.
     doReturn(listOf("RANGED_VALUE", "SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
-    val runContentDescriptor = executor.run().blockingGet(10, TimeUnit.SECONDS)!!
+    val runContentDescriptor = getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
     // Verify that a warning was raised in console.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
@@ -354,26 +357,23 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run complication", AndroidComplicationConfigurationType().configurationFactories.single())
     // Use run executor
-    val env = Mockito.spy(ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(),
-                                               AndroidConfigurationProgramRunner(),
-                                               configSettings,
-                                               project))
+    val env = Mockito.spy(ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), runner, configSettings, project))
     val failedResponse = "Component not found."
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
         // Unsuccessful result
-        setComplicationSlot1 -> serviceOutput.writeStdout(failedResponse)
+        setComplicationSlot1 -> shellCommandOutput.writeStdout(failedResponse)
       }
     }
 
@@ -390,7 +390,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     }
 
     val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                                TestApksProvider(appId)))
     doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
     doReturn(listOf("SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
@@ -403,12 +403,11 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
         Pair(appId, app),
         Pair(TestWatchFaceInfo.appId, watchFaceApp)
       )) // Mock app installation.
-    doReturn(appInstaller).whenever(executor).getApplicationInstaller(any())
+    doReturn(appInstaller).whenever(executor).getApplicationDeployer(any())
 
-    val e = assertFailsWith<Throwable> { executor.run().blockingGet(10, TimeUnit.SECONDS) }.let {
-      ExceptionUtil.findCause(it, ExecutionException::class.java)
+    assertFailsWith<ExecutionException>("Error while launching complication, message: $failedResponse") {
+      executor.run(EmptyProgressIndicator())
     }
-    assertThat(e).hasMessageThat().contains("Error while launching complication, message: $failedResponse")
   }
 
   @Test

@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
   ProfilersAndroidTestSuite.class, // a suite mustn't contain itself
   // Benchmark performance tests should not be part of this suite, because they will be run on their own test rule
   // See intellij.android.profilersAndroid.performance in profilers-android/BUILD
+  PerformanceTestSuite.class,
   CpuProfilerAtraceCaptureTest.class,
   CpuProfilerEmptyCaptureTest.class,
   CpuProfilerPerfettoCaptureTest.class,

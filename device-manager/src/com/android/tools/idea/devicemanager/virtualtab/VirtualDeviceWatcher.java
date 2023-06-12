@@ -15,145 +15,143 @@
  */
 package com.android.tools.idea.devicemanager.virtualtab;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.prefs.AndroidLocationsException;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.Disposable;
+import com.android.tools.idea.sdk.IdeAvdManagers;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationActivationListener;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.util.Alarm;
-import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.Alarm.ThreadToUse;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+import javax.swing.event.EventListenerList;
+import org.jetbrains.android.AndroidPluginDisposable;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * The purpose of this class is to watch for changes to AVDs. Most operations within Studio on the AVDs are already tracked by Device
- * Manager, but if the user manually deletes files outside of Studio, we also need to update Device Manager. We save the current AVDs when
- * Studio loses focus, and then check the differences when Studio regains focus.
+ * Manager, but if the user manually deletes files outside of Studio, we also need to update Device Manager. When Studio regains focus, we
+ * gather a list of the current AVDs and fire a {@code VirtualDeviceWatcherEvent}. The UI should compare and adjust the table to reflect
+ * the current AVDs.
  */
-class VirtualDeviceWatcher implements Disposable {
-  private final @NotNull AvdManager myAvdManager;
-  private @NotNull Map<String, AvdInfo> myAvds;
+@Service
+public final class VirtualDeviceWatcher implements ApplicationActivationListener {
+  @NotNull
+  private final Supplier<Optional<AvdManager>> myGetAvdManager;
 
+  private final @NotNull EventListenerList myListeners;
   private final @NotNull Alarm myAlarm;
 
-  VirtualDeviceWatcher(@NotNull Disposable parentDisposable) throws AndroidLocationsException {
-    this(parentDisposable, Objects.requireNonNull(AvdManager.getInstance(AndroidSdks.getInstance().tryToChooseSdkHandler(),
-                                                                         new LogWrapper(Logger.getInstance(VirtualDeviceWatcher.class)))));
+  @UiThread
+  @SuppressWarnings("unused")
+  private VirtualDeviceWatcher() {
+    this(VirtualDeviceWatcher::getAvdManager);
   }
 
-  VirtualDeviceWatcher(@NotNull Disposable parentDisposable, @NotNull AvdManager avdManager) {
-    Disposer.register(parentDisposable, this);
-    myAvdManager = avdManager;
-    myAvds = new HashMap<>();
+  @UiThread
+  @VisibleForTesting
+  VirtualDeviceWatcher(@NotNull Supplier<Optional<AvdManager>> getAvdManager) {
+    myGetAvdManager = getAvdManager;
+    myListeners = new EventListenerList();
+    myAlarm = new Alarm(ThreadToUse.POOLED_THREAD, AndroidPluginDisposable.Companion.getApplicationInstance());
 
-    myAlarm = new Alarm(this);
+    ApplicationManager.getApplication().getMessageBus().connect().subscribe(ApplicationActivationListener.TOPIC, this);
+  }
 
-    ApplicationManager.getApplication().getMessageBus().connect().subscribe(
-      ApplicationActivationListener.TOPIC,
-      new ApplicationActivationListener() {
-        @Override
-        public void applicationActivated(@NotNull IdeFrame ideFrame) {
-          // Use a delay to avoid excessive operations
-          myAlarm.cancelAllRequests();
-          myAlarm.addRequest(() -> {
-            if (!ApplicationManager.getApplication().isActive()) {
-              return;
-            }
-
-            //noinspection UnstableApiUsage
-            ListenableFuture<Void> future = Futures.submit(() -> processAvdInfoChanges(), AppExecutorUtil.getAppExecutorService());
-            Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
-          }, 1000);
-        }
-
-        @Override
-        public void applicationDeactivated(@NotNull IdeFrame ideFrame) {
-          // If there is a delay in progress, we should not overwrite the AVDs because the baseline for the change needs to remain the same
-          if (myAlarm.getActiveRequestCount() > 0) {
-            return;
-          }
-
-          //noinspection UnstableApiUsage
-          ListenableFuture<Void> future = Futures.submit(() -> snapshotAvds(), AppExecutorUtil.getAppExecutorService());
-          Futures.addCallback(future, new FailedFutureCallback(), AppExecutorUtil.getAppExecutorService());
-        }
-      });
+  @UiThread
+  @Override
+  public void applicationActivated(@NotNull IdeFrame ideFrame) {
+    myAlarm.cancelAllRequests();
+    myAlarm.addRequest(this::snapshotAvds, Duration.ofSeconds(1).toMillis());
   }
 
   /**
-   * Checks the differences between the saved AVDs and the current AVDs.
+   * Called by the alarm thread
    */
   @WorkerThread
-  private synchronized void processAvdInfoChanges() {
-    Map<String, AvdInfo> currentAvds = getCurrentAvds();
-
-    for (String currentId: currentAvds.keySet()) {
-      AvdInfo currentAvd = currentAvds.get(currentId);
-      AvdInfo pastAvd = myAvds.remove(currentId);
-      if (pastAvd == null) {
-        // If this AVD doesn't exist in the past set, then this is a new AVD
-        System.out.println(currentAvd.getId() + " is a new AVD");
-      }
-      else if (!currentAvd.equals(pastAvd)) {
-        // If the AVD ID is the same but the fields are not equal, the AVD has been changed
-        System.out.println(currentAvd.getId() + " was changed");
-      }
-    }
-
-    // Any AVDs left over in myAvds are AVDs that have been deleted
-    for (AvdInfo pastAvd: myAvds.values()) {
-      System.out.println(pastAvd.getId() + " was deleted");
-    }
-
-    // Save the new set of AVDs
-    myAvds = currentAvds;
-  }
-
-  @WorkerThread
-  private synchronized void snapshotAvds() {
-    myAvds = getCurrentAvds();
-  }
-
-  @WorkerThread
-  private synchronized @NotNull Map<@NotNull String, @NotNull AvdInfo> getCurrentAvds() {
+  @NotNull
+  private static Optional<AvdManager> getAvdManager() {
     try {
-      myAvdManager.reloadAvds();
-      Map<String, AvdInfo> idToAvdInfo = new HashMap<>();
-      Arrays.stream(myAvdManager.getAllAvds()).forEach(avdInfo -> idToAvdInfo.put(avdInfo.getId(), avdInfo));
-      return idToAvdInfo;
+      return Optional.ofNullable(IdeAvdManagers.INSTANCE.getAvdManager(AndroidSdks.getInstance().tryToChooseSdkHandler()));
     }
-    catch (AndroidLocationsException e) {
-      throw new RuntimeException(e);
+    catch (AndroidLocationsException exception) {
+      Logger.getInstance(VirtualDeviceWatcher.class).warn("Unable to get AvdManager for VirtualDeviceWatcher", exception);
+      return Optional.empty();
     }
   }
 
-  @Override
-  public void dispose() {
-    myAlarm.dispose();
+  @UiThread
+  static @NotNull VirtualDeviceWatcher getInstance() {
+    return ApplicationManager.getApplication().getService(VirtualDeviceWatcher.class);
   }
 
-  private static class FailedFutureCallback implements FutureCallback<Void> {
-    @Override
-    public void onSuccess(@Nullable Void result) {
+  @UiThread
+  void addVirtualDeviceWatcherListener(@NotNull VirtualDeviceWatcherListener listener) {
+    myListeners.add(VirtualDeviceWatcherListener.class, listener);
+  }
+
+  @UiThread
+  void removeVirtualDeviceWatcherListener(@NotNull VirtualDeviceWatcherListener listener) {
+    myListeners.remove(VirtualDeviceWatcherListener.class, listener);
+  }
+
+  /**
+   * Called by the alarm thread
+   */
+  @WorkerThread
+  private void snapshotAvds() {
+    Application application = ApplicationManager.getApplication();
+
+    if (!application.isActive()) {
+      return;
     }
 
-    @Override
-    public void onFailure(@NotNull Throwable t) {
-      Logger.getInstance(VirtualDevice.class).warn(t);
+    myGetAvdManager.get()
+      .flatMap(VirtualDeviceWatcher::getAllAvds)
+      .ifPresent(avds -> fireVirtualDevicesChanged(application, avds));
+  }
+
+  /**
+   * Called by the alarm thread
+   */
+  @WorkerThread
+  private void fireVirtualDevicesChanged(@NotNull Application application, @NotNull Iterable<AvdInfo> avds) {
+    application.invokeLater(() -> fireVirtualDevicesChanged(avds));
+  }
+
+  /**
+   * Called by the alarm thread
+   */
+  @WorkerThread
+  @NotNull
+  private static Optional<Iterable<AvdInfo>> getAllAvds(@NotNull AvdManager manager) {
+    try {
+      manager.reloadAvds();
+      return Optional.of(new ArrayList<>(Arrays.asList(manager.getAllAvds())));
     }
+    catch (AndroidLocationsException exception) {
+      Logger.getInstance(VirtualDeviceWatcher.class).warn("Unable to reload AvdManager", exception);
+      return Optional.empty();
+    }
+  }
+
+  @UiThread
+  private void fireVirtualDevicesChanged(@NotNull Iterable<AvdInfo> avds) {
+    EventListenerLists.fire(myListeners,
+                            VirtualDeviceWatcherListener::virtualDevicesChanged,
+                            VirtualDeviceWatcherListener.class,
+                            () -> new VirtualDeviceWatcherEvent(this, avds));
   }
 }

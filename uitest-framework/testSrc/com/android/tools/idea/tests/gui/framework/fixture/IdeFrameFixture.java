@@ -27,17 +27,19 @@ import static org.fest.swing.edt.GuiActionRunner.execute;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.android.tools.idea.execution.common.applychanges.ApplyChangesAction;
+import com.android.tools.idea.execution.common.applychanges.CodeSwapAction;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.DeviceManagerToolWindowFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.gradle.AGPUpgradeAssistantToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleBuildModelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleProjectEventListener;
 import com.android.tools.idea.tests.gui.framework.fixture.gradle.GradleToolWindowFixture;
@@ -67,6 +69,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.toolWindow.StripeButton;
 import com.intellij.toolWindow.ToolWindowPane;
+import com.intellij.ui.BalloonImpl;
 import com.intellij.util.ThreeState;
 import java.awt.Component;
 import java.awt.Container;
@@ -75,6 +78,8 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -114,7 +119,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public List<String> getModuleNames() {
-    List<String> names = Lists.newArrayList();
+    List<String> names = new ArrayList<>();
     for (Module module : getModuleManager().getModules()) {
       names.add(module.getName());
     }
@@ -169,6 +174,22 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public BuildStatus invokeCleanAndMakeProject() {
+    waitAndInvokeMenuPath("Build", "Clean Project");
+    return invokeProjectMake(null);
+  }
+
+  @NotNull
+  public BuildStatus invokeRebuildProject() {
+    return invokeRebuildProject(null);
+  }
+
+  @NotNull
+  public BuildStatus invokeRebuildProject(@Nullable Wait wait) {
+    return actAndWaitForBuildToFinish(wait, it -> it.waitAndInvokeMenuPath("Build", "Rebuild Project"));
+  }
+
+  @NotNull
   public IdeFrameFixture invokeProjectMakeAndSimulateFailure(@NotNull String failure) {
     Runnable failTask = () -> {
       throw new ExternalSystemException(failure);
@@ -181,7 +202,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public ThreeComponentsSplitterFixture findToolWindowSplitter() {
     ToolWindowPane toolWindowPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowPane.class));
-    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowPane.getLayeredPane().getComponent(0);
+    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter) toolWindowPane.getLayeredPane().getComponent(0);
     return new ThreeComponentsSplitterFixture(robot(), splitter);
   }
 
@@ -217,7 +238,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public ActionButtonFixture findAttachDebuggerToAndroidProcessButton() {
-    GenericTypeMatcher<ActionButton> matcher = Matchers.byText(ActionButton.class, "Attach Debugger to Android Process").andIsShowing();
+    GenericTypeMatcher<ActionButton> matcher = Matchers.byText(ActionButton.class, "Attach Debugger to Android Process")
+      .andIsShowing();
     return ActionButtonFixture.findByMatcher(matcher, robot(), target());
   }
 
@@ -297,7 +319,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * Selects the item at {@code menuPath} and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
+   * Selects the item at {@code menuPath} and returns the result of
+   * {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
    */
   public <T> T openFromMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
     getMenuFixture().invokeMenuPath(10, menuPath);
@@ -306,7 +329,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   /**
    * Selects the item at {@code menuPath} in a contextual menu
-   * and returns the result of {@code fixtureFunction} applied to this {@link IdeFrameFixture}.
+   * and returns the result of {@code fixtureFunction} applied to this
+   * {@link IdeFrameFixture}.
    */
   public <T> T openFromContextualMenu(Function<IdeFrameFixture, T> fixtureFunction, @NotNull String... menuPath) {
     getMenuFixture().invokeContextualMenuPath(menuPath);
@@ -316,7 +340,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   /**
    * Invokes an action by menu path
    *
-   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
+   * @param path the series of menu names, e.g.
+   *             {@link invokeActionByMenuPath("Build", "Make Project")}
    */
   public IdeFrameFixture invokeMenuPath(@NotNull String... path) {
     getMenuFixture().invokeMenuPath(10, path);
@@ -334,9 +359,11 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * Wait till an path is enabled then invokes the action. Used for menu options that might be disabled or not available at first
+   * Wait till an path is enabled then invokes the action. Used for menu options
+   * that might be disabled or not available at first
    *
-   * @param path the series of menu names, e.g. {@link invokeActionByMenuPath("Build", "Make Project")}
+   * @param path the series of menu names, e.g.
+   *             {@link invokeActionByMenuPath("Build", "Make Project")}
    */
   public IdeFrameFixture waitAndInvokeMenuPath(@NotNull String... path) {
     waitAndInvokeMenuPath(20, path);
@@ -385,18 +412,20 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       GuiTests.waitForBackgroundTasks(robot());
       waitForIdle();
       return gradleProjectEventListener.getBuildStatus();
-    }
-    finally {
+    } finally {
       Disposer.dispose(disposable);
     }
   }
 
   /**
-   * Returns the virtual file corresponding to the given path. The path must be relative to the project root directory
-   * (the top-level directory containing all source files associated with the project).
+   * Returns the virtual file corresponding to the given path. The path must be
+   * relative to the project root directory
+   * (the top-level directory containing all source files associated with the
+   * project).
    *
-   * @param relativePath  a file path relative to the project root directory
-   * @return the virtual file corresponding to {@code relativePath}, or {@code null} if no such file exists
+   * @param relativePath a file path relative to the project root directory
+   * @return the virtual file corresponding to {@code relativePath}, or
+   *         {@code null} if no such file exists
    */
   @Nullable
   public VirtualFile findFileByRelativePath(@NotNull String relativePath) {
@@ -439,30 +468,30 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       () -> {
         actions.accept(this);
         return this;
-      }
-    );
+      });
   }
 
   @NotNull
-  public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@NotNull Supplier<? extends IdeFrameFixture> actions) {
+  public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(
+    @NotNull Supplier<? extends IdeFrameFixture> actions) {
     return actAndWaitForGradleProjectSyncToFinish(null, actions);
   }
 
   public static IdeFrameFixture actAndWaitForGradleProjectSyncToFinish(@Nullable Wait waitForSync,
-                                                                        @NotNull Supplier<? extends IdeFrameFixture> ideFrame) {
+                                                                       @NotNull Supplier<? extends IdeFrameFixture> ideFrame) {
     long beforeStartedTimeStamp = System.currentTimeMillis();
 
     IdeFrameFixture ideFixture = ideFrame.get();
     Project project = ideFixture.getProject();
 
-    // Wait for indexing to complete to add additional waiting time if indexing (up to 120 seconds). Otherwise, sync timeout may expire
+    // Wait for indexing to complete to add additional waiting time if indexing (up
+    // to 120 seconds). Otherwise, sync timeout may expire
     // too soon.
     GuiTests.waitForProjectIndexingToFinish(ideFixture.getProject());
 
     (waitForSync != null ? waitForSync : Wait.seconds(60))
       .expecting("syncing project '" + project.getName() + "' to finish")
       .until(() -> GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp() > beforeStartedTimeStamp);
-
 
     if (GradleSyncState.getInstance(project).lastSyncFailed()) {
       fail("Sync failed. See logs.");
@@ -476,6 +505,18 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
     return ideFixture;
   }
 
+  public boolean waitForGradleSyncToFinish(@Nullable Wait waitForSync) {
+    long beforeStartedTimeStamp = System.currentTimeMillis();
+    Project project = this.getProject();
+    (waitForSync != null ? waitForSync : Wait.seconds(60))
+      .expecting("syncing project '" + project.getName() + "' to finish")
+      .until(() -> GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp() > beforeStartedTimeStamp);
+    if (GradleSyncState.getInstance(project).lastSyncFailed()) {
+      return false;
+    }
+    waitForIdle();
+    return true;
+  }
 
   @NotNull
   private ActionButtonFixture locateActionButtonByActionId(@NotNull String actionId) {
@@ -483,7 +524,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * IJ doesn't always refresh the state of the toolbar buttons. This forces it to refresh.
+   * IJ doesn't always refresh the state of the toolbar buttons. This forces it to
+   * refresh.
    */
   @NotNull
   public IdeFrameFixture updateToolbars() {
@@ -497,7 +539,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   /**
-   * ActionButtons while being recreated by IJ and queried through the Action system
+   * ActionButtons while being recreated by IJ and queried through the Action
+   * system
    * may not have a proper parent. Therefore, we can not rely on FEST's system of
    * checking the component tree, as that will cause the test to immediately fail.
    */
@@ -514,8 +557,10 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   /**
    * Finds the button while refreshing over the toolbar.
    * <p>
-   * Due to IJ refresh policy (will only refresh if it detects mouse movement over its window),
-   * the toolbar needs to be intermittently updated before the ActionButton moves to the target
+   * Due to IJ refresh policy (will only refresh if it detects mouse movement over
+   * its window),
+   * the toolbar needs to be intermittently updated before the ActionButton moves
+   * to the target
    * location and update to its final state.
    */
   @NotNull
@@ -525,7 +570,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       .expecting("button to enable")
       .until(() -> {
         updateToolbars();
-        // Actions can somehow get replaced, so we need to re-get the action when we attempt to check its state.
+        // Actions can somehow get replaced, so we need to re-get the action when we
+        // attempt to check its state.
         ActionButtonFixture fixture = locateActionButtonByActionId(actionId);
         fixtureRef.set(fixture);
         if (hasValidWindowAncestor(fixture.target())) {
@@ -578,8 +624,50 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public AGPUpgradeAssistantToolWindowFixture getUgradeAssistantToolWindow(boolean invokeUsingMenuPath) {
+    if (invokeUsingMenuPath == true) {
+      waitAndInvokeMenuPath("Tools", "AGP Upgrade Assistant...");
+    }
+    return new AGPUpgradeAssistantToolWindowFixture(this);
+  }
+
+  @NotNull
+  public IdeFrameFixture clearNotificationsPresentOnIdeFrame() {
+    List<BalloonImpl.ActionButton> allNotificationActions = Lists.newArrayList(robot().finder().findAll(target(), Matchers.byType(BalloonImpl.ActionButton.class)));
+    if (allNotificationActions.size() > 0) {
+      for (BalloonImpl.ActionButton action : allNotificationActions) {
+        if (action.isShowing() && action.getToolTipText().toLowerCase().contains("close")) {
+          robot().click(action);
+        }
+      }
+    }
+    return this;
+  }
+
+  @NotNull
+  public String getAndroidStudioVersion() {
+    AboutAndroidStudioFixture aboutStudio = AboutAndroidStudioFixture.openAboutStudioDialog(this);
+    takeScreenshot();
+    String name = aboutStudio.getAndroidStudioVersion();
+    aboutStudio.clickCopy();
+    return name;
+  }
+
+  public void takeScreenshot() {
+    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    String screenShotName = timestamp.toString();
+    GuiTests.takeScreenshot(this.robot(), screenShotName);
+  }
+
+  @NotNull
+  public void clickPopupMenuItem(String labelPrefix) {
+    PopupMenuFixture.clickPopupMenuItem(this, labelPrefix);
+  }
+
+  @NotNull
   public IdeSettingsDialogFixture openIdeSettings() {
-    // Using invokeLater because we are going to show a *modal* dialog via API (instead of clicking a button, for example.) If we use
+    // Using invokeLater because we are going to show a *modal* dialog via API
+    // (instead of clicking a button, for example.) If we use
     // GuiActionRunner the test will hang until the modal dialog is closed.
     ApplicationManager.getApplication().invokeLater(
       () -> {
@@ -593,7 +681,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public AvdManagerDialogFixture invokeAvdManager() {
-    // The action button is prone to move during rendering so that robot.click() could miss.
+    // The action button is prone to move during rendering so that robot.click()
+    // could miss.
     // So, we use component's click here directly.
     ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.DeviceManager", 30);
     execute(new GuiTask() {
@@ -606,10 +695,24 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   @NotNull
+  public DeviceManagerToolWindowFixture invokeDeviceManager() {
+    // The action button is prone to move during rendering so that robot.click()
+    // could miss.
+    // So, we use component's click here directly.
+    ActionButtonFixture actionButtonFixture = findActionButtonByActionId("Android.DeviceManager", 30);
+    execute(new GuiTask() {
+      @Override
+      protected void executeInEDT() {
+        actionButtonFixture.target().click();
+      }
+    });
+    return new DeviceManagerToolWindowFixture(this);
+  }
+
+  @NotNull
   public IdeSettingsDialogFixture invokeSdkManager() {
     ActionButton sdkButton = waitUntilShowingAndEnabled(robot(), target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
-      @Override
-      protected boolean isMatching(@NotNull ActionButton actionButton) {
+      @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
         return "SDK Manager".equals(actionButton.getAccessibleContext().getAccessibleName());
       }
     });
@@ -680,7 +783,8 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
     comboBoxActionFixture.selectItem(appName);
     robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-    Wait.seconds(1).expecting("ComboBox to be selected").until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
+    Wait.seconds(1).expecting("ComboBox to be selected")
+      .until(() -> appName.equals(comboBoxActionFixture.getSelectedItemText()));
   }
 
   /**
@@ -689,10 +793,14 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   public void requestFocusIfLost() {
     KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
     Wait.seconds(5).expecting("a component to have the focus").until(() -> {
-      // Keep requesting focus until it is obtained by a component which is showing. Since there is no guarantee that the request focus will
-      // be granted keep asking until it is. This problem has appeared at least when not using a window manager when running tests. The focus
-      // can sometimes temporarily be held by a component that is not showing, when closing a dialog for example. This is a transition state
-      // and we want to make sure to keep going until the focus is held by a stable component.
+      // Keep requesting focus until it is obtained by a component which is showing.
+      // Since there is no guarantee that the request focus will
+      // be granted keep asking until it is. This problem has appeared at least when
+      // not using a window manager when running tests. The focus
+      // can sometimes temporarily be held by a component that is not showing, when
+      // closing a dialog for example. This is a transition state
+      // and we want to make sure to keep going until the focus is held by a stable
+      // component.
       Component focusOwner = keyboardFocusManager.getFocusOwner();
       if (focusOwner == null || !focusOwner.isShowing()) {
         if (SystemInfo.isMac) {
@@ -730,26 +838,43 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public IdeFrameFixture closeProjectPanel() {
-    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Project"))).deselect();
+    new JToggleButtonFixture(robot(),
+                             GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Project"))).deselect();
     return this;
   }
 
   @NotNull
   public IdeFrameFixture closeBuildPanel() {
-    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Build"))).deselect();
+    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Build")))
+      .deselect();
     return this;
   }
 
   @NotNull
   public IdeFrameFixture openResourceManager() {
-    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).select();
+    new JToggleButtonFixture(robot(),
+                             GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager"))).select();
     return this;
   }
 
   @NotNull
   public IdeFrameFixture closeResourceManager() {
-    new JToggleButtonFixture(robot(), GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager")))
+    new JToggleButtonFixture(robot(),
+                             GuiTests.waitUntilShowing(robot(), Matchers.byText(StripeButton.class, "Resource Manager")))
       .deselect();
     return this;
   }
+
+  /**
+   * Checks for text present in find tool window
+   *
+   * @param text string that need to checked in content tree.
+   *
+   * @return boolean returns whether the text is present in content tree.
+   */
+  public boolean findToolWindowContains(String text){
+    return new FindToolWindowFixture.ContentFixture(this).contains(text);
+  }
+
+
 }

@@ -1,4 +1,3 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.compose.preview.uibuilder.handler
 
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
@@ -11,9 +10,10 @@ import com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider
 import com.android.tools.idea.uibuilder.surface.ScreenView
 
 /**
- * [ViewHandlerProvider] for the `ComposeViewAdapter`. It only serves the [ComposeViewAdapterHandler].
+ * [ViewHandlerProvider] for the `ComposeViewAdapter`. It only serves the
+ * [ComposeViewAdapterHandler].
  */
-class ComposeViewHandlerProvider: ViewHandlerProvider {
+class ComposeViewHandlerProvider : ViewHandlerProvider {
   override fun findHandler(viewTag: String): ViewHandler? =
     if (COMPOSE_VIEW_ADAPTER_FQN == viewTag) {
       ComposeViewAdapterHandler()
@@ -22,14 +22,17 @@ class ComposeViewHandlerProvider: ViewHandlerProvider {
     }
 }
 
-
 /**
- * [ViewGroupHandler] for the `ComposeViewAdapter`. It disables all interactions with the component since
- * Compose elements can not be interacted with.
+ * [ViewGroupHandler] for the `ComposeViewAdapter`. It disables all interactions with the component
+ * since Compose elements can not be interacted with.
  */
-class ComposeViewAdapterHandler: ViewGroupHandler() {
+class ComposeViewAdapterHandler : ViewGroupHandler() {
   override fun acceptsChild(layout: NlComponent, newChild: NlComponent) = false
 
-  override fun createInteraction(screenView: ScreenView, x: Int, y: Int, component: NlComponent): Interaction =
-    SceneInteraction(screenView)
+  override fun createInteraction(
+    screenView: ScreenView,
+    x: Int,
+    y: Int,
+    component: NlComponent
+  ): Interaction? = SceneInteraction(screenView)
 }

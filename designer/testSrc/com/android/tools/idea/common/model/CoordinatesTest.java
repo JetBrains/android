@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.common.model;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import com.android.testutils.ImageDiffUtil;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.testutils.ImageDiffUtil;
+import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.scene.SceneManager;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import junit.framework.TestCase;
+
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import junit.framework.TestCase;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class CoordinatesTest extends TestCase {
   private static ScreenView createScreenView(double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
@@ -33,6 +37,9 @@ public class CoordinatesTest extends TestCase {
     when(screenView.getScale()).thenReturn(scale);
     when(screenView.getX()).thenReturn(x);
     when(screenView.getY()).thenReturn(y);
+    LayoutlibSceneManager sceneManager = mock(LayoutlibSceneManager.class);
+    when(screenView.getSceneManager()).thenReturn(sceneManager);
+    when(sceneManager.getSceneScalingFactor()).thenReturn(2.0f);
 
     return screenView;
   }
@@ -42,9 +49,16 @@ public class CoordinatesTest extends TestCase {
     assertEquals(100, Coordinates.getSwingX(screenView, 0));
     assertEquals(110, Coordinates.getSwingY(screenView, 0));
 
-    assertEquals(100 + 500, Coordinates.getSwingX(screenView, 1000));
-    assertEquals(110 + 500, Coordinates.getSwingY(screenView, 1000));
-    assertEquals(500, Coordinates.getSwingDimension(screenView, 1000));
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      assertEquals(100 + 250, Coordinates.getSwingX(screenView, 1000));
+      assertEquals(110 + 250, Coordinates.getSwingY(screenView, 1000));
+      assertEquals(250, Coordinates.getSwingDimension(screenView, 1000));
+    }
+    else {
+      assertEquals(100 + 500, Coordinates.getSwingX(screenView, 1000));
+      assertEquals(110 + 500, Coordinates.getSwingY(screenView, 1000));
+      assertEquals(500, Coordinates.getSwingDimension(screenView, 1000));
+    }
   }
 
   public void testSwingToAndroid() {
@@ -52,9 +66,16 @@ public class CoordinatesTest extends TestCase {
     assertEquals(0, Coordinates.getAndroidX(screenView, 100));
     assertEquals(0, Coordinates.getAndroidY(screenView, 110));
 
-    assertEquals(1000, Coordinates.getAndroidX(screenView, 100 + 500));
-    assertEquals(1000, Coordinates.getAndroidY(screenView, 110 + 500));
-    assertEquals(1000, Coordinates.getAndroidDimension(screenView, 500));
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      assertEquals(1000, Coordinates.getAndroidX(screenView, 100 + 250));
+      assertEquals(1000, Coordinates.getAndroidY(screenView, 110 + 250));
+      assertEquals(1000, Coordinates.getAndroidDimension(screenView, 250));
+    }
+    else {
+      assertEquals(1000, Coordinates.getAndroidX(screenView, 100 + 500));
+      assertEquals(1000, Coordinates.getAndroidY(screenView, 110 + 500));
+      assertEquals(1000, Coordinates.getAndroidDimension(screenView, 500));
+    }
   }
 
   public void testGraphicsTransform() throws IOException {

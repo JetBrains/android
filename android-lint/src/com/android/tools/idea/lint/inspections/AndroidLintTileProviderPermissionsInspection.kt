@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.TileProviderDetector
 
-class AndroidLintTileProviderPermissionsInspection: AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.tile.provider.permissions"),
-  TileProviderDetector.TILE_PROVIDER_PERMISSIONS)
+class AndroidLintTileProviderPermissionsInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.tile.provider.permissions"),
+    TileProviderDetector.TILE_PROVIDER_PERMISSIONS
+  )

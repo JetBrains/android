@@ -18,16 +18,12 @@ package com.android.tools.idea.appinspection.inspectors.network.view.constants
 import com.intellij.util.ui.JBUI
 import javax.swing.border.Border
 
-/**
- * Common length for spacing between axis tick markers
- */
+/** Common length for spacing between axis tick markers */
 val MARKER_LENGTH = JBUI.scale(5)
 
 val TIME_AXIS_HEIGHT = JBUI.scale(15)
 
-/**
- * Common space left on top of a vertical axis to make sure label text can fit there
- */
+/** Common space left on top of a vertical axis to make sure label text can fit there */
 val Y_AXIS_TOP_MARGIN = JBUI.scale(30)
 
 val MONITOR_LABEL_PADDING: Border = JBUI.Borders.empty(5, 10)
@@ -40,5 +36,6 @@ val ROW_HEIGHT_PADDING = JBUI.scale(4)
 
 val TOOLTIP_BORDER: Border = JBUI.Borders.empty(8, 10, 8, 10)
 
-// The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the toolbar.
+// The total usable height of the toolbar is 30px the 1px is for a 1px border at the bottom of the
+// toolbar.
 val TOOLBAR_HEIGHT = JBUI.scale(31)

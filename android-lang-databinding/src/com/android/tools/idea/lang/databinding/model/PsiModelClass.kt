@@ -79,19 +79,19 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Returns true if this is a wildcard type argument.
    */
   // b/129719057 implement wildcard
-  private val isWildcard = false
+  val isWildcard = false
 
   /**
    * Returns true if this ModelClass represents a void
    */
-  private val isVoid = PsiTypes.voidType().equalsToText(type.canonicalText)
+  val isVoid = PsiTypes.voidType().equalsToText(type.canonicalText)
 
   /**
    * Returns true if this is a type variable. For example, in List&lt;T>, T is a type variable.
    * However, List&lt;String>, String is not a type variable.
    */
   // b/129719057 implement typeVar
-  private val isTypeVar = false
+  val isTypeVar = false
 
   /**
    * Returns true if this ModelClass or its type arguments contains any type variable or wildcard.
@@ -105,7 +105,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * is List&lt;T>, then the return value will be a list containing T. null is returned
    * if this is not a generic type
    */
-  private val typeArguments: List<PsiModelClass>
+  val typeArguments: List<PsiModelClass>
     get() = (type as? PsiClassType)?.parameters
               ?.map { typeParameter -> PsiModelClass(typeParameter, mode) }
             ?: listOf()

@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.run.deployable;
 
-import static com.android.ddmlib.IDevice.PROP_BUILD_API_LEVEL;
-import static com.android.ddmlib.IDevice.PROP_BUILD_CODENAME;
-
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -25,11 +22,12 @@ import com.android.ddmlib.AndroidDebugBridge.IDebugBridgeChangeListener;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.intellij.openapi.application.ApplicationManager;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -37,7 +35,8 @@ import org.jetbrains.annotations.NotNull;
  * This class avoids {@link IDevice#getVersion()}'s synchronous property fetch.
  */
 public class DeviceVersion implements IDebugBridgeChangeListener, IDeviceChangeListener {
-  @NotNull private final Map<IDevice, Future<AndroidVersion>> myVersions;
+  @NotNull
+  private final Map<IDevice, ListenableFuture<AndroidVersion>> myVersions;
 
   public DeviceVersion() {
     myVersions = new ConcurrentHashMap<>();
@@ -52,7 +51,7 @@ public class DeviceVersion implements IDebugBridgeChangeListener, IDeviceChangeL
   }
 
   @NotNull
-  public Future<AndroidVersion> get(@NotNull IDevice iDevice) {
+  public ListenableFuture<AndroidVersion> get(@NotNull IDevice iDevice) {
     return myVersions.compute(
       iDevice,
       (d, f) -> {
@@ -68,22 +67,23 @@ public class DeviceVersion implements IDebugBridgeChangeListener, IDeviceChangeL
         }
 
         // Otherwise, we fall through (since there's been an error, including cancelling the Future) and try again.
-        return ApplicationManager.getApplication().executeOnPooledThread(() -> {
-          try {
-            String buildApi = d.getProperty(PROP_BUILD_API_LEVEL);
-            if (buildApi == null) {
-              return AndroidVersion.DEFAULT;
-            }
-
-            int api = Integer.parseInt(buildApi);
-            String codeName = d.getProperty(PROP_BUILD_CODENAME);
-            return new AndroidVersion(api, codeName);
-          }
-          catch (Exception e) {
-            return AndroidVersion.DEFAULT;
-          }
-        });
+        return Futures.submit(() -> getVersion(d), AppExecutorUtil.getAppExecutorService());
       });
+  }
+
+  private static @NotNull AndroidVersion getVersion(@NotNull IDevice device) {
+    try {
+      var level = device.getProperty(IDevice.PROP_BUILD_API_LEVEL);
+
+      if (level == null) {
+        return AndroidVersion.DEFAULT;
+      }
+
+      return new AndroidVersion(Integer.parseInt(level), device.getProperty(IDevice.PROP_BUILD_CODENAME));
+    }
+    catch (Exception exception) {
+      return AndroidVersion.DEFAULT;
+    }
   }
 
   @Override

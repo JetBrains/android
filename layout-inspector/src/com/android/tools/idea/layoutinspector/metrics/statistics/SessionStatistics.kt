@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
-import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.LayoutInspectorOpenProjectsTracker
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Accumulators for various actions of interest.
@@ -87,12 +87,22 @@ interface SessionStatistics {
   /**
    * The connection failed to attach to the process.
    */
-  fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode)
+  fun attachError(errorCode: AttachErrorCode)
+
+  /**
+   * The compose inspector failed to initialize.
+   */
+  fun composeAttachError(errorCode: AttachErrorCode)
 
   /**
    * A frame was received.
    */
   fun frameReceived()
+
+  /**
+   * A debugger was detected. Indicate if the debugger [isPaused] during attach.
+   */
+  fun debuggerInUse(isPaused: Boolean)
 
   /**
    * Live mode changed.
@@ -120,17 +130,19 @@ interface SessionStatistics {
   var recompositionHighlightColor: Int
 
   /**
-   * Number of memory measurements
+   * The current progress in the launch monitor
    */
-  @get:TestOnly
-  val memoryMeasurements: Int
+  var currentProgress: AttachErrorState
 }
 
-class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : SessionStatistics {
-  private val attach = AttachStatistics(clientType)
+class SessionStatisticsImpl(
+  clientType: ClientType,
+  areMultipleProjectsOpen: () -> Boolean = { LayoutInspectorOpenProjectsTracker.areMultipleProjectsOpen() },
+  isAutoConnectEnabled: () -> Boolean = { LayoutInspectorSettings.getInstance().autoConnectEnabled }
+) : SessionStatistics {
+  private val attach = AttachStatistics(clientType, areMultipleProjectsOpen, isAutoConnectEnabled)
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
-  private val memory = MemoryStatistics(model)
   private val compose = ComposeStatistics()
   private val system = SystemViewToggleStatistics()
   private val goto = GotoDeclarationStatistics()
@@ -139,7 +151,6 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
     attach.start()
     live.start()
     rotation.start()
-    memory.start()
     compose.start()
     system.start()
     goto.start()
@@ -149,7 +160,6 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
     attach.save { data.attachBuilder }
     live.save { data.liveBuilder }
     rotation.save { data.rotationBuilder }
-    memory.save { data.memoryBuilder }
     compose.save { data.composeBuilder }
     system.save { data.systemBuilder }
     goto.save { data.gotoDeclarationBuilder }
@@ -197,12 +207,20 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
     attach.attachSuccess()
   }
 
-  override fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {
-    attach.attachError(errorState, errorCode)
+  override fun attachError(errorCode: AttachErrorCode) {
+    attach.attachError(errorCode)
+  }
+
+  override fun composeAttachError(errorCode: AttachErrorCode) {
+    attach.composeAttachError(errorCode)
   }
 
   override fun frameReceived() {
     compose.frameReceived()
+  }
+
+  override fun debuggerInUse(isPaused: Boolean) {
+    attach.debuggerInUse(isPaused)
   }
 
   override var currentModeIsLive : Boolean
@@ -225,7 +243,7 @@ class SessionStatisticsImpl(clientType: ClientType, model: InspectorModel) : Ses
     get() = compose.recompositionHighlightColor
     set(value) { compose.recompositionHighlightColor = value }
 
-  @get:TestOnly
-  override val memoryMeasurements: Int
-    get() = memory.measurements
+  override var currentProgress: AttachErrorState
+    get() = attach.currentProgress
+    set(value) { attach.currentProgress = value }
 }

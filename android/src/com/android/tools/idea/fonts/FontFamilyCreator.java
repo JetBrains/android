@@ -22,16 +22,17 @@ import static com.android.SdkConstants.TAG_ARRAY;
 import static com.android.SdkConstants.TAG_ITEM;
 import static com.android.SdkConstants.TAG_META_DATA;
 import static com.android.SdkConstants.TAG_RESOURCE;
-import static com.android.ide.common.resources.ValueXmlHelper.escapeResourceString;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.resources.escape.string.StringResourceEscaper;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.lint.checks.FontDetector;
 import com.android.utils.XmlUtils;
 import com.intellij.core.CoreBundle;
@@ -178,7 +179,7 @@ public class FontFamilyCreator {
   private String createFontFamilyContent(@NotNull FontDetail font) {
     FontFamily family = font.getFamily();
     FontProvider provider = family.getProvider();
-    AndroidModuleInfo info = AndroidModuleInfo.getInstance(myFacet);
+    AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(myFacet);
     AndroidVersion minSdkVersion = info.getMinSdkVersion();
     if (minSdkVersion.getApiLevel() >= FontDetector.FUTURE_API_VERSION_WHERE_DOWNLOADABLE_FONTS_WORK_IN_FRAMEWORK) {
       return String.format(
@@ -209,7 +210,7 @@ public class FontFamilyCreator {
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>%n" +
       "<resources>%n" +
       "    <" + tag + " name=\"" + escapeXmlValue(name) + "\" translatable=\"false\">%n" +
-      "        <item>" + prefix + escapeResourceString(value) + "</item>%n" +
+      "        <item>" + prefix + StringResourceEscaper.escape(value, true) + "</item>%n" +
       "    </" + tag + ">%n" +
       "</resources>%n");
   }
@@ -363,7 +364,7 @@ public class FontFamilyCreator {
         }
       }
     }
-    XmlTag newTag = parent.createChildTag(TAG_ITEM, "", prefix + escapeResourceString(newValue), false);
+    XmlTag newTag = parent.createChildTag(TAG_ITEM, "", prefix + StringResourceEscaper.escape(newValue, true), false);
     if (before != null) {
       parent.addBefore(newTag, before);
     }

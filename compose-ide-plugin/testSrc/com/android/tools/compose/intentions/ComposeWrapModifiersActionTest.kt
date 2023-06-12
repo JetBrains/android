@@ -16,7 +16,6 @@
 package com.android.tools.compose.intentions
 
 import com.android.tools.compose.COMPOSE_UI_PACKAGE
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth
 import com.intellij.application.options.CodeStyle
@@ -32,7 +31,6 @@ import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
 class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureTestCase() {
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.addFileToProject(
       "src/${COMPOSE_UI_PACKAGE.replace(".", "/")}/Modifier.kt",
@@ -53,11 +51,6 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureTestCase() {
 
     val settings = CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
     settings.CONTINUATION_INDENT_FOR_CHAINED_CALLS = false
-  }
-  
-  public override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
   }
 
   fun testCaretAtDifferentPosition() {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -69,14 +69,12 @@ class TreeSettingsActionsTest {
   }
 
   @get:Rule
-  val recompositionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
-
-  @get:Rule
-  val treeTableFlagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
+  val recompositionFlagRule =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
   private val treeSettings = FakeTreeSettings()
   private val model = createModel()
-  private val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, model)
+  private val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT)
   private val capabilities = EnumSet.noneOf(Capability::class.java)
   private var isConnected = false
 
@@ -143,7 +141,15 @@ class TreeSettingsActionsTest {
     val event = createEvent()
     assertThat(RecompositionCounts.isSelected(event)).isEqualTo(false)
 
-    RecompositionCounts.testActionVisibility(event, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    RecompositionCounts.testActionVisibility(event, Capability.SUPPORTS_COMPOSE)
+
+    // Check enabled enabled state:
+    assertThat(event.presentation.isEnabled).isFalse()
+    assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
+    capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    RecompositionCounts.update(event)
+    assertThat(event.presentation.isEnabled).isTrue()
+    assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts")
 
     RecompositionCounts.setSelected(event, true)
     assertThat(treeSettings.showRecompositions).isEqualTo(true)
@@ -234,7 +240,7 @@ class TreeSettingsActionsTest {
     val client: AppInspectionInspectorClient = mock()
     whenever(treePanel.tree).thenReturn(tree)
     whenever(treePanel.component).thenReturn(component)
-    whenever(inspector.layoutInspectorModel).thenReturn(model)
+    whenever(inspector.inspectorModel).thenReturn(model)
     whenever(inspector.currentClient).thenReturn(client)
     whenever(inspector.treeSettings).thenReturn(treeSettings)
     whenever(client.stats).thenReturn(stats)

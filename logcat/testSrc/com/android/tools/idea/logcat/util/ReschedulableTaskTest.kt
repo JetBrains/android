@@ -16,7 +16,8 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.testutils.MockitoKt.mock
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -24,11 +25,11 @@ import org.mockito.Mockito.verify
 /**
  * Tests for [ReschedulableTask]
  */
-@Suppress("EXPERIMENTAL_API_USAGE")
+@Suppress("OPT_IN_USAGE") // runTest is experimental
 class ReschedulableTaskTest {
 
   @Test
-  fun runsDelayed() = runBlockingTest {
+  fun runsDelayed() = runTest(dispatchTimeoutMs = 5_000) {
     val reschedulableTask = ReschedulableTask(this)
     val mockTask = mock<Runnable>()
 
@@ -36,23 +37,20 @@ class ReschedulableTaskTest {
     reschedulableTask.reschedule(1000, task)
 
     verify(mockTask, never()).run()
-    testScheduler.advanceTimeBy(1000)
-    testScheduler.runCurrent()
+    advanceTimeBy(1010)
     verify(mockTask).run()
   }
 
   @Test
-  fun rescheduled_runsOnce() = runBlockingTest {
+  fun rescheduled_runsOnce() = runTest(dispatchTimeoutMs = 5_000) {
     val reschedulableTask = ReschedulableTask(this)
     val mockTask = mock<Runnable>()
 
     reschedulableTask.reschedule(1000, mockTask::run)
-    testScheduler.advanceTimeBy(500)
-    testScheduler.runCurrent()
+    advanceTimeBy(500)
     reschedulableTask.reschedule(1000, mockTask::run)
 
-    testScheduler.advanceTimeBy(1000)
-    testScheduler.runCurrent()
+    advanceTimeBy(1010)
     verify(mockTask).run()
   }
 }

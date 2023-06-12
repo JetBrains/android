@@ -17,10 +17,17 @@ package com.android.tools.idea.editors.manifest
 
 import com.android.tools.idea.editors.manifest.ManifestPanel.ManifestTreeNode
 import com.android.tools.idea.gradle.project.sync.internal.ProjectDumper
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.sourceProviders
-import com.android.tools.idea.testing.*
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.SnapshotComparisonTest
+import com.android.tools.idea.testing.assertAreEqualToSnapshots
+import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.FileUtils.toSystemIndependentPath
 import com.intellij.testFramework.runInEdtAndWait
@@ -31,7 +38,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
 import java.io.StringWriter
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import javax.swing.tree.TreeModel
 import javax.xml.transform.OutputKeys
@@ -40,7 +46,7 @@ import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
 @RunWith(JUnit4::class)
-class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
+class ManifestPanelContentTest : SnapshotComparisonTest {
 
   companion object {
     private const val MANIFEST_REPORT_SNAPSHOT_SUFFIX = "_manifest_report.html"
@@ -49,11 +55,9 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
   @get:Rule
   var testName = TestName()
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
-  override fun getAdditionalRepos(): Collection<File> = listOf()
+  fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData"
 
   override lateinit var snapshotDirectoryWorkspaceRelativePath: String
 
@@ -61,42 +65,48 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
 
   @Test
   fun testProject_navigationEditor_includeFromLib() {
-    testProject(TestProjectPaths.NAVIGATION_EDITOR_INCLUDE_FROM_LIB)
+    testProject(AndroidCoreTestProject.NAVIGATION_EDITOR_INCLUDE_FROM_LIB)
   }
   @Test
   fun testProject_withErrors_simpleApplicationMissingExport() {
-    testProject(TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT)
+    testProject(AndroidCoreTestProject.WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT)
   }
 
   @Test
   fun testProject_withErrors_simpleApplicationMultipleErrors() {
-    testProject(TestProjectPaths.WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS)
+    testProject(AndroidCoreTestProject.WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS)
   }
 
-  private fun testProject(projectPath : String) {
-    snapshotDirectoryWorkspaceRelativePath = Paths
-      .get(getTestDataDirectoryWorkspaceRelativePath())
-      .resolve(projectPath)
+  @Test
+  fun testProject_dynamicApp() {
+    testProject(AndroidCoreTestProject.DYNAMIC_APP, gradlePath = ":feature1")
+  }
+
+  private fun testProject(testProject : TemplateBasedTestProject, gradlePath: String = ":app") {
+    snapshotDirectoryWorkspaceRelativePath = testProject
+      .templateAbsolutePath
       .resolve("snapshots")
       .toString()
-    val projectRoot = prepareGradleProject(projectPath, "project")
-    openPreparedProject("project") { project ->
-      val appModule = project.gradleModule(":app")?.getMainModule() ?: error("Cannot find :app module")
-      val appModuleFacet = appModule.androidFacet ?: error("Cannot find the facet for :app")
+    val preparedProject = projectRule.prepareTestProject(testProject)
+    preparedProject.open { project ->
+      val appModule = project.gradleModule(gradlePath)?.getMainModule() ?: error("Cannot find $gradlePath module")
+      val appModuleFacet = appModule.androidFacet ?: error("Cannot find the facet for $gradlePath")
 
       val mergedManifest = MergedManifestManager.getMergedManifestSupplier(appModule).get().get(2, TimeUnit.SECONDS)
 
       lateinit var panel : ManifestPanel
 
+      var detailsPaneContent: String? = null
+      var manifestPaneContent: String? = null
       runInEdtAndWait {
         panel = ManifestPanel(appModuleFacet, projectRule.testRootDisposable)
         panel.showManifest(mergedManifest, appModuleFacet.sourceProviders.mainManifestFile!!, false)
+        detailsPaneContent = panel.detailsPane.text
+        val model: TreeModel? = panel.tree.model
+        manifestPaneContent = model?.transformToString()
       }
-      val detailsPaneContent = panel.detailsPane.text
-      val model: TreeModel? = panel.tree.model
-      val manifestPaneContent: String? = model?.transformToString()
 
-      ProjectDumper().nest(projectRoot, "PROJECT_DIR") {
+      ProjectDumper().nest(preparedProject.root, "PROJECT_DIR") {
         assertAreEqualToSnapshots(
           normalizeContentForTest(detailsPaneContent) to MANIFEST_REPORT_SNAPSHOT_SUFFIX,
           normalizeContentForTest(manifestPaneContent) to MERGED_MANIFEST_SHAPSHOT_SUFFIX
@@ -130,8 +140,8 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
     return fileAndPosition.substring(0, suffixPosition) to fileAndPosition.substring(suffixPosition, fileAndPosition.length)
   }
 
-  private fun TreeModel?.transformToString() : String? {
-    return if (this == null) {
+  private fun TreeModel?.transformToString() : String? =
+    if (this == null) {
       null
     } else {
       StringWriter().let {
@@ -142,5 +152,4 @@ class ManifestPanelContentTest : GradleIntegrationTest, SnapshotComparisonTest {
         it.buffer.toString()
       }
     }
-  }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
@@ -26,6 +26,7 @@ import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -51,6 +52,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.utils.Printer
 
 /**
@@ -81,7 +83,7 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  */
 class LightArgsKtClass(
-  private val navigationVersion: GradleVersion,
+  private val navigationVersion: Version,
   name: Name,
   private val destination: NavDestinationData,
   superTypes: Collection<KotlinType>,
@@ -95,6 +97,8 @@ class LightArgsKtClass(
   private val scope = storageManager.createLazyValue { ArgsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
+  override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
+
   override fun getConstructors() = listOf(_primaryConstructor())
   override fun getUnsubstitutedPrimaryConstructor() = _primaryConstructor()
   override fun getCompanionObjectDescriptor() = _companionObject()
@@ -132,6 +136,7 @@ class LightArgsKtClass(
       override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
       override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
       override fun getUnsubstitutedMemberScope() = companionObjectScope()
+      override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
 
       private inner class CompanionScope : MemberScopeImpl() {
         private val companionMethods = storageManager.createLazyValue {
@@ -231,7 +236,7 @@ class LightArgsKtClass(
             XmlSourceElement(
               SafeArgsXmlTag(
                 it as XmlTagImpl,
-                IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function),
+                IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
                 methodName,
                 argsClassDescriptor.fqNameSafe.asString()
               )

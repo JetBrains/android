@@ -32,8 +32,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.util.HashMap;
+import java.text.Collator;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Function;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
@@ -41,8 +42,8 @@ import org.jetbrains.annotations.Nullable;
 
 final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private final @NotNull VirtualDevice myDevice;
-  private final @NotNull ListenableFuture<@NotNull Device> myFuture;
-  private final @NotNull Function<@NotNull SummarySection, @NotNull FutureCallback<@NotNull Device>> myNewSummarySectionCallback;
+  private final @NotNull ListenableFuture<Device> myFuture;
+  private final @NotNull Function<SummarySection, FutureCallback<Device>> myNewSummarySectionCallback;
 
   private @Nullable InfoSection myPropertiesSection;
 
@@ -68,13 +69,17 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   }
 
   VirtualDeviceDetailsPanel(@NotNull VirtualDevice device, @Nullable Project project) {
-    this(device, new AsyncVirtualDeviceDetailsBuilder(project, device), VirtualDeviceDetailsPanel::newSummarySectionCallback);
+    this(device,
+         new AsyncVirtualDeviceDetailsBuilder(project, device),
+         VirtualDeviceDetailsPanel::newSummarySectionCallback,
+         WearPairingManager.getInstance());
   }
 
   @VisibleForTesting
   VirtualDeviceDetailsPanel(@NotNull VirtualDevice device,
                             @NotNull AsyncVirtualDeviceDetailsBuilder builder,
-                            @NotNull Function<@NotNull SummarySection, @NotNull FutureCallback<@NotNull Device>> newSummarySectionCallback) {
+                            @NotNull Function<SummarySection, FutureCallback<Device>> newSummarySectionCallback,
+                            @NotNull WearPairingManager manager) {
     super(device.getName());
 
     myDevice = device;
@@ -84,7 +89,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initScreenDiagram();
     initPropertiesSection();
 
-    InfoSection.newPairedDeviceSection(device, WearPairingManager.INSTANCE).ifPresent(myInfoSections::add);
+    InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
     if (myPropertiesSection != null) {
       myInfoSections.add(myPropertiesSection);
@@ -98,7 +103,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   }
 
   @VisibleForTesting
-  static @NotNull FutureCallback<@NotNull Device> newSummarySectionCallback(@NotNull SummarySection section) {
+  static @NotNull FutureCallback<Device> newSummarySectionCallback(@NotNull SummarySection section) {
     return new DeviceManagerFutureCallback<>(VirtualDeviceDetailsPanel.class, device -> {
       InfoSection.setText(section.myResolutionLabel, device.getResolution());
       InfoSection.setText(section.myDpLabel, device.getDp());
@@ -110,7 +115,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   @Override
   protected void initSummarySection() {
     SummarySection summarySection = new SummarySection();
-    InfoSection.setText(summarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiString());
+    InfoSection.setText(summarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiStringWithExtension());
 
     AvdInfo device = myDevice.getAvdInfo();
 
@@ -152,7 +157,8 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
       return;
     }
 
-    Map<String, String> properties = new HashMap<>(device.getProperties());
+    Map<String, String> properties = new TreeMap<>(Collator.getInstance());
+    properties.putAll(device.getProperties());
 
     properties.remove(AvdManager.AVD_INI_ABI_TYPE);
     properties.remove(AvdManager.AVD_INI_CPU_ARCH);
@@ -172,14 +178,16 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     myPropertiesSection.setLayout();
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull SummarySection getSummarySection() {
+  SummarySection getSummarySection() {
     assert mySummarySection != null;
     return (SummarySection)mySummarySection;
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull InfoSection getPropertiesSection() {
+  InfoSection getPropertiesSection() {
     assert myPropertiesSection != null;
     return myPropertiesSection;
   }

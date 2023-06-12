@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
+import com.android.tools.idea.gradle.project.sync.SyncTestMode
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchAllVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
@@ -32,6 +33,9 @@ import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.Sin
 import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
+private const val STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debug.mode"
+
+fun studioProjectSyncDebugModeEnabled(): Boolean = java.lang.Boolean.getBoolean(STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY)
 
 fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraModelProvider? {
   val project = this.externalSystemTaskId.findProject() ?: let {
@@ -49,7 +53,14 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
     studioFlagUseV2BuilderModels = StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),
     studioFlagDisableForcedUpgrades = AndroidGradleProjectResolver.shouldDisableForceUpgrades(),
-    studioFlagOutputSyncStats = StudioFlags.GRADLE_SYNC_OUTPUT_SYNC_STATS.get()
+    studioFlagOutputSyncStats = StudioFlags.GRADLE_SYNC_OUTPUT_SYNC_STATS.get(),
+    studioHprofOutputDirectory = StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.get(),
+    studioHeapAnalysisOutputDirectory = StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.get(),
+    studioHeapAnalysisLightweightMode = StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.get(),
+    studioFlagMultiVariantAdditionalArtifactSupport = StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get(),
+    studioDebugMode =  studioProjectSyncDebugModeEnabled(),
+    studioFlagSkipRuntimeClasspathForLibraries = StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get(),
+    studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(
@@ -63,15 +74,21 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
       val request = project.getProjectSyncRequest(projectPath)
       SingleVariantSyncActionOptions(
         studioFlags,
+        syncTestMode = request?.syncTestMode ?: SyncTestMode.PRODUCTION,
         selectedVariants,
         request?.requestedVariantChange,
         getAdditionalArtifactsAction()
       )
     }
-    FetchAllVariantsMode -> AllVariantsSyncActionOptions(studioFlags, getAdditionalArtifactsAction())
+    FetchAllVariantsMode -> AllVariantsSyncActionOptions(
+      studioFlags,
+      SyncTestMode.PRODUCTION, // No request in this mode.
+      getAdditionalArtifactsAction()
+    )
     is FetchNativeVariantsMode -> {
       NativeVariantsSyncActionOptions(
         studioFlags,
+        SyncTestMode.PRODUCTION, // No request in this mode.
         projectResolutionMode.moduleVariants,
         projectResolutionMode.requestedAbis
       )

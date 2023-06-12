@@ -31,7 +31,8 @@ import org.junit.runner.manipulation.Filter;
  * <p> Any parameterized tests need to take care of filtering themselves by inspecting the values of {@code OldAgpSuite.AGP_VERSION} and
  * {@code OldAgpSuite.GRADLE_VERSION}.
  *
- * <p>NOTE: If none of the configured shards providers the expected combination of the AGP and Gradle versions the test will silently not run.
+ * <p>NOTE: If none of the configured shards provides the expected combination of the AGP and Gradle versions the test will silently
+ * not run.
  */
 class OldAgpFilter extends Filter {
   private final String allowedGradleVersion;

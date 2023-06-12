@@ -1,6 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_1", "AGP_DATA")
 
 # managed by go/iml_to_build
 iml_module(
@@ -20,6 +21,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/base/build-analyzer/common:studio.android.build-analyzer.common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -30,6 +32,8 @@ iml_module(
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/build-attribution:build-analysis-results-proto",
     ],
 )
 
@@ -62,7 +66,7 @@ iml_module(
     test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
@@ -82,11 +86,13 @@ iml_module(
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/build-analyzer/common:studio.android.build-analyzer.common[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
@@ -97,21 +103,21 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/build-attribution:build-analysis-results-proto",
     ],
 )
 
 old_agp_test(
     name = "ConfigurationCachingCompatibilityAnalyzerTest",
     timeout = "long",
-    agp_version = "7.1.0",
+    agp_version = AGP_7_1,
     data = [
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/build-attribution/testData",
         "//tools/base/build-system:gradle-distrib",
-    ],
+    ] + AGP_DATA[AGP_7_1],
     gradle_version = "LATEST",
     ignore_other_tests = True,
     iml_module = ":intellij.android.build-attribution.tests",
@@ -151,4 +157,13 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
+)
+
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "build-analysis-results-proto",
+    jars = ["//tools/adt/idea/build-attribution/proto:build-analysis-results-proto.jar"],
+    visibility = ["//visibility:public"],
 )

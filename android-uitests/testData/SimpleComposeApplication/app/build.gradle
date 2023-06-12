@@ -17,7 +17,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 32
+    namespace "google.simpleapplication"
+    compileSdkVersion 33
     buildToolsVersion "23.0.2"
     useLibrary 'org.apache.http.legacy'
 

@@ -31,7 +31,8 @@ class RecentProcess(val device: IDevice, val packageName: String) {
     private val RECENT_PROCESS_KEY = Key.create<RecentProcess>("AppInspection.Recent.Process")
 
     fun get(project: Project): RecentProcess? = project.getUserData(RECENT_PROCESS_KEY)
-    fun set(project: Project, process: RecentProcess?) = project.putUserData(RECENT_PROCESS_KEY, process)
+    fun set(project: Project, process: RecentProcess?) =
+      project.putUserData(RECENT_PROCESS_KEY, process)
 
     fun isRecentProcess(process: ProcessDescriptor, project: Project): Boolean =
       get(project)?.matches(process) ?: false

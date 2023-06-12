@@ -19,6 +19,7 @@ import com.android.SdkConstants.FD_MAIN
 import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FD_SOURCES
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Splitter
@@ -44,7 +45,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
 
     @JvmStatic
     fun getInstance(facet: AndroidFacet): ResourceFolderManager {
-      return facet.module.getService(ResourceFolderManager::class.java)!!
+      return facet.module.getService(ResourceFolderManager::class.java)
     }
 
     @JvmField
@@ -136,27 +137,28 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
     }
   }
 
-
   private fun computeFolders(facet: AndroidFacet): Folders {
     return if (!AndroidModel.isRequired(facet)) {
       Folders(main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
     }
     else {
-      // Listen to root change events. Be notified when project is initialized so we can update the
-      // resource set, if necessary.
+      // Listen to root change events. Be notified when project is initialized, so we can update
+      // the resource set when necessary.
       readFromFacetState(facet)
     }
   }
 
   private fun readFromFacetState(facet: AndroidFacet): Folders {
-    val state = facet.configuration.state
-    val mainFolders = state.RES_FOLDERS_RELATIVE_PATH
+    // TODO(b/246530964): can we use SourceProviders to get this information?
+    val mainFolders = facet.mainModule.androidFacet?.configuration?.state?.RES_FOLDERS_RELATIVE_PATH
     return if (mainFolders != null) {
       // We have state saved in the facet.
       val manager = VirtualFileManager.getInstance()
       Folders(
         main = mainFolders.toVirtualFiles(manager),
-        test = state.TEST_RES_FOLDERS_RELATIVE_PATH?.toVirtualFiles(manager).orEmpty()
+        test = facet
+          .androidTestModule?.androidFacet?.configuration?.state?.TEST_RES_FOLDERS_RELATIVE_PATH?.toVirtualFiles(manager)
+          .orEmpty()
       )
     }
     else {

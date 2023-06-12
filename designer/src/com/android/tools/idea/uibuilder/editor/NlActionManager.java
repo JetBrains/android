@@ -50,6 +50,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -177,6 +178,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
         p.setVisible(true);
       }
     }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
+    }
   }
 
   @Override
@@ -281,15 +287,16 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
 
     // TODO: Perform caching
     List<AnAction> actions = new ArrayList<>();
+    ViewHandler leafHandler = null;
     if (leafComponent != null) {
-      ViewHandler handler = ViewHandlerManager.get(project).getHandler(leafComponent);
-      if (handler != null) {
-        actions.addAll(getViewActionsForHandler(leafComponent, selection, editor, handler, toolbar));
+      leafHandler = ViewHandlerManager.get(project).getHandler(leafComponent);
+      if (leafHandler != null) {
+        actions.addAll(getViewActionsForHandler(leafComponent, selection, editor, leafHandler, toolbar));
       }
     }
     if (parent != null) {
       ViewHandler handler = ViewHandlerManager.get(project).getHandler(parent);
-      if (handler != null) {
+      if (handler != null && leafHandler != handler) {
         List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(selection.size());
         // TODO(b/150297043): If the selected components have different parents, do we need to provide the view action from parents?
         for (NlComponent selected : selection) {
@@ -500,13 +507,13 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       // which is usually how the toolbar code is updated.
       //
       // So, instead we'll need to feed it the most recently known mask from the
-      // InteractionManager which observes mouse and keyboard events in the design surface.
+      // GuiInputHandler which observes mouse and keyboard events in the design surface.
       // This misses pure keyboard events when the design surface does not have focus
       // (but moving the mouse over the design surface updates it immediately.)
       //
       // (Longer term we consider having a singleton Toolkit listener which listens
       // for AWT events globally and tracks the most recent global modifier key state.)
-      int modifiersEx = mySurface.getInteractionManager().getLastModifiersEx();
+      int modifiersEx = mySurface.getGuiInputHandler().getLastModifiersEx();
 
       myCurrentPresentation = e.getPresentation();
       try {

@@ -36,6 +36,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.facet.AndroidFacet
+import java.io.File
 import java.nio.file.Path
 
 /**
@@ -43,6 +44,12 @@ import java.nio.file.Path
  * only apply to a specific [Project].
  */
 interface AndroidProjectSystem: ModuleHierarchyProvider {
+
+  /**
+   * Returns path to android.jar
+   */
+  fun getBootClasspath(module: Module): Collection<String>
+
   /**
    * Uses build-system-specific heuristics to locate the APK file produced by the given project, or null if none. The heuristics try
    * to determine the most likely APK file corresponding to the application the user is working on in the project's current configuration.
@@ -133,6 +140,12 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * @return all the application IDs of artifacts this project module is known to produce.
    */
   fun getKnownApplicationIds(project: Project): Set<String> = emptySet()
+
+  /**
+   * @return true if the project's build system supports building the app with a profiling mode flag (profileable, debuggable, etc.).
+   */
+  fun supportsProfilingMode() = false
+
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

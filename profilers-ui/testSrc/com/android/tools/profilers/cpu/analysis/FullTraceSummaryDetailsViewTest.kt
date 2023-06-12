@@ -15,16 +15,20 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -37,17 +41,23 @@ class FullTraceSummaryDetailsViewTest {
   }
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("FullTraceSummaryDetailsViewTest")
+  val applicationRule = ApplicationRule()
 
   @get:Rule
-  val applicationRule = ApplicationRule()
+  val disposableRule = DisposableRule()
+
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+
+  @get:Rule
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("FullTraceSummaryDetailsViewTest", transportService)
 
   private lateinit var profilersView: StudioProfilersView
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices())
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices())
+    profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test

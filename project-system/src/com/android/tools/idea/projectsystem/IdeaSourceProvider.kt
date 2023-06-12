@@ -72,6 +72,9 @@ interface IdeaSourceProvider {
   val mlModelsDirectoryUrls: Iterable<String>
   val mlModelsDirectories: Iterable<VirtualFile>
 
+  val baselineProfileDirectoryUrls: Iterable<String>
+  val baselineProfileDirectories: Iterable<VirtualFile>
+
   interface Custom {
     val directoryUrls: Iterable<String>
     val directories: Iterable<VirtualFile>

@@ -31,14 +31,13 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
+import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.util.containers.toArray
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import java.util.EnumSet
 
 class NlPropertiesModelTest: LayoutTestCase() {
 
@@ -123,7 +122,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
-    nlModel.surface.sceneManager!!.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
+    nlModel.surface.sceneManager!!.resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.EDIT))
     nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
@@ -275,6 +274,35 @@ class NlPropertiesModelTest: LayoutTestCase() {
     assertThat(model.updateCount).isNotEqualTo(lastUpdateCount)
   }
 
+  /**
+   * Regression test for b/247726011. When sharing one [MergingUpdateQueue], different [NlPropertiesModel] should still schedule one update
+   * per model. When sharing a queue, the updates would be folded into the one incorrectly.
+   */
+  fun testMultipleModelsSharingQueue() {
+    // setup
+    var generated = 0
+    val listener = object: PropertiesModelListener<NlPropertyItem> {
+      override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
+        generated++
+      }
+    }
+
+    val queue = MergingUpdateQueue("MQ", 100, false, null, testRootDisposable)
+    val model1 = NlPropertiesModel(testRootDisposable, myFacet, queue)
+    val model2 = NlPropertiesModel(testRootDisposable, myFacet, queue)
+    val nlModel = createNlModel(TEXT_VIEW)
+    model1.addListener(listener)
+    model2.addListener(listener)
+
+    // test
+    model1.surface = nlModel.surface
+    model2.surface = nlModel.surface
+    queue.resume()
+    waitUntilLastSelectionUpdateCompleted(model1)
+    waitUntilLastSelectionUpdateCompleted(model2)
+    assertEquals(2, generated)
+  }
+
   private fun createNlModel(vararg tag: String): SyncNlModel {
     val builder = model(
       "linear.xml",
@@ -291,7 +319,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
               .id("@id/$it")
               .width("wrap_content")
               .height("wrap_content")
-          }.toArray(emptyArray())
+          }.toTypedArray()
         )
     )
     return builder.build()
@@ -355,9 +383,11 @@ class NlPropertiesModelTest: LayoutTestCase() {
     // then we also need to wait for events on the UI thread.
     fun waitUntilLastSelectionUpdateCompleted(model: NlPropertiesModel) {
       model.updateQueue.flush()
-      while (!model.lastUpdateCompleted) {
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-      }
+      PlatformTestUtil.waitWithEventsDispatching(
+        "Model was not updated",
+        { model.lastUpdateCompleted },
+        10
+      );
     }
   }
 }

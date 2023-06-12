@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.adb.wireless
 
-import com.android.flags.junit.RestoreFlagRule
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.flags.junit.FlagRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.flags.StudioFlags
@@ -30,10 +30,10 @@ import org.junit.Test
 class PairDevicesUsingWiFiActionTest : LightPlatform4TestCase() {
   /** Ensures feature flag is reset after test */
   @get:Rule
-  val restoreFlagRule = RestoreFlagRule(StudioFlags.ADB_WIRELESS_PAIRING_ENABLED)
+  val FlagRule = FlagRule(StudioFlags.ADB_WIRELESS_PAIRING_ENABLED)
 
   @get:Rule
-  val portableUiFontRule = SetPortableUiFontRule()
+  val portableUiFontRule = PortableUiFontRule()
 
   override fun setUp() {
     super.setUp()

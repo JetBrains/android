@@ -19,7 +19,7 @@ import javax.swing.event.TableModelEvent;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatcher;
 
-public final class TableModelEventArgumentMatcher implements ArgumentMatcher<@NotNull TableModelEvent> {
+public final class TableModelEventArgumentMatcher implements ArgumentMatcher<TableModelEvent> {
   private final @NotNull TableModelEvent myExpectedEvent;
 
   public TableModelEventArgumentMatcher(@NotNull TableModelEvent expectedEvent) {

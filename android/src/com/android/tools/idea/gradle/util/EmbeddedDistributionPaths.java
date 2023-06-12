@@ -28,6 +28,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.util.system.CpuArch;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -173,18 +174,6 @@ public class EmbeddedDistributionPaths {
     return null;
   }
 
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(EmbeddedDistributionPaths.class);
-  }
-
-  @Nullable
-  private static File getDefaultRootDirPath() {
-    String ideHomePath = getIdeHomePath();
-    File rootDirPath = new File(ideHomePath, "gradle");
-    return rootDirPath.isDirectory() ? rootDirPath : null;
-  }
-
   @Nullable
   public Path tryToGetEmbeddedJdkPath() {
     try {
@@ -206,25 +195,53 @@ public class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      String jdkDevPath = System.getProperty("studio.dev.jdk", StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/jdk").toString());
-      String relativePath = FileUtilRt.toSystemDependentName(jdkDevPath);
-      Path jdkRootPath = Paths.get(relativePath, "jdk11");
-      if (SystemInfo.isWindows) {
-        jdkRootPath = jdkRootPath.resolve("win");
+      String embeddedJdkPath = System.getProperty("embedded.jdk.path", "prebuilts/studio/jdk/jdk17").trim();
+      Path jdkDir = getJdkRootPathFromSourcesRoot(embeddedJdkPath);
+
+      // Resolve real path
+      //
+      // Gradle prior to 6.9 don't work well with symlinks
+      // see https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
+      // see https://github.com/gradle/gradle/issues/12840
+      //
+      // [WARNING] This effective escapes Bazel's sandbox. Remove as soon as possible.
+      try {
+        Path wellKnownJdkFile = jdkDir.resolve("release");
+        jdkDir = wellKnownJdkFile.toRealPath().getParent();
       }
-      else if (SystemInfo.isLinux) {
-        jdkRootPath = jdkRootPath.resolve("linux");
+      catch (IOException ignore) {
       }
-      else if (SystemInfo.isMac) {
-        jdkRootPath = jdkRootPath.resolve("mac");
-      }
-      return getSystemSpecificJdkPath(jdkRootPath);
+      return jdkDir;
     } else {
       // Release build.
       String ideHomePath = getIdeHomePath();
       Path jdkRootPath = Paths.get(ideHomePath, "jbr");
       return getSystemSpecificJdkPath(jdkRootPath);
     }
+  }
+
+  @NotNull
+  public static Path getJdkRootPathFromSourcesRoot(String embeddedJdkPath) {
+    Path jdkRootPath = StudioPathManager.resolvePathFromSourcesRoot(embeddedJdkPath);
+    if (SystemInfo.isWindows) {
+      if (embeddedJdkPath.endsWith("jdk")) { // our prebuilt JDK 1.8: has distinct win32/win64.  In practice we will want win64 always.
+        jdkRootPath = jdkRootPath.resolve("win64");
+      }
+      else {
+        jdkRootPath = jdkRootPath.resolve("win");
+      }
+    }
+    else if (SystemInfo.isLinux) {
+      jdkRootPath = jdkRootPath.resolve("linux");
+    }
+    else if (SystemInfo.isMac && CpuArch.isArm64()) {
+      jdkRootPath = jdkRootPath.resolve("mac-arm64");
+    }
+    else if (SystemInfo.isMac) {
+      jdkRootPath = jdkRootPath.resolve("mac");
+    }
+    Path jdkDir = getSystemSpecificJdkPath(jdkRootPath);
+    return jdkDir;
   }
 
   @NotNull

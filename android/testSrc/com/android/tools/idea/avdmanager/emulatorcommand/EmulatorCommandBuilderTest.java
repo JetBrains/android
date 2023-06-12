@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.intellij.execution.configurations.GeneralCommandLine;
@@ -155,5 +156,62 @@ public final class EmulatorCommandBuilderTest {
 
     // Assert
     assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -param-1 -param-2 -param-3", command.getCommandLineString());
+  }
+
+  @Test
+  public void buildAvdCommandLineOptions_Disabled() {
+    // Arrange
+    StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false);
+    Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn("-some random -options");
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
+
+    // Act
+    GeneralCommandLine command = builder.build();
+
+    // Assert
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30", command.getCommandLineString());
+  }
+
+  @Test
+  public void buildAvdCommandLineOptions_Enabled() {
+    // Arrange
+    StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true);
+    Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn("-some random -options");
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
+
+    // Act
+    GeneralCommandLine command = builder.build();
+
+    // Assert
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -some random -options", command.getCommandLineString());
+  }
+
+  @Test
+  public void buildAvdCommandLineOptionsHandlesNullInput() {
+    // Arrange
+    StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true);
+    Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn(null);
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
+
+    // Act
+    GeneralCommandLine command = builder.build();
+
+    // Assert
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30", command.getCommandLineString());
+  }
+
+  @Test
+  public void buildAvdCommandLineOptionsIsSanitized() {
+    // Arrange
+    StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true);
+    Mockito.when(myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)).thenReturn("  -some\nrandom  \n unsanitized  -options \n ");
+    EmulatorCommandBuilder builder = new EmulatorCommandBuilder(myEmulator, myAvd);
+
+    // Act
+    GeneralCommandLine command = builder.build();
+
+    // Assert
+    assertEquals("/home/user/Android/Sdk/emulator/emulator -avd Pixel_4_API_30 -some random unsanitized -options",
+                 command.getCommandLineString());
   }
 }

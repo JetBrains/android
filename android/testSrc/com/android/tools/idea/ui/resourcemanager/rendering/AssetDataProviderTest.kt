@@ -22,7 +22,7 @@ import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.Asset
@@ -137,7 +137,7 @@ class AssetDataProviderTest {
     val resValue = "one: %s coin, other: %s coins"
     val resTruncatedValue = "one: %s coin, oth..."
 
-    val pluralResource = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+    val pluralResource = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
       ResourceNamespace.RES_AUTO, ResourceType.PLURALS).values().first()
     val designAsset = Asset.fromResourceItem(pluralResource) as DesignAsset
 
@@ -165,7 +165,7 @@ class AssetDataProviderTest {
     val resValue = "item 1, item 2, item 3"
     val resTruncatedValue = "item 1, item 2, i..."
 
-    val stringArray = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+    val stringArray = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
       ResourceNamespace.RES_AUTO, ResourceType.ARRAY).values().first { it.name == "string_array" }
     val designAsset = Asset.fromResourceItem(stringArray) as DesignAsset
 
@@ -192,7 +192,7 @@ class AssetDataProviderTest {
     val fileName = "arrays.xml"
     val resValue = "1, 2, 3"
 
-    val stringArray = ResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
+    val stringArray = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
       ResourceNamespace.RES_AUTO, ResourceType.ARRAY).values().first { it.name == "integer_array" }
     val designAsset = Asset.fromResourceItem(stringArray) as DesignAsset
 

@@ -22,6 +22,7 @@ import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshAndFindFileByIoFile;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -31,7 +32,6 @@ import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.refreshAndFindChild;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL;
 import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
@@ -42,14 +42,17 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
+import com.android.tools.sdk.Annotations;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.JdkOrderEntry;
@@ -71,9 +74,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import java.util.Locale;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +106,7 @@ public class AndroidSdks {
   @Nullable
   public Sdk findSuitableAndroidSdk(@NotNull String targetHash) {
     for (Sdk sdk : getAllAndroidSdks()) {
-      AndroidSdkAdditionalData originalData = getAndroidSdkAdditionalData(sdk);
+      AndroidSdkAdditionalData originalData = AndroidSdkAdditionalData.from(sdk);
       if (originalData == null) {
         continue;
       }
@@ -113,12 +116,6 @@ public class AndroidSdks {
     }
 
     return null;
-  }
-
-  @Nullable
-  public AndroidSdkAdditionalData getAndroidSdkAdditionalData(@NotNull Sdk sdk) {
-    SdkAdditionalData data = sdk.getSdkAdditionalData();
-    return data instanceof AndroidSdkAdditionalData ? (AndroidSdkAdditionalData)data : null;
   }
 
   public void setSdkData(@Nullable AndroidSdkData data) {
@@ -165,7 +162,7 @@ public class AndroidSdks {
   public Collection<File> getAndroidSdkPathsFromExistingPlatforms() {
     List<File> result = new ArrayList<>();
     for (Sdk androidSdk : getAllAndroidSdks()) {
-      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
+      AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(androidSdk);
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
         File sdkPath = androidPlatform.getSdkData().getLocationFile();
@@ -203,17 +200,23 @@ public class AndroidSdks {
 
   @Nullable
   public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, boolean addRoots) {
-    Sdk jdk = getJdk();
-    return jdk != null ? create(target, sdkPath, jdk, addRoots) : null;
+    return create(target, sdkPath, chooseNameForNewLibrary(target), addRoots);
   }
 
   @Nullable
-  public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull Sdk jdk, boolean addRoots) {
-    return create(target, sdkPath, chooseNameForNewLibrary(target), jdk, addRoots);
-  }
+  public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull String sdkName, boolean addRoots) {
+    int androidPlatformToAutocreate = StudioFlags.ANDROID_PLATFORM_TO_AUTOCREATE.get();
+    if (androidPlatformToAutocreate > 0) {
+      int actualLevel = target.getVersion().getApiLevel();
+      if (actualLevel != androidPlatformToAutocreate) {
+        throw new IllegalStateException(String.format(
+          Locale.US,
+          "Created an Android platform with API-level==%d, but expected to create one with API-level==%d. This could mean that you need to " +
+          "manifest an additional dependency.",
+          actualLevel, androidPlatformToAutocreate));
+      }
+    }
 
-  @Nullable
-  public Sdk create(@NotNull IAndroidTarget target, @NotNull File sdkPath, @NotNull String sdkName, @NotNull Sdk jdk, boolean addRoots) {
     if (!target.getAdditionalLibraries().isEmpty()) {
       // Do not create an IntelliJ SDK for add-ons. Add-ons should be handled as module-level library dependencies.
       // Instead, create the add-on parent, if missing
@@ -230,7 +233,7 @@ public class AndroidSdks {
 
     Sdk sdk = table.createSdk(tempName, AndroidSdkType.getInstance());
 
-    SdkModificator sdkModificator = getAndInitialiseSdkModificator(sdk, target, jdk);
+    SdkModificator sdkModificator = getAndInitialiseSdkModificator(sdk, target);
     sdkModificator.setHomePath(toSystemIndependentName(sdkPath.getPath()));
     setUpSdkAndCommit(sdkModificator, sdkName, Arrays.asList(table.getAllJdks()), addRoots);
 
@@ -241,22 +244,17 @@ public class AndroidSdks {
   public void setUpSdk(@NotNull Sdk androidSdk,
                        @NotNull IAndroidTarget target,
                        @NotNull String sdkName,
-                       @NotNull Collection<Sdk> allSdks,
-                       @Nullable Sdk jdk) {
-    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target, jdk), sdkName, allSdks, true /* add roots */);
+                       @NotNull Collection<Sdk> allSdks) {
+    setUpSdkAndCommit(getAndInitialiseSdkModificator(androidSdk, target), sdkName, allSdks, true /* add roots */);
   }
 
   @NotNull
   private static SdkModificator getAndInitialiseSdkModificator(@NotNull Sdk androidSdk,
-                                                               @NotNull IAndroidTarget target,
-                                                               @Nullable Sdk jdk) {
+                                                               @NotNull IAndroidTarget target) {
     SdkModificator sdkModificator = androidSdk.getSdkModificator();
-    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(androidSdk, jdk);
+    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(androidSdk);
     data.setBuildTarget(target);
     sdkModificator.setSdkAdditionalData(data);
-    if (jdk != null) {
-      sdkModificator.setVersionString(jdk.getVersionString());
-    }
     return sdkModificator;
   }
 
@@ -373,7 +371,7 @@ public class AndroidSdks {
     }
 
     // Explicitly add annotations.jar unless the target platform already provides it (API16+).
-    if (sdkPath != null && needsAnnotationsJarInClasspath(target)) {
+    if (sdkPath != null && Annotations.needsAnnotationsJarInClasspath(target)) {
       File annotationsJarPath = new File(sdkPath, FileUtilRt.toSystemDependentName(ANNOTATIONS_JAR_RELATIVE_PATH));
       VirtualFile annotationsJar = findFileInJarFileSystem(annotationsJarPath.getPath());
       if (annotationsJar != null) {
@@ -483,15 +481,6 @@ public class AndroidSdks {
   }
 
   /**
-   * Indicates whether annotations.jar needs to be added to the classpath of an Android SDK. annotations.jar is not needed for API 16
-   * or newer. The annotations are already included in android.jar.
-   */
-  public boolean needsAnnotationsJarInClasspath(@NotNull IAndroidTarget target) {
-    return target.getVersion().getApiLevel() <= 15;
-  }
-
-
-  /**
    * Refresh the library {@link VirtualFile}s in the given {@link Sdk}.
    * <p>
    * After changes to installed Android SDK components, the contents of the {@link Sdk}s do not automatically get refreshed.
@@ -539,9 +528,5 @@ public class AndroidSdks {
   private static VirtualFile getVirtualFile(@NotNull PsiElement element) {
     PsiFile file = element.getContainingFile();
     return file != null ? file.getVirtualFile() : null;
-  }
-
-  Sdk getJdk() {
-    return IdeSdks.getInstance().getJdk();
   }
 }

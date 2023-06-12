@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.drawable
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.configurations.ThemeMenuAction
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundMenuAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -32,9 +31,7 @@ class DrawableActionGroups(surface: DesignSurface<*>) : ToolbarActionGroups(surf
     // TODO(b/136258816): Update to support multi-model
     return DefaultActionGroup().apply {
       add(ThemeMenuAction(mySurface::getConfiguration))
-      if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
-        add(DrawableBackgroundMenuAction())
-      }
+      add(DrawableBackgroundMenuAction())
     }
   }
 }

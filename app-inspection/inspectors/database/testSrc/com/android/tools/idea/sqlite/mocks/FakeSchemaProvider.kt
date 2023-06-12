@@ -19,6 +19,6 @@ import com.android.tools.idea.sqlite.SchemaProvider
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 
-class FakeSchemaProvider: SchemaProvider {
+class FakeSchemaProvider : SchemaProvider {
   override fun getSchema(databaseId: SqliteDatabaseId): SqliteSchema? = null
 }

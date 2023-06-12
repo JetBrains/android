@@ -32,7 +32,7 @@ import java.awt.Insets;
  * <p>These concepts are effectively deprecated and should now exist in appropriate locations inside the com.android.tools.idea.ui.wizard
  * package.
  */
-public final class WizardConstants {
+public class WizardConstants {
 
   // Colors
   /**
@@ -65,7 +65,6 @@ public final class WizardConstants {
   // State Store Keys
   // TODO After the wizard migration delete as many of these keys as possible
   public static final Key<String> KEY_SDK_INSTALL_LOCATION = createKey("download.sdk.location", WIZARD, String.class);
-  public static final Key<String> KEY_JDK_LOCATION = createKey("wizard.jdk.location", WIZARD, String.class);
   // TODO: change this an IntProperty, see com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep#checkForUpgrades
   public static final Key<Integer> NEWLY_INSTALLED_API_KEY = createKey("newly.installed.api.level", WIZARD, Integer.class);
 }

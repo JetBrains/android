@@ -23,8 +23,8 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This is to be shown as the first GVM/HAXM Wizard step just to inform the user that
- * GVM/HAXM uninstallation is about to start. It is here just to make sure we don't
+ * This is to be shown as the first AEHD/HAXM Wizard step just to inform the user that
+ * AEHD/HAXM uninstallation is about to start. It is here just to make sure we don't
  * run uninstallation operations straight away as the first wizard step, as this
  * would not be in line with common wizard conventions
  * @deprecated use {@link com.android.tools.idea.welcome.wizard.VmUninstallInfoStep}

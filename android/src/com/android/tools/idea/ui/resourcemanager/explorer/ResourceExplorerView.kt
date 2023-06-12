@@ -63,6 +63,7 @@ class ResourceExplorerView(
     tabbedPane.addChangeListener { event ->
       val index = (event.source as JTabbedPane).model.selectedIndex
       viewModel.resourceTypeIndex = index
+      this.requestFocus()
     }
   }
 

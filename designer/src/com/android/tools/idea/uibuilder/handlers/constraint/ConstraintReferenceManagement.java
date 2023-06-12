@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Keep references in a constraints tag up to date
  */
-final class ConstraintReferenceManagement {
+class ConstraintReferenceManagement {
 
   /**
    * Make sure that the component is present in the constraints

@@ -22,7 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.SwapInfo;
@@ -33,7 +33,8 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,7 +126,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   public static @Nullable LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
                                                             @Nullable ExecutionEnvironment env,
                                                             @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    AndroidPlatform platform = AndroidPlatforms.getInstance(facet.getModule());
     if (platform == null) {
       return null;
     }
@@ -142,7 +143,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   }
 
   private static AndroidVersion getMinSdkVersion(@NotNull AndroidFacet facet) {
-    ListenableFuture<AndroidVersion> minSdkVersionFuture = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    ListenableFuture<AndroidVersion> minSdkVersionFuture = StudioAndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     if (minSdkVersionFuture.isDone()) {
       try {
         return minSdkVersionFuture.get();

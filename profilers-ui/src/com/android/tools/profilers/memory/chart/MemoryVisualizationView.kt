@@ -158,7 +158,7 @@ class MemoryVisualizationView(private val selection: MemoryCaptureSelection,
   private fun createAxis(formatter: BaseAxisFormatter,
                          range: Range): AxisComponent {
     val axisModel: AxisComponentModel = ResizingAxisComponentModel.Builder(range, formatter).build()
-    val axis = AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM)
+    val axis = AxisComponent(axisModel, AxisComponent.AxisOrientation.BOTTOM, true)
     axis.setShowAxisLine(false)
     axis.setMarkerColor(ProfilerColors.CPU_AXIS_GUIDE_COLOR)
     axis.addComponentListener(object : ComponentAdapter() {

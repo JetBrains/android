@@ -21,7 +21,6 @@ import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorBase
-import gnu.trove.TObjectIntHashMap
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.junit.After
 import org.junit.Assert.assertEquals

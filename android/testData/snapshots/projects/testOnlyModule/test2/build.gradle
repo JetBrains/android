@@ -17,7 +17,6 @@ apply plugin: 'com.android.test'
 
 android {
   compileSdkVersion 19
-  buildToolsVersion '19.1.0'
 
   defaultConfig {
     minSdkVersion 15

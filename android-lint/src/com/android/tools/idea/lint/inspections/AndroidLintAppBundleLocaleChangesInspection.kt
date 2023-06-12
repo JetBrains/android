@@ -19,5 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.AppBundleLocaleChangesDetector
 
-class AndroidLintAppBundleLocaleChangesInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.appbundle.locales"), AppBundleLocaleChangesDetector.ISSUE)
+class AndroidLintAppBundleLocaleChangesInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.appbundle.locales"),
+    AppBundleLocaleChangesDetector.ISSUE
+  )

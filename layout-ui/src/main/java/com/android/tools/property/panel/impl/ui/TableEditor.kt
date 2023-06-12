@@ -25,6 +25,7 @@ import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.TableRowEditListener
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
+import com.android.tools.property.ptable.ColumnFraction
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableCellEditorProvider
 import com.android.tools.property.ptable.PTableCellRendererProvider
@@ -50,9 +51,11 @@ private const val MINIMUM_ROW_HEIGHT = 20
 class TableEditor(val lineModel: TableLineModelImpl,
                   rendererProvider: PTableCellRendererProvider,
                   editorProvider: PTableCellEditorProvider,
-                  val actions: List<AnAction> = emptyList()) {
+                  val actions: List<AnAction> = emptyList(),
+                  nameColumnFraction: ColumnFraction = ColumnFraction()) {
 
-  private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider, { getToolTipText(it) }, ::updateUI)
+  private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider, { getToolTipText(it) }, ::updateUI,
+                                    nameColumnFraction)
   val component = table.component as JTable
 
   init {

@@ -26,8 +26,12 @@ import com.android.testutils.TestUtils;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.rendering.NoSecurityManagerRenderService;
+import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
@@ -78,18 +82,20 @@ public class PreviewProviderTest extends LayoutTestCase {
     when(surface.getFocusedSceneView()).thenReturn(screenView);
     when(surface.getScale()).thenReturn(1.0);
     when(surface.getScreenScalingFactor()).thenReturn(1.0);
+    LayoutlibSceneManager manager = (LayoutlibSceneManager)model.getSurface().getSceneManager();
+    when(manager.getSceneScalingFactor()).thenReturn(1.0f);
     myPreviewProvider = new PreviewProvider(() -> surface, dependencyManager);
     myPreviewProvider.setRenderTimeoutMillis(TimeUnit.MINUTES.toMillis(1));
     RenderService.shutdownRenderExecutor(5);
     RenderService.initializeRenderExecutor();
-    RenderService.setForTesting(getProject(), new MyRenderService(getProject()));
+    StudioRenderService.setForTesting(getProject(), NoSecurityManagerRenderService.createNoSecurityRenderService());
     IconLoader.activate();
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
-      RenderService.setForTesting(getProject(), null);
+      StudioRenderService.setForTesting(getProject(), null);
       IconLoader.deactivate();
       myPreviewProvider = null;
       myTextViewItem = null;
@@ -143,22 +149,6 @@ public class PreviewProviderTest extends LayoutTestCase {
   private static void waitFor(@Nullable Future<?> future) throws Exception {
     if (future != null) {
       future.get();
-    }
-  }
-
-  // Disable security manager during tests (for bazel)
-  private static class MyRenderService extends RenderService {
-
-    public MyRenderService(@NotNull Project project) {
-      super(project);
-    }
-
-
-    @Override
-    @NotNull
-    public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
-      return super.taskBuilder(facet, configuration)
-        .disableSecurityManager();
     }
   }
 }

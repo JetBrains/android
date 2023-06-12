@@ -20,10 +20,11 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.deployable.Deployable;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,7 +51,7 @@ public abstract class Device {
     @Nullable
     String myName;
 
-    @Nullable LaunchCompatibility myLaunchCompatibility;
+    @NotNull LaunchCompatibility myLaunchCompatibility = LaunchCompatibility.YES;
 
     @Nullable
     Key myKey;
@@ -61,11 +62,7 @@ public abstract class Device {
     @Nullable
     AndroidDevice myAndroidDevice;
 
-    @Nullable Type myType;
-
-    Builder() {
-      myLaunchCompatibility = LaunchCompatibility.YES;
-    }
+    @NotNull Type myType = Type.PHONE;
 
     @NotNull
     abstract Device build();
@@ -101,7 +98,7 @@ public abstract class Device {
     return myName;
   }
 
-  abstract @NotNull Collection<@NotNull Snapshot> getSnapshots();
+  abstract @NotNull Collection<Snapshot> getSnapshots();
 
   /**
    * A physical device will always return a serial number. A virtual device will usually return a virtual device path. But if Studio doesn't
@@ -110,6 +107,7 @@ public abstract class Device {
    * the IDevice returned.
    */
   @NotNull
+  @SuppressWarnings("GrazieInspection")
   public final Key getKey() {
     return myKey;
   }
@@ -121,7 +119,7 @@ public abstract class Device {
 
   abstract @NotNull Target getDefaultTarget();
 
-  abstract @NotNull Collection<@NotNull Target> getTargets();
+  abstract @NotNull Collection<Target> getTargets();
 
   @NotNull
   final AndroidDevice getAndroidDevice() {
@@ -129,16 +127,21 @@ public abstract class Device {
   }
 
   @NotNull
-  abstract Future<AndroidVersion> getAndroidVersion();
+  abstract ListenableFuture<AndroidVersion> getAndroidVersionAsync();
 
-  final boolean isRunning(@NotNull String appPackage) {
+  final @NotNull ListenableFuture<Boolean> isRunningAsync(@NotNull String appPackage) {
     if (!isConnected()) {
-      return false;
+      return Futures.immediateFuture(false);
     }
 
-    IDevice device = getDdmlibDevice();
-    assert device != null;
+    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
+    // executor. But we don't have access to the Action Updater (Common) executor.
 
+    // noinspection UnstableApiUsage
+    return Futures.transform(getDdmlibDeviceAsync(), device -> isRunning(device, appPackage), MoreExecutors.directExecutor());
+  }
+
+  private static boolean isRunning(@NotNull IDevice device, @NotNull String appPackage) {
     if (!device.isOnline()) {
       return false;
     }
@@ -146,20 +149,14 @@ public abstract class Device {
     return !Deployable.searchClientsForPackage(device, appPackage).isEmpty();
   }
 
-  @Nullable
-  final IDevice getDdmlibDevice() {
+  final @NotNull ListenableFuture<IDevice> getDdmlibDeviceAsync() {
     AndroidDevice device = getAndroidDevice();
 
     if (!device.isRunning()) {
-      return null;
+      throw new RuntimeException(device + " is not running");
     }
 
-    try {
-      return device.getLaunchedDevice().get();
-    }
-    catch (InterruptedException | ExecutionException exception) {
-      throw new AssertionError(exception);
-    }
+    return device.getLaunchedDevice();
   }
 
   @NotNull
@@ -168,7 +165,8 @@ public abstract class Device {
     return myName;
   }
 
-  @NotNull Type getType() {
+  @NotNull
+  final Type getType() {
     return myType;
   }
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea
 
 import com.android.tools.idea.actions.DesignerActions
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.util.Conditions
 import com.intellij.testFramework.JavaProjectTestCase
 import junit.framework.TestCase
@@ -36,16 +35,6 @@ private val DESIGNER_SHORTCUT_ACTIONS = arrayListOf(
 )
 
 class DesignerKeymapExtensionTest : JavaProjectTestCase() {
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.NELE_CUSTOM_SHORTCUT_KEYMAP.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.NELE_CUSTOM_SHORTCUT_KEYMAP.clearOverride()
-    super.tearDown()
-  }
 
   fun testKeySectionAdded() {
     val extension = DesignerKeymapExtension()

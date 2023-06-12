@@ -25,15 +25,13 @@ import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.LibraryFolder;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
+import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider;
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.java.DexGroupNode;
-import com.android.tools.idea.navigator.nodes.apk.ndk.LibFolderNode;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
@@ -49,6 +47,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -85,22 +85,9 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     myDexFiles = new ArrayList<>();
 
     if (apkRootFile != null) {
-      // Refresh the root so that it can find the most recent contents of the directory. This
-      // identifies any added/removed .dex files to the directory via APK reload.
-      ApplicationManager.getApplication().invokeLater(() ->
-        WriteAction.run(() ->
-          apkRootFile.refresh(false, true)
-        )
-      );
       Pattern dexFilePattern = Pattern.compile(REGEX_APK_CLASSES_DEX);
       for (VirtualFile child : apkRootFile.getChildren()) {
         if (dexFilePattern.matcher(child.getName()).matches()) {
-          // We refresh dex files in case any changes to it were not picked up.
-          ApplicationManager.getApplication().invokeLater(() ->
-            WriteAction.run(() ->
-              child.refresh(false, false)
-            )
-          );
           myDexFiles.add(child);
         }
       }
@@ -149,12 +136,14 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     }
     children.add(myDexGroupNode);
 
-    // "Native libraries" folder
-    VirtualFile found = LibraryFolder.findIn(myProject);
-    if (found != null) {
-      children.add(new LibFolderNode(myProject, found, settings));
-    }
-
+    children.addAll(
+      AndroidViewNodeProvider.getProviders().stream()
+        .flatMap(it -> {
+          final var providedChildren = it.getApkModuleChildren(getModule(), settings);
+          return providedChildren != null ? providedChildren.stream() : Stream.empty();
+        })
+        .collect(Collectors.toList())
+    );
     return children;
   }
 

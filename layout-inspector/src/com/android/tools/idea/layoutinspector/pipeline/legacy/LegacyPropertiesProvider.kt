@@ -108,6 +108,7 @@ class LegacyPropertiesProvider : PropertiesProvider {
       view.layoutBounds.y = (table.remove(ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - parentScrollY
       view.layoutBounds.width = table.remove(ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
       view.layoutBounds.height = table.remove(ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
+      view.renderBounds = view.layoutBounds
       view.textValue = table[ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""
       val url = table[ANDROID_URI, ATTR_ID]?.value?.let { ResourceUrl.parse(it) }
       view.viewId = url?.let { ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, it.name) }

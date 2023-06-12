@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedDependency
 import com.android.tools.idea.gradle.structure.model.PsResolvedLibraryDependency
+import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.dependencyVersionValues
 import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.ModelDescriptor
@@ -36,6 +37,7 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.CaseFormat
 import kotlin.reflect.KProperty
 
@@ -56,6 +58,8 @@ open class PsDeclaredLibraryAndroidDependency(
     this.parsedModel = parsedModel
   }
 
+  override fun canExtractVariable(): Boolean = !parsedModel.isVersionCatalogDependency
+
   override val isDeclared: Boolean = true
   final override val configurationName: String get() = parsedModel.configurationName()
   override val joinedConfigurationNames: String get() = configurationName
@@ -75,7 +79,7 @@ open class PsDeclaredLibraryAndroidDependency(
   object Descriptor : ModelDescriptor<PsDeclaredLibraryAndroidDependency, Nothing, ArtifactDependencyModel> {
     override fun getResolved(model: PsDeclaredLibraryAndroidDependency): Nothing? = null
 
-    override fun getParsed(model: PsDeclaredLibraryAndroidDependency): ArtifactDependencyModel = model.parsedModel
+    override fun getParsed(model: PsDeclaredLibraryAndroidDependency): ArtifactDependencyModel? = model.parsedModel
 
     override fun prepareForModification(model: PsDeclaredLibraryAndroidDependency) = Unit
 
@@ -105,10 +109,18 @@ open class PsDeclaredLibraryAndroidDependency(
       setter = { setValue(it) },
       parser = ::parseString,
       knownValuesGetter = ::dependencyVersionValues,
-      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE
+      variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
+      variableScope = { versionScope() },
     )
-
     override val properties: Collection<ModelProperty<PsDeclaredLibraryAndroidDependency, *, *, *>> = listOf(version)
+  }
+
+  @VisibleForTesting
+  fun versionScope(): PsVariablesScope {
+    val dependencyLocation = DependencyResultLocation(parsedModel)
+    // Heading to root project, trying to find build/catalog file our artifact declaration came from.
+    // File we find has the proper variable scope for artifact declaration.
+    return parent.findScopeByDependencyLocation(dependencyLocation) ?: parent.variables
   }
 }
 
@@ -119,8 +131,8 @@ open class PsResolvedLibraryAndroidDependency(
   val artifact: PsAndroidArtifact,
   override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>
 ) : PsLibraryAndroidDependency(parent), PsResolvedDependency, PsResolvedLibraryDependency {
-  internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
-  override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
+  internal val transitiveDependencies = mutableListOf<PsArtifactDependencySpec>()
+  override val isDeclared: Boolean get() = declaredDependencies.isNotEmpty()
 
   override fun hasPromotedVersion(): Boolean = getReverseDependencies().any { it.isPromoted }
 
@@ -128,11 +140,11 @@ open class PsResolvedLibraryAndroidDependency(
     artifact.dependencies.reverseDependencies[spec.toLibraryKey()].orEmpty()
 
   override fun getTransitiveDependencies(): Set<PsResolvedLibraryAndroidDependency> =
-    pomDependencies.flatMap { artifact.dependencies.findLibraryDependencies(it.group, it.name) }.toSet()
+    transitiveDependencies.flatMap { artifact.dependencies.findLibraryDependencies(it.group, it.name) }.toSet()
 
-  internal fun setDependenciesFromPomFile(value: List<PsArtifactDependencySpec>) {
-    pomDependencies.clear()
-    pomDependencies.addAll(value)
+  internal fun setTransitiveDependencies(value: List<PsArtifactDependencySpec>) {
+    transitiveDependencies.clear()
+    transitiveDependencies.addAll(value)
   }
 }
 

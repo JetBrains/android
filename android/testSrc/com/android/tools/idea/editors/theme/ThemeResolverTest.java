@@ -24,18 +24,18 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.res.ResourceNamespacing;
+import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 
 public class ThemeResolverTest extends AndroidTestCase {
   /*
@@ -68,7 +68,7 @@ public class ThemeResolverTest extends AndroidTestCase {
 
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(file);
-    ResourceNamespace moduleNamespace = ResourceRepositoryManager.getInstance(myModule).getNamespace();
+    ResourceNamespace moduleNamespace = StudioResourceRepositoryManager.getInstance(myModule).getNamespace();
 
     ThemeResolver resolver = new ThemeResolver(configuration);
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V20OnlyTheme")));
@@ -145,7 +145,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
 
     ResourceNamespace appcompatNamespace =
-      ResourceRepositoryManager.getInstance(myModule).getNamespacing() == Namespacing.DISABLED
+      StudioResourceRepositoryManager.getInstance(myModule).getNamespacing() == ResourceNamespacing.DISABLED
         ? ResourceNamespace.RES_AUTO
         : ResourceNamespace.APPCOMPAT;
     VirtualFile layoutFile = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");

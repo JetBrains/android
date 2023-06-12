@@ -1,0 +1,27 @@
+======== INSTANCES OF EACH NOMINATED CLASS ========
+CLASS: Observed1 (1 objects)
+Root 1:
+[    1/100%/    8B]    32B          1   ROOT: Unknown
+[    1/100%/    8B]    32B          1   (root): DisposableParent1
+[    1/100%/    8B]     8B          1 * field: Observed1
+
+CLASS: Observed2 (1 objects)
+Root 1:
+[    1/100%/    8B]    64B          1   ROOT: Global JNI
+[    1/100%/    8B]    64B          1   (root): C2
+[    1/100%/    8B]    48B          1   field: DisposableParent2
+[    1/100%/    8B]     8B          1 * field: Observed2
+
+CLASS: Observed3 (1 objects)
+Root 1:
+[    1/100%/    8B]    64B          1   ROOT: Global JNI
+[    1/100%/    8B]    64B          1   (root): C2
+[    1/100%/    8B]    48B          1   field: DisposableParent2
+[    1/100%/    8B]     8B          1 * field2: Observed3
+
+================= DISPOSED OBJECTS ================
+Count of disposed-but-strong-referenced objects: 0
+
+Disposed-but-strong-referenced dominator object count: 0
+Disposed-but-strong-referenced dominator sub-graph size: 0B
+

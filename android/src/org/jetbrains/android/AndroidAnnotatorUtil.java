@@ -30,11 +30,10 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
@@ -82,12 +81,13 @@ import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.psi.KtExpression;
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
+import org.jetbrains.kotlin.psi.KtPsiFactoryKt;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Static methods to be used by Android annotators.
  */
-public final class AndroidAnnotatorUtil {
+public class AndroidAnnotatorUtil {
   static final int MAX_ICON_FILE_SIZE = 20000;
   private static final String SET_COLOR_COMMAND_NAME = "Change Color";
   private static final int ICON_SIZE = 8;
@@ -133,7 +133,7 @@ public final class AndroidAnnotatorUtil {
       switch (tagName) {
         case "vector": {
           // Take a look and see if we have a bitmap we can fall back to.
-          LocalResourceRepository resourceRepository = ResourceRepositoryManager.getAppResources(facet);
+          LocalResourceRepository resourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
             resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {
@@ -261,7 +261,7 @@ public final class AndroidAnnotatorUtil {
     }
 
     VirtualFile nearestConfigurationFile;
-    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet);
+    ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(facet.getModule());
     if (!(file instanceof XmlFile)) {
       nearestConfigurationFile = IdeResourcesUtil.pickAnyLayoutFile(facet);
       if (nearestConfigurationFile == null) {
@@ -359,11 +359,6 @@ public final class AndroidAnnotatorUtil {
 
     @Override
     public AnAction getClickAction() {
-      if (myElement instanceof PsiReferenceExpression || myElement instanceof KtNameReferenceExpression) {
-        if (!StudioFlags.NELE_COLOR_RESOURCE_PICKER_FOR_FILE_EDITORS.get()) {
-          return null;
-        }
-      }
       if (!myIncludeClickAction) { // Cannot set colors that were derived.
         return null;
       }

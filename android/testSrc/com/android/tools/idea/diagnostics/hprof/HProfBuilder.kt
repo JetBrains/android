@@ -46,6 +46,7 @@ import kotlin.arrayOf
 import kotlin.toRawBits
 
 class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> String?)) {
+
   private val objectToIdMap = Reference2LongOpenHashMap<Any>()
   private val stringToIdMap = Object2LongOpenHashMap<String>()
   private val classObjectIdToClassSerialNumber = Long2IntOpenHashMap()

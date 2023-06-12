@@ -19,7 +19,7 @@ import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
@@ -734,7 +734,7 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
     }
 
     // Sanity check.
-    val appResources = ResourceRepositoryManager.getAppResources(myFacet)
+    val appResources = StudioResourceRepositoryManager.getAppResources(myFacet)
     assertSize(1, appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "LibStyle"))
     assertSize(1, appResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "libAttr"))
   }

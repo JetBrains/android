@@ -343,6 +343,49 @@ class TraceProcessorModelTest {
   }
 
   @Test
+  fun addPowerCounters() {
+    val powerCounters = TraceProcessor.PowerCounterTracksResult.newBuilder()
+      .addCounter(
+        TraceProcessor.Counter.newBuilder()
+          .setName("power.rails.1")
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+      )
+      .addCounter(
+        TraceProcessor.Counter.newBuilder()
+          .setName("power.rails.2")
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+      )
+      .addCounter(
+        TraceProcessor.Counter.newBuilder()
+          .setName("batt.1")
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+      )
+      .addCounter(
+        TraceProcessor.Counter.newBuilder()
+          .setName("batt.2")
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(1000).setValue(100.0))
+          .addValue(TraceProcessor.CounterValue.newBuilder().setTimestampNanoseconds(2000).setValue(200.0))
+      )
+      .build()
+
+
+    val model = TraceProcessorModel.Builder().apply {
+      addPowerCounters(powerCounters)
+    }.build()
+
+    assertThat(model.getPowerRails()).containsExactly(
+      CounterModel("power.rails.1", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("power.rails.2", sortedMapOf(1L to 100.0, 2L to 200.0)))
+
+    assertThat(model.getBatteryDrain()).containsExactly(
+      CounterModel("batt.1", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("batt.2", sortedMapOf(1L to 100.0, 2L to 200.0)))
+  }
+
+  @Test
   fun `grouping layers by phase adjusts depths`() {
     fun<O,B> constructorOf(builder: () -> B, build: B.() -> O): (B.() -> Unit) -> O = { builder().apply(it).build() }
     val layer = constructorOf(Layer::newBuilder, Layer.Builder::build)

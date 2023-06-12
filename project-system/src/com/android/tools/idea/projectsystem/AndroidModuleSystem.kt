@@ -27,11 +27,14 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.TestLibraries
+import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
 /**
@@ -358,6 +361,27 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val testRClassConstantIds: Boolean get() = true
 
   fun getTestLibrariesInUse(): TestLibraries? = null
+
+  /** Whether AndroidX libraries should be used instead of legacy support libraries. */
+  val useAndroidX: Boolean get() = false // TODO(270044829): fix tests to make this true by default
+
+  /** Whether [desugarLibraryConfigFiles] can be determined for this AGP version */
+  val desugarLibraryConfigFilesKnown: Boolean get() = false
+
+  /** A user visible message, such as 'Only supported for project using Android Gradle plugin '8.1.0-alpha05' and above' */
+  val desugarLibraryConfigFilesNotKnownUserMessage: String? get() = "Only supported for Gradle projects"
+
+  val desugarLibraryConfigFiles: List<Path> get() = listOf()
+
+  /**
+   * Whether Gradle version catalogs are in use.
+   *
+   * This should ideally not be exposed to higher levels of the stack, but is necessary to disable certain actions that aren't yet
+   * supported with Version Catalogs.
+   *
+   * TODO(b/273530751): Remove this utility method once adding dependencies for catalogs is supported.
+   */
+  val usesVersionCatalogs: Boolean get() = false
 }
 
 /**
@@ -412,6 +436,13 @@ enum class ScopeType {
       MAIN, TEST_FIXTURES -> false
       ANDROID_TEST, UNIT_TEST, SHARED_TEST -> true
     }
+
+  /** Returns true if this [ScopeType] can contain Android resources. */
+  val canHaveAndroidResources
+    get() = when (this) {
+      TEST_FIXTURES, UNIT_TEST, SHARED_TEST -> false
+      MAIN, ANDROID_TEST -> true
+    }
 }
 
 fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): ScopeType {
@@ -457,6 +488,8 @@ fun Module.getTestFixturesModule() : Module? {
   return linkedGroup.testFixtures
 }
 
+fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
+
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true
  * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest) or the
@@ -468,3 +501,19 @@ fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROI
  * Returns the type of Android project this module represents.
  */
 fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type
+
+/** Returns all [AndroidFacet]s on the project. It uses a sequence in order to avoid allocations. */
+fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
+  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).asSequence().let {
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      // We are running some tests that don't set up real-world project structure, so fetch all modules.
+      // See http://b/258162266 for more details.
+      it
+    }
+    else {
+      // Holder module has associated facet, but it can be ignored.
+      it.filter { module -> !module.isHolderModule() }
+    }
+  }.mapNotNull { it.androidFacet }
+}
+

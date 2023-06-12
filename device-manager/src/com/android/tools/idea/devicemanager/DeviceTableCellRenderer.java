@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager;
 
 import static com.android.tools.idea.wearpairing.AndroidWearPairingBundle.message;
 
-import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
@@ -47,26 +46,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DeviceTableCellRenderer<D extends Device> implements TableCellRenderer {
-  private final @NotNull Class<@NotNull D> myValueClass;
+  private final @NotNull Class<D> myValueClass;
   private final @NotNull WearPairingManager myManager;
 
-  private final @NotNull JLabel myIconLabel;
   private final @NotNull JLabel myNameLabel;
   private final @NotNull JLabel myStateLabel;
   private final @NotNull JLabel myLine2Label;
   private final @NotNull JLabel myPairedLabel;
   private final @NotNull JComponent myPanel;
 
-  protected DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass) {
-    this(valueClass, WearPairingManager.INSTANCE);
+  protected DeviceTableCellRenderer(@NotNull Class<D> valueClass) {
+    this(valueClass, WearPairingManager.getInstance());
   }
 
-  @VisibleForTesting
-  DeviceTableCellRenderer(@NotNull Class<@NotNull D> valueClass, @NotNull WearPairingManager manager) {
+  protected DeviceTableCellRenderer(@NotNull Class<D> valueClass, @NotNull WearPairingManager manager) {
     myValueClass = valueClass;
     myManager = manager;
 
-    myIconLabel = new JBLabel();
     myNameLabel = new JBLabel();
     myStateLabel = new JBLabel();
     myLine2Label = new JBLabel();
@@ -76,7 +72,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     GroupLayout layout = new GroupLayout(myPanel);
 
     Group horizontalGroup = layout.createSequentialGroup()
-      .addComponent(myIconLabel)
       .addPreferredGap(ComponentPlacement.RELATED)
       .addGroup(layout.createParallelGroup()
                   .addGroup(layout.createSequentialGroup()
@@ -92,7 +87,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
       .addGroup(layout.createSequentialGroup()
                   .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                   .addGroup(layout.createParallelGroup(Alignment.CENTER)
-                              .addComponent(myIconLabel)
                               .addComponent(myNameLabel)
                               .addComponent(myStateLabel))
                   .addComponent(myLine2Label)
@@ -115,14 +109,11 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     D device = myValueClass.cast(value);
     Color foreground = Tables.getForeground(table, selected);
 
-    myIconLabel.setForeground(foreground);
-    setIcon(myIconLabel, device.getIcon(), selected);
-
     myNameLabel.setForeground(foreground);
     myNameLabel.setText(getName(device));
 
     myStateLabel.setForeground(foreground);
-    setIcon(myStateLabel, getStateIcon(device), selected);
+    TableCellRenderers.setIcon(myStateLabel, getStateIcon(device), selected);
 
     myLine2Label.setFont(UIUtil.getLabelFont(FontSize.SMALL));
     myLine2Label.setForeground(brighten(foreground));
@@ -133,7 +124,7 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
       Optional<Icon> icon = getPairedLabelIcon(device);
 
-      setIcon(myPairedLabel, icon.orElse(null), selected);
+      TableCellRenderers.setIcon(myPairedLabel, icon.orElse(null), selected);
       myPairedLabel.setVisible(icon.isPresent());
       myPanel.setToolTipText(getPairedTooltip(device));
     }
@@ -165,18 +156,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     return result.append("</html>").toString();
   }
 
-  private static void setIcon(@NotNull JLabel label, @Nullable Icon icon, boolean selected) {
-    if (icon == null) {
-      label.setIcon(null);
-    }
-    else if (selected) {
-      label.setIcon(ColoredIconGenerator.INSTANCE.generateColoredIcon(icon, label.getForeground()));
-    }
-    else {
-      label.setIcon(icon);
-    }
-  }
-
   protected @NotNull String getName(@NotNull D device) {
     return device.getName();
   }
@@ -197,7 +176,8 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     return new JBColor(new Color(red, green, blue), color.darker());
   }
 
-  @NotNull Optional<@NotNull Icon> getPairedLabelIcon(@NotNull Device device) {
+  @NotNull
+  Optional<Icon> getPairedLabelIcon(@NotNull Device device) {
     List<PhoneWearPair> pairList = myManager.getPairsForDevice(device.getKey().toString());
 
     if (pairList.isEmpty()) {
@@ -211,11 +191,6 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
     }
 
     return Optional.of(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN);
-  }
-
-  @VisibleForTesting
-  final @NotNull JLabel getIconLabel() {
-    return myIconLabel;
   }
 
   @VisibleForTesting

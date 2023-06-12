@@ -20,21 +20,19 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
- * @see ResourceRepositoryManager#getAppResources()
+ * @see StudioResourceRepositoryManager#getAppResources()
  */
 class AppResourceRepository extends MultiResourceRepository {
-  static final Key<Boolean> TEMPORARY_RESOURCE_CACHE = Key.create("TemporaryResourceCache");
-
   private final AndroidFacet myFacet;
   private final Object RESOURCE_MAP_LOCK = new Object();
 
@@ -66,12 +64,12 @@ class AppResourceRepository extends MultiResourceRepository {
   }
 
   private static List<LocalResourceRepository> computeLocalRepositories(@NotNull AndroidFacet facet) {
-    return ImmutableList.of(ResourceRepositoryManager.getProjectResources(facet), SampleDataResourceRepository.getInstance(facet));
+    return ImmutableList.of(StudioResourceRepositoryManager.getProjectResources(facet), SampleDataResourceRepository.getInstance(facet));
   }
 
-  protected AppResourceRepository(@NotNull AndroidFacet facet,
-                                  @NotNull List<LocalResourceRepository> localResources,
-                                  @NotNull Collection<AarResourceRepository> libraryResources) {
+  private AppResourceRepository(@NotNull AndroidFacet facet,
+                                @NotNull List<LocalResourceRepository> localResources,
+                                @NotNull Collection<AarResourceRepository> libraryResources) {
     super(facet.getModule().getName() + " with modules and libraries");
     myFacet = facet;
     setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()));
@@ -95,10 +93,10 @@ class AppResourceRepository extends MultiResourceRepository {
     Module module = myFacet.getModule();
     ResourceIdManager.get(module).resetDynamicIds();
     ResourceClassRegistry.get(module.getProject()).clearCache();
-    ModuleClassLoaderManager.get().clearCache(module);
+    StudioModuleClassLoaderManager.get().clearCache(module);
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
   static AppResourceRepository createForTest(@NotNull AndroidFacet facet,
                                              @NotNull List<LocalResourceRepository> modules,

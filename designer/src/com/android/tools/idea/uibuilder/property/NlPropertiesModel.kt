@@ -29,7 +29,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
@@ -63,7 +63,6 @@ import java.util.function.Consumer
 import javax.swing.event.ChangeListener
 
 private const val UPDATE_QUEUE_NAME = "propertysheet"
-private const val UPDATE_IDENTITY = "updateProperies"
 private const val UPDATE_DELAY_MILLI_SECONDS = 250
 
 /**
@@ -79,6 +78,7 @@ open class NlPropertiesModel(
 ) : PropertiesModel<NlPropertyItem>, Disposable {
   val project: Project = facet.module.project
 
+  private val updateIdentity = Any()
   private val listeners: MutableList<PropertiesModelListener<NlPropertyItem>> = mutableListOf()
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val modelListener = NlModelListener()
@@ -214,7 +214,7 @@ open class NlPropertiesModel(
 
   private fun compatibleMarginAttribute(property: NlPropertyItem): String? {
     if (property.namespace != ANDROID_URI ||
-        AndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START) {
+        StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START) {
       return null
     }
     return when (property.name) {
@@ -284,7 +284,7 @@ open class NlPropertiesModel(
     components: List<NlComponent>
   ) {
     updateLiveListeners(Collections.emptyList())
-    updateQueue.queue(object : Update(UPDATE_IDENTITY) {
+    updateQueue.queue(object : Update(updateIdentity) {
       override fun run() {
         handleSelectionUpdate(surface, panel, type, accessory, components)
       }

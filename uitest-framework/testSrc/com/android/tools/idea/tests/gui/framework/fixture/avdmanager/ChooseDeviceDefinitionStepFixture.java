@@ -92,9 +92,28 @@ public class ChooseDeviceDefinitionStepFixture<W extends AbstractWizardFixture>
     return new JTableFixture(robot(), deviceList);
   }
 
+  @NotNull
+  private JTableFixture getDeviceCategoryTableFixture() {
+    final TableView catgoryList = robot().finder().find(target(), new GenericTypeMatcher<TableView>(TableView.class) {
+      @Override
+      protected boolean isMatching(@NotNull TableView component) {
+        return component.getRowCount() > 0 && component.getColumnCount() == 1; // There are two tables on this step, but the category table only has 1 column
+      }
+    });
+    return new JTableFixture(robot(), catgoryList);
+  }
+
   public ImmutableList<String> deviceNames() {
     ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
     for (String[] row : getTableFixture().contents()) {
+      listBuilder.add(row[NAME_COLUMN]);
+    }
+    return listBuilder.build();
+  }
+
+  public ImmutableList<String> categoryNames() {
+    ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
+    for (String[] row : getDeviceCategoryTableFixture().contents()) {
       listBuilder.add(row[NAME_COLUMN]);
     }
     return listBuilder.build();

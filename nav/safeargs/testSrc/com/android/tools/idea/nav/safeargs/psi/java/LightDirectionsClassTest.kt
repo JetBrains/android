@@ -18,7 +18,7 @@ package com.android.tools.idea.nav.safeargs.psi.java
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.Parameter
 import com.android.tools.idea.nav.safeargs.extensions.checkSignaturesAndReturnType
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiMethod
@@ -72,7 +72,7 @@ class LightDirectionsClassTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
@@ -139,7 +139,7 @@ class LightDirectionsClassTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
@@ -198,7 +198,7 @@ class LightDirectionsClassTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
@@ -257,7 +257,7 @@ class LightDirectionsClassTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
@@ -345,7 +345,7 @@ class LightDirectionsClassTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 

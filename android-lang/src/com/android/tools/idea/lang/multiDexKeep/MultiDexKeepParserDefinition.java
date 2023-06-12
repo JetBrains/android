@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class MultiDexKeepParserDefinition implements ParserDefinition {
 
-  private static final class TokenSets {
+  private static class TokenSets {
     static final TokenSet WHITE_SPACES = TokenSet.create(MultiDexKeepPsiTypes.EOL);
     static final TokenSet STRING_LITERALS = TokenSet.create(MultiDexKeepPsiTypes.STRING);
   }

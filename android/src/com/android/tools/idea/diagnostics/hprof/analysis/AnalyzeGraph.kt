@@ -32,9 +32,9 @@ import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.io.FileUtil
-import gnu.trove.TIntArrayList
-import gnu.trove.TIntHashSet
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
+import it.unimi.dsi.fastutil.ints.IntArrayList
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet
 import it.unimi.dsi.fastutil.longs.LongArrayList
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -47,7 +47,7 @@ import kotlin.math.min
 
 class AnalyzeGraph(private val analysisContext: AnalysisContext, private val listProvider: ListProvider) {
 
-  private val unreachableDisposableObjects = TIntArrayList()
+  private val unreachableDisposableObjects = IntArrayList()
   private var strongRefHistogram: Histogram? = null
   private var softWeakRefHistogram: Histogram? = null
   private var traverseReport: String? = null
@@ -61,10 +61,10 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
   }
 
   private fun getParentIdForObjectId(objectId: Long): Long {
-    return parentList.get(objectId.toInt()).toLong()
+    return parentList[objectId.toInt()].toLong()
   }
 
-  private val nominatedInstances = HashMap<ClassDefinition, TIntHashSet>()
+  private val nominatedInstances = HashMap<ClassDefinition, IntOpenHashSet>()
 
   fun analyze(progress: ProgressIndicator): AnalysisReport = AnalysisReport().apply {
     val includePerClassSection = analysisContext.config.perClassOptions.classNames.isNotEmpty()
@@ -74,10 +74,11 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
 
     val analyzeDisposer = AnalyzeDisposer(analysisContext)
     analyzeDisposer.prepareDisposerChildren()
+    analyzeDisposer.computeDisposedObjectsIDs()
 
     traverseInstanceGraph(traverseProgress, this)
 
-    analyzeDisposer.computeDisposedObjectsIDs()
+    analyzeDisposer.computeStrongReferencedDisposedObjectsIDs()
 
     // Histogram section
     val histogramOptions = analysisContext.config.histogramOptions
@@ -104,11 +105,6 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       mainReport.append(innerClassReport)
     }
 
-    // Disposer sections
-    if (config.disposerOptions.includeDisposerTree) {
-      mainReport.appendln(sectionHeader("Disposer tree"))
-      mainReport.append(analyzeDisposer.prepareDisposerTreeSection())
-    }
     if (config.disposerOptions.includeDisposerTreeSummary) {
       mainReport.appendln(sectionHeader("Disposer tree summary"))
       mainReport.append(analyzeDisposer.prepareDisposerTreeSummarySection(config.disposerOptions.disposerTreeSummaryOptions))
@@ -149,13 +145,12 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       val classDefinition = nav.classStore[className]
       val set = nominatedInstances[classDefinition]!!
       progress.fraction = counter.toDouble() / nominatedInstances.size
-      progress.text2 = "Processing: ${set.size()} ${classDefinition.prettyName}"
+      progress.text2 = "Processing: ${set.count()} ${classDefinition.prettyName}"
       stopwatch.reset().start()
-      appendln("CLASS: ${classDefinition.prettyName} (${set.size()} objects)")
+      appendln("CLASS: ${classDefinition.prettyName} (${set.count()} objects)")
       val referenceRegistry = GCRootPathsTree(analysisContext, perClassOptions.treeDisplayOptions, classDefinition)
       set.forEach { objectId ->
         referenceRegistry.registerObject(objectId)
-        true
       }
       set.clear()
       append(referenceRegistry.printTree())
@@ -199,7 +194,10 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
   enum class WalkGraphPhase {
     StrongReferencesNonLocalVariables,
     StrongReferencesLocalVariables,
+    DisposedRoots,
+    DisposedNonRootObjects,
     DisposerTree,
+    StrongReferencesMarker,
     SoftReferences,
     WeakReferences,
     CleanerFinalizerReferences,
@@ -226,41 +224,54 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
 
     val nominatedClassNames = config.perClassOptions.classNames
     nominatedClassNames.forEach {
-      nominatedInstances[classStore[it]] = TIntHashSet()
+      nominatedInstances[classStore[it]] = IntOpenHashSet()
     }
 
     progress.text2 = "Collect all object roots"
 
-    var toVisit = TIntArrayList()
-    var toVisit2 = TIntArrayList()
+    var toVisit = IntArrayList()
+    var toVisit2 = IntArrayList()
 
-    val rootsSet = TIntHashSet()
-    val frameRootsSet = TIntHashSet()
+    val rootsSet = IntOpenHashSet()
+    val frameRootsSet = IntOpenHashSet()
+
+    val disposedObjectsIDs = analysisContext.disposedObjectsIDs
+    val disposedRootsSet = IntOpenHashSet()
 
     // Mark all roots to be visited, set them as their own parents
     while (roots.hasNext()) {
       val rootObject = roots.next()
-      val rootObjectId = rootObject.id.toInt()
+      val rootObjectId: Int = rootObject.id.toInt()
+
       if (rootObject.reason.javaFrame) {
         frameRootsSet.add(rootObjectId)
+        continue
       }
-      else {
-        addIdToSetIfOrphan(rootsSet, rootObjectId)
-      }
+
+      addIdToSetIfOrphan(
+        if (disposedObjectsIDs.contains(rootObjectId)) disposedRootsSet else rootsSet,
+        rootObjectId)
     }
 
     // Mark all class object as to be visited, set them as their own parents
     classStore.forEachClass { classDefinition ->
       addIdToSetIfOrphan(rootsSet, classDefinition.id.toInt())
       classDefinition.staticFields.forEach { staticField ->
-        addIdToSetIfOrphan(rootsSet, staticField.objectId.toInt())
+        val staticFieldObjectId = staticField.objectId.toInt()
+
+        addIdToSetIfOrphan(
+          if (disposedObjectsIDs.contains(staticFieldObjectId)) disposedRootsSet else rootsSet,
+          staticFieldObjectId)
       }
       classDefinition.constantFields.forEach { objectId ->
-        addIdToSetIfOrphan(rootsSet, objectId.toInt())
+        val constantObjectId = objectId.toInt()
+        addIdToSetIfOrphan(
+          if (disposedObjectsIDs.contains(constantObjectId)) disposedRootsSet else rootsSet,
+          constantObjectId)
       }
     }
 
-    toVisit.add(rootsSet.toArray())
+    toVisit.addAll(rootsSet)
 
     var leafCounter = 0
 
@@ -286,17 +297,27 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
 
     var phase = WalkGraphPhase.StrongReferencesNonLocalVariables // initial state
 
-    val cleanerObjects = TIntArrayList()
+    val cleanerObjects = IntArrayList()
     val sunMiscCleanerClass = classStore.getClassIfExists("sun.misc.Cleaner")
     val finalizerClass = classStore.getClassIfExists("java.lang.ref.Finalizer")
 
-    while (!toVisit.isEmpty) {
-      for (i in 0 until toVisit.size()) {
-        val id = toVisit[i]
+    val disposedReferencedNonRootSet = IntOpenHashSet()
 
+    while (toVisit.isNotEmpty() || phase != WalkGraphPhase.Finished) {
+      for (i in 0 until toVisit.count()) {
+        val id = toVisit.getInt(i)
+
+        if (includeDisposerRelationships &&
+          phase < WalkGraphPhase.DisposedRoots &&
+          disposedObjectsIDs.contains(id)) {
+          // Postpone visiting disposed objects until later phase.
+          // parent is already set on this object.
+          disposedReferencedNonRootSet.add(id)
+          continue
+        }
         // Disposer.ourTree is only visited during DisposerTree phase to give opportunity for
         if (includeDisposerRelationships &&
-            id == analysisContext.diposerTreeObjectId &&
+            id == analysisContext.disposerTreeObjectId &&
             phase < WalkGraphPhase.DisposerTree) {
           continue
         }
@@ -337,7 +358,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
         }
 
         val size = nav.getObjectSize()
-        val nonDisposerReferences = references.size
+        val nonDisposerReferences = references.count()
 
         // Inline children from the disposer tree
         if (includeDisposerRelationships && analysisContext.disposerParentToChildren.contains(id)) {
@@ -349,17 +370,17 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
           }
         }
 
-        for (j in 0 until references.size) {
+        for (j in 0 until references.count()) {
           val referenceId = references.getLong(j).toInt()
           if (referenceId != 0) edgeCount++
           if (addIdToListAndSetParentIfOrphan(toVisit2, referenceId, id)) {
             if (includeFieldInformation) {
-              refIndexList.set(referenceId, when {
+              refIndexList[referenceId] = when {
                 currentObjectIsArray -> RefIndexUtil.ARRAY_ELEMENT
                 j >= nonDisposerReferences -> RefIndexUtil.DISPOSER_CHILD
                 j < RefIndexUtil.MAX_FIELD_INDEX -> j + 1
                 else -> RefIndexUtil.FIELD_OMITTED // Too many reference fields
-              })
+              }
             }
             isLeaf = false
           }
@@ -372,12 +393,11 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
         // Size in DWORDs to support graph sizes up to 10GB.
         var sizeDivBy4 = (size + 3) / 4
         if (sizeDivBy4 == 0) sizeDivBy4 = 1
-        sizesList.set(id, sizeDivBy4)
+        sizesList[id] = sizeDivBy4
 
         // Update histogram (separately for Strong-references and other reachable objects)
         var histogramEntries: HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>
-        if (phase == WalkGraphPhase.StrongReferencesNonLocalVariables || phase == WalkGraphPhase.StrongReferencesLocalVariables ||
-          phase == WalkGraphPhase.DisposerTree) {
+        if (phase <= WalkGraphPhase.StrongReferencesMarker) {
           histogramEntries = strongRefHistogramEntries
           if (isLeaf) {
             leafCounter++
@@ -405,30 +425,28 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       progress.fraction = (1.0 * visitedInstancesCount / nav.instanceCount)
 
       // Prepare next level of objects for processing
-      toVisit.resetQuick()
+      toVisit.clear()
       val tmp = toVisit
       toVisit = toVisit2
       toVisit2 = tmp
 
-      // If no more object to visit at this phase, transition to the next
-      while (toVisit.size() == 0 && phase != WalkGraphPhase.Finished) {
+      // If there are no more object to visit at this phase, transition to the next one
+      while (toVisit.isEmpty && phase != WalkGraphPhase.Finished) {
         // Next state
         phase = WalkGraphPhase.values()[phase.ordinal + 1]
 
+        // Add objects to toVisit on state transition
         when (phase) {
           WalkGraphPhase.StrongReferencesLocalVariables ->
             frameRootsSet.forEach { id ->
               addIdToListAndSetParentIfOrphan(toVisit, id, id)
-              true
             }
           WalkGraphPhase.CleanerFinalizerReferences -> {
-            toVisit.add(cleanerObjects.toNativeArray())
+            toVisit.addAll(cleanerObjects)
             cleanerObjects.clear()
           }
           WalkGraphPhase.SoftReferences -> {
-            for (entry in softReferenceIdToParentMap.int2IntEntrySet()) {
-              val softId = entry.intKey
-              val parentId = entry.intValue
+            softReferenceIdToParentMap.forEach { (softId, parentId) ->
               if (addIdToListAndSetParentIfOrphan(toVisit, softId, parentId)) {
                 refIndexList[softId] = RefIndexUtil.SOFT_REFERENCE
               }
@@ -438,9 +456,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
             softReferenceIdToParentMap.trim()
           }
           WalkGraphPhase.WeakReferences -> {
-            weakReferenceIdToParentMap.int2IntEntrySet().forEach {
-              val weakId = it.intKey
-              val parentId = it.intValue
+            weakReferenceIdToParentMap.forEach { (weakId, parentId) ->
               if (addIdToListAndSetParentIfOrphan(toVisit, weakId, parentId)) {
                 refIndexList[weakId] = RefIndexUtil.WEAK_REFERENCE
               }
@@ -450,9 +466,18 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
             weakReferenceIdToParentMap.trim()
           }
           WalkGraphPhase.DisposerTree -> {
-            if (analysisContext.diposerTreeObjectId != 0) {
-              toVisit.add(analysisContext.diposerTreeObjectId)
+            if (analysisContext.disposerTreeObjectId != 0) {
+              toVisit.add(analysisContext.disposerTreeObjectId)
             }
+          }
+          WalkGraphPhase.DisposedRoots -> {
+            toVisit.addAll(disposedRootsSet)
+          }
+          WalkGraphPhase.DisposedNonRootObjects -> {
+            // parent should already be set, so no need to call addIdToListAndSetParentIfOrphan
+            toVisit.addAll(disposedReferencedNonRootSet)
+            disposedReferencedNonRootSet.clear()
+            disposedReferencedNonRootSet.trim()
           }
           else -> Unit // No work for other state transitions
         }
@@ -462,7 +487,8 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     if (config.dominatorTreeOptions.includeDominatorTree) {
       val usableDiskSpace = File(FileUtil.getTempDirectory()).usableSpace
       if (usableDiskSpace - estimateDominatorTempFilesSize(visitedCount, edgeCount) > config.dominatorTreeOptions.diskSpaceThreshold) {
-        rootsSet.addAll(frameRootsSet.toArray())
+        rootsSet.addAll(frameRootsSet)
+        rootsSet.addAll(disposedRootsSet)
         dominatorFlameGraph = getReportOrExceptionString {
           computeDominatorFlameGraph(nav, rootsSet, sizesList, edgeCount, report)
         }
@@ -514,7 +540,12 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       }
     }
     rootsSet.clear()
-    rootsSet.compact()
+    rootsSet.trim()
+    disposedRootsSet.clear()
+    disposedRootsSet.trim()
+    frameRootsSet.clear()
+    frameRootsSet.trim()
+
     stopwatchInnerClasses.stop()
 
     traverseReport = buildString {
@@ -531,19 +562,17 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       appendln("Finalizable size: ${toShortStringAsSize(finalizableBytes)}")
       appendln("Soft-reachable size: ${toShortStringAsSize(softBytes)}")
       appendln("Weak-reachable size: ${toShortStringAsSize(weakBytes)}")
-      appendln("Reachable only from disposer tree: ${unreachableDisposableObjects.size()}")
+      appendln("Reachable only from disposer tree: ${unreachableDisposableObjects.count()}")
       TruncatingPrintBuffer(10, 0, this::appendln).use { buffer ->
-        val unreachableChildren = TIntHashSet()
+        val unreachableChildren = IntOpenHashSet()
         unreachableDisposableObjects.forEach { id ->
-          analysisContext.disposerParentToChildren[id]?.let { unreachableChildren.addAll(it.toIntArray()) }
-          true
+          analysisContext.disposerParentToChildren[id]?.let { unreachableChildren.addAll(it) }
         }
         unreachableDisposableObjects.forEach { id ->
           if (unreachableChildren.contains(id)) {
-            return@forEach true
+            return@forEach
           }
-          buffer.println(" * ${nav.getClassForObjectId(id.toLong()).name} (${toShortStringAsSize(sizesList.get(id).toLong() * 4)})")
-          true
+          buffer.println(" * ${nav.getClassForObjectId(id.toLong()).name} (${toShortStringAsSize(sizesList[id].toLong() * 4)})")
         }
       }
     }
@@ -553,7 +582,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     return 20L * objectCount + 10L * edgeCount
   }
 
-  private fun computeDominatorFlameGraph(nav: ObjectNavigator, rootsSet: TIntHashSet, sizesList: IntList, edgeCount: Int, report: AnalysisReport): String {
+  private fun computeDominatorFlameGraph(nav: ObjectNavigator, rootsSet: IntOpenHashSet, sizesList: IntList, edgeCount: Int, report: AnalysisReport): String {
     val totalStopwatch = Stopwatch.createUnstarted()
     val postorderStopwatch = Stopwatch.createUnstarted()
     val incomingEdgesStopwatch = Stopwatch.createUnstarted()
@@ -571,12 +600,12 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
 
     // compute postorder numbers
     val nodeStack = listProvider.createIntList("dominatorBuf1", (objectCount+2).toLong())
-    val childrenStack = listProvider.createIntList("childStack", (edgeCount + rootsSet.size()).toLong())
+    val childrenStack = listProvider.createIntList("childStack", (edgeCount + rootsSet.count()).toLong())
     val childrenStackOffsets = listProvider.createIntList("dominatorBuf2", (objectCount + 2).toLong())
     val childrenStackSizes = listProvider.createIntList("dominatorBuf3", (objectCount + 2).toLong())
     var csEntries = 0
-    var poEdgeCount = rootsSet.size()
-    for (id in rootsSet) {
+    var poEdgeCount = rootsSet.count()
+    for (id in rootsSet.intIterator()) {
       childrenStack[csEntries++] = id
     }
 
@@ -599,7 +628,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
           nav.goTo(child.toLong())
           nav.copyReferencesTo(refList)
           var refsAdded = 0
-          for (i in 0 until refList.size) {
+          for (i in 0 until refList.count()) {
             if (refList[i] != 0L) {
               childrenStack[csEntries++] = refList[i].toInt()
               refsAdded++
@@ -666,7 +695,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
         edgeListOffsets[i]++
       }
       outgoingCardListOffsets[i] = ncardrefs
-      for (j in 0 until references.size) {
+      for (j in 0 until references.count()) {
         if (references[j] != 0L) {
           val target = postorderNumbers[references[j].toInt()]
           edgeListOffsets[target]++
@@ -688,7 +717,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     // concatenated incoming edge lists for each object, in postorder traversal order;
     // edgeListOffsets[p] gives the starting index for the list for the object with postorder number p
     val incomingEdges: IntList
-    if (poEdgeCount < edgeCount + rootsSet.size()) {
+    if (poEdgeCount < edgeCount + rootsSet.count()) {
       // if childrenStack is big enough, reuse it
       incomingEdges = childrenStack
       incomingEdges.clear(poEdgeCount)
@@ -717,7 +746,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       if (rootsSet.contains(id)) {
         addEdge(i, rootPonum)
       }
-      for (j in 0 until references.size) {
+      for (j in 0 until references.count()) {
         if (references[j] != 0L) {
           val target = postorderNumbers[references[j].toInt()]
           addEdge(target, i)
@@ -961,7 +990,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     report.metaInfo.apply {
       appendln("Dominator phase total time: $totalStopwatch")
       appendln("  Compute postorder numbers: $postorderStopwatch")
-      appendln("    edgeCount = $edgeCount, poEdgeCount = $poEdgeCount, rootsSet size = ${rootsSet.size()}, maxPonum = $maxPonum; max stack depth = $maxStackDepth")
+      appendln("    edgeCount = $edgeCount, poEdgeCount = $poEdgeCount, rootsSet size = ${rootsSet.count()}, maxPonum = $maxPonum; max stack depth = $maxStackDepth")
       appendln("  Compute incoming edges + card refs: $incomingEdgesStopwatch")
       appendln("  Sort incoming edges: $sortIncomingEdgesStopwatch")
       appendln("  Dominator computation: $dominatorsStopwatch")
@@ -980,12 +1009,12 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     return sb.toString()
   }
 
-  private fun prepareInnerClassSection(analysisContext: AnalysisContext, nav: ObjectNavigator, rootsSet: TIntHashSet, objectCount: Long): String {
+  private fun prepareInnerClassSection(analysisContext: AnalysisContext, nav: ObjectNavigator, rootsSet: IntOpenHashSet, objectCount: Long): String {
     val marks = BitSet(objectCount.toInt())
     val toVisit = analysisContext.visitedList // reuse this to reduce memory usage.
     var toVisitSize = 0
-    val visited = TIntHashSet()
-    val roots = rootsSet.toArray()
+    val visited = IntOpenHashSet()
+    val roots = rootsSet.toIntArray()
     val refList = LongArrayList()
 
     fun popToVisit(): Int {
@@ -1005,7 +1034,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       marks.set(cur)
       nav.goTo(cur.toLong(), ObjectNavigator.ReferenceResolution.ONLY_STRONG_REFERENCES)
       nav.copyReferencesTo(refList)
-      for (i in 0 until refList.size) {
+      for (i in 0 until refList.count()) {
         if (refList[i] != 0L && !visited.contains(refList[i].toInt())) pushToVisit(refList[i].toInt())
       }
     }
@@ -1020,13 +1049,13 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       marks.clear(cur)
       nav.goTo(cur.toLong(), ObjectNavigator.ReferenceResolution.STRONG_EXCLUDING_INNER_CLASS)
       nav.copyReferencesTo(refList)
-      for (i in 0 until refList.size) {
+      for (i in 0 until refList.count()) {
         if (refList[i] != 0L && !visited.contains(refList[i].toInt())) pushToVisit(refList[i].toInt())
       }
     }
 
     // scan for set bits to determine retained objects
-    val retainedObjects = TIntArrayList()
+    val retainedObjects = IntArrayList()
     var index = marks.nextSetBit(0)
     while (index != -1) {
       retainedObjects.add(index)
@@ -1056,7 +1085,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
 
     val culpritsHistogramEntries = HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>()
     val objectsHistogramEntries = HashMap<ClassDefinition, HistogramVisitor.InternalHistogramEntry>()
-    for (i in 0 until retainedObjects.size()) {
+    for (i in 0 until retainedObjects.count()) {
       nav.goTo(retainedObjects[i].toLong(), ObjectNavigator.ReferenceResolution.NO_REFERENCES)
       val size = nav.getObjectSize()
       val klass = nav.getClass()
@@ -1079,14 +1108,14 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
         .values
         .map { it.asHistogramEntry() }
         .sortedByDescending { it.totalInstances },
-      retainedObjects.size().toLong())
+      retainedObjects.count().toLong())
 
     val objectsHistogram = Histogram(
       objectsHistogramEntries
         .values
         .map { it.asHistogramEntry() }
         .sortedByDescending { it.totalInstances },
-      retainedObjects.size().toLong())
+      retainedObjects.count().toLong())
 
     return buildString {
       appendln(culpritsHistogram.prepareReport("Inner class culprits", analysisContext.config.innerClassOptions.histogramEntries))
@@ -1108,7 +1137,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
    *
    * @return true if object was added to the list.
    */
-  private fun addIdToListAndSetParentIfOrphan(list: TIntArrayList, id: Int, parentId: Int = id): Boolean {
+  private fun addIdToListAndSetParentIfOrphan(list: IntArrayList, id: Int, parentId: Int = id): Boolean {
     if (id != 0 && getParentIdForObjectId(id.toLong()) == 0L) {
       setParentForObjectId(id.toLong(), parentId.toLong())
       list.add(id)
@@ -1125,7 +1154,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
    *
    * @return true if object was added to the set.
    */
-  private fun addIdToSetIfOrphan(set: TIntHashSet, id: Int, parentId: Int = id): Boolean {
+  private fun addIdToSetIfOrphan(set: IntOpenHashSet, id: Int, parentId: Int = id): Boolean {
     if (id != 0 && getParentIdForObjectId(id.toLong()) == 0L && set.add(id)) {
       setParentForObjectId(id.toLong(), parentId.toLong())
       return true

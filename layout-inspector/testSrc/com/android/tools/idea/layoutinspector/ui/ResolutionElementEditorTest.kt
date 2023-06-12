@@ -25,7 +25,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
@@ -33,7 +33,6 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesMode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.util.CheckUtil
-import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -61,8 +60,8 @@ import javax.swing.LookAndFeel
 import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
-
+import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.testing.ui.flatten
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
@@ -72,10 +71,11 @@ class ResolutionElementEditorTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
   @get:Rule
-  val lafRuleChain = RuleChain.outerRule(IntelliJLafRule()).around(SetPortableUiFontRule())!!
-
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
+  val ruleChain = RuleChain.outerRule(projectRule)
+    .around(IntelliJLafRule())
+    .around(PortableUiFontRule())
+    .around(EdtRule())
+    .around(IconLoaderRule())!!
 
   @Test
   fun testPaintClosed() {
@@ -142,9 +142,9 @@ class ResolutionElementEditorTest {
     val model = model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item1 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, PropertyType.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
     val item2 = InspectorPropertyItem(
-      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, Type.FLOAT, null, PropertySection.DEFAULT, null, node.drawId, model)
+      ANDROID_URI, ATTR_ELEVATION, ATTR_ELEVATION, PropertyType.FLOAT, null, PropertySection.DEFAULT, null, node.drawId, model)
 
     // The "textColor" attribute is defined in the layout file, and we should have a link to the layout definition
     assertThat(ResolutionElementEditor.hasLinkPanel(item1)).isTrue()
@@ -194,7 +194,7 @@ class ResolutionElementEditorTest {
     val model = model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture))
     val node = model["title"]!!
     val item = InspectorPropertyItem(
-      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, PropertyType.COLOR, null, PropertySection.DECLARED, node.layout, node.drawId, model)
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
     val map = listOf(textStyleMaterial).associateWith { model.resourceLookup.findAttributeValue(item, node, it) }
     val value = model.resourceLookup.findAttributeValue(item, node, item.source!!)
@@ -223,7 +223,7 @@ class ResolutionElementEditorTest {
   }
 
   private fun findFirstLinkComponent(editor: ResolutionElementEditor): JComponent? =
-    flatten(editor).filter { (it as? JComponent)?.actionMap?.get("open") != null }[0] as JComponent?
+    editor.flatten(false).filter { (it as? JComponent)?.actionMap?.get("open") != null }[0] as JComponent?
 }
 
 class IntelliJLafRule : ExternalResource() {

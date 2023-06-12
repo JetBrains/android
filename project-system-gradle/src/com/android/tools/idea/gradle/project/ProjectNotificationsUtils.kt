@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager.setJdkAsEmbedded
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
+import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.getInvalidJdkReason
 import com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension.Companion.reportInvalidJdkReasonToUsageTracker
 import com.android.tools.idea.project.AndroidNotification
@@ -25,6 +25,7 @@ import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -33,7 +34,7 @@ fun showNeededNotifications(project: Project) {
     notifyOnLegacyAndroidProject(project)
     notifyOnInvalidGradleJDKEnv(project)
     if (notifyOnInvalidGradleJdk(project)) {
-      setJdkAsEmbedded(project)
+      runWriteAction { JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, project.basePath.orEmpty()) }
     }
   }
 }
@@ -56,8 +57,9 @@ private fun notifyOnInvalidGradleJDKEnv(project: Project) {
     val msg = IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME +
               " is being ignored since it is set to an invalid JDK Location:\n" +
               ideSdks.envVariableJdkValue
-    AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING,
-                                                         SelectJdkFromFileSystemHyperlink.create(project)!!)
+    SelectJdkFromFileSystemHyperlink.create(project)?.let {
+      AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING, it)
+    }
   }
 }
 
@@ -66,11 +68,10 @@ fun notifyOnInvalidGradleJdk(project: Project): Boolean {
   val jdkInvalidReason = getInvalidJdkReason(project)
   if (jdkInvalidReason != null) {
     val ideSdks = IdeSdks.getInstance()
-    val embeddedJdkPath = ideSdks.embeddedJdkPath
     val errorResolution: String
     val notificationType: NotificationType
     val shouldUseEmbedded: Boolean
-    if (embeddedJdkPath != null && (ideSdks.validateJdkPath(embeddedJdkPath) != null)) {
+    if (ideSdks.validateJdkPath(ideSdks.embeddedJdkPath) != null) {
       // Can use embedded JDK as alternative, do so and warn user of change
       errorResolution = "Gradle JVM setting was changed to use Embedded JDK."
       notificationType = NotificationType.WARNING

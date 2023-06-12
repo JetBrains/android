@@ -19,8 +19,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 public class ActionsReportContributor implements DiagnosticReportContributor, LastActionTracker.Listener {
-  private final LastActionTracker myTracker;
-
   // stopCollection and actionStarted/actionFinished can happen concurrently. StringBuffer (unlike StringBuilder)
   // has built-in thread access synchronization.
   private final StringBuffer myReport = new StringBuffer();
@@ -28,29 +26,27 @@ public class ActionsReportContributor implements DiagnosticReportContributor, La
 
   private static final int MAX_ACTIONS_COUNT = 20;
 
-  public ActionsReportContributor(LastActionTracker tracker) {
-    myTracker = tracker;
-  }
-
   @Override
   public void setup(DiagnosticReportConfiguration configuration) {
   }
 
   @Override
   public void startCollection(long timeElapsedSoFarMs) {
-    String actionId = myTracker.getCurrentActionId();
-    long actionDurationMs = myTracker.getCurrentDurationMs();
+    LastActionTracker tracker = LastActionTracker.getInstance();
+    String actionId = tracker.getCurrentActionId();
+    long actionDurationMs = tracker.getCurrentDurationMs();
     myReport.append("Actions:\n");
     myReport.append("Action when freeze detected: " + actionId + "\n");
     myReport.append("Action duration when freeze detected: " + actionDurationMs + "ms\n");
-    myTracker.registerActionDurationListener(this);
+    tracker.registerActionDurationListener(this);
   }
 
   @Override
   public void stopCollection(long totalDurationMs) {
-    myTracker.unregisterActionDurationListener(this);
-    myReport.append("Action when freeze ended: " + myTracker.getCurrentActionId() + "\n");
-    myReport.append("Action duration when freeze ended: " + myTracker.getCurrentDurationMs() + "ms\n");
+    LastActionTracker tracker = LastActionTracker.getInstance();
+    tracker.unregisterActionDurationListener(this);
+    myReport.append("Action when freeze ended: " + tracker.getCurrentActionId() + "\n");
+    myReport.append("Action duration when freeze ended: " + tracker.getCurrentDurationMs() + "ms\n");
   }
 
   @Override

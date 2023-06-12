@@ -31,6 +31,7 @@ import javax.swing.JPanel
 class SelectedComponentPanel(private val model: SelectedComponentModel) : JPanel(BorderLayout()) {
   private val left = ExpandableLabel()
   private val right = ExpandableLabel()
+  private val listener = ::updateAfterModelChange
 
   init {
     background = secondaryPanelBackground
@@ -38,8 +39,18 @@ class SelectedComponentPanel(private val model: SelectedComponentModel) : JPanel
     left.foreground = JBColor(Gray._192, Gray._128)
     add(left, BorderLayout.WEST)
     add(right, BorderLayout.EAST)
-    model.addValueChangedListener { updateAfterModelChange() }
     updateAfterModelChange()
+  }
+
+  // The [SelectedComponentPanel] is short-lived. Make sure the listener is removed when the panel goes away.
+  override fun addNotify() {
+    super.addNotify()
+    model.addValueChangedListener(listener)
+  }
+
+  override fun removeNotify() {
+    super.removeNotify()
+    model.removeValueChangedListener(listener)
   }
 
   private fun updateAfterModelChange() {

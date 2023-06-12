@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.memory
 
-import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
@@ -65,7 +64,6 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
       captureSelection.selectCaptureEntry(null)
       timeline.selectionRange.clear()
       captureSelection.aspect.changed(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE)
-      profilerMode = ProfilerMode.NORMAL
     }
     if (captureObject == null) {
       // Loading a capture can fail, in which case we reset everything.
@@ -123,7 +121,6 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
           }
         },
         joiner ?: MoreExecutors.directExecutor())
-      profilerMode = ProfilerMode.EXPANDED
     }
 
     studioProfilers.ideServices.runAsync(captureObject::canSafelyLoad) { canLoad -> when {

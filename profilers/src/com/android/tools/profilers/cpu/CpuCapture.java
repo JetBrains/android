@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.ConfigurableDurationData;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import java.util.Collection;
 import java.util.Set;
@@ -40,7 +40,7 @@ public interface CpuCapture extends ConfigurableDurationData {
    * Returns the underlying method/technology used to produce this capture.
    */
   @NotNull
-  Cpu.CpuTraceType getType();
+  TraceType getType();
 
   /**
    * Returns the timeline associated with this CpuCapture, which includes the data & view ranges.

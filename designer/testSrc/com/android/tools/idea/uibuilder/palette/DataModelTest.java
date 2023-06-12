@@ -204,20 +204,21 @@ public class DataModelTest extends AndroidTestCase {
     assertThat(myCategoryListModel.hasMatchCounts()).isFalse();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly(
-      "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager2", "CardView",
-      "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "MaterialToolbar", "TabLayout", "TabItem",
-      "ViewStub", "<include>", "FragmentContainerView", "NavHostFragment", "<view>", "<requestFocus>").inOrder();
+        "Spinner", "RecyclerView", "ScrollView", "HorizontalScrollView", "NestedScrollView", "ViewPager2", "CardView",
+        "AppBarLayout", "BottomAppBar", "NavigationView", "BottomNavigationView", "Toolbar", "MaterialToolbar", "TabLayout", "TabItem",
+        "ViewStub", "ViewAnimator", "ViewSwitcher", "<include>", "FragmentContainerView", "NavHostFragment", "<view>", "<requestFocus>")
+      .inOrder();
   }
 
   public void testSearch() {
     setLayoutTypeAndWait(myDataModel, LayoutFileType.INSTANCE);
     myDataModel.setFilterPattern("ima");
     assertThat(getElementsAsStrings(myCategoryListModel))
-      .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Widgets", "Helpers").inOrder();
-    assertThat(getMatchCounts()).containsExactly(5, 1, 1, 1, 2).inOrder();
+      .containsExactly(DataModel.RESULTS.getName(), "Text", "Buttons", "Widgets", "Containers", "Helpers").inOrder();
+    assertThat(getMatchCounts()).containsExactly(6, 1, 1, 1, 1, 2).inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(0));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("Number (Decimal)", "ImageButton", "ImageView",
-                                                                      "ImageFilterView", "ImageFilterButton").inOrder();
+                                                                      "ViewAnimator", "ImageFilterView", "ImageFilterButton").inOrder();
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(1));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("Number (Decimal)");
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(2));
@@ -225,6 +226,8 @@ public class DataModelTest extends AndroidTestCase {
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(3));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ImageView");
     myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(4));
+    assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ViewAnimator");
+    myDataModel.categorySelectionChanged(myCategoryListModel.getElementAt(5));
     assertThat(getElementsAsStrings(myItemListModel)).containsExactly("ImageFilterView", "ImageFilterButton");
     myDataModel.setFilterPattern("Floating");
     assertThat(getElementsAsStrings(myCategoryListModel))

@@ -28,12 +28,12 @@ import com.android.tools.idea.transport.faketransport.commands.BeginSession;
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler;
 import com.android.tools.idea.transport.faketransport.commands.DiscoverProfileable;
 import com.android.tools.idea.transport.faketransport.commands.EndSession;
+import com.android.tools.idea.transport.faketransport.commands.GetCpuCoreConfig;
 import com.android.tools.idea.transport.faketransport.commands.HeapDump;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocSampling;
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking;
-import com.android.tools.idea.transport.faketransport.commands.MemoryNativeSampling;
-import com.android.tools.idea.transport.faketransport.commands.StartCpuTrace;
-import com.android.tools.idea.transport.faketransport.commands.StopCpuTrace;
+import com.android.tools.idea.transport.faketransport.commands.StartTrace;
+import com.android.tools.idea.transport.faketransport.commands.StopTrace;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
@@ -143,16 +144,14 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     setCommandHandler(Command.CommandType.BEGIN_SESSION, new BeginSession(myTimer));
     setCommandHandler(Command.CommandType.END_SESSION, new EndSession(myTimer));
     setCommandHandler(Command.CommandType.DISCOVER_PROFILEABLE, new DiscoverProfileable(myTimer));
-    setCommandHandler(Command.CommandType.START_CPU_TRACE, new StartCpuTrace(myTimer));
-    setCommandHandler(Command.CommandType.STOP_CPU_TRACE, new StopCpuTrace(myTimer));
+    setCommandHandler(Command.CommandType.START_TRACE, new StartTrace(myTimer));
+    setCommandHandler(Command.CommandType.STOP_TRACE, new StopTrace(myTimer));
     MemoryAllocTracking allocTrackingHandler = new MemoryAllocTracking(myTimer);
     setCommandHandler(Command.CommandType.START_ALLOC_TRACKING, allocTrackingHandler);
     setCommandHandler(Command.CommandType.STOP_ALLOC_TRACKING, allocTrackingHandler);
-    MemoryNativeSampling nativeSampling = new MemoryNativeSampling(myTimer);
-    setCommandHandler(Command.CommandType.START_NATIVE_HEAP_SAMPLE, nativeSampling);
-    setCommandHandler(Command.CommandType.STOP_NATIVE_HEAP_SAMPLE, nativeSampling);
     setCommandHandler(Command.CommandType.MEMORY_ALLOC_SAMPLING, new MemoryAllocSampling(myTimer));
     setCommandHandler(Command.CommandType.HEAP_DUMP, new HeapDump(myTimer));
+    setCommandHandler(Command.CommandType.GET_CPU_CORE_CONFIG, new GetCpuCoreConfig(myTimer));
   }
 
   /**
@@ -207,12 +206,20 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
   }
 
   public void addDevice(Common.Device device) {
+    addDevice(device, myTimer::getCurrentTimeNs);
+  }
+
+  public void addDevice(Common.Device device, long timestamp) {
+    addDevice(device, () -> timestamp);
+  }
+
+  private void addDevice(Common.Device device, Supplier<Long> timestampSupplier) {
     myDevices.put(device.getDeviceId(), device);
     // The event pipeline expects devices are connected via streams. So when a new devices is added we create a stream connected event.
     // likewise when a device is taken offline we create a stream disconnected event.
     if (device.getState() == Common.Device.State.ONLINE) {
       addEventToStream(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
-        .setTimestamp(myTimer.getCurrentTimeNs())
+        .setTimestamp(timestampSupplier.get())
         .setKind(Common.Event.Kind.STREAM)
         .setGroupId(device.getDeviceId())
         .setStream(Common.StreamData.newBuilder().setStreamConnected(Common.StreamData.StreamConnected.newBuilder().setStream(
@@ -224,7 +231,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     }
     if (device.getState() == Common.Device.State.OFFLINE || device.getState() == Common.Device.State.DISCONNECTED) {
       addEventToStream(DataStoreService.DATASTORE_RESERVED_STREAM_ID, Common.Event.newBuilder()
-        .setTimestamp(myTimer.getCurrentTimeNs())
+        .setTimestamp(timestampSupplier.get())
         .setGroupId(device.getDeviceId())
         .setKind(Common.Event.Kind.STREAM)
         .setIsEnded(true)

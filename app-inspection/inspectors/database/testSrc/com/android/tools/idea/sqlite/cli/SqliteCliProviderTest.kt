@@ -54,10 +54,15 @@ class SqliteCliProviderTest : LightPlatformTestCase() {
 
   fun testSystemOverride() {
     val fakeSqlite3Env = tempDirTestFixture.createFile("fake-sqlite3-env").toNioPath().toFile()
-    val fakeSqlite3Property = tempDirTestFixture.createFile("fake-sqlite3-property").toNioPath().toFile()
+    val fakeSqlite3Property =
+      tempDirTestFixture.createFile("fake-sqlite3-property").toNioPath().toFile()
 
-    val propertyResolver: (key: String) -> String? = { key -> if (key == SQLITE3_PATH_PROPERTY) fakeSqlite3Property.path else "" }
-    val envResolver: (key: String) -> String? = { key -> if (key == SQLITE3_PATH_ENV) fakeSqlite3Env.path else "" }
+    val propertyResolver: (key: String) -> String? = { key ->
+      if (key == SQLITE3_PATH_PROPERTY) fakeSqlite3Property.path else ""
+    }
+    val envResolver: (key: String) -> String? = { key ->
+      if (key == SQLITE3_PATH_ENV) fakeSqlite3Env.path else ""
+    }
     val nullResolver: (key: String) -> String? = { null }
 
     // test env

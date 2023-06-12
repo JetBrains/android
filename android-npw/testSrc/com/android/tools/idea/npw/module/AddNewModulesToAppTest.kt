@@ -39,11 +39,16 @@ import org.junit.runners.Parameterized
 
 
 @RunWith(Parameterized::class)
-class AddNewModulesToAppTest(private val useGradleKts: Boolean) {
+class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useVersionCatalog: Boolean) {
   companion object {
     @JvmStatic
-    @Parameterized.Parameters(name = "useGradleKts={0}")
-    fun data() = listOf(false, true)
+    @Parameterized.Parameters(name = "useGradleKts={0}, useVersionCatalog = {1}")
+    fun data() = listOf(
+      arrayOf(false, false),
+      arrayOf(false, true),
+      arrayOf(true, false),
+      arrayOf(true, true),
+    )
   }
 
   @get:Rule
@@ -54,9 +59,17 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean) {
     override fun syncProject(project: Project) { }
   }
 
+  private fun loadInitialProject() {
+    if (useVersionCatalog) {
+      projectRule.load(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG)
+    } else {
+      projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+    }
+  }
+
   @Test
   fun addNewDynamicFeatureModule() {
-    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+    loadInitialProject()
 
     val project = projectRule.project
     createDefaultDynamicFeatureModel(project, "feature1", project.findAppModule(), useGradleKts, emptyProjectSyncInvoker)
@@ -66,7 +79,7 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean) {
 
   @Test
   fun addMultipleDynamicFeatureModulesToKtsBaseModule() {
-    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+    loadInitialProject()
     val project = projectRule.project
 
     val baseModuleModel = NewAndroidModuleModel.fromExistingProject(
@@ -87,7 +100,7 @@ class AddNewModulesToAppTest(private val useGradleKts: Boolean) {
 
   @Test
   fun addNewAndroidLibraryModule() {
-    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+    loadInitialProject()
 
     val project = projectRule.project
     val libModuleModel = NewAndroidModuleModel.fromExistingProject(

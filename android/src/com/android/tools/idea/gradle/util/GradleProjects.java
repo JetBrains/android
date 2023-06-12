@@ -56,39 +56,6 @@ public final class GradleProjects {
   }
 
   /**
-   * Indicates whether the given module is the one that represents the project or one of the projects included in the composite build.
-   * <p>
-   * For example, in this project:
-   * <pre>
-   * project1
-   * - module1
-   *   - module1.iml
-   * - module2
-   *   - module2.iml
-   * -project1.iml
-   * </pre>
-   * "project1" is the module that represents the project.
-   * </p>
-   *
-   * @param module the given module.
-   * @return {@code true} if the given module is the one that represents the project, {@code false} otherwise.
-   */
-  public static boolean isGradleProjectModule(@NotNull Module module) {
-    return ":".equals(GradleProjectResolverUtil.getGradleIdentityPathOrNull(module));
-  }
-
-  public static boolean isIdeaAndroidModule(@NotNull Module module) {
-    if (GradleFacet.getInstance(module) != null) {
-      return true;
-    }
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet != null && AndroidModel.isRequired(androidFacet)) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * Indicates whether the project in the given folder can be imported as a Gradle project.
    *
    * @param importSource the folder containing the project.

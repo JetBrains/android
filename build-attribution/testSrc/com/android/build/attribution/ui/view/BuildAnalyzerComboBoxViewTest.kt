@@ -19,17 +19,23 @@ import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.controllers.BuildAnalyzerPropertiesAction
 import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
+import com.android.build.attribution.ui.model.TasksDataPageModelImpl
+import com.android.build.attribution.ui.model.WarningsDataPageModelImpl
 import com.android.tools.adtui.TreeWalker
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.android.UndisposedAndroidObjectsCheckerRule
 import org.jetbrains.kotlin.utils.keysToMap
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -39,8 +45,11 @@ class BuildAnalyzerComboBoxViewTest {
   @get:Rule
   val applicationRule: ApplicationRule = ApplicationRule()
 
+  private val disposableRule: DisposableRule = DisposableRule()
+  private val undisposedAndroidObjectsCheckerRule = UndisposedAndroidObjectsCheckerRule()
+
   @get:Rule
-  val disposableRule: DisposableRule = DisposableRule()
+  val disposableRuleChain = RuleChain(undisposedAndroidObjectsCheckerRule, disposableRule)
 
   @get:Rule
   val edtRule = EdtRule()
@@ -54,7 +63,7 @@ class BuildAnalyzerComboBoxViewTest {
     view = BuildAnalyzerComboBoxView(model, mockHandlers).apply {
       wholePanel.size = Dimension(600, 200)
     }
-    disposableRule.register { view }
+    Disposer.register(disposableRule.disposable, view)
   }
 
   @Test
@@ -165,6 +174,7 @@ class BuildAnalyzerComboBoxViewTest {
 
   @Test
   @RunsInEdt
+  @Ignore("Re-enable once we have more settings for build analyzer history")
   fun testActionToolbarIsSetProperly() {
     val toolbar = TreeWalker(view.wholePanel).descendants().filterIsInstance<ActionToolbar>().single()
 
@@ -172,6 +182,27 @@ class BuildAnalyzerComboBoxViewTest {
     assertThat(toolbar.actions).hasSize(2)
     assertThat(toolbar.actions[0]).isInstanceOf(BuildAnalyzerPropertiesAction::class.java)
     assertThat(toolbar.actions[1]).isInstanceOf(Separator::class.java)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testModelListenersReleasedOnUiDisposal() {
+    // Select each page to trigger its lazy creation, after that model listeners should be set up.
+    BuildAnalyzerViewModel.DataSet.values().forEach { model.selectedData = it }
+    assertThat(model.dataSetSelectionListener).isNotNull()
+    assertThat((model.tasksPageModel as TasksDataPageModelImpl).listenersCount).isEqualTo(2)
+    assertThat((model.warningsPageModel as WarningsDataPageModelImpl).listenersCount).isEqualTo(2)
+    assertThat(model.downloadsInfoPageModel.repositoriesTableModel.tableModelListeners.size).isEqualTo(4)
+    assertThat(model.downloadsInfoPageModel.requestsListModel.tableModelListeners.size).isEqualTo(4)
+
+    Disposer.dispose(view)
+
+    // After UI disposal all listeners should be cleared up from the model.
+    assertThat(model.dataSetSelectionListener).isNull()
+    assertThat((model.tasksPageModel as TasksDataPageModelImpl).listenersCount).isEqualTo(0)
+    assertThat((model.warningsPageModel as WarningsDataPageModelImpl).listenersCount).isEqualTo(0)
+    assertThat(model.downloadsInfoPageModel.repositoriesTableModel.tableModelListeners.size).isEqualTo(0)
+    assertThat(model.downloadsInfoPageModel.requestsListModel.tableModelListeners.size).isEqualTo(0)
   }
 
   private fun grabElementsVisibilityStatus(names: Set<String>): Map<String, Boolean> {

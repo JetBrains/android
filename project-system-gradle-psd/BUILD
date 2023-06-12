@@ -28,6 +28,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
@@ -40,12 +41,38 @@ iml_module(
 iml_module(
     name = "intellij.android.projectSystem.gradle.psd.tests",
     iml_files = ["intellij.android.projectSystem.gradle.psd.tests.iml"],
+    split_test_targets = {
+        "gradle.structure": {
+            "shard_count": 6,
+            "test_filter": "com.android.tools.idea.gradle.structure",
+        },
+        "gradle.structure.configurables.variables.VariablesTableTest": {
+            # Takes too long (b/152650494)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.configurables.variables.VariablesTableTest",
+        },
+        "gradle.structure.model.DependencyManagementTest": {
+            # Path separators in map keys (b/151462469)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.model.DependencyManagementTest",
+        },
+        "gradle.structure.configurables.dependencies.treeview": {
+            # Path separators e.g. (..\lib) (b/152560457)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
+        },
+        "gradle.structure.model.android": {
+            "shard_count": 6,
+            # Timeout waiting to lock Artifact transforms cache (b/152652501)
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.gradle.structure.model.android",
+        },
+    },
     test_class = "com.android.tools.idea.gradle.structure.GradleProjectSystemStructureTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
-        "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -59,6 +86,11 @@ iml_module(
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
+    test_tags = [
+        "block-network",
+        "cpu:3",
+        "no_test_mac",
+    ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -76,6 +108,14 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl.testutils[module, test]",
+        "//tools/adt/idea/observable:intellij.android.observable[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy[test]",
     ],
 )
 
@@ -133,7 +173,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
-        "@maven//:org.mockito.mockito-core_3.12.4",
+        "@maven//:org.mockito.mockito-core_4.8.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )

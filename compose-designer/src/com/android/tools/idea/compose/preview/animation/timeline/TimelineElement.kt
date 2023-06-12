@@ -39,13 +39,18 @@ enum class TimelineElementStatus {
   Dragged
 }
 
-/**
- * Group of [TimelineElement] for timeline. Group elements are moved and frozen together.
- */
-open class ParentTimelineElement(state: ElementState, private val children: List<TimelineElement>, positionProxy: PositionProxy)
-  : TimelineElement(state = state, minX = children.minOf { it.minX },
-                    maxX = children.maxOf { it.maxX },
-                    positionProxy = positionProxy) {
+/** Group of [TimelineElement] for timeline. Group elements are moved and frozen together. */
+open class ParentTimelineElement(
+  state: ElementState,
+  private val children: List<TimelineElement>,
+  positionProxy: PositionProxy
+) :
+  TimelineElement(
+    state = state,
+    minX = children.minOf { it.minX },
+    maxX = children.maxOf { it.maxX },
+    positionProxy = positionProxy
+  ) {
   override var height = children.sumOf { it.height }
   override fun contains(x: Int, y: Int) = children.any { it.contains(x, y) }
   override fun paint(g: Graphics2D) {
@@ -75,10 +80,13 @@ open class ParentTimelineElement(state: ElementState, private val children: List
     }
 }
 
-/**
- * Drawable element for timeline. Each element could be moved and frozen.
- */
-abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX: Int, protected val positionProxy: PositionProxy) : Disposable {
+/** Drawable element for timeline. Each element could be moved and frozen. */
+abstract class TimelineElement(
+  val state: ElementState,
+  val minX: Int,
+  val maxX: Int,
+  protected val positionProxy: PositionProxy
+) : Disposable {
 
   var offsetPx: Int = 0
   abstract var height: Int
@@ -95,10 +103,13 @@ abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX:
   open var status: TimelineElementStatus = TimelineElementStatus.Inactive
 
   init {
-    offsetPx = if (state.valueOffset > 0)
-      positionProxy.xPositionForValue(positionProxy.minimumValue() + state.valueOffset) - positionProxy.minimumXPosition()
-    else
-      -positionProxy.xPositionForValue(positionProxy.minimumValue() - state.valueOffset) + positionProxy.minimumXPosition()
+    offsetPx =
+      if (state.valueOffset > 0)
+        positionProxy.xPositionForValue(positionProxy.minimumValue() + state.valueOffset) -
+          positionProxy.minimumXPosition()
+      else
+        -positionProxy.xPositionForValue(positionProxy.minimumValue() - state.valueOffset) +
+          positionProxy.minimumXPosition()
   }
 
   abstract fun contains(x: Int, y: Int): Boolean
@@ -106,11 +117,16 @@ abstract class TimelineElement(val state: ElementState, val minX: Int, val maxX:
 
   fun move(deltaPx: Int) {
     val previousOffsetPx = offsetPx
-    offsetPx = clamp(offsetPx + deltaPx, positionProxy.minimumXPosition() - maxX, positionProxy.maximumXPosition() - minX)
-    state.valueOffset = if (offsetPx >= 0)
-      positionProxy.valueForXPosition(minX + offsetPx) - positionProxy.valueForXPosition(minX)
-    else
-      positionProxy.valueForXPosition(maxX + offsetPx) - positionProxy.valueForXPosition(maxX)
+    offsetPx =
+      clamp(
+        offsetPx + deltaPx,
+        positionProxy.minimumXPosition() - maxX,
+        positionProxy.maximumXPosition() - minX
+      )
+    state.valueOffset =
+      if (offsetPx >= 0)
+        positionProxy.valueForXPosition(minX + offsetPx) - positionProxy.valueForXPosition(minX)
+      else positionProxy.valueForXPosition(maxX + offsetPx) - positionProxy.valueForXPosition(maxX)
     moveComponents(actualDeltaPx = offsetPx - previousOffsetPx)
   }
 

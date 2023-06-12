@@ -21,6 +21,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunManager;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -31,8 +32,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.UIUtil.FontSize;
 import java.awt.Component;
+import java.awt.Font;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -101,7 +106,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       myGetRunManager = project -> null;
     }
 
-    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
+    @NotNull
+    private Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
       mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
       return this;
     }
@@ -124,8 +130,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return this;
     }
 
-    @NotNull Builder setNewSelectMultipleDevicesDialog(
-      @NotNull BiFunction<Project, List<Device>, DialogWrapper> newSelectMultipleDevicesDialog) {
+    @NotNull
+    @VisibleForTesting
+    Builder setNewSelectMultipleDevicesDialog(@NotNull BiFunction<Project, List<Device>, DialogWrapper> newSelectMultipleDevicesDialog) {
       myNewSelectMultipleDevicesDialog = newSelectMultipleDevicesDialog;
       return this;
     }
@@ -213,16 +220,19 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return getSelectedDevices(project).size();
   }
 
-  @NotNull List<@NotNull Device> getSelectedDevices(@NotNull Project project) {
+  @NotNull
+  List<Device> getSelectedDevices(@NotNull Project project) {
     List<Device> devices = getDevices(project).orElse(Collections.emptyList());
     return Target.filterDevices(getSelectedTargets(project, devices), devices);
   }
 
-  @NotNull Set<@NotNull Target> getSelectedTargets(@NotNull Project project) {
-    return getSelectedTargets(project, getDevices(project).orElse(Collections.emptyList()));
+  @NotNull
+  Optional<Set<Target>> getSelectedTargets(@NotNull Project project) {
+    return getDevices(project).map(devices -> getSelectedTargets(project, devices));
   }
 
-  @NotNull Set<@NotNull Target> getSelectedTargets(@NotNull Project project, @NotNull List<@NotNull Device> devices) {
+  @NotNull
+  Set<Target> getSelectedTargets(@NotNull Project project, @NotNull List<Device> devices) {
     DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
 
     if (service.isMultipleDevicesSelectedInComboBox()) {
@@ -262,31 +272,50 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .addComponent(button, 0, GroupLayout.DEFAULT_SIZE, scale.applyAsInt(250))
       .addGap(scale.applyAsInt(3));
 
-    Group verticalGroup = layout.createParallelGroup()
-      .addComponent(button);
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGap(0, 0, Short.MAX_VALUE)
+      .addComponent(button)
+      .addGap(0, 0, Short.MAX_VALUE);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
 
     panel.setLayout(layout);
+    panel.setOpaque(false);
+
     return panel;
   }
 
   @NotNull
   @Override
   protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
-    ComboBoxButton button = new ComboBoxButton(presentation) {
-      @NotNull
-      @Override
-      protected JBPopup createPopup(@NotNull Runnable runnable) {
-        DataContext context = getDataContext();
-        return new Popup(createPopupActionGroup(this, context), context, runnable);
-      }
-    };
-
+    ComboBoxButton button = new DeviceAndSnapshotComboBoxButton(presentation);
     myUpdatableDeviceHelpTooltip.installOn(button);
-    button.setName("deviceAndSnapshotComboBoxButton");
+
     return button;
+  }
+
+  private final class DeviceAndSnapshotComboBoxButton extends ComboBoxButton {
+    private DeviceAndSnapshotComboBoxButton(@NotNull Presentation presentation) {
+      super(presentation);
+      setName("deviceAndSnapshotComboBoxButton");
+    }
+
+    @NotNull
+    @Override
+    protected JBPopup createPopup(@Nullable Runnable runnable) {
+      var context = getDataContext();
+      assert runnable != null;
+
+      return new Popup(createPopupActionGroup(this, context), context, runnable);
+    }
+
+    @NotNull
+    @Override
+    public Font getFont() {
+      // noinspection UnstableApiUsage
+      return ExperimentalUI.isNewUI() ? UIUtil.getLabelFont(FontSize.NORMAL) : super.getFont();
+    }
   }
 
   @Override
@@ -301,6 +330,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     assert project != null;
 
     return new PopupActionGroup(getDevices(project).orElseThrow(AssertionError::new), this);
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 
   @Override
@@ -320,7 +355,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     Optional<List<Device>> optionalDevices = getDevices(project);
 
-    if (!optionalDevices.isPresent()) {
+    if (optionalDevices.isEmpty()) {
       presentation.setEnabled(false);
       presentation.setText("Loading Devices...");
 
@@ -356,7 +391,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     }
   }
 
-  private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<@NotNull Target> targets) {
+  private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<Target> targets) {
     AsyncDevicesGetter getter = myDevicesGetterGetter.apply(project);
     myExecutionTargetServiceGetInstance.apply(project).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, getter));
   }

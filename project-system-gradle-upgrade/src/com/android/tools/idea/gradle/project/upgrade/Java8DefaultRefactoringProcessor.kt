@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction
 import com.android.tools.idea.gradle.project.upgrade.Java8DefaultRefactoringProcessor.NoLanguageLevelAction.ACCEPT_NEW_DEFAULT
@@ -46,10 +46,10 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       field = value
     }
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, ACTIVATED_VERSION)
+  override val necessityInfo = PointNecessity(ACTIVATED_VERSION)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     fun usageType(model: LanguageLevelPropertyModel): UsageType? = when {
@@ -145,7 +145,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
       }
     }
 
-  override fun getReadMoreUrl(): String? = "https://developer.android.com/r/tools/upgrade-assistant/java8-default"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("java8-default")
 
   override fun getShortDescription(): String? =
     """
@@ -155,7 +155,7 @@ class Java8DefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor
     """.trimIndent()
 
   companion object {
-    val ACTIVATED_VERSION = GradleVersion.parse("4.2.0-alpha05")
+    val ACTIVATED_VERSION = AgpVersion.parse("4.2.0-alpha05")
 
     val EXISTING_DIRECTIVE_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.existingDirectiveUsageType"))
     val ACCEPT_NEW_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.java8DefaultRefactoringProcessor.acceptNewUsageType"))
@@ -215,7 +215,7 @@ class KotlinLanguageLevelUsageInfo(
     }
   }
 
-  private val gradleFile = model.gradleFile
+  val gradleFile = model.gradleFile
 
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     when {

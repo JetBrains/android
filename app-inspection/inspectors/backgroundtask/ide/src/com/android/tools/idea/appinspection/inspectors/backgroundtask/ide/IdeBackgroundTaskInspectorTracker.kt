@@ -23,26 +23,40 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskInspectorEvent
 import com.intellij.openapi.project.Project
 
-class IdeBackgroundTaskInspectorTracker(private val project: Project) : BackgroundTaskInspectorTracker {
+class IdeBackgroundTaskInspectorTracker(private val project: Project) :
+  BackgroundTaskInspectorTracker {
   private var activeMode = BackgroundTaskInspectorEvent.Mode.TABLE_MODE
 
   override fun trackTableModeSelected() {
-    track(BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT, BackgroundTaskInspectorEvent.Type.TABLE_MODE_SELECTED.toEvent())
+    track(
+      BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
+      BackgroundTaskInspectorEvent.Type.TABLE_MODE_SELECTED.toEvent()
+    )
     activeMode = BackgroundTaskInspectorEvent.Mode.TABLE_MODE
   }
 
-  override fun trackGraphModeSelected(context: BackgroundTaskInspectorEvent.Context, chainInfo: BackgroundTaskInspectorEvent.ChainInfo) {
-    val event = BackgroundTaskInspectorEvent.Type.GRAPH_MODE_SELECTED.toEvent().setChainInfo(chainInfo)
+  override fun trackGraphModeSelected(
+    context: BackgroundTaskInspectorEvent.Context,
+    chainInfo: BackgroundTaskInspectorEvent.ChainInfo
+  ) {
+    val event =
+      BackgroundTaskInspectorEvent.Type.GRAPH_MODE_SELECTED.toEvent().setChainInfo(chainInfo)
     track(context, event)
     activeMode = BackgroundTaskInspectorEvent.Mode.GRAPH_MODE
   }
 
   override fun trackJumpedToSource() {
-    track(BackgroundTaskInspectorEvent.Context.DETAILS_CONTEXT, BackgroundTaskInspectorEvent.Type.JUMPED_TO_SOURCE.toEvent())
+    track(
+      BackgroundTaskInspectorEvent.Context.DETAILS_CONTEXT,
+      BackgroundTaskInspectorEvent.Type.JUMPED_TO_SOURCE.toEvent()
+    )
   }
 
   override fun trackWorkCancelled() {
-    track(BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT, BackgroundTaskInspectorEvent.Type.WORK_CANCELED.toEvent())
+    track(
+      BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
+      BackgroundTaskInspectorEvent.Type.WORK_CANCELED.toEvent()
+    )
   }
 
   private fun BackgroundTaskInspectorEvent.Type.toEvent(): BackgroundTaskInspectorEvent.Builder {
@@ -54,38 +68,58 @@ class IdeBackgroundTaskInspectorTracker(private val project: Project) : Backgrou
   }
 
   override fun trackJobSelected() {
-    track(BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT, BackgroundTaskInspectorEvent.Type.JOB_SELECTED.toEvent())
+    track(
+      BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
+      BackgroundTaskInspectorEvent.Type.JOB_SELECTED.toEvent()
+    )
   }
 
   override fun trackJobUnderWorkSelected() {
-    track(BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT, BackgroundTaskInspectorEvent.Type.JOB_UNDER_WORK_SELECTED.toEvent())
+    track(
+      BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
+      BackgroundTaskInspectorEvent.Type.JOB_UNDER_WORK_SELECTED.toEvent()
+    )
   }
 
   override fun trackAlarmSelected() {
-    track(BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT, BackgroundTaskInspectorEvent.Type.ALARM_SELECTED.toEvent())
+    track(
+      BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
+      BackgroundTaskInspectorEvent.Type.ALARM_SELECTED.toEvent()
+    )
   }
 
   override fun trackWakeLockSelected() {
-    track(BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT, BackgroundTaskInspectorEvent.Type.WAKE_LOCK_SELECTED.toEvent())
+    track(
+      BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
+      BackgroundTaskInspectorEvent.Type.WAKE_LOCK_SELECTED.toEvent()
+    )
   }
 
   override fun trackWakeLockUnderJobSelected() {
-    track(BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT, BackgroundTaskInspectorEvent.Type.WAKE_LOCK_UNDER_JOB_SELECTED.toEvent())
+    track(
+      BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT,
+      BackgroundTaskInspectorEvent.Type.WAKE_LOCK_UNDER_JOB_SELECTED.toEvent()
+    )
   }
 
   // Note: We could have just set |context| directly before calling track, but making it a
   // parameter ensures we never forget to do so.
-  private fun track(context: BackgroundTaskInspectorEvent.Context, inspectorEvent: BackgroundTaskInspectorEvent.Builder) {
+  private fun track(
+    context: BackgroundTaskInspectorEvent.Context,
+    inspectorEvent: BackgroundTaskInspectorEvent.Builder
+  ) {
     inspectorEvent.context = context
     inspectorEvent.mode = activeMode
 
-    val inspectionEvent = AppInspectionEvent.newBuilder()
-      .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
-      .setBackgroundTaskInspectorEvent(inspectorEvent)
+    val inspectionEvent =
+      AppInspectionEvent.newBuilder()
+        .setType(AppInspectionEvent.Type.INSPECTOR_EVENT)
+        .setBackgroundTaskInspectorEvent(inspectorEvent)
 
-    val studioEvent: AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
-      .setAppInspectionEvent(inspectionEvent)
+    val studioEvent: AndroidStudioEvent.Builder =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.APP_INSPECTION)
+        .setAppInspectionEvent(inspectionEvent)
 
     // TODO(b/153270761): Use studioEvent.withProjectId instead, after code is moved out of
     //  monolithic core module

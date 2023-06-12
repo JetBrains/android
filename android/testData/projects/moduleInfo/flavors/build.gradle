@@ -14,7 +14,6 @@ repositories {
 
 android {
   compileSdkVersion 18
-  buildToolsVersion "19.1.0"
 
   defaultConfig {
     minSdkVersion 9
@@ -42,6 +41,10 @@ android {
       minSdkVersion 14
       dimension "version"
     }
+  }
+
+  buildFeatures {
+    buildConfig true
   }
 }
 

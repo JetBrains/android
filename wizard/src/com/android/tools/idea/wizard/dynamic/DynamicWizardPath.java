@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.wizard.dynamic;
 
-import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -25,11 +23,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.wizard.dynamic.ScopedStateStore.Key;
 
 /**
  * DynamicWizardPath

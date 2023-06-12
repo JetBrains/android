@@ -18,8 +18,6 @@ package com.android.tools.profilers
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.application.ApplicationManager
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 interface WithFakeTimer {
   val timer: FakeTimer
@@ -35,11 +33,21 @@ interface WithFakeTimer {
 }
 
 object Utils {
-  fun debuggableProcess(setUp: Common.Process.Builder.() -> Unit) = Common.Process.newBuilder().apply {
-    exposureLevel = Common.Process.ExposureLevel.DEBUGGABLE
+  fun newDevice(initialState: Common.Device.State, setUp: Common.Device.Builder.() -> Unit) = Common.Device.newBuilder().apply {
+    state = initialState
+    setUp()
+  }.build()
+
+  fun onlineDevice(setUp: Common.Device.Builder.() -> Unit) = newDevice(Common.Device.State.ONLINE, setUp)
+
+  fun newProcess(initialExposureLevel: Common.Process.ExposureLevel = Common.Process.ExposureLevel.UNKNOWN,
+                 setUp: Common.Process.Builder.() -> Unit) = Common.Process.newBuilder().apply {
+    exposureLevel = initialExposureLevel
     state = Common.Process.State.ALIVE
     setUp()
   }.build()
+
+  fun debuggableProcess(setUp: Common.Process.Builder.() -> Unit) = newProcess(Common.Process.ExposureLevel.DEBUGGABLE, setUp)
 
   @JvmStatic
   fun runOnUi(work: Runnable): Unit = ApplicationManager.getApplication().invokeAndWait(work)

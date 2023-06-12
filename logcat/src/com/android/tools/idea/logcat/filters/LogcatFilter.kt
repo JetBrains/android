@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.BUNDLE_NAME
 import com.android.tools.idea.logcat.LogcatBundle.message
 import com.android.tools.idea.logcat.PackageNamesProvider
@@ -23,7 +24,9 @@ import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
 import com.android.tools.idea.logcat.message.LogLevel.ERROR
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.util.TextRange.EMPTY_RANGE
 import com.intellij.openapi.util.text.Strings
 import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import org.jetbrains.annotations.PropertyKey
@@ -34,20 +37,28 @@ import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import java.util.regex.PatternSyntaxException
 
+private const val STUDIO_SPAM_PREFIX = "studio."
+
 /**
  * The top level filter that prepares and executes a [LogcatFilter]
  */
 internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
+  private val settings = AndroidLogcatSettings.getInstance()
+  private val ignoreSpam = StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS.get()
 
   fun filter(messages: List<LogcatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogcatMessage> {
     if (logcatFilter == null) {
-      return messages
+      return messages.filter { !it.isSpam() }
     }
     logcatFilter.prepare()
-    return messages.filter { it.header === SYSTEM_HEADER || logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) }
+    return messages.filter {
+      it.header === SYSTEM_HEADER || (logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) && !it.isSpam())
+    }
   }
-}
 
+  private fun LogcatMessage.isSpam() =
+    settings.ignoredTags.contains(header.tag) || (ignoreSpam && header.tag.startsWith(STUDIO_SPAM_PREFIX))
+}
 /**
  * Matches a [LogcatMessage]
  */
@@ -323,10 +334,16 @@ internal data class NameFilter(
   override fun matches(message: LogcatMessageWrapper): Boolean = true
 }
 
-private val EXCEPTION_LINE_PATTERN = Regex("\n\\s*at .+\\(.+\\)\n")
+private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
 
 internal data class StackTraceFilter(override val textRange: TextRange) : LogcatFilter(textRange) {
   override val displayText: String = message("logcat.filter.completion.hint.is.stacktrace")
 
-  override fun matches(message: LogcatMessageWrapper): Boolean = EXCEPTION_LINE_PATTERN.find(message.logcatMessage.message) != null
+  override fun matches(message: LogcatMessageWrapper): Boolean = exceptionLinePattern.find(message.logcatMessage.message) != null
+}
+
+internal object EmptyFilter: LogcatFilter(EMPTY_RANGE) {
+  override val displayText: String = ""
+
+  override fun matches(message: LogcatMessageWrapper): Boolean = true
 }

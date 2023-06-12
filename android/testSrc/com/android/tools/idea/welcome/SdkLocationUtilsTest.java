@@ -33,7 +33,7 @@ import org.junit.Test;
 public final class SdkLocationUtilsTest {
   private final FileSystem fs = new DelegatingFileSystemProvider(InMemoryFileSystems.createInMemoryFileSystem()) {
     @Override
-    public void checkAccess(@NotNull Path path, AccessMode @NotNull ... modes) throws IOException {
+    public void checkAccess(@NotNull Path path, AccessMode... modes) throws IOException {
       Path file = path.getFileName();
       if (file != null && file.toString().endsWith("unwritable") && Arrays.asList(modes).contains(AccessMode.WRITE)) {
         throw new AccessDeniedException("unwritable");

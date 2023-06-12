@@ -17,12 +17,13 @@ package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
-import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.repositories.search.CachingRepositorySearchFactory
 import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
-import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.model.meta.getValue
+import com.android.tools.idea.gradle.repositories.search.AndroidSdkRepositories
+import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
+import com.android.tools.idea.gradle.structure.GradleResolver
+import com.android.tools.idea.gradle.structure.model.android.DependencyResultLocation
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
@@ -46,7 +47,8 @@ class PsProjectImpl(
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies(ideProject)
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
-  private val buildScript : PsBuildScript = PsBuildScript(this)
+  val buildScript : PsBuildScript = PsBuildScript(this)
+  private val versionCatalogCollection : PsVersionCatalogCollection
   override val name: String get() = ideProject.name  // Supposedly there is no way to rename the project from within the PSD.
 
   override val parent: PsModel? = null
@@ -54,6 +56,7 @@ class PsProjectImpl(
   override val icon: Icon? = null
 
   override val modules: PsModelCollection<PsModule> get() = moduleCollection
+  override val versionCatalogs: PsModelCollection<PsVersionCatalog> get() = versionCatalogCollection
   override val modelCount: Int get() = moduleCollection.size
   override var androidGradlePluginVersion by PsProjectDescriptors.androidGradlePluginVersion
   override var gradleVersion by PsProjectDescriptors.gradleVersion
@@ -66,6 +69,7 @@ class PsProjectImpl(
     buildScriptVariables = PsVariables(buildScript, "$name (build script)", "Build Script: $name", null)
     variables = PsVariables(this, "$name (project)", "Project: $name", buildScriptVariables)
     moduleCollection = PsModuleCollection(this)
+    versionCatalogCollection = PsVersionCatalogCollection(this)
   }
 
   override fun getPluginArtifactRepositories(): Collection<ArtifactRepository> =
@@ -93,7 +97,7 @@ class PsProjectImpl(
     moduleCollection.firstOrNull { it -> it.gradlePath == gradlePath }
 
   override fun forEachModule(consumer: Consumer<PsModule>) {
-    moduleCollection.sortedBy { it.name.toLowerCase(Locale.US) }.forEach(consumer)
+    moduleCollection.sortedBy { it.name.lowercase(Locale.US) }.forEach(consumer)
   }
 
   override fun removeModule(gradlePath: String) {
@@ -116,6 +120,7 @@ class PsProjectImpl(
       buildScriptVariables.refresh()
       internalResolvedModuleModels = null
       moduleCollection.refresh()
+      versionCatalogCollection.refresh()
     }
   }
 
@@ -156,6 +161,11 @@ class PsProjectImpl(
     isModified = true
     gradleVersionModified = true
     newGradleVersion = value
+  }
+
+  override fun findScopeByDependencyLocation(dependencyLocation: DependencyResultLocation): PsVariablesScope? {
+    if (dependencyLocation.matchLocation(parsedModel.projectBuildModel)) return variables
+    return versionCatalogs.find { dependencyLocation.matchLocation(it.parsedModel) }?.variables
   }
 }
 

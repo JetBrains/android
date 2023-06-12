@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.intellij.codeInsight.FileModificationService
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethodCallExpression
@@ -43,25 +42,30 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
     return "Call $methodName instead"
   }
 
-  override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
+  override fun apply(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    context: AndroidQuickfixContexts.Context
+  ) {
     if (!startElement.isValid) {
       return
     }
 
-    if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
+    if (!prepareElementForWrite(startElement)) {
       return
     }
 
     when (startElement.language) {
-      JavaLanguage.INSTANCE -> handleJava(startElement)
-      KotlinLanguage.INSTANCE -> handleKotlin(startElement)
+      JavaLanguage.INSTANCE -> handleJava(startElement, context)
+      KotlinLanguage.INSTANCE -> handleKotlin(startElement, context)
     }
   }
 
-  private fun handleJava(element: PsiElement) {
-    val methodCall = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java, false) ?: return
+  private fun handleJava(element: PsiElement, context: AndroidQuickfixContexts.Context) {
+    val methodCall =
+      PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java, false) ?: return
     val file = methodCall.containingFile ?: return
-    val document = FileDocumentManager.getInstance().getDocument(file.virtualFile) ?: return
+    val document = context.getDocument(file) ?: return
     val methodExpression = methodCall.methodExpression
     val referenceNameElement = methodExpression.referenceNameElement ?: return
     val range = referenceNameElement.textRange ?: return
@@ -71,8 +75,7 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
     // tricky to figure out in general how to map existing parameters to new
     // parameters. Consider using MethodSignatureInsertHandler.
     val name = methodName
-    if (name.startsWith("enforce") &&
-        name.endsWith("Permission")) {
+    if (name.startsWith("enforce") && name.endsWith("Permission")) {
       val referenceName = methodExpression.referenceName
       if (referenceName != null && referenceName.startsWith("check")) {
         val argumentList = methodCall.argumentList
@@ -85,26 +88,26 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
     document.replaceString(range.startOffset, range.endOffset, name)
   }
 
-  private fun handleKotlin(element: PsiElement) {
-    val methodCall = PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, false) ?: return
+  private fun handleKotlin(element: PsiElement, context: AndroidQuickfixContexts.Context) {
+    val methodCall =
+      PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, false) ?: return
     val methodExpression = methodCall.getCalleeExpression()
     if (methodExpression is KtNameReferenceExpression) {
       val identifier: PsiElement? = methodExpression.getIdentifier()
       if (identifier != null) {
         val range = identifier.textRange
         val file = methodCall.containingFile ?: return
-        val document = FileDocumentManager.getInstance().getDocument(file.virtualFile) ?: return
+        val document = context.getDocument(file) ?: return
 
         // Also need to insert a message parameter
         // Currently hardcoded for the check*Permission to enforce*Permission code path. It's
         // tricky to figure out in general how to map existing parameters to new
         // parameters. Consider using MethodSignatureInsertHandler.
         val name = methodName
-        if (name.startsWith("enforce") &&
-            name.endsWith("Permission")) {
+        if (name.startsWith("enforce") && name.endsWith("Permission")) {
           val referencedName = methodExpression.getReferencedName()
           if (referencedName.startsWith("check")) {
-            methodCall.getValueArgumentList()?.textRange?.let { range: TextRange ->
+            methodCall.valueArgumentList?.textRange?.let { range: TextRange ->
               val offset = range.endOffset - 1
               document.insertString(offset, ", \"TODO: message if thrown\"")
             }

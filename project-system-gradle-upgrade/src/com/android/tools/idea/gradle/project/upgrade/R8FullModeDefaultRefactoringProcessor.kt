@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.INSERT_OLD_DEFAULT
@@ -45,10 +46,10 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
       field = value
     }
 
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() = AgpUpgradeComponentNecessity.standardPointNecessity(current, new, ACTIVATED_VERSION)
+  override val necessityInfo = PointNecessity(ACTIVATED_VERSION)
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
@@ -116,7 +117,7 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
       it is R8FullModeUsageInfo && it.existing
     }
 
-  override fun getReadMoreUrl() = "https://r8.googlesource.com/r8/+/refs/heads/master/compatibility-faq.md#r8-full-mode"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("r8-full-mode-default")
 
   override fun getShortDescription(): String? =
     """
@@ -134,8 +135,7 @@ class R8FullModeDefaultRefactoringProcessor : AgpUpgradeComponentRefactoringProc
   }
 
   companion object {
-    // TODO(b/227759559): adjust this when the change of default version is known.
-    val ACTIVATED_VERSION = GradleVersion.parse("8.0.0-alpha04")
+    val ACTIVATED_VERSION = AgpVersion.parse("8.0.0-alpha01")
 
     val EXISTING_PROPERTY_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.r8FullModeDefaultRefactoringProcessor.existingDirectiveUsageType"))
     val ACCEPT_NEW_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("project.upgrade.r8FullModeDefaultRefactoringProcessor.acceptNewUsageType"))
@@ -153,7 +153,7 @@ class R8FullModeUsageInfo(
     if (!existing && noPropertyPresentAction == INSERT_OLD_DEFAULT) {
       val (propertiesFile, psiFile) = when (val realElement = wrappedElement.realElement) {
         is PropertiesFile -> realElement to (realElement as? PsiFile ?: return)
-        is PsiDirectory -> realElement.createFile("gradle.properties").let {
+        is PsiDirectory -> (realElement.findFile(FN_GRADLE_PROPERTIES) ?: realElement.createFile (FN_GRADLE_PROPERTIES)).let {
           (it as? PropertiesFile ?: return) to (it as? PsiFile ?: return)
         }
         else -> return

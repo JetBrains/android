@@ -43,7 +43,7 @@ class LayoutSlowPreviewProvider(private val facet: AndroidFacet,
     val designAsset = asset as? DesignAsset ?: return null
     val file = resourceResolver.getResolvedLayoutFile(designAsset) ?: return null
     val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file) as? XmlFile ?: return null
-    val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file)
+    val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file)
     return LayoutRenderer.getInstance(facet).getLayoutRender(psiFile, configuration).get()
   }
 

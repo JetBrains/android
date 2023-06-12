@@ -33,7 +33,6 @@ import com.android.tools.idea.res.resolve
 import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.NavEditorEvent
-import com.intellij.ide.util.TreeClassChooserFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.ui.DialogWrapper
@@ -56,14 +55,17 @@ import javax.swing.Action
 import javax.swing.JComponent
 
 // open for testing
-open class AddArgumentDialog(private val existingComponent: NlComponent?, private val parent: NlComponent) : DialogWrapper(false) {
+class AddArgumentDialog(
+  private val existingComponent: NlComponent?,
+  private val parent: NlComponent,
+  private val kotlinTreeClassChooserFactory: KotlinTreeClassChooserFactory = KotlinTreeClassChooserFactory.getInstance()) : DialogWrapper(false) {
 
   private var selectedType: Type = Type.values().first()
   private val defaultValueComboModel = MutableCollectionComboBoxModel<String>()
 
   private val psiManager = PsiManager.getInstance(parent.model.project)
-  private val parcelableClass = ClassUtil.findPsiClass(psiManager, CLASS_PARCELABLE)!!
-  private val serializableClass = ClassUtil.findPsiClass(psiManager, "java.io.Serializable")!!
+  internal val parcelableClass = ClassUtil.findPsiClass(psiManager, CLASS_PARCELABLE)!!
+  internal val serializableClass = ClassUtil.findPsiClass(psiManager, "java.io.Serializable")!!
 
   @VisibleForTesting
   val dialogUI = AddArgumentDialogUI()
@@ -232,8 +234,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
           else -> throw IllegalStateException("Can never happen.")
         }
         val current = type?.removeSuffix("[]")?.let { ClassUtil.findPsiClass(psiManager, it) }
-        val chooser = TreeClassChooserFactory.getInstance(project)
-          .createInheritanceClassChooser("Select Class", GlobalSearchScope.allScope(project), superType, current) {
+        val chooser = kotlinTreeClassChooserFactory.createKotlinTreeClassChooser("Select Class", project, GlobalSearchScope.allScope(project), superType, current) {
               aClass -> if (superType == null) aClass.isEnum else true
           }
         chooser.showDialog()

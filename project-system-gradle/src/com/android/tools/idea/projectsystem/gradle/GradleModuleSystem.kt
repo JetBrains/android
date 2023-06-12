@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
 import com.android.tools.idea.gradle.util.DynamicAppUtils
@@ -41,9 +44,11 @@ import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.MergedManifestContributors
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.projectsystem.androidFacetsForNonHolderModules
 import com.android.tools.idea.projectsystem.buildNamedModuleTemplatesFor
 import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
@@ -54,21 +59,26 @@ import com.android.tools.idea.projectsystem.getTestFixturesModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.getUnitTestModule
 import com.android.tools.idea.projectsystem.isAndroidTestFile
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.GradleApplicationIdProvider
+import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.stats.recordTestLibraries
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.TestLibraries
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
@@ -99,7 +109,7 @@ private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
     .toMap() as Map<K, V>
 }
 
-private val LOG = Logger.getInstance(GradleModuleSystem::class.java)
+private val LOG = logger<GradleModuleSystem>()
 
 class GradleModuleSystem(
   override val module: Module,
@@ -107,6 +117,7 @@ class GradleModuleSystem(
   private val moduleHierarchyProvider: ModuleHierarchyProvider,
 ) : AndroidModuleSystem,
     SampleDataDirectoryProvider by MainContentRootSampleDataDirectoryProvider(module) {
+
 
   override val type: AndroidModuleSystem.Type
     get() = when (GradleAndroidModel.get(module)?.androidProject?.projectType) {
@@ -173,12 +184,11 @@ class GradleModuleSystem(
   }
 
   override fun getResourceModuleDependencies() =
-    AndroidDependenciesCache.getAllAndroidDependencies(module, true).map(AndroidFacet::getModule)
+    AndroidDependenciesCache.getAllAndroidDependencies(module.getMainModule(), true).map(AndroidFacet::getModule)
 
   override fun getAndroidTestDirectResourceModuleDependencies(): List<Module> {
     val dependencies = GradleAndroidModel.get(this.module)?.selectedAndroidTestCompileDependencies
-    return dependencies?.moduleDependencies
-      // TODO(b/149203281): Rework. This doesn't work with composite build projects and it is extremely slow.
+    return dependencies?.libraries?.filterIsInstance<IdeModuleLibrary>()
       ?.mapNotNull { it.getGradleProjectPath().resolveIn(this.module.project) }
       ?.toList()
       ?: emptyList()
@@ -211,7 +221,12 @@ class GradleModuleSystem(
 
   private fun getRuntimeDependenciesFor(module: Module, scope: DependencyScopeType): Sequence<IdeDependencies> {
     fun impl(module: Module, scope: DependencyScopeType): Sequence<IdeDependencies> = sequence {
-      val gradleModel = GradleAndroidModel.get(module) ?: return@sequence
+      val gradleModel = GradleAndroidModel.get(module)
+      if (gradleModel == null) {
+        // TODO(b/253476264): Returning an incomplete set of dependencies is highly problematic and should be avoided.
+        ClearResourceCacheAfterFirstBuild.getInstance(module.project).setIncompleteRuntimeDependencies()
+        return@sequence
+      }
 
       val selectedVariant = gradleModel.selectedVariant
       val artifact = when (scope) {
@@ -285,7 +300,7 @@ class GradleModuleSystem(
     val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
     val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()
     val selectedSourceProviders = targetDirectory?.let { sourceProviders.getForFile(targetDirectory) }
-      ?: sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
+      ?: (sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders + sourceProviders.currentAndroidTestSourceProviders)
     return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
   }
 
@@ -299,7 +314,7 @@ class GradleModuleSystem(
   override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
     : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> =
     //TODO: Change the API to return a ListenableFuture instead of calling get with a timeout here...
-    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(20, TimeUnit.SECONDS)
+    dependencyCompatibility.analyzeDependencyCompatibility(dependenciesToAdd).get(30, TimeUnit.SECONDS)
 
   override fun getManifestOverrides(): ManifestOverrides {
     val facet = AndroidFacet.getInstance(module)
@@ -382,8 +397,9 @@ class GradleModuleSystem(
   override fun getApplicationIdProvider(): ApplicationIdProvider {
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
     val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find AndroidModuleModel. Module: ${module.name}")
-    return GradleApplicationIdProvider(
-      androidFacet, false, androidModel, androidModel.selectedVariant
+    val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule()
+    return GradleApplicationIdProvider.create(
+      androidFacet, forTests, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
     )
   }
 
@@ -406,6 +422,52 @@ class GradleModuleSystem(
 
   private inline fun <T> readFromAgpFlags(read: (IdeAndroidGradlePluginProjectFlags) -> T): T? {
     return GradleAndroidModel.get(module)?.androidProject?.agpFlags?.let(read)
+  }
+
+  private data class AgpBuildGlobalFlags(
+    val useAndroidX: Boolean
+  )
+
+  /**
+   * Returns the module that is the root for this build.
+   *
+   * This does not traverse across builds if there is a composite build,
+   * or if multiple gradle projects were imported in idea, the value is per
+   * gradle build.
+   */
+  private fun Module.getGradleBuildRootModule(): Module? {
+    val currentPath = module.getGradleProjectPath() ?: return null
+    return project.findModule(currentPath.resolve(":"))
+  }
+
+  /**
+   * For some flags, we know they are global to a build, but are only reported by android projects
+   *
+   * The value is read from any android model in this Gradle build (not traversing included builds)
+   * and cached in the module corresponding to the root of that Gradle build.
+   *
+   * Returns default values if there are no Android models in the same Gradle build as this module
+   */
+  private val agpBuildGlobalFlags: AgpBuildGlobalFlags
+    get() = module.getGradleBuildRootModule()?.let { gradleBuildRoot ->
+      CachedValuesManager.getManager(module.project).getCachedValue(gradleBuildRoot, AgpBuildGlobalFlagsProvider(gradleBuildRoot))
+    } ?: AGP_GLOBAL_FLAGS_DEFAULTS
+
+  private class AgpBuildGlobalFlagsProvider(private val gradleBuildRoot: Module) : CachedValueProvider<AgpBuildGlobalFlags> {
+    override fun compute(): CachedValueProvider.Result<AgpBuildGlobalFlags> {
+      val tracker = ProjectSyncModificationTracker.getInstance(gradleBuildRoot.project)
+      val buildRoot = gradleBuildRoot.getGradleProjectPath()?.buildRoot ?: return CachedValueProvider.Result(null, tracker)
+      val gradleAndroidModel =
+        gradleBuildRoot.project.androidFacetsForNonHolderModules()
+          .filter { it.module.getGradleProjectPath()?.buildRoot == buildRoot }
+          .mapNotNull { GradleAndroidModel.get(it) }
+          .firstOrNull()
+        ?: return CachedValueProvider.Result(null, tracker)
+      val agpBuildGlobalFlags = AgpBuildGlobalFlags(
+        useAndroidX = gradleAndroidModel.androidProject.agpFlags.useAndroidX,
+      )
+      return CachedValueProvider.Result(agpBuildGlobalFlags, tracker)
+    }
   }
 
   override val usesCompose: Boolean
@@ -455,9 +517,40 @@ class GradleModuleSystem(
 
   override val testRClassConstantIds: Boolean get() = readFromAgpFlags { it.testRClassConstantIds } ?: true
 
+  /**
+   * Whether AndroidX libraries should be used instead of legacy support libraries.
+   *
+   * This property is global to the Gradle build, but only reported in Android models,
+   * so the value is read from the first found android model in the same Gradle build,
+   * and cached on the idea module corresponding to the root of that gradle build.
+   */
+  override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
+
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
+
+  override val desugarLibraryConfigFilesKnown: Boolean
+    get() = GradleAndroidModel.get(module)?.agpVersion?.let {it >= (DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION) } ?: false
+  override val desugarLibraryConfigFilesNotKnownUserMessage: String?
+    get() = when {
+      GradleAndroidModel.get(module) == null -> "Not supported for non-Android modules."
+      !desugarLibraryConfigFilesKnown -> "Only supported for projects using Android Gradle plugin '$DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION' and above."
+      else -> null
+    }
+  override val desugarLibraryConfigFiles: List<Path>
+    get() = GradleAndroidModel.get(module)?.androidProject?.desugarLibraryConfigFiles?.map { it.toPath() } ?: emptyList()
+
+  override val usesVersionCatalogs: Boolean
+    get() = ProjectBuildModel.get(module.project).versionCatalogsModel.catalogNames().isNotEmpty()
+
+  companion object {
+    private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
+      useAndroidX = true
+    )
+    private val DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION = AgpVersion.parse("8.1.0-alpha05")
+  }
 }
+
 
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
   if (isDisposed) return emptyList()

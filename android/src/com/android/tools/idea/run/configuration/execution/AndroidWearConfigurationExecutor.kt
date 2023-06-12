@@ -18,54 +18,55 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.component.WatchFace
 import com.android.tools.deployer.model.component.WearComponent
+import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.debug.DebugSessionStarter
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.configuration.AppRunSettings
-import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
-import org.jetbrains.concurrency.Promise
 
 abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironment,
-                                                deployTarget: DeployTarget,
+                                                deviceFutures: DeviceFutures,
                                                 appRunSettings: AppRunSettings,
                                                 applicationIdProvider: ApplicationIdProvider,
-                                                apkProvider: ApkProvider) : AndroidConfigurationExecutorBase(environment, deployTarget,
+                                                apkProvider: ApkProvider) : AndroidConfigurationExecutorBase(environment, deviceFutures,
                                                                                                              appRunSettings,
                                                                                                              applicationIdProvider,
                                                                                                              apkProvider) {
-  override fun runAsInstantApp(): Promise<RunContentDescriptor> {
+
+  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun applyCodeChanges(): Promise<RunContentDescriptor> {
-    throw RuntimeException("Unsupported operation")
-  }
-
-  override fun applyChanges(): Promise<RunContentDescriptor> {
+  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
   }
 
   override fun startDebugSession(
     device: IDevice,
-    console: ConsoleView
-  ): Promise<XDebugSessionImpl> {
+    console: ConsoleView,
+    indicator: ProgressIndicator
+  ): XDebugSessionImpl {
     checkAndroidVersionForWearDebugging(device.version, console)
-    return DebugSessionStarter(environment, applicationIdProvider).attachDebuggerToClient(device, getStopCallback(console, true), console)
+    return DebugSessionStarter.attachDebuggerToStartedProcess(device, appId, environment, AndroidJavaDebugger(),
+                                                              AndroidJavaDebugger().createState(), getStopCallback(console, true),
+                                                              indicator = indicator,
+                                                              console)
   }
 
-  protected fun showWatchFace(device: IDevice, console: ConsoleView) {
-    ProgressIndicatorProvider.getGlobalProgressIndicator()?.apply {
-      checkCanceled()
-      text = "Jumping to the watch face"
-    }
+  protected fun showWatchFace(device: IDevice, console: ConsoleView, indicator: ProgressIndicator) {
+    indicator.checkCanceled()
+    indicator.text = "Jumping to the watch face"
+
     val resultReceiver = WearComponent.CommandResultReceiver()
-    device.executeShellCommand(WatchFace.ShellCommand.SHOW_WATCH_FACE, console, resultReceiver)
+    device.executeShellCommand(WatchFace.ShellCommand.SHOW_WATCH_FACE, console, resultReceiver, indicator = indicator)
     if (resultReceiver.resultCode != WearComponent.CommandResultReceiver.SUCCESS_CODE) {
-      console.printError("Warning: Launch was successful, but you may need to bring up the watch face manually")
+      console.printlnError("Warning: Launch was successful, but you may need to bring up the watch face manually")
     }
   }
 }

@@ -132,40 +132,33 @@ object GuiTestLauncher {
    * Default VM options to start IntelliJ IDEA (or IDEA-based IDE). To customize options use com.intellij.testGuiFramework.launcher.GuiTestOptions
    */
   private fun getVmOptions(port: Int): List<String> {
-    // TODO(b/77341383): avoid having to sync manually with studio64.vmoptions
     val options = mutableListOf(
       /* studio64.vmoptions */
-      "-Xms256m",
-      "-Xmx4096m",
-      "-XX:ReservedCodeCacheSize=240m",
-      "-XX:+UseG1GC",
-      "-XX:SoftRefLRUPolicyMSPerMB=50",
-      "-Dsun.io.useCanonCaches=false",
-      "-Djava.net.preferIPv4Stack=true",
-      "-Djna.nosys=true",
-      "-Djna.boot.library.path=",
-      "-XX:MaxJavaStackTraceDepth=10000",
-      "-XX:+HeapDumpOnOutOfMemoryError",
-      "-XX:-OmitStackTraceInFastThrow",
-      "-ea",
-      "-Dawt.useSystemAAFontSettings=lcd",
-      "-Dsun.java2d.renderer=sun.java2d.marlin.MarlinRenderingEngine",
-      /* studio.sh options */
-      "-Didea.platform.prefix=AndroidStudio",
-      "-Didea.jre.check=true",
+      "@" + TestUtils.getBinPath("tools/adt/idea/studio/default_user_jvm_args.txt"),
+      /* Studio launcher JVM args */
+      "@" + TestUtils.getBinPath("tools/adt/idea/studio/required_jvm_args.txt"),
       /* testing-specific options */
+      "-Xmx4096m",
+      "-ea",
+      "-Didea.jre.check=true",
       "-Djava.io.tmpdir=${System.getProperty("java.io.tmpdir")}",
       "-Duser.home=${System.getProperty("java.io.tmpdir")}",
       "-Didea.config.path=${GuiTests.getConfigDirPath()}",
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
+      "-Dkotlin.script.classpath=",  // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
       "-Didea.force.use.core.classloader=true",
       "-Didea.trust.all.projects=true",
       "-Ddisable.android.first.run=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
-      "-Didea.gui.test.port=$port"
+      "-Didea.gui.test.port=$port",
     )
+    /* b/246634435 */
+    if (System.getProperty("embedded.jdk.path") != null) {
+      options += "-Dembedded.jdk.path=${System.getProperty("embedded.jdk.path")}"
+    }
+
     /* Move Menu bar into IDEA window on Mac OS. Required for test framework to access Menu */
     if (SystemInfo.isMac) {
       options += "-Dapple.laf.useScreenMenuBar=false"
@@ -181,7 +174,7 @@ object GuiTestLauncher {
       options += "-Denable.bleak=true"
       options += "-Xmx16g"
       val jvmtiAgent =
-        TestUtils.resolveWorkspacePathUnchecked("bazel-bin/tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents/libjnibleakhelper.so")
+        TestUtils.resolveWorkspacePathUnchecked("_solib_k8/libtools_Sadt_Sidea_Sbleak_Ssrc_Scom_Sandroid_Stools_Sidea_Sbleak_Sagents_Slibjnibleakhelper.so").toRealPath()
       if (Files.exists(jvmtiAgent)) {
         options += "-agentpath:$jvmtiAgent"
         options += "-Dbleak.jvmti.enabled=true"
@@ -204,7 +197,7 @@ object GuiTestLauncher {
     options += AnalyticsTestUtils.vmDialogOption
     options += AnalyticsTestUtils.vmLoggingOption
     /* options for tests with native libraries */
-    if (!options.contains("-Djava.library.path=")) {
+    if (!options.any { it.startsWith("-Djava.library.path=") }) {
       options += "-Djava.library.path=${System.getProperty("java.library.path")}"
     }
     if (TestUtils.runningFromBazel()) {
@@ -214,17 +207,8 @@ object GuiTestLauncher {
       options += "-D${AbstractAndroidLocations.ANDROID_PREFS_ROOT}=${IdeaTestSuiteBase.createTmpDir(".android")}"
       options += "-Dlayoutlib.thread.timeout=60000"
       options += "-Dresolve.descriptors.in.resources=true"
-      options += "-Dstudio.dev.jdk=${getJdkPathForGradle()}"
     }
     return options
-  }
-
-  private fun getJdkPathForGradle(): String? {
-    val jdk = TestUtils.resolveWorkspacePathUnchecked("prebuilts/studio/jdk")
-    if (Files.exists(jdk)) {
-      return jdk.resolve("BUILD").toRealPath().parent.toString()
-    }
-    return null
   }
 
   private fun getCurrentJavaExec(): String {

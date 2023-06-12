@@ -18,12 +18,13 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.model
 import androidx.work.inspection.WorkManagerInspectorProtocol
 import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskInspectorEvent
 
-/**
- * Tracks interesting user interaction points with BTI.
- */
+/** Tracks interesting user interaction points with BTI. */
 interface BackgroundTaskInspectorTracker {
   fun trackTableModeSelected()
-  fun trackGraphModeSelected(context: BackgroundTaskInspectorEvent.Context, chainInfo: BackgroundTaskInspectorEvent.ChainInfo)
+  fun trackGraphModeSelected(
+    context: BackgroundTaskInspectorEvent.Context,
+    chainInfo: BackgroundTaskInspectorEvent.ChainInfo
+  )
   fun trackJumpedToSource()
   fun trackWorkCancelled()
 
@@ -35,7 +36,8 @@ interface BackgroundTaskInspectorTracker {
   fun trackWakeLockUnderJobSelected()
 }
 
-fun List<WorkManagerInspectorProtocol.WorkInfo>.toChainInfo(): BackgroundTaskInspectorEvent.ChainInfo {
+fun List<WorkManagerInspectorProtocol.WorkInfo>.toChainInfo():
+  BackgroundTaskInspectorEvent.ChainInfo {
   val depthMap = mutableMapOf<String, Int>()
   for (work in this) {
     depthMap[work.id] = (work.prerequisitesList.mapNotNull { depthMap[it] }.maxOrNull() ?: 0) + 1

@@ -15,29 +15,58 @@
  */
 package com.android.build.attribution.data
 
+import com.android.buildanalyzer.common.TaskCategory
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
-import java.util.Objects
+
+/**
+ * Represents key information about TaskData. Used in comparisons and as a key in the hash table
+ *
+ * @param taskName the name of the executed task, ex: mergeDebugResources
+ * @param projectPath the path of the project that this task was executed in
+ * @param originPlugin the plugin that registered the task
+ */
+data class TaskDataId(val taskName: String,
+                      val projectPath: String,
+                      val originPlugin: PluginData)
 
 /**
  * Represents an executed task in a gradle build.
  * A task is uniquely identified by a combination of [taskName], [projectPath] and [originPlugin].
  *
- * @param taskName the name of the executed task, ex: mergeDebugResources
- * @param projectPath the path of the project that this task was executed in
- * @param originPlugin the plugin that registed the task
+ * @param taskId stores key information and is used in comparisons
  * @param executionStartTime the timestamp when the task started executing
  * @param executionEndTime the timestamp when the task finished executing
  * @param executionMode whether the task was fully executed, incrementally executed, fetch from cache, or was up to date
  * @param executionReasons the reasons why the task needed to run
  */
-class TaskData(val taskName: String,
-               val projectPath: String,
-               val originPlugin: PluginData,
+class TaskData(private val taskId: TaskDataId,
                val executionStartTime: Long,
                val executionEndTime: Long,
                val executionMode: TaskExecutionMode,
                val executionReasons: List<String>) {
+
+  constructor(taskName: String,
+              projectPath: String,
+              originPlugin: PluginData,
+              executionStartTime: Long,
+              executionEndTime: Long,
+              executionMode: TaskExecutionMode,
+              executionReasons: List<String>) : this(TaskDataId(taskName, projectPath, originPlugin),
+                                                     executionStartTime,
+                                                     executionEndTime,
+                                                     executionMode,
+                                                     executionReasons)
+
+  val taskName: String
+    get() = this.taskId.taskName
+
+  val projectPath: String
+    get() = this.taskId.projectPath
+
+  val originPlugin: PluginData
+    get() = this.taskId.originPlugin
+
   /**
    * The execution duration of the task in milliseconds.
    */
@@ -62,6 +91,17 @@ class TaskData(val taskName: String,
   var taskType: String = UNKNOWN_TASK_TYPE
     private set
 
+  /**
+   * Primary execution function of the task.
+   */
+  var primaryTaskCategory: TaskCategory = TaskCategory.UNCATEGORIZED
+    private set
+
+  /**
+   * All other execution functions of the task.
+   */
+  var secondaryTaskCategories: List<TaskCategory> = mutableListOf()
+
   fun setTaskType(taskType: String?) {
     if (taskType != null) {
       this.taskType = taskType
@@ -72,15 +112,48 @@ class TaskData(val taskName: String,
     return "$projectPath:$taskName"
   }
 
+  fun setTaskCategories(primaryTaskCategory: TaskCategory, secondaryTaskCategories: List<TaskCategory>) {
+    setPrimaryTaskCategory(primaryTaskCategory)
+    setSecondaryTaskCategory(secondaryTaskCategories)
+  }
+
+  private fun setPrimaryTaskCategory(primaryTaskCategory: TaskCategory) {
+    this.primaryTaskCategory = when {
+      primaryTaskCategory != TaskCategory.UNCATEGORIZED && primaryTaskCategory != TaskCategory.MISC -> primaryTaskCategory
+
+      isKotlinCompilationTask() || originPlugin.isKotlinPlugin() -> TaskCategory.KOTLIN
+      isJavaCompilationTask() || originPlugin.isJavaPlugin() -> TaskCategory.JAVA
+      originPlugin.isGradlePlugin() -> TaskCategory.GRADLE
+
+      originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN -> TaskCategory.BUILD_SOURCE
+      originPlugin.pluginType == PluginData.PluginType.SCRIPT -> TaskCategory.BUILD_SCRIPT
+
+      else -> TaskCategory.UNCATEGORIZED
+    }
+  }
+
+  private fun setSecondaryTaskCategory(secondaryTaskCategories: List<TaskCategory>) {
+    this.secondaryTaskCategories = when {
+      isJavaCompilationTask() || isKotlinCompilationTask() -> listOf(TaskCategory.COMPILATION)
+      else -> secondaryTaskCategories
+    }
+  }
+
+  private fun isJavaCompilationTask(): Boolean {
+    return taskType == "org.gradle.api.tasks.compile.JavaCompile"
+  }
+
+  private fun isKotlinCompilationTask(): Boolean {
+    return isKaptTask() || taskType.startsWith("org.jetbrains.kotlin.gradle.tasks.")
+  }
+
   override fun equals(other: Any?): Boolean {
     return other is TaskData &&
-           taskName == other.taskName &&
-           projectPath == other.projectPath &&
-           originPlugin == other.originPlugin
+           taskId == other.taskId
   }
 
   override fun hashCode(): Int {
-    return Objects.hash(taskName, projectPath, originPlugin)
+    return taskId.hashCode()
   }
 
   override fun toString(): String {

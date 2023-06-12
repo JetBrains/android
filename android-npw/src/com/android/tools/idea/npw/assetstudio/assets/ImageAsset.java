@@ -268,13 +268,13 @@ public final class ImageAsset extends BaseAsset {
       try {
         switch (fileType) {
           case XML_DRAWABLE:
-            xmlText = new String(Files.readAllBytes(file.toPath()), UTF_8);
+            xmlText = Files.readString(file.toPath());
             break;
 
           case SVG:
             ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            String message = Svg2Vector.parseSvgToXml(file, outStream);
-            xmlText = outStream.toString(UTF_8.name());
+            String message = Svg2Vector.parseSvgToXml(file.toPath(), outStream);
+            xmlText = outStream.toString(UTF_8);
             if (xmlText.isEmpty()) {
               xmlText = null;
             }

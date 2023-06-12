@@ -15,26 +15,27 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
-
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.ThreeState;
-import java.io.File;
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 public class GradleVersions {
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-core-(\\d+(\\.\\d+)*).*\\.jar");
@@ -53,9 +54,10 @@ public class GradleVersions {
       if (gradleVersion != null) {
         // The version of Gradle used is retrieved one of the Gradle models. If that fails, we try to deduce it from the project's Gradle
         // settings.
-        GradleVersion revision = GradleVersion.tryParse(inferStableGradleVersion(gradleVersion.toString()));
-        if (revision != null) {
-          return revision;
+        try {
+          return GradleVersion.version(inferStableGradleVersion(gradleVersion.getVersion()));
+        }
+        catch (IllegalArgumentException ignored) {
         }
       }
     }
@@ -69,7 +71,11 @@ public class GradleVersions {
           try {
             String wrapperVersion = gradleWrapper.getGradleVersion();
             if (wrapperVersion != null) {
-              return GradleVersion.tryParse(inferStableGradleVersion(wrapperVersion));
+              try {
+                return GradleVersion.version(inferStableGradleVersion(wrapperVersion));
+              }
+              catch (IllegalArgumentException ignored) {
+              }
             }
           }
           catch (IOException e) {
@@ -115,7 +121,11 @@ public class GradleVersions {
     Matcher matcher = GRADLE_JAR_NAME_PATTERN.matcher(fileName);
     if (matcher.matches()) {
       // Obtain the version of Gradle from a library name (e.g. "gradle-core-2.0.jar")
-      return GradleVersion.tryParse(matcher.group(1));
+      try {
+        return GradleVersion.version(matcher.group(1));
+      }
+      catch (IllegalArgumentException ignored) {
+      }
     }
     return null;
   }

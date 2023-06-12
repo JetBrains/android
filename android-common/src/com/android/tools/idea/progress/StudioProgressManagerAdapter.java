@@ -17,6 +17,7 @@ package com.android.tools.idea.progress;
 
 import com.android.ProgressManagerAdapter;
 import com.android.annotations.NonNull;
+import com.intellij.ide.ApplicationInitializedListener;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 
@@ -30,10 +31,6 @@ public final class StudioProgressManagerAdapter extends ProgressManagerAdapter {
    */
   public static void checkCanceled() throws ProcessCanceledException {
     ProgressManagerAdapter.checkCanceled();
-  }
-
-  public static void initialize() {
-    setInstance(new StudioProgressManagerAdapter());
   }
 
   @Override
@@ -50,4 +47,11 @@ public final class StudioProgressManagerAdapter extends ProgressManagerAdapter {
   }
 
   private StudioProgressManagerAdapter() {}
+
+  public static class Installer implements ApplicationInitializedListener {
+    @Override
+    public void componentsInitialized() {
+      ProgressManagerAdapter.setInstance(new StudioProgressManagerAdapter());
+    }
+  }
 }

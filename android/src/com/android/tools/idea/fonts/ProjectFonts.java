@@ -29,7 +29,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.util.text.StringUtil;
@@ -59,9 +59,9 @@ public class ProjectFonts {
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
-  public ProjectFonts(@NotNull AndroidFacet facet) {
+  public ProjectFonts(@NotNull ResourceRepositoryManager resourceRepositoryManager) {
     myService = DownloadableFontCacheService.getInstance();
-    myResourceRepository = ResourceRepositoryManager.getInstance(facet);
+    myResourceRepository = resourceRepositoryManager;
     myProjectFonts = new TreeMap<>();
     myParseResults = new HashMap<>();
     myDefinitions = new ArrayList<>();
@@ -211,7 +211,7 @@ public class ProjectFonts {
       return;
     }
     ListMultimap<String, ResourceItem> fonts =
-      myResourceRepository.getProjectResources().getResources(ResourceNamespace.TODO(), ResourceType.FONT);
+      myResourceRepository.getAppResources().getResources(ResourceNamespace.TODO(), ResourceType.FONT);
     String fontName = StringUtil.trimStart(name, "@font/");
     if (!fonts.keySet().contains(fontName)) {
       createUnresolvedFontFamily(name);

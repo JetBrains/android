@@ -27,7 +27,9 @@ private data class TransportDeviceDescriptor(
   override val version: String,
   override val codename: String?
 ) : DeviceDescriptor {
-  constructor(device: Common.Device) : this(
+  constructor(
+    device: Common.Device
+  ) : this(
     device.manufacturer,
     device.model,
     device.serial,

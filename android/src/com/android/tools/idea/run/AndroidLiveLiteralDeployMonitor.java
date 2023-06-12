@@ -27,8 +27,9 @@ import com.android.tools.idea.editors.literals.LiteralUsageReference;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
+import com.android.tools.idea.execution.common.AndroidSessionInfo;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -61,7 +62,7 @@ import org.jetbrains.annotations.NotNull;
  * functionality just enough for compose user group to dogfood for now.
  *
  */
-final class AndroidLiveLiteralDeployMonitor {
+public class AndroidLiveLiteralDeployMonitor {
 
   // TODO: The logging is overly excessive for now given we have no UI to provide feedback to the user
   // when things go wrong. This will be changed in the final product.
@@ -105,7 +106,7 @@ final class AndroidLiveLiteralDeployMonitor {
    *
    * This method mostly create a call back and it is locked to be thread-safe.
    */
-  static Callable<?> getCallback(Project project, String packageName, IDevice device) {
+  public static Callable<?> getCallback(Project project, String packageName, IDevice device) {
     String deviceId = device.getSerialNumber();
     LiveLiteralsService.getInstance(project).liveLiteralsMonitorStopped(deviceId + "#" + packageName);
 
@@ -188,7 +189,7 @@ final class AndroidLiveLiteralDeployMonitor {
 
             // TODO: Disable this if we are not on DAEMON mode? Or we should take whatever mode Studio Flag tells us to take.
             Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
-            LiveUpdateDeployer deployer = new LiveUpdateDeployer();
+            LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
             List<LiveUpdateDeployer.UpdateLiveLiteralParam> params = new ArrayList<>();
             for (LiteralReference change : changes) {
               for (LiteralUsageReference use : change.getUsages()) {

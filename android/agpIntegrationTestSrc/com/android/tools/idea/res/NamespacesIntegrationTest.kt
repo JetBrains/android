@@ -19,12 +19,12 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.resources.ResourceType
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.res.ResourceNamespacing
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDocumentManager
@@ -38,13 +38,13 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
   fun testNamespaceChoosing() {
     loadProject(TestProjectPaths.NAMESPACES)
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(getMainAndroidFacet())
-    assertEquals(Namespacing.REQUIRED, resourceRepositoryManager.namespacing)
+    val resourceRepositoryManager = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet())
+    assertEquals(ResourceNamespacing.REQUIRED, resourceRepositoryManager.namespacing)
     assertEquals("com.example.app", resourceRepositoryManager.namespace.packageName)
     assertTrue(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
 
     WriteCommandAction.runWriteCommandAction(project) {
-      myFixture.openFileInEditor(VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "AndroidManifest.xml")!!)
+      myFixture.openFileInEditor(VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "build.gradle")!!)
       val manifest = myFixture.editor.document
       manifest.setText(manifest.text.replace(appPackageName, "com.example.change"))
       PsiDocumentManager.getInstance(project).commitDocument(manifest)
@@ -57,8 +57,8 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
   fun testNonNamespaced() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(getMainAndroidFacet())
-    assertEquals(Namespacing.DISABLED, resourceRepositoryManager.namespacing)
+    val resourceRepositoryManager = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet())
+    assertEquals(ResourceNamespacing.DISABLED, resourceRepositoryManager.namespacing)
     assertSame(ResourceNamespace.RES_AUTO, resourceRepositoryManager.namespace)
     assertFalse(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
   }
@@ -68,7 +68,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "simple_strings.xml")!!
     val resourceResolver = ConfigurationManager.getOrCreateInstance(getMainAndroidFacet().mainModule)
       .getConfiguration(layout).resourceResolver
-    val appNs = ResourceRepositoryManager.getInstance(getMainAndroidFacet()).namespace
+    val appNs = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet()).namespace
 
     fun check(reference: String, resolvesTo: String) {
       assertEquals(
@@ -87,7 +87,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
   fun testAppResources() {
     loadProject(TestProjectPaths.NAMESPACES)
-    val appResources = ResourceRepositoryManager.getInstance(getMainAndroidFacet()).appResources
+    val appResources = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet()).appResources
 
     assertSameElements(
       appResources.namespaces,

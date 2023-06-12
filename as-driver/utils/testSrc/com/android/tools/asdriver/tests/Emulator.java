@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.annotations.NotNull;
 
 public class Emulator implements AutoCloseable {
   private final TestFileSystem fileSystem;
@@ -76,17 +77,20 @@ public class Emulator implements AutoCloseable {
     }
   }
 
-  public static Emulator start(TestFileSystem fileSystem, AndroidSdk sdk, Display display, String name) throws IOException, InterruptedException {
+  public static Emulator start(TestFileSystem fileSystem, AndroidSdk sdk, Display display, String name, int grpcPort) throws IOException, InterruptedException {
     Path logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "emulator_logs");
 
     ProcessBuilder pb = new ProcessBuilder(
       sdk.getSourceDir().resolve(SdkConstants.FD_EMULATOR).resolve("emulator").toString(),
       "@" + name,
-      // This port value is hardcoded in the emulator bazel rule (//tools/base/bazel/avd/emulator_launcher.sh.template).
-      // It can be changed in the future if we need the flexibility.
-      "-grpc", Integer.toString(8554),
+      // This port value needs to be unique for each emulator
+      "-grpc", Integer.toString(grpcPort),
       "-no-snapshot",
+      // Turn off the modem simulator to avoid b/258836512
+      "-feature",
+      "-ModemSimulator",
       "-delay-adb",
+      "-no-boot-anim",
       "-verbose");
     pb.environment().put("ANDROID_EMULATOR_HOME", fileSystem.getAndroidHome().toString());
     pb.environment().put("ANDROID_AVD_HOME", getAvdHome(fileSystem).toString());
@@ -102,6 +106,27 @@ public class Emulator implements AutoCloseable {
     pb.redirectOutput(logFile.getPath().toFile());
     pb.redirectError(Files.createFile(logsDir.resolve(name + "_stderr.txt")).toFile());
     Process process = pb.start();
+
+    // There's no easy/reliable way to determine whether an emulator even CAN start on this
+    // machine, so we check for the process crashing, that way we can report why the test will
+    // fail and potentially cut down on confusion while investigating.
+    new Thread(() -> {
+      try {
+        Thread.sleep(10000);
+      }
+      catch (InterruptedException e) {
+        // ignore
+      }
+      if (!process.isAlive()) {
+        int exitCode = process.exitValue();
+        if (exitCode != 0) {
+          System.err.printf("Emulator process (PID=%d) exited unexpectedly with code==%d. If you are running on a VM, it's possible that " +
+                            "nested virtualization is not supported. To test this, you can try starting the emulator manually. Most " +
+                            "likely though, if you're seeing this message, it means that the emulator won't work on your machine.%n",
+                            process.pid(), exitCode);
+        }
+      }
+    }).start();
 
     String portString =
       logFile.waitForMatchingLine(".*control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
@@ -121,7 +146,7 @@ public class Emulator implements AutoCloseable {
     if (process == null) {
       throw new IllegalStateException("Emulator not running yet.");
     }
-    logFile.waitForMatchingLine(".*boot completed", 4, TimeUnit.MINUTES);
+    logFile.waitForMatchingLine(".*Boot completed.*", 12, TimeUnit.MINUTES);
   }
 
   public Path getHome() {
@@ -134,6 +159,11 @@ public class Emulator implements AutoCloseable {
 
   public String getPortString() {
     return portString;
+  }
+
+  public String getSerialNumber() {
+    // In accordance with https://cs.android.com/android/platform/superproject/+/master:packages/modules/adb/SERVICES.TXT
+    return "emulator-" + portString;
   }
 
   @Override
@@ -155,5 +185,19 @@ public class Emulator implements AutoCloseable {
       throw new IllegalStateException(String.format("Regex '%s' not found in %s", regex, file));
     }
     return matcher;
+  }
+
+  /** A particular supported {@link Emulator} image to use. */
+  public enum SystemImage {
+    API_29("system_image_android-29_default_x86_64"),
+    API_30("system_image_android-30_default_x86_64"),
+    API_31("system_image_android-31_default_x86_64");
+    /** Path to the image for this emulator {@link SystemImage}. */
+    @NotNull
+    public final String path;
+
+    private SystemImage(@NotNull String path) {
+      this.path = path;
+    }
   }
 }

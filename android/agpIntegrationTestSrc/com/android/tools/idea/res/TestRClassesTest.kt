@@ -17,12 +17,14 @@ package com.android.tools.idea.res;
 
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
@@ -40,6 +42,8 @@ import java.io.File
  * We use the [TestProjectPaths.PROJECT_WITH_APPAND_LIB] project and make `app` have an `androidTestImplementation` dependency on `lib`.
  */
 sealed class TestRClassesTest : AndroidGradleTestCase() {
+
+  protected open val disableNonTransitiveRClass = false
   override fun setUp() {
     super.setUp()
 
@@ -81,6 +85,12 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
         </resources>
       """.trimIndent()
     )
+
+    if (disableNonTransitiveRClass) {
+      File(project.guessProjectDir()!!.toIoFile(), "gradle.properties").appendText(
+        "android.nonTransitiveRClass=false"
+      )
+    }
 
     modifyGradleFiles(projectRoot)
     importProject()
@@ -151,6 +161,8 @@ class EnableNonTransitiveRClassTest: TestRClassesTest() {
 
 class TransitiveTestRClassesTest : TestRClassesTest() {
 
+  override val disableNonTransitiveRClass = true
+
   fun testAppTestResources() {
     val androidTest = createFile(
       project.guessProjectDir()!!,
@@ -218,6 +230,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
 
     myFixture.configureFromExistingVirtualFile(androidTest)
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
     myFixture.checkHighlighting()
 
     myFixture.completeBasic()

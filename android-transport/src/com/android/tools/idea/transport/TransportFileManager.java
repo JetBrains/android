@@ -27,6 +27,8 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
+import com.android.tools.idea.run.profiler.ProfilingMode;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Common.CommonConfig;
 import com.android.tools.profiler.proto.Transport;
@@ -51,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class TransportFileManager implements TransportFileCopier {
 
-  private static final class HostFiles {
+  private static class HostFiles {
     @NotNull static final DeployableFile TRANSPORT = new DeployableFile.Builder("transport")
       .setReleaseDir(Constants.TRANSPORT_RELEASE_DIR)
       .setDevDir(Constants.TRANSPORT_RELEASE_DIR)
@@ -124,6 +126,7 @@ public final class TransportFileManager implements TransportFileCopier {
 
   public void copyFilesToDevice()
     throws AdbCommandRejectedException, IOException, ShellCommandUnresponsiveException, SyncException, TimeoutException {
+    myDevice.executeShellCommand("rm -rf " + DEVICE_DIR, new NullOutputReceiver());
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
     if (!AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()) return;
@@ -265,7 +268,8 @@ public final class TransportFileManager implements TransportFileCopier {
     try {
       // TODO: Handle the case where we don't have file for this platform.
       if (!Files.exists(localPath)) {
-        throw new RuntimeException(String.format("File %s could not be found for device: %s", localPath.toString(), myDevice));
+        throw new TransportNonExistingFileException(String.format("File %s could not be found for device: %s", localPath, myDevice),
+                                                    localPath.toString());
       }
       /*
        * If copying the agent fails, we will attach the previous version of the agent
@@ -273,15 +277,22 @@ public final class TransportFileManager implements TransportFileCopier {
        */
       getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
       myDevice.executeShellCommand("rm -f " + deviceFilePath, new NullOutputReceiver());
-      myDevice.executeShellCommand("mkdir -p " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/')), new NullOutputReceiver());
+      // Make the directory not writable for the group or the world. Otherwise, any unprivileged app running on device can replace the
+      // content of file in this directory and archive escalation of privileges when Android Studio will decide to launch the
+      // corresponding functionality.
+      myDevice.executeShellCommand("mkdir -p -m 755 " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/')),
+                                   new NullOutputReceiver());
       myDevice.pushFile(localPath.toString(), deviceFilePath);
 
       if (executable) {
         /*
-         * In older devices, chmod letter usage isn't fully supported but CTS tests have been added for it since.
-         * Hence we first try the letter scheme which is guaranteed in newer devices, and fall back to the octal scheme only if necessary.
+         * Use chmod octal scheme to ensure the executable is not writable for the group or the world. Otherwise, any unprivileged app
+         * running on device can replace the content of file and archive escalation of privileges when Android Studio will decide to
+         * launch the corresponding functionality.
+         * We could use "chmod -w" and "chmod +x". However, in older devices, chmod letter usage isn't fully supported although CTS tests
+         * have been added for it since.
          */
-        String cmd = "chmod +x " + deviceFilePath + " || chmod 777 " + deviceFilePath;
+        String cmd = "chmod 755 " + deviceFilePath;
         myDevice.executeShellCommand(cmd, new NullOutputReceiver());
       }
       getLogger().info(String.format("Successfully pushed %s to %s.", fileName, DEVICE_DIR));
@@ -298,12 +309,20 @@ public final class TransportFileManager implements TransportFileCopier {
    * @param packageName The package to launch agent with.
    * @param configName  The agent config file name that should be passed along into the agent. This assumes it already existing under
    *                    {@link #DEVICE_DIR}, which can be done via {@link #pushAgentConfig(String, AndroidRunConfigurationBase)}.
+   * @param executorId  The executor ID is useful for determining whether the build is profileable.
    * @return the parameter needed to for the 'am start' command to launch an app with the startup agent, if the package's data folder is
    * accessible, empty string otherwise.
    */
-  public String configureStartupAgent(@NotNull String packageName, @NotNull String configName) {
+  public String configureStartupAgent(@NotNull String packageName, @NotNull String configName, @NotNull String executorId) {
     // Startup agent feature was introduced from android API level 27.
     if (myDevice.getVersion().getFeatureLevel() < AndroidVersion.VersionCodes.O_MR1) {
+      return "";
+    }
+
+    // JVMTI agents are unsupported in profileable builds.
+    AbstractProfilerExecutorGroup.AbstractProfilerSetting setting =
+      AbstractProfilerExecutorGroup.Companion.getExecutorSetting(executorId);
+    if (setting != null && setting.getProfilingMode() == ProfilingMode.PROFILEABLE) {
       return "";
     }
 

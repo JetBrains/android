@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.naveditor
 
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.google.common.truth.Truth.assertThat
@@ -36,13 +37,13 @@ class NavComponentTreeTest {
     val navEditor = frame
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-      .getLayoutEditor()
+      .layoutEditor
       .waitForRenderToFinish()
 
     val componentTree = navEditor.navComponentTree()
-    componentTree.clickRow(2)
+    componentTree.selectRow(2)
 
-    val selectedInTree = componentTree.selectedComponents()
+    val selectedInTree = componentTree.selectedElements<NlComponent>()
     assertEquals(1, selectedInTree.size)
     val component = selectedInTree[0]
     assertEquals("first_screen", component.id)

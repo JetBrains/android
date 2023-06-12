@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.tools.idea.res.AndroidPluginVersion.getAndroidPluginVersion;
+import static com.android.tools.res.AndroidPluginVersion.getAndroidPluginVersion;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

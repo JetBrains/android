@@ -48,7 +48,7 @@ class NewConnectionAlertStep(
     val selectedWear = model.selectedWearDevice.valueOrNull ?: return false
 
     // Check if this wear is already paired
-    val wearPhonePair = WearPairingManager.getPairsForDevice(selectedWear.deviceID).firstOrNull()
+    val wearPhonePair = WearPairingManager.getInstance().getPairsForDevice(selectedWear.deviceID).firstOrNull()
     if (wearPhonePair != null && wearPhonePair.phone.deviceID != selectedPhone.deviceID) {
       errorTitle = message("wear.assistant.connection.alert.factory.reset.title")
       errorBody = message("wear.assistant.connection.alert.factory.reset.subtitle",

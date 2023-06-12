@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.model.android.PsCollectionBase
 import com.android.tools.idea.gradle.structure.model.helpers.formatAny
 import com.android.tools.idea.gradle.structure.model.helpers.parseAny
+import com.android.tools.idea.gradle.structure.model.helpers.parseString
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.GradleModelCoreProperty
 import com.android.tools.idea.gradle.structure.model.meta.KnownValues
@@ -35,6 +36,7 @@ import com.android.tools.idea.gradle.structure.model.meta.SimpleProperty
 import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.VariableMatchingStrategy
 import com.android.tools.idea.gradle.structure.model.meta.asAny
+import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.listProperty
 import com.android.tools.idea.gradle.structure.model.meta.mapProperty
 import com.android.tools.idea.gradle.structure.model.meta.property
@@ -99,8 +101,8 @@ class PsVariable(
       PsVariable(this, scopePsVariables, { myListItems?.refresh() }).also { it.initNewListItem(resolvedProperty!!) }
     }
     else {
-      val listValue = this.property!!.addListValue().resolve()
-      listValue.setParsedValue({ setValue(it) }, {}, value)
+      val listValue = this.property!!.addListValue()?.resolve()
+      listValue?.setParsedValue({ setValue(it) }, {}, value)
       parent.isModified = true
       myListItems?.refresh()
       listItems.findElement(listItems.size - 1)!!
@@ -110,10 +112,10 @@ class PsVariable(
   fun addMapValue(key: String): PsVariable? {
     if (!isMap) throw IllegalStateException("addMapValue can only be called for map variables")
     val mapValue = property!!.getMapValue(key)
-    if (mapValue.psiElement != null) {
+    if (mapValue?.psiElement != null) {
       return null
     }
-    mapValue.setValue("")
+    mapValue?.setValue("")
     myMapEntries?.refresh()
     return mapEntries.findElement(key)!!
   }
@@ -136,7 +138,7 @@ class PsVariable(
       model.pendingListItemContainer?.let {
         val itemProperty = it.addListValue()
         model.property = itemProperty
-        model.resolvedProperty = itemProperty.resolve()
+        model.resolvedProperty = itemProperty?.resolve()
         model.pendingListItemContainer = null
         model.refreshCollection()
       }
@@ -157,6 +159,19 @@ class PsVariable(
       parser = ::parseAny,
       formatter = ::formatAny,
       knownValuesGetter = ::variableKnownValues,
+      variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
+    )
+
+
+    val variableStringValue: SimpleProperty<PsVariable, String> = property(
+      "Value",
+      defaultValueGetter = null,
+      resolvedValueGetter = { null },
+      parsedPropertyGetter = { this },
+      getter = { asString() },
+      setter = { setValue(it) },
+      parser = ::parseString,
+      formatter = ::formatAny,
       variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
     )
 
@@ -182,7 +197,7 @@ class PsVariable(
       variableMatchingStrategy = VariableMatchingStrategy.BY_TYPE
     )
 
-    private fun variableKnownValues(variable: PsVariable): ListenableFuture<List<ValueDescriptor<Any>>> {
+    fun variableKnownValues(variable: PsVariable): ListenableFuture<List<ValueDescriptor<Any>>> {
       val potentiallyReferringModels = variable.scopePsVariables.model.descriptor.enumerateContainedModels()
       val collector = variable.ReferenceContextCollector()
       potentiallyReferringModels.forEach { it.descriptor.enumerateProperties(collector) }
@@ -226,7 +241,7 @@ class PsVariable(
       parent.property?.takeIf { it.valueType == GradlePropertyModel.ValueType.MAP }?.toMap()?.keys ?: setOf()
 
     override fun create(key: String): PsVariable = PsVariable(parent, parent.scopePsVariables, ::refresh)
-    override fun update(key: String, model: PsVariable) = model.init(parent.property!!.getMapValue(key))
+    override fun update(key: String, model: PsVariable) = model.init(parent.property!!.getMapValue(key)!!)
   }
 
   class ListVariableEntries(variable: PsVariable) : PsCollectionBase<PsVariable, Int, PsVariable>(variable) {

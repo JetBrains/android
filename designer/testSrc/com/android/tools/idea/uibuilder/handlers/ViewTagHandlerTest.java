@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.handlers;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.tools.idea.uibuilder.handlers.ViewTagHandler.SUITABLE_LAYOUT_CLASS;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 
 import com.android.AndroidXConstants;
@@ -118,9 +118,10 @@ public class ViewTagHandlerTest extends AndroidTestCase {
       try (MockedStatic<ViewEditor> editor = Mockito.mockStatic(ViewEditor.class)) {
         handler.onCreate(null, component, InsertType.CREATE);
         int time = component.getId().equals("view1") ? 1 : 0;
-        editor.verify(() ->
-          ViewEditor.displayClassInput(eq(component.getModel()), eq("Views"), eq(classes), eq(SUITABLE_LAYOUT_CLASS), isNull())
-        , times(time));
+        editor.verify(
+          () -> ViewEditor.displayClassInput(eq(component.getModel()), eq("Views"), eq(classes), eq(SUITABLE_LAYOUT_CLASS), isNull()),
+          times(time)
+        );
       }
     }
   }

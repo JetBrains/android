@@ -87,9 +87,9 @@ class PropertyOrderTest : GradleFileModelTestCase() {
       val secondProperty = buildModel.ext().findProperty("prop2")
       secondProperty.setValue("2")
       val thirdProperty = buildModel.ext().findProperty("prop3")
-      thirdProperty.convertToEmptyList().addListValue().setValue(3)
+      thirdProperty.convertToEmptyList().addListValue()!!.setValue(3)
       val forthProperty = buildModel.ext().findProperty("prop4")
-      forthProperty.convertToEmptyMap().getMapValue("key").setValue("4")
+      forthProperty.convertToEmptyMap().getMapValue("key")!!.setValue("4")
     }
 
     fun verify() {
@@ -305,8 +305,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     // Create three properties.
     val firstModel = buildModel.ext().findProperty("prop1")
     firstModel.convertToEmptyMap()
-    firstModel.getMapValue("key").setValue(1)
-    firstModel.getMapValue("key1").setValue("two")
+    firstModel.getMapValue("key")!!.setValue(1)
+    firstModel.getMapValue("key1")!!.setValue("two")
     val secondModel = buildModel.ext().findProperty("prop2")
     secondModel.setValue(72)
 
@@ -330,9 +330,9 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     // Edit the elements
     val firstModel = buildModel.ext().findProperty("prop1")
-    firstModel.convertToEmptyList().addListValue().setValue("one")
-    firstModel.addListValue().setValue("two")
-    firstModel.addListValue().setValue("three")
+    firstModel.convertToEmptyList().addListValue()!!.setValue("one")
+    firstModel.addListValue()!!.setValue("two")
+    firstModel.addListValue()!!.setValue("three")
     val secondModel = buildModel.ext().findProperty("prop3")
     secondModel.setValue(true)
 
@@ -362,9 +362,9 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
     // Edit the elements
     val firstModel = buildModel.ext().findProperty("prop1")
-    firstModel.convertToEmptyList().addListValue().setValue("one")
-    firstModel.addListValue().setValue("two")
-    firstModel.addListValue().setValue("three")
+    firstModel.convertToEmptyList().addListValue()!!.setValue("one")
+    firstModel.addListValue()!!.setValue("two")
+    firstModel.addListValue()!!.setValue("three")
     val secondModel = buildModel.ext().findProperty("prop3")
     secondModel.setValue(true)
 
@@ -668,7 +668,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
     val newListModel = extModel.findProperty("prop")
-    newListModel.convertToEmptyList().addListValue().setValue("hello")
+    newListModel.convertToEmptyList().addListValue()!!.setValue("hello")
 
     verifyPropertyModel(extModel.findProperty("prop1").resolve(), STRING_TYPE, "hello", STRING, REGULAR, 1, "prop1")
 
@@ -685,7 +685,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val buildModel = gradleBuildModel
     val extModel = buildModel.ext()
     val newMapModel = extModel.findProperty("prop")
-    newMapModel.convertToEmptyMap().getMapValue("key").setValue(true)
+    newMapModel.convertToEmptyMap().getMapValue("key")!!.setValue(true)
 
     verifyPropertyModel(extModel.findProperty("prop1").resolve(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1, "prop1")
 
@@ -727,6 +727,18 @@ class PropertyOrderTest : GradleFileModelTestCase() {
   @Test
   fun testAddExtBlockAfterPlugins() {
     writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS)
+
+    val buildModel = gradleBuildModel
+    buildModel.ext().findProperty("newProp").setValue(true)
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS_EXPECTED)
+  }
+
+  @Test
+  fun testAddExtBlockAfterPluginsWithSettingsRootProject() {
+    writeToBuildFile(TestFile.ADD_EXT_BLOCK_AFTER_PLUGINS)
+    writeToSettingsFile(TestFile.ROOT_PROJECT_SETTINGS)
 
     val buildModel = gradleBuildModel
     buildModel.ext().findProperty("newProp").setValue(true)
@@ -895,6 +907,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     ADD_BUILDSCRIPT_BLOCK_BEFORE_PLUGINS_EXPECTED("addBuildscriptBlockBeforePluginsExpected"),
     ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS("addExtBlockAfterBuildscriptAndPlugins"),
     ADD_EXT_BLOCK_AFTER_BUILDSCRIPT_AND_PLUGINS_EXPECTED("addExtBlockAfterBuildscriptAndPluginsExpected"),
+    ROOT_PROJECT_SETTINGS("rootProjectSettings"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

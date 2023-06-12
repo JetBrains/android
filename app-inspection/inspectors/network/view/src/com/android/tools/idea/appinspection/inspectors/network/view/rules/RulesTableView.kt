@@ -20,82 +20,103 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.Companion.getLatestId
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData.Companion.newId
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleDataListener
+import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateComponent
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesTableModel
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.TableUtil
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.TableView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import studio.network.inspection.NetworkInspectorProtocol
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
 import javax.swing.event.TableModelEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
+import studio.network.inspection.NetworkInspectorProtocol
 
 class RulesTableView(
+  project: Project,
   private val client: NetworkInspectorClient,
   private val scope: CoroutineScope,
   model: NetworkInspectorModel,
   usageTracker: NetworkInspectorTracker
 ) {
+
+  @VisibleForTesting val persistentStateComponent: RulesPersistentStateComponent = project.service()
+
   val component: JComponent
 
   val tableModel = RulesTableModel()
   val table = TableView(tableModel)
 
   init {
-    val decorator = ToolbarDecorator.createDecorator(table).setAddAction {
-      val id = RuleData.newId()
-      val ruleData = createRuleDataWithListener(id)
-      tableModel.addRow(ruleData)
-      val selectedRow = tableModel.rowCount - 1
-      table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
-      model.detailContent = NetworkInspectorModel.DetailContent.RULE
-      scope.launch {
-        client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-          interceptRuleAddedBuilder.apply {
-            ruleId = id
-            rule = ruleData.toProto()
+    initPersistentRules()
+    val decorator =
+      ToolbarDecorator.createDecorator(table)
+        .setAddAction {
+          val id = newId()
+          val ruleData = createRuleDataWithListener(id)
+          tableModel.addRow(ruleData)
+          val selectedRow = tableModel.rowCount - 1
+          table.selectionModel.setSelectionInterval(selectedRow, selectedRow)
+          model.detailContent = NetworkInspectorModel.DetailContent.RULE
+          scope.launch {
+            client.interceptResponse(
+              NetworkInspectorProtocol.InterceptCommand.newBuilder()
+                .apply {
+                  interceptRuleAddedBuilder.apply {
+                    ruleId = id
+                    rule = ruleData.toProto()
+                  }
+                }
+                .build()
+            )
           }
-        }.build())
-      }
-      usageTracker.trackRuleCreated()
-    }.setRemoveAction {
-      val isConfirmed = MessageDialogBuilder.okCancel(
-        NetworkInspectorBundle.message("confirmation.title"),
-        NetworkInspectorBundle.message("confirmation.rule")
-      ).ask(table)
-      if (!isConfirmed) return@setRemoveAction
-      val index = table.selectedRow
-      if (index < 0) {
-        return@setRemoveAction
-      }
-      val ruleData = table.selectedObject ?: return@setRemoveAction
-      if (TableUtil.doRemoveSelectedItems(table, tableModel, null)) {
-        IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
-          IdeFocusManager.getGlobalInstance().requestFocus(table, true)
+          usageTracker.trackRuleCreated()
         }
-        TableUtil.updateScroller(table)
-        model.setSelectedRule(null)
-        scope.launch {
-          client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-            interceptRuleRemovedBuilder.apply {
-              ruleId = ruleData.id
+        .setRemoveAction {
+          val isConfirmed =
+            MessageDialogBuilder.okCancel(
+                NetworkInspectorBundle.message("confirmation.title"),
+                NetworkInspectorBundle.message("confirmation.rule")
+              )
+              .ask(table)
+          if (!isConfirmed) return@setRemoveAction
+          val index = table.selectedRow
+          if (index < 0) {
+            return@setRemoveAction
+          }
+          val ruleData = table.selectedObject ?: return@setRemoveAction
+          if (TableUtil.doRemoveSelectedItems(table, tableModel, null)) {
+            IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
+              IdeFocusManager.getGlobalInstance().requestFocus(table, true)
             }
-          }.build())
+            TableUtil.updateScroller(table)
+            model.setSelectedRule(null)
+            scope.launch {
+              client.interceptResponse(
+                NetworkInspectorProtocol.InterceptCommand.newBuilder()
+                  .apply { interceptRuleRemovedBuilder.apply { ruleId = ruleData.id } }
+                  .build()
+              )
+            }
+          }
         }
-      }
-    }
     component = decorator.createPanel()
     table.selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
     table.selectionModel.addListSelectionListener {
       if (it.valueIsAdjusting) {
-        return@addListSelectionListener   // Only handle listener on last event, not intermediate events
+        return@addListSelectionListener // Only handle listener on last event, not intermediate
+        // events
       }
       val row = table.selectedObject ?: return@addListSelectionListener
       model.setSelectedRule(row)
@@ -107,14 +128,16 @@ class RulesTableView(
         reorderRules()
       }
     }
-    table.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        val row = table.rowAtPoint(e.point)
-        if (row != -1) {
-          model.detailContent = NetworkInspectorModel.DetailContent.RULE
+    table.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          val row = table.rowAtPoint(e.point)
+          if (row != -1) {
+            model.detailContent = NetworkInspectorModel.DetailContent.RULE
+          }
         }
       }
-    })
+    )
     ActionToolbarUtil.makeToolbarNavigable(decorator.actionsPanel.toolbar)
     table.registerTabKeyAction { table.transferFocus() }
     table.registerEnterKeyAction {
@@ -124,17 +147,21 @@ class RulesTableView(
     }
   }
 
-  private fun createRuleDataWithListener(id: Int): RuleData {
-    return RuleData(id, "New Rule", true, object : RuleDataListener {
+  private fun createNewRuleDataListener() =
+    object : RuleDataListener {
       override fun onRuleDataChanged(ruleData: RuleData) {
         if (ruleData.isActive) {
           scope.launch {
-            client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-              interceptRuleUpdatedBuilder.apply {
-                ruleId = id
-                rule = ruleData.toProto()
-              }
-            }.build())
+            client.interceptResponse(
+              NetworkInspectorProtocol.InterceptCommand.newBuilder()
+                .apply {
+                  interceptRuleUpdatedBuilder.apply {
+                    ruleId = ruleData.id
+                    rule = ruleData.toProto()
+                  }
+                }
+                .build()
+            )
           }
         }
       }
@@ -148,22 +175,55 @@ class RulesTableView(
 
       override fun onRuleIsActiveChanged(ruleData: RuleData) {
         scope.launch {
-          client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-            interceptRuleUpdatedBuilder.apply {
-              ruleId = ruleData.id
-              rule = ruleData.toProto()
-            }
-          }.build())
+          client.interceptResponse(
+            NetworkInspectorProtocol.InterceptCommand.newBuilder()
+              .apply {
+                interceptRuleUpdatedBuilder.apply {
+                  ruleId = ruleData.id
+                  rule = ruleData.toProto()
+                }
+              }
+              .build()
+          )
         }
       }
-    })
-  }
+    }
+
+  private fun createRuleDataWithListener(id: Int) =
+    RuleData(id, "New Rule", true).apply { ruleDataListener = createNewRuleDataListener() }
 
   private fun reorderRules() {
     scope.launch {
-      client.interceptResponse(NetworkInspectorProtocol.InterceptCommand.newBuilder().apply {
-        reorderInterceptRulesBuilder.addAllRuleId(tableModel.items.map { it.id })
-      }.build())
+      client.interceptResponse(
+        NetworkInspectorProtocol.InterceptCommand.newBuilder()
+          .apply { reorderInterceptRulesBuilder.addAllRuleId(tableModel.items.map { it.id }) }
+          .build()
+      )
+    }
+  }
+
+  private fun initPersistentRules() {
+    tableModel.items = persistentStateComponent.myRuleDataState.rulesList
+
+    scope.launch {
+      persistentStateComponent.myRuleDataState.rulesList.forEach { ruleData ->
+        ruleData.ruleDataListener = createNewRuleDataListener()
+        client.interceptResponse(
+          NetworkInspectorProtocol.InterceptCommand.newBuilder()
+            .apply {
+              interceptRuleAddedBuilder.apply {
+                ruleId = ruleData.id
+                rule = ruleData.toProto()
+              }
+            }
+            .build()
+        )
+
+        // Increment the ID to the current ID so that new rule ID don't conflict with existing ones.
+        while (getLatestId() < ruleData.id) {
+          newId()
+        }
+      }
     }
   }
 }

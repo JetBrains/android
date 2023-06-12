@@ -68,7 +68,7 @@ private class LogcatDescriptorInfo(
   val messageKey: TextAttributesKey,
   val messageTag: String,
 ) {
-  val name = level.name.toLowerCase(Locale.getDefault()).usLocaleCapitalize()
+  val name = level.name.lowercase(Locale.getDefault()).usLocaleCapitalize()
 }
 
 private val DESCRIPTOR_INFO = arrayOf(

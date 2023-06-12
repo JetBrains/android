@@ -29,7 +29,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class EventUtil {
+public class EventUtil {
   @Nullable
   public static Module getSelectedAndroidModule(@NotNull AnActionEvent e) {
     Module module = getSelectedGradleModule(e);
@@ -50,7 +50,7 @@ public final class EventUtil {
     if (project != null) {
       VirtualFile file = VIRTUAL_FILE.getData(dataContext);
       if (file != null) {
-        ProjectFileIndex fileIndex = ProjectFileIndex.SERVICE.getInstance(project);
+        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
         module = fileIndex.getModuleForFile(file);
         if (isGradleModule(module)) {
           return module;

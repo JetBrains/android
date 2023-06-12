@@ -107,7 +107,7 @@ open class DelegatingClassLoader(parent: ClassLoader?, private val loader: Loade
   }
 
   /**
-   * Called when [ClassLoader.loadClass] stats.
+   * Called when [ClassLoader.loadClass] starts.
    */
   protected open fun onBeforeLoadClass(fqcn: String) {}
 
@@ -120,7 +120,7 @@ open class DelegatingClassLoader(parent: ClassLoader?, private val loader: Loade
   protected open fun onAfterLoadClass(fqcn: String, loaded: Boolean, durationMs: Long) {}
 
   /**
-   * Called when [ClassLoader.findClass] stats.
+   * Called when [ClassLoader.findClass] starts.
    */
   protected open fun onBeforeFindClass(fqcn: String) {}
 

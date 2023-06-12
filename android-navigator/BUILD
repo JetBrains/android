@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.navigator",
     srcs = ["src"],
     iml_files = ["intellij.android.navigator.iml"],
+    lint_baseline = "lint_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -22,7 +23,7 @@ iml_module(
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:dexlib2",
+        "//tools/adt/idea/.idea/libraries:google-dexlib2",
     ],
 )
 

@@ -15,12 +15,15 @@
  */
 package org.jetbrains.android;
 
+import static org.jetbrains.android.UndisposedAndroidObjectsCheckerRule.checkUndisposedAndroidRelatedObjects;
+
 import com.android.testutils.MockitoThreadLocalsCleaner;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.testing.DisposerExplorer;
 import com.android.tools.idea.testing.Sdks;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.GlobalInspectionTool;
@@ -34,11 +37,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.application.ex.PathManagerEx;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.io.FileUtil;
@@ -46,25 +46,19 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.testFramework.InspectionTestUtil;
 import com.intellij.testFramework.InspectionsKt;
-import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,11 +71,9 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings({"JUnitTestCaseWithNonTrivialConstructors"})
 public abstract class AndroidTestBase extends UsefulTestCase {
-  // Keep track of each leaked disposable so that we can fail just the *first* test that leaks it.
-  private static final Set<Disposable> allLeakedDisposables = ContainerUtil.createWeakSet();
 
   protected JavaCodeInsightTestFixture myFixture;
-  protected MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
+  private final MockitoThreadLocalsCleaner mockitoCleaner = new MockitoThreadLocalsCleaner();
 
   @Override
   protected void setUp() throws Exception {
@@ -96,57 +88,14 @@ public abstract class AndroidTestBase extends UsefulTestCase {
 
   @Override
   protected void tearDown() throws Exception {
-    // super.tearDown will dispose testRootDisposable, which may invoke methods on mocked objects => project may leak
-    // super.tearDown will also clean all the local fields. Make a copy of mockitoCleaner to invoke cleanupAndTearDown() after super.
-    MockitoThreadLocalsCleaner cleaner = mockitoCleaner;
+    myFixture = null;
     try {
       super.tearDown();
-    }
-    finally {
-      cleaner.cleanupAndTearDown();
+    } finally {
+      // Clean up Mockito refs *after* super.tearDown() because project disposal may trigger new mock interactions.
+      mockitoCleaner.cleanupAndTearDown();
     }
     checkUndisposedAndroidRelatedObjects();
-  }
-
-  /**
-   * Checks that there are no undisposed Android-related objects.
-   */
-  public static void checkUndisposedAndroidRelatedObjects() {
-    Ref<Disposable> firstLeak = new Ref<>();
-    DisposerExplorer.visitTree(disposable -> {
-      if (allLeakedDisposables.contains(disposable) ||
-          disposable.getClass().getName().startsWith("com.android.tools.analytics.HighlightingStats") ||
-          (disposable instanceof ProjectEx && (((ProjectEx)disposable).isDefault() || ((ProjectEx)disposable).isLight())) ||
-          disposable.toString().startsWith("services of ") || // See ComponentManagerImpl.serviceParentDisposable.
-          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||
-          disposable instanceof PsiReferenceContributor) {
-        // Ignore application services and light projects and modules that are not disposed by tearDown.
-        return DisposerExplorer.VisitResult.SKIP_CHILDREN;
-      }
-      if (disposable.getClass().getName().startsWith("com.android.") ||
-          disposable.getClass().getName().startsWith("org.jetbrains.android.")) {
-        firstLeak.setIfNull(disposable);
-        allLeakedDisposables.add(disposable);
-      }
-      return DisposerExplorer.VisitResult.CONTINUE;
-    });
-    if (!firstLeak.isNull()) {
-        Disposable root = firstLeak.get();
-        StringBuilder disposerChain = new StringBuilder(root.toString());
-        Disposable parent;
-        while ((parent = DisposerExplorer.getParent(root)) != null) {
-          root = parent;
-          disposerChain.append(" <- ").append(root);
-        }
-      String baseMsg = "Undisposed object of type " + root.getClass().getName() + ": " + disposerChain.append(" (root)") + "'";
-      if (DisposerExplorer.getParent(firstLeak.get()) == null) {
-        throw new RuntimeException(
-          baseMsg + ", registered as a root disposable (see cause for creation trace)",
-          DisposerExplorer.getTrace(firstLeak.get()));
-      } else {
-        throw new RuntimeException(baseMsg + ", with parent '" + parent + "' of type '" + parent.getClass().getName() + "'");
-      }
-    }
   }
 
   public static void refreshProjectFiles() {
@@ -208,7 +157,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   public static AndroidSdkData createTestSdkManager(@NotNull Disposable testRootDisposable) {
     VfsRootAccess.allowRootAccess(testRootDisposable, TestUtils.getSdk().toString());
     Sdk androidSdk = Sdks.createLatestAndroidSdk();
-    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(androidSdk);
+    AndroidSdkAdditionalData data = AndroidSdkAdditionalData.from(androidSdk);
     if (data != null) {
       AndroidPlatform androidPlatform = data.getAndroidPlatform();
       if (androidPlatform != null) {

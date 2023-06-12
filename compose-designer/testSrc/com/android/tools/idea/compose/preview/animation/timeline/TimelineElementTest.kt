@@ -18,20 +18,21 @@ package com.android.tools.idea.compose.preview.animation.timeline
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
+import org.junit.Test
 
 class TimelineElementTest {
 
   @Test
   fun `create element`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      maximum = 600
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-    }
+    val slider =
+      TestUtils.createTestSlider().apply {
+        maximum = 600
+        // Call layoutAndDispatchEvents() so positionProxy returns correct values
+        FakeUi(this.parent).apply { layoutAndDispatchEvents() }
+      }
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       assertEquals(0, line.offsetPx)
@@ -43,11 +44,12 @@ class TimelineElementTest {
 
   @Test
   fun `copy line`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      maximum = 600
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-    }
+    val slider =
+      TestUtils.createTestSlider().apply {
+        maximum = 600
+        // Call layoutAndDispatchEvents() so positionProxy returns correct values
+        FakeUi(this.parent).apply { layoutAndDispatchEvents() }
+      }
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       val copy = TestUtils.TestTimelineElement(50, 50, positionProxy, line.state)
@@ -60,11 +62,12 @@ class TimelineElementTest {
 
   @Test
   fun `move to the right and copy line`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      maximum = 600
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-    }
+    val slider =
+      TestUtils.createTestSlider().apply {
+        maximum = 600
+        // Call layoutAndDispatchEvents() so positionProxy returns correct values
+        FakeUi(this.parent).apply { layoutAndDispatchEvents() }
+      }
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       line.move(100)
@@ -75,11 +78,12 @@ class TimelineElementTest {
 
   @Test
   fun `move to the left and copy line`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      maximum = 600
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-    }
+    val slider =
+      TestUtils.createTestSlider().apply {
+        maximum = 600
+        // Call layoutAndDispatchEvents() so positionProxy returns correct values
+        FakeUi(this.parent).apply { layoutAndDispatchEvents() }
+      }
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       line.move(-100)
@@ -90,11 +94,12 @@ class TimelineElementTest {
 
   @Test
   fun `move and reset line`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      maximum = 600
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-    }
+    val slider =
+      TestUtils.createTestSlider().apply {
+        maximum = 600
+        // Call layoutAndDispatchEvents() so positionProxy returns correct values
+        FakeUi(this.parent).apply { layoutAndDispatchEvents() }
+      }
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       line.move(-100)
@@ -108,11 +113,12 @@ class TimelineElementTest {
 
   @Test
   fun `move and reset parent line`(): Unit = invokeAndWaitIfNeeded {
-    val slider = TestUtils.createTestSlider().apply {
-      maximum = 600
-      // Call layoutAndDispatchEvents() so positionProxy returns correct values
-      FakeUi(this.parent).apply { layoutAndDispatchEvents() }
-    }
+    val slider =
+      TestUtils.createTestSlider().apply {
+        maximum = 600
+        // Call layoutAndDispatchEvents() so positionProxy returns correct values
+        FakeUi(this.parent).apply { layoutAndDispatchEvents() }
+      }
     slider.sliderUI.apply {
       val sharedState = ElementState()
       val line1 = TestUtils.TestTimelineElement(50, 50, positionProxy, sharedState)

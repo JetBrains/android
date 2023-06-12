@@ -27,17 +27,22 @@ import com.android.tools.idea.npw.validator.ProjectNameValidator
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
 import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.android.tools.idea.wizard.template.KOTLIN_DSL_LINK
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JTextField
+import javax.swing.SwingConstants
 
 class ConfigureAndroidModuleStep(
   model: NewAndroidModuleModel,
@@ -77,10 +82,8 @@ class ConfigureAndroidModuleStep(
       cell(apiLevelCombo).align(AlignX.FILL)
     }
 
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()  || model.useGradleKts.get()) {
-      row {
-        cell(gradleKtsCheck)
-      }.topGap(TopGap.SMALL)
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get() || model.useGradleKts.get()) {
+      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
     }
   }.withBorder(empty(6))
 
@@ -101,4 +104,19 @@ class ConfigureAndroidModuleStep(
   }
 
   override fun getPreferredFocusComponent(): JComponent = if (appName.isVisible) appName else moduleName
+}
+
+fun Panel.generateBuildConfigurationLanguageRow(comboBox: JComboBox<BuildConfigurationLanguageForNewModule>) {
+  val buildConfigurationLanguageLabel =
+    ContextHelpLabel.createWithLink(
+      null,
+      message("android.wizard.module.help.buildconfigurationlanguage.description"),
+      "Learn more"
+    ) { BrowserUtil.browse(KOTLIN_DSL_LINK) }.apply {
+      horizontalTextPosition = SwingConstants.LEFT
+      text = "Build Configuration Language"
+    }
+  row(buildConfigurationLanguageLabel) {
+    cell(comboBox).align(AlignX.FILL)
+  }
 }

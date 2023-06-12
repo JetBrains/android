@@ -39,6 +39,8 @@
     <option name="the" path="ActionManager" hit="Assign the start point of navigation graph" />
     <option name="arrange" path="ActionManager" hit="Auto Arrange" />
     <option name="auto" path="ActionManager" hit="Auto Arrange" />
+    <option name="build" path="ActionManager" hit="Build &amp; Refresh" />
+    <option name="refresh" path="ActionManager" hit="Build &amp; Refresh" />
     <option name="change" path="ActionManager" hit="Change to next device in the device menu" />
     <option name="device" path="ActionManager" hit="Change to next device in the device menu" />
     <option name="in" path="ActionManager" hit="Change to next device in the device menu" />
@@ -182,6 +184,13 @@
     <option name="the" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
     <option name="toggle" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
     <option name="visibility" path="ActionManager" hit="Toggle the visibility of Issue Panel" />
+    <option name="change" path="ActionManager" hit="Update the preview to latest code change" />
+    <option name="code" path="ActionManager" hit="Update the preview to latest code change" />
+    <option name="latest" path="ActionManager" hit="Update the preview to latest code change" />
+    <option name="preview" path="ActionManager" hit="Update the preview to latest code change" />
+    <option name="the" path="ActionManager" hit="Update the preview to latest code change" />
+    <option name="to" path="ActionManager" hit="Update the preview to latest code change" />
+    <option name="update" path="ActionManager" hit="Update the preview to latest code change" />
   </configurable>
   <configurable id="nele.options" configurable_name="Design Tools">
     <option name="code" hit="Code" />

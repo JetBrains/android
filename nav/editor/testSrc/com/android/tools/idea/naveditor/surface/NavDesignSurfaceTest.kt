@@ -27,7 +27,7 @@ import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.inlineDrawRect
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
-import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.TestInteractable
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -39,6 +39,9 @@ import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.application.WriteAction
@@ -52,13 +55,12 @@ import com.intellij.util.indexing.UnindexedFilesUpdater
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.jetbrains.android.refactoring.setAndroidxProperties
-import org.jetbrains.android.sdk.AndroidSdkData
+import org.jetbrains.android.sdk.StudioAndroidSdkData
 import org.mockito.ArgumentMatchers
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doCallRealMethod
-import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -79,6 +81,8 @@ import kotlin.test.assertNotEquals
  * Tests for [NavDesignSurface]
  */
 class NavDesignSurfaceTest : NavTestCase() {
+
+  lateinit var testProjectSystem: TestProjectSystem
 
   fun testOpenFileMetrics() {
     val surface = NavDesignSurface(project, project)
@@ -212,8 +216,8 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     whenever(surface.layeredPane).thenReturn(mock(JComponent::class.java))
-    val interactionManager = surface.interactionManager
-    interactionManager.startListening()
+    val guiInputHandler = surface.guiInputHandler
+    guiInputHandler.startListening()
 
     val view = NavView(surface, surface.sceneManager!!)
 
@@ -221,7 +225,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val fragment = surface.scene!!.getSceneComponent("fragment1")!!
     val x = Coordinates.getSwingX(view, fragment.drawX) + 5
     val y = Coordinates.getSwingY(view, fragment.drawY) + 5
-    LayoutTestUtilities.clickMouse(interactionManager, MouseEvent.BUTTON1, 2, x, y, 0)
+    LayoutTestUtilities.clickMouse(guiInputHandler, MouseEvent.BUTTON1, 2, x, y, 0)
 
     verify(surface).notifyComponentActivate(eq(fragment.nlComponent), anyInt(), anyInt())
   }
@@ -297,7 +301,9 @@ class NavDesignSurfaceTest : NavTestCase() {
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
-    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface))
+    val manager = GuiInputHandler(
+      surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
+    )
     manager.startListening()
 
     val fragment1 = scene.getSceneComponent("fragment1")!!
@@ -449,7 +455,7 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   fun testConfiguration() {
-    val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val defaultConfigurationManager = ConfigurationManager.getOrCreateInstance(myModule)
     val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
     assertNotEquals(defaultConfigurationManager, navConfigurationManager)
 
@@ -457,7 +463,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
     val navConfiguration = navConfigurationManager.getConfiguration(navFile)
     val navDevice = navConfiguration.device
-    val pixelC = AndroidSdkData.getSdkData(myFacet)!!.deviceManager.getDevice("pixel_c", "Google")!!
+    val pixelC = StudioAndroidSdkData.getSdkData(myFacet)!!.deviceManager.getDevice("pixel_c", "Google")!!
     // in order to unset the cached derived device in the configuration you have to set it to something else first
     navConfiguration.setDevice(pixelC, false)
     navConfiguration.setDevice(null, false)
@@ -523,7 +529,9 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
 
-    val manager = InteractionManager(surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface))
+    val manager = GuiInputHandler(
+      surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
+    )
     manager.startListening()
 
     try {
@@ -598,7 +606,11 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   private fun testDependencies(androidX: Boolean, groupId: String) {
-    WriteCommandAction.runWriteCommandAction(project) { project.setAndroidxProperties(androidX.toString()) }
+    if (androidX != testProjectSystem.useAndroidX) {
+      testProjectSystem.useAndroidX = androidX
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      UIUtil.dispatchAllInvocationEvents()
+    }
 
     val dependencies = NavDesignSurface.getDependencies(myModule)
     val artifactIds = arrayOf("navigation-fragment", "navigation-ui")
@@ -655,7 +667,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     whenever(surface.sceneManager).thenReturn(sceneManager)
     doCallRealMethod().whenever(surface).canZoomToFit()
 
-    whenever(surface.getFitScale(true)).thenReturn(1.5)
+    whenever(surface.fitScale).thenReturn(1.5)
     whenever(surface.scale).thenReturn(1.0)
     assertFalse(surface.canZoomToFit())
 
@@ -671,7 +683,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     assertEquals(expected.id, surface.currentNavigation.id)
   }
 
-  private fun dragSelect(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+  private fun dragSelect(manager: GuiInputHandler, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
     @SwingCoordinate val x1 = Coordinates.getSwingX(sceneView, rect.x)
     @SwingCoordinate val y1 = Coordinates.getSwingY(sceneView, rect.y)
     @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
@@ -681,10 +693,17 @@ class NavDesignSurfaceTest : NavTestCase() {
     LayoutTestUtilities.dragMouse(manager, x1, y1, x2, y2, 0)
   }
 
-  private fun dragRelease(manager: InteractionManager, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
+  private fun dragRelease(manager: GuiInputHandler, sceneView: SceneView, @NavCoordinate rect: Rectangle) {
     @SwingCoordinate val x2 = Coordinates.getSwingX(sceneView, rect.x + rect.width)
     @SwingCoordinate val y2 = Coordinates.getSwingY(sceneView, rect.y + rect.height)
 
     LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON1, x2, y2, 0)
+  }
+
+  override fun setUp() {
+    super.setUp()
+    testProjectSystem = TestProjectSystem(project)
+    testProjectSystem.useAndroidX = true
+    testProjectSystem.useInTests()
   }
 }

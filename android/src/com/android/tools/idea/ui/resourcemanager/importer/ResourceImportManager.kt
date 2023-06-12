@@ -86,23 +86,30 @@ fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<ResourceAssetSet> =
  * provided by the [importersProvider]. When files have been chosen, the [fileChosenCallback] is invoked with
  * the files converted into DesignAssetSet.
  */
-fun chooseDesignAssets(importersProvider: ImportersProvider,
-                       parent: JComponent? = null,
-                       fileChosenCallback: (Sequence<DesignAsset>) -> Unit) {
-  val lastChosenDirFile: VirtualFile? = PropertiesComponent.getInstance().getValue(PREFERENCE_LAST_SELECTED_DIRECTORY)?.let {
-    try {
-      VfsUtil.findFile(File(it).toPath(), true)
+fun chooseDesignAssets(
+  importersProvider: ImportersProvider,
+  parent: JComponent? = null,
+  fileChosenCallback: (Sequence<DesignAsset>) -> Unit
+) {
+  val lastChosenDirFile: VirtualFile? = PropertiesComponent.getInstance()
+    .getValue(PREFERENCE_LAST_SELECTED_DIRECTORY)
+    ?.let {
+      try {
+        VfsUtil.findFile(File(it).toPath(), true)
+      }
+      catch (ex: InvalidPathException) {
+        null
+      }
     }
-    catch (ex: InvalidPathException) {
-      null
-    }
-  }
   val fileChooserDescriptor = createFileDescriptor(importersProvider)
-  FileChooserFactory.getInstance().createPathChooser(fileChooserDescriptor, null, parent).choose(lastChosenDirFile) { selectedFiles ->
-    val allDesignAssets = selectedFiles.asSequence().map { it.toIoFile() }.findAllDesignAssets(importersProvider)
-    fileChosenCallback(allDesignAssets)
-    PropertiesComponent.getInstance().setValue(PREFERENCE_LAST_SELECTED_DIRECTORY, selectedFiles.firstOrNull()?.path)
-  }
+  FileChooserFactory
+    .getInstance()
+    .createPathChooser(fileChooserDescriptor, null, parent)
+    .choose(lastChosenDirFile) { selectedFiles ->
+      val allDesignAssets = selectedFiles.asSequence().map { it.toIoFile() }.findAllDesignAssets(importersProvider)
+      fileChosenCallback(allDesignAssets)
+      PropertiesComponent.getInstance().setValue(PREFERENCE_LAST_SELECTED_DIRECTORY, selectedFiles.firstOrNull()?.path)
+    }
 }
 
 /**

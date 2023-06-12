@@ -20,7 +20,9 @@ iml_module(
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/adt/idea/android-material:intellij.android.android-material[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
@@ -56,18 +58,31 @@ iml_module(
             # b/192269906 flaky on windows, taking longer than 15 minutes
             "tags": ["no_windows"],
         },
+        "BaselineProfilesModuleTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.BaselineProfilesModuleTest",
+            # b/192269906 flaky on windows, taking longer than 15 minutes
+            "tags": ["no_windows"],
+        },
+        "AddBaselineProfilesModuleTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleTest",
+            # b/192269906 flaky on windows, taking longer than 15 minutes
+            "tags": ["no_windows"],
+        },
         "other": {},
     },
     test_class = "com.android.tools.idea.npw.NewProjectWizardTestSuite",
     # keep sorted
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -112,6 +127,8 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
+        "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
     ],
 )
 
@@ -119,25 +136,24 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.0-beta04",
+        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.0-alpha12",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",  # TODO(b/273872043) Remove once tests pass without 2.1.3
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.3.0-rc01",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.3.1",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
+        "@maven//:androidx.profileinstaller.profileinstaller_1.3.0-beta01",
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
-        "@maven//:androidx.test.ext.junit_1.1.2",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
+        "@maven//:androidx.test.ext.junit_1.1.5",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_2.0.4",
@@ -145,5 +161,8 @@ maven_repository(
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
     ],
 )

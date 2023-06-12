@@ -17,6 +17,7 @@
 package com.android.testutils;
 
 import static com.android.SdkConstants.FD_PLATFORMS;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 
 import com.android.SdkConstants;
@@ -29,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
@@ -45,19 +47,20 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import org.jetbrains.intellij.build.dependencies.BuildDependenciesCommunityRoot;
+import junit.framework.TestCase;
 import java.util.stream.Stream;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.UnixStat;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.intellij.build.dependencies.BuildDependenciesCommunityRoot;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout;
 
 /**
  * Utility methods to deal with loading the test data.
  */
-public final class TestUtils {
+public class TestUtils {
   public static final AndroidLayoutlibDownloaderProxy llDownloader = new AndroidLayoutlibDownloaderProxy();
   public static final AndroidProfilerDownloaderProxy profilerDownloader = new AndroidProfilerDownloaderProxy();
 
@@ -71,6 +74,13 @@ public final class TestUtils {
   public static final String KOTLIN_VERSION_FOR_TESTS = getKotlinVersionForTests();
 
   /**
+   * Unix file-mode mask indicating that the file is executable by owner, group, and other.
+   *
+   * <p>See https://askubuntu.com/a/485001
+   */
+  public static final int UNIX_EXECUTABLE_MODE = 1 | 1 << 3 | 1 << 6;
+
+  /**
    * The Android platform version used in the gradle-core and builder unit tests.
    *
    * <p>If changing this value, also update //tools/base/build-system:android_platform_for_tests
@@ -78,43 +88,97 @@ public final class TestUtils {
   public static final int ANDROID_PLATFORM_FOR_AGP_UNIT_TESTS = 33;
 
   /**
-   * Unix file-mode mask indicating that the file is executable by owner, group, and other.
-   *
-   * <p>See https://askubuntu.com/a/485001
+   * Default timeout for the {@link #eventually(Runnable)} check.
    */
-  public static final int UNIX_EXECUTABLE_MODE = 1 | 1 << 3 | 1 << 6;
-
-  /** Default timeout for the {@link #eventually(Runnable)} check. */
   private static final Duration DEFAULT_EVENTUALLY_TIMEOUT = Duration.ofSeconds(10);
 
-  /** Time to wait between checks to obtain the value of an eventually supplier. */
+  /**
+   * Time to wait between checks to obtain the value of an eventually supplier.
+   */
   private static final long EVENTUALLY_CHECK_CYCLE_TIME_MS = 10;
-
   @GuardedBy("TestUtils.class")
   private static Path workspaceRoot = null;
 
   /**
    * Returns the Kotlin version to be used in new project templates and integration tests.
-   *
-   * If you are looking for the version of the Kotli compiler used during code highlighting
-   * in the IDE, use KotlinPluginLayout.getAnalyzerCompilerVersion() instead.
+   * <p>
+   * If you are looking for the version of the Kotlin IDE plugin,
+   * prefer using KotlinCompilerVersion.getVersion() instead.
    */
   @NonNull
   public static String getKotlinVersionForTests() {
-    return KotlinPluginLayout.getStandaloneCompilerVersion().getArtifactVersion();
+    String version = KotlinPluginLayout.getStandaloneCompilerVersion().getArtifactVersion();
+    if (version.contains("-release-")) {
+      version = version.substring(0, version.indexOf("-release-"));
+    }
+    return version;
+  }
+
+  @NonNull
+  private static Path getKotlinVersionFile() {
+    if (System.getProperty("idea.gui.test.running.on.release") != null) {
+      Path homePath =
+        Path.of(System.getProperty("idea.gui.test.remote.ide.path"))
+          .getParent()
+          .getParent();
+      return homePath.resolve("plugins/Kotlin/kotlinc/build.txt");
+    }
+    else {
+      return resolveWorkspacePath(
+        "prebuilts/tools/common/kotlin-plugin/Kotlin/kotlinc/build.txt");
+    }
   }
 
   /**
    * Creates a temporary directory that is deleted when the JVM exits.
    *
    * @deprecated Temporary directories and files should be deleted after each test, not kept
-   *     around for the lifetime of the JVM. This can be achieved by using
-   *     a {@link org.junit.rules.TemporaryFolder} rule, or by calling the
-   *     {@link PathUtils#deleteRecursivelyIfExists(Path)} method in {@code tearDown}.
+   * around for the lifetime of the JVM. This can be achieved by using
+   * a {@link org.junit.rules.TemporaryFolder} rule, or by calling the
+   * {@link PathUtils#deleteRecursivelyIfExists(Path)} method in {@code tearDown}.
    */
   @Deprecated
-  public static Path createTempDirDeletedOnExit() throws IOException {
-    Path tempDir = Files.createTempDirectory("");
+  @NonNull
+  public static File getRoot(String... names) {
+    File root = new File("src/test/resources/testData/");
+
+    for (String name : names) {
+      root = new File(root, name);
+
+      // Hack: The sdk-common tests are not configured properly; running tests
+      // works correctly from Gradle but not from within the IDE. The following
+      // hack works around this quirk:
+      if (!root.isDirectory() && !root.getPath().contains("sdk-common")) {
+        File r = new File("sdk-common", root.getPath()).getAbsoluteFile();
+        if (r.isDirectory()) {
+          root = r;
+        }
+      }
+
+      TestCase.assertTrue("Test folder '" + name + "' does not exist! "
+                          + "(Tip: Check unit test launch config pwd)",
+                          root.isDirectory());
+    }
+
+    return root;
+  }
+
+  public static void deleteFile(File dir) {
+    if (dir.isDirectory()) {
+      File[] files = dir.listFiles();
+      if (files != null) {
+        for (File f : files) {
+          deleteFile(f);
+        }
+      }
+    }
+    else if (dir.isFile()) {
+      assertTrue(dir.getPath(), dir.delete());
+    }
+  }
+
+  public static Path createTempDirDeletedOnExit() {
+    final Path tempDir = com.google.common.io.Files.createTempDir().toPath();
     PathUtils.addRemovePathHook(tempDir);
     return tempDir;
   }
@@ -138,9 +202,9 @@ public final class TestUtils {
    * it is more resilient to cross-platform testing.
    *
    * @throws IllegalStateException if the current directory of the test is not a subdirectory of
-   *     the workspace directory when this method is called. This shouldn't happen if the test is
-   *     run by Bazel or run by IntelliJ with default configuration settings (where the working
-   *     directory is initialized to the module root).
+   *                               the workspace directory when this method is called. This shouldn't happen if the test is
+   *                               run by Bazel or run by IntelliJ with default configuration settings (where the working
+   *                               directory is initialized to the module root).
    */
   @NonNull
   public static synchronized Path getWorkspaceRoot() {
@@ -151,6 +215,7 @@ public final class TestUtils {
     llDownloader.makeSureComponentIsInPlace();
     profilerDownloader.makeSureComponentIsInPlace();
 
+    assert Files.exists(workspaceRoot) : "Please invoke 'cd community/build/dependencies && ./gradlew setupAndroidSdk'";
     return workspaceRoot;
   }
 
@@ -189,8 +254,7 @@ public final class TestUtils {
 
   // returns path relative to PathManager.getHomePath(). TODO: in idea PathManager.getHomePath() should work as workspace root.
   @NonNull
-  private static String mapRelativePath(@NonNull String relativePathParam) {
-    String relativePath = FileUtils.toSystemIndependentPath(relativePathParam);
+  private static String mapRelativePath(@NonNull String relativePath) {
     Map<String, String> pathMappings = new HashMap<>();
     Path homePath = Paths.get(PathManager.getHomePath());
     Path communityHomePath = Paths.get(PathManager.getCommunityHomePath());
@@ -202,11 +266,37 @@ public final class TestUtils {
       String aospPathPrefix = entry.getKey();
       String ijPathPrefix = entry.getValue();
       if (relativePath.startsWith(aospPathPrefix)){
-        return ijPathPrefix + relativePath.substring(aospPathPrefix.length());
+        String ijFile = ijPathPrefix + relativePath.substring(aospPathPrefix.length());
+        return ijFile;
       }
     }
 
     return relativePath;
+  }
+
+  /**
+   * Gets the path to a specific Bazel workspace.
+   */
+  @NonNull
+  public static Path getWorkspaceRoot(@NonNull String workspaceName) throws IOException {
+    throw new UnsupportedOperationException("Multiple workspace roots are not supported");
+  }
+
+  /**
+   * Returns a file at {@code path} relative to the root for {@link #getLatestAndroidPlatform}.
+   *
+   * @throws IllegalStateException    if the current OS is not supported.
+   * @throws IllegalArgumentException if the path results in a file not found.
+   */
+  @NonNull
+  public static Path resolvePlatformPath(@NonNull String path, @NonNull TestType testType) {
+    String latestAndroidPlatform = getLatestAndroidPlatform(testType);
+    Path file = getSdk().resolve(FD_PLATFORMS).resolve(latestAndroidPlatform).resolve(path);
+    if (Files.notExists(file)) {
+      throw new IllegalArgumentException(
+        "File \"" + path + "\" not found in platform " + latestAndroidPlatform);
+    }
+    return file;
   }
 
   @NonNull
@@ -241,15 +331,14 @@ public final class TestUtils {
     return getWorkspaceRoot().resolve(relativePath);
   }
 
-  /** Gets the path to a specific Bazel workspace. */
-  @NonNull
-  public static Path getWorkspaceRoot(@NonNull String workspaceName) throws IOException {
-    throw new UnsupportedOperationException("Multiple workspace roots are not supported");
-  }
-
   /** Returns true if the file exists in the workspace. */
   public static boolean workspaceFileExists(@NonNull String path) {
     return Files.exists(resolveWorkspacePath(path));
+  }
+
+  public static enum TestType {
+    AGP,
+    OTHER,
   }
 
   /**
@@ -286,23 +375,12 @@ public final class TestUtils {
   /**
    * Returns a file at {@code path} relative to the root for {@link #getLatestAndroidPlatform}.
    *
-   * @throws IllegalStateException if the current OS is not supported.
+   * @throws IllegalStateException    if the current OS is not supported.
    * @throws IllegalArgumentException if the path results in a file not found.
    */
   @NonNull
   public static Path resolvePlatformPath(@NonNull String path) {
-    return resolvePlatformPath(path, TestType.OTHER);
-  }
-
-  /**
-   * Returns a file at {@code path} relative to the root for {@link #getLatestAndroidPlatform}.
-   *
-   * @throws IllegalStateException if the current OS is not supported.
-   * @throws IllegalArgumentException if the path results in a file not found.
-   */
-  @NonNull
-  public static Path resolvePlatformPath(@NonNull String path, @NonNull TestType testType) {
-    String latestAndroidPlatform = getLatestAndroidPlatform(testType);
+    String latestAndroidPlatform = getLatestAndroidPlatform();
     Path file = getSdk().resolve(FD_PLATFORMS).resolve(latestAndroidPlatform).resolve(path);
     if (Files.notExists(file)) {
       throw new IllegalArgumentException(
@@ -311,17 +389,16 @@ public final class TestUtils {
     return file;
   }
 
-  public static enum TestType {
-    AGP,
-    OTHER,
-  }
-
-  /** Checks if tests were started by Bazel. */
+  /**
+   * Checks if tests were started by Bazel.
+   */
   public static boolean runningFromBazel() {
     return System.getenv().containsKey("TEST_WORKSPACE");
   }
 
-  /** Checks if tests are running with Jdk 11 or above. */
+  /**
+   * Checks if tests are running with Jdk 11 or above.
+   */
   public static boolean runningWithJdk11Plus(String version) {
     return Integer.parseInt(version.split("\\.")[0]) >= 11;
   }
@@ -329,7 +406,7 @@ public final class TestUtils {
   /**
    * Returns the SDK directory relative to the workspace.
    *
-   * @throws IllegalStateException if the current OS is not supported.
+   * @throws IllegalStateException    if the current OS is not supported.
    * @throws IllegalArgumentException if the path results in a file not found.
    */
   @NonNull
@@ -344,12 +421,33 @@ public final class TestUtils {
     return "prebuilts/studio/sdk/" + hostDir;
   }
 
+  // TODO: @nvuksic Figure out if platform should be supported
+  ///**
+  // * Returns the SDK directory.
+  // *
+  // * @throws IllegalStateException if the current OS is not supported.
+  // * @throws IllegalArgumentException if the path results in a file not found.
+  // * @return a valid File object pointing at the SDK directory.
+  // */
+  //@NonNull
+  //public static File getSdk() {
+  //  final String platform;
+  //  if (SystemInfo.isMac){
+  //    platform = "darwin";
+  //  } else if (SystemInfo.isWindows) {
+  //    platform = "windows";
+  //  } else {
+  //    platform = "linux";
+  //  }
+  //  return new File(PathManager.getCommunityHomePath(), "build/dependencies/build/android-sdk/prebuilts/studio/sdk/" + platform);
+  //}
+
   /**
    * Returns the SDK directory.
    *
-   * @throws IllegalStateException if the current OS is not supported.
-   * @throws IllegalArgumentException if the path results in a file not found.
    * @return a valid Path object pointing at the SDK directory.
+   * @throws IllegalStateException    if the current OS is not supported.
+   * @throws IllegalArgumentException if the path results in a file not found.
    */
   @NonNull
   public static Path getSdk() {
@@ -371,7 +469,9 @@ public final class TestUtils {
     return getSdk().resolve(SdkConstants.FD_NDK);
   }
 
-  /** Returns the prebuilt offline Maven repository used during IDE tests. */
+  /**
+   * Returns the prebuilt offline Maven repository used during IDE tests.
+   */
   @NonNull
   public static Path getPrebuiltOfflineMavenRepo() {
     if (runningFromBazel()) {
@@ -383,12 +483,14 @@ public final class TestUtils {
       Path dir = Paths.get(System.getProperty("java.io.tmpdir"), "offline-maven-repo");
       try {
         Files.createDirectories(dir);
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         throw new UncheckedIOException(
           "Failed to create directory for offline maven repository: " + dir, e);
       }
       return dir;
-    } else {
+    }
+    else {
       return resolveWorkspacePath("prebuilts/tools/common/m2/repository");
     }
   }
@@ -403,7 +505,9 @@ public final class TestUtils {
     return resolveWorkspacePath("prebuilts/studio/sdk/remote/dl.google.com/android/repository");
   }
 
-  /** Returns the checked in AAPT2 binary that is shipped with the gradle plugin. */
+  /**
+   * Returns the checked in AAPT2 binary that is shipped with the gradle plugin.
+   */
   @NonNull
   public static Path getAapt2() {
     OsType osType = OsType.getHostOs();
@@ -556,6 +660,25 @@ public final class TestUtils {
   }
 
   @NonNull
+  public static Path getEmbeddedJdk17Path() {
+    if (System.getenv("JDK_17") != null) {
+      Path jdkPath = Paths.get(System.getenv("JDK_17"));
+      if (Files.isDirectory(jdkPath)) {
+        return jdkPath;
+      }
+      else {
+        Logger.getInstance(TestUtils.class).warn("Ignore env.JDK_17 because it is not a directory: " + jdkPath);
+      }
+    }
+
+    Path jdk17Path = findInDownloadedJdks("corretto-17.");
+    if (jdk17Path != null) return jdk17Path;
+
+    assert Runtime.version().feature() == 8 : "To continue we need to know where JDK8 is. env.JDK_18 didn't work.";
+    return Paths.get(SystemProperties.getJavaHome());
+  }
+
+  @NonNull
   public static String getLatestAndroidPlatform() {
     return getLatestAndroidPlatform(TestType.OTHER);
   }
@@ -574,7 +697,7 @@ public final class TestUtils {
    * ensure filesystem writes are detected through timestamp modification.
    *
    * @throws InterruptedException waiting interrupted
-   * @throws IOException issues creating a temporary file
+   * @throws IOException          issues creating a temporary file
    */
   public static void waitForFileSystemTick() throws InterruptedException, IOException {
     waitForFileSystemTick(getFreshTimestamp());
@@ -587,7 +710,7 @@ public final class TestUtils {
    *
    * @param currentTimestamp last timestamp read from disk
    * @throws InterruptedException waiting interrupted
-   * @throws IOException issues creating a temporary file
+   * @throws IOException          issues creating a temporary file
    */
   public static void waitForFileSystemTick(long currentTimestamp)
     throws InterruptedException, IOException {
@@ -600,18 +723,19 @@ public final class TestUtils {
     Path notUsed = Files.createTempFile(TestUtils.class.getName(), "waitForFileSystemTick");
     try {
       return Files.getLastModifiedTime(notUsed).toMillis();
-    } finally {
+    }
+    finally {
       Files.delete(notUsed);
     }
   }
 
   @NonNull
-  public static String getDiff(@NonNull String before, @NonNull  String after) {
+  public static String getDiff(@NonNull String before, @NonNull String after) {
     return getDiff(before, after, 0);
   }
 
   @NonNull
-  public static String getDiff(@NonNull String before, @NonNull  String after, int windowSize) {
+  public static String getDiff(@NonNull String before, @NonNull String after, int windowSize) {
     return getDiff(before.split("\n"), after.split("\n"), windowSize);
   }
 
@@ -633,7 +757,8 @@ public final class TestUtils {
       for (int j = m - 1; j >= 0; j--) {
         if (before[i].equals(after[j])) {
           lcs[i][j] = lcs[i + 1][j + 1] + 1;
-        } else {
+        }
+        else {
           lcs[i][j] = Math.max(lcs[i + 1][j], lcs[i][j + 1]);
         }
       }
@@ -645,7 +770,8 @@ public final class TestUtils {
       if (before[i].equals(after[j])) {
         i++;
         j++;
-      } else {
+      }
+      else {
         sb.append("@@ -");
         sb.append(Integer.toString(i + 1));
         sb.append(" +");
@@ -669,7 +795,8 @@ public final class TestUtils {
             sb.append(before[i]);
             sb.append('\n');
             i++;
-          } else {
+          }
+          else {
             sb.append('+');
             if (!after[j].trim().isEmpty()) {
               sb.append(' ');
@@ -743,7 +870,8 @@ public final class TestUtils {
       try {
         runnable.run();
         return;
-      } catch (AssertionError e) {
+      }
+      catch (AssertionError e) {
         /*
          * It is OK to throw this. Save for later.
          */
@@ -752,7 +880,8 @@ public final class TestUtils {
 
       try {
         Thread.sleep(EVENTUALLY_CHECK_CYCLE_TIME_MS);
-      } catch (InterruptedException e) {
+      }
+      catch (InterruptedException e) {
         throw new AssertionError(e);
       }
     }
@@ -767,9 +896,9 @@ public final class TestUtils {
    * process exits.
    *
    * @param toRun the class whose main() method will be executed in a new process.
-   * @param args the arguments for the class {@code toRun} main() method
+   * @param args  the arguments for the class {@code toRun} main() method
    * @throws RuntimeException if any (checked or runtime) exception occurs or the process returns
-   *     an exit value other than 0
+   *                          an exit value other than 0
    */
   public static void launchProcess(@NonNull Class toRun, String... args) {
     List<String> commandAndArgs = new LinkedList<>();
@@ -785,13 +914,15 @@ public final class TestUtils {
     Process process;
     try {
       process = processBuilder.start();
-    } catch (IOException e) {
+    }
+    catch (IOException e) {
       throw new RuntimeException(e);
     }
 
     try {
       process.waitFor();
-    } catch (InterruptedException e) {
+    }
+    catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
 

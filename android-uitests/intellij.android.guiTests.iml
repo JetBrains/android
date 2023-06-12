@@ -13,7 +13,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.emulator" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -66,8 +66,13 @@
     <orderEntry type="module" module-name="app-inspection.api" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.device-explorer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.device-file-explorer-toolwindow" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.navigator" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
   </component>
 </module>

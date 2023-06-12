@@ -21,11 +21,11 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.pipeline.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_VERSION
@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.DisableBitmapScreenshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
@@ -56,7 +57,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
@@ -92,7 +92,8 @@ class ViewLayoutInspectorClient(
   private val scope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
   private val composeInspector: ComposeLayoutInspectorClient?,
-  private val fireError: (String) -> Unit = {},
+  private val fireError: (String?, Throwable?) -> Unit = { _, _ -> },
+  private val fireRootsEvent: (List<Long>) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
   private val launchMonitor: InspectorClientLaunchMonitor
 ) {
@@ -125,7 +126,8 @@ class ViewLayoutInspectorClient(
       stats: SessionStatistics,
       eventScope: CoroutineScope,
       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
-      fireError: (String) -> Unit,
+      fireError: (String?, Throwable?) -> Unit,
+      fireRootsEvent: (List<Long>) -> Unit,
       fireTreeEvent: (Data) -> Unit,
       launchMonitor: InspectorClientLaunchMonitor
     ): ViewLayoutInspectorClient {
@@ -133,8 +135,8 @@ class ViewLayoutInspectorClient(
       // left running for some reason. This is a better experience than silently falling back to a legacy client.
       val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(model, stats, process, eventScope, messenger, composeLayoutInspectorClient, fireError, fireTreeEvent,
-                                       launchMonitor)
+      return ViewLayoutInspectorClient(model, stats, process, eventScope, messenger, composeLayoutInspectorClient, fireError,
+                                       fireRootsEvent, fireTreeEvent, launchMonitor)
     }
   }
 
@@ -224,6 +226,14 @@ class ViewLayoutInspectorClient(
     }
   }
 
+  suspend fun disableBitmapScreenshots(disable: Boolean) {
+    messenger.sendCommand {
+      disableBitmapScreenshotCommand = DisableBitmapScreenshotCommand.newBuilder().apply {
+        this.disable = disable
+      }.build()
+    }
+  }
+
   fun updateScreenshotType(type: Screenshot.Type?, scale: Float = 1.0f) {
     scope.launch {
       messenger.sendCommand {
@@ -259,7 +269,7 @@ class ViewLayoutInspectorClient(
   }
 
   private fun handleErrorEvent(errorEvent: ErrorEvent) {
-    fireError(errorEvent.message)
+    fireError(errorEvent.message, null)
   }
 
   private fun handleRootsEvent(rootsEvent: WindowRootsEvent) {
@@ -273,6 +283,7 @@ class ViewLayoutInspectorClient(
     lastComposeParameters.keys.retainAll(currRoots.toSet())
     lastProperties.keys.retainAll(currRoots.toSet())
     recentLayouts.keys.retainAll(currRoots.toSet())
+    fireRootsEvent(rootsEvent.idsList)
   }
 
   private suspend fun handleLayoutEvent(layoutEvent: LayoutEvent) {
@@ -319,7 +330,10 @@ class ViewLayoutInspectorClient(
       processName = processDescriptor.name,
       liveDuringCapture = isFetchingContinuously,
       source = Metadata.Source.STUDIO,
-      sourceVersion = ApplicationInfo.getInstance().fullVersion
+      sourceVersion = ApplicationInfo.getInstance().fullVersion,
+      dpi = model.resourceLookup.dpi,
+      fontScale = model.resourceLookup.fontScale,
+      screenDimension = model.resourceLookup.screenDimension
     )
 
     if (isFetchingContinuously) {
@@ -358,7 +372,7 @@ class ViewLayoutInspectorClient(
     }
     catch (cancellationException: CancellationException) {
       snapshotMetadata.saveDuration = System.currentTimeMillis() - start
-      LayoutInspectorMetrics(project, processDescriptor, snapshotMetadata)
+      LayoutInspectorSessionMetrics(project, processDescriptor, snapshotMetadata)
         .logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED, stats)
       // Delete the file in case we wrote out partial data
       Files.delete(path)

@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInspection.InspectionSuppressor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.psi.PsiElement
@@ -27,8 +26,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
  */
 class ComposeSuppressor : InspectionSuppressor {
   override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
-    return StudioFlags.COMPOSE_EDITOR_SUPPORT.get() &&
-           toolId == "FunctionName" &&
+    return toolId == "FunctionName" &&
            element.language == KotlinLanguage.INSTANCE &&
            element.node.elementType == KtTokens.IDENTIFIER &&
            element.parent.isComposableFunction()

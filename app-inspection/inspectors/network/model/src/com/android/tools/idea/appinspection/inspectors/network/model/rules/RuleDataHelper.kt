@@ -23,17 +23,20 @@ enum class Protocol(private val displayString: String) {
 
   override fun toString() = displayString
 
-  fun toProto() = when (this) {
-    HTTPS -> InterceptCriteria.Protocol.PROTOCOL_HTTPS
-    HTTP -> InterceptCriteria.Protocol.PROTOCOL_HTTP
-  }
+  fun toProto() =
+    when (this) {
+      HTTPS -> InterceptCriteria.Protocol.PROTOCOL_HTTPS
+      HTTP -> InterceptCriteria.Protocol.PROTOCOL_HTTP
+    }
 }
 
 enum class Method {
-  GET, POST;
+  GET,
+  POST;
 
-  fun toProto() = when (this) {
-    GET -> InterceptCriteria.Method.METHOD_GET
-    POST -> InterceptCriteria.Method.METHOD_POST
-  }
+  fun toProto() =
+    when (this) {
+      GET -> InterceptCriteria.Method.METHOD_GET
+      POST -> InterceptCriteria.Method.METHOD_POST
+    }
 }

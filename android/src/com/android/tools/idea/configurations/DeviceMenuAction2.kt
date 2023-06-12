@@ -27,7 +27,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -112,7 +111,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
 
   private fun createDeviceMenuList() {
     val groupedDevices = getSuitableDevicesForMenu(renderContext.configuration!!)
-    addWindowSizeAndNexusSection(groupedDevices)
+    addReferenceDeviceSection(groupedDevices)
     addWearDeviceSection(groupedDevices)
     addTvDeviceSection(groupedDevices)
     addAutomotiveDeviceSection(groupedDevices)
@@ -121,10 +120,11 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     addGenericDeviceAndNewDefinitionSection(groupedDevices)
   }
 
-  private fun addWindowSizeAndNexusSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
-    val windowDevices = AdditionalDeviceService.getInstance()?.getWindowSizeDevices() ?: return
+  private fun addReferenceDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
     add(DeviceCategory("Reference Devices", "Reference Devices", StudioIcons.Avd.DEVICE_MOBILE))
-    for (device in windowDevices) {
+
+    for (type in ReferenceDeviceType.values()) {
+      val device = getReferenceDevice(groupedDevices, type) ?: continue
       val selected = device == renderContext.configuration?.device
       add(DeviceMenuAction.SetDeviceAction(renderContext,
                                            getDeviceLabel(device),
@@ -134,10 +134,18 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
                                            null, selected))
     }
 
-    groupedDevices.get(DeviceGroup.NEXUS_XL)?.let { addDevicesToPopup("Phones", it) }
-    groupedDevices.get(DeviceGroup.NEXUS_TABLET)?.let { addDevicesToPopup("Tablets", it) }
-    groupedDevices.get(DeviceGroup.DESKTOP)?.let { addDevicesToPopup("Desktop", it) }
+    // Add canonical small and medium phone devices at the top of menu.
+    val phoneDevices = listOfNotNull(getCanonicalDevice(groupedDevices, CanonicalDeviceType.SMALL_PHONE),
+                                     getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_PHONE)) +
+                       groupedDevices.getOrDefault(DeviceGroup.NEXUS_XL, emptyList())
+    addDevicesToPopup("Phones", phoneDevices)
 
+    // Add canonical medium tablet device at the top of menu.
+    val tabletDevices = listOfNotNull(getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_TABLET)) +
+                        groupedDevices.getOrDefault(DeviceGroup.NEXUS_TABLET, emptyList())
+    addDevicesToPopup("Tablets", tabletDevices)
+
+    groupedDevices.get(DeviceGroup.DESKTOP)?.let { addDevicesToPopup("Desktop", it) }
     addSeparator()
   }
 
@@ -160,7 +168,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
 
   private fun addTvDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
     val tvDevices = groupedDevices.get(DeviceGroup.TV) ?: return
-    add(DeviceCategory("TV", "Android TV devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
+    add(DeviceCategory("TV", "Television devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
     for (device in tvDevices) {
       val selected = device == renderContext.configuration?.device
       add(DeviceMenuAction.SetDeviceAction(renderContext,
@@ -202,7 +210,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
       for (device in devices) {
         val selected = current != null && current.id == device.id
         val avdDisplayName = "AVD: " + device.displayName
-        add(DeviceMenuAction.SetAvdAction(renderContext, { updatePresentation(it) }, device, avdDisplayName, selected))
+        add(DeviceMenuAction.SetAvdAction(renderContext,
+                                          { updatePresentation(it) },
+                                          deviceChangeListener,
+                                          device,
+                                          avdDisplayName,
+                                          selected))
       }
       addSeparator()
     }
@@ -215,7 +228,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
   }
 
   private fun addDevicesToPopup(title: String, devices: List<Device>) {
-    val group = DefaultActionGroup.createPopupGroup { title }
+    val group = createSubMenuGroup { title }
     add(group)
 
     for (device in devices) {
@@ -236,7 +249,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     val xDp = screen.xDimension.toDp(density).roundToInt()
     val yDp = screen.yDimension.toDp(density).roundToInt()
     val isTv = HardwareConfigHelper.isTv(device)
-    val displayedDensity = AvdScreenData.getScreenDensity(device.id, isTv, density.dpiValue.toDouble(), screen.yDimension)
+    val displayedDensity = AvdScreenData.getScreenDensity(isTv, density.dpiValue.toDouble(), screen.yDimension)
     return "${device.displayName} ($xDp × $yDp dp, ${displayedDensity.resourceValue})"
   }
 
@@ -294,8 +307,7 @@ class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHo
 
   override fun actionPerformed(e: AnActionEvent) {
     val config = configurationHolder.configuration ?: return
-    val module = config.module ?: return
-    val project = module.project
+    val project = config.configModule.project
 
     val optionsModel = AvdOptionsModel(null)
     val dialog = AvdWizardUtils.createAvdWizard(null, project, optionsModel)

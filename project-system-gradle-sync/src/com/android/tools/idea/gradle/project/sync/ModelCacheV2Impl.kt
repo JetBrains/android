@@ -53,7 +53,8 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
+import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -72,6 +73,7 @@ import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
+import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
@@ -93,17 +95,20 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
+import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
+import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
@@ -126,7 +131,13 @@ import kotlin.concurrent.withLock
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
 //       cannot validate the structure at compile time.
-internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLock, agpVersion: GradleVersion): ModelCache.V2 {
+internal fun modelCacheV2Impl(
+  internedModels: InternedModels,
+  lock: ReentrantLock,
+  agpVersion: AgpVersion,
+  syncTestMode: SyncTestMode,
+  multiVariantAdditionalArtifactSupport: Boolean,
+): ModelCache.V2 {
   fun String.deduplicate() = internedModels.intern(this)
   fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
   fun Map<String, String>.deduplicateStrings(): Map<String, String> = map { (k, v) -> k.deduplicate() to v.deduplicate() }.toMap()
@@ -136,6 +147,13 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
   fun File.deduplicateFile(): File = File(path.deduplicate())
   fun List<File>.deduplicateFiles() = map { it.deduplicateFile() }
   fun Collection<File>.deduplicateFiles() = map { it.deduplicateFile() }
+
+  /**
+   * Sources, JavaDocs and Samples are only provided in libraries after AGP version 8.1.0-alpha8.
+   * Any attempt to read these values from a version prior to this will result in an exception.
+   */
+  val isAGPVersion8dot1dot0alpha8orLater = agpVersion.isAtLeast(8, 1, 0, "alpha", 8, false)
+  val useAdditionalArtifactsFromLibraries = isAGPVersion8dot1dot0alpha8orLater && multiVariantAdditionalArtifactSupport
 
   fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
     val folder: File? = provider.manifestFile.parentFile?.deduplicateFile()
@@ -158,6 +176,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       myCustomSourceDirectories = provider.customDirectories?.map {
         IdeCustomSourceDirectoryImpl(it.sourceTypeName, folder, it.directory.makeRelativeAndDeduplicate())
       } ?: emptyList(),
+      myBaselineProfileDirectories = if (agpVersion.isAtLeast(8, 0, 0, "beta", 1, false))
+        provider.baselineProfileDirectories?.makeRelativeAndDeduplicate() ?: mutableListOf()
+      else
+        mutableListOf()
     )
   }
 
@@ -312,8 +334,8 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     )
   }
 
-  fun sourceProviderContainerFrom(container: SourceProvider): IdeSourceProviderContainerImpl {
-    return IdeSourceProviderContainerImpl(
+  fun sourceProviderContainerFrom(container: SourceProvider): IdeExtraSourceProviderImpl {
+    return IdeExtraSourceProviderImpl(
       // As we no longer have ArtifactMetaData, we use hardcoded values for androidTests, unitTests and testFixtures artifacts.
 
       artifactName = if (container.name.startsWith("androidTest")) {
@@ -331,6 +353,19 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
   ): IdeProductFlavorContainerImpl {
     return IdeProductFlavorContainerImpl(
       productFlavor = productFlavorFrom(productFlavor),
+      sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
+      extraSourceProviders = listOfNotNull(
+        container?.androidTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
+        container?.unitTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) }
+      )
+    )
+  }
+
+  fun sourceProviderContainerFrom(
+    container: SourceSetContainer?
+  ): IdeSourceProviderContainerImpl {
+    return IdeSourceProviderContainerImpl(
       sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
       extraSourceProviders = listOfNotNull(
         container?.androidTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
@@ -394,10 +429,11 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       artifactAddress = artifactAddress,
       name = "",
       folder = androidLibraryData.resFolder.parentFile.deduplicateFile(),
-
       artifact = androidLibrary.artifact ?: File(""),
       lintJar = androidLibrary.lintJar?.path,
-
+      srcJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.srcJar?.path else null,
+      docJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.docJar?.path else null,
+      samplesJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.samplesJar?.path else null,
       manifest = androidLibraryData.manifest.path ?: "",
       compileJarFiles = androidLibraryData.compileJarFiles.map { it.path },
       runtimeJarFiles = androidLibraryData.runtimeJarFiles.map { it.path },
@@ -426,9 +462,16 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     val unnamed = IdeJavaLibraryImpl(
       artifactAddress = artifactAddress,
       name = "",
-      artifact = javaLibrary.artifact!!
+      artifact = javaLibrary.artifact!!,
+      srcJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.srcJar else null,
+      docJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.docJar else null,
+      samplesJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.samplesJar else null,
     )
     return internedModels.getOrCreate(unnamed)
+  }
+
+  fun javaLibraryFromJarFile(jarFile: File): LibraryReference {
+    return internedModels.getOrCreate(IdeJavaLibraryImpl("${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified", "", jarFile, null, null, null))
   }
 
   fun moduleLibraryFrom(
@@ -471,40 +514,41 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
   fun createFromDependencies(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
-    dependencies: List<GraphItem>,
+    dependencies: List<GraphItem>?,
     libraries: Map<String, Library>,
+    bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>
-  ): IdeDependenciesCoreImpl {
-
+  ): ModelResult<IdeDependenciesCoreImpl> = ModelResult.create {
     // Map from unique artifact address to level2 library instance. The library instances are
     // supposed to be shared by all artifacts. When creating IdeLevel2Dependencies, check if current library is available in this map,
     // if it's available, don't create new one, simple add reference to it. If it's not available, create new instance and save
     // to this map, so it can be reused the next time when the same library is added.
-    val librariesById = mutableMapOf<String, IdeDependencyCoreImpl>()
+    val librariesById = mutableMapOf<String, LibraryReference>()
     fun buildNameToBuildId(buildName: String) = buildNameMap[buildName] ?: error("Unknown build name: '$buildName'." +
                                                                                  " Known names ${buildNameMap}")
 
+    data class LibraryWithDependencies(val library: Library, val dependencies: List<String>)
+
     fun createModuleDependency(
-      visited: MutableSet<String>,
+      seenDependencies: MutableMap<String, List<String>>,
       projectPath: String,
       artifactAddress: String,
       lintJar: File?,
       buildName: String,
-      artifact: ArtifactRef
+      artifact: ArtifactRef,
+      dependencies: List<String>
     ) {
-      if (!visited.contains(artifactAddress)) {
-        visited.add(artifactAddress)
+      if (!seenDependencies.contains(artifactAddress)) {
+        seenDependencies[artifactAddress] = dependencies
         librariesById.computeIfAbsent(artifactAddress) {
           val buildId = buildNameToBuildId(buildName)
-          IdeDependencyCoreImpl(
-            target = moduleLibraryFrom(
+            moduleLibraryFrom(
               projectPath = projectPath,
               buildId = buildId,
               lintJar = lintJar,
               artifact = artifact
             )
-          )
         }
       }
     }
@@ -541,7 +585,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
         )
     }
 
-    fun populateProjectDependencies(libraries: List<Library>, visited: MutableSet<String>) {
+    fun populateProjectDependencies(libraries: List<LibraryWithDependencies>, seenDependencies: MutableMap<String, List<String>>) {
       /**
        * Determines whether a dependency target is an Android component.
        *
@@ -560,7 +604,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       fun ProjectInfo.isAndroidComponent(): Boolean = buildType != null || productFlavors.isNotEmpty()
 
       for (identifier in libraries) {
-        val projectInfo = identifier.projectInfo!!
+        val projectInfo = identifier.library.projectInfo!!
         // TODO(b/203750717): Model this explicitly in the tooling model.
         val artifact =
           if (projectInfo.isAndroidComponent()) {
@@ -570,64 +614,97 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
             val variantName = androidModule.resolveVariantName(projectInfo)
             AndroidArtifactRef(variantName, projectInfo.isTestFixtures)
           } else {
-            NonAndroidAndroidArtifactRef(
-              identifier.artifact
-                ?: error(
+            val artifact = identifier.library.artifact ?: let {
+              recordException {
+                error(
                   "Unresolved module dependency ${projectInfo.projectPath} (${projectInfo.buildId}) in $ownerProjectPath ($ownerBuildId). " +
                     "Neither the source set nor the artifact property was populated by the Android Gradle plugin."
                 )
-            )
+              }
+              null
+            } ?: continue
+            NonAndroidAndroidArtifactRef(artifact)
           }
         createModuleDependency(
-          visited = visited,
+          seenDependencies = seenDependencies,
           projectPath = projectInfo.projectPath,
-          artifactAddress = identifier.key,
-          lintJar = identifier.lintJar,
+          artifactAddress = identifier.library.key,
+          lintJar = identifier.library.lintJar,
           buildName = projectInfo.buildId, // IMPORTANT: A v2 build id is a Gradle build name and needs to be mapped to an IDE build id.
-          artifact = artifact
+          artifact = artifact,
+          dependencies = identifier.dependencies
         )
       }
     }
 
     fun populateJavaLibraries(
-      javaLibraries: Collection<Library>,
-      visited: MutableSet<String>
+      javaLibraries: Collection<LibraryWithDependencies>,
+      seenDependencies: MutableMap<String, List<String>>
     ) {
       for (javaLibrary in javaLibraries) {
-        val address = javaLibrary.artifact!!.path
-        if (!visited.contains(address)) {
-          visited.add(address)
+        val address = javaLibrary.library.key
+        if (!seenDependencies.contains(address)) {
+          seenDependencies[address] = javaLibrary.dependencies
           librariesById.computeIfAbsent(address) {
-            IdeDependencyCoreImpl(javaLibraryFrom(javaLibrary))
+            javaLibraryFrom(javaLibrary.library)
+          }
+        }
+      }
+    }
+
+    fun populateOptionalSdkLibrariesLibraries(
+      bootClasspath: Collection<String>,
+      seenDependencies: MutableMap<String, List<String>>
+    ) {
+      getUsefulBootClasspathLibraries(bootClasspath).forEach { jarFile ->
+        if (!seenDependencies.contains(jarFile.path)) { // Any unique key identifying the library  is suitable.
+          seenDependencies[jarFile.path] = listOf()
+          librariesById.computeIfAbsent(jarFile.path) {
+            javaLibraryFromJarFile(jarFile)
           }
         }
       }
     }
 
     class LibrariesByType(
-      val androidLibraries: List<Library>,
-      val javaLibraries: List<Library>,
-      val projectLibraries: List<Library>
+      val androidLibraries: List<LibraryWithDependencies>,
+      val javaLibraries: List<LibraryWithDependencies>,
+      val projectLibraries: List<LibraryWithDependencies>,
+      val unknownLibraries: List<LibraryWithDependencies>
     )
 
     fun getTypedLibraries(
-      dependencies: List<Library>
+      dependencies: List<LibraryWithDependencies>?
     ): LibrariesByType {
-      return dependencies.groupBy { it.type }.let {
-        LibrariesByType(
-          androidLibraries = it[LibraryType.ANDROID_LIBRARY] ?: emptyList(),
-          javaLibraries = it[LibraryType.JAVA_LIBRARY] ?: emptyList(),
-          projectLibraries = it[LibraryType.PROJECT] ?: emptyList()
-        )
+      val androidLibraries: MutableList<LibraryWithDependencies> = mutableListOf()
+      val javaLibraries: MutableList<LibraryWithDependencies> = mutableListOf()
+      val projectLibraries: MutableList<LibraryWithDependencies> = mutableListOf()
+      val unknownLibraries: MutableList<LibraryWithDependencies> = mutableListOf()
+
+      dependencies?.forEach { dep ->
+        when (dep.library.type) {
+          LibraryType.ANDROID_LIBRARY -> androidLibraries
+          LibraryType.PROJECT -> projectLibraries
+          LibraryType.JAVA_LIBRARY -> javaLibraries
+          LibraryType.RELOCATED -> unknownLibraries
+          LibraryType.NO_ARTIFACT_FILE -> unknownLibraries
+        }.add(dep)
       }
+
+      return LibrariesByType(
+        androidLibraries = androidLibraries,
+        javaLibraries = javaLibraries,
+        projectLibraries = projectLibraries,
+        unknownLibraries = unknownLibraries
+      )
     }
 
     /*
     Flattens a direct acyclic graph of dependencies into a list that includes each node only once and is the result of traversal in the
     depth-first pre-order order.
-     */
-    fun List<GraphItem>.toFlatLibraryList(): List<Library> {
-      val result = mutableListOf<Library>()
+   */
+    fun List<GraphItem>.toFlatLibraryList(): List<LibraryWithDependencies> {
+      val result = mutableListOf<LibraryWithDependencies>()
       // We process items in the order that the recursive depth-first pre-order traversal would achieve. This is for compatibility
       // with v1 models and will change soon when we start exposing graphs to the IDE.
       val seenGraphItemLibraryKeys = HashSet<String>()
@@ -638,7 +715,9 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
           queue.addAll(item.dependencies.asReversed().asSequence().filter { !seenGraphItemLibraryKeys.contains(it.key) })
           val library = libraries[item.key]
           if (library != null) {
-            result.add(library)
+            result.add(LibraryWithDependencies(library, item.dependencies.map {
+              it.key
+            }))
           }
         }
       }
@@ -646,39 +725,68 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     }
 
     fun populateAndroidLibraries(
-      androidLibraries: Collection<Library>,
-      visited: MutableSet<String>
+      androidLibraries: Collection<LibraryWithDependencies>,
+      seenDependencies: MutableMap<String, List<String>>
     ) {
-      for (androidLibrary in androidLibraries) {
-        val address = androidLibrary.key
-        if (!visited.contains(address)) {
-          visited.add(address)
+      androidLibraries.forEach { androidLibrary ->
+        val address = androidLibrary.library.key
+        if (!seenDependencies.contains(address)) {
+          seenDependencies[address] = androidLibrary.dependencies
           librariesById.computeIfAbsent(address) {
-            IdeDependencyCoreImpl(androidLibraryFrom(androidLibrary))
+            androidLibraryFrom(androidLibrary.library)
+          }
+        }
+      }
+    }
+
+    fun populateUnknownDependencies(
+      libraries: List<LibraryWithDependencies>,
+      seenDependencies: MutableMap<String, List<String>>
+    ) {
+      libraries.forEach { unknownLibrary ->
+        val address = unknownLibrary.library.key
+        if (!seenDependencies.contains(address)) {
+          seenDependencies[address] = unknownLibrary.dependencies
+          librariesById.computeIfAbsent(address) {
+            internedModels.getOrCreate(IdeUnknownLibraryImpl(unknownLibrary.library.key))
           }
         }
       }
     }
 
     fun createIdeDependencies(
-      artifactAddresses: Collection<String>
+      artifactAddressesAndDependencies: Map<String, List<String>>
     ): IdeDependenciesCoreImpl {
-      return IdeDependenciesCoreImpl(
-        dependencies = artifactAddresses.map { address -> librariesById[address]!! }
-      )
+      val dependencyList = mutableListOf<IdeDependencyCoreImpl>()
+      val indexed = mutableMapOf<String, Int>()
+
+      artifactAddressesAndDependencies.onEachIndexed { index, entry ->
+        indexed[entry.key] = index
+      }
+
+      artifactAddressesAndDependencies.forEach { (key, deps) ->
+        val libraryReference = librariesById[key]!!
+        dependencyList.add(IdeDependencyCoreImpl(libraryReference, deps.mapNotNull { indexed[it] }))
+      }
+
+      return IdeDependenciesCoreImpl(dependencyList)
     }
 
     fun createIdeDependenciesInstance(): IdeDependenciesCoreImpl {
-      val visited = mutableSetOf<String>()
-      val dependencyList = dependencies.toFlatLibraryList()
+      val seenDependencies = mutableMapOf<String, List<String>>()
+      val dependencyList = dependencies?.toFlatLibraryList()
       val typedLibraries = getTypedLibraries(dependencyList)
-      populateAndroidLibraries(typedLibraries.androidLibraries, visited)
-      populateJavaLibraries(typedLibraries.javaLibraries, visited)
-      populateProjectDependencies(typedLibraries.projectLibraries, visited)
-      return createIdeDependencies(visited)
+
+      populateAndroidLibraries(typedLibraries.androidLibraries, seenDependencies)
+      populateJavaLibraries(typedLibraries.javaLibraries, seenDependencies)
+      populateOptionalSdkLibrariesLibraries(bootClasspath, seenDependencies)
+      populateProjectDependencies(typedLibraries.projectLibraries, seenDependencies)
+      populateUnknownDependencies(typedLibraries.unknownLibraries, seenDependencies)
+      return createIdeDependencies(seenDependencies)
     }
-    return createIdeDependenciesInstance()
+    createIdeDependenciesInstance()
   }
+
 
   /**
    * Create [IdeDependencies] from [ArtifactDependencies].
@@ -686,16 +794,18 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
   fun dependenciesFrom(
     ownerBuildId: BuildId,
     ownerProjectPath: String,
-    dependencies: List<GraphItem>,
+    dependencies: List<GraphItem>?,
     libraries: Map<String, Library>,
+    bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>
-  ): IdeDependenciesCoreImpl {
+  ): ModelResult<IdeDependenciesCoreImpl> {
     return createFromDependencies(
       ownerBuildId,
       ownerProjectPath,
       dependencies,
       libraries,
+      bootClasspath,
       androidProjectPathResolver,
       buildNameMap
     )
@@ -755,11 +865,24 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     )
   }
 
+  /*
+   AGP from 8.0.0-alpha02 provides desugar method files per artifact (so they can diverge between main and test).
+   For older AGPs from 7.3.0-alpha06 which provide desugar method files in the variant that apply to main and test,
+   fall back to that value.
+  */
+  fun getDesugaredMethodsList(artifact: AndroidArtifact, fallback: Collection<File>): Collection<File> {
+    return if (agpVersion.isAtLeast(8, 0, 0, "alpha", 2, false))
+      artifact.desugaredMethodsFiles
+    else
+      fallback
+  }
+
   fun androidArtifactFrom(
     name: IdeArtifactName,
     basicArtifact: BasicArtifact,
     mainVariantName: String,
     legacyApplicationIdModel: LegacyApplicationIdModel?,
+    fallbackDesugaredMethodsFiles: Collection<File>,
     artifact: AndroidArtifact
   ): IdeAndroidArtifactCoreImpl {
     val testInfo = artifact.testInfo
@@ -792,10 +915,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       privacySandboxSdkInfo = if (agpVersion.isAtLeast(7, 4, 0, "alpha", 10, false))
         artifact.privacySandboxSdkInfo?.let { IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile) }
       else
-        null
+        null,
+      desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles)
     )
   }
-
 
   fun androidArtifactFrom(
     ownerBuildId: BuildId,
@@ -803,30 +926,37 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     artifact: IdeAndroidArtifactCoreImpl,
     artifactDependencies: ArtifactDependencies,
     libraries: Map<String, Library>,
+    bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>,
-  ): IdeAndroidArtifactCoreImpl {
-    return artifact.copy(
-      compileClasspathCore =
-      dependenciesFrom(
+  ): ModelResult<IdeAndroidArtifactCoreImpl> {
+    return ModelResult.create {
+      val compileClasspathCore = dependenciesFrom(
         ownerBuildId,
         ownerProjectPath,
         artifactDependencies.compileDependencies,
         libraries,
+        bootClasspath,
         androidProjectPathResolver,
         buildNameMap
-      ),
-      runtimeClasspathCore =
-      dependenciesFrom(
+      ).recordAndGet()
+
+      val runtimeClasspathCore = dependenciesFrom(
         ownerBuildId,
         ownerProjectPath,
         artifactDependencies.runtimeDependencies,
         libraries,
+        bootClasspath,
         androidProjectPathResolver,
         buildNameMap
-      ),
-      unresolvedDependencies = artifactDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
-    )
+      ).recordAndGet()
+
+      artifact.copy(
+        compileClasspathCore = compileClasspathCore ?: IdeDependenciesCoreImpl(emptyList()),
+        runtimeClasspathCore = runtimeClasspathCore ?: IdeDependenciesCoreImpl(emptyList()),
+        unresolvedDependencies = artifactDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
+      )
+    }
   }
 
   fun javaArtifactFrom(
@@ -857,28 +987,37 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     artifact: IdeJavaArtifactCoreImpl,
     variantDependencies: ArtifactDependencies,
     libraries: Map<String, Library>,
+    bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>
-  ): IdeJavaArtifactCoreImpl {
-    return artifact.copy(
-      compileClasspathCore = dependenciesFrom(
+  ): ModelResult<IdeJavaArtifactCoreImpl> {
+    return ModelResult.create {
+      val compileClasspathCore = dependenciesFrom(
         buildId,
         projectPath,
         variantDependencies.compileDependencies,
         libraries,
+        bootClasspath,
         androidProjectPathResolver,
         buildNameMap
-      ),
-      runtimeClasspathCore = dependenciesFrom(
+      ).recordAndGet()
+
+      val runtimeClasspathCore = dependenciesFrom(
         buildId,
         projectPath,
         variantDependencies.runtimeDependencies,
         libraries,
+        bootClasspath,
         androidProjectPathResolver,
         buildNameMap
-      ),
-      unresolvedDependencies = variantDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
-    )
+      ).recordAndGet()
+
+      artifact.copy(
+        compileClasspathCore = compileClasspathCore ?: IdeDependenciesCoreImpl(emptyList()),
+        runtimeClasspathCore = runtimeClasspathCore ?: IdeDependenciesCoreImpl(emptyList()),
+        unresolvedDependencies = variantDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
+      )
+    }
   }
 
   fun ideTestedTargetVariantFrom(testedTargetVariant: TestedTargetVariant): IdeTestedTargetVariantImpl = IdeTestedTargetVariantImpl(
@@ -896,15 +1035,17 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     basicVariant: BasicVariant,
     variant: Variant,
     legacyApplicationIdModel: LegacyApplicationIdModel?
-  ): IdeVariantCoreImpl {
+  ): ModelResult<IdeVariantCoreImpl> {
+    // Currently, all plugins going through the model cache v2 building will be of multi-variant type
+    val multiVariantData = androidProject.multiVariantData!!
     // To get merged flavors for V2, we merge flavors from default config and all the flavors.
     val mergedFlavor = mergeProductFlavorsFrom(
-      androidProject.defaultConfig.productFlavor,
-      androidProject.productFlavors.map { it.productFlavor }.filter { basicVariant.productFlavors.contains(it.name) }.toList(),
+      multiVariantData.defaultConfig,
+      multiVariantData.productFlavors.map { it.productFlavor }.filter { basicVariant.productFlavors.contains(it.name) }.toList(),
       androidProject.projectType
     )
 
-    val buildType = androidProject.buildTypes.find { it.buildType.name == basicVariant.buildType }?.buildType
+    val buildType = multiVariantData.buildTypes.find { it.buildType.name == basicVariant.buildType }?.buildType
 
     fun <T> merge(f: IdeProductFlavorImpl.() -> T, b: IdeBuildTypeImpl.() -> T, combine: (T?, T?) -> T): T {
       return combine(mergedFlavor.f(), buildType?.b())
@@ -917,42 +1058,56 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       if (mergedFlavor.versionNameSuffix == null && buildType?.versionNameSuffix == null) null
       else mergedFlavor.versionNameSuffix.orEmpty() + buildType?.versionNameSuffix.orEmpty()
     val variantName = variant.name.deduplicate()
-    return IdeVariantCoreImpl(
-      name = variantName,
-      displayName = variant.displayName.deduplicate(),
-      mainArtifact = androidArtifactFrom(IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyApplicationIdModel, variant.mainArtifact),
-      // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
-      unitTestArtifact = variant.unitTestArtifact?.let { it: JavaArtifact ->
-        javaArtifactFrom(IdeArtifactName.UNIT_TEST, basicVariant.unitTestArtifact!!, it)
-      },
-      androidTestArtifact = variant.androidTestArtifact?.let { it: AndroidArtifact ->
-        androidArtifactFrom(IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, variantName, legacyApplicationIdModel, it)
-      },
-      testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
-        androidArtifactFrom(IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyApplicationIdModel, it)
-      },
-      buildType = basicVariant.buildType?.deduplicate() ?: "",
-      productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
-      minSdkVersion = apiVersionFrom(variant.mainArtifact.minSdkVersion),
-      targetSdkVersion = variant.mainArtifact.targetSdkVersionOverride?.let { it: ApiVersion -> apiVersionFrom(it) },
-      maxSdkVersion = variant.mainArtifact.maxSdkVersion,
-      versionCode = mergedFlavor.versionCode,
-      versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() }?.deduplicate(),
-      versionNameSuffix = versionNameSuffix?.deduplicate(),
-      instantAppCompatible = variant.isInstantAppCompatible,
-      vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
-      resourceConfigurations = mergedFlavor.resourceConfigurations.deduplicateStrings(),
-      testInstrumentationRunner = mergedFlavor.testInstrumentationRunner?.deduplicate(),
-      testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments.deduplicateStrings(),
-      testedTargetVariants = getTestedTargetVariants(variant),
-      resValues = merge({ resValues }, { resValues }, ::combineMaps),
-      proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
-      consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
-      manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
-      deprecatedPreMergedApplicationId = null,
-      deprecatedPreMergedTestApplicationId = null,
-      desugaredMethodsFiles = if (agpVersion.isAtLeast(7, 3, 0, "alpha", 6, false)) variant.desugaredMethods else emptyList()
-    )
+    val fallbackDesugaredMethodsFiles = if (agpVersion.isAtLeast(7, 3, 0, "alpha", 6, false)) variant.desugaredMethods else emptyList()
+
+    return ModelResult.create {
+      IdeVariantCoreImpl(
+        name = variantName,
+        displayName = variant.displayName.deduplicate(),
+        mainArtifact = androidArtifactFrom(
+          IdeArtifactName.MAIN, basicVariant.mainArtifact, variantName, legacyApplicationIdModel,
+          fallbackDesugaredMethodsFiles, variant.mainArtifact
+        ),
+        // If AndroidArtifact isn't null, then same goes for the ArtifactDependencies.
+        unitTestArtifact = variant.unitTestArtifact?.let { it: JavaArtifact ->
+          javaArtifactFrom(IdeArtifactName.UNIT_TEST, basicVariant.unitTestArtifact!!, it)
+        },
+        androidTestArtifact = variant.androidTestArtifact?.let { it: AndroidArtifact ->
+          androidArtifactFrom(
+            IdeArtifactName.ANDROID_TEST, basicVariant.androidTestArtifact!!, variantName, legacyApplicationIdModel,
+            fallbackDesugaredMethodsFiles, it
+          )
+        },
+        testFixturesArtifact = variant.testFixturesArtifact?.let { it: AndroidArtifact ->
+          androidArtifactFrom(
+            IdeArtifactName.TEST_FIXTURES, basicVariant.testFixturesArtifact!!, variantName, legacyApplicationIdModel,
+            fallbackDesugaredMethodsFiles, it
+          )
+        },
+        buildType = basicVariant.buildType?.deduplicate() ?: "",
+        productFlavors = ImmutableList.copyOf(basicVariant.productFlavors.deduplicateStrings()),
+        minSdkVersion = apiVersionFrom(variant.mainArtifact.minSdkVersion),
+        targetSdkVersion = variant.mainArtifact.targetSdkVersionOverride?.let { it: ApiVersion -> apiVersionFrom(it) },
+        maxSdkVersion = variant.mainArtifact.maxSdkVersion,
+        versionCode = mergedFlavor.versionCode,
+        versionNameWithSuffix = mergedFlavor.versionName?.let { it + versionNameSuffix.orEmpty() }?.deduplicate(),
+        versionNameSuffix = versionNameSuffix?.deduplicate(),
+        instantAppCompatible = variant.isInstantAppCompatible,
+        vectorDrawablesUseSupportLibrary = mergedFlavor.vectorDrawables?.useSupportLibrary ?: false,
+        resourceConfigurations = mergedFlavor.resourceConfigurations.deduplicateStrings(),
+        testInstrumentationRunner = mergedFlavor.testInstrumentationRunner?.deduplicate(),
+        testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments.deduplicateStrings(),
+        testedTargetVariants = getTestedTargetVariants(variant),
+
+        resValues = merge({ resValues }, { resValues }, ::combineMaps),
+        proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
+        consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),
+        manifestPlaceholders = merge({ manifestPlaceholders }, { manifestPlaceholders }, ::combineMaps),
+        deprecatedPreMergedApplicationId = null,
+        deprecatedPreMergedTestApplicationId = null,
+        desugaredMethodsFiles = fallbackDesugaredMethodsFiles,
+      )
+    }
   }
 
   fun variantFrom(
@@ -960,57 +1115,76 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     ownerProjectPath: String,
     variant: IdeVariantCoreImpl,
     variantDependencies: VariantDependencies,
+    bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildNameMap: Map<String, BuildId>
-  ): IdeVariantWithPostProcessor {
-    return IdeVariantWithPostProcessor(
-      variant.copy(
-        mainArtifact = variant.mainArtifact.let {
+  ): ModelResult<IdeVariantWithPostProcessor> {
+    return ModelResult.create {
+      val mainArtifact =
+        variant.mainArtifact.let {
           androidArtifactFrom(
             ownerBuildId = ownerBuildId,
             ownerProjectPath = ownerProjectPath,
             artifact = it,
             artifactDependencies = variantDependencies.mainArtifact,
             libraries = variantDependencies.libraries,
+            bootClasspath = bootClasspath,
             androidProjectPathResolver = androidProjectPathResolver,
             buildNameMap = buildNameMap
-          )
-        },
-        unitTestArtifact = variant.unitTestArtifact?.let {
+          ).recordAndGet()
+        }
+
+      val unitTestArtifact =
+        variant.unitTestArtifact?.let {
           javaArtifactFrom(
             buildId = ownerBuildId,
             projectPath = ownerProjectPath,
             artifact = it,
             variantDependencies = variantDependencies.unitTestArtifact!!,
             libraries = variantDependencies.libraries,
+            bootClasspath = bootClasspath,
             androidProjectPathResolver = androidProjectPathResolver,
             buildNameMap = buildNameMap
-          )
-        },
-        androidTestArtifact = variant.androidTestArtifact?.let {
+          ).recordAndGet()
+        }
+
+      val androidTestArtifact =
+        variant.androidTestArtifact?.let {
           androidArtifactFrom(
             ownerBuildId = ownerBuildId,
             ownerProjectPath = ownerProjectPath,
             artifact = it,
             artifactDependencies = variantDependencies.androidTestArtifact!!,
             libraries = variantDependencies.libraries,
+            bootClasspath = bootClasspath,
             androidProjectPathResolver = androidProjectPathResolver,
             buildNameMap = buildNameMap
-          )
-        },
-        testFixturesArtifact = variant.testFixturesArtifact?.let {
+          ).recordAndGet()
+        }
+
+      val testFixturesArtifact =
+        variant.testFixturesArtifact?.let {
           androidArtifactFrom(
             ownerBuildId = ownerBuildId,
             ownerProjectPath = ownerProjectPath,
             artifact = it,
             artifactDependencies = variantDependencies.testFixturesArtifact!!,
             libraries = variantDependencies.libraries,
+            bootClasspath = bootClasspath,
             androidProjectPathResolver = androidProjectPathResolver,
             buildNameMap = buildNameMap
-          )
+          ).recordAndGet()
         }
+
+      IdeVariantWithPostProcessor(
+        variant.copy(
+          mainArtifact = mainArtifact ?: error("Failed to fetch models of the main artifact of $ownerProjectPath ($ownerBuildId)"),
+          unitTestArtifact = unitTestArtifact,
+          androidTestArtifact = androidTestArtifact,
+          testFixturesArtifact = testFixturesArtifact
+        )
       )
-    )
+    }
   }
 
   fun nativeAbiFrom(nativeAbi: NativeAbi): IdeNativeAbiImpl {
@@ -1131,7 +1305,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     includeInBundle = model.includeInBundle
   )
 
-  fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl =
+  fun androidGradlePluginProjectFlagsFrom(
+    flags: AndroidGradlePluginProjectFlags,
+    gradlePropertiesModel: GradlePropertiesModel
+  ): IdeAndroidGradlePluginProjectFlagsImpl =
     IdeAndroidGradlePluginProjectFlagsImpl(
       applicationRClassConstantIds =
       AndroidGradlePluginProjectFlags.BooleanFlag.APPLICATION_R_CLASS_CONSTANT_IDS.getValue(flags),
@@ -1140,6 +1317,8 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       usesCompose = AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE.getValue(flags),
       mlModelBindingEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING.getValue(flags),
       unifiedTestPlatformEnabled = AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM.getValue(flags),
+      // If the property is not found in AGPProjectFlags (e.g., when opening older AGPs), get it from GradlePropertiesModel
+      useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.getValue(flags, gradlePropertiesModel.useAndroidX)
     )
 
   fun copyProjectType(projectType: ProjectType): IdeAndroidProjectType = when (projectType) {
@@ -1159,9 +1338,11 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     project: AndroidProject,
     modelsVersions: Versions,
     androidDsl: AndroidDsl,
-    legacyApplicationIdModel: LegacyApplicationIdModel?
-  ): IdeAndroidProjectImpl {
-    val defaultConfigCopy: IdeProductFlavorContainerImpl = productFlavorContainerFrom(androidDsl.defaultConfig, basicProject.mainSourceSet)
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
+    gradlePropertiesModel: GradlePropertiesModel,
+  ): ModelResult<IdeAndroidProjectImpl> {
+    val defaultConfigCopy: IdeProductFlavorImpl = productFlavorFrom(androidDsl.defaultConfig)
+    val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl = sourceProviderContainerFrom(basicProject.mainSourceSet)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = zip(
       androidDsl.buildTypes,
       basicProject.buildTypeSourceSets,
@@ -1180,7 +1361,9 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       IdeBasicVariantImpl(
         name = it.name,
         applicationId = getApplicationIdFromArtifact(agpVersion, it.mainArtifact, IdeArtifactName.MAIN, legacyApplicationIdModel, it.name),
-        testApplicationId = it.androidTestArtifact?.let{ androidTestArtifact -> getApplicationIdFromArtifact(agpVersion, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyApplicationIdModel, it.name) }
+        testApplicationId = it.androidTestArtifact?.let { androidTestArtifact ->
+          getApplicationIdFromArtifact(agpVersion, androidTestArtifact, IdeArtifactName.ANDROID_TEST, legacyApplicationIdModel, it.name)
+        }
       )
     }
     val flavorDimensionCopy: Collection<String> = androidDsl.flavorDimensions.deduplicateStrings()
@@ -1197,48 +1380,59 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     val groupId = androidDsl.groupId
     val lintChecksJarsCopy: List<File> = project.lintChecksJars.deduplicateFiles()
     val isBaseSplit = basicProject.projectType == ProjectType.APPLICATION
-    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags)
+    val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl = androidGradlePluginProjectFlagsFrom(project.flags, gradlePropertiesModel)
+    val desugarLibConfig = if (agpVersion.isAtLeast(8, 1, 0, "alpha", 5, false))
+      project.desugarLibConfig
+    else
+      listOf()
 
-    return IdeAndroidProjectImpl(
-      agpVersion = modelsVersions.agp,
-      projectPath = IdeProjectPathImpl(
-        rootBuildId = rootBuildId.asFile,
-        buildId = buildId.asFile,
-        buildName = basicProject.buildName,
-        projectPath = basicProject.path,
-      ),
-      defaultConfig = defaultConfigCopy,
-      buildTypes = buildTypesCopy,
-      productFlavors = productFlavorCopy,
-      basicVariants = basicVariantsCopy,
-      flavorDimensions = flavorDimensionCopy,
-      compileTarget = androidDsl.compileTarget,
-      bootClasspath = bootClasspathCopy,
-      signingConfigs = signingConfigsCopy,
-      lintOptions = lintOptionsCopy,
-      lintChecksJars = lintChecksJarsCopy,
-      javaCompileOptions = javaCompileOptionsCopy,
-      aaptOptions = aaptOptionsCopy,
-      buildFolder = basicProject.buildFolder,
-      dynamicFeatures = dynamicFeaturesCopy,
-      baseFeature = null,
-      variantsBuildInformation = variantBuildInformation,
-      viewBindingOptions = viewBindingOptionsCopy,
-      dependenciesInfo = dependenciesInfoCopy,
-      buildToolsVersion = buildToolsVersionCopy,
-      resourcePrefix = project.resourcePrefix,
-      groupId = groupId,
-      namespace = project.namespace,
-      testNamespace = project.androidTestNamespace,
-      projectType = copyProjectType(basicProject.projectType),
-      isBaseSplit = isBaseSplit,
-      agpFlags = agpFlags,
-      isKaptEnabled = false
-    )
+    return ModelResult.create {
+      if (syncTestMode == SyncTestMode.TEST_EXCEPTION_HANDLING) error("**internal error for tests**")
+      IdeAndroidProjectImpl(
+        agpVersion = modelsVersions.agp,
+        projectPath = IdeProjectPathImpl(
+          rootBuildId = rootBuildId.asFile,
+          buildId = buildId.asFile,
+          buildName = basicProject.buildName,
+          projectPath = basicProject.path,
+        ),
+        defaultSourceProvider = defaultConfigSourcesCopy,
+        multiVariantData = IdeMultiVariantDataImpl(
+          defaultConfig = defaultConfigCopy,
+          buildTypes = buildTypesCopy,
+          productFlavors = productFlavorCopy,
+        ),
+        basicVariants = basicVariantsCopy,
+        flavorDimensions = flavorDimensionCopy,
+        compileTarget = androidDsl.compileTarget,
+        bootClasspath = bootClasspathCopy,
+        signingConfigs = signingConfigsCopy,
+        lintOptions = lintOptionsCopy,
+        lintChecksJars = lintChecksJarsCopy,
+        javaCompileOptions = javaCompileOptionsCopy,
+        aaptOptions = aaptOptionsCopy,
+        buildFolder = basicProject.buildFolder,
+        dynamicFeatures = dynamicFeaturesCopy,
+        baseFeature = null,
+        variantsBuildInformation = variantBuildInformation,
+        viewBindingOptions = viewBindingOptionsCopy,
+        dependenciesInfo = dependenciesInfoCopy,
+        buildToolsVersion = buildToolsVersionCopy,
+        resourcePrefix = project.resourcePrefix,
+        groupId = groupId,
+        namespace = project.namespace,
+        testNamespace = project.androidTestNamespace,
+        projectType = copyProjectType(basicProject.projectType),
+        isBaseSplit = isBaseSplit,
+        agpFlags = agpFlags,
+        isKaptEnabled = false,
+        desugarLibraryConfigFiles = desugarLibConfig,
+      )
+    }
   }
 
   return object : ModelCache.V2 {
-    override val libraryResolver: (LibraryReference) -> IdeLibrary = internedModels::resolve
+    override val libraryLookup: (LibraryReference) -> IdeUnresolvedLibrary = internedModels::lookup
     override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
 
     override fun variantFrom(
@@ -1246,17 +1440,29 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       basicVariant: BasicVariant,
       variant: Variant,
       legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeVariantCoreImpl = lock.withLock { variantFrom(androidProject, basicVariant, variant, legacyApplicationIdModel) }
+    ): ModelResult<IdeVariantCoreImpl> =
+      lock.withLock { variantFrom(androidProject, basicVariant, variant, legacyApplicationIdModel) }
 
     override fun variantFrom(
       ownerBuildId: BuildId,
       ownerProjectPath: String,
       variant: IdeVariantCoreImpl,
       variantDependencies: VariantDependencies,
+      bootClasspath: Collection<String>,
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildNameMap: Map<String, BuildId>
-    ): IdeVariantWithPostProcessor =
-      lock.withLock { variantFrom(ownerBuildId, ownerProjectPath, variant, variantDependencies, androidProjectPathResolver, buildNameMap) }
+    ): ModelResult<IdeVariantWithPostProcessor> =
+      lock.withLock {
+        variantFrom(
+          ownerBuildId,
+          ownerProjectPath,
+          variant,
+          variantDependencies,
+          bootClasspath,
+          androidProjectPathResolver,
+          buildNameMap
+        )
+      }
 
     override fun androidProjectFrom(
       rootBuildId: BuildId,
@@ -1265,9 +1471,10 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
       project: AndroidProject,
       androidVersion: Versions,
       androidDsl: AndroidDsl,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
-    ): IdeAndroidProjectImpl = lock.withLock {
-      androidProjectFrom(rootBuildId, buildId, basicProject, project, androidVersion, androidDsl, legacyApplicationIdModel)
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
+    ): ModelResult<IdeAndroidProjectImpl> = lock.withLock {
+      androidProjectFrom(rootBuildId, buildId, basicProject, project, androidVersion, androidDsl, legacyApplicationIdModel, gradlePropertiesModel)
     }
 
     override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }
@@ -1275,7 +1482,7 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
 }
 
 private fun getApplicationIdFromArtifact(
-  agpVersion: GradleVersion,
+  agpVersion: AgpVersion,
   artifact: AndroidArtifact,
   name: IdeArtifactName,
   legacyApplicationIdModel: LegacyApplicationIdModel?,

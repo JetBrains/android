@@ -1,0 +1,29 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+message MemoryUsageComponent {
+  optional string label = 1;
+
+  repeated string package_names = 2;
+  repeated string class_names = 3;
+  optional int64 extended_report_threshold_bytes = 4;
+}
+
+// A high level component category
+message MemoryUsageComponentCategory {
+  optional string label = 1;
+
+  repeated MemoryUsageComponent components = 2;
+  optional int64 extended_report_threshold_bytes = 3;
+}
+
+// Configuration for specifying the list of categories against which a report on
+// memory usage will be built.
+message MemoryUsageReportConfiguration {
+  repeated MemoryUsageComponentCategory categories = 1;
+  optional int32 shared_components_limit = 2;
+  optional int64 shared_cluster_extended_report_threshold_bytes = 3;
+  optional int64 uncategorized_component_extended_report_threshold_bytes = 4;
+}

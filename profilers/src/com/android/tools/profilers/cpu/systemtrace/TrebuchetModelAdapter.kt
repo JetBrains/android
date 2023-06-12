@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.ThreadState
 import trebuchet.model.CpuProcessSlice
 import trebuchet.model.Model
@@ -24,8 +23,9 @@ import trebuchet.model.SchedSlice
 import trebuchet.model.SchedulingState
 import trebuchet.model.base.SliceGroup
 import java.util.concurrent.TimeUnit
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
-class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.CpuTraceType) : SystemTraceModelAdapter {
+class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: TraceType) : SystemTraceModelAdapter {
 
   companion object {
     private val SECONDS_TO_US = TimeUnit.SECONDS.toMicros(1)
@@ -46,6 +46,11 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.C
   private val processById = sortedMapOf<Int, ProcessModel>()
   private val cores: List<CpuCoreModel>
 
+  // Power data is something only available for newer hardware
+  // and thus will not be traced/shown by the legacy system.
+  private val powerRails: List<CounterModel> = emptyList()
+  private val batteryDrain: List<CounterModel> = emptyList()
+
   override fun getCaptureStartTimestampUs() = convertToUserTimeUs(beginTimestampSeconds)
   override fun getCaptureEndTimestampUs() = convertToUserTimeUs(endTimestampSeconds)
 
@@ -56,6 +61,8 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.C
   override fun getCpuCores(): List<CpuCoreModel> = cores
 
   override fun getSystemTraceTechnology() = technology
+  override fun getPowerRails(): List<CounterModel> = powerRails
+  override fun getBatteryDrain(): List<CounterModel> = batteryDrain
   override fun isCapturePossibleCorrupted() = possibleCorruption
 
   /**
@@ -86,9 +93,8 @@ class TrebuchetModelAdapter(trebuchetModel: Model, private val technology: Cpu.C
       for (counter in process.counters) {
         counterMap[counter.name] = CounterModel(counter.name,
                                                 counter.events
-                                                  .asSequence()
-                                                  .map { convertToUserTimeUs(it.timestamp) to it.count.toDouble() }
-                                                  .toMap().toSortedMap())
+                                                  .associate { convertToUserTimeUs(it.timestamp) to it.count.toDouble() }
+                                                  .toSortedMap())
       }
       processById[process.id] = ProcessModel(process.id, process.name, threadMap, counterMap)
     }

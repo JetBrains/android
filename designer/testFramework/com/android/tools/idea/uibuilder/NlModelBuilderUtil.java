@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
+import com.google.common.collect.ImmutableList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utility class for creating a {@link NlModel} for a test.
  */
-public final class NlModelBuilderUtil {
+public class NlModelBuilderUtil {
 
   // Prevent instantiation...
   private NlModelBuilderUtil() {}
@@ -53,7 +54,7 @@ public final class NlModelBuilderUtil {
                                    @NotNull String resourceFolder,
                                    @NotNull String name,
                                    @NotNull ComponentDescriptor root) {
-    return model(AndroidFacet.getInstance(rule.getModule()), rule.fixture, resourceFolder, name, root);
+    return model(AndroidFacet.getInstance(rule.getModule()), rule.getFixture(), resourceFolder, name, root);
   }
 
   @NotNull

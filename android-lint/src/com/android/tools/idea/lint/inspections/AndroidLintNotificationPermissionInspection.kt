@@ -25,11 +25,17 @@ import com.android.tools.lint.detector.api.LintFix
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.facet.AndroidFacet
 
-class AndroidLintNotificationPermissionInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.notification.permission"), NotificationPermissionDetector.ISSUE
-) {
-  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, message: String,
-                             quickfixData: LintFix?): Array<LintIdeQuickFix> {
+class AndroidLintNotificationPermissionInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.notification.permission"),
+    NotificationPermissionDetector.ISSUE
+  ) {
+  override fun getQuickFixes(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    message: String,
+    quickfixData: LintFix?
+  ): Array<LintIdeQuickFix> {
     if (quickfixData is LintFix.DataMap) {
       val names = quickfixData.getStringList(PermissionDetector.KEY_MISSING_PERMISSIONS)
       if (names != null) {

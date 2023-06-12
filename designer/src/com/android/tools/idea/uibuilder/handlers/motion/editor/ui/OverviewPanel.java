@@ -26,6 +26,10 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMT
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -33,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -59,6 +64,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -200,7 +206,17 @@ class OverviewPanel extends JPanel {
                          switch (e.getExtendedKeyCode()) {
                            case KeyEvent.VK_DELETE:
                            case KeyEvent.VK_BACK_SPACE:
-                             mListener.delete(new MTag[]{mTransitions[mTransitionSelected]}, 0);
+                             if (mTransitions.length > 1) {
+                               mListener.delete(new MTag[]{mTransitions[mTransitionSelected]}, 0);
+                             }
+                             else {
+                               Notification notification = new Notification(
+                                 "Motion Editor",
+                                 "Can not remove last transition: at least one required", NotificationType.WARNING
+                               );
+                               Notifications.Bus.notify(notification);
+                               AppExecutorUtil.getAppScheduledExecutorService().schedule(notification::expire, 2, TimeUnit.SECONDS);
+                             }
                              return;
                            case KeyEvent.VK_UP:
                              setTransitionSetIndex((mTransitionSelected - 1 + mTransitions.length) % mTransitions.length);

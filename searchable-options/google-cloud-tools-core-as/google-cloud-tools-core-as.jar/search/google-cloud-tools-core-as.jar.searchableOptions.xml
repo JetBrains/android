@@ -1,17 +1,5 @@
 <options>
   <configurable id="preferences.keymap" configurable_name="Keymap">
-    <option name="add" path="ActionManager" hit="Add Cloud snapshot location" />
-    <option name="cloud" path="ActionManager" hit="Add Cloud snapshot location" />
-    <option name="location" path="ActionManager" hit="Add Cloud snapshot location" />
-    <option name="snapshot" path="ActionManager" hit="Add Cloud snapshot location" />
-    <option name="a" path="ActionManager" hit="Adds a snapshot location for the cloud debugger" />
-    <option name="adds" path="ActionManager" hit="Adds a snapshot location for the cloud debugger" />
-    <option name="cloud" path="ActionManager" hit="Adds a snapshot location for the cloud debugger" />
-    <option name="debugger" path="ActionManager" hit="Adds a snapshot location for the cloud debugger" />
-    <option name="for" path="ActionManager" hit="Adds a snapshot location for the cloud debugger" />
-    <option name="location" path="ActionManager" hit="Adds a snapshot location for the cloud debugger" />
-    <option name="snapshot" path="ActionManager" hit="Adds a snapshot location for the cloud debugger" />
-    <option name="the" path="ActionManager" hit="Adds a snapshot location for the cloud debugger" />
     <option name="a" path="ActionManager" hit="Easily use Google as a source repository." />
     <option name="as" path="ActionManager" hit="Easily use Google as a source repository." />
     <option name="easily" path="ActionManager" hit="Easily use Google as a source repository." />

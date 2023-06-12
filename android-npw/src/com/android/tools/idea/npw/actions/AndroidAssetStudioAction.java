@@ -21,6 +21,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
 import com.intellij.ide.IdeView;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -91,6 +92,11 @@ public abstract class AndroidAssetStudioAction extends AnAction {
   @Override
   public final void update(@NotNull AnActionEvent e) {
     e.getPresentation().setVisible(isAvailable(e.getDataContext()));
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

@@ -36,8 +36,6 @@ import org.mockito.MockitoAnnotations
 class AccessibilityLintIntegratorTest {
 
   @Mock
-  lateinit var mockSurface: NlDesignSurface
-  @Mock
   lateinit var mockModel: NlModel
 
   @Before
@@ -109,7 +107,7 @@ class AccessibilityLintIntegratorTest {
     val root = NlScannerLayoutParserTest.createComponentWithInclude()
     parser.buildViewToComponentMap(root)
 
-    integrator.handleInclude(parser, mockSurface)
+    integrator.handleInclude(parser)
 
     assertEquals(1, integrator.issues.size)
   }

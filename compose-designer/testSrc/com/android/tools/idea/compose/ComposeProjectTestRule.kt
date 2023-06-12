@@ -32,23 +32,24 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-/**
- * [TestRule] that implements the [before] and [after] setup specific for Compose unit tests.
- */
-private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule,
-                                     private val previewAnnotationPackage: String,
-                                     private val composableAnnotationPackage: String) : NamedExternalResource() {
+/** [TestRule] that implements the [before] and [after] setup specific for Compose unit tests. */
+private class ComposeProjectRuleImpl(
+  private val projectRule: AndroidProjectRule,
+  private val previewAnnotationPackage: String,
+  private val composableAnnotationPackage: String
+) : NamedExternalResource() {
   override fun before(description: Description) {
-    // Kotlin UnusedSymbolInspection caches the extensions during the initialization so, unfortunately we have to do this to ensure
+    // Kotlin UnusedSymbolInspection caches the extensions during the initialization so,
+    // unfortunately we have to do this to ensure
     // our entry point detector is registered early enough
-    ApplicationManager.getApplication().registerExtension(
-      ExtensionPointName<PreviewEntryPoint>("com.intellij.deadCode"),
-      PreviewEntryPoint(),
-      projectRule.fixture.testRootDisposable)
+    ApplicationManager.getApplication()
+      .registerExtension(
+        ExtensionPointName<PreviewEntryPoint>("com.intellij.deadCode"),
+        PreviewEntryPoint(),
+        projectRule.fixture.testRootDisposable
+      )
 
-    (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let {
-      it.usesCompose = true
-    }
+    (projectRule.module.getModuleSystem() as? DefaultModuleSystem)?.let { it.usesCompose = true }
     projectRule.fixture.stubComposableAnnotation(composableAnnotationPackage)
     projectRule.fixture.stubPreviewAnnotation(previewAnnotationPackage)
   }
@@ -57,20 +58,26 @@ private class ComposeProjectRuleImpl(private val projectRule: AndroidProjectRule
 }
 
 /**
- * A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for testing
- * Compose preview elements.
+ * A [TestRule] providing the same behaviour as [AndroidProjectRule] but with the correct setup for
+ * testing Compose preview elements.
  */
-class ComposeProjectRule(private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory(),
-                         previewAnnotationPackage: String,
-                         composableAnnotationPackage: String) : TestRule {
+class ComposeProjectRule(
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory(),
+  previewAnnotationPackage: String,
+  composableAnnotationPackage: String
+) : TestRule {
   val project: Project
     get() = projectRule.project
 
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val delegate = RuleChain.outerRule(projectRule).around(
-    ComposeProjectRuleImpl(projectRule, previewAnnotationPackage, composableAnnotationPackage))
+  private val delegate =
+    RuleChain.outerRule(projectRule)
+      .around(
+        ComposeProjectRuleImpl(projectRule, previewAnnotationPackage, composableAnnotationPackage)
+      )
 
-  override fun apply(base: Statement, description: Description): Statement = delegate.apply(base, description)
+  override fun apply(base: Statement, description: Description): Statement =
+    delegate.apply(base, description)
 }

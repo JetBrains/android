@@ -40,16 +40,22 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.Timer
 
+const val zoomActionPlace = "ZoomActionsToolbar"
+const val zoomLabelPlace = "ZoomLabelToolbar"
+const val otherActionsPlace = "DesignSurfaceFloatingOtherActionsToolbar"
+
 private val VERTICAL_PANEL_MARGINS get() = JBUI.insets(0, 4, 4, 0)
 
 /**
  * Provides the floating action toolbar for editor. It provides support for pan and zoom specifically, and arbitrary actions can be added
  * in additional toolbar segments.
+ * [actionPlacePrefix] is used to provide additional toolbar place information.
  * [component] is used for data-context retrieval. See [ActionToolbar.setTargetComponent].
  */
 abstract class EditorActionsFloatingToolbarProvider(
   private val component: JComponent,
-  parentDisposable: Disposable
+  parentDisposable: Disposable,
+  private val actionPlacePrefix: String = ""
 ) : PanZoomListener, Disposable {
 
   val floatingToolbar: JComponent = JPanel(GridBagLayout()).apply { isOpaque = false }
@@ -88,15 +94,20 @@ abstract class EditorActionsFloatingToolbarProvider(
    * with zoom controls.
    */
   private var hiddenZoomLabelComponent: JComponent? = null
-  /** Timer used to automatically set the Zoom Label panel to not visible after a period of time. */
-  private var hiddenZoomLabelTimer: Timer? =
-    if (!ApplicationManager.getApplication().isUnitTestMode) { // Running a timer in a TestCase may cause it to fail.
-      Timer(2000) { hiddenZoomLabelComponent?.isVisible = false }.apply {
+
+  /**
+   * Timer used to automatically set the Zoom Label panel to not visible after a period of time.
+   * */
+  private var hiddenZoomLabelTimer: Timer? = ApplicationManager
+    .getApplication()
+    .takeUnless {
+      it.isUnitTestMode
+    }?.let {
+      Timer(2000) {
+        hiddenZoomLabelComponent?.isVisible = false
+      }.apply {
         isRepeats = false
       }
-    }
-    else {
-      null
     }
 
   init {
@@ -109,12 +120,17 @@ abstract class EditorActionsFloatingToolbarProvider(
   }
 
   protected fun updateToolbar() {
+    val toolbarPlace = actionPlacePrefix + zoomActionPlace
+    val labelPlace = actionPlacePrefix + zoomLabelPlace
+    val otherPlace = actionPlacePrefix + otherActionsPlace
+
     val actionGroups = getActionGroups()
     val actionManager = ActionManager.getInstance()
-    val zoomActionGroup = actionGroups.zoomControlsGroup?.let { createToolbar(actionManager, it, component) }
-
+    val zoomActionGroup = actionGroups.zoomControlsGroup?.let {
+      createToolbar(toolbarPlace, actionManager, it, component)
+    }
     val zoomLabelToolbar = actionGroups.zoomLabelGroup?.let {
-      createToolbar(actionManager, it, component).apply {
+      createToolbar(labelPlace, actionManager, it, component).apply {
         component.border = JBUI.Borders.empty(2)
       }
     }
@@ -128,7 +144,7 @@ abstract class EditorActionsFloatingToolbarProvider(
       }
     }
     otherToolbars.clear()
-    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar(actionManager, it, component) }
+    actionGroups.otherGroups.associateWithTo(otherToolbars) { createToolbar(otherPlace, actionManager, it, component) }
 
     floatingToolbar.removeAll()
     if (zoomActionGroup != null || otherToolbars.isNotEmpty() || zoomLabelToolbar != null) {
@@ -148,7 +164,10 @@ abstract class EditorActionsFloatingToolbarProvider(
       controlsPanel.revalidate()
     }
     if (zoomLabelToolbar != null) {
-      val zoomLabelPanel = zoomLabelToolbar.component.wrapInDesignSurfaceUI()
+      val zoomLabelPanel = zoomLabelToolbar.component.wrapInDesignSurfaceUI().apply {
+        // Initialising the visibility to false will avoid to show the label when preview gets updated or created
+        isVisible = false
+      }
       floatingToolbar.add(zoomLabelPanel, zoomLabelConstraints)
       hiddenZoomLabelTimer?.start()
       hiddenZoomLabelComponent = zoomLabelPanel
@@ -220,9 +239,11 @@ private fun JComponent.wrapInDesignSurfaceUI(): JPanel {
   return DesignSurfaceToolbarUI.createPanel(this).apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) }
 }
 
-private fun createToolbar(actionManager: ActionManager, actionGroup: ActionGroup, target: JComponent): ActionToolbar {
+private fun createToolbar(
+  place: String,
+  actionManager: ActionManager, actionGroup: ActionGroup, target: JComponent): ActionToolbar {
   // Place must be "DesignSurface" to get the correct variation for zoom icons.
-  val toolbar = actionManager.createActionToolbar("DesignSurface", actionGroup, false).apply {
+  val toolbar = actionManager.createActionToolbar(place, actionGroup, false).apply {
     layoutPolicy = ActionToolbar.WRAP_LAYOUT_POLICY
     setTargetComponent(target)
     setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)

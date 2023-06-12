@@ -20,7 +20,7 @@ import com.intellij.openapi.module.Module
 import org.w3c.dom.Document
 
 internal sealed class MergedManifestException(
-  private val mergedManifestInfo: MergedManifestInfo?,
+  val mergedManifestInfo: MergedManifestInfo?,
   message: String,
   cause: Throwable? = null
 ) : RuntimeException(mergedManifestInfo?.errorMessage(message) ?: message, cause) {

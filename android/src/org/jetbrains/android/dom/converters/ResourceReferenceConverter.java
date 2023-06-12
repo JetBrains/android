@@ -20,15 +20,15 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNamespaceContext;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
+import com.android.utils.DataBindingUtils;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -65,7 +65,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.android.dom.AdditionalConverter;
 import org.jetbrains.android.dom.AndroidResourceType;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.drawable.DrawableStateListItem;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -292,7 +292,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     });
 
     // Find matching ID resource declarations.
-    Collection<String> ids = ResourceRepositoryManager.getAppResources(facet).getResources(namespace, ResourceType.ID).keySet();
+    Collection<String> ids = StudioResourceRepositoryManager.getAppResources(facet).getResources(namespace, ResourceType.ID).keySet();
     for (String name : ids) {
       ResourceValue ref = referenceTo(prefix, "+id", namespace.getPackageName(), name, true);
       if (!value.startsWith(doToString(ref))) {
@@ -337,7 +337,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(facet);
     LocalResourceRepository repository = repositoryManager.getAppResources();
     return repository.getResourceTypes(repositoryManager.getNamespace());
   }
@@ -403,7 +403,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       }
     }
     else {
-      ResourceRepositoryManager repoManager = ResourceRepositoryManager.getInstance(facet);
+      StudioResourceRepositoryManager repoManager = StudioResourceRepositoryManager.getInstance(facet);
       LocalResourceRepository appResources = repoManager.getAppResources();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
@@ -451,7 +451,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     String namespacePrefix = resolver.uriToPrefix(namespace.getXmlNamespaceUri());
     List<Module> modules = androidModuleSystem.getDynamicFeatureModules();
     for (Module module : modules) {
-      LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(module);
+      LocalResourceRepository moduleResources = StudioResourceRepositoryManager.getModuleResources(module);
       if (moduleResources == null) {
         continue;
       }
@@ -463,7 +463,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private static void addResourceReferenceValuesFromRepo(ResourceRepository repo,
-                                                         ResourceRepositoryManager repoManager,
+                                                         StudioResourceRepositoryManager repoManager,
                                                          @Nullable XmlElement element,
                                                          char prefix,
                                                          ResourceType type,
@@ -575,7 +575,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   @Override
   public ResourceValue fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) return null;
-    if (DataBindingUtil.isBindingExpression(s)) return ResourceValue.INVALID;
+    if (DataBindingUtils.isBindingExpression(s)) return ResourceValue.INVALID;
     ResourceValue parsed = ResourceValue.parse(s, true, myWithPrefix, true);
     ResolvingConverter<String> additionalConverter = getAdditionalConverter(context);
 

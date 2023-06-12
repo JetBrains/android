@@ -15,20 +15,16 @@
  */
 package com.android.tools.componenttree.api
 
-import com.android.tools.componenttree.impl.ComponentTreeModelImpl
-import com.android.tools.componenttree.impl.ComponentTreeSelectionModelImpl
-import com.android.tools.componenttree.impl.TreeImpl
 import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.android.tools.componenttree.treetable.TreeTableModelImpl
 import com.android.tools.componenttree.treetable.UpperRightCorner
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.designer.componentTree.ComponentTreeBuilder
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
-import java.awt.GraphicsEnvironment
+import java.awt.datatransfer.Transferable
 import javax.swing.JComponent
 import javax.swing.ScrollPaneConstants
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
@@ -42,8 +38,13 @@ import javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION
 /**
  * A Handler which will display a context popup menu.
  */
-typealias ContextPopupHandler = (component: JComponent, x: Int, y: Int) -> Unit
-typealias DoubleClickHandler = () -> Unit
+typealias ContextPopupHandler = (item: Any, component: JComponent, x: Int, y: Int) -> Unit
+typealias DoubleClickHandler = (Any) -> Unit
+
+/**
+ * How to merge [Transferable]s when multiple items can be used for drag and drop.
+ */
+typealias DnDMerger = (Transferable, Transferable) -> Transferable
 
 /**
  * A component tree builder creates a tree that can hold multiple types of nodes.
@@ -54,9 +55,8 @@ typealias DoubleClickHandler = () -> Unit
 class ComponentTreeBuilder {
   private val nodeTypeMap = mutableMapOf<Class<*>, NodeType<*>>()
   private var headerRenderer: TableCellRenderer? = null
-  private var contextPopup: ContextPopupHandler = { _, _, _ -> }
+  private var contextPopup: ContextPopupHandler = { _, _, _, _ -> }
   private var doubleClick: DoubleClickHandler = { }
-  private val badges = mutableListOf<BadgeItem>()
   private val columns = mutableListOf<ColumnInfo>()
   private var selectionMode = SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
@@ -65,11 +65,15 @@ class ComponentTreeBuilder {
   private var showRootHandles = false
   private var horizontalScrollbar = false
   private var autoScroll = false
+  private var dataProvider: DataProvider? = null
   private var dndSupport = false
+  private var dndMerger: DnDMerger? = null
+  private var dndDeleteOriginOfInternalMove = true
   private var componentName =  "componentTree"
   private var painter: (() -> Control.Painter?)? = null
   private var installKeyboardActions: (JComponent) -> Unit = {}
   private var toggleClickCount = 2
+  private var expandAllOnRootChange = false
 
   /**
    * Register a [NodeType].
@@ -125,13 +129,25 @@ class ComponentTreeBuilder {
   /**
    * Add a badge column to the right of the tree node item.
    */
-  fun withBadgeSupport(badge: BadgeItem) =
-    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) apply { columns.add(badge) } else apply { badges.add(badge) }
+  fun withBadgeSupport(badge: BadgeItem) = apply { columns.add(badge) }
+
+  /**
+   * Add Copy, Cut, Paste & Delete support (works of the current selection)
+   */
+  fun withDataProvider(dataProvider: DataProvider) = apply { this.dataProvider = dataProvider }
 
   /**
    * Add Drag and Drop support.
+   *
+   * Optionally specify a merge operator for support of dragging multiple items.
+   * Without a merge operator, only the 1st item will be dragged.
+   * When dragging items from the component tree itself [deleteOriginOfInternalMove] controls whether the origin items should be deleted.
    */
-  fun withDnD() = apply { dndSupport = true }
+  fun withDnD(merger: DnDMerger? = null, deleteOriginOfInternalMove: Boolean = true) = apply {
+    dndSupport = true
+    dndMerger = merger
+    dndDeleteOriginOfInternalMove = deleteOriginOfInternalMove
+  }
 
   /**
    * Don't show the root node.
@@ -168,37 +184,22 @@ class ComponentTreeBuilder {
    */
   fun withKeyboardActions(installer: (JComponent) -> Unit) = apply { this.installKeyboardActions = installer }
 
+  fun withExpandAllOnRootChange() = apply {
+    expandAllOnRootChange = true
+  }
+
   /**
    * Build the tree component and return it with the tree model.
    */
-  fun build(): ComponentTreeBuildResult =
-    if (StudioFlags.USE_COMPONENT_TREE_TABLE.get()) buildTreeTable() else buildTree()
-
-  private fun buildTree(): ComponentTreeBuildResult {
-    if (columns.isNotEmpty()) {
-      Logger.getInstance(ComponentTreeBuilder::class.java).warn("Columns are not supported with the Tree implementations")
-    }
-    val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
-    val selectionModel = ComponentTreeSelectionModelImpl(model, selectionMode)
-    val tree = TreeImpl(model, contextPopup, doubleClick, badges, componentName, painter, installKeyboardActions, selectionModel,
-                        autoScroll, installTreeSearch)
-    tree.toggleClickCount = toggleClickCount
-    tree.isRootVisible = isRootVisible
-    tree.showsRootHandles = !isRootVisible || showRootHandles
-    val horizontalPolicy = if (horizontalScrollbar) HORIZONTAL_SCROLLBAR_AS_NEEDED else HORIZONTAL_SCROLLBAR_NEVER
-    val scrollPane = ScrollPaneFactory.createScrollPane(tree, VERTICAL_SCROLLBAR_AS_NEEDED, horizontalPolicy)
-    scrollPane.border = JBUI.Borders.empty()
-    return ComponentTreeBuildResult(scrollPane, tree, tree, model, selectionModel, NoOpTableVisibility())
-  }
-
-  private fun buildTreeTable(): ComponentTreeBuildResult {
+  fun build(): ComponentTreeBuildResult {
     val model = TreeTableModelImpl(columns, nodeTypeMap, invokeLater)
     val table = TreeTableImpl(model, contextPopup, doubleClick, painter, installKeyboardActions, selectionMode, autoScroll,
-                              installTreeSearch, headerRenderer)
+                              installTreeSearch, expandAllOnRootChange, headerRenderer)
     table.name = componentName // For UI tests
-    if (dndSupport && !GraphicsEnvironment.isHeadless()) {
-      table.enableDnD()
+    if (dndSupport) {
+      table.enableDnD(dndMerger, dndDeleteOriginOfInternalMove)
     }
+    dataProvider?.let { DataManager.registerDataProvider(table, it) }
     val tree = table.tree
     tree.toggleClickCount = toggleClickCount
     tree.isRootVisible = isRootVisible
@@ -225,8 +226,7 @@ class ComponentTreeBuildResult(
    * The component that has focus in the component tree.
    *
    * Note: This will be:
-   * - the [tree] component if [StudioFlags.USE_COMPONENT_TREE_TABLE] is false
-   * - the TreeTable component if [StudioFlags.USE_COMPONENT_TREE_TABLE] is true
+   * - the TreeTable component
    */
   val focusComponent: JComponent,
 

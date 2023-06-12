@@ -1,0 +1,4 @@
+<resources>
+    <color name="libColor">#123456</color>
+    <color name="myColor">@color/lib<caret>Color</color>
+</resources>

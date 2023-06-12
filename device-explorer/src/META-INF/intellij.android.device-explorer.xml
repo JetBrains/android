@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (C) 2021 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <notificationGroup id="Device Explorer" displayType="BALLOON"/>
+
+    <applicationConfigurable groupId="tools" id="device.file.explorer"
+                             provider="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerConfigurableProvider"/>
+
+    <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService"/>
+    <projectService serviceImplementation="com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService"/>
+
+    <applicationService serviceImplementation="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerSettings"/>
+    <projectService serviceImplementation="com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystemService"/>
+    <projectService serviceInterface="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManager"
+                    serviceImplementation="com.android.tools.idea.device.explorer.files.DeviceExplorerFileManagerImpl" />
+    <projectService serviceInterface="com.android.tools.idea.device.explorer.files.fs.DeviceFileDownloaderService"
+                    serviceImplementation="com.android.tools.idea.device.explorer.files.fs.DeviceFileDownloaderServiceImpl" />
+
+    <facet.toolWindow id="Device Explorer"
+                facetIdList="android,apk"
+                anchor="right"
+                secondary="true"
+                icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
+                factoryClass="com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory"/>
+  </extensions>
+</idea-plugin>

@@ -21,6 +21,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupListener
+import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.Consumer
 import java.awt.Component
@@ -36,6 +37,7 @@ open class FakeJBPopup<T>(
     val items: List<T>,
     val isMovable: Boolean? = false,
     val isRequestFocus: Boolean? = false,
+    val title: String? = null,
     val renderer: ListCellRenderer<in T>? = null,
     private val callback: Consumer<in T>? = null,
 ) : JBPopup {
@@ -53,6 +55,7 @@ open class FakeJBPopup<T>(
   var showStyle: ShowStyle? = null
   var showArgs: List<Any>? = null
   private var minSize: Dimension? = null
+  private val registeredListeners = mutableListOf<JBPopupListener>()
 
   fun selectItem(item: T) {
     if (!items.contains(item)) {
@@ -122,17 +125,19 @@ open class FakeJBPopup<T>(
   override fun setSize(size: Dimension) {
   }
 
+  override fun addListener(listener: JBPopupListener) {
+    registeredListeners.add(listener)
+  }
+
+  override fun cancel() {
+    registeredListeners.forEach{ it.onClosed(LightweightWindowEvent(this))}
+  }
+
   override fun getBestPositionFor(dataContext: DataContext): Point {
     TODO("Not yet implemented")
   }
 
-  override fun closeOk(e: InputEvent?) {
-    TODO("Not yet implemented")
-  }
-
-  override fun cancel() {
-    TODO("Not yet implemented")
-  }
+  override fun closeOk(e: InputEvent?) { }
 
   override fun cancel(e: InputEvent?) {
     TODO("Not yet implemented")
@@ -187,10 +192,6 @@ open class FakeJBPopup<T>(
   }
 
   override fun isCancelKeyEnabled(): Boolean {
-    TODO("Not yet implemented")
-  }
-
-  override fun addListener(listener: JBPopupListener) {
     TODO("Not yet implemented")
   }
 

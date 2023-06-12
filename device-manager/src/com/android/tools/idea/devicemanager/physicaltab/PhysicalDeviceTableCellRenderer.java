@@ -16,11 +16,12 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.tools.idea.devicemanager.DeviceTableCellRenderer;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import org.jetbrains.annotations.NotNull;
 
 final class PhysicalDeviceTableCellRenderer extends DeviceTableCellRenderer<PhysicalDevice> {
-  PhysicalDeviceTableCellRenderer() {
-    super(PhysicalDevice.class);
+  PhysicalDeviceTableCellRenderer(@NotNull WearPairingManager manager) {
+    super(PhysicalDevice.class, manager);
   }
 
   @Override

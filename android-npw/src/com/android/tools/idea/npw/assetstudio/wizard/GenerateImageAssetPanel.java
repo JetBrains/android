@@ -18,10 +18,12 @@ package com.android.tools.idea.npw.assetstudio.wizard;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toLowerCamelCase;
 
 import com.android.resources.Density;
+import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.common.WrappedFlowLayout;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
 import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
@@ -45,6 +47,7 @@ import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.rendering.DrawableRenderer;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.wizard.ui.CheckeredBackgroundPanel;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
@@ -54,6 +57,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
@@ -143,6 +147,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
   @NotNull private final File myResFolder;
   @NotNull private final IconGenerationProcessor myIconGenerationProcessor = new IconGenerationProcessor();
   @NotNull private final StringProperty myPreviewRenderingError = new StringValueProperty();
+  @NotNull private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
 
   /**
    * Create a panel which can generate Android icons. The supported types passed in will be
@@ -153,7 +158,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
                                  @NotNull AndroidModulePaths defaultPaths, @NotNull File resFolder,
                                  @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
-
+    FileDocumentManager.getInstance().saveAllDocuments();
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
       @Override
       protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AsyncProcessIcon icon) {
@@ -197,7 +202,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myShowGridProperty = new SelectedProperty(myShowGrid);
     myShowSafeZoneProperty = new SelectedProperty(myShowSafeZone);
 
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(facet);
     int minSdkVersion = androidModuleInfo.getMinSdkVersion().getApiLevel();
 
     // Create a card and a view for each icon type.
@@ -347,6 +352,8 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
         return Validator.Result.OK;
       }
     });
+    myValidatorPanel.registerValidator(
+        myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
 
     myValidatorPanel.registerValidator(myPreviewRenderingError, errorMessage -> {
       if (!errorMessage.isEmpty()) {

@@ -18,17 +18,18 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurableGroup;
 import com.intellij.openapi.options.newEditor.SettingsDialog;
 import com.intellij.openapi.options.newEditor.SettingsTreeView;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.TabbedPaneWrapper;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.ui.tabs.impl.TabLabel;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.filtered.FilteringTreeStructure;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import javax.swing.JLabel;
 import org.fest.swing.cell.JTreeCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -63,7 +64,11 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
     return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
       @Override
       protected boolean isMatching(@NotNull JDialog component) {
-        return component.getTitle().matches("Settings.*");
+        if(SystemInfo.isMac) {
+          return component.getTitle().matches("Preferences.*");
+        } else {
+          return component.getTitle().matches("Settings.*");
+        }
       }
     }));
   }
@@ -74,7 +79,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   @NotNull
   public List<String> getProjectSettingsNames() {
-    List<String> names = Lists.newArrayList();
+    List<String> names = new ArrayList<>();
     JPanel optionsEditor = field("myEditor").ofType(JPanel.class).in(getDialogWrapper()).get();
 
     List<JComponent> trees = findComponentsOfType(optionsEditor, "com.intellij.openapi.options.newEditor.SettingsTreeView");
@@ -147,7 +152,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   @NotNull
   public List<JCheckBoxFixture> findAllCheckBoxes(@NotNull String text) {
-    List<JCheckBoxFixture> checkBoxFixtures = Lists.newArrayList();
+    List<JCheckBoxFixture> checkBoxFixtures = new ArrayList<>();
 
     Collection<JCheckBox> allFound = robot()
       .finder()
@@ -239,7 +244,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
   @NotNull
   private static List<JComponent> findComponentsOfType(@NotNull JComponent parent, @NotNull String typeName) {
-    List<JComponent> result = Lists.newArrayList();
+    List<JComponent> result = new ArrayList<>();
     findComponentsOfType(typeName, result, parent);
     return result;
   }

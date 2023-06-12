@@ -56,7 +56,7 @@ class CreateNewFlavorsTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   @Throws(Exception::class)
   fun createNewFlavors() {
@@ -73,8 +73,8 @@ class CreateNewFlavorsTest {
             type(FLAVOR1)
             clickOk()
           }
-          minSdkVersion().selectItem("24 (API 24: Android 7.0 (Nougat))")
-          targetSdkVersion().selectItem("24 (API 24: Android 7.0 (Nougat))")
+          minSdkVersion().selectItemWithIndex(0) //Index 0 is corresponding SDK - 24 (API 24 ("Nougat"; Android 7.0))
+          targetSdkVersion().selectItemWithIndex(0) //Index 0 is corresponding SDK - 24 (API 24 ("Nougat"; Android 7.0))
           clickAddProductFlavor().run {
             type(FLAVOR2)
             clickOk()
@@ -100,9 +100,9 @@ class CreateNewFlavorsTest {
 
     // For b/143102526:
     // Additional check: Check if able to add new Product Flavor specific Activity.
-    ide.invokeMenuPath("File", "New", "Activity", "Empty Activity")
+    ide.invokeMenuPath("File", "New", "Activity", "Empty Views Activity")
     NewActivityWizardFixture.find(ide)
-      .getConfigureActivityStep("Empty Activity")
+      .getConfigureActivityStep("Empty Views Activity")
       .selectLauncherActivity()
       .setTargetSourceSet(FLAVOR1)
       .wizard()

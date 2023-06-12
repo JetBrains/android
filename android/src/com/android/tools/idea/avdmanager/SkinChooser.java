@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.tools.idea.concurrency.FutureUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextComponentAccessor;
@@ -29,7 +27,6 @@ import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.containers.ContainerUtil;
 import java.awt.ItemSelectable;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -42,7 +39,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -56,12 +52,11 @@ import org.jetbrains.annotations.Nullable;
  * new skin by browsing.
  */
 public class SkinChooser extends ComboboxWithBrowseButton implements ItemListener, ItemSelectable {
-  private static final File LOADING_SKINS = new File("_loading_skins");
+  static final File LOADING_SKINS = new File("_loading_skins");
 
-  @VisibleForTesting
   static final File FAILED_TO_LOAD_SKINS = new File("_failed_to_load_skins");
 
-  private final @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> myUpdateSkins;
+  private final @NotNull Supplier<ListenableFuture<Collection<Path>>> myUpdateSkins;
   private final @NotNull Executor myDeviceSkinUpdaterServiceExecutor;
   private final @NotNull Executor myEdtExecutor;
   private List<ItemListener> myListeners = new ArrayList<>();
@@ -73,7 +68,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
          EdtExecutorService.getInstance());
   }
 
-  private static @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> updateSkins(boolean includeSdkHandlerSkins) {
+  private static @NotNull Supplier<ListenableFuture<Collection<Path>>> updateSkins(boolean includeSdkHandlerSkins) {
     if (includeSdkHandlerSkins) {
       return DeviceSkinUpdaterService.getInstance()::updateSkinsIncludingSdkHandlerOnes;
     }
@@ -83,7 +78,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
   @VisibleForTesting
   SkinChooser(@Nullable Project project,
-              @NotNull Supplier<@NotNull ListenableFuture<@NotNull Collection<@NotNull Path>>> updateSkins,
+              @NotNull Supplier<ListenableFuture<Collection<Path>>> updateSkins,
               @NotNull Executor deviceSkinUpdaterServiceExecutor,
               @NotNull Executor edtExecutor) {
     myUpdateSkins = updateSkins;
@@ -92,7 +87,7 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
     getComboBox().setRenderer(new ColoredListCellRenderer<File>() {
       @Override
-      protected void customizeCellRenderer(@NotNull JList<@NotNull ? extends File> list,
+      protected void customizeCellRenderer(@NotNull JList<? extends File> list,
                                            @Nullable File skin,
                                            int index,
                                            boolean selected,
@@ -136,55 +131,44 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
 
         @Override
         public void setText(JComboBox component, @NotNull String text) {
-          loadSkins(skins -> {
-            File skin = new File(text);
-            skins.add(skin);
+          File skin = new File(text);
 
-            setItems(skins);
-            getComboBox().setSelectedItem(skin);
-          });
+          FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(SkinChooser.this, skin) {
+            @Override
+            public void onSuccess(@NotNull List<File> skins) {
+              if (!skins.contains(skin)) {
+                skins.add(skin);
+              }
+
+              super.onSuccess(skins);
+              setEnabled(true);
+            }
+          };
+
+          Futures.addCallback(loadSkins(), callback, EdtExecutorService.getInstance());
         }
       });
     getComboBox().addItemListener(this);
     setTextFieldPreferredWidth(20);
-
-    loadSkins(this::setItems);
   }
 
-  private void loadSkins(@NotNull Consumer<@NotNull List<@NotNull File>> consumer) {
+  @NotNull ListenableFuture<List<File>> loadSkins() {
     setEnabled(false);
     setItems(Collections.singletonList(LOADING_SKINS));
 
-    @SuppressWarnings("UnstableApiUsage")
-    ListenableFuture<Collection<Path>> future = Futures.transform(myUpdateSkins.get(),
-                                                                  SkinChooser::transform,
-                                                                  myDeviceSkinUpdaterServiceExecutor);
-
-    FutureUtils.addCallback(future, myEdtExecutor, new FutureCallback<Collection<Path>>() {
-      @Override
-      public void onSuccess(@Nullable Collection<@NotNull Path> skins) {
-        assert skins != null;
-        consumer.accept(ContainerUtil.map(skins, Path::toFile));
-
-        setEnabled(true);
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable throwable) {
-        Logger.getInstance(SkinChooser.class).warn(throwable);
-        setItems(Collections.singletonList(FAILED_TO_LOAD_SKINS));
-      }
-    });
+    // noinspection UnstableApiUsage
+    return Futures.transform(myUpdateSkins.get(), SkinChooser::transform, myDeviceSkinUpdaterServiceExecutor);
   }
 
-  private static @NotNull Collection<@NotNull Path> transform(@NotNull Collection<@NotNull Path> paths) {
-    List<Path> transformed = new ArrayList<>(1 + paths.size());
-    transformed.add(Paths.get(SkinUtils.NO_SKIN));
+  private static @NotNull List<File> transform(@NotNull Collection<Path> paths) {
+    List<File> transformed = new ArrayList<>(1 + paths.size());
+    transformed.add(Paths.get(SkinUtils.NO_SKIN).toFile());
 
     paths.stream()
       .filter(Files::exists)
       .distinct()
       .sorted()
+      .map(Path::toFile)
       .forEach(transformed::add);
 
     return transformed;

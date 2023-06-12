@@ -28,7 +28,9 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
+import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -45,8 +47,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
-import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -173,7 +173,7 @@ public class AssetRepositoryImpl extends AssetRepository {
    */
   @Override
   public boolean isFileResource(@NotNull String path) {
-    return IdeResourcesUtil.isFileResource(path);
+    return ResourceFilesUtil.isFileResource(path);
   }
 
   /**
@@ -235,7 +235,7 @@ public class AssetRepositoryImpl extends AssetRepository {
   @Nullable
   private static Path getSdkResDirOrJar(@NotNull AndroidFacet facet) {
     if (myFrameworkResDirOrJar == null) {
-      ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
+      ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet.getModule());
       IAndroidTarget target = manager.getHighestApiTarget();
       if (target == null) {
         return null;

@@ -22,7 +22,7 @@ import java.util.List;
 import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 
-public abstract class GradleSyncIntegrationTestCase extends AndroidGradleTestCase {
+public class GradleSyncIntegrationTestCase {
 
   static boolean areGradleDaemonsRunning() {
     List<DaemonState> daemonStatus = GradleDaemonServices.getDaemonsStatus();

@@ -19,7 +19,7 @@ package com.android.tools.idea.testing
 
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.lang.annotation.HighlightSeverity
@@ -36,6 +36,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.ResolveScopeEnlarger
+import com.intellij.psi.util.parentOfType
 import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler
 import com.intellij.testFramework.EditorTestUtil
@@ -83,16 +84,41 @@ fun <T> CodeInsightTestFixture.getIntentionAction(aClass: Class<T>, message: Str
  * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
  */
 fun CodeInsightTestFixture.moveCaret(window: String): PsiElement {
+  val offset = offsetForWindow(window)
+  editor.caretModel.moveToOffset(offset)
+  // myFixture.elementAtCaret seems to do something else
+  return file.findElementAt(offset)!!
+}
+
+/**
+ * Returns the parent [PsiElement] in the currently open editor of the given type as indicated by the [window] string.
+ *
+ * [com.intellij.psi.util.parentOfType] is used to find the parent. This is useful since [PsiElement.findElementAt] returns a leaf node, but
+ * quite often we are looking for an element that is a bit higher up the PSI tree.
+ *
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
+ * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
+ *
+ * This method will throw if a parent of the given type cannot be found.
+ */
+inline fun <reified T : PsiElement> CodeInsightTestFixture.findParentElement(window: String): T {
+  return file.findElementAt(offsetForWindow(window))!!.parentOfType()!!
+}
+
+/**
+ * Returns the offset of the caret in the currently open editor as indicated by the [window] string.
+ *
+ * The [window] string needs to contain a `|` character surrounded by a prefix and/or suffix to be found in the file. The file is searched
+ * for the concatenation of prefix and suffix strings and the caret is placed at the first matching offset, between the prefix and suffix.
+ */
+fun CodeInsightTestFixture.offsetForWindow(window: String): Int {
   val text = editor.document.text
   val delta = window.indexOf("|")
   assertTrue("No caret marker found in the window.", delta != -1)
   val target = window.substring(0, delta) + window.substring(delta + 1)
   val start = text.indexOf(target)
   assertTrue("Didn't find the string '$target' in the source '$text'", start != -1)
-  val offset = start + delta
-  editor.caretModel.moveToOffset(offset)
-  // myFixture.elementAtCaret seems to do something else
-  return file.findElementAt(offset)!!
+  return start + delta
 }
 
 /**
@@ -192,14 +218,14 @@ fun <T> runDispatching(context: CoroutineContext = EmptyCoroutineContext, block:
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
 fun waitForResourceRepositoryUpdates(facet: AndroidFacet, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
-  waitForUpdates(ResourceRepositoryManager.getInstance(facet).projectResources, timeout, unit)
+  waitForUpdates(StudioResourceRepositoryManager.getInstance(facet).projectResources, timeout, unit)
 }
 
 /** Waits for the app resource repository to finish currently pending updates. */
 @Throws(InterruptedException::class, TimeoutException::class)
 @JvmOverloads
 fun waitForResourceRepositoryUpdates(module: Module, timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS) {
-  waitForUpdates(ResourceRepositoryManager.getInstance(module)!!.projectResources, timeout, unit)
+  waitForUpdates(StudioResourceRepositoryManager.getInstance(module)!!.projectResources, timeout, unit)
 }
 
 /** Waits for the app resource repository to finish currently pending updates. */
@@ -222,7 +248,9 @@ private fun PsiFile.invalidateDocumentCache() = ApplicationManager.getApplicatio
   val cachedDocument = PsiDocumentManager.getInstance(project).getCachedDocument(this) ?: return@invokeAndWait
   // Make sure it is invalidated
   cachedDocument.putUserData(FileDocumentManagerImpl.NOT_RELOADABLE_DOCUMENT_KEY, true)
-  FileDocumentManager.getInstance().reloadFiles(virtualFile)
+  ApplicationManager.getApplication().runWriteAction {
+    FileDocumentManager.getInstance().reloadFiles(virtualFile)
+  }
 }
 
 /**

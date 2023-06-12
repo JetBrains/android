@@ -17,6 +17,7 @@ import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.toReason
+import com.android.tools.idea.sdk.IdeSdks
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_LANGUAGE_KOTLIN_CONFIGURED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_REDONE
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_MODIFIER_ACTION_UNDONE
@@ -30,8 +31,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.refactoring.isAndroidx
+import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
@@ -148,7 +151,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
-        val sdk = ModuleRootManager.getInstance(module).sdk
+        val sdk = getFirstValidJavaSdkFromModule(module)
         val jvmTarget = getJvmTarget(sdk, originalVersion)
         val version = originalVersion.rawVersion // FIXME-ank
 
@@ -198,8 +201,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             Also, if we failed to find repositories in the top-level project, we should add repositories to this build file.
              */
             moduleBuildModel.applyPlugin("org.jetbrains.kotlin.android")
-            if (version == "default_version" /* for tests */ ||
-                GradleVersion.tryParse(version)?.compareTo("1.4")?.let { it < 0 } != false) {
+            if (GradleVersion.tryParse(version)?.compareTo("1.4")?.let { it < 0 } != false) {
                 val stdLibArtifactName = getStdlibArtifactName(sdk, originalVersion)
                 val buildModel = projectBuildModel.projectBuildModel
                 val versionString = when (buildModel?.buildscript()?.ext()?.findProperty("kotlin_version")?.valueType) {
@@ -243,14 +245,14 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         dialog.show()
         if (!dialog.isOK) return
 
-        val collector = doConfigure(project, dialog.modulesToConfigure, dialog.kotlinVersion)
+        val collector = doConfigure(project, dialog.modulesToConfigure, IdeKotlinVersion.get(dialog.kotlinVersion))
         collector.showNotification()
     }
 
-    private fun doConfigure(project: Project, modules: List<Module>, version: String): NotificationMessageCollector {
+    fun doConfigure(project: Project, modules: List<Module>, version: IdeKotlinVersion): NotificationMessageCollector {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
-            val changedFiles = configureWithVersion(project, modules, IdeKotlinVersion.get(version), collector)
+            val changedFiles = configureWithVersion(project, modules, version, collector)
 
             for (file in changedFiles) {
                 OpenFileAction.openFile(file.virtualFile, project)
@@ -293,6 +295,15 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         }
     }
 
+    private fun getFirstValidJavaSdkFromModule(module: Module) = listOf(
+      { ModuleRootManager.getInstance(module).sdk },
+      { ProjectRootManager.getInstance(module.project).projectSdk },
+      { IdeSdks.getInstance().jdk }
+    ).firstNotNullOfOrNull {
+        val sdk = it.invoke()
+        if (sdk?.sdkType is AndroidSdkType) null else sdk
+    }
+
     override fun changeGeneralFeatureConfiguration(
       module: Module,
       feature: LanguageFeature,
@@ -310,11 +321,11 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         when (state) {
             LanguageFeature.State.ENABLED -> {
                 freeCompilerArgs.getListValue(disabledString)?.delete()
-                freeCompilerArgs.getListValue(enabledString) ?: freeCompilerArgs.addListValue().setValue(enabledString)
+                freeCompilerArgs.getListValue(enabledString) ?: freeCompilerArgs.addListValue()?.setValue(enabledString)
             }
             LanguageFeature.State.DISABLED -> {
                 freeCompilerArgs.getListValue(enabledString)?.delete()
-                freeCompilerArgs.getListValue(disabledString) ?: freeCompilerArgs.addListValue().setValue(disabledString)
+                freeCompilerArgs.getListValue(disabledString) ?: freeCompilerArgs.addListValue()?.setValue(disabledString)
             }
             else -> {
                 throw UnsupportedOperationException("Setting a Kotlin language feature to state $state is unsupported in android-kotlin")

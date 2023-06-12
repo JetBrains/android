@@ -26,23 +26,17 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.KOTL
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
-import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.ADD_AS_LIST
-import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST
-import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_MAP
-import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.CLEAR_AND_AUGMENT_LIST
-import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER
-import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET
+import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtPsiFactory
+
+import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_SET
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAL
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR
-import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*
 import com.intellij.openapi.application.runReadAction
-import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import java.util.regex.Pattern
 

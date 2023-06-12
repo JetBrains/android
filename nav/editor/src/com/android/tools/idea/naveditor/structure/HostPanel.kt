@@ -29,7 +29,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.GeneralSettings
 import com.intellij.openapi.application.ApplicationManager
@@ -175,7 +175,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
       }
     })
     surface.model?.facet?.let {
-      val resourceRepository = ResourceRepositoryManager.getAppResources(it)
+      val resourceRepository = StudioResourceRepositoryManager.getAppResources(it)
       surface.model?.addListener(object : ModelListener {
         override fun modelActivated(model: NlModel) {
           val modCount = resourceRepository.modificationCount

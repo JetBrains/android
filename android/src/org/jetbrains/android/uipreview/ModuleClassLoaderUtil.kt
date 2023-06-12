@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.jetbrains.android.uipreview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
@@ -27,6 +26,7 @@ import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoad
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
@@ -69,26 +69,33 @@ fun createUrlClassLoader(paths: List<Path>, allowLock: Boolean = !SystemInfo.isW
 }
 
 /**
- * [PseudoClassLocator] that uses the given [DelegatingClassLoader.Loader] to find the `.class` file.
- * If a class is not found in the [classLoader] loader, this class will try to load it from the given [parentClassLoaderLoader] allowing
+ * [PseudoClassLocator] that uses the [Sequence] of [DelegatingClassLoader.Loader]s to find the `.class` file.
+ * If a class is not found within the [loaders], this class will try to load it from the given [fallbackClassloader] allowing
  * to load system classes from it.
  */
 @VisibleForTesting
 class PseudoClassLocatorForLoader @JvmOverloads constructor(
-  private val classLoader: DelegatingClassLoader.Loader,
-  private val parentClassLoader: ClassLoader = PseudoClassLocatorForLoader::class.java.classLoader) : PseudoClassLocator {
-  private val parentClassLoaderLoader = ClassLoaderLoader(parentClassLoader)
+  private val loaders: Sequence<DelegatingClassLoader.Loader>,
+  private val fallbackClassloader: ClassLoader?
+)  : PseudoClassLocator {
+
+  constructor(loader: DelegatingClassLoader.Loader, classLoader: ClassLoader) :
+    this(sequenceOf(loader), classLoader)
 
   override fun locatePseudoClass(classFqn: String): PseudoClass {
     if (classFqn == PseudoClass.objectPseudoClass().name) return PseudoClass.objectPseudoClass() // Avoid hitting this for this common case
-    val bytes = classLoader.loadClass(classFqn) ?: parentClassLoaderLoader.loadClass(classFqn)
+    val bytes = loaders.map { it.loadClass(classFqn) }.firstNotNullOfOrNull { it }
     if (bytes != null) return PseudoClass.fromByteArray(bytes, this)
 
-    // We fall back to loading from the class loader.
-    try {
-      return PseudoClass.fromClass(parentClassLoader.loadClass(classFqn), this)
-    }
-    catch (_: ClassNotFoundException) {
+    if (fallbackClassloader != null) {
+      try {
+        return PseudoClass.fromClass(fallbackClassloader.loadClass (classFqn), this)
+      }
+      catch (ex: ClassNotFoundException) {
+        Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("Failed to load $classFqn", ex)
+      }
+    } else {
+      Logger.getInstance(PseudoClassLocatorForLoader::class.java).warn("No classloader is provided to load $classFqn")
     }
     return PseudoClass.objectPseudoClass()
   }
@@ -107,31 +114,15 @@ val Module.externalLibraries: List<Path>
 
 /**
  * Package name used to "re-package" certain classes that would conflict with the ones in the Studio class loader.
- * This applies to all packages defined in [ModuleClassLoader.PACKAGES_TO_RENAME].
+ * This applies to all packages defined in [StudioModuleClassLoader.PACKAGES_TO_RENAME].
  */
 internal const val INTERNAL_PACKAGE = "_layoutlib_._internal_."
 
 /**
- * Method uses to remap type names using [ModuleClassLoader.INTERNAL_PACKAGE] as prefix to its original name so they original
+ * Method uses to remap type names using [StudioModuleClassLoader.INTERNAL_PACKAGE] as prefix to its original name so they original
  * class can be loaded from the file system correctly.
  */
 private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(name, INTERNAL_PACKAGE)
-
-/**
- * Returns true if the given [fqcn] is in the form of `package.subpackage...R` or `package.subpackage...R$...`. For example, this
- * would return true for:
- * ```
- * com.android.sample.R
- * com.android.sample.R$styles
- * com.android.sample.R$layouts
- * ```
- */
-internal fun isResourceClassName(fqcn: String): Boolean =
-  fqcn.substringAfterLast(".").let { it == "R" || it.startsWith("R$") }
-
-fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = this?.let {
-  it.project.getProjectSystem().getClassJarProvider().isClassFileOutOfDate(it, fqcn, classFile)
-} ?: false
 
 
 /**
@@ -150,11 +141,13 @@ fun Module?.isSourceModified(fqcn: String, classFile: VirtualFile): Boolean = th
  */
 internal class ModuleClassLoaderImpl(module: Module,
                                      private val projectSystemLoader: ProjectSystemClassLoader,
+                                     private val parentClassLoader: ClassLoader?,
                                      val projectTransforms: ClassTransform,
                                      val nonProjectTransforms: ClassTransform,
                                      private val binaryCache: ClassBinaryCache,
                                      private val diagnostics: ModuleClassLoaderDiagnosticsWrite) : UserDataHolderBase(), DelegatingClassLoader.Loader, Disposable {
   private val loader: DelegatingClassLoader.Loader
+  private val parentLoader = parentClassLoader?.let { ClassLoaderLoader(it) }
 
   private val onClassRewrite = { fqcn: String, timeMs: Long, size: Int -> diagnostics.classRewritten(fqcn, size, timeMs) }
 
@@ -171,7 +164,7 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Class loader for classes and resources contained in [externalLibraries].
    */
-  private val externalLibrariesClassLoader = createUrlClassLoader(externalLibraries)
+  val externalLibrariesClassLoader = createUrlClassLoader(externalLibraries)
 
   /**
    * List of the FQCN of the classes loaded from the project.
@@ -206,12 +199,15 @@ internal class ModuleClassLoaderImpl(module: Module,
   private var overlayFirstLoadModificationCount = -1L
 
   private fun createProjectLoader(loader: DelegatingClassLoader.Loader,
+                                  dependenciesLoader: DelegatingClassLoader.Loader?,
                                   onClassRewrite: (String, Long, Int) -> Unit) = AsmTransformingLoader(
     projectTransforms,
     ListeningLoader(loader, onAfterLoad = { fqcn, _ ->
       recordFirstLoadModificationCount()
       _projectLoadedClassNames.add(fqcn) }),
-    PseudoClassLocatorForLoader(projectSystemLoader),
+    PseudoClassLocatorForLoader(
+      listOfNotNull(projectSystemLoader, dependenciesLoader, parentLoader).asSequence(),
+      parentClassLoader),
     ClassWriter.COMPUTE_FRAMES,
     onClassRewrite
   )
@@ -225,11 +221,11 @@ internal class ModuleClassLoaderImpl(module: Module,
     }
   }
 
-  private fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
-                                     binaryCache: ClassBinaryCache,
-                                     externalLibraries: List<Path>,
-                                     onClassLoaded: (String) -> Unit,
-                                     onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
+  fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
+                             binaryCache: ClassBinaryCache,
+                             externalLibraries: List<Path>,
+                             onClassLoaded: (String) -> Unit,
+                             onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     val externalLibrariesClassLoader = createUrlClassLoader(externalLibraries)
     // Non project classes loading pipeline
     val nonProjectTransformationId = nonProjectTransforms.id
@@ -240,18 +236,24 @@ internal class ModuleClassLoaderImpl(module: Module,
         URLUtil.splitJarUrl(path)?.first?.let { libraryPath -> fqcnToLibraryPath[fqcn] = libraryPath }
       },
       ::onDiskClassNameLookup)
+    // Loads a fake saved state registry, when [ViewTreeLifecycleOwner] requests a mocked lifecycle.
+    // See also ViewTreeLifecycleTransform to check when this fake class gets created.
+    val fakeSavedStateRegistryLoader = FakeSavedStateRegistryLoader(jarLoader)
 
+    // Tree of the class Loaders:
+    // Each node of this tree checks if it can load the current class, it delegates to its subtree otherwise.
     return ListeningLoader(
-      ClassBinaryCacheLoader(
-        ListeningLoader(
-          AsmTransformingLoader(
-            nonProjectTransforms,
-            jarLoader,
-            PseudoClassLocatorForLoader(
-              jarLoader
+      delegate = ClassBinaryCacheLoader(
+        delegate = ListeningLoader(
+          delegate = AsmTransformingLoader(
+            transform = nonProjectTransforms,
+            delegate = fakeSavedStateRegistryLoader,
+            pseudoClassLocator = PseudoClassLocatorForLoader(
+              loaders = listOfNotNull(jarLoader, parentLoader).asSequence(),
+              fallbackClassloader = parentClassLoader
             ),
-            ClassWriter.COMPUTE_MAXS,
-            onClassRewrite),
+            asmFlags = ClassWriter.COMPUTE_MAXS,
+            onRewrite = onClassRewrite),
           onAfterLoad = { fqcn, bytes ->
             onClassLoaded(fqcn)
             // Map the fqcn to the library path and insert the class into the class binary cache
@@ -259,35 +261,37 @@ internal class ModuleClassLoaderImpl(module: Module,
               binaryCache.put(fqcn, nonProjectTransformationId, libraryPath, bytes)
             }
           }),
-        nonProjectTransformationId,
-        binaryCache), onBeforeLoad = {
-      if (it == "kotlinx.coroutines.android.AndroidDispatcherFactory") {
-        // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
-        // b/162056408
-        //
-        // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
-        // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
-        throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib");
+        transformationId = nonProjectTransformationId,
+        binaryCache = binaryCache),
+      onBeforeLoad = {
+        if (it == "kotlinx.coroutines.android.AndroidDispatcherFactory") {
+          // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
+          // b/162056408
+          //
+          // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
+          // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
+          throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib")
+        }
       }
-    })
+    )
   }
 
   init {
-    // Project classes loading pipeline
-    val projectLoader = if (!FastPreviewManager.getInstance(module.project).isEnabled) {
-      createProjectLoader(projectSystemLoader, onClassRewrite)
-    }
-    else {
-      MultiLoader(
-        createOptionalOverlayLoader(module, onClassRewrite),
-        createProjectLoader(projectSystemLoader, onClassRewrite)
-      )
-    }
     val nonProjectLoader = createNonProjectLoader(nonProjectTransforms,
                                                   binaryCache,
                                                   externalLibraries,
                                                   { _nonProjectLoadedClassNames.add(it) },
                                                   onClassRewrite)
+    // Project classes loading pipeline
+    val projectLoader = if (!FastPreviewManager.getInstance(module.project).isEnabled) {
+      createProjectLoader(projectSystemLoader, nonProjectLoader, onClassRewrite)
+    }
+    else {
+      MultiLoader(
+        createOptionalOverlayLoader(module, onClassRewrite),
+        createProjectLoader(projectSystemLoader, nonProjectLoader, onClassRewrite)
+      )
+    }
     val allLoaders = listOfNotNull(
       projectLoader,
       nonProjectLoader,
@@ -309,12 +313,13 @@ internal class ModuleClassLoaderImpl(module: Module,
   private fun createOptionalOverlayLoader(module: Module, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     return createProjectLoader(ListeningLoader(OverlayLoader(overlayManager), onAfterLoad = { fqcn, _ ->
       recordOverlayLoadedClass(fqcn)
-    }), onClassRewrite)
+    }), null, onClassRewrite)
   }
 
   override fun loadClass(fqcn: String): ByteArray? {
     if (Disposer.isDisposed(this)) {
-      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl", Throwable(Disposer.getDisposalTrace(this)))
+      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl",
+                                                                 Throwable(Disposer.getDisposalTrace(this)))
       return null
     }
 

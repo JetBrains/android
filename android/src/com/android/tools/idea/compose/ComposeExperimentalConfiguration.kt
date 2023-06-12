@@ -29,7 +29,7 @@ import com.intellij.openapi.project.ProjectManager
 @Service
 class ComposeExperimentalConfiguration : SimplePersistentStateComponent<ComposeExperimentalConfiguration.State>(State()) {
   class State: BaseState() {
-    var isPreviewPickerEnabled by property(false)
+    var isPreviewPickerEnabled by property(true)
     var isFastPreviewEnabled by property(StudioFlags.COMPOSE_FAST_PREVIEW.get())
   }
 

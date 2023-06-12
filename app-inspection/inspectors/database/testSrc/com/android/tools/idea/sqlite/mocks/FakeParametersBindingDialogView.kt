@@ -21,9 +21,9 @@ import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialo
 open class FakeParametersBindingDialogView : ParametersBindingDialogView {
   val listeners = mutableListOf<ParametersBindingDialogView.Listener>()
 
-  override fun show() { }
+  override fun show() {}
 
-  override fun showNamedParameters(parameters: Set<SqliteParameter>) { }
+  override fun showNamedParameters(parameters: Set<SqliteParameter>) {}
 
   override fun addListener(listener: ParametersBindingDialogView.Listener) {
     listeners.add(listener)

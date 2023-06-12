@@ -15,13 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.IRRELEVANT_PAST
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_CODEPENDENT
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.OPTIONAL_INDEPENDENT
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.*
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -33,31 +28,31 @@ import org.junit.Test
 class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   @Test
   fun testIsDisabledForUpgradeToOldAgp() {
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("3.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("2.3.2"), AgpVersion.parse("3.0.0"))
     assertFalse(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledForUpgradeToAgp35() {
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("2.3.2"), GradleVersion.parse("3.5.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("2.3.2"), AgpVersion.parse("3.5.0"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledForUpgradeToAgp4() {
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("4.2.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.2.0"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledForUpgradeToAgp7() {
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testIsDisabledForUpgradeFromAgp7() {
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("7.0.0"), GradleVersion.parse("7.1.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("7.1.0"))
     assertFalse(processor.isEnabled)
   }
 
@@ -72,15 +67,21 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
       ("7.0.0" to "7.1.0") to IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
+      val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
       assertEquals(u, processor.necessity())
     }
   }
 
   @Test
+  fun testReadMoreUrl() {
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/compile-runtime-configuration", processor.getReadMoreUrl())
+  }
+
+  @Test
   fun testSimpleApplication() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleApplicationExpected"))
   }
@@ -88,7 +89,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleApplicationWithVersion() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplicationWithVersion"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleApplicationWithVersionExpected"))
   }
@@ -96,7 +97,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testApplicationWithDynamicFeatures() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/ApplicationWithDynamicFeatures"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/ApplicationWithDynamicFeaturesExpected"))
   }
@@ -104,7 +105,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleDynamicFeature() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleDynamicFeature"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleDynamicFeatureExpected"))
   }
@@ -112,7 +113,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleLibrary() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleLibrary"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleLibraryExpected"))
   }
@@ -120,7 +121,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testMapNotationDependency() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/MapNotationDependency"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/MapNotationDependencyExpected"))
   }
@@ -128,7 +129,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleJavaApplication() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleJavaApplication"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleJavaApplicationExpected"))
   }
@@ -136,7 +137,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleJavaLibrary() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleJavaLibrary"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleJavaLibraryExpected"))
   }
@@ -144,7 +145,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleOrgGradleJavaApplication() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaApplication"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaApplicationExpected"))
   }
@@ -152,7 +153,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleOrgGradleJavaLibrary() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaLibrary"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleOrgGradleJavaLibraryExpected"))
   }
@@ -160,7 +161,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testUnknownPlugin() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/UnknownPlugin"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/UnknownPlugin"))
   }
@@ -168,7 +169,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testApplicationWith2DVariant() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariant"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariantExpected"))
   }
@@ -176,7 +177,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testBuildscriptDependenciesLeftAlone() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/BuildscriptDependenciesLeftAlone"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/BuildscriptDependenciesLeftAloneExpected"))
   }
@@ -184,7 +185,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testMoreObscureConfigurations() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/MoreObscureConfigurations"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/MoreObscureConfigurationsExpected"))
   }
@@ -192,7 +193,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testTestApiConfigurations() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/TestApiConfigurations"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/TestApiConfigurationsExpected"))
   }
@@ -200,7 +201,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleBasePlugin() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleBasePlugin"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleBasePluginExpected"))
   }
@@ -208,7 +209,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleAndroidPlugin() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleAndroidPlugin"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleAndroidPluginExpected"))
 
@@ -217,7 +218,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testSimpleAndroidAndBasePlugin() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleAndroidAndBasePlugin"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     processor.run()
     verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleAndroidAndBasePluginExpected"))
   }
@@ -225,35 +226,35 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testIsNotAlwaysNoOpOnSimpleApplication() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     assertFalse(processor.isAlwaysNoOpForProject)
   }
 
   @Test
   fun testIsAlwaysNoOpOnSimpleApplicationExpected() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplicationExpected"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     assertTrue(processor.isAlwaysNoOpForProject)
   }
 
   @Test
   fun testIsNotAlwaysNoOpOnApplicationWith2DVariant() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariant"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     assertFalse(processor.isAlwaysNoOpForProject)
   }
 
   @Test
   fun testIsAlwaysNoOpOnUnknownPlugin() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/UnknownPlugin"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     assertTrue(processor.isAlwaysNoOpForProject)
   }
 
   @Test
   fun testIsNotAlwaysNoOpOnBuildscriptDependenciesLeftAlone() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/BuildscriptDependenciesLeftAlone"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("7.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("7.0.0"))
     // the test file has some dependencies needing update not in the buildscript block
     assertFalse(processor.isAlwaysNoOpForProject)
   }
@@ -261,7 +262,7 @@ class CompileRuntimeConfigurationRefactoringProcessorTest : UpgradeGradleFileMod
   @Test
   fun testTooltipsNotNull() {
     writeToBuildFile(TestFileName("CompileRuntimeConfiguration/ApplicationWith2DVariant"))
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, GradleVersion.parse("3.5.0"), GradleVersion.parse("5.0.0"))
+    val processor = CompileRuntimeConfigurationRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("5.0.0"))
     val usages = processor.findUsages()
     assertTrue(usages.isNotEmpty())
     usages.forEach { assertNotNull(it.tooltipText) }

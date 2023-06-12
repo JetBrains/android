@@ -58,6 +58,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.containers.ContainerUtil;
@@ -75,6 +76,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GradlePropertyModelImpl implements GradlePropertyModel {
+  private static final Logger LOG = Logger.getInstance(GradlePropertyModelImpl.class);
+
   @Nullable protected GradleDslElement myElement;
   @Nullable protected GradleDslElement myDefaultElement;
   @NotNull protected GradleDslElement myPropertyHolder;
@@ -92,7 +95,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
   public GradlePropertyModelImpl(@NotNull GradleDslElement element) {
     myElement = element;
-    myTransforms.add(DEFAULT_TRANSFORM);
 
     GradleDslElement parent = element.getParent();
     if (parent == null) {
@@ -113,7 +115,6 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     myPropertyHolder = holder;
     myPropertyType = type;
     myName = name;
-    myTransforms.add(DEFAULT_TRANSFORM);
     myPropertyDescription = null; // TODO(xof): this does not actually mean (yet, during transition) that this is not a model property
   }
 
@@ -332,7 +333,9 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       else {
         newElement = getTransform().bind(myPropertyHolder, myElement, value, myPropertyDescription);
       }
-      bindToNewElement(newElement);
+      if (newElement != null) {
+        bindToNewElement(newElement);
+      }
     }
   }
 
@@ -341,7 +344,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     for (Map.Entry<String,GradlePropertyModel> e : value.entrySet()) {
       GradlePropertyModel newValueModel = getMapValue(e.getKey());
       Object newValue = e.getValue().getValue(OBJECT_TYPE);
-      if (newValue != null) {
+      if (newValue != null && newValueModel != null) {
         newValueModel.setValue(newValue);
       }
     }
@@ -355,18 +358,17 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradlePropertyModel getMapValue(@NotNull String key) {
     ValueType valueType = getValueType();
     if (valueType != MAP && valueType != NONE) {
-      throw new IllegalStateException("Can't add map value to type: " + valueType + ". " +
-                                      "Please call GradlePropertyModel#convertToMap before trying to add values");
+      LOG.warn(new IllegalStateException(
+        "getMapValue \"" + key + "\" called on a non-map model of type " + valueType + "."));
+      return null;
     }
-
-    if (valueType == NONE || myElement == null) {
+    else if (valueType == NONE || myElement == null) {
       makeEmptyMap();
     }
-
 
     GradleDslElement element = getTransform().transform(myElement);
     assert element instanceof GradleDslExpressionMap;
@@ -395,15 +397,14 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradlePropertyModel addListValue() {
     ValueType valueType = getValueType();
     if (valueType != LIST && valueType != NONE) {
-      throw new IllegalStateException("Can't add list value to type: " + valueType + ". " +
-                                      "Please call GradlePropertyModel#convertToList before trying to add values");
+      LOG.warn(new IllegalStateException("addListValue called on a non-list of type " + valueType + "."));
+      return null;
     }
-
-    if (valueType == NONE || myElement == null) {
+    else if (valueType == NONE || myElement == null) {
       makeEmptyList();
     }
 
@@ -414,27 +415,34 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradlePropertyModel addListValueAt(int index) {
     ValueType valueType = getValueType();
     if (valueType != LIST && valueType != NONE) {
-      throw new IllegalStateException("Can't add list value to type: " + valueType + ". " +
-                                      "Please call GradlePropertyModel#convertToList before trying to add values");
+      LOG.warn(new IllegalStateException("addListValueAt called on a non-list of type " + valueType + "."));
+      return null;
     }
-
-    if (valueType == NONE || myElement == null) {
+    else if (valueType == NONE || myElement == null) {
       makeEmptyList();
     }
 
     GradleDslElement element = getTransform().transform(myElement);
-    assert element instanceof GradleDslExpressionList;
+    if (!(element instanceof GradleDslExpressionList)) {
+      LOG.warn(new IllegalStateException("element is not a GradleDslExpressionList " + element));
+      return null;
+    }
+
+    GradleDslExpressionList list = (GradleDslExpressionList)element;
+    if (index > list.getPropertyElements(GradleDslExpression.class).size()) {
+      LOG.warn(new IllegalStateException("attempting to add an element past the end of the list " + list));
+      return null;
+    }
 
     // Unlike maps, we don't create a placeholder element. This is since we need to retain and update order in the list.
     // This would be hard to create an intuitive api to do this, so instead we always create an empty string as the new item.
     GradleDslLiteral literal = new GradleDslLiteral(element, GradleNameElement.empty());
     literal.setValue("");
 
-    GradleDslExpressionList list = (GradleDslExpressionList)element;
     list.addNewExpression(literal, index);
 
     return new GradlePropertyModelImpl(literal);
@@ -445,8 +453,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   public GradlePropertyModel getListValue(@NotNull Object value) {
     ValueType valueType = getValueType();
     if (valueType != LIST && valueType != NONE) {
-      throw new IllegalStateException("Can't get list value on type: " + valueType + ". " +
-                                      "Please call GradlePropertyModel#convertToList before trying to get values");
+      LOG.warn(new IllegalStateException("getListValue called on a non-list of type " + valueType + "."));
+      return null;
     }
 
     List<GradlePropertyModel> list = getValue(LIST_TYPE);
@@ -464,7 +472,10 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
     GradleDslElement element = getElement();
     if (element == null || myElement == null) return;
     GradleDslExpression newElement;
-    if (!(myElement instanceof GradleDslExpression)) throw new IllegalStateException("Called rewrite on a non-Expression");
+    if (!(myElement instanceof GradleDslExpression)) {
+      LOG.warn(new IllegalStateException("Called rewrite on a non-Expression: " + myElement));
+      return;
+    }
     ValueType valueType = getValueType();
     if (valueType == ValueType.LIST) {
       setListValue(getValue(LIST_TYPE));
@@ -564,7 +575,8 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
 
     // Check that the element should actually be renamed.
     if (parent instanceof GradleDslExpressionList || parent instanceof GradleDslMethodCall) {
-      throw new UnsupportedOperationException("Can't rename list values!");
+      LOG.warn(new UnsupportedOperationException("Can't rename list values: " + element + " in " + parent + "."));
+      return;
     }
 
     element.rename(name);
@@ -582,7 +594,21 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       }
 
       GradleDslElement originalElement = findOriginalElement(myPropertyHolder, element);
-      return originalElement == null || isElementModified(originalElement, element);
+      if (originalElement == null) return true;
+      GradleDslElement transformedElement = getElement();
+      if (transformedElement == null) return true;
+      // There are two distinct ways that a model element (after transform) can correspond to an original transformed element.
+      // The first is that myElement holds properties (at some depth), and that the original transformed element has been replaced
+      // in that properties element...
+      GradleDslElement transformedOriginalElement = findOriginalElement(getHolder(), transformedElement);
+      if (transformedOriginalElement == null) {
+        // ... while the second is that the element has been replaced wholesale in its own holder, for example because of a change
+        // of syntactic form (from method call to literal, or from literal to infix expression).  In that case we must look for the
+        // original transformed element in our original element.
+        transformedOriginalElement = getTransformFor(originalElement).transform(originalElement);
+      }
+      if (transformedOriginalElement == null) return true;
+      return PropertyUtil.isModelElementModified(originalElement, element, transformedOriginalElement, transformedElement);
     }
 
     GradlePropertiesDslElement holder;
@@ -802,26 +828,32 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       return;
     }
 
-    if (myElement != null && myElement.getElementType() == FAKE) {
-      throw new UnsupportedOperationException("Can't bind from a fake element!");
-    }
+    // if (myElement != null && myElement.getElementType() == FAKE) { ... return }
+    // TODO Need to reinstate support of ignoring transformation for fake elements.
+    // Effectively need to bring back support/ignore cases like artifact.classifier().convertToEmptyMap().
+    // b/268355590 - perhaps this should be done by introducing fake artifact elements
+    // through transforms rather than directly.
 
     GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, getName());
-    element.setElementType(myPropertyType);
-    ModelEffectDescription effect = element.getModelEffect();
-    if (effect == null || effect.semantics != CREATE_WITH_VALUE) {
-      if (myElement != null) {
-        element.setExternalSyntax(myElement.getExternalSyntax());
+    if (element != null) {
+      GradleDslElement copyFrom =
+        (myElement != null && myElement.getElementType() == FAKE) ? ((FakeElement)myElement).getRealExpression() : myElement;
+      element.setElementType(myPropertyType);
+      ModelEffectDescription effect = element.getModelEffect();
+      if (effect == null || effect.semantics != CREATE_WITH_VALUE) {
+        if (copyFrom != null) {
+          element.setExternalSyntax(copyFrom.getExternalSyntax());
+        }
+        // TODO(b/148657110): This is necessary until models store the properties they're associated with: for now, the models
+        //  have only names while the Dsl elements are annotated with model effect / properties.
+        if (copyFrom != null) {
+          element.setModelEffect(copyFrom.getModelEffect());
+        }
       }
-      // TODO(b/148657110): This is necessary until models store the properties they're associated with: for now, the models
-      //  have only names while the Dsl elements are annotated with model effect / properties.
-      if (myElement != null) {
-        element.setModelEffect(myElement.getModelEffect());
-      }
+      // We need to ensure the parent will be modified so this change takes effect.
+      element.setModified();
+      myElement = element;
     }
-    // We need to ensure the parent will be modified so this change takes effect.
-    element.setModified();
-    myElement = element;
   }
 
   /**
@@ -861,7 +893,16 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
         return transform;
       }
     }
-    throw new IllegalStateException("No transforms found for this property model!");
+    return DEFAULT_TRANSFORM;
+  }
+
+  protected PropertyTransform getTransformFor(@Nullable GradleDslElement element) {
+    for (PropertyTransform transform : myTransforms) {
+      if (transform.test(element, myPropertyHolder)) {
+        return transform;
+      }
+    }
+    return DEFAULT_TRANSFORM;
   }
 
   @NotNull

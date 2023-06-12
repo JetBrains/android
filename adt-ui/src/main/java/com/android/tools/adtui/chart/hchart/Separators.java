@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.chart.hchart;
 
-public final class Separators {
+public class Separators {
   public static final String JAVA_CODE = ".";
   public static final String NATIVE_CODE = "::";
 }

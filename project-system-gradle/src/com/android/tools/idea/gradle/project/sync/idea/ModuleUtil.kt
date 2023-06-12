@@ -33,11 +33,16 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 object ModuleUtil {
   @JvmStatic
   fun getModuleName(artifactName: IdeArtifactName): String {
-    return when (artifactName) {
-      IdeArtifactName.MAIN -> IdeModuleWellKnownSourceSet.MAIN.sourceSetName
-      IdeArtifactName.UNIT_TEST -> IdeModuleWellKnownSourceSet.UNIT_TEST.sourceSetName
-      IdeArtifactName.ANDROID_TEST -> IdeModuleWellKnownSourceSet.ANDROID_TEST.sourceSetName
-      IdeArtifactName.TEST_FIXTURES -> IdeModuleWellKnownSourceSet.TEST_FIXTURES.sourceSetName
+    return artifactName.toWellKnownSourceSet().sourceSetName
+  }
+
+  @JvmStatic
+  fun IdeArtifactName.toWellKnownSourceSet(): IdeModuleWellKnownSourceSet {
+    return when (this) {
+      IdeArtifactName.MAIN -> IdeModuleWellKnownSourceSet.MAIN
+      IdeArtifactName.UNIT_TEST -> IdeModuleWellKnownSourceSet.UNIT_TEST
+      IdeArtifactName.ANDROID_TEST -> IdeModuleWellKnownSourceSet.ANDROID_TEST
+      IdeArtifactName.TEST_FIXTURES -> IdeModuleWellKnownSourceSet.TEST_FIXTURES
     }
   }
 

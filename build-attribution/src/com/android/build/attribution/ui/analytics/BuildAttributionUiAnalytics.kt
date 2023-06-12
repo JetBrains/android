@@ -81,8 +81,7 @@ class BuildAttributionUiAnalytics(
     val eventType = when (tabOpenEventSource) {
       TabOpenEventSource.WNA_BUTTON -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_WNA_BUTTON
       TabOpenEventSource.BUILD_OUTPUT_LINK -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_BUILD_OUTPUT_LINK
-      //TODO(b/239174185) Update the event type
-      TabOpenEventSource.BUILD_MENU_ACTION -> BuildAttributionUiEvent.EventType.UNKNOWN_TYPE
+      TabOpenEventSource.BUILD_MENU_ACTION -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_ACTION
       TabOpenEventSource.TAB_HEADER -> BuildAttributionUiEvent.EventType.TAB_OPENED_WITH_TAB_CLICK
       // Not opened by direct user action so don't report.
       TabOpenEventSource.AUTO_OPEN -> null
@@ -192,6 +191,11 @@ class BuildAttributionUiAnalytics(
       .setEventProcessingTimeMs(duration.toMillis())
   )
 
+  fun migrateToNonTransitiveRClassesClicked() = doLog(
+    newUiEventBuilder()
+      .setEventType(BuildAttributionUiEvent.EventType.MIGRATE_NON_TRANSITIVE_R_CLASS_ACTION_CLICKED)
+  )
+
   fun turnJetifierOffClicked(duration: Duration) = doLog(
     newUiEventBuilder()
       .setEventType(BuildAttributionUiEvent.EventType.REMOVE_JETIFIER_PROPERTY_CLICKED)
@@ -280,6 +284,7 @@ class BuildAttributionUiAnalytics(
               pageType = when (model.tasksPageModel.selectedGrouping) {
                 TasksDataPageModel.Grouping.UNGROUPED -> BuildAttributionUiEvent.Page.PageType.CRITICAL_PATH_TASKS_ROOT
                 TasksDataPageModel.Grouping.BY_PLUGIN -> BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT
+                TasksDataPageModel.Grouping.BY_TASK_CATEGORY -> BuildAttributionUiEvent.Page.PageType.TASK_CATEGORY_CRITICAL_PATH_TASKS_ROOT
               },
               pageId = ""
             )
@@ -308,7 +313,7 @@ class BuildAttributionUiAnalytics(
       filter.showTaskSourceTypes.forEach {
         add(when (it) {
               PluginSourceType.ANDROID_PLUGIN -> BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS
-              PluginSourceType.BUILD_SRC -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
+              PluginSourceType.BUILD_SCRIPT -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
               PluginSourceType.THIRD_PARTY -> BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS
             })
       }
@@ -330,7 +335,7 @@ class BuildAttributionUiAnalytics(
       filter.showTaskSourceTypes.forEach {
         add(when (it) {
               PluginSourceType.ANDROID_PLUGIN -> BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS
-              PluginSourceType.BUILD_SRC -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
+              PluginSourceType.BUILD_SCRIPT -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
               PluginSourceType.THIRD_PARTY -> BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS
             })
       }

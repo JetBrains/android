@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.deploy;
 
 import static com.android.sdklib.AndroidVersion.VersionCodes.O;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
 import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -32,9 +33,10 @@ import com.android.tools.deployer.devices.FakeDevice;
 import com.android.tools.deployer.devices.FakeDeviceHandler;
 import com.android.tools.deployer.devices.FakeDeviceLibrary;
 import com.android.tools.idea.adb.AdbService;
-import com.android.tools.idea.run.AndroidProcessHandler;
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler;
 import com.android.tools.idea.run.deployable.DeviceBinder;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
@@ -52,6 +54,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -353,7 +356,15 @@ public class DeploymentTest {
         if (module == null) {
           throw new NoSuchElementException(String.format("'%s' module not found", PROJECT_NAME));
         }
-        AndroidSdkUtils.setupAndroidPlatformIfNecessary(module, false);
+        List<Sdk> androidSdks = AndroidSdks.getInstance().getAllAndroidSdks();
+        if (androidSdks.isEmpty()) {
+          System.err.println("No Android SDKs are available");
+        }
+        for (Sdk sdk : androidSdks) {
+          System.out.printf("Setting %s module's SDK to %s%n", module, sdk);
+          WriteAction.runAndWait(() -> updateModel(module, model -> model.setSdk(sdk)));
+          break;
+        }
       }
     });
   }

@@ -18,6 +18,7 @@ package com.android.tools.idea
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Rule
 import org.junit.Test
 
@@ -25,16 +26,19 @@ class BuildProjectTest {
   @JvmField @Rule
   val system: AndroidSystem = AndroidSystem.standard()
 
+  @JvmField
+  @Rule
+  var watcher = MemoryDashboardNameProviderWatcher()
+
   @Test
   fun buildProjectTest() {
     // Create a new android project, and set a fixed distribution
     val project = AndroidProject("tools/adt/idea/android/integration/testData/minapp")
-    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"))
 
-    system.runStudio(project) { studio ->
+    system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
       studio.executeAction("MakeGradleProject")

@@ -1,0 +1,7 @@
+<resources>
+    <string name="from_app">From app</string>
+    <string name="another.app.string">From app</string>
+    <declare-styleable name="styleable_from_app">
+        <attr name="Attr_from_app" format="string"/>
+    </declare-styleable>
+</resources>

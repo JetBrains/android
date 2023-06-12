@@ -19,6 +19,7 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 
 import com.android.ddmlib.IDevice;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -93,10 +94,10 @@ public class NonGradleApkProviderDependenciesTest extends AndroidTestCase {
     ApkInfo dep1Apk = apkList.get(1);
     ApkInfo dep2Apk = apkList.get(2);
     assertEquals("com.test.app", mainApk.getApplicationId());
-    assertTrue(mainApk.getFile().getPath().endsWith("app.apk"));
+    assertTrue(Iterables.getOnlyElement(mainApk.getFiles()).getApkFile().getPath().endsWith("app.apk"));
     assertEquals("com.test.dep1", dep1Apk.getApplicationId());
-    assertTrue(dep1Apk.getFile().getPath().endsWith("dep1.apk"));
+    assertTrue(Iterables.getOnlyElement(dep1Apk.getFiles()).getApkFile().getPath().endsWith("dep1.apk"));
     assertEquals("com.test.dep2", dep2Apk.getApplicationId());
-    assertTrue(dep2Apk.getFile().getPath().endsWith("dep2.apk"));
+    assertTrue(Iterables.getOnlyElement(dep2Apk.getFiles()).getApkFile().getPath().endsWith("dep2.apk"));
   }
 }

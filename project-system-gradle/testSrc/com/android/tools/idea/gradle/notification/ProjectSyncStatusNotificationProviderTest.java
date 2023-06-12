@@ -16,11 +16,13 @@
 package com.android.tools.idea.gradle.notification;
 
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
@@ -29,9 +31,14 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.editor.colors.ColorKey;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.ui.JBColor;
 import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,7 +105,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
     when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(false);
 
-    Type type = myNotificationProvider.notificationPanelType();
+    Type type = myNotificationProvider.notificationPanelType(myProject);
     assertEquals(Type.SYNC_NEEDED, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
@@ -111,7 +118,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
     when(myGradleFiles.areExternalBuildFilesModified()).thenReturn(true);
 
-    Type type = myNotificationProvider.notificationPanelType();
+    Type type = myNotificationProvider.notificationPanelType(myProject);
     assertEquals(Type.SYNC_NEEDED, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
@@ -123,7 +130,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
 
-    Type type = myNotificationProvider.notificationPanelType();
+    Type type = myNotificationProvider.notificationPanelType(myProject);
     assertEquals(Type.NONE, type);
     assertNull(createPanel(type));
   }
@@ -132,7 +139,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   public void testNotificationPanelTypeWithSyncInProgress() {
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
-    Type type = myNotificationProvider.notificationPanelType();
+    Type type = myNotificationProvider.notificationPanelType(myProject);
     assertEquals(Type.IN_PROGRESS, type);
   }
 
@@ -140,7 +147,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   public void testNotificationPanelTypeWithLastSyncFailed() {
     when(mySyncState.lastSyncFailed()).thenReturn(true);
 
-    Type type = myNotificationProvider.notificationPanelType();
+    Type type = myNotificationProvider.notificationPanelType(myProject);
     assertEquals(Type.FAILED, type);
     assertInstanceOf(createPanel(type), ProjectSyncStatusNotificationProvider.SyncProblemNotificationPanel.class);
   }
@@ -150,7 +157,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     when(mySyncState.lastSyncFailed()).thenReturn(false);
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
-    Type type = myNotificationProvider.notificationPanelType();
+    Type type = myNotificationProvider.notificationPanelType(myProject);
     assertEquals(Type.PROJECT_STRUCTURE, type);
 
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
@@ -165,42 +172,81 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     // e.g. dozens of days.
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP",
                                                Long.toString(System.currentTimeMillis()));
-    type = myNotificationProvider.notificationPanelType();
+    type = myNotificationProvider.notificationPanelType(myProject);
     assertEquals(Type.PROJECT_STRUCTURE, type);
     assertNull(createPanel(type));
   }
 
   @Test
-  public void testVersionCatalogNotificationPanelType() {
-    when(mySyncState.lastSyncFailed()).thenReturn(false);
-    when(myVersionCatalogDetector.isVersionCatalogProject()).thenReturn(true);
-    PropertiesComponent.getInstance(myProject).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", "0.0");
-    PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
+  public void testVersionCatalogNotificationPanelTypeWithBanners() {
+    StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.override(true);
+    try {
+      when(mySyncState.lastSyncFailed()).thenReturn(false);
+      when(myVersionCatalogDetector.isVersionCatalogProject()).thenReturn(true);
+      PropertiesComponent.getInstance(myProject).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", "0.0");
+      PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
-    Type type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.COMPLICATED_PROJECT, type);
+      Type type = myNotificationProvider.notificationPanelType(myProject);
+      assertEquals(Type.VERSION_CATALOG_PROJECT, type);
 
-    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    if (myFileNeedsVersionCatalogNotifications) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ComplicatedProjectNotificationPanel.class);
-    }
-    else if (myFileNeedsProjectStructureNotifications) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
-    }
-    else {
-      assertNull(panel);
-    }
+      ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+      if (myFileNeedsVersionCatalogNotifications) {
+        assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.VersionCatalogProjectNotificationPanel.class);
+      }
+      else if (myFileNeedsProjectStructureNotifications) {
+        assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+      }
+      else {
+        assertNull(panel);
+      }
 
-    String version = ApplicationInfo.getInstance().getShortVersion();
-    PropertiesComponent.getInstance(myProject).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", version);
-    type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.COMPLICATED_PROJECT, type);
-    panel = createPanel(type);
-    if (myFileNeedsProjectStructureNotifications) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+      String version = ApplicationInfo.getInstance().getShortVersion();
+      PropertiesComponent.getInstance(myProject).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", version);
+      type = myNotificationProvider.notificationPanelType(myProject);
+      assertEquals(Type.VERSION_CATALOG_PROJECT, type);
+      panel = createPanel(type);
+      if (myFileNeedsProjectStructureNotifications) {
+        assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+      }
+      else {
+        assertNull(panel);
+      }
     }
-    else {
-      assertNull(panel);
+    finally {
+      StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.clearOverride();
+    }
+  }
+
+  @Test
+  public void testVersionCatalogNotificationPanelTypeWithoutBanners() {
+    StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.override(false);
+    try {
+      when(mySyncState.lastSyncFailed()).thenReturn(false);
+      when(myVersionCatalogDetector.isVersionCatalogProject()).thenReturn(true);
+      PropertiesComponent.getInstance(myProject).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", "0.0");
+      PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
+
+      Type type = myNotificationProvider.notificationPanelType(myProject);
+      assertEquals(Type.PROJECT_STRUCTURE, type);
+
+      ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+      if (myFileNeedsProjectStructureNotifications) {
+        assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
+      }
+      else {
+        assertNull(panel);
+      }
+
+      // The reshow timeout should always be too large comparing to the potential time difference between statements below,
+      // e.g. dozens of days.
+      PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP",
+                                                 Long.toString(System.currentTimeMillis()));
+      type = myNotificationProvider.notificationPanelType(myProject);
+      assertEquals(Type.PROJECT_STRUCTURE, type);
+      assertNull(createPanel(type));
+    }
+    finally {
+      StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.clearOverride();
     }
   }
 
@@ -208,10 +254,43 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   public void testNotificationPanelTypeWithSyncNeeded() {
     when(mySyncState.isSyncNeeded()).thenReturn(YES);
 
-    Type type = myNotificationProvider.notificationPanelType();
+    Type type = myNotificationProvider.notificationPanelType(myProject);
     assertEquals(Type.SYNC_NEEDED, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
+  }
+
+  @Test
+  public void testCustomizeNotificationColor() {
+    when(mySyncState.isSyncNeeded()).thenReturn(YES);
+
+    Type type = myNotificationProvider.notificationPanelType(myProject);
+    assertEquals(Type.SYNC_NEEDED, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+
+    EditorColorsScheme colorsSchemeSupplier = EditorColorsManager.getInstance().getGlobalScheme();
+    ColorKey panelColorKey = panel.getBackgroundColorKey();
+    colorsSchemeSupplier.setColor(panelColorKey, JBColor.RED);
+
+    assertThat(panelColorKey).isEqualTo(EditorColors.NOTIFICATION_BACKGROUND);
+    assertThat(EditorColorsManager.getInstance().getGlobalScheme().getColor(panelColorKey)).isEqualTo(JBColor.RED);
+  }
+
+  @Test
+  public void testDismissNotificationPanel() {
+    when(mySyncState.isSyncNeeded()).thenReturn(YES);
+
+    Type type = myNotificationProvider.notificationPanelType(myProject);
+    assertEquals(Type.SYNC_NEEDED, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
+    PropertiesComponent.getInstance().setValue(
+      "PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP",
+      Long.toString(System.currentTimeMillis())
+    );
+
+    type = myNotificationProvider.notificationPanelType(myProject);
+    assertEquals(Type.NONE, type);
   }
 
   private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {

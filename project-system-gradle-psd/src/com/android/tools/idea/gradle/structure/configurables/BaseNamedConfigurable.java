@@ -96,9 +96,6 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
     return myHistory;
   }
 
-  public void putNavigationPath(@NotNull Place place, @NotNull String value) {
-  }
-
   @Override
   @Nullable
   public String getHelpTopic() {

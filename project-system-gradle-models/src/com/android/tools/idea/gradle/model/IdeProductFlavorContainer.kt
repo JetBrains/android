@@ -15,26 +15,11 @@
  */
 package com.android.tools.idea.gradle.model
 
-interface IdeProductFlavorContainer {
+interface IdeProductFlavorContainer: IdeSourceProviderContainer {
   /**
    * The Product Flavor itself.
    *
    * @return the product flavor
    */
   val productFlavor: IdeProductFlavor
-
-  /**
-   * The associated main sources of the product flavor
-   *
-   * @return the main source provider.
-   */
-  val sourceProvider: IdeSourceProvider?
-
-  /**
-   * Returns a list of ArtifactMetaData/SourceProvider association.
-   *
-   * @return a list of ArtifactMetaData/SourceProvider association.
-   */
-  val extraSourceProviders: Collection<IdeSourceProviderContainer>
-
 }

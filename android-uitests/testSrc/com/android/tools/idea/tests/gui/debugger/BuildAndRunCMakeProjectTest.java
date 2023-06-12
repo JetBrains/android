@@ -61,11 +61,9 @@ public class BuildAndRunCMakeProjectTest {
    */
   @Before
   public void setupSpecialSdk() {
-    GuiTask.execute(() -> {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation(), null);
-      });
-    });
+    GuiTask.execute(() -> ApplicationManager.getApplication().runWriteAction(() -> {
+      IdeSdks.getInstance().setAndroidSdkPath(avdRule.getGeneratedSdkLocation());
+    }));
   }
 
   /**

@@ -107,7 +107,7 @@ public class AndroidModuleDataServiceTest extends AndroidGradleTestCase {
     myService.importData(Collections.singletonList(androidModelNode), mock(ProjectData.class), project, myModelsProvider);
 
     assertNotNull(FacetManager.getInstance(appModule).findFacet(AndroidFacet.ID, AndroidFacet.NAME));
-    verify(myValidator).validate(same(appModule), argThat(it -> it.getData().equals(androidModel.getData())));
+    verify(myValidator).validate(same(appModule), argThat(it -> it.containsTheSameDataAs(androidModel)));
     verify(myValidator).fixAndReportFoundIssues();
   }
 

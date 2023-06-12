@@ -16,14 +16,13 @@
 package com.android.tools.idea.lint.common
 
 import com.intellij.CommonBundle
-import org.jetbrains.annotations.NonNls
-import org.jetbrains.annotations.PropertyKey
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.util.ResourceBundle
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.PropertyKey
 
-@NonNls
-private const val BUNDLE_NAME = "messages.LintBundle"
+@NonNls private const val BUNDLE_NAME = "messages.LintBundle"
 
 class LintBundle private constructor() {
   companion object {
@@ -40,7 +39,9 @@ class LintBundle private constructor() {
 
     @JvmStatic
     fun message(
-      @PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {
+      @PropertyKey(resourceBundle = BUNDLE_NAME) key: String,
+      vararg params: Any?
+    ): String {
       return CommonBundle.message(getBundle(), key, *params)
     }
   }

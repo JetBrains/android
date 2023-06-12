@@ -91,12 +91,12 @@ class ServerFlagServiceTest {
   }
 
   @Test
-  fun testExceptions() {
-    checkException(service, "boolean", ServerFlagService::getInt)
-    checkException(service, "int", ServerFlagService::getFloat)
-    checkException(service, "float", ServerFlagService::getString)
-    checkException(service, "string") { s, name -> s.getProto(name, TEST_PROTO) }
-    checkException(service, "proto", ServerFlagService::getBoolean)
+  fun testIncorrectType() {
+    checkIncorrectType(service, "boolean", ServerFlagService::getInt)
+    checkIncorrectType(service, "int", ServerFlagService::getFloat)
+    checkIncorrectType(service, "float", ServerFlagService::getString)
+    checkProtoNull(service, "string")
+    checkIncorrectType(service, "proto", ServerFlagService::getBoolean)
   }
 
   @Test
@@ -198,14 +198,7 @@ Value: foo
     assertThat(service.getProtoOrNull(name, TEST_PROTO)).isNull()
   }
 
-  private fun <T> checkException(service: ServerFlagService, name: String, retrieve: (ServerFlagService, String) -> T?) {
-    var exception: IllegalArgumentException? = null
-    try {
-      retrieve(service, name)
-    }
-    catch (e: Exception) {
-      exception = e as? IllegalArgumentException
-    }
-    assertThat(exception).isNotNull()
+  private fun <T> checkIncorrectType(service: ServerFlagService, name: String, retrieve: (ServerFlagService, String) -> T?) {
+    assertThat(retrieve(service, name)).isNull()
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.common.error
 
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.tools.idea.common.surface.navigateToComponent
+import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
@@ -28,6 +29,7 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.impl.CompoundIconProvider
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.editor.Editor
@@ -39,8 +41,10 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.tree.LeafState
+import com.intellij.util.ui.EmptyIcon
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.Objects
+import javax.swing.Icon
 
 /**
  * The issue node in [DesignerCommonIssuePanel].
@@ -276,7 +280,7 @@ class IssuedFileNode(val file: VirtualFile, parent: DesignerCommonIssueNode?) : 
   }
 
   override fun getChildren(): List<IssueNode> {
-    return getNodeProvider().getIssueNodes(this).sortedWith(issueComparator)
+    return getNodeProvider().getIssueNodes(this).sortedWith(PreprocessNodeComparator.thenComparing(issueComparator))
   }
 }
 
@@ -315,18 +319,18 @@ class NoFileNode(parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(par
   }
 
   override fun getChildren(): List<IssueNode> {
-    return getNodeProvider().getIssueNodes(this).sortedWith(issueComparator)
+    return getNodeProvider().getIssueNodes(this).sortedWith(PreprocessNodeComparator.thenComparing(issueComparator))
   }
 }
+
+val DESCEND_ORDER_DEFAULT_SEVERITIES: List<HighlightSeverity> = HighlightSeverity.DEFAULT_SEVERITIES.sortedByDescending { it.myVal }
+  .toMutableList().also { it.remove(HighlightSeverity.INFO) }
 
 /**
  * The node represents an [Issue] in the layout file.
  */
 open class IssueNode(val file: VirtualFile?, val issue: Issue, val parent: DesignerCommonIssueNode?)
   : DesignerCommonIssueNode(parent?.project, parent) {
-
-  private val offset: Int
-    get() = (issue.source as? NlComponentIssueSource)?.component?.tag?.textRange?.startOffset ?: -1
 
   override fun getLeafState() = LeafState.ALWAYS
 
@@ -338,13 +342,33 @@ open class IssueNode(val file: VirtualFile?, val issue: Issue, val parent: Desig
   override fun getChildren(): List<DesignerCommonIssueNode> = emptyList()
 
   override fun getNavigatable(): Navigatable? {
-    val targetFile = getVirtualFile()
-    return if (project != null && targetFile != null) MyOpenFileDescriptor(project, targetFile, offset) else null
+    var navigatable = (issue.source as? NlComponentIssueSource)?.component?.navigatable
+    if (navigatable == null) {
+      val targetFile = getVirtualFile()
+      if (project != null && targetFile != null) {
+        navigatable = OpenFileDescriptor(project, targetFile, -1)
+      }
+    }
+    if (navigatable is OpenFileDescriptor) {
+      return MyOpenFileDescriptor(navigatable)
+    }
+    return navigatable
   }
 
   override fun updatePresentation(presentation: PresentationData) {
     val nodeDisplayText: String = createNodeDisplayText()
-    val icon = HighlightDisplayLevel.find(issue.severity).icon
+    val icon: Icon = HighlightDisplayLevel.find(issue.severity)?.icon ?: let {
+      val issueSeverityLevel = issue.severity.myVal
+      var icon: Icon? = null
+      for (severity in DESCEND_ORDER_DEFAULT_SEVERITIES) {
+        if (issueSeverityLevel < severity.myVal) {
+          continue
+        }
+        icon = HighlightDisplayLevel.find(severity)?.icon
+        break
+      }
+      icon ?: EmptyIcon.ICON_16
+    }
     presentation.setIcon(icon)
 
     presentation.addText(nodeDisplayText, SimpleTextAttributes.REGULAR_ATTRIBUTES)
@@ -401,7 +425,8 @@ class VisualLintIssueNode(private val visualLintIssue: VisualLintRenderIssue, pa
   }
 }
 
-private class MyOpenFileDescriptor(project: Project, targetFile: VirtualFile, offset: Int): OpenFileDescriptor(project, targetFile, offset) {
+private class MyOpenFileDescriptor(openFileDescriptor: OpenFileDescriptor) :
+  OpenFileDescriptor(openFileDescriptor.project, openFileDescriptor.file, openFileDescriptor.offset) {
 
   /**
    * [navigate], [navigateIn], and [navigateInEditor] may call each other depending on the implementation of
@@ -475,5 +500,25 @@ object FileNameComparator : Comparator<DesignerCommonIssueNode> {
     }
 
     return if (o1 is IssuedFileNode && o2 is IssuedFileNode) o1.getVirtualFile().name.compareTo(o2.getVirtualFile().name) else 0
+  }
+}
+
+/**
+ * Define the default order for [DesignerCommonIssueNode]. All [DesignerCommonIssueNode]s must pass to this comparator before sorting.
+ */
+object PreprocessNodeComparator : Comparator<DesignerCommonIssueNode> {
+  override fun compare(o1: DesignerCommonIssueNode?, o2: DesignerCommonIssueNode?): Int {
+    return when {
+      o1 == o2 -> 0
+      o1 == null -> -1
+      o2 == null -> 1
+      o1 is IssueNode && o2 !is IssueNode -> -1
+      o1 !is IssueNode && o2 is IssueNode -> 1
+      // Force sorted the ATF issue by name. This avoid the jumping order of ATF issue when there is no sorting option is selected.
+      o1 is IssueNode && o2 is IssueNode && o1.issue is NlAtfIssue && o2.issue is NlAtfIssue ->
+        o1.issue.summary.compareTo(o2.issue.summary)
+      // Provide consistent ordering for everything else
+      else -> o1.name.compareTo(o2.name)
+    }
   }
 }

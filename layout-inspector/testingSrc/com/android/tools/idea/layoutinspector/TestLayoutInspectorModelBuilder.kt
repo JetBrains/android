@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
@@ -35,7 +36,6 @@ import com.android.tools.idea.layoutinspector.util.TestStringTable
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
 import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Rectangle
@@ -51,26 +51,32 @@ fun model(
   body: InspectorModelDescriptor.() -> Unit
 ) = InspectorModelDescriptor(project, scheduler).also(body).build(treeSettings)
 
-fun window(windowId: Any,
-           rootViewDrawId: Long,
-           x: Int = 0,
-           y: Int = 0,
-           width: Int = 0,
-           height: Int = 0,
-           rootViewQualifiedName: String = CLASS_VIEW,
-           imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
-           layoutFlags: Int = 0,
-           body: InspectorViewDescriptor.() -> Unit = {}) =
-  FakeAndroidWindow(
-    InspectorViewDescriptor(rootViewDrawId, rootViewQualifiedName, x, y, width, height, null, null, "", layoutFlags, null)
-      .also(body).build(), windowId, imageType) { _, window ->
+fun window(
+  windowId: Any,
+  rootViewDrawId: Long,
+  x: Int = 0,
+  y: Int = 0,
+  width: Int = 0,
+  height: Int = 0,
+  rootViewQualifiedName: String = CLASS_VIEW,
+  imageType: ImageType = ImageType.BITMAP_AS_REQUESTED,
+  layoutFlags: Int = 0,
+  onRefreshImages: () -> Unit = {},
+  body: InspectorViewDescriptor.() -> Unit = {}): AndroidWindow {
+  val inspectorViewDescriptor = InspectorViewDescriptor(
+    rootViewDrawId, rootViewQualifiedName, x, y, width, height, null, null, "", layoutFlags, null
+  ).also(body).build()
+
+  return FakeAndroidWindow(inspectorViewDescriptor, windowId, imageType) { _, window ->
     ViewNode.writeAccess {
       window.root.flatten().forEach {
         it.drawChildren.clear()
         it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
       }
     }
+    onRefreshImages()
   }
+}
 
 private val defaultLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "defaultLayout")
 
@@ -264,9 +270,9 @@ class InspectorModelDescriptor(val project: Project, private val scheduler: Sche
       }
     }
     model.update(newWindow, listOf(windowRoot.drawId), 0)
-    if (ModuleManager.getInstance(project) != null) {
-      val facet = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull() ?: error("AndroidFacet required")
-      AndroidModel.set(facet, TestAndroidModel("com.example"))
+    if (project.isOpen) {
+      val facet = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).singleOrNull()
+      facet?.let { AndroidModel.set(facet, TestAndroidModel("com.example")) }
       val strings = TestStringTable()
       val config = ConfigurationParamsBuilder(strings)
       model.resourceLookup.updateConfiguration(

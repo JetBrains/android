@@ -37,18 +37,18 @@ class ItemNodeType : ViewNodeType<Item>() {
 
   override fun childrenOf(node: Item) = node.children
 
-  override fun isEnabled(node: Item) = true
+  override fun isEnabled(node: Item) = node.enabled
 
-  override fun isDeEmphasized(node: Item) = false
+  override fun isDeEmphasized(node: Item) = node.deEmphasized
 
   override fun canInsert(node: Item, data: Transferable) =
     node.canInsert ?: node.children.isNotEmpty()
 
-  override fun insert(node: Item, data: Transferable, before: Any?): Boolean {
+  override fun insert(node: Item, data: Transferable, before: Any?, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
     if (!node.acceptInsert) {
       return false
     }
-    node.insertions.add(data to before)
+    node.insertions.add(Item.Insertion(data, before, isMove, draggedFromTree.toList()))
     return true
   }
 

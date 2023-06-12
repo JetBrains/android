@@ -54,9 +54,8 @@ import javax.swing.SwingUtilities;
  */
 public class BaseCreatePanel extends JPanel {
   public static final boolean DEBUG = false;
-  protected Popup myPopup;
   MEUI.Popup myDialog;
-  Icon icon = MEIcons.CREATE_TRANSITION;
+  public Icon icon = MEIcons.CREATE_TRANSITION;
   protected MotionEditor mMotionEditor;
   protected boolean inSubPopup = false;
   private Component mSourceComponent;
@@ -71,15 +70,6 @@ public class BaseCreatePanel extends JPanel {
         ((JComponent)c).updateUI();
       }
     }
-  }
-
-  public JButton createButton() {
-    JButton button = new JButton(icon);
-    button.setContentAreaFilled(false);
-    button.setToolTipText("create " + getName());
-    button.addActionListener(e -> showPopup(button, 0, 0));
-    button.setBorder(null);
-    return button;
   }
 
   BaseCreatePanel() {
@@ -109,14 +99,6 @@ public class BaseCreatePanel extends JPanel {
     gbc.gridx = x;
     gbc.gridwidth = w;
     gbc.gridheight = h;
-  }
-
-  protected JTextField newTextField(String xxx) {
-    JTextField ret = new JTextField();
-    ret.setText(xxx);
-    ret.setPreferredSize(ret.getPreferredSize());
-    ret.setText("");
-    return ret;
   }
 
   protected JComboBox<String> newComboBox(String... choices) {
@@ -281,6 +263,18 @@ public class BaseCreatePanel extends JPanel {
     };
     aa.putValue(Action.SHORT_DESCRIPTION, component.getToolTipText());
     return aa;
+  }
+
+  public void doAction(JComponent component, MotionEditor motionEditor) {
+    mMotionEditor = motionEditor;
+    mSourceComponent = component;
+    boolean ok = populateDialog();
+    if (ok) {
+      MEUI.invokeLater(() -> {
+        showPopup(component, 0, 0);
+        motionEditor.dataChanged();
+      });
+    }
   }
 
   String addIdPrefix(String str) {

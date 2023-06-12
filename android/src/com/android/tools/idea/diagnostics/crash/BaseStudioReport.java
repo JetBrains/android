@@ -20,8 +20,10 @@ import com.android.annotations.Nullable;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.crash.CrashReport;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ui.ExperimentalUI;
 import java.util.Map;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginKindProviderKt;
 
 /** Crash report that uses Android Studio product id. */
 public abstract class BaseStudioReport extends CrashReport {
@@ -35,5 +37,19 @@ public abstract class BaseStudioReport extends CrashReport {
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
     AndroidStudioEvent.IdeBrand ideBrand = UsageTracker.getIdeBrand();
     builder.addTextBody("ideBrand", ideBrand.getValueDescriptor().getName());
+
+    String isNewUI = "Unknown";
+    try {
+      isNewUI = Boolean.toString(ExperimentalUI.isNewUI());
+    } catch (Throwable ignore) {
+    }
+    builder.addTextBody("isNewUI", isNewUI);
+
+    String isKotlinK2 = "Unknown";
+    try {
+      isKotlinK2 = Boolean.toString(KotlinPluginKindProviderKt.isK2Plugin());
+    } catch (Throwable ignore) {
+    }
+    builder.addTextBody("isKotlinK2", isKotlinK2);
   }
 }

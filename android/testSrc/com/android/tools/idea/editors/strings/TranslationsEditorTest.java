@@ -25,6 +25,7 @@ import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.editors.strings.table.StringTableCellEditor;
 import com.android.tools.idea.io.TestFileUtils;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StringResourceWriter;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.module.Module;
@@ -80,11 +81,13 @@ public final class TranslationsEditorTest {
 
     StringResourceKey key = myPanel.getTable().getData().getKeys().stream().filter(k -> k.getDirectory() != null).findFirst().orElseThrow();
 
-    StringResourceWriter.INSTANCE.add(projectRule.getProject(), key, "", Locale.create("b+ace"));
+    StringResourceWriter.INSTANCE.addTranslation(projectRule.getProject(), key, "", Locale.create("b+ace"),
+                                                 IdeResourcesUtil.DEFAULT_STRING_RESOURCE_FILE_NAME, null);
 
     Utils.loadResources(myPanel, Collections.singletonList(myRes));
 
-    StringResourceWriter.INSTANCE.add(projectRule.getProject(), key, "", Locale.create("ab"));
+    StringResourceWriter.INSTANCE.addTranslation(projectRule.getProject(), key, "", Locale.create("ab"),
+                                                 IdeResourcesUtil.DEFAULT_STRING_RESOURCE_FILE_NAME, null);
 
     Utils.loadResources(myPanel, Collections.singletonList(myRes));
 

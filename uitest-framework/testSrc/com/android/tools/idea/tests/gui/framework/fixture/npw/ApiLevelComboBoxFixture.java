@@ -32,7 +32,7 @@ public class ApiLevelComboBoxFixture extends JComboBoxFixture {
     GuiTask.execute(() -> {
       for (int i = 0; i < target().getItemCount(); i++) {
         Object value = target().getItemAt(i);
-        if (String.valueOf(value).startsWith("API " + minSdkApi + ":")) {
+        if (String.valueOf(value).startsWith("API " + minSdkApi + " (")) {
           // The comboBox fixture is un-reliable selecting the right API. Select by value instead.
           target().setSelectedItem(value);
           return;

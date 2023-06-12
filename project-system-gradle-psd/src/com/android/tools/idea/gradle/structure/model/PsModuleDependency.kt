@@ -34,7 +34,8 @@ interface PsResolvedModuleDependency: PsResolvedDependency, PsModuleDependency
 
 val PsResolvedModuleDependency.targetModuleResolvedDependencies: PsDependencyCollection<*, *, *, *>?
   get() {
-    return when (val targetModule = parent.parent.findModuleByGradlePath(gradlePath)) {
+    val targetModule = parent.parent.findModuleByGradlePath(gradlePath)
+    return when (targetModule) {
       is PsAndroidModule ->
         targetModule
           .resolvedVariants

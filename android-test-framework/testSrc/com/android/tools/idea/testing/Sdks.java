@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.testing;
 
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.PathUtil.toSystemIndependentName;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.junit.Assert.assertNotNull;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
+import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -45,7 +45,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,12 +95,7 @@ public final class Sdks {
       sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
     }
 
-    Sdk jdk = IdeSdks.getInstance().getJdk();
-    if (parentDisposable != null) {
-      Disposer.register(parentDisposable, () -> WriteAction.run(() -> ProjectJdkTable.getInstance().removeJdk(jdk)));
-    }
-
-    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk, jdk);
+    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = getSdkData(sdkPath);
     assertNotNull(sdkData);
     IAndroidTarget foundTarget = null;

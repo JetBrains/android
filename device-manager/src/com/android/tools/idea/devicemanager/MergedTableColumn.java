@@ -22,9 +22,9 @@ import javax.swing.table.TableColumn;
 import org.jetbrains.annotations.NotNull;
 
 public final class MergedTableColumn extends TableColumn implements PropertyChangeListener {
-  private final @NotNull Collection<@NotNull TableColumn> myColumns;
+  private final @NotNull Collection<TableColumn> myColumns;
 
-  public MergedTableColumn(@NotNull Collection<@NotNull TableColumn> columns) {
+  public MergedTableColumn(@NotNull Collection<TableColumn> columns) {
     myColumns = columns;
     columns.forEach(column -> column.addPropertyChangeListener(this));
   }

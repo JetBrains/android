@@ -20,7 +20,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
-final class HyperlinkUtil {
+class HyperlinkUtil {
   static void requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
     GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(trigger), null);
   }

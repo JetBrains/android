@@ -17,12 +17,8 @@ package com.android.tools.idea.appinspection.api
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 
-/**
- * Defines the method through which an [AppInspectorJar] could be copied to device.
- */
+/** Defines the method through which an [AppInspectorJar] could be copied to device. */
 interface AppInspectionJarCopier {
-  /**
-   * Copies the provided [AppInspectorJar] to a device.
-   */
+  /** Copies the provided [AppInspectorJar] to a device. */
   fun copyFileToDevice(jar: AppInspectorJar): List<String>
 }

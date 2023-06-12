@@ -21,19 +21,24 @@ import com.android.build.attribution.ui.model.DownloadsInfoPageModel
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth
+import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.OnePixelSplitter
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
 class DownloadsInfoPageViewTest {
+
+  @get:Rule
+  var disposableRule = DisposableRule()
 
   @Test
   fun testViewCreatedWithNonEmptyData() {
     val downloadsData = mockDownloadsData()
     val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
     val pageModel = DownloadsInfoPageModel(downloadsData)
-    val downloadsPage = DownloadsInfoPageView(pageModel, mockHandlers)
+    val downloadsPage = DownloadsInfoPageView(pageModel, mockHandlers, disposableRule.disposable)
 
     val splitter = TreeWalker(downloadsPage.component).descendants().filterIsInstance<OnePixelSplitter>().single()
     Truth.assertThat(splitter.firstComponent).isNotNull()
@@ -45,7 +50,7 @@ class DownloadsInfoPageViewTest {
     val downloadsData = DownloadsAnalyzer.ActiveResult(emptyList())
     val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
     val pageModel = DownloadsInfoPageModel(downloadsData)
-    val downloadsPage = DownloadsInfoPageView(pageModel, mockHandlers)
+    val downloadsPage = DownloadsInfoPageView(pageModel, mockHandlers, disposableRule.disposable)
 
     val splitter = TreeWalker(downloadsPage.component).descendants().filterIsInstance<OnePixelSplitter>().single()
     Truth.assertThat(splitter.firstComponent).isNotNull()
@@ -65,7 +70,7 @@ class DownloadsInfoPageViewTest {
     val downloadsData = DownloadsAnalyzer.ActiveResult(resultList)
     val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
     val pageModel = DownloadsInfoPageModel(downloadsData)
-    val downloadsPage = DownloadsInfoPageView(pageModel, mockHandlers)
+    val downloadsPage = DownloadsInfoPageView(pageModel, mockHandlers, disposableRule.disposable)
     // Select all repositories to populate right table with all requests
     pageModel.selectedRepositoriesUpdated(downloadsData.repositoryResults)
     val requestsTable = downloadsPage.requestsList

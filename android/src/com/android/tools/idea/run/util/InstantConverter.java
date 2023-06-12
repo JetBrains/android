@@ -19,7 +19,7 @@ import com.intellij.util.xmlb.Converter;
 import java.time.Instant;
 import org.jetbrains.annotations.NotNull;
 
-public final class InstantConverter extends Converter<@NotNull Instant> {
+public final class InstantConverter extends Converter<Instant> {
   private InstantConverter() {
   }
 

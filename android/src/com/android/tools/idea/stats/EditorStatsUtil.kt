@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 @file:JvmName("EditorStatsUtil")
+
 package com.android.tools.idea.stats
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.annotations.concurrency.WorkerThread
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceFolderType.ANIM
 import com.android.resources.ResourceFolderType.ANIMATOR
@@ -31,12 +33,15 @@ import com.android.resources.ResourceFolderType.NAVIGATION
 import com.android.resources.ResourceFolderType.RAW
 import com.android.resources.ResourceFolderType.TRANSITION
 import com.android.resources.ResourceFolderType.VALUES
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.getFolderType
 import com.google.wireless.android.sdk.stats.EditorFileType
 import com.google.wireless.android.sdk.stats.EditorFileType.GROOVY
 import com.google.wireless.android.sdk.stats.EditorFileType.JAVA
 import com.google.wireless.android.sdk.stats.EditorFileType.JSON
 import com.google.wireless.android.sdk.stats.EditorFileType.KOTLIN
+import com.google.wireless.android.sdk.stats.EditorFileType.KOTLIN_COMPOSE
 import com.google.wireless.android.sdk.stats.EditorFileType.KOTLIN_SCRIPT
 import com.google.wireless.android.sdk.stats.EditorFileType.NATIVE
 import com.google.wireless.android.sdk.stats.EditorFileType.PROPERTIES
@@ -57,21 +62,28 @@ import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_RAW
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_TRANSITION
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_VALUES
 import com.google.wireless.android.sdk.stats.EditorFileType.XML_RES_XML
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.withContext
 
 /** Computes the file type of [file] for analytics purposes. */
-fun getEditorFileTypeForAnalytics(file: VirtualFile): EditorFileType = when (file.fileType.name) {
-  // We use string literals here (rather than, e.g., JsonFileType.INSTANCE.name) to avoid unnecessary
-  // dependencies on other plugins. Fortunately, these values are extremely unlikely to change.
-  "JAVA" -> JAVA
-  "Kotlin" -> if (file.extension == "kts") KOTLIN_SCRIPT else KOTLIN
-  "Groovy" -> GROOVY
-  "Properties" -> PROPERTIES
-  "JSON" -> JSON
-  "ObjectiveC" -> NATIVE // Derived from OCLanguage constructor.
-  "XML" -> {
-    // We split XML files by resource kind.
-    when (getFolderType(file)) {
+suspend fun getEditorFileTypeForAnalytics(file: VirtualFile, project: Project?): EditorFileType =
+  when (file.fileType.name) {
+    // We use string literals here (rather than, e.g., JsonFileType.INSTANCE.name) to avoid unnecessary
+    // dependencies on other plugins. Fortunately, these values are extremely unlikely to change.
+    "JAVA" -> JAVA
+    "Kotlin" -> when {
+      file.extension == "kts" -> KOTLIN_SCRIPT
+      withContext(workerThread) { isComposeEnabled(file, project) } -> KOTLIN_COMPOSE
+      else -> KOTLIN
+    }
+
+    "Groovy" -> GROOVY
+    "Properties" -> PROPERTIES
+    "JSON" -> JSON
+    "ObjectiveC" -> NATIVE // Derived from OCLanguage constructor.
+    "XML" -> when (getFolderType(file)) { // We split XML files by resource kind.
       ANIM -> XML_RES_ANIM
       ANIMATOR -> XML_RES_ANIMATOR
       COLOR -> XML_RES_COLOR
@@ -88,6 +100,17 @@ fun getEditorFileTypeForAnalytics(file: VirtualFile): EditorFileType = when (fil
       ResourceFolderType.XML -> XML_RES_XML
       null -> if (file.name == ANDROID_MANIFEST_XML) XML_MANIFEST else XML
     }
+
+    else -> UNKNOWN
   }
-  else -> UNKNOWN
+
+/**
+ * This method is not expected to be slow, but it's possible the call to find the file's module could take longer in some circumstances. As
+ * such, it's marked with [WorkerThread] to make sure there are no long calls on the UI thread.
+ */
+@WorkerThread
+private fun isComposeEnabled(file: VirtualFile, project: Project?): Boolean {
+  if (project == null) return false
+  val module = ModuleUtilCore.findModuleForFile(file, project) ?: return false
+  return module.getModuleSystem().usesCompose
 }

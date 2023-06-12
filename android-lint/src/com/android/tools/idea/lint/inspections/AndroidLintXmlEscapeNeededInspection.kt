@@ -20,4 +20,7 @@ import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.DataBindingDetector
 
 class AndroidLintXmlEscapeNeededInspection :
-  AndroidLintInspectionBase(AndroidLintBundle.message("android.lint.inspections.xml.escape.needed"), DataBindingDetector.ESCAPE_XML)
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.xml.escape.needed"),
+    DataBindingDetector.ESCAPE_XML
+  )

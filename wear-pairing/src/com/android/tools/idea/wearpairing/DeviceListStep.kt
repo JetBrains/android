@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.computeFullApiName
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.AdtUiUtils.allComponents
 import com.android.tools.adtui.common.ColoredIconGenerator.generateWhiteIcon
@@ -40,6 +41,7 @@ import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.CollectionListModel
+import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
@@ -53,6 +55,7 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -250,7 +253,12 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
                 }
                 horizontalTextPosition = SwingConstants.LEFT
               })
-              add(JBLabel(SdkVersionInfo.getAndroidName(value.apiLevel)).apply {
+              add(JBLabel(computeFullApiName(
+                apiLevel = value.apiLevel,
+                extensionLevel = null,
+                includeReleaseName = true,
+                includeCodeName = true
+              )).apply {
                 foreground = when {
                   isSelected -> UIUtil.getListForeground(true, true)
                   value.isDisabled() -> UIUtil.getLabelDisabledForeground()
@@ -269,7 +277,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
 
           val rightIcon = when {
             StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get() -> null
-            WearPairingManager.isPaired(value.deviceID) -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+            WearPairingManager.getInstance().isPaired(value.deviceID) -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
             value.isDisabled() -> AllIcons.General.ShowInfos
             else -> null
           }
@@ -292,7 +300,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
             .filter { it.accessibleContext.accessibleName != null }
             .firstOrNull()?.let {
               accessibleContext.accessibleName = it.accessibleContext.accessibleName
-              accessibleContext.accessibleDescription =  it.accessibleContext.accessibleDescription
+              accessibleContext.accessibleDescription = it.accessibleContext.accessibleDescription
             }
 
           isOpaque = true
@@ -355,7 +363,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
   // Cache generated white icons, so we don't keep creating new ones
   private val whiteIconsCache = hashMapOf<Icon, Icon>()
   private fun getIcon(icon: Icon, isSelected: Boolean): Icon = when {
-    isSelected -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
+    isSelected && !isNewUI() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
     else -> icon
   }
 
@@ -365,7 +373,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
         val row = locationToIndex(e.point)
         if (row >= 0 && isRightMouseButton(e)) {
           val listDevice = model.getElementAt(row)
-          val phoneWearPair = WearPairingManager.getPairsForDevice(listDevice.deviceID).firstOrNull()
+          val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(listDevice.deviceID).firstOrNull()
           if (phoneWearPair != null) {
             val peerDevice = phoneWearPair.getPeerDevice(listDevice.deviceID)
             val item = JBMenuItem(message("wear.assistant.device.list.forget.connection", peerDevice.displayName))
@@ -373,14 +381,14 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
               val process = Runnable {
                 val cloudSyncIsEnabled = runBlocking(context = Dispatchers.IO) {
                   withTimeoutOrNull(5_000) {
-                    WearPairingManager.checkCloudSyncIsEnabled(phoneWearPair.phone)
+                    WearPairingManager.getInstance().checkCloudSyncIsEnabled(phoneWearPair.phone)
                   }
                 }
                 if (cloudSyncIsEnabled == true) {
                   ApplicationManager.getApplication().invokeLater({ showCloudSyncDialog(phoneWearPair.phone) }, ModalityState.any())
                 }
                 AndroidCoroutineScope(this@DeviceListStep).launch(Dispatchers.IO) {
-                  WearPairingManager.removeAllPairedDevices(listDevice.deviceID)
+                  WearPairingManager.getInstance().removeAllPairedDevices(listDevice.deviceID)
                   // Update pairing icon
                   ApplicationManager.getApplication().invokeLater(
                     {
@@ -455,7 +463,7 @@ private fun PairingDevice.isDisabled(): Boolean {
 
 private fun PairingDevice.getTooltip(): String? {
   if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-    WearPairingManager.getPairsForDevice(deviceID).firstOrNull()?.apply {
+    WearPairingManager.getInstance().getPairsForDevice(deviceID).firstOrNull()?.apply {
       return "Paired with ${getPeerDevice(deviceID).displayName}"
     }
   }

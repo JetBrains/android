@@ -26,25 +26,24 @@ interface NetworkInspectorClient {
   suspend fun interceptResponse(command: InterceptCommand)
 }
 
-class NetworkInspectorClientImpl(
-  private val messenger: AppInspectorMessenger
-) : NetworkInspectorClient {
+class NetworkInspectorClientImpl(private val messenger: AppInspectorMessenger) :
+  NetworkInspectorClient {
 
   override suspend fun getStartTimeStampNs(): Long {
-    val response = messenger.sendRawCommand {
-      startInspectionCommand = StartInspectionCommand.getDefaultInstance()
-    }
+    val response =
+      messenger.sendRawCommand {
+        startInspectionCommand = StartInspectionCommand.getDefaultInstance()
+      }
     return response.startInspectionResponse.timestamp
   }
 
   override suspend fun interceptResponse(command: InterceptCommand) {
-    messenger.sendRawCommand {
-      interceptCommand = command
-    }
+    messenger.sendRawCommand { interceptCommand = command }
   }
 
-
-  private suspend fun AppInspectorMessenger.sendRawCommand(init: Command.Builder.() -> Unit): Response {
+  private suspend fun AppInspectorMessenger.sendRawCommand(
+    init: Command.Builder.() -> Unit
+  ): Response {
     val response = sendRawCommand(Command.newBuilder().also(init).build().toByteArray())
     return Response.parseFrom(response)
   }

@@ -20,7 +20,8 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModelImpl
@@ -36,7 +37,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.util.ui.ImageUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -45,6 +45,7 @@ import java.awt.Image
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.ImageIcon
+import javax.swing.JLabel
 import kotlin.test.assertTrue
 
 
@@ -56,15 +57,14 @@ class LayoutRendererTest {
   @get:Rule
   val rule = AndroidProjectRule.withSdk()
 
-  @Ignore("b/134190873")
   @Test
   fun renderLayout() {
     val psiFile = createLayoutFile()
     val facet = rule.module.androidFacet!!
     val layoutRenderer = LayoutRenderer(facet, ::createRenderTaskForTest, ImageFuturesManager())
-    val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(psiFile.virtualFile)
+    val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(psiFile.virtualFile)
     val layoutRender = layoutRenderer.getLayoutRender(psiFile, configuration)
-    val image = layoutRender.get(5, TimeUnit.SECONDS)!!
+    val image = layoutRender.get(60, TimeUnit.SECONDS)!!
 
     // Check that we get the correct background color.
     val intArray = IntArray(4)
@@ -75,7 +75,6 @@ class LayoutRendererTest {
     assertThat(image.height).isEqualTo(1024)
   }
 
-  @Ignore("b/135927007")
   @Test
   fun integrationWithProjectResourcesBrowserViewModel() {
     val latch = CountDownLatch(1)
@@ -84,40 +83,35 @@ class LayoutRendererTest {
     LayoutRenderer.setInstance(androidFacet, layoutRenderer)
     val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
     lateinit var resourceExplorerListViewModel: ResourceExplorerListViewModel
-    val disposable = Disposer.newDisposable("LayoutRendererTest")
-    try {
       resourceExplorerListViewModel = ResourceExplorerListViewModelImpl(
         androidFacet,
         null,
         Mockito.mock(ResourceResolver::class.java),
         FilterOptions.createDefault(),
         ResourceType.DRAWABLE,
-        ImageCache.createImageCache(disposable),
-        ImageCache.createImageCache(disposable)
+        ImageCache.createImageCache(rule.fixture.projectDisposable),
+        ImageCache.createImageCache(rule.fixture.projectDisposable)
       )
-      val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
-      val width = 150
-      val height = 200
-      previewProvider.getIcon(designAsset, width, height, { latch.countDown() })
-        .cast<ImageIcon>().image.toBufferedImage()
+    val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
+    val width = 150
+    val height = 200
+    (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
+      as ImageIcon).image.toBufferedImage()
 
-      assertTrue(latch.await(10, TimeUnit.SECONDS))
-      val image = previewProvider.getIcon(designAsset, width, height, { latch.countDown() })
-        .cast<ImageIcon>().image.toBufferedImage()
+    val start = System.currentTimeMillis()
+    assertTrue(latch.await(60, TimeUnit.SECONDS))
+    val image = (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
+      as ImageIcon).image.toBufferedImage()
 
-      // Check that we get the correct background color.
-      val intArray = IntArray(4)
-      assertThat(image.raster.width).isEqualTo(width)
-      assertThat(image.raster.height).isEqualTo(height)
-      assertThat(image.raster.getPixel(100, 100, intArray)).asList().containsExactly(*BACKGROUND_COLOR)
+    // Check that we get the correct background color.
+    val intArray = IntArray(4)
+    assertThat(image.raster.width).isEqualTo(width)
+    assertThat(image.raster.height).isEqualTo(height)
+    assertThat(image.raster.getPixel(100, 100, intArray)).asList().containsExactly(*BACKGROUND_COLOR)
 
-      // Test the size
-      assertThat(image.width).isEqualTo(width)
-      assertThat(image.height).isEqualTo(height)
-    }
-    finally {
-      Disposer.dispose(disposable)
-    }
+    // Test the size
+    assertThat(image.width).isEqualTo(width)
+    assertThat(image.height).isEqualTo(height)
   }
 
   private fun createLayoutFile(): XmlFile {
@@ -141,9 +135,9 @@ class LayoutRendererTest {
 }
 
 private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration: Configuration) =
-  RenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
+  StudioRenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
     .withPsiFile(xmlFile)
-    .withDownscaleFactor(DOWNSCALE_FACTOR)
+    .withQuality(QUALITY)
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
     .disableSecurityManager()

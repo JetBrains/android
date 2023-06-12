@@ -17,20 +17,22 @@ package com.android.tools.idea.lint.common
 
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts.ContextType
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts.EditorContext
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
-import org.jetbrains.annotations.NotNull
-import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 import java.io.File
 import java.io.IOException
 import java.util.regex.Pattern
+import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 
 class CreateFileQuickFix(
   private val myFile: File,
@@ -48,8 +50,14 @@ class CreateFileQuickFix(
   ) {
     val project = startElement.project
     if (LocalFileSystem.getInstance().findFileByIoFile(myFile) != null && !isUnitTestMode()) {
-      if (Messages.showYesNoDialog(project, "${myFile.name} already exists; do you want to replace it?", "Replace File",
-                                   null) == Messages.YES) {
+      if (
+        Messages.showYesNoDialog(
+          project,
+          "${myFile.name} already exists; do you want to replace it?",
+          "Replace File",
+          null
+        ) == Messages.YES
+      ) {
         createFile(project, context)
       }
       return
@@ -58,7 +66,16 @@ class CreateFileQuickFix(
     createFile(project, context)
   }
 
-  private fun createFile(project: @NotNull Project, context: AndroidQuickfixContexts.Context) {
+  override fun generatePreview(
+    project: Project,
+    editor: Editor,
+    file: PsiFile
+  ): IntentionPreviewInfo? {
+    // The newly created file is never the current preview one we're looking at
+    return IntentionPreviewInfo.EMPTY
+  }
+
+  private fun createFile(project: Project, context: AndroidQuickfixContexts.Context) {
     try {
       val parent = VfsUtil.createDirectoryIfMissing(myFile.parentFile.path) ?: return
 
@@ -104,8 +121,7 @@ class CreateFileQuickFix(
           if (matcher.groupCount() > 0) {
             selectStart = matcher.start(1)
             selectEnd = matcher.end(1)
-          }
-          else {
+          } else {
             selectStart = matcher.start()
             selectEnd = matcher.end()
           }
@@ -113,11 +129,14 @@ class CreateFileQuickFix(
           editor.selectionModel.setSelection(selectStart, selectEnd)
         }
       }
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       Logger.getInstance(CreateFileQuickFix::class.java).error(e)
     }
   }
 
-  override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: ContextType): Boolean = true
+  override fun isApplicable(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    contextType: ContextType
+  ): Boolean = true
 }

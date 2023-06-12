@@ -36,7 +36,7 @@ public final class ApiTableCellRenderer implements TableCellRenderer {
     myLabel.setBackground(Tables.getBackground(table, selected));
     myLabel.setBorder(Tables.getBorder(selected, focused));
     myLabel.setForeground(Tables.getForeground(table, selected));
-    myLabel.setText(((AndroidVersion)value).getApiString());
+    myLabel.setText(((AndroidVersion)value).getApiStringWithExtension());
 
     return myLabel;
   }

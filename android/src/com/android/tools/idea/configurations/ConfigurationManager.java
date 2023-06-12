@@ -21,32 +21,41 @@ import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TA
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Bridge;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.Locale;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
+import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidTargetData;
+import java.util.Objects;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +74,11 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class ConfigurationManager implements Disposable {
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
+  private static final Key<VirtualFile> CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY = Key.create(
+    ConfigurationManager.class.getName() + "ProjectCanonicalKey"
+  );
+
+  @NotNull private final ConfigurationModelModule myConfigurationModule;
 
   @NotNull private final Module myModule;
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
@@ -75,46 +89,45 @@ public class ConfigurationManager implements Disposable {
   private ResourceResolverCache myResolverCache;
 
   @NotNull
-  public static ConfigurationManager getOrCreateInstance(@NotNull AndroidFacet androidFacet) {
-    return findConfigurationManager(androidFacet, true /* create if necessary */);
-  }
-
-  @Nullable
-  public static ConfigurationManager findExistingInstance(@NotNull AndroidFacet androidFacet) {
-    return findConfigurationManager(androidFacet, false);
-  }
-
-  // TODO: Migrate to use the version that takes an AndroidFacet
-  @NotNull
   public static ConfigurationManager getOrCreateInstance(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
-      throw new IllegalArgumentException("Module '" + module.getName() + "' is not an Android module");
-    }
-    return findConfigurationManager(androidFacet, true /* create if necessary */);
+    return findConfigurationManager(module, true /* create if necessary */);
   }
 
-  // TODO: Migrate to use a version that takes an AndroidFacet
   @Nullable
   public static ConfigurationManager findExistingInstance(@NotNull Module module) {
-    AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    if (androidFacet == null) {
-      throw new IllegalArgumentException("Module '" + module.getName() + "' is not an Android module");
-    }
-    return findConfigurationManager(androidFacet, false /* do not create if not found */);
+    return findConfigurationManager(module, false /* do not create if not found */);
   }
 
   @Contract("_, true -> !null")
   @Nullable
-  private static ConfigurationManager findConfigurationManager(@NotNull AndroidFacet androidFacet, boolean createIfNecessary) {
-    Module module = androidFacet.getModule();
-
+  private static ConfigurationManager findConfigurationManager(@NotNull Module module, boolean createIfNecessary) {
     ConfigurationManager configurationManager = module.getUserData(KEY);
     if (configurationManager == null && createIfNecessary) {
       configurationManager = new ConfigurationManager(module);
       module.putUserData(KEY, configurationManager);
     }
     return configurationManager;
+  }
+
+  /**
+   * In some tests the project might not have a project file. We use this to create a per-project canonical file that can be used to
+   * associate the default project configuration to.
+   */
+  @NotNull
+  private static VirtualFile getFakeProjectFile(@NotNull Project project) {
+    VirtualFile projectFile = CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY.get(project);
+    if (projectFile == null) {
+      VirtualFile parent = new LightVirtualFile("layout");
+      projectFile = new LightVirtualFile("no-project-file") {
+        @Override
+        public VirtualFile getParent() {
+          return parent;
+        }
+      };
+      CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY.set(project, projectFile);
+    }
+
+    return projectFile;
   }
 
   /**
@@ -129,14 +142,18 @@ public class ConfigurationManager implements Disposable {
     ConfigurationManager configurationManager = getOrCreateInstance(module);
 
     VirtualFile projectFile = project.getProjectFile();
-    assert projectFile != null;
+    if (projectFile == null) {
+      projectFile = getFakeProjectFile(project);
+    }
 
     return configurationManager.getConfiguration(projectFile);
   }
 
-  public ConfigurationManager(@NotNull Module module) {
+  protected ConfigurationManager(@NotNull Module module) {
+    myConfigurationModule = new StudioConfigurationModelModule(module);
     myModule = module;
     Disposer.register(myModule, this);
+
   }
 
   /**
@@ -178,11 +195,12 @@ public class ConfigurationManager implements Disposable {
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
-    if (fileState != null) {
-      matcher.adaptConfigSelection(true);
+    if (stateManager.getProjectState().getDeviceIds().isEmpty()) {
+      matcher.findAndSetCompatibleConfig(false);
     }
     else {
-      matcher.findAndSetCompatibleConfig(false);
+      // If there are devices stored in the ConfigurationProjectState, we try to adapt the configuration to preserve the selected device.
+      matcher.adaptConfigSelection(true);
     }
 
     return configuration;
@@ -224,7 +242,7 @@ public class ConfigurationManager implements Disposable {
    * Returns the associated persistence manager
    */
   public ConfigurationStateManager getStateManager() {
-    return ConfigurationStateManager.get(myModule.getProject());
+    return myConfigurationModule.getConfigurationStateManager();
   }
 
   /**
@@ -233,7 +251,7 @@ public class ConfigurationManager implements Disposable {
   @Slow
   @NotNull
   public ImmutableList<Device> getDevices() {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     if (platform == null) {
       return ImmutableList.of();
     }
@@ -249,7 +267,12 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public Device getDeviceById(@NotNull String id) {
-    return getDevices()
+    return getDeviceById(id, getDevices());
+  }
+
+  @Nullable
+  public Device getDeviceById(@NotNull String id, List<Device> inputList) {
+    return inputList
       .stream()
       .filter(device -> device.getId().equals(id))
       .findFirst()
@@ -258,7 +281,7 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public Device createDeviceForAvd(@NotNull AvdInfo avd) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     if (platform == null) {
       return null;
     }
@@ -284,7 +307,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public IAndroidTarget[] getTargets() {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     if (platform != null) {
       final AndroidSdkData sdkData = platform.getSdkData();
 
@@ -323,6 +346,60 @@ public class ConfigurationManager implements Disposable {
     return false;
   }
 
+  private static final ResourceReference postSplashAttrReference = ResourceReference.attr(
+    ResourceNamespace.RES_AUTO, "postSplashScreenTheme"
+  );
+
+  /**
+   * Finds the post splash theme if there is any. Themes used in splash screens can have a post splash theme declared.
+   * When a splash screen theme is used in the manifest, the tools should probably not use that one unless the user has explicely selected
+   * it. For "preferred theme" computation purposes, we try to find the post splash screen theme.
+   * See <a href="https://developer.android.com/reference/kotlin/androidx/core/splashscreen/SplashScreen">splash screen documentation.</a>
+   * @param configuration the configuration to use to resolve the post splash theme.
+   * @param themeStyle the default theme found in the manifest.
+   * @return the post activity splash screen if any or {@code themeStyle} otherwise.
+   */
+  @NotNull
+  private String findPostSplashTheme(@NotNull Configuration configuration, @NotNull String themeStyle) {
+    Logger log = Logger.getInstance(ConfigurationManager.class);
+    ResourceUrl themeUrl = ResourceUrl.parseStyleParentReference(themeStyle);
+    if (themeUrl == null) {
+      if (log.isDebugEnabled()) log.debug(String.format("Unable to parse theme %s", themeUrl));
+      return themeStyle;
+    }
+
+    ResourceNamespace namespace = ResourceNamespace.fromNamespacePrefix(
+      themeUrl.namespace, ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER
+    );
+    ResourceReference reference = themeUrl.resolve(
+      namespace != null ? namespace : ResourceNamespace.RES_AUTO,
+      ResourceNamespace.Resolver.EMPTY_RESOLVER
+    );
+    if (reference == null) {
+      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve reference for theme %s", themeUrl));
+      return themeStyle;
+    }
+
+    ResourceResolverCache resolverCache = getResolverCache();
+    ResourceResolver resourceResolver = resolverCache.getResourceResolver(configuration.getTarget(), themeUrl.toString(), configuration.getFullConfig());
+
+    StyleResourceValue theme = resourceResolver.getStyle(reference);
+    if (theme == null) {
+      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve theme %s", themeUrl));
+      return themeStyle;
+    }
+
+    StyleItemResourceValue value = resourceResolver.findItemInStyle(theme, postSplashAttrReference);
+    ResourceValue resolvedValue = resourceResolver.resolveResValue(value);
+
+    String postSplashTheme = resolvedValue != null ? resolvedValue.getResourceUrl().toString() : null;
+    String resolveTheme = Objects.requireNonNullElse(postSplashTheme, themeStyle);
+
+    if (log.isDebugEnabled()) log.debug(String.format("Post splash resolved=%s, original theme=%s", postSplashTheme, themeUrl));
+
+    return resolveTheme;
+  }
+
   /**
    * Try to get activity theme from manifest. If no theme is found, We fall back to the app theme. If that isn't found,
     * we use the default system theme.
@@ -331,6 +408,7 @@ public class ConfigurationManager implements Disposable {
   public String computePreferredTheme(@NotNull Configuration configuration) {
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
     String activityName = configuration.getActivity();
+    ThemeInfoProvider themeInfo = myConfigurationModule.getThemeInfoProvider();
     if (activityName != null) {
       String activityFqcn = activityName;
       if (activityName.startsWith(".")) {
@@ -338,21 +416,20 @@ public class ConfigurationManager implements Disposable {
         activityFqcn = packageName + activityName;
       }
 
-      String theme = ThemeUtils.getThemeNameForActivity(myModule, activityFqcn);
+      String theme = themeInfo.getThemeNameForActivity(activityFqcn);
       if (theme != null) {
-        return theme;
+        return findPostSplashTheme(configuration, theme);
       }
     }
 
     // Returns an app theme if possible
-    String appTheme = ThemeUtils.getAppThemeName(myModule);
-    if (appTheme != null) {
-      return appTheme;
-    }
-
-    // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
-    // theme is specified in the manifest).
-    return ThemeUtils.getDefaultTheme(myModule, configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice());
+    return findPostSplashTheme(configuration, Objects.requireNonNullElseGet(
+      themeInfo.getAppThemeName(),
+      () ->
+        // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
+        // theme is specified in the manifest).
+        themeInfo.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice())
+    ));
   }
 
   @NotNull
@@ -362,7 +439,12 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull
   public Project getProject() {
-    return myModule.getProject();
+    return myConfigurationModule.getProject();
+  }
+
+  @NotNull
+  public final ConfigurationModelModule getConfigModule() {
+    return myConfigurationModule;
   }
 
   @Override
@@ -407,14 +489,14 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull
   public ImmutableList<Locale> getLocalesInProject() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
+    ResourceRepositoryManager repositoryManager = myConfigurationModule.getResourceRepositoryManager();
     assert repositoryManager != null;
     return repositoryManager.getLocalesInProject();
   }
 
   @Nullable
   public IAndroidTarget getProjectTarget() {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     return platform != null ? platform.getTarget() : null;
   }
 
@@ -447,7 +529,7 @@ public class ConfigurationManager implements Disposable {
   /**
    * Returns the most recently used devices, in MRU order
    */
-  public List<Device> getRecentDevices() {
+  public List<Device> getRecentDevices(List<Device> avdDevices) {
     List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
     if (deviceIds.isEmpty()) {
       return Collections.emptyList();
@@ -458,6 +540,11 @@ public class ConfigurationManager implements Disposable {
     while (iterator.hasNext()) {
       String id = iterator.next();
       Device device = getDeviceById(id);
+      if (device == null) {
+        // Couldn't find device in the list of predefined devices. We should try the AVD list next.
+        device = getDeviceById(id, avdDevices);
+      }
+
       if (device != null) {
         devices.add(device);
       }
@@ -552,9 +639,9 @@ public class ConfigurationManager implements Disposable {
         // needlessly flush the bitmap cache for the project still using it, but that just
         // means the next render will need to fetch them again; from that point on both platform
         // bitmap sets are in memory.
-        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myModule);
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myConfigurationModule.getAndroidPlatform());
         if (targetData != null) {
-          targetData.clearLayoutBitmapCache(myModule);
+          targetData.clearLayoutBitmapCache(myConfigurationModule);
         }
       }
 
