@@ -354,7 +354,7 @@ public class IdeSdks {
 
       if (chosenJdk == null) {
         if (Files.isDirectory(canonicalPath)) {
-          chosenJdk = createJdk(canonicalPath);
+          chosenJdk = getOrCreateJdk(canonicalPath);
           if (chosenJdk == null) {
             // Unlikely to happen
             throw new IllegalStateException("Failed to create IDEA JDK from '" + path + "'");
@@ -773,7 +773,7 @@ public class IdeSdks {
       }
 
       if (checkForJdk(jdkPath.toPath())) {
-        Sdk jdk = createJdk(jdkPath.toPath()); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
+        Sdk jdk = getOrCreateJdk(jdkPath.toPath()); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
         if (isJdkCompatible(jdk, preferredVersion) ) {
           return jdk;
         }
@@ -868,7 +868,7 @@ public class IdeSdks {
    * {@code null} if it could not be created successfully.
    */
   @Nullable
-  private Sdk createJdk(@NotNull Path homeDirectory) {
+  private Sdk getOrCreateJdk(@NotNull Path homeDirectory) {
     ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
     for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
       if (FileUtil.pathsEqual(jdk.getHomePath(), homeDirectory.toString())) {
@@ -1210,7 +1210,7 @@ public class IdeSdks {
           // Check initialization again (another thread could have called this already when waiting for EDT)
           if (!myInitialized) {
             try {
-              @Nullable Sdk jdk = createJdk(finalEnvVariableJdkPath);
+              @Nullable Sdk jdk = getOrCreateJdk(finalEnvVariableJdkPath);
               if (jdk != null) {
                 setInitialization(value, FilePaths.stringToFile(finalEnvVariableJdkPath.toString()), jdk);
                 LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + value);
