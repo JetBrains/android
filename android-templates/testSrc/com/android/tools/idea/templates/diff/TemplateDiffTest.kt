@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.ProjectStateCustomizer
 import com.android.tools.idea.templates.TemplateStateCustomizer
-import com.android.tools.idea.templates.TemplateTest
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -29,7 +28,6 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import kotlin.system.measureTimeMillis
-import kotlin.test.assertFalse
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
 import org.junit.Assert.*
@@ -102,6 +100,20 @@ class TemplateDiffTest(private val testMode: TestMode) {
     StudioFlags.AGP_VERSION_TO_USE.clearOverride()
   }
 
+  enum class TestMode {
+    DIFFING,
+    VALIDATING,
+    GENERATING
+  }
+
+  private fun shouldUseGradle(): Boolean {
+    return when (testMode) {
+      TestMode.DIFFING -> false
+      TestMode.VALIDATING -> true
+      TestMode.GENERATING -> false
+    }
+  }
+
   /**
    * Checks the given template in the given category. Supports overridden template values.
    *
@@ -119,7 +131,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     AndroidTestBase.ensureSdkManagerAvailable(disposableRule.disposable)
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
-    val goldenDirName = name.replace(' ', '_')
+    val goldenDirName = findEnclosingTestMethodName()
 
     templateStateCustomizer.forEach { (parameterName: String, overrideValue: String) ->
       val p = template.parameters.find { it.name == parameterName }!! as StringParameter
@@ -145,43 +157,46 @@ class TemplateDiffTest(private val testMode: TestMode) {
       // Running once to make it as easy as possible.
       projectRenderer.renderProject(project, *customizers)
     }
-    println("Checked $name successfully in ${msToCheck}ms")
+    println("Checked $name ($goldenDirName) successfully in ${msToCheck}ms\n")
     validationFailed = false
   }
 
-  @MustBeDocumented
-  @Retention(AnnotationRetention.RUNTIME)
-  @Target(
-    AnnotationTarget.FUNCTION,
-    AnnotationTarget.PROPERTY_GETTER,
-    AnnotationTarget.PROPERTY_SETTER
-  )
-  annotation class TemplateCheck
+  /**
+   * Goes up the stack trace to find the closest @Test method that this was called from. This will
+   * be used as a unique identifier for the golden directory name
+   */
+  private fun findEnclosingTestMethodName(): String {
+    val stackTrace = Thread.currentThread().stackTrace
+    for (i in 2..stackTrace.size) {
+      val element = stackTrace[i]
 
-  // --- Activity templates ---
-  @TemplateCheck
+      val methodName = element.methodName
+      val clazz = Class.forName(element.className)
+      try {
+        val method = clazz.getDeclaredMethod(methodName)
+        if (method.getAnnotation(Test::class.java) != null) {
+          println("Using @Test method name: $methodName")
+          return methodName
+        }
+      } catch (_: NoSuchMethodException) {
+        // Kt methods with optional parameters don't seem to play well
+      }
+    }
+    throw RuntimeException("Must be called from a @Test")
+  }
+
+  /*
+   * Tests for individual templates go below here. Each test method should only test one template
+   * parameter combination, because the test method name is used as the directory name for the
+   * golden files.
+   */
   @Test
   fun testNewEmptyViewsActivity() {
     checkCreateTemplate("Empty Views Activity")
   }
 
-  @TemplateCheck
   @Test
   fun testNewBasicViewsActivity() {
     checkCreateTemplate("Basic Views Activity")
-  }
-
-  enum class TestMode {
-    DIFFING,
-    VALIDATING,
-    GENERATING
-  }
-
-  private fun shouldUseGradle(): Boolean {
-    return when (testMode) {
-      TestMode.DIFFING -> false
-      TestMode.VALIDATING -> true
-      TestMode.GENERATING -> false
-    }
   }
 }
