@@ -28,6 +28,7 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.ListCellRenderer
 
@@ -163,6 +164,14 @@ open class FakeJBPopup<T>(
   }
 
   override fun setCaption(title: String) {
+    TODO("Not yet implemented")
+  }
+
+  override fun setCaptionIcon(icon: Icon?) {
+    TODO("Not yet implemented")
+  }
+
+  override fun setCaptionIconPosition(left: Boolean) {
     TODO("Not yet implemented")
   }
 
