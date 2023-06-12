@@ -21,7 +21,6 @@ import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.intellij.diagnostic.DiagnosticBundle
 import com.android.build.attribution.WindowsDefenderCheckService
-import com.intellij.diagnostic.WindowsDefenderChecker
 import com.intellij.idea.ActionsBundle
 import com.intellij.openapi.application.invokeLater
 import com.intellij.ui.AnimatedIcon
@@ -82,6 +81,13 @@ class WindowsDefenderWarningPage(
     warningSuppressedMessage.isVisible = true
   }
 
+  val manualInstructionsLink = BrowserLink(
+    "Manually configure active-scanning",
+    WindowsDefenderCheckService.manualInstructionsLink
+  ).apply {
+    addActionListener { pageHandler.trackShowingManualInstructions() }
+  }
+
   init {
     autoExcludeLink.isVisible = data.canRunExclusionScript
     warningSuppressedMessage.isVisible = false
@@ -91,8 +97,7 @@ class WindowsDefenderWarningPage(
     add(JLabel(" ")) // Add an empty line spacing before controls.
     add(autoExcludeLink)
     add(autoExcludeStatus)
-    // If we ended up creating this page then accessing WindowsDefenderChecker for the constant link can be considered safe.
-    add(BrowserLink("Manually configure active-scanning", WindowsDefenderChecker.getInstance().configurationInstructionsUrl))
+    add(manualInstructionsLink)
     add(suppressWarningLink)
     add(warningSuppressedMessage)
   }

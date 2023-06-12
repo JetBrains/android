@@ -23,7 +23,7 @@ class WindowsDefenderCheckerWrapper(private val checker: WindowsDefenderChecker)
     get() = checker.isRealTimeProtectionEnabled
   fun canRunScript(): Boolean = checker.canRunScript()
   fun isStatusCheckIgnored(project: Project): Boolean = checker.isStatusCheckIgnored(project)
-  fun ignoreStatusCheck(project: Project, ignore: Boolean) = checker.ignoreStatusCheck(project, ignore)
+  fun ignoreStatusCheck(project: Project?, ignore: Boolean) = checker.ignoreStatusCheck(project, ignore)
   fun excludeProjectPaths(paths: List<Path>): Boolean = checker.excludeProjectPaths(paths)
   fun getImportantPaths(project: Project): List<Path> = checker.getImportantPaths(project)
 }

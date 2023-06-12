@@ -304,12 +304,26 @@ class BuildAnalyzerViewController(
     }
   }
 
-  override fun windowsDefenderPageHandler(): WindowsDefenderPageHandler = WindowsDefenderCheckService.getInstance(project)
+  override fun windowsDefenderPageHandler(): WindowsDefenderPageHandler = WindowsDefenderPageHandlerImpl(WindowsDefenderCheckService.getInstance(project))
 
   private fun runAndMeasureDuration(action: () -> Unit): Duration {
     val watch = Stopwatch.createStarted()
     action()
     return watch.elapsed()
+  }
+}
+
+class WindowsDefenderPageHandlerImpl(val service: WindowsDefenderCheckService) : WindowsDefenderPageHandler {
+  override fun runAutoExclusionScript(callback: (Boolean) -> Unit) {
+    service.runAutoExclusionScript(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_WARNING_PAGE, callback)
+  }
+
+  override fun ignoreCheckForProject() {
+    service.ignoreCheckForProject(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_WARNING_PAGE) {}
+  }
+
+  override fun trackShowingManualInstructions() {
+    service.trackShowingManualInstructions(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_WARNING_PAGE)
   }
 }
 

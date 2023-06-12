@@ -19,7 +19,10 @@ import com.android.testutils.MockitoKt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.diagnostic.WindowsDefenderCheckerWrapper
+import com.intellij.notification.Notification
+import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionManager
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -28,6 +31,19 @@ class WindowsDefenderCheckServiceTest {
 
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
+
+  var notificationCounter = 0
+
+  @Before
+  fun setup() {
+    projectRule.project.messageBus.connect(projectRule.testRootDisposable).subscribe(Notifications.TOPIC, object : Notifications {
+      override fun notify(notification: Notification) {
+        if (notification.groupId == "WindowsDefender") {
+          notificationCounter++
+        }
+      }
+    })
+  }
 
   @Test
   fun testServiceCreatedWithoutCheckOnProjectOpen() {
@@ -49,6 +65,7 @@ class WindowsDefenderCheckServiceTest {
   }
 
   private fun testServiceCreatedAndStatusCheckRun(checkIgnored: Boolean, protectionStatus: Boolean?, expectedWarningShown: Boolean) {
+    notificationCounter = 0
     val checkerWrapperMock = Mockito.mock(WindowsDefenderCheckerWrapper::class.java)
     Mockito.`when`(checkerWrapperMock.isStatusCheckIgnored(MockitoKt.any())).thenReturn(checkIgnored)
     Mockito.`when`(checkerWrapperMock.isRealTimeProtectionEnabled).thenReturn(protectionStatus)
@@ -57,6 +74,7 @@ class WindowsDefenderCheckServiceTest {
     service.checkRealTimeProtectionStatus()
 
     Truth.assertThat(service.warningData.shouldShowWarning).isEqualTo(expectedWarningShown)
+    Truth.assertThat(notificationCounter).isEqualTo(if (expectedWarningShown) 1 else 0)
   }
 
   @Test
