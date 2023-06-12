@@ -71,6 +71,11 @@ class SwitchSurfaceLayoutManagerAction(
 
     override fun isSelected(e: AnActionEvent): Boolean =
       layoutManagerSwitcher.isLayoutManagerSelected(option.layoutManager)
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.isEnabled = isActionEnabled(e)
+    }
   }
 
   init {

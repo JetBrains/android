@@ -30,6 +30,7 @@ import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorActi
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
+import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
@@ -72,7 +73,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
             layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
             layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
           ) {
-            !isAnyPreviewRefreshing(it.dataContext)
+            !isAnyPreviewRefreshing(it.dataContext) &&
+              !ComposePreviewLiteModeManager.isLiteModeEnabled
           }
           .visibleOnlyInComposeStaticPreview(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
