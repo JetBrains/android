@@ -11,7 +11,8 @@
     <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" scope="TEST">
-      <library>
+      <library name="precompiled-android-annotations" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.android-annotations:223.0.1.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.android-annotations/223.0.1.0/studio.android.sdktools.android-annotations-223.0.1.0.jar!/" />
         </CLASSES>
@@ -20,7 +21,8 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library" scope="TEST">
-      <library>
+      <library name="precompiled-common" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common:223.0.1.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common/223.0.1.0/studio.android.sdktools.common-223.0.1.0.jar!/" />
         </CLASSES>
