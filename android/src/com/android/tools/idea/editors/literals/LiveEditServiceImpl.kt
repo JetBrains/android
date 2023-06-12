@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
+import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
@@ -242,11 +243,13 @@ class LiveEditServiceImpl(val project: Project,
     if (profilerSetting != null && profilerSetting.profilingMode !== ProfilingMode.DEBUGGABLE) {
       return false
     }
-    if (runProfile !is AndroidRunConfigurationBase) {
-      return false
+    if (runProfile is AndroidRunConfigurationBase) {
+      val module: Module = runProfile.configurationModule.module ?: return false
+      val facet = AndroidFacet.getInstance(module)
+      return facet != null && LaunchUtils.canDebugApp(facet)
     }
-    val module: Module = runProfile.configurationModule.module ?: return false
-    val facet = AndroidFacet.getInstance(module)
-    return facet != null && LaunchUtils.canDebugApp(facet)
+    // TODO(b/286911223): Check if its possible to retrieve AndroidFacet from BlazeCommandRunConfiguration instance of RunProfile and if LaunchUtils.canDebugApp may be run on it
+    // Check for DeployableToDevice interface to allow BlazeCommandRunConfiguration based run profiles
+    return runProfile is DeployableToDevice
   }
 }
