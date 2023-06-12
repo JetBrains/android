@@ -295,7 +295,7 @@ public class BuildVariantView {
       return true;
     }
 
-    private void updateLoadingStatus(boolean loading) {
+    void updateLoadingStatus(boolean loading) {
       myLoading = loading;
       setPaintBusy(myLoading);
       String text = myLoading ? "Loading..." : "Nothing to Show";
@@ -625,6 +625,11 @@ public class BuildVariantView {
     @Override
     public void syncSkipped(@NotNull Project project) {
       BuildVariantView.getInstance(project).projectImportFinished();
+    }
+
+    @Override
+    public void syncCancelled(@NotNull Project project, @SystemIndependent String rootProjectPath) {
+      BuildVariantView.getInstance(project).getVariantsTable().updateLoadingStatus(false);
     }
   }
 }
