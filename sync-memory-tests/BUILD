@@ -19,11 +19,9 @@ iml_module(
         },
         "Benchmark500Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
-            "exec_properties": LARGE_MACHINE,
         },
         "Benchmark1000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
-            "exec_properties": LARGE_MACHINE,
         },
         "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
@@ -42,7 +40,6 @@ iml_module(
         },
         "Benchmark1000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
-            "exec_properties": LARGE_MACHINE,
         },
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
