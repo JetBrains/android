@@ -31,7 +31,9 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.toImageType
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
@@ -90,7 +92,7 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
+  fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() = runWithEmbeddedLayoutInspector(false) {
     val toolbar = createToolbar()
     val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
@@ -101,7 +103,7 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() {
+  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() = runWithEmbeddedLayoutInspector(false) {
     val clientSettings = InspectorClientSettings(androidProjectRule.project)
     clientSettings.isCapturingModeOn = false
 
@@ -117,7 +119,7 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testLiveControlEnabledAndSetByDefaultWhenConnected() {
+  fun testLiveControlEnabledAndSetByDefaultWhenConnected() = runWithEmbeddedLayoutInspector(false) {
     installCommandHandlers()
     latch = CountDownLatch(1)
     connect(MODERN_PROCESS)
@@ -131,12 +133,12 @@ class LayoutInspectorMainToolbarTest {
     assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
-    assertThat(commands).hasSize(2)
-    assertThat(commands[1].hasStartFetchCommand()).isTrue()
+    assertThat(commands).hasSize(1)
+    assertThat(commands[0].hasStartFetchCommand()).isTrue()
   }
 
   @Test
-  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() {
+  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() = runWithEmbeddedLayoutInspector(false) {
     val clientSettings = InspectorClientSettings(androidProjectRule.project)
     clientSettings.isCapturingModeOn = false
 
@@ -153,12 +155,12 @@ class LayoutInspectorMainToolbarTest {
     assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
-    assertThat(commands).hasSize(2)
+    assertThat(commands).hasSize(1)
     assertThat(commands[0].startFetchCommand.continuous).isFalse()
   }
 
   @Test
-  fun testTurnOnSnapshotModeWhenDisconnected() {
+  fun testTurnOnSnapshotModeWhenDisconnected() = runWithEmbeddedLayoutInspector(false) {
     installCommandHandlers()
 
     val clientSettings = InspectorClientSettings(androidProjectRule.project)
@@ -186,7 +188,7 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testTurnOnLiveModeWhenDisconnected() {
+  fun testTurnOnLiveModeWhenDisconnected() = runWithEmbeddedLayoutInspector(false) {
     installCommandHandlers()
     val clientSettings = InspectorClientSettings(androidProjectRule.project)
     clientSettings.isCapturingModeOn = false
@@ -212,7 +214,7 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testTurnOnSnapshotMode() {
+  fun testTurnOnSnapshotMode() = runWithEmbeddedLayoutInspector(false) {
     latch = CountDownLatch(1)
     installCommandHandlers()
 
@@ -234,8 +236,8 @@ class LayoutInspectorMainToolbarTest {
       "impact runtime performance.")
 
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).hasSize(4)
-    assertThat(commands[1].hasStartFetchCommand()).isTrue()
+    assertThat(commands).hasSize(3)
+    assertThat(commands[0].hasStartFetchCommand()).isTrue()
     // stop and update screenshot type can come in either order
     assertThat(commands.find { it.hasStopFetchCommand() }).isNotNull()
     assertThat(commands.find { it.hasUpdateScreenshotTypeCommand() }).isNotNull()
@@ -243,7 +245,7 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testTurnOnLiveMode() {
+  fun testTurnOnLiveMode() = runWithEmbeddedLayoutInspector(false) {
     latch = CountDownLatch(1)
     installCommandHandlers()
 
@@ -270,9 +272,9 @@ class LayoutInspectorMainToolbarTest {
       " impact runtime performance.")
 
     assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).hasSize(3)
-    assertThat(commands[1].startFetchCommand.continuous).isFalse()
-    assertThat(commands[2].startFetchCommand.continuous).isTrue()
+    assertThat(commands).hasSize(2)
+    assertThat(commands[0].startFetchCommand.continuous).isFalse()
+    assertThat(commands[1].startFetchCommand.continuous).isTrue()
 
     assertThat(stats.currentModeIsLive).isTrue()
   }
@@ -304,6 +306,19 @@ class LayoutInspectorMainToolbarTest {
     val presentationEnabled = getPresentation(slider)
     assertThat(presentationEnabled.isEnabled).isTrue()
     assertThat(presentationEnabled.isVisible).isTrue()
+  }
+
+  @Test
+  fun testLiveUpdatesAndRefreshActionsAreMissingFromEmbeddedLayoutInspector() = runWithEmbeddedLayoutInspector(true) {
+    val toolbar = createToolbar()
+
+    val liveUpdatesAction = toolbar.component.components.find {
+      it is ActionButton && it.action is ToggleLiveUpdatesAction
+    } as? ActionButton
+    val refreshAction = toolbar.component.components.find { it is ActionButton && it.action is RefreshAction } as? ActionButton
+
+    assertThat(liveUpdatesAction).isNull()
+    assertThat(refreshAction).isNull()
   }
 
   // Used by all tests that install command handlers
@@ -356,5 +371,12 @@ class LayoutInspectorMainToolbarTest {
     )
     action.update(event)
     return presentation
+  }
+
+  private fun runWithEmbeddedLayoutInspector(value: Boolean, block: () -> Unit) {
+    val previousValue = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = value
+    block()
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = previousValue
   }
 }

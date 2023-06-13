@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar
 
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.AlphaSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
@@ -75,7 +76,7 @@ private class LayoutInspectorActionGroup(
       add(SnapshotAction)
     }
     add(AlphaSliderAction { layoutInspector.renderModel })
-    if (!layoutInspector.isSnapshot) {
+    if (!layoutInspector.isSnapshot && !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
       add(Separator.getInstance())
       add(ToggleLiveUpdatesAction(layoutInspector))
       add(RefreshAction)
