@@ -351,17 +351,17 @@ class FastPreviewManager private constructor(
                              tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> = compilingMutex.withLock {
     val startTime = System.currentTimeMillis()
     val requestId = createCompileRequestId(files, module)
-    val (isRunning: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
-      var isRunning = true
+    val (existingRequest: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
+      var existingRequest = true
       val request = requestTracker.get(requestId) {
         log.debug("New request with id=$requestId")
-        isRunning = false
+        existingRequest = false
         CompletableDeferred()
       }
-      isRunning to request
+      existingRequest to request
     }
     // If the request is already running, we wait for the result of that one instead.
-    if (isRunning) {
+    if (existingRequest) {
       log.debug("Waiting for request id=$requestId")
       return@withLock pendingRequest.await()
     }
@@ -451,7 +451,7 @@ class FastPreviewManager private constructor(
           requestTracker.invalidate(requestId)
         }
         pendingRequest.complete(it)
-    }
+      }
       try {
         project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onCompilationComplete(result, files)
         if (result == CompilationResult.Success) {

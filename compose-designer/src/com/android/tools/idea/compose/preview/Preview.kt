@@ -885,14 +885,16 @@ class ComposePreviewRepresentation(
         )
         // Flow handling switch to smart mode.
         smartModeFlow(project, this@ComposePreviewRepresentation, log).collectLatest {
+          val projectBuildStatus = projectBuildStatusManager.status
           log.debug(
-            "smartModeFlow, status change status=${projectBuildStatusManager.status}, dumbMode=${DumbService.isDumb(project)}"
+            "smartModeFlow, status change status=${projectBuildStatus}, dumbMode=${DumbService.isDumb(project)}"
           )
-          when (projectBuildStatusManager.status) {
+          when (projectBuildStatus) {
             // Do not refresh if we still need to build the project. Instead, only update the
             // empty panel and editor notifications if needed.
             ProjectStatus.NotReady,
-            ProjectStatus.NeedsBuild -> requestVisibilityAndNotificationsUpdate()
+            ProjectStatus.NeedsBuild,
+            ProjectStatus.Building -> requestVisibilityAndNotificationsUpdate()
             else -> requestRefresh()
           }
         }
@@ -1071,10 +1073,11 @@ class ComposePreviewRepresentation(
     AtomicReference(null)
 
   override fun status(): ComposePreviewManager.Status {
+    val projectBuildStatus = projectBuildStatusManager.status
     val isRefreshing =
       (refreshManager.isRefreshingFlow.value ||
         DumbService.isDumb(project) ||
-        projectBuildStatusManager.isBuilding)
+        projectBuildStatus == ProjectStatus.Building)
 
     // If we are refreshing, we avoid spending time checking other conditions like errors or if the
     // preview
@@ -1084,11 +1087,10 @@ class ComposePreviewRepresentation(
         !isRefreshing && hasErrorsAndNeedsBuild(),
         !isRefreshing && hasSyntaxErrors(),
         !isRefreshing &&
-          (projectBuildStatusManager.status is ProjectStatus.OutOfDate ||
-            projectBuildStatusManager.status is ProjectStatus.NeedsBuild),
+          (projectBuildStatus is ProjectStatus.OutOfDate ||
+            projectBuildStatus is ProjectStatus.NeedsBuild),
         !isRefreshing &&
-          (projectBuildStatusManager.status as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate
-            ?: false,
+          (projectBuildStatus as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing,
         interactiveModeFlow.value,
       )

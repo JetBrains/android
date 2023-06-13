@@ -358,23 +358,24 @@ internal class ComposePreviewViewImpl(
 
     workbench.init(issueErrorSplitter, mainSurface, listOf(), false)
     workbench.hideContent()
-    if (projectBuildStatusManager.status == ProjectStatus.NeedsBuild) {
-      if (psiFilePointer.virtualFile.fileSystem.isReadOnly) {
-        log.debug("Preview not supported in read-only files")
-        showModalErrorMessage(message("panel.read.only.file"))
-      } else {
-        log.debug("Project needs build")
-        showNeedsToBuildErrorPanel()
-      }
-    } else {
-      val message =
-        when {
-          projectBuildStatusManager.isBuilding -> message("panel.building")
-          DumbService.getInstance(project).isDumb -> message("panel.indexing")
-          else -> message("panel.initializing")
+    val projectStatus = projectBuildStatusManager.statusFlow.value
+    log.debug("ProjectStatus: $projectStatus")
+    when (projectStatus) {
+      ProjectStatus.NeedsBuild -> {
+        if (psiFilePointer.virtualFile.fileSystem.isReadOnly) {
+          log.debug("Preview not supported in read-only files")
+          showModalErrorMessage(message("panel.read.only.file"))
+        } else {
+          log.debug("Project needs build")
+          showNeedsToBuildErrorPanel()
         }
-      log.debug("Show loading: $message")
-      workbench.showLoading(message)
+      }
+      ProjectStatus.Building -> workbench.showLoading(message("panel.building"))
+      ProjectStatus.NotReady -> workbench.showLoading(message("panel.initializing"))
+      else -> {
+        if (DumbService.getInstance(project).isDumb())
+          workbench.showLoading(message("panel.indexing"))
+      }
     }
     workbench.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     workbench.isFocusCycleRoot = true

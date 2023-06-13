@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.fastPreviewCompileFlow
 import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -42,8 +43,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 
 /**
@@ -57,6 +61,9 @@ private enum class ProjectBuildStatus {
   /** The project has not been built */
   NeedsBuild,
 
+  /** The project is currently building */
+  Building,
+
   /** The project is compiled and up to date */
   Built
 }
@@ -65,6 +72,8 @@ private enum class ProjectBuildStatus {
 sealed class ProjectStatus {
   /** The project is indexing or not synced yet */
   object NotReady : ProjectStatus()
+
+  object Building : ProjectStatus()
 
   /** The project needs to be built */
   object NeedsBuild : ProjectStatus()
@@ -173,7 +182,11 @@ private class ProjectBuildStatusManagerImpl(
         LOG.debug("buildStarted $mode, buildCount = $buildCount")
         outOfDateFilesBeforeBuild.addAll(psiCodeFileChangeDetector.outOfDateFiles)
         if (mode == ProjectSystemBuildManager.BuildMode.CLEAN) {
+          // For a clean build, we know the project will need a build
           projectBuildStatusFlow.value = ProjectBuildStatus.NeedsBuild
+        }
+        else {
+          projectBuildStatusFlow.value = ProjectBuildStatus.Building
         }
       }
 
@@ -219,27 +232,27 @@ private class ProjectBuildStatusManagerImpl(
 
   init {
     scope.launch {
-      PsiCodeFileChangeDetectorService.getInstance(project)
-        .fileUpdatesFlow
-        .combine(projectBuildStatusFlow) { outOfDateFiles, projectBuildStatus ->
-          outOfDateFiles to projectBuildStatus
+      combine(
+        PsiCodeFileChangeDetectorService.getInstance(project).fileUpdatesFlow,
+        projectBuildStatusFlow,
+        areResourcesOutOfDateFlow,
+        fastPreviewCompileFlow(project, parentDisposable)
+      ) { outOfDateFiles, currentProjectBuildStatus, areResourcesOutOfDate, isFastPreviewCompiling ->
+        val isCodeOutOfDate = outOfDateFiles.isNotEmpty()
+        when {
+          currentProjectBuildStatus == ProjectBuildStatus.NotReady -> ProjectStatus.NotReady
+          currentProjectBuildStatus == ProjectBuildStatus.Building || isFastPreviewCompiling -> ProjectStatus.Building
+          currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild -> ProjectStatus.NeedsBuild
+          isCodeOutOfDate || areResourcesOutOfDate ->
+            if (isCodeOutOfDate) {
+              if (areResourcesOutOfDate) ProjectStatus.OutOfDate.CodeAndResources
+              else ProjectStatus.OutOfDate.Code
+            } else ProjectStatus.OutOfDate.Resources
+          else -> ProjectStatus.Ready
         }
-        .combine(areResourcesOutOfDateFlow) {
-          (outOfDateFiles, currentProjectBuildStatus),
-          areResourcesOutOfDate ->
-          val isCodeOutOfDate = outOfDateFiles.isNotEmpty()
-          when {
-            currentProjectBuildStatus == ProjectBuildStatus.NotReady -> ProjectStatus.NotReady
-            currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild -> ProjectStatus.NeedsBuild
-            isCodeOutOfDate || areResourcesOutOfDate ->
-              if (isCodeOutOfDate) {
-                if (areResourcesOutOfDate) ProjectStatus.OutOfDate.CodeAndResources
-                else ProjectStatus.OutOfDate.Code
-              } else ProjectStatus.OutOfDate.Resources
-            else -> ProjectStatus.Ready
-          }.also { LOG.debug("status $it") }
-        }
-        .collectLatest {
+      }
+        .distinctUntilChanged()
+        .collect {
           LOG.debug("New status $it ${this@ProjectBuildStatusManagerImpl} ")
           statusFlow.value = it
         }
@@ -300,7 +313,7 @@ private class ProjectBuildStatusManagerImpl(
           }
 
           // Once the initial state has been set, call the onReady callback
-          onReady(status)
+          onReady(statusFlow.value)
         }
       }
     )
