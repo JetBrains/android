@@ -15,18 +15,25 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
 import com.android.tools.idea.layoutinspector.runningdevices.TabId
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.settings.STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
+import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
+import javax.swing.JComponent
 
 /**
  * Action used to turn Layout Inspector on and off in Running Devices tool window.
  */
-class ToggleLayoutInspectorAction : ToggleAction() {
+class ToggleLayoutInspectorAction : ToggleAction(), TooltipDescriptionProvider, TooltipLinkProvider {
   override fun isSelected(e: AnActionEvent): Boolean {
     val project = e.project ?: return false
     val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(e.dataContext) ?: return false
@@ -48,5 +55,29 @@ class ToggleLayoutInspectorAction : ToggleAction() {
 
     val project = e.project ?: return
     RunningDevicesStateObserver.getInstance(project).update(isEnabled)
+
+    val displayView = DISPLAY_VIEW_KEY.getData(e.dataContext)
+    val apiLevel = displayView?.apiLevel
+    if (apiLevel == null) {
+      e.presentation.isEnabled = false
+    }
+    else if (apiLevel < 29) {
+      // We decided to always have Live Updates ON in Embedded Layout Inspector.
+      // Live updates requires API 29+.
+      // TODO(b/285889090): provide a better experience for devices with API lower than 29.
+      e.presentation.isEnabled = false
+      e.presentation.description = LayoutInspectorBundle.message("api.29.limit")
+    }
+    else {
+      e.presentation.isEnabled = true
+      e.presentation.description = ""
+    }
+  }
+
+  @Suppress("DialogTitleCapitalization")
+  override fun getTooltipLink(owner: JComponent?): TooltipLinkProvider.TooltipLink {
+    return TooltipLinkProvider.TooltipLink(LayoutInspectorBundle.message("learn.more")) {
+      BrowserUtil.browse(STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL)
+    }
   }
 }

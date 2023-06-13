@@ -43,6 +43,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.spy
 import javax.swing.JPanel
 
 @RunsInEdt
@@ -73,7 +74,7 @@ class ToggleLayoutInspectorActionTest {
       displayViewRule.disposable
     )
 
-    displayView = displayViewRule.newEmulatorView()
+    displayView = spy(displayViewRule.newEmulatorView())
 
     // replace CustomActionsSchema with mocked one
     val mockCustomActionSchema = mock<CustomActionsSchema>()
@@ -99,6 +100,24 @@ class ToggleLayoutInspectorActionTest {
 
     assertThat(fakeLayoutInspectorManager.toggleLayoutInspectorInvocations).isEqualTo(2)
     assertThat(fakeLayoutInspectorManager.isEnabled).isFalse()
+  }
+
+  @Test
+  fun testActionIsDisabledOnApiLowerThan29() {
+    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
+    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
+
+    whenever(displayView.apiLevel).thenAnswer { 28 }
+
+    toggleLayoutInspectorAction.update(fakeActionEvent)
+
+    assertThat(fakeActionEvent.presentation.isEnabled).isFalse()
+
+    whenever(displayView.apiLevel).thenAnswer { 29 }
+
+    toggleLayoutInspectorAction.update(fakeActionEvent)
+
+    assertThat(fakeActionEvent.presentation.isEnabled).isTrue()
   }
 
   private fun AnAction.getFakeActionEvent(): AnActionEvent {
