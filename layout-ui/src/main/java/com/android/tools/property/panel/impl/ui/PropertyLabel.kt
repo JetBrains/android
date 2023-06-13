@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.ErrorBorderCapable
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
+import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.plaf.UIResource
 
@@ -44,6 +45,19 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
       // Allow expansion when the user is hovering over this label:
       model.tableExpansionState != TableExpansionState.NORMAL || width < preferredSize.width
     }
+  }
+
+  override fun getToolTipText(event: MouseEvent): String? {
+    // Trick: Use the component from the event.source for tooltip in tables. See
+    // TableEditor.getToolTip().
+    val component = event.source as? JComponent ?: this
+    return PropertyTooltip.setToolTip(
+      component,
+      event,
+      model.property,
+      forValue = true,
+      text = model.property.value.orEmpty()
+    )
   }
 
   private fun updateFromModel() {
