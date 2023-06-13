@@ -32,6 +32,7 @@ import com.intellij.openapi.progress.ProgressManager
 import java.nio.file.Files
 import java.nio.file.Paths
 
+typealias ApiLevel = Int
 typealias MinApiLevel = Int
 typealias ClassName = String
 typealias ByteCode = ByteArray

@@ -16,13 +16,14 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.badMinAPIError
+import com.android.tools.idea.run.deployment.liveedit.desugaring.ApiLevel
 import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.android.tools.r8.ExtractMarker
 import com.android.tools.r8.ExtractMarkerCommand
 import java.nio.file.Path
 
 // We store here all information we need when an app is deployed to a device.
-class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiLevel) {
+class LiveEditApp(private val apks: Set<Path>, private val deviceAPILevel: ApiLevel) {
 
   val minAPI : MinApiLevel by lazy(LazyThreadSafetyMode.NONE) { calculateMinAPI(apks) }
   private val logger = LiveEditLogger("LE App")
@@ -46,8 +47,8 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceMinAPI: MinApiL
     }
 
     if (minApis.isEmpty()) {
-      logger.log("APks $apks did not contain R8 markers (not desugared?). Falling back to api=$deviceMinAPI")
-      minApis.add(deviceMinAPI)
+      logger.log("APks $apks did not contain R8 markers (not desugared?). Falling back to device api=$deviceAPILevel")
+      minApis.add(deviceAPILevel)
     }
 
     val duration = (System.nanoTime() - start) / 1_000_000
