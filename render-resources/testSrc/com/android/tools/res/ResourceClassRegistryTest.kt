@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceRepository
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.res.ResourceRepositoryManager
-import com.android.tools.res.ids.ResourceIdManager
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader
+import com.android.tools.res.ids.ResourceIdManagerBase
+import com.android.tools.res.ids.ResourceIdManagerModelModule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.extensions.ExtensionPoint
+import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.Disposer
+import org.junit.After
+import org.junit.Assert
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.JUnit4
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.withSettings
-import java.util.HexFormat
-import kotlin.test.assertFailsWith
+import java.nio.ByteBuffer
 import kotlin.time.Duration.Companion.days
 
 private const val PKG_1 = "come.on.fhqwhgads"
@@ -43,23 +44,32 @@ private const val PKG_2 = "everybody.to.the.limit"
 private val String.namespace : ResourceNamespace
   get() = ResourceNamespace.fromPackageName(this)
 
-@RunWith(JUnit4::class)
 class ResourceClassRegistryTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
 
   private val registry = ResourceClassRegistry(1.days) // Not testing the TimeoutCachedValue
-  private val fixture by lazy { projectRule.fixture }
-  private val idManager by lazy { ResourceIdManager.get(fixture.module) }
+  private val disposable = Disposer.newDisposable()
+  private val module = object : ResourceIdManagerModelModule {
+    override val isAppOrFeature: Boolean = true
+    override val namespacing: ResourceNamespacing = ResourceNamespacing.REQUIRED
+  }
+  private val idManager by lazy { ResourceIdManagerBase(module) }
   private val manager: ResourceRepositoryManager = mock()
   private val repository: ResourceRepository = mock()
   private val disposableRepository: ResourceRepository = mock(withSettings().extraInterfaces(Disposable::class.java))
 
   @Before
   fun setUp() {
-    Disposer.register(projectRule.testRootDisposable, disposableRepository as Disposable)
+    MockApplication(disposable)
+    Extensions.getRootArea().registerExtensionPoint(LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.name, LayoutLibraryLoader.LayoutLibraryProvider::class.java.name, ExtensionPoint.Kind.INTERFACE)
+
+    Disposer.register(disposable, disposableRepository as Disposable)
     whenever(manager.getAppResourcesForNamespace(eq(PKG_1.namespace))).thenReturn(listOf(repository, disposableRepository))
     whenever(manager.getAppResourcesForNamespace(eq(PKG_2.namespace))).thenReturn(listOf(repository, disposableRepository))
+  }
+
+  @After
+  fun tearDown() {
+    Disposer.dispose(disposable)
   }
 
   @Test
@@ -100,7 +110,7 @@ class ResourceClassRegistryTest {
     registry.addLibrary(repository, idManager, PKG_1, PKG_1.namespace)
     registry.addLibrary(disposableRepository, idManager, PKG_1, PKG_1.namespace)
 
-    assertFailsWith<NoClassDefFoundError> {
+    Assert.assertThrows(NoClassDefFoundError::class.java) {
       registry.findClassDefinition("$PKG_1.R\$string", manager)
     }
   }
@@ -126,8 +136,8 @@ class ResourceClassRegistryTest {
   fun findClassDefinition() {
     registry.addLibrary(repository, idManager, PKG_1, PKG_1.namespace)
 
-    var bytes = registry.findClassDefinition("$PKG_1.R", manager)
-    assertThat(HexFormat.of().formatHex(bytes)).startsWith("cafebabe")
+    val bytes = registry.findClassDefinition("$PKG_1.R", manager)
+    assertThat(Integer.toHexString(ByteBuffer.wrap(bytes).int)).startsWith("cafebabe")
   }
 
   @Test
