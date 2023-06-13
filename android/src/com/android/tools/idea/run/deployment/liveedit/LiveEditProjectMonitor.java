@@ -555,10 +555,9 @@ public class LiveEditProjectMonitor implements Disposable {
       case REMOVED_INTERFACE:
         return LiveEditEvent.Status.UNSUPPORTED_MODIFY_INHERITANCE;
       case UNSUPPORTED_COMPOSE_VERSION:
-        // TODO: Add new event.
-        return LiveEditEvent.Status.UNKNOWN;
+        return LiveEditEvent.Status.UNSUPPORTED_COMPOSE_RUNTIME_VERSION;
       default:
-        return LiveEditEvent.Status.UNKNOWN;
+        return LiveEditEvent.Status.UNKNOWN_LIVE_UPDATE_DEPLOYER_ERROR;
     }
   }
 
