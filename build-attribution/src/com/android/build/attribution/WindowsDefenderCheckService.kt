@@ -16,6 +16,7 @@
 package com.android.build.attribution
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
@@ -237,6 +238,9 @@ class WindowsDefenderCheckService(
 class StudioWindowsDefenderCheckerActivity : ProjectActivity {
   init {
     if (ApplicationManager.getApplication().isUnitTestMode) {
+      throw ExtensionNotApplicableException.create()
+    }
+    if (!IdeInfo.getInstance().isAndroidStudio) {
       throw ExtensionNotApplicableException.create()
     }
   }
