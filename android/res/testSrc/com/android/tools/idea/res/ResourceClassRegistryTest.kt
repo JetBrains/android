@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceIdManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
@@ -50,7 +51,7 @@ class ResourceClassRegistryTest {
   private val registry = ResourceClassRegistry(1.days) // Not testing the TimeoutCachedValue
   private val fixture by lazy { projectRule.fixture }
   private val idManager by lazy { ResourceIdManager.get(fixture.module) }
-  private val manager: StudioResourceRepositoryManager = mock()
+  private val manager: ResourceRepositoryManager = mock()
   private val repository: ResourceRepository = mock()
   private val disposableRepository: ResourceRepository = mock(withSettings().extraInterfaces(Disposable::class.java))
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceRepository
+import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.res.ids.ResourceClassGenerator
 import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.Disposable
@@ -65,7 +66,7 @@ class ResourceClassRegistry @TestOnly constructor(private val packageTimeout: Du
   }
 
   /** Looks up a class definition for the given name, if possible  */
-  fun findClassDefinition(className: String, repositoryManager: StudioResourceRepositoryManager): ByteArray? {
+  fun findClassDefinition(className: String, repositoryManager: ResourceRepositoryManager): ByteArray? {
     if (!className.isRClassName()) return null
     val pkg = className.substringBeforeLast(".", "")
     if (pkg in packages.get()) {
