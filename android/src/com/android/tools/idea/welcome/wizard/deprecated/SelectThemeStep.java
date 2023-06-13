@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.intellij.ide.customize.CustomizeUIThemeStepPanel;
+import com.android.tools.idea.welcome.wizard.CustomizeUIThemeStepPanel;
 import com.intellij.ide.ui.laf.darcula.DarculaInstaller;
 import com.intellij.util.ui.StartupUiUtil;
 import javax.swing.JComponent;
