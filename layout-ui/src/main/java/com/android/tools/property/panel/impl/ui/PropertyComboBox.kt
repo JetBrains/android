@@ -340,13 +340,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
     // Trick: Use the component from the event.source for tooltip in tables. See
     // TableEditor.getToolTip().
     val component = event.source as? JComponent ?: textField
-    return PropertyTooltip.setToolTip(
-      component,
-      event,
-      model.property,
-      forValue = true,
-      text = textField.text
-    )
+    PropertyTooltip.setToolTip(component, model.property, forValue = true, text = textField.text)
+    return null
   }
 
   override fun getData(dataId: String): Any? {

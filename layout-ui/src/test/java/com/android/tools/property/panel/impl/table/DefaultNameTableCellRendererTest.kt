@@ -20,54 +20,23 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
-import com.android.tools.property.panel.impl.ui.PropertyTooltip
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.item.PTableTestModel
 import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.IdeTooltipManager
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.util.IconLoader
-import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.replaceService
 import icons.StudioIcons
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.SwingUtilities
-import org.junit.After
-import org.junit.Before
-import org.junit.ClassRule
-import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+
+private const val TOOLTIP_PROPERTY = "JComponent.helpTooltip"
 
 class DefaultNameTableCellRendererTest {
-
-  companion object {
-    @JvmField @ClassRule val rule = ApplicationRule()
-  }
-
-  @get:Rule val disposableRule = DisposableRule()
-
-  var manager: IdeTooltipManager? = null
-
-  @Before
-  fun setUp() {
-    manager = mock(IdeTooltipManager::class.java)
-    ApplicationManager.getApplication()
-      .replaceService(IdeTooltipManager::class.java, manager!!, disposableRule.disposable)
-  }
-
-  @After
-  fun tearDown() {
-    manager = null
-  }
 
   @Test
   fun testGetToolTipText() {
@@ -85,11 +54,21 @@ class DefaultNameTableCellRendererTest {
       SwingUtilities.getDeepestComponentAt(component, event.x - rect.x, event.y - rect.y)
         as? JComponent
     control!!.getToolTipText(event)
+    val installed = jTable.getClientProperty(TOOLTIP_PROPERTY) as HelpTooltip
+    assertThat(
+        installed.javaClass.getDeclaredField("title").also { it.isAccessible = true }.get(installed)
+      )
+      .isNull()
+    assertThat(
+        installed.javaClass
+          .getDeclaredField("description")
+          .also { it.isAccessible = true }
+          .get(installed)
+      )
+      .isEqualTo("Help on id")
 
-    val captor = ArgumentCaptor.forClass(PropertyTooltip::class.java)
-    verify(manager!!).setCustomTooltip(any(JComponent::class.java), captor.capture())
-    val tip = captor.value.tip
-    assertThat(tip.text).isEqualTo("<html>Help on id</html>")
+    // Cleanup by removing the tooltip:
+    HelpTooltip.dispose(jTable)
   }
 
   @Test

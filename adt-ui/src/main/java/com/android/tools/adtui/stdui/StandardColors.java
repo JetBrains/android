@@ -46,8 +46,4 @@ public class StandardColors {
   public static final Color HOVER_COLOR = new JBColor(new Color(0x171650C5, true), new Color(0x0CFFFFFF, true));
   public static final Color DEFAULT_CONTENT_BACKGROUND_COLOR = StudioColorsKt.getPrimaryContentBackground();
   public static final Color AXIS_MARKER_COLOR = Gray._150.withAlpha(50);
-
-  public static final Color ERROR_BUBBLE_TEXT_COLOR = TEXT_COLOR;
-  public static final Color ERROR_BUBBLE_FILL_COLOR = new JBColor(0xF5E6E7, 0x593D41);
-  public static final Color ERROR_BUBBLE_BORDER_COLOR = new JBColor(0xE0A8A9, 0x73454B);
 }

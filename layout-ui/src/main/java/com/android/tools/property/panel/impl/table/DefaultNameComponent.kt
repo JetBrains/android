@@ -148,13 +148,8 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
     }
     val item = component.getValueAt(tableRow, tableColumn)
     val property = item as? PropertyItem ?: return null
-    return PropertyTooltip.setToolTip(
-      component,
-      event,
-      property,
-      forValue = tableColumn == 1,
-      text = ""
-    )
+    PropertyTooltip.setToolTip(component, property, forValue = tableColumn == 1, text = "")
+    return null
   }
 
   /** Call this method to setup the component as a renderer or editor for a given property item. */

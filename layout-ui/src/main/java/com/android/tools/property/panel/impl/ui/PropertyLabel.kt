@@ -51,13 +51,13 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
     // Trick: Use the component from the event.source for tooltip in tables. See
     // TableEditor.getToolTip().
     val component = event.source as? JComponent ?: this
-    return PropertyTooltip.setToolTip(
+    PropertyTooltip.setToolTip(
       component,
-      event,
       model.property,
       forValue = true,
       text = model.property.value.orEmpty()
     )
+    return null
   }
 
   private fun updateFromModel() {

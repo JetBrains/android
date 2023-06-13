@@ -69,12 +69,12 @@ class InspectorPanelImpl(
       return null
     }
     val component = getComponentAt(point.x, point.y) as? CollapsibleLabelPanel ?: return null
-    return PropertyTooltip.setToolTip(
+    PropertyTooltip.setToolTip(
       this,
-      event,
       component.model.editorModel?.property,
       forValue = false,
       text = ""
     )
+    return null
   }
 }
