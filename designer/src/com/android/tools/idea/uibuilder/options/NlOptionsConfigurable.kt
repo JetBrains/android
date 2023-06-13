@@ -151,9 +151,8 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
               }
             }
             row {
-              val liteModeHint = "When using Essentials Mode, Preview will preserve resources by inflating previews on demand and" +
-                                 " disabling live updates and preview modes. " +
-                                 "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
+              val liteModeHint = "Preview will preserve resources by inflating previews on demand, and disabling live updates and " +
+                                 "preview modes. <a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
 
               radioButton("Essentials")
                 .comment(liteModeHint)
