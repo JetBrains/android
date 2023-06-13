@@ -116,7 +116,7 @@ class StringResourceData private constructor(
     get() = translatedLocaleStream.toSet()
 
   private val translatedLocaleStream: Sequence<Locale>
-    get() = keyToResourceMap.values.asSequence().flatMap(StringResource::getTranslatedLocales)
+    get() = keyToResourceMap.values.asSequence().flatMap(StringResource::translatedLocales)
 
   /**
    * Finds the single XML file responsible for all the translations.
