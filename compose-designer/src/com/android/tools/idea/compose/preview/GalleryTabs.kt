@@ -133,6 +133,11 @@ class GalleryTabs<Key : TitledKey>(
     override fun getActionUpdateThread(): ActionUpdateThread {
       return ActionUpdateThread.EDT
     }
+
+    override fun updateButton(e: AnActionEvent) {
+      super.updateButton(e)
+      e.presentation.isVisible = centerPanel.width > this@GalleryTabs.width
+    }
   }
 
   var selectedKey: Key? = null
