@@ -50,8 +50,8 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.PathUtil
 import com.intellij.workspaceModel.ide.getInstance
-import com.intellij.platform.workspaceModel.storage.impl.url.toVirtualFileUrl
-import com.intellij.platform.workspaceModel.storage.url.VirtualFileUrlManager
+import com.intellij.platform.workspace.storage.impl.url.toVirtualFileUrl
+import com.intellij.platform.workspace.storage.url.VirtualFileUrlManager
 import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
