@@ -29,12 +29,11 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.NewUI;
 import com.intellij.ui.SearchTextField;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.JBUI.Borders;
 import com.intellij.util.ui.ListTableModel;
-import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -58,6 +57,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -525,34 +525,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private static class PlayStoreColumnInfo extends ColumnInfo<Device, Icon> {
-
-    public static final Icon highlightedPlayStoreIcon = ColoredIconGenerator.generateWhiteIcon(StudioIcons.Avd.DEVICE_PLAY_STORE);
-
-    private static final TableCellRenderer ourIconRenderer = new DefaultTableCellRenderer() {
-      @Override
-      public Component getTableCellRendererComponent(JTable table,
-                                                     Object value,
-                                                     boolean isSelected,
-                                                     boolean hasFocus,
-                                                     int row,
-                                                     int column) {
-        Icon theIcon = (Icon)value;
-        JBLabel label = new JBLabel(theIcon);
-        if (theIcon != null) {
-          AccessibleContextUtil.setName(label, "Play Store");
-        }
-        if (table.getSelectedRow() == row) {
-          label.setBackground(table.getSelectionBackground());
-          label.setForeground(table.getSelectionForeground());
-          label.setOpaque(true);
-          if (theIcon != null) {
-            label.setIcon(NewUI.isEnabled() ? StudioIcons.Avd.DEVICE_PLAY_STORE : highlightedPlayStoreIcon);
-          }
-        }
-        return label;
-      }
-    };
-
     PlayStoreColumnInfo() {
       super("Play Store");
     }
@@ -560,7 +532,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     @NotNull
     @Override
     public TableCellRenderer getRenderer(Device device) {
-      return ourIconRenderer;
+      return new PlayStoreTableCellRenderer();
     }
 
     @Override
@@ -568,16 +540,47 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       return -1; // Re-sizable
     }
 
-    @Nullable
+    @NotNull
     @Override
     public Icon valueOf(@NotNull Device device) {
-      return (device.hasPlayStore() ? StudioIcons.Avd.DEVICE_PLAY_STORE : null);
+      return device.hasPlayStore() ? StudioIcons.Avd.DEVICE_PLAY_STORE : EmptyIcon.ICON_16;
     }
 
     @NotNull
     @Override
     public Comparator<Device> getComparator() {
       return (o1, o2) -> Boolean.compare(o2.hasPlayStore(), o1.hasPlayStore());
+    }
+  }
+
+  private static final class PlayStoreTableCellRenderer extends DefaultTableCellRenderer {
+    private PlayStoreTableCellRenderer() {
+      setHorizontalAlignment(SwingConstants.CENTER);
+    }
+
+    @NotNull
+    @Override
+    public Component getTableCellRendererComponent(@NotNull JTable table,
+                                                   @NotNull Object icon,
+                                                   boolean selected,
+                                                   boolean focused,
+                                                   int viewRowIndex,
+                                                   int viewColumnIndex) {
+      var component = super.getTableCellRendererComponent(table, icon, selected, focused, viewRowIndex, viewColumnIndex);
+
+      var name = icon.equals(EmptyIcon.ICON_16) ? "Doesn't support Google Play system images" : "Supports Google Play system images";
+      component.getAccessibleContext().setAccessibleName(name);
+
+      if (selected && !NewUI.isEnabled()) {
+        setIcon(ColoredIconGenerator.generateWhiteIcon((Icon)icon));
+      }
+
+      return component;
+    }
+
+    @Override
+    protected void setValue(@NotNull Object icon) {
+      setIcon((Icon)icon);
     }
   }
 
