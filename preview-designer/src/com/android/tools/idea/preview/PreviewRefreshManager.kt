@@ -26,6 +26,8 @@ import kotlin.concurrent.withLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 enum class RefreshResult {
@@ -119,13 +121,24 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
   @GuardedBy("requestsLock") private var runningRequest: PreviewRefreshRequest? = null
   @GuardedBy("requestsLock") private var runningJob: Job? = null
 
+  private val _isRefreshingFlow = MutableStateFlow(false)
+
+  /**
+   * Flow that indicates if there are any requests being processed. This flow will become true if
+   * any requests are being processed for the project.
+   */
+  val isRefreshingFlow: StateFlow<Boolean> = _isRefreshingFlow
+
   init {
     scope.launch(AndroidDispatchers.workerThread) {
       requestsFlow.collect {
         val currentJob: Job
         val currentRequest: PreviewRefreshRequest
         requestsLock.withLock {
-          if (allPendingRequests.isEmpty()) return@collect
+          if (allPendingRequests.isEmpty()) {
+            _isRefreshingFlow.value = false
+            return@collect
+          }
           currentRequest = allPendingRequests.remove()
           pendingRequestsPerClient.remove(currentRequest.clientId)
           currentJob = currentRequest.doRefresh()
@@ -134,6 +147,7 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
         }
 
         try {
+          _isRefreshingFlow.value = true
           currentJob.invokeOnCompletion {
             val result =
               when (it) {

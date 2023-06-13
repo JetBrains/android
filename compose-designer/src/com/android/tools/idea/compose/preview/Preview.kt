@@ -109,7 +109,6 @@ import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
 import javax.swing.event.TreeSelectionListener
@@ -298,15 +297,6 @@ class ComposePreviewRepresentation(
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val project
     get() = psiFilePointer.project
-
-  /**
-   * Counts the current number of simultaneous executions of [refresh] method. Being inside the
-   * [refresh] indicates that the this preview is being refreshed. Even though [requestRefresh]
-   * guarantees that only at most a single refresh happens at any point in time, there might be
-   * several simultaneous calls to [refresh] method and therefore we need a counter instead of
-   * boolean flag.
-   */
-  private val refreshCallsCount = AtomicInteger(0)
 
   @Volatile private var interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
 
@@ -1066,7 +1056,7 @@ class ComposePreviewRepresentation(
 
   override fun status(): ComposePreviewManager.Status {
     val isRefreshing =
-      (refreshCallsCount.get() > 0 ||
+      (refreshManager.isRefreshingFlow.value ||
         DumbService.isDumb(project) ||
         projectBuildStatusManager.isBuilding)
 
@@ -1281,7 +1271,6 @@ class ComposePreviewRepresentation(
         }
 
         requestVisibilityAndNotificationsUpdate()
-        refreshCallsCount.incrementAndGet()
 
         try {
           refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
@@ -1325,7 +1314,6 @@ class ComposePreviewRepresentation(
           if (t is CancellationException) requestLogger.debug("Request cancelled", t)
           else requestLogger.warn("Request failed", t)
         } finally {
-          refreshCallsCount.decrementAndGet()
           // Force updating toolbar icons after refresh
           ActivityTracker.getInstance().inc()
         }

@@ -17,6 +17,7 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.awaitStatus
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
@@ -25,10 +26,12 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -232,5 +235,45 @@ class PreviewRefreshManagerTest {
         .trimIndent(),
       TestPreviewRefreshRequest.log.toString().trimIndent()
     )
+  }
+
+  @Test
+  fun testIsRefreshingFlow_isCorrect(): Unit = runBlocking {
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    val refreshWaitJob = launch {
+      refreshManager.isRefreshingFlow
+        // Wait for the flow to go to true and back to false
+        .take(2)
+        .collect {}
+    }
+
+    refreshManager.requestRefresh(TestPreviewRefreshRequest(myScope, "client1", 0, "req0"))
+    refreshWaitJob.join()
+  }
+
+  @Test
+  fun testIsRefreshingFlow_eventuallyMovesToFalse(): Unit = runBlocking {
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(150)
+    val waitForARefreshJob = launch {
+      refreshManager.isRefreshingFlow.awaitStatus(
+        "Failed waiting for the first refresh",
+        1.seconds
+      ) {
+        it
+      }
+    }
+    repeat(150) {
+      refreshManager.requestRefresh(TestPreviewRefreshRequest(myScope, "client1", 0, "req$it"))
+    }
+
+    // Wait for isRefreshing to flip to true (this means we have seen refresh requests going through
+    waitForARefreshJob.join()
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    refreshManager.isRefreshingFlow.awaitStatus(
+      "Failed waiting for isRefreshingFlow to become false",
+      5.seconds
+    ) {
+      !it
+    }
   }
 }

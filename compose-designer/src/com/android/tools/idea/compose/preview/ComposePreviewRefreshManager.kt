@@ -30,6 +30,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.StateFlow
 
 enum class RefreshType(internal val priority: Int) {
   /** Previews are inflated and rendered. */
@@ -122,6 +123,8 @@ class ComposePreviewRefreshManager private constructor() : Disposable {
   private val scope = AndroidCoroutineScope(this)
 
   private val refreshManager = PreviewRefreshManager(scope)
+
+  val isRefreshingFlow: StateFlow<Boolean> = refreshManager.isRefreshingFlow
 
   fun requestRefresh(request: ComposePreviewRefreshRequest) {
     refreshManager.requestRefresh(request)
