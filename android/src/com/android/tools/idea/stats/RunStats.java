@@ -18,11 +18,8 @@ package com.android.tools.idea.stats;
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.deployer.model.component.ComponentType;
-import com.android.tools.idea.run.ApkFileUnit;
-import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.tracer.Trace;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.ArtifactDetail;
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail;
 import com.google.wireless.android.sdk.stats.RunEvent;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -36,17 +33,14 @@ import org.jetbrains.annotations.Nullable;
 public class RunStats {
 
   public static final Key<RunStats> KEY = Key.create("android.stats.run");
-
-  private AndroidStudioEvent.Builder myEvent;
-
-  private boolean myLogged;
-  private Project myProject;
-
   /**
    * A set of events related to the run, but not necessarily of kind {@link AndroidStudioEvent.EventKind#RUN_EVENT}, to be logged when
    * {@link #commit(RunEvent.Status)} is called.
    */
   private final Set<AndroidStudioEvent.Builder> myAdditionalOnCommitEvents;
+  private final AndroidStudioEvent.Builder myEvent;
+  private boolean myLogged;
+  private final Project myProject;
 
   public RunStats(Project project) {
     myProject = project;
@@ -71,8 +65,8 @@ public class RunStats {
     Trace.flush();
     if (!myLogged) {
       myEvent.getRunEventBuilder()
-             .setStatus(status)
-             .setEndTimestampMs(System.currentTimeMillis());
+        .setStatus(status)
+        .setEndTimestampMs(System.currentTimeMillis());
       UsageTracker.log(UsageTrackerUtils.withProjectId(myEvent, myProject));
 
       for (AndroidStudioEvent.Builder event : myAdditionalOnCommitEvents) {
@@ -128,19 +122,6 @@ public class RunStats {
   public void setPackage(String packageName) {
     myEvent.setProjectId(AnonymizerUtil.anonymizeUtf8(packageName)).setRawProjectId(packageName);
   }
-
-  public static class CustomTask {
-    private final LaunchTaskDetail.Builder myBuilder;
-
-    private CustomTask(LaunchTaskDetail.Builder builder) {
-      myBuilder = builder;
-    }
-
-    public LaunchTaskDetail.Builder getBuilder() {
-      return myBuilder;
-    }
-  }
-
 
   public @NotNull CustomTask beginCustomTask(@NotNull String taskId) {
     return new CustomTask(LaunchTaskDetail.newBuilder()
@@ -230,7 +211,15 @@ public class RunStats {
   public void setIsComposeProject(boolean isCompose) {
     myEvent.getRunEventBuilder().setIsComposeProject(isCompose);
   }
-  
+
+  private void setPartial(boolean partial) {
+    myEvent.getRunEventBuilder().setPartial(partial);
+  }
+
+  public void addAdditionalOnCommitEvent(AndroidStudioEvent.Builder event) {
+    myAdditionalOnCommitEvents.add(event);
+  }
+
   public static RunStats from(ExecutionEnvironment env) {
     RunStats data = env.getUserData(KEY);
     if (data == null) {
@@ -241,11 +230,15 @@ public class RunStats {
     return data;
   }
 
-  private void setPartial(boolean partial) {
-    myEvent.getRunEventBuilder().setPartial(partial);
-  }
+  public static class CustomTask {
+    private final LaunchTaskDetail.Builder myBuilder;
 
-  public void addAdditionalOnCommitEvent(AndroidStudioEvent.Builder event) {
-    myAdditionalOnCommitEvents.add(event);
+    private CustomTask(LaunchTaskDetail.Builder builder) {
+      myBuilder = builder;
+    }
+
+    public LaunchTaskDetail.Builder getBuilder() {
+      return myBuilder;
+    }
   }
 }
