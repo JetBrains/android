@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.lite
 
 import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.GalleryTabs
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
