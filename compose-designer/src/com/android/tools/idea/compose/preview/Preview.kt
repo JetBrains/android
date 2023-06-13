@@ -298,7 +298,7 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
-  @Volatile private var interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+  private val interactiveModeFlow = MutableStateFlow(ComposePreviewManager.InteractiveMode.DISABLED)
 
   private val refreshManager = ComposePreviewRefreshManager.getInstance(project)
 
@@ -310,7 +310,7 @@ class ComposePreviewRepresentation(
       onResumeActivate = { activate(true) },
       onDeactivate = {
         log.debug("onDeactivate")
-        if (interactiveMode.isStartingOrReady()) {
+        if (interactiveModeFlow.value.isStartingOrReady()) {
           pauseInteractivePreview()
         }
         // The editor is scheduled to be deactivated, deactivate its issue model to avoid updating
@@ -474,10 +474,10 @@ class ComposePreviewRepresentation(
     }
 
   override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
-    if (interactiveMode.isStartingOrReady()) return
+    if (interactiveModeFlow.value.isStartingOrReady()) return
     log.debug("New single preview element focus: $instance")
     requestVisibilityAndNotificationsUpdate()
-    interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
+    interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.STARTING
     // We should call this before assigning newValue to instanceIdFilter
     val quickRefresh = shouldQuickRefresh()
     val peerPreviews = previewElementProvider.previewElements().count()
@@ -497,20 +497,20 @@ class ComposePreviewRepresentation(
       // While in interactive mode, display a small ripple when clicking
       surface.enableMouseClickDisplay()
       surface.background = INTERACTIVE_BACKGROUND_COLOR
-      interactiveMode = ComposePreviewManager.InteractiveMode.READY
+      interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.READY
       ActivityTracker.getInstance().inc()
     }
   }
 
   override fun stopInteractivePreview() {
-    if (interactiveMode.isStoppingOrDisabled()) return
+    if (interactiveModeFlow.value.isStoppingOrDisabled()) return
 
     log.debug("Stopping interactive")
     onInteractivePreviewStop()
     requestVisibilityAndNotificationsUpdate()
     onStaticPreviewStart()
     forceRefresh().invokeOnCompletion {
-      interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+      interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.DISABLED
     }
   }
 
@@ -545,7 +545,7 @@ class ComposePreviewRepresentation(
   }
 
   private fun onInteractivePreviewStop() {
-    interactiveMode = ComposePreviewManager.InteractiveMode.STOPPING
+    interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.STOPPING
     surface.disableMouseClickDisplay()
     delegateInteractionHandler.delegate = staticPreviewInteractionHandler
     requestVisibilityAndNotificationsUpdate()
@@ -599,7 +599,7 @@ class ComposePreviewRepresentation(
           onStaticPreviewStart()
         }
         forceRefresh().invokeOnCompletion {
-          interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
+          interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.DISABLED
           ActivityTracker.getInstance().inc()
         }
       }
@@ -952,7 +952,7 @@ class ComposePreviewRepresentation(
 
             if (
               !EssentialsMode.isEnabled() &&
-                interactiveMode.isStoppingOrDisabled() &&
+                interactiveModeFlow.value.isStoppingOrDisabled() &&
                 !animationInspection.get() &&
                 !ComposePreviewLiteModeManager.isLiteModeEnabled
             )
@@ -986,7 +986,7 @@ class ComposePreviewRepresentation(
 
     surface.activate()
 
-    if (interactiveMode.isStartingOrReady()) {
+    if (interactiveModeFlow.value.isStartingOrReady()) {
       resumeInteractivePreview()
     }
 
@@ -1008,7 +1008,7 @@ class ComposePreviewRepresentation(
     if (EssentialsMode.isEnabled()) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
-    if (interactiveMode.isStartingOrReady()) return
+    if (interactiveModeFlow.value.isStartingOrReady()) return
     // If we have not changed line, ignore
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
@@ -1045,7 +1045,7 @@ class ComposePreviewRepresentation(
 
   override fun dispose() {
     isDisposed.set(true)
-    if (interactiveMode == ComposePreviewManager.InteractiveMode.READY) {
+    if (interactiveModeFlow.value == ComposePreviewManager.InteractiveMode.READY) {
       logInteractiveSessionMetrics()
     }
     animationInspectionPreviewElementInstance = null
@@ -1086,7 +1086,7 @@ class ComposePreviewRepresentation(
           (projectBuildStatusManager.status as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate
             ?: false,
         isRefreshing,
-        interactiveMode,
+        interactiveModeFlow.value,
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
@@ -1118,7 +1118,7 @@ class ComposePreviewRepresentation(
     configureLayoutlibSceneManager(
       layoutlibSceneManager,
       showDecorations = displaySettings.showDecoration,
-      isInteractive = interactiveMode.isStartingOrReady(),
+      isInteractive = interactiveModeFlow.value.isStartingOrReady(),
       requestPrivateClassLoader = usePrivateClassLoader(),
       runAtfChecks = runAtfChecks(),
       runVisualLinting = runVisualLinting()
@@ -1398,20 +1398,24 @@ class ComposePreviewRepresentation(
    * includes the compose framework).
    */
   private fun usePrivateClassLoader() =
-    interactiveMode.isStartingOrReady() || animationInspection.get() || shouldQuickRefresh()
+    interactiveModeFlow.value.isStartingOrReady() ||
+      animationInspection.get() ||
+      shouldQuickRefresh()
 
   /**
    * Whether to run ATF checks on the preview. Never do it for interactive or animation previews.
    */
   private fun runAtfChecks() =
-    atfChecksEnabled && !interactiveMode.isStartingOrReady() && !animationInspection.get()
+    atfChecksEnabled && !interactiveModeFlow.value.isStartingOrReady() && !animationInspection.get()
 
   /**
    * Whether to run Visual Linting on the preview. Never do it for interactive or animation
    * previews.
    */
   private fun runVisualLinting() =
-    visualLintingEnabled && !interactiveMode.isStartingOrReady() && !animationInspection.get()
+    visualLintingEnabled &&
+      !interactiveModeFlow.value.isStartingOrReady() &&
+      !animationInspection.get()
 
   override fun invalidate() {
     invalidated.set(true)
