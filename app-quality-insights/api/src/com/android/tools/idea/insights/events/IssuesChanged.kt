@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
@@ -53,6 +54,11 @@ data class IssuesChanged(
     }
 
     state.toIssueRequest(clock)?.let { request ->
+      val vcsIntegrationDetailsBuilder =
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.VcsIntegrationDetails
+          .newBuilder()
+          .apply { hasAppVcsInfo = issues.hasAppVcsInfo() }
+
       tracker.logCrashesFetched(
         state.connections.selected!!.appId,
         state.mode,
@@ -69,6 +75,7 @@ data class IssuesChanged(
             fetchSource?.let { this.fetchSource = it }
             numRetries = 0
             cache = false
+            vcsIntegrationDetails = vcsIntegrationDetailsBuilder.build()
           }
           .build()
       )
@@ -126,4 +133,11 @@ data class IssuesChanged(
         else Action.NONE
     )
   }
+}
+
+private fun LoadingState.Done<IssueResponse>.hasAppVcsInfo(): Boolean {
+  val response: IssueResponse = (this as? LoadingState.Ready)?.value ?: return false
+  response.issues.firstOrNull { it.sampleEvent.appVcsInfo != AppVcsInfo.NONE } ?: return false
+
+  return true
 }

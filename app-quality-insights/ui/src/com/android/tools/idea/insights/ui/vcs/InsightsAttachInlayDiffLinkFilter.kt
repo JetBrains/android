@@ -115,7 +115,7 @@ class InsightsAttachInlayDiffLinkFilter(private val containingConsole: ConsoleVi
   }
 }
 
-private const val INLAY_DIFF_LINK_DISPLAY_TEXT = "or diff with the historical source ↗"
+internal const val INLAY_DIFF_LINK_DISPLAY_TEXT = "or diff with the historical source ↗"
 
 data class DiffLinkInlayResult(
   private val diffContextData: ContextDataForDiff,

@@ -16,8 +16,7 @@
 package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.insights.AppVcsInfo
-import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
-import com.android.tools.idea.insights.RepoInfo
+import com.android.tools.idea.insights.REPO_INFO
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.toVcsFilePath
@@ -54,7 +53,7 @@ class InsightsAttachDiffLinkFilterTest {
     val filter = InsightsAttachInlayDiffLinkFilter(console)
 
     // Prepare
-    val appVcsInfo = AppVcsInfo(listOf(SAMPLE_REPO_INFO))
+    val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
     // Act
@@ -83,7 +82,7 @@ class InsightsAttachDiffLinkFilterTest {
     val filter = InsightsAttachInlayDiffLinkFilter(console)
 
     // Prepare
-    val appVcsInfo = AppVcsInfo(listOf(SAMPLE_REPO_INFO))
+    val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
     projectRule.fixture.configureByText("MainActivity.java", SAMPLE_JAVA_SOURCE)
@@ -103,7 +102,7 @@ class InsightsAttachDiffLinkFilterTest {
     val filter = InsightsAttachInlayDiffLinkFilter(console)
 
     // Prepare
-    val appVcsInfo = AppVcsInfo(listOf(SAMPLE_REPO_INFO))
+    val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
     val targetPsiFile = projectRule.fixture.configureByText("MainActivity.java", SAMPLE_JAVA_SOURCE)
@@ -136,7 +135,7 @@ class InsightsAttachDiffLinkFilterTest {
     val filter = InsightsAttachInlayDiffLinkFilter(console)
 
     // Prepare
-    val appVcsInfo = AppVcsInfo(listOf(SAMPLE_REPO_INFO))
+    val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
     val targetPsiFile = projectRule.fixture.configureByText("MainActivity.kt", SAMPLE_KOTLIN_SOURCE)
@@ -191,6 +190,3 @@ private val SAMPLE_KOTLIN_SOURCE =
 
 private const val SAMPLE_JAVA_TRACE = "    test.simple.MainActivity.onCreate(MainActivity.java:4)"
 private const val SAMPLE_KOTLIN_TRACE = "    test.simple.MainActivity.onCreate(MainActivity.kt:4)"
-
-private val SAMPLE_REPO_INFO =
-  RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")

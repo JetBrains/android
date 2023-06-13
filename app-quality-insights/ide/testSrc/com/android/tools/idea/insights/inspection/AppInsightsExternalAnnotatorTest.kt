@@ -19,9 +19,7 @@ import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Frame
-import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
-import com.android.tools.idea.insights.RepoInfo
-import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.REPO_INFO
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.updateVcsInfoFlagInModel
@@ -59,12 +57,7 @@ class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: 
   @Before
   fun setUp() {
     projectRule.fixture.module.updateVcsInfoFlagInModel(enableChangeAwareAnnotation)
-    appVcsInfo =
-      AppVcsInfo(
-        listOf(
-          RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "1")
-        )
-      )
+    appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
   }
 
   @Test

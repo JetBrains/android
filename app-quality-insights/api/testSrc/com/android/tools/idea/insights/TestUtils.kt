@@ -69,6 +69,9 @@ const val NOTE2_BODY = "Update: I managed to reproduce this issue."
 
 val NOW = Instant.parse("2022-06-08T10:00:00Z")
 
+val REPO_INFO =
+  RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
+
 val ISSUE1 =
   AppInsightsIssue(
     IssueDetails(
@@ -142,7 +145,8 @@ val ISSUE1 =
                 rawExceptionMessage = "retrofit2.HttpException: HTTP 401 "
               )
             )
-        )
+        ),
+      appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
     )
   )
 val ISSUE1_DETAILS =
