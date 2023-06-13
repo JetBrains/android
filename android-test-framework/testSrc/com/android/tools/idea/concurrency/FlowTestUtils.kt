@@ -28,6 +28,6 @@ import kotlin.time.Duration
  */
 suspend fun <T> StateFlow<T>.awaitStatus(message: String? = null, timeout: Duration, condition: (T) -> Boolean) =
   withTimeoutOrNull(timeout) {
-      filter { condition(it) }
+    filter { condition(it) }
       .first()
   } ?: Assert.fail(message)
