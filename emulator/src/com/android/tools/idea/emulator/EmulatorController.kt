@@ -409,7 +409,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
     }
     val call = emulatorControllerStub.channel.newCall(streamScreenshotMethod, emulatorControllerStub.callOptions)
     ClientCalls.asyncServerStreamingCall(call, imageFormat, DelegatingStreamObserver(streamObserver, streamScreenshotMethod))
-    return CancelableClientCall(call);
+    return CancelableClientCall(call)
   }
 
   /**

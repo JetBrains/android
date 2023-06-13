@@ -146,7 +146,7 @@ class LiveEditService private constructor(project: Project, private var listener
       }
 
       val file = event.file as KtFile
-      var parent = event.parent;
+      var parent = event.parent
 
       // The code might not be valid at this point, so we should not be making any
       // assumption based on the Kotlin language structure.
@@ -156,7 +156,7 @@ class LiveEditService private constructor(project: Project, private var listener
           is KtNamedFunction -> {
             val event = EditEvent(file, parent)
             editListener(event)
-            break;
+            break
           }
           is KtFunction -> {
             val event = EditEvent(file, parent)
@@ -177,12 +177,12 @@ class LiveEditService private constructor(project: Project, private var listener
               groupParent = groupParent.parent
             }
             editListener(event)
-            break;
+            break
           }
           is KtClass -> {
             val event = EditEvent(file, parent)
             editListener(event)
-            break;
+            break
           }
         }
         parent = parent.parent
@@ -199,51 +199,51 @@ class LiveEditService private constructor(project: Project, private var listener
     }
 
     override fun childAdded(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun childRemoved(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun childReplaced(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun childrenChanged(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun childMoved(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun propertyChanged(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun beforeChildAddition(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun beforeChildRemoval(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun beforeChildReplacement(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun beforeChildMovement(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
 
     override fun beforePropertyChange(event: PsiTreeChangeEvent) {
-      handleChangeEvent(event);
+      handleChangeEvent(event)
     }
   }
 

@@ -165,7 +165,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       .filterIsInstance<ClassDescriptor>()
       .mapNotNull { it.companionObjectDescriptor }
       .flatMap {
-        ProgressManager.checkCanceled();
+        ProgressManager.checkCanceled()
         it.unsubstitutedMemberScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS).asSequence()
       }
       .filterIsInstance<FunctionDescriptor>()

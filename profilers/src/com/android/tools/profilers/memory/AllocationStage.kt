@@ -95,7 +95,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
         if (hasStartedTracking) aspect.removeDependencies(this) else startLiveDataTimeline()
       }
       setupTrackingEventListener()
-      MemoryProfiler.trackAllocations(studioProfilers, sessionData, true, null);
+      MemoryProfiler.trackAllocations(studioProfilers, sessionData, true, null)
       // Prevent selecting outside of range
       timeline.selectionRange.apply {
         addDependency(this@AllocationStage).onChange(Range.Aspect.RANGE) {
@@ -135,7 +135,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
       timeline.dataRange.removeDependencies(this)
       maxTrackingTimeUs = timeline.dataRange.max
     }
-    MemoryProfiler.trackAllocations(studioProfilers, sessionData, false, null);
+    MemoryProfiler.trackAllocations(studioProfilers, sessionData, false, null)
   }
 
   private fun onNewData() = with(timeline) {

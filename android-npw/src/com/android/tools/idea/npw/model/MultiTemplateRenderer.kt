@@ -122,7 +122,7 @@ class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
     }
     renderRunner { project ->
       log.info("Generating sources.")
-      ApplicationManager.getApplication().assertIsNonDispatchThread();
+      ApplicationManager.getApplication().assertIsNonDispatchThread()
 
       multiRenderingStarted(project)
 

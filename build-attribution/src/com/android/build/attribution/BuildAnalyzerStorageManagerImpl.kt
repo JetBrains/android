@@ -29,8 +29,8 @@ class BuildAnalyzerStorageManagerImpl(
   private var historicBuildResults : MutableMap<String, BuildAnalysisResults> = mutableMapOf()
 
   private fun notifyDataListeners() {
-    var publisher = project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC);
-    publisher.newDataAvailable();
+    var publisher = project.messageBus.syncPublisher(BuildAnalyzerStorageManager.DATA_IS_READY_TOPIC)
+    publisher.newDataAvailable()
   }
 
   private fun createBuildResultsObject(analyzersProxy: BuildEventsAnalyzersProxy, buildSessionID : String, requestHolder : BuildRequestHolder): BuildAnalysisResults {

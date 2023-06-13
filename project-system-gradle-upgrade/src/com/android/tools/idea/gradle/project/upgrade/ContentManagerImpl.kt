@@ -1041,7 +1041,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
     private fun JBPanel<JBPanel<*>>.addBuildWindowInfo() {
       JPanel().apply {
         name = "build window info panel"
-        layout = VerticalLayout(0);
+        layout = VerticalLayout(0)
         border = JBUI.Borders.empty(10, 0, 0, 0)
         add(JBLabel("There may be more information about the sync failure in the"))
         ActionLink("'Build' window") {

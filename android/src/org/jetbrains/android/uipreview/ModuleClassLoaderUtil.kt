@@ -267,7 +267,7 @@ internal class ModuleClassLoaderImpl(module: Module,
         //
         // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
         // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
-        throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib");
+        throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib")
       }
     })
   }

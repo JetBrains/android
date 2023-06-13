@@ -159,7 +159,7 @@ fun Module.getAppThemeName(): String? {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
     //  We need to refactor the callers of this to require a *smart*
     //  read action, at which point we can remove this try-catch.
-    logManifestIndexQueryError(e);
+    logManifestIndexQueryError(e)
   }
 
   return MergedManifestManager.getFreshSnapshot(this).manifestTheme
@@ -185,7 +185,7 @@ fun Module.getAllActivityThemeNames(): Set<String> {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
     //  We need to refactor the callers of this to require a *smart*
     //  read action, at which point we can remove this try-catch.
-    logManifestIndexQueryError(e);
+    logManifestIndexQueryError(e)
   }
 
   val manifest = MergedManifestManager.getSnapshot(this)
@@ -216,7 +216,7 @@ fun Module.getThemeNameForActivity(activityFqcn: String): String? {
     // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
     //  We need to refactor the callers of this to require a *smart*
     //  read action, at which point we can remove this try-catch.
-    logManifestIndexQueryError(e);
+    logManifestIndexQueryError(e)
   }
 
   val manifest = MergedManifestManager.getSnapshot(this)

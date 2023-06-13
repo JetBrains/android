@@ -111,7 +111,7 @@ class PsResolvedJavaDependencyCollection(module: PsJavaModule)
             dependency.files.forEach(::processFile)
           }
           is ExternalProjectDependency -> {
-            val module = parent.parent.findModuleByGradlePath(dependency.projectPath);
+            val module = parent.parent.findModuleByGradlePath(dependency.projectPath)
             if (module != null) {
               addModule(module, dependency.scope)
             }

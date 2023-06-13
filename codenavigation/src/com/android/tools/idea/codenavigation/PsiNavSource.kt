@@ -59,7 +59,7 @@ class PsiNavSource(private val project: Project): NavSource {
     //  Once the nullability of this value has been clarified, either remove this check or remove
     //  this TODO.
     if (location.className == null) {
-      return null;
+      return null
     }
 
     var className = location.className!!
@@ -74,8 +74,8 @@ class PsiNavSource(private val project: Project): NavSource {
       // (which is easier for PsiManager to find) and a line number, that's enough information to
       // help us navigate. So, to be more robust against PsiManager error, we try one more time.
 
-      var outerClassName = CodeLocation.getOuterClass(className);
-      psiClass = ClassUtil.findPsiClassByJVMName(manager, outerClassName);
+      var outerClassName = CodeLocation.getOuterClass(className)
+      psiClass = ClassUtil.findPsiClassByJVMName(manager, outerClassName)
     }
 
     return psiClass

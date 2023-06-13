@@ -201,7 +201,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, private val inlineCandi
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
       if (elem.parent == null) {
-        throw LiveEditUpdateException.internalError("Unable to retrieve context for function ${targetFunction.name}", elem.containingFile);
+        throw LiveEditUpdateException.internalError("Unable to retrieve context for function ${targetFunction.name}", elem.containingFile)
       }
       elem = elem.parent
     }
@@ -223,7 +223,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, private val inlineCandi
     val (primaryClass, supportClasses) = getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput)
 
     val idx = methodSignature.indexOf('(')
-    val methodName = methodSignature.substring(0, idx);
+    val methodName = methodSignature.substring(0, idx)
     val methodDesc = methodSignature.substring(idx)
     val functionType = if (isCompose) FunctionType.COMPOSABLE else FunctionType.KOTLIN
     return CodeGeneratorOutput(internalClassName, methodName, methodDesc, primaryClass, functionType, groupId != null, groupId?: 0, supportClasses)
@@ -264,7 +264,7 @@ class AndroidLiveEditCodeGenerator(val project: Project, private val inlineCandi
       }
 
       // Lambdas and compose classes are proxied in the interpreted on device.
-      val reader = ClassReader(c.asByteArray());
+      val reader = ClassReader(c.asByteArray())
       if (isProxiable(reader)) {
         println("   Proxiable class: ${c.relativePath}")
         val name = c.relativePath.substringBefore(".class")

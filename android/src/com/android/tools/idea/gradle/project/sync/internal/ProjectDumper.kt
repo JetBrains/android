@@ -148,7 +148,7 @@ class ProjectDumper(
     var res = maskedPath
     val gradleFilesPrefix = "<GRADLE>/caches/modules-2/files-2.1/"
     if (res.startsWith(gradleFilesPrefix)) {
-      val parts = res.substringAfter(gradleFilesPrefix).split("/");
+      val parts = res.substringAfter(gradleFilesPrefix).split("/")
 
       val pkg = parts[0]
       val artifact = parts[1]

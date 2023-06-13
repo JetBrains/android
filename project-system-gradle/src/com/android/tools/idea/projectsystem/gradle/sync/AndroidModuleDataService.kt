@@ -199,7 +199,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     if (imported.isEmpty() && !IdeInfo.getInstance().isAndroidStudio){
       // in IDEA Android Plugin should not do anything, if there are no Android Modules in the project.
       // not sure why Android Studio wants to do something (maybe it's OK to skip the remaining in Android Studio as well).
-      return;
+      return
     }
     
     // TODO(b/200268010): this only triggers when we have actually run sync, as opposed to having loaded models from cache.  That means

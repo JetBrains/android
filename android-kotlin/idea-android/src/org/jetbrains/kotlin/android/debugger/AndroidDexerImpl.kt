@@ -48,7 +48,7 @@ class AndroidDexerImpl(val project: Project) : AndroidDexer {
             val builder: D8Command.Builder = D8Command.builder()
             val consumer = DexConsumer()
             for ((_, _, bytes) in classes) {
-                builder.addClassProgramData(bytes, Origin.unknown());
+                builder.addClassProgramData(bytes, Origin.unknown())
             }
             builder.mode = CompilationMode.DEBUG
             builder.programConsumer = consumer
