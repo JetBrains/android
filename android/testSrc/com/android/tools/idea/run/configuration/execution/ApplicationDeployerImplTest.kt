@@ -7,8 +7,8 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.execution.common.DeployOptions
+import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.run.ApkInfo
-import com.android.tools.idea.stats.RunStatsService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.TEST_DATA_PATH
 import com.google.common.truth.Truth.assertThat

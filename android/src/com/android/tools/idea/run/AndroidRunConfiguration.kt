@@ -21,9 +21,11 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.execution.common.applychanges.BaseAction
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isMainModule
@@ -34,11 +36,9 @@ import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch
 import com.android.tools.idea.run.activity.launch.LaunchOptionState
 import com.android.tools.idea.run.activity.launch.NoLaunch
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.android.tools.idea.run.editor.ApplicationRunParameters
 import com.android.tools.idea.run.editor.DeployTargetProvider
-import com.android.tools.idea.stats.RunStats
 import com.google.common.base.Predicate
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps

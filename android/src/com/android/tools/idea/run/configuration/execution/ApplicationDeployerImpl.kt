@@ -20,6 +20,8 @@ import com.android.tools.deployer.Deployer
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkFileUnit
@@ -28,8 +30,6 @@ import com.android.tools.idea.run.tasks.AbstractDeployTask
 import com.android.tools.idea.run.tasks.ApplyChangesTask
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask
 import com.android.tools.idea.run.tasks.DeployTask
-import com.android.tools.idea.stats.RunStats
-import com.android.tools.idea.stats.track
 import com.google.wireless.android.sdk.stats.ArtifactDetail
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger

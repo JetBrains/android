@@ -26,6 +26,7 @@ import com.android.builder.model.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST
 import com.android.builder.model.PROPERTY_SUPPORTS_PRIVACY_SANDBOX
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.flags.StudioFlags.INJECT_DEVICE_SERIAL_ENABLED
@@ -56,7 +57,6 @@ import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
-import com.android.tools.idea.stats.RunStats
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.base.Joiner
@@ -79,7 +79,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.io.FileUtil
 import icons.StudioIcons
-import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import java.io.FileOutputStream

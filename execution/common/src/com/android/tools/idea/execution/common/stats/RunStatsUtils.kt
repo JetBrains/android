@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.stats
+package com.android.tools.idea.execution.common.stats
 
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail
 

@@ -11,13 +11,13 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.editor.NoApksProvider
-import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth

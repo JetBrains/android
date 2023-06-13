@@ -22,6 +22,7 @@ import com.android.tools.deployer.model.App
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
@@ -33,10 +34,11 @@ import com.android.tools.idea.execution.common.deploy.deployAndHandleError
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.shouldDebugSandboxSdk
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
@@ -46,8 +48,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.tasks.RunInstantApp
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
-import com.android.tools.idea.stats.RunStats
-import com.android.tools.idea.stats.track
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunnerAndConfigurationSettings
