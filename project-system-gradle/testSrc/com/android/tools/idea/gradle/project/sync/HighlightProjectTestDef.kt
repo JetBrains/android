@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
+import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl.Companion.wellKnownOrCreate
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
@@ -99,7 +100,17 @@ data class HighlightProjectTestDef(
             IdeModuleWellKnownSourceSet.ANDROID_TEST
           ) to listOf("src/androidTest/java/com/example/app/ExampleInstrumentedTest.kt")
         )
-      )
+      ),
+      HighlightProjectTestDef(
+        TestProject.ANDROID_KOTLIN_MULTIPLATFORM,
+        modulesAndFiles = mapOf(
+          GradleSourceSetProjectPath(
+            "/",
+            ":kmpFirstLib",
+            wellKnownOrCreate("androidInstrumentedTest")
+          ) to listOf("src/androidInstrumentedTest/kotlin/com/example/kmpfirstlib/test/KmpAndroidFirstLibActivityTest.kt")
+        )
+      ),
     )
 
     private fun validateNonTransitiveRClass(fixture: JavaCodeInsightTestFixture) {

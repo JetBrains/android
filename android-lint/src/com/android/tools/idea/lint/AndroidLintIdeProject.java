@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.support.AndroidxNameUtils;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeMultiVariantData;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -332,7 +333,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
     }
     else if (AndroidModel.isRequired(facet)) {
       AndroidModel androidModel = AndroidModel.get(facet);
-      if (androidModel instanceof GradleAndroidModel) {
+      if (androidModel instanceof GradleAndroidModel &&
+          ((GradleAndroidModel)androidModel).getAndroidProject().getProjectType() != IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
         GradleAndroidModel model = (GradleAndroidModel)androidModel;
         String variantName = model.getSelectedVariantName();
 

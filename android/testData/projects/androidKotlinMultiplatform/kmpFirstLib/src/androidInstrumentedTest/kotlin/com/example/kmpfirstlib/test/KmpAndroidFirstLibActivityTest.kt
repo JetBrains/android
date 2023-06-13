@@ -16,7 +16,7 @@ class KmpAndroidFirstLibActivityTest {
     @Test
     fun testActivityThatPasses() {
         val scenario = launch(KmpAndroidActivity::class.java)
-        scenario.onActivity { activity ->
+        scenario.onActivity { _ ->
           val x = KmpAndroidFirstLibClass()
           Assert.assertTrue(x.callCommonLibClass() == x.callAndroidLibClass())
           Assert.assertTrue(x.callKmpSecondLibClass() == x.callAndroidLibClass())
@@ -26,13 +26,17 @@ class KmpAndroidFirstLibActivityTest {
 
     @Test
     fun testJavaResources() {
-        val kmpResValue = this.javaClass.classLoader.getResourceAsStream("kmp_resource.txt").use {
+        val kmpResValue = Class.forName(
+            "com.example.kmpfirstlib.test.KmpAndroidFirstLibClassTest"
+        ).classLoader!!.getResourceAsStream("kmp_resource.txt").use {
             it!!.bufferedReader().readLine()
         }
 
         Assert.assertTrue(kmpResValue == "kmp resource")
 
-        val androidLibResValue = this.javaClass.classLoader.getResourceAsStream("android_lib_resource.txt").use {
+        val androidLibResValue = Class.forName(
+            "com.example.kmpfirstlib.test.KmpAndroidFirstLibClassTest"
+        ).classLoader!!.getResourceAsStream("android_lib_resource.txt").use {
             it!!.bufferedReader().readLine()
         }
 
