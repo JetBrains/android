@@ -661,8 +661,8 @@ public class TestUtils {
 
   @NonNull
   public static Path getEmbeddedJdk17Path() {
-    if (System.getenv("JDK_17") != null) {
-      Path jdkPath = Paths.get(System.getenv("JDK_17"));
+    if (System.getenv("JDK_17_0") != null) {
+      Path jdkPath = Paths.get(System.getenv("JDK_17_0"));
       if (Files.isDirectory(jdkPath)) {
         return jdkPath;
       }
