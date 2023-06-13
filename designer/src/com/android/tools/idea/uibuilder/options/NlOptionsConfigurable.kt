@@ -3,6 +3,7 @@ package com.android.tools.idea.uibuilder.options
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.options.BoundConfigurable
@@ -159,6 +160,16 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                 .bindSelected(state::isComposePreviewLiteModeEnabled) {
                   state.isComposePreviewLiteModeEnabled = it
                 }
+            }
+          }.enabled(!EssentialsMode.isEnabled())
+          if (EssentialsMode.isEnabled()) {
+            row {
+              label(
+                "Note: Resource usage cannot be changed when Android Studio Essentials Mode is enabled. In this case, Compose Preview " +
+                "resource usage will be overridden to Essentials."
+
+              )
+                .component.isEnabled = false
             }
           }
         }

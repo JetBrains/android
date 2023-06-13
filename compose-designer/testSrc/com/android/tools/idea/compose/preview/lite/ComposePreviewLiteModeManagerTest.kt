@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.lite
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.GlobalState
@@ -57,5 +58,23 @@ class ComposePreviewLiteModeManagerTest {
 
     settings.isComposePreviewLiteModeEnabled = true
     assertTrue(ComposePreviewLiteModeManager.isLiteModeEnabled)
+  }
+
+  @Test
+  fun liteModeIsEnabledIfEssentialsModeIsEnabled() {
+    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.override(true)
+    StudioFlags.DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT.override(true)
+    try {
+      settings.isComposePreviewLiteModeEnabled = false
+      assertFalse(ComposePreviewLiteModeManager.isLiteModeEnabled)
+
+      // Enable Android Studio essentials mode. Note that preview lite mode is still disabled in
+      // settings.
+      EssentialsMode.setEnabled(true)
+      assertTrue(ComposePreviewLiteModeManager.isLiteModeEnabled)
+    } finally {
+      StudioFlags.DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT.clearOverride()
+      EssentialsMode.setEnabled(false)
+    }
   }
 }
