@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.templates.diff
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
+import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.ProjectStateCustomizer
 import com.android.tools.idea.templates.TemplateStateCustomizer
@@ -24,6 +28,7 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.StringParameter
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
@@ -139,12 +144,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     }
 
     val msToCheck = measureTimeMillis {
-      val project: Project =
-        if (shouldUseGradle()) {
-          (projectRule as AndroidGradleProjectRule).project
-        } else {
-          (projectRule as AndroidProjectRule).project
-        }
+      val project: Project = getProject()
       val projectRenderer: ProjectRenderer =
         when (testMode) {
           TestMode.DIFFING -> ProjectDiffer(template, goldenDirName)
@@ -160,6 +160,13 @@ class TemplateDiffTest(private val testMode: TestMode) {
     println("Checked $name ($goldenDirName) successfully in ${msToCheck}ms\n")
     validationFailed = false
   }
+
+  private fun getProject() =
+    if (shouldUseGradle()) {
+      (projectRule as AndroidGradleProjectRule).project
+    } else {
+      (projectRule as AndroidProjectRule).project
+    }
 
   /**
    * Goes up the stack trace to find the closest @Test method that this was called from. This will
@@ -185,6 +192,27 @@ class TemplateDiffTest(private val testMode: TestMode) {
     throw RuntimeException("Must be called from a @Test")
   }
 
+  private val withKotlin: ProjectStateCustomizer =
+    { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.language = Language.Kotlin
+      // Use the Kotlin version for tests
+      projectData.kotlinVersion = TestUtils.KOTLIN_VERSION_FOR_TESTS
+    }
+
+  private fun withApplicationId(applicationId: String): ProjectStateCustomizer =
+    { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.applicationPackage = applicationId
+    }
+
+  private fun withPackage(packageName: String): ProjectStateCustomizer =
+    { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      moduleData.packageName = packageName
+      val paths =
+        GradleAndroidModuleTemplate.createDefaultModuleTemplate(getProject(), moduleData.name!!)
+          .paths
+      moduleData.setModuleRoots(paths, projectData.topOut!!.path, moduleData.name!!, packageName)
+    }
+
   /*
    * Tests for individual templates go below here. Each test method should only test one template
    * parameter combination, because the test method name is used as the directory name for the
@@ -196,7 +224,40 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
+  fun testNewEmptyViewsActivity_notInRootPackage() {
+    checkCreateTemplate(
+      "Empty Views Activity",
+      withApplicationId("com.mycompany.myapp"),
+      withPackage("com.mycompany.myapp.subpackage")
+    )
+  }
+
+  @Test
+  fun testNewEmptyViewsActivityKotlin() {
+    checkCreateTemplate("Empty Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testNewEmptyViewsActivityKotlin_notInRootPackage() {
+    checkCreateTemplate(
+      "Empty Views Activity",
+      withKotlin,
+      withApplicationId("com.mycompany.myapp"),
+      withPackage("com.mycompany.myapp.subpackage")
+    )
+  }
+
+  @Test
   fun testNewBasicViewsActivity() {
     checkCreateTemplate("Basic Views Activity")
+  }
+
+  @Test
+  fun testNewBasicActivityMaterial3() {
+    val withMaterial3: ProjectStateCustomizer =
+      { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
+        moduleData.isMaterial3 = true
+      }
+    checkCreateTemplate("Basic Views Activity", withKotlin, withMaterial3)
   }
 }
