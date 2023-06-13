@@ -165,16 +165,6 @@ class AndroidRunConfigurationExecutor(
     }
   }
 
-  private fun getApkPaths(apks: Iterable<ApkInfo>): Set<Path> {
-    val apksPaths: MutableSet<Path> = HashSet()
-    for (apkInfo in apks) {
-      for (apkFileUnit in apkInfo.files) {
-        apksPaths.add(apkFileUnit.apkPath)
-      }
-    }
-    return apksPaths
-  }
-
   private fun shouldDeployAsInstant(): Boolean {
     return facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP || configuration.DEPLOY_AS_INSTANT
   }
@@ -182,9 +172,7 @@ class AndroidRunConfigurationExecutor(
   private fun notifyLiveEditService(device: IDevice, packageName: String) {
     try {
       AndroidLiveLiteralDeployMonitor.getCallback(project, packageName, device)?.call()
-      val apks = apkProvider.getApks(device)
-      val app = LiveEditApp(getApkPaths(apks), device.version.apiLevel)
-      liveEditService.notifyAppDeploy(configuration, env.executor, packageName, device, app)
+      LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationIdProvider, apkProvider, device)
     } catch (e: Exception) {
 
       // Monitoring should always start successfully start.

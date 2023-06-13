@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.badMinAPIError
 import com.android.tools.idea.run.deployment.liveedit.desugaring.ApiLevel
 import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
@@ -42,7 +43,7 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceAPILevel: ApiLe
       minApis.addAll(consumer.minApis)
     }
 
-    if (minApis.size > 1) {
+    if (minApis.size > 1 && !COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK.get()) {
       badMinAPIError("Too many minAPI. Details:\n ${journal.joinToString("\n")}")
     }
 
@@ -53,7 +54,7 @@ class LiveEditApp(private val apks: Set<Path>, private val deviceAPILevel: ApiLe
 
     val duration = (System.nanoTime() - start) / 1_000_000
     logger.log("Found minAPI = $minApis in ${duration}ms")
-    return minApis.first()
+    return minApis.minOf { it }
   }
 
   private fun journal(msg: String) {

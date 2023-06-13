@@ -17,6 +17,7 @@ package com.android.tools.idea.run.blaze
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.execution.common.ApplicationTerminator
@@ -24,10 +25,12 @@ import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.run.LiveEditHelper
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
@@ -65,7 +68,9 @@ class BlazeAndroidConfigurationExecutor(
   private val env: ExecutionEnvironment,
   private val deviceFutures: DeviceFutures,
   private val myLaunchTasksProvider: BlazeLaunchTasksProvider,
-  private val launchOptions: LaunchOptions
+  private val launchOptions: LaunchOptions,
+  private val apkProvider: ApkProvider,
+  private val liveEditService: LiveEditService
 ) : AndroidConfigurationExecutor {
 
   val project = env.project
@@ -127,6 +132,7 @@ class BlazeAndroidConfigurationExecutor(
           myLaunchTasksProvider.getTasks(device, isDebug).forEach {
             it.run(launchContext)
           }
+          LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationIdProvider, apkProvider, device)
           // Notify listeners of the deployment.
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
         }

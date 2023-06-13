@@ -1233,6 +1233,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ALLOW_MULTIPLE_MIN_API_DEX_MARKERS_IN_APK = Flag.create(
+    COMPOSE, "deploy.live.edit.allow.multiple.min.api.dex.markers.in.apk",
+    "LiveEdit: Allow multiple min api dex markers in apk",
+    "If enabled, apk may contain multiple min api dex markers and LiveEdit picks the lowest among them",
+   false
+  );
+
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
     COMPOSE, "deploy.live.literals.updaterate",
     "Update rate of live literals edits",
