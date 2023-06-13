@@ -491,30 +491,6 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     return AndroidTargetData.get(androidPlatform.getSdkData(), androidPlatform.getTarget()).getFrameworkResources(languages);
   }
 
-  /**
-   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing
-   * the single resource repository returned by {@link #getAppResources()}. Otherwise the method returns
-   * a list of module, library, or sample data resource repositories for the given namespace. Usually the returned
-   * list will contain at most two resource repositories, one for a module and another for its user-defined sample
-   * data. More repositories may be returned only when there is a package name collision between modules or
-   * libraries.
-   *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
-   * or block waiting for a read action lock.
-   *
-   * @param namespace the namespace to return resource repositories for
-   * @return the repositories for the given namespace
-   */
-  @Slow
-  @NotNull
-  public List<ResourceRepository> getAppResourcesForNamespace(@NotNull ResourceNamespace namespace) {
-    AppResourceRepository appRepository = (AppResourceRepository)getAppResources();
-    if (myNamespacing == ResourceNamespacing.DISABLED) {
-      return ImmutableList.of(appRepository);
-    }
-    return ImmutableList.copyOf(appRepository.getRepositoriesForNamespace(namespace));
-  }
-
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.
   public void resetResources() {
     resetLibraries();
