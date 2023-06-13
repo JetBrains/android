@@ -16,6 +16,7 @@
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.ddmlib.ClientData
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
@@ -38,7 +39,12 @@ class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context:
 
   override val isVisible: Boolean
     get() {
-      return if (context == MenuContext.Popup) listener.numOfSelectedNodes > 0 else true
+      return if (!IdeInfo.getInstance().isGameTools) {
+        if (context == MenuContext.Popup) listener.numOfSelectedNodes > 0 else true
+      } else {
+        // We currently don't have a communication mechanism from Game Tools process back into Visual Studio
+        return false
+      }
     }
 
   override val isEnabled: Boolean

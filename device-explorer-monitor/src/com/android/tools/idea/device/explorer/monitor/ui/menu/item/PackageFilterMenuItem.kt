@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
@@ -45,7 +46,9 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuIte
 
   override val isVisible: Boolean
     get() {
-      return true
+      // GameTools doesn't obtain application IDs via gradle sync.
+      // We might be able to make obtain application IDs more generic in the future for it to work.
+      return !IdeInfo.getInstance().isGameTools
     }
 
   override val isEnabled: Boolean

@@ -25,12 +25,13 @@ import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 @UiThread
-class DeviceMonitorModel(
+class DeviceMonitorModel @NonInjectable constructor(
   private val processService: DeviceProcessService,
   private val packageNamesProvider: ProjectApplicationIdsProvider) {
   private val settings: DeviceMonitorSettings = DeviceMonitorSettings.getInstance()
@@ -39,6 +40,8 @@ class DeviceMonitorModel(
   val tableModel = DeviceMonitorTableModel()
   val isPackageFilterActive = MutableStateFlow(settings.isPackageFilterActive)
   val isApplicationIdsEmpty = MutableStateFlow(true)
+
+  constructor(project: Project, processService: DeviceProcessService) : this(processService, ProjectApplicationIdsProvider.getInstance(project))
 
   suspend fun setPackageFilter(isActive: Boolean) {
     if (isPackageFilterActive.value != isActive) {
