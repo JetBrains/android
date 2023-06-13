@@ -118,6 +118,10 @@ class ProcessesModel(
     synchronized(lock) { selectedProcessListeners[listener] = executor }
   }
 
+  fun removeSelectedProcessListener(listener: () -> Unit) {
+    synchronized(lock) { selectedProcessListeners.remove(listener) }
+  }
+
   @TestOnly
   fun addSelectedProcessListeners(listener: () -> Unit) =
     addSelectedProcessListeners(MoreExecutors.directExecutor(), listener)
