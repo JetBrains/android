@@ -491,18 +491,30 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
   @Override
   public void addArtifact(@NotNull String configurationName, @NotNull String compactNotation) {
+    addArtifact(configurationName,compactNotation,Collections.emptyList());
+  }
+
+  @Override
+  public void addArtifact(@NotNull String configurationName,
+                          @NotNull String compactNotation,
+                          @NotNull List<ArtifactDependencySpec> excludes) {
     ArtifactDependencySpec dependency = ArtifactDependencySpecImpl.create(compactNotation);
     if (dependency == null) {
       String msg = String.format("'%1$s' is not a valid artifact dependency", compactNotation);
       LOG.warn(msg);
       return;
     }
-    addArtifact(configurationName, dependency);
+    addArtifact(configurationName, dependency, excludes);
   }
 
   @Override
   public void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference) {
     ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, Collections.emptyList());
+  }
+
+  @Override
+  public void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference, @NotNull List<ArtifactDependencySpec> excludes) {
+    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, excludes);
   }
 
   @Override

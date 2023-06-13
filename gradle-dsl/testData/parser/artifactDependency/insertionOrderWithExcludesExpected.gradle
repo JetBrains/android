@@ -1,0 +1,9 @@
+dependencies {
+  feature 'com.example.libs3:lib3:3.0', {
+    exclude group: 'com.example.libs2', module: 'lib2'
+  }
+  api 'com.example.libs1:lib1:1.0', {
+    exclude group: 'a', module: 'b'
+  }
+  implementation "androidx.constraintlayout:constraintlayout:1.1.3"
+}
