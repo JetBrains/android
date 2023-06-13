@@ -27,51 +27,38 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.EditorNotificationProvider;
 import java.io.File;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
-
-  @NotNull private final GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
-  @NotNull private final Project myProject;
-
-  public GeneratedFileNotificationProvider(@NotNull Project project) {
-    myGeneratedSourceFileChangeTracker = GeneratedSourceFileChangeTracker.getInstance(project);
-    myProject = project;
-  }
-
-  @NotNull
-  @Override
-  public Key<EditorNotificationPanel> getKey() {
-    return KEY;
-  }
+public class GeneratedFileNotificationProvider implements EditorNotificationProvider {
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+  public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
+    GeneratedSourceFileChangeTracker generatedSourceFileChangeTracker = GeneratedSourceFileChangeTracker.getInstance(project);
     GradleAndroidModel androidModel =
-      GradleProjectSystemUtil.findAndroidModelInModule(myProject, file, false /* include excluded files */);
+      GradleProjectSystemUtil.findAndroidModelInModule(project, file, false /* include excluded files */);
     if (androidModel == null) {
       return null;
     }
-    return createNotificationPanel(file, fileEditor, androidModel);
+    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
+    return (fileEditor) -> createNotificationPanel(file, fileEditor, buildFolderPath, generatedSourceFileChangeTracker);
   }
 
   @Nullable
   @VisibleForTesting
-  public MyEditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                            @NotNull FileEditor fileEditor,
-                                                            @NotNull GradleAndroidModel androidModel) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                         @NotNull FileEditor fileEditor,
+                                                         @NotNull File buildFolderPath,
+                                                         @NotNull GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker) {
     if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
       return null;
     }
-    File buildFolderPath = androidModel.getAndroidProject().getBuildFolder();
     VirtualFile buildFolder = findFileByIoFile(buildFolderPath, false /* do not refresh */);
     if (buildFolder == null || !buildFolder.isDirectory()) {
       return null;
@@ -100,7 +87,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @VisibleForTesting
   static class MyEditorNotificationPanel extends EditorNotificationPanel {
     MyEditorNotificationPanel(@NotNull FileEditor fileEditor, @NotNull String text) {
-      super(fileEditor, EditorNotificationPanel.Status.Warning);
+      super(fileEditor, Status.Warning);
       setText(text);
     }
   }

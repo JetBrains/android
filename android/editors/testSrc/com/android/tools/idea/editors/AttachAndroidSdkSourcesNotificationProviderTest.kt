@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.editors
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
 import com.android.tools.idea.wizard.model.ModelWizardDialog
@@ -58,12 +56,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Before
   fun setup() {
-    myProvider = TestAttachAndroidSdkSourcesNotificationProvider(myAndroidProjectRule.project)
-  }
-
-  @Test
-  fun getKey() {
-    assertThat(myProvider.key.toString()).isEqualTo("add sdk sources to class")
+    myProvider = TestAttachAndroidSdkSourcesNotificationProvider()
   }
 
   @Test
@@ -151,7 +144,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   }
 
   private fun invokeCreateNotificationPanel(virtualFile: VirtualFile): AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel? {
-    val panel = runReadAction { myProvider.createNotificationPanel(virtualFile, myFileEditor) }
+    val panel = runReadAction { myProvider.collectNotificationData(myAndroidProjectRule.project, virtualFile)?.apply(myFileEditor) }
     return panel as AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel?
   }
 
@@ -174,12 +167,12 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   /**
    * Test implementation of [AttachAndroidSdkSourcesNotificationProvider] that mocks the call to create an SDK download dialog.
    */
-  private inner class TestAttachAndroidSdkSourcesNotificationProvider(project: Project) :
-    AttachAndroidSdkSourcesNotificationProvider(project) {
+  private inner class TestAttachAndroidSdkSourcesNotificationProvider :
+    AttachAndroidSdkSourcesNotificationProvider() {
     var requestedPaths: List<String>? = null
       private set
 
-    override fun createSdkDownloadDialog(requestedPaths: List<String>?): ModelWizardDialog? {
+    override fun createSdkDownloadDialog(project: Project, requestedPaths: List<String>?): ModelWizardDialog {
       this.requestedPaths = requestedPaths
       return myModelWizardDialog
     }

@@ -56,8 +56,7 @@ public class SmaliFileNotificationProviderTest extends PlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    Project project = getProject();
-    myNotificationProvider = new SmaliFileNotificationProvider(project);
+    myNotificationProvider = new SmaliFileNotificationProvider();
   }
 
   @Override
@@ -76,15 +75,16 @@ public class SmaliFileNotificationProviderTest extends PlatformTestCase {
     VirtualFile rSmaliFile = findFileByIoFile(rSmaliFilePath, true);
     assertNotNull(rSmaliFile);
 
-    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(rSmaliFile, myFileEditor);
+    var panelProvider = myNotificationProvider.collectNotificationData(myProject, rSmaliFile);
+    assertNotNull(panelProvider);
+    EditorNotificationPanel notificationPanel = panelProvider.apply(myFileEditor);
     assertNotNull(notificationPanel);
   }
 
   public void testCreateNotificationPanelWithNonSmaliFile() throws Exception {
     loadProject(APK_SAN_ANGELES);
-    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(
-      PlatformTestUtil.getOrCreateProjectBaseDir(getProject()), myFileEditor);
-    assertNull(notificationPanel);
+    var panelProvider = myNotificationProvider.collectNotificationData(myProject, PlatformTestUtil.getOrCreateProjectBaseDir(myProject));
+    assertNull(panelProvider);
   }
 
   private void loadProject(@NotNull String relativePath) throws Exception {

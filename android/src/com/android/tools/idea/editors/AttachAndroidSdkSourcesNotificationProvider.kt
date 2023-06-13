@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.editors
 
-import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.wizard.model.ModelWizardDialog
@@ -35,39 +33,45 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
-import com.intellij.ui.EditorNotifications
+import com.intellij.ui.EditorNotificationProvider
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.sdk.getInstance
+import java.util.function.Function
 
 /**
  * Notifies users that the Android SDK file they opened doesn't have a source file associated with it, and provides a link to download the
  * source via the SDK Manager.
  */
-open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Project) :
-  EditorNotifications.Provider<EditorNotificationPanel?>() {
+open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvider {
 
-  override fun getKey(): Key<EditorNotificationPanel?> = KEY
-
-  @UiThread
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
-    return createNotificationPanelForDebugSession(file, fileEditor) ?: createNotificationPanelForClassFiles(file, fileEditor)
+  override fun collectNotificationData(
+    project: Project,
+    file: VirtualFile
+  ): Function<FileEditor, EditorNotificationPanel?>? {
+    return createNotificationPanelForDebugSession(file, project) ?: createNotificationPanelForClassFiles(file, project)
   }
 
-  private fun createNotificationPanelForDebugSession(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
+  private fun createNotificationPanelForDebugSession(
+    file: VirtualFile,
+    project: Project
+  ): Function<FileEditor, EditorNotificationPanel?>? {
     // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a debugging session, and will set the
     // REQUIRED_SOURCES_KEY when necessary.
     val missingApiLevel = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
-    return createPanel(fileEditor, AndroidVersion(missingApiLevel), null)
+    return createPanel(project, AndroidVersion(missingApiLevel), null)
   }
 
-  private fun createNotificationPanelForClassFiles(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
+  private fun createNotificationPanelForClassFiles(
+    file: VirtualFile,
+    myProject: Project
+  ): Function<FileEditor, EditorNotificationPanel?>? {
     if (!FileTypeRegistry.getInstance().isFileOfType(file, JavaClassFileType.INSTANCE)) return null
 
     // If the java source can be found, no need to download sources.
     if (JavaEditorFileSwapper.findSourceFile(myProject, file) != null) return null
 
     // Since the java source was not found, it might come from an Android SDK.
-    val jdkOrderEntry = findAndroidSdkEntryForFile(file) ?: return null
+    val jdkOrderEntry = findAndroidSdkEntryForFile(myProject, file) ?: return null
     val sdk = jdkOrderEntry.jdk ?: return null
 
     // If we have sources, no need to display the panel.
@@ -76,32 +80,33 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
     val apiVersion = getInstance(sdk)?.apiVersion ?: return null
     val refresh = Runnable { AndroidSdkUtils.updateSdkSourceRoot(sdk) }
 
-    return createPanel(fileEditor, apiVersion, refresh)
+    return createPanel(myProject, apiVersion, refresh)
   }
 
   private fun createPanel(
-    fileEditor: FileEditor,
+    project: Project,
     requestedSourceVersion: AndroidVersion,
     refreshAfterDownload: Runnable?
-  ): MyEditorNotificationPanel {
+  ): Function<FileEditor, EditorNotificationPanel?> = Function { fileEditor ->
     val panel = MyEditorNotificationPanel(fileEditor)
     panel.text = "Android SDK sources for API ${requestedSourceVersion.apiString} not found."
     panel.createAndAddLink("Download") {
       val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
-      if (createSdkDownloadDialog(listOf(sourcesPath))?.showAndGet() == true) {
+      if (createSdkDownloadDialog(project, listOf(sourcesPath))?.showAndGet() == true) {
         refreshAfterDownload?.run()
       }
     }
-    return panel
+    panel
   }
 
   @VisibleForTesting
-  protected open fun createSdkDownloadDialog(requestedPaths: List<String>?): ModelWizardDialog? {
-    return SdkQuickfixUtils.createDialogForPaths(myProject, requestedPaths!!)
+  protected open fun createSdkDownloadDialog(project: Project, requestedPaths: List<String>?): ModelWizardDialog? {
+    // TODO(b/230852993) calls a heavy method AndroidSdkHandler.getSdkManager
+    return SdkQuickfixUtils.createDialogForPaths(project, requestedPaths!!)
   }
 
-  private fun findAndroidSdkEntryForFile(file: VirtualFile): JdkOrderEntry? {
-    return ProjectFileIndex.getInstance(myProject)
+  private fun findAndroidSdkEntryForFile(project: Project, file: VirtualFile): JdkOrderEntry? {
+    return ProjectFileIndex.getInstance(project)
       .getOrderEntriesForFile(file)
       .filterIsInstance<JdkOrderEntry>()
       .firstOrNull { entry -> entry.jdk?.let { AndroidSdks.getInstance().isAndroidSdk(it) } == true }
@@ -124,8 +129,6 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
   }
 
   companion object {
-    private val KEY = Key.create<EditorNotificationPanel?>("add sdk sources to class")
-
     @JvmField
     val REQUIRED_SOURCES_KEY = Key.create<Int>("sources to download")
   }

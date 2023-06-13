@@ -19,25 +19,25 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.editor.NlEditor
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
+import java.util.function.Function
+import javax.swing.JComponent
 
-private val COMPONENT_KEY =
-  Key.create<EditorNotificationPanel>("android.tools.uibuilder.editor.notification")
+/** A [EditorNotificationProvider] for the [DesignSurface]. */
+class DesignSurfaceNotificationProvider : EditorNotificationProvider {
 
-/** A [EditorNotifications.Provider] for the [DesignSurface]. */
-class DesignSurfaceNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
-  override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
-
-  override fun createNotificationPanel(
-    file: VirtualFile,
-    fileEditor: FileEditor,
-    project: Project
-  ): EditorNotificationPanel? {
-    val surface: DesignSurface<*> = (fileEditor as? NlEditor)?.component?.surface ?: return null
-    return if (!surface.isRefreshing && surface.sceneManagers.any { it.isOutOfDate }) {
+  override fun collectNotificationData(
+    project: Project,
+    file: VirtualFile
+  ): Function<in FileEditor, out JComponent?> {
+    return Function { fileEditor: FileEditor ->
+      val surface: DesignSurface<*> =
+        (fileEditor as? NlEditor)?.component?.surface ?: return@Function null
+      if (surface.isRefreshing || !surface.sceneManagers.any { it.isOutOfDate })
+        return@Function null
       EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
         text = "The preview is out of date"
         createActionLabel("Refresh") {
@@ -45,6 +45,6 @@ class DesignSurfaceNotificationProvider : EditorNotifications.Provider<EditorNot
           EditorNotifications.getInstance(project).updateNotifications(file)
         }
       }
-    } else null
+    }
   }
 }
