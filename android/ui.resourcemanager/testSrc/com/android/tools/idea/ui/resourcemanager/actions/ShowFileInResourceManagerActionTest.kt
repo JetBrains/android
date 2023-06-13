@@ -30,6 +30,7 @@ import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
@@ -39,7 +40,6 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.idea.util.findModule
 import org.junit.Before
 import org.junit.Rule

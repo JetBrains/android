@@ -49,7 +49,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import org.hamcrest.Matchers
 import org.jetbrains.annotations.Contract
-import org.jetbrains.kotlin.idea.util.application.runReadAction
+import com.intellij.openapi.application.runReadAction
 import org.junit.Assume
 import org.junit.Assume.assumeFalse
 import org.junit.Rule

@@ -29,7 +29,7 @@ import org.jetbrains.android.refactoring.ENABLE_JETIFIER_PROPERTY
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.refactoring.isEnableJetifier
-import org.jetbrains.kotlin.idea.util.application.runReadAction
+import com.intellij.openapi.application.runReadAction
 
 data class StudioProvidedInfo(
   val agpVersion: AgpVersion?,

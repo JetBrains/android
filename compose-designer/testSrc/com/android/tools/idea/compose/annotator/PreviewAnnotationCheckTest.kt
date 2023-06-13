@@ -26,6 +26,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.moveCaret
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.runInEdtAndGet
@@ -34,7 +35,6 @@ import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
 import org.junit.Assert.assertEquals

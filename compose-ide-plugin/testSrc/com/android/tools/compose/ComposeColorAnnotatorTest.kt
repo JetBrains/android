@@ -33,7 +33,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.idea.util.application.runReadAction
+import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Before

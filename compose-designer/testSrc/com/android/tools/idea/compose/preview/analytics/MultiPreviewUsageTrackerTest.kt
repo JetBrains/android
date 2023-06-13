@@ -27,10 +27,10 @@ import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.AndroidEditorSettings
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals

@@ -985,7 +985,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
 
     private int getRowCount() {
-      return myRecommendedColors.isEmpty() ? 0 : (int)Math.ceil(myRecommendedColors.size() / new Double(COLUMN_COUNT));
+      return myRecommendedColors.isEmpty() ? 0 : (int)Math.ceil(myRecommendedColors.size() / (double)COLUMN_COUNT);
     }
 
     @Override

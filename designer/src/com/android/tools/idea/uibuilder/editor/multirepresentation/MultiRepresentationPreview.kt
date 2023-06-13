@@ -56,7 +56,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.util.application.runReadAction
+import com.intellij.openapi.application.runReadAction
 import java.awt.BorderLayout
 import java.util.concurrent.CancellationException
 import java.util.concurrent.atomic.AtomicBoolean

@@ -706,19 +706,11 @@
     </issue>
 
     <issue
-        id="UseValueOf"
-        message="Use `Double.valueOf(COLUMN_COUNT)` instead">
-        <location
-            file="src/com/android/tools/idea/ui/resourcechooser/ColorPicker.java"
-            line="988"/>
-    </issue>
-
-    <issue
         id="FileComparisons"
         message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
         <location
             file="src/com/android/tools/idea/fonts/DownloadableFontCacheServiceImpl.java"
-            line="276"/>
+            line="278"/>
     </issue>
 
     <issue
