@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.utils.HtmlBuilder;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -65,7 +66,7 @@ public abstract class CreateResourceDirectoryDialogBase extends DialogWrapper {
   @Nullable
   @Override
   protected String getHelpId() {
-    return "reference.new.resource.directory";
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/new-resource-dir.html";
   }
 
   protected DeviceConfiguratorPanel setupDeviceConfigurationPanel(
