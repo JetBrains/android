@@ -1,7 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_DATA")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "AGP_DATA")
 
 # managed by go/iml_to_build
 iml_module(
@@ -120,6 +120,7 @@ maven_repository(
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:com.google.guava.guava_28.1-jre",
         "@maven//:com.google.jimfs.jimfs_1.1",
+        "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:de.undercouch.gradle-download-task_4.0.2",
@@ -301,6 +302,33 @@ old_agp_test(
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system/previous-versions:7.2.0",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+    ],
+    tags = [
+        "block-network",
+        "no_test_mac",  # b/215483578
+        "no_test_windows",
+    ],
+    test_class = "com.android.tools.idea.gradle.project.upgrade.integration.GradleProjectSystemUpgradeIntegrationTestSuite",
+)
+
+old_agp_test(
+    name = "ProjectUpgradeTests_From",
+    timeout = "long",
+    agp_version = AGP_7_3,
+    data = [
+        "//prebuilts/studio/jdk:jdk11",
+        "//tools/adt/idea/project-system-gradle-upgrade/testData",
+        "//tools/base/build-system:gradle-distrib-7.4",
+    ] + AGP_DATA[AGP_7_3],
+    gradle_version = "7.4",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.upgrade.tests",
+    maven_deps = [
+        ":test_deps",
+        "//tools/base/build-system:android_gradle_plugin.zip",
+        "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system/previous-versions:7.3.0",
         "//tools/base/build-system/previous-versions:kgp1.3.72",
     ],
     tags = [

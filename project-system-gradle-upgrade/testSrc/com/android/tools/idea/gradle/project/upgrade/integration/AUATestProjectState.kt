@@ -68,6 +68,7 @@ enum class TestAGPVersion(
   V_7_0("7.0.0", CompatibleGradleVersion.VERSION_7_0_2, jdkVersion = JavaSdkVersion.JDK_11),
   V_7_1("7.1.0", CompatibleGradleVersion.VERSION_7_2, jdkVersion = JavaSdkVersion.JDK_11),
   V_7_2("7.2.0", CompatibleGradleVersion.VERSION_7_3_3, jdkVersion = JavaSdkVersion.JDK_11),
+  V_7_3("7.3.0", CompatibleGradleVersion.VERSION_7_4, jdkVersion = JavaSdkVersion.JDK_11, kotlinVersion = "1.6.21"),
   LATEST(null, CompatibleGradleVersion.VERSION_FOR_DEV, kotlinVersion = "1.6.21"),
 }
 
@@ -95,6 +96,8 @@ enum class AUATestProjectState(
   BASIC_7_1(BASIC, V_7_1, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
   // No changes from 7.0 apart from versions so reuse the same files.
   BASIC_7_2(BASIC, V_7_2, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
+  // No changes from 7.0 apart from versions so reuse the same files.
+  BASIC_7_3(BASIC, V_7_3, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
   BASIC_DEV_MIN(BASIC, LATEST, minimalState = true, basePath = "4.0.0", patchPath = "dev-minimal"),
   BASIC_DEV_FULL(BASIC, LATEST, minimalState = false, basePath = "4.0.0", patchPath = "dev-upgraded"),
 
@@ -109,6 +112,10 @@ enum class AUATestProjectState(
   ALL_DEPRECATIONS_7_2_MIN(ALL_DEPRECATIONS, V_7_2, minimalState = true, basePath = "4.2.0-base", patchPath = "7.0.0-minimal"),
   // No changes from 7.1 apart from versions so reuse the same files.
   ALL_DEPRECATIONS_7_2_FULL(ALL_DEPRECATIONS, V_7_2, minimalState = false, basePath = "4.2.0-base", patchPath = "7.1.0-upgraded"),
+  // No changes from 7.0 apart from versions so reuse the same files.
+  ALL_DEPRECATIONS_7_3_MIN(ALL_DEPRECATIONS, V_7_3, minimalState = true, basePath = "4.2.0-base", patchPath = "7.0.0-minimal"),
+  // No changes from 7.1 apart from versions so reuse the same files.
+  ALL_DEPRECATIONS_7_3_FULL(ALL_DEPRECATIONS, V_7_3, minimalState = false, basePath = "4.2.0-base", patchPath = "7.1.0-upgraded"),
   ALL_DEPRECATIONS_DEV_MIN(ALL_DEPRECATIONS, LATEST, minimalState = true, basePath = "4.2.0-base", patchPath = "dev-minimal"),
   ALL_DEPRECATIONS_DEV_FULL(ALL_DEPRECATIONS, LATEST, minimalState = false, basePath = "4.2.0-base", patchPath = "dev-upgraded"),
   ;
