@@ -73,6 +73,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
@@ -621,6 +622,7 @@ public final class AndroidGradleTests {
         Path jdkPath = IdeInfo.getInstance().isAndroidStudio()
                        ? ideSdks.getEmbeddedJdkPath()
                        : TestUtils.getJava11Jdk();
+        VfsRootAccess.allowRootAccess(projectDisposable, jdkPath.toAbsolutePath().toString());
         jdk = ideSdks.setJdkPath(jdkPath);
       }
       applyJdkToProject(project, ideSdks.getJdk());

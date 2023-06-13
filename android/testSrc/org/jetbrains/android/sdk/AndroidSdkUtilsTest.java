@@ -120,7 +120,10 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
     assertWithMessage("Precondition: project with no android facets")
         .that(ProjectFacetManager.getInstance(myProject).hasFacets(AndroidFacet.ID)).isFalse();
 
-    WriteAction.runAndWait(() -> IdeSdks.getInstance().setAndroidSdkPath(mySdkPath, null));
+    WriteAction.runAndWait(() -> {
+      Sdk jdk = IdeSdks.getInstance().getOrCreateJdk(TestUtils.getJava11Jdk());
+      IdeSdks.getInstance().setAndroidSdkPath(mySdkPath, jdk, null);
+    });
     assertWithMessage("Precondition: android SDK configured").that(IdeSdks.getInstance().hasConfiguredAndroidSdk()).isTrue();
 
     assertThat(AndroidSdkUtils.findAdb(myProject).adbPath)
