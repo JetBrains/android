@@ -16,9 +16,9 @@
 package com.android.tools.idea.appinspection.ide.analytics
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionAnalyticsTracker
-import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.openapi.components.Service

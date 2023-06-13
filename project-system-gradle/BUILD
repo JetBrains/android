@@ -55,6 +55,7 @@ iml_module(
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/explainer:intellij.android.explainer[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

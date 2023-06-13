@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager
 
 import com.android.resources.ResourceType
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ResourceManagerEvent
 import com.google.wireless.android.sdk.stats.ResourceManagerEvent.Kind

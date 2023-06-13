@@ -20,12 +20,12 @@ import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.HostData.graphicsEnvironment
 import com.android.tools.analytics.HostData.osBean
+import com.android.tools.analytics.deviceToDeviceInfo
 import com.android.tools.analytics.stubs.StubDateProvider
 import com.android.tools.analytics.stubs.StubGraphicsDevice.Companion.withBounds
 import com.android.tools.analytics.stubs.StubGraphicsEnvironment
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.buildActiveExperimentList
-import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfo
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.deviceToDeviceInfoApiLevelOnly
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.getMachineDetails
 import com.android.tools.idea.stats.AndroidStudioUsageTracker.shouldRequestUserSentiment
@@ -43,7 +43,6 @@ import java.io.File
 import java.time.ZoneOffset
 import java.util.Date
 import java.util.GregorianCalendar
-import java.util.Locale
 import java.util.TimeZone
 
 class AndroidStudioUsageTrackerTest : TestCase() {

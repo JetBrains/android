@@ -17,6 +17,7 @@ package com.android.tools.idea.stats;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.deployer.model.component.ComponentType;
 import com.android.tools.tracer.Trace;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -111,7 +112,7 @@ public class RunStats {
     if (device == null) {
       return;
     }
-    myEvent.setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device));
+    myEvent.setDeviceInfo(UsageTrackerUtils.deviceToDeviceInfo(device));
     myEvent.getRunEventBuilder().setDeviceCount(myEvent.getRunEventBuilder().getDeviceCount() + 1);
   }
 

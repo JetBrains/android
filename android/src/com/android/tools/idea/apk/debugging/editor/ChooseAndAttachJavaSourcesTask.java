@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.apk.debugging.editor;
 
+import static com.android.tools.idea.stats.AnonymizerUtil.anonymizeUtf8;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.APK_DEBUG;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.APK_DEBUG_ATTACH_JAVA_SOURCES;
+import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
+import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createMultipleJavaPathDescriptor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.ApkFacetConfiguration;
 import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.android.tools.idea.apk.debugging.ExternalSourceFolders;
-import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.util.FileOrFolderChooser;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -33,16 +40,8 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
-
-import static com.android.tools.idea.stats.AnonymizerUtil.anonymizeUtf8;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.APK_DEBUG;
-import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.APK_DEBUG_ATTACH_JAVA_SOURCES;
-import static com.intellij.openapi.fileChooser.FileChooser.chooseFiles;
-import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createMultipleJavaPathDescriptor;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import org.jetbrains.annotations.NotNull;
 
 class ChooseAndAttachJavaSourcesTask implements Runnable {
   @NotNull private final String myClassFqn;

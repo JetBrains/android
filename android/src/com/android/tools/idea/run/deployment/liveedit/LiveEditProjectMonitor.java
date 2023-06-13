@@ -24,7 +24,7 @@ import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
-import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.Ref;
 import com.intellij.util.ThreeState;

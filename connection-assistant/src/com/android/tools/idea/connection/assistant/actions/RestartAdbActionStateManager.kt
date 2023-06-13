@@ -25,7 +25,7 @@ import com.android.tools.idea.assistant.datamodel.ActionData
 import com.android.tools.idea.assistant.datamodel.DefaultActionState
 import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.android.utils.HtmlBuilder
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures

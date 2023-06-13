@@ -35,6 +35,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

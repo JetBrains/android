@@ -18,10 +18,11 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.view;
 import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import static java.util.Collections.emptyList;
 
+import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings;
-import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.ClassifiedIncludeValue;
@@ -32,9 +33,8 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeVa
 import com.android.tools.idea.navigator.nodes.ndk.includes.resolver.IncludeResolver;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
-import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.VirtualFiles;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.CppHeadersViewEvent;
 import com.intellij.icons.AllIcons;

@@ -16,5 +16,6 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="module" module-name="analytics" />
   </component>
 </module>

@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

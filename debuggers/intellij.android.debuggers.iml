@@ -28,5 +28,6 @@
     <orderEntry type="module" module-name="android.sdktools.lint-api" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="module" module-name="analytics" />
   </component>
 </module>

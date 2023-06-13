@@ -16,8 +16,6 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
-import com.android.ide.common.util.isMdnsAutoConnectTls
-import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettings.optedIn
 import com.android.tools.analytics.CommonMetricsData
@@ -56,7 +54,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -359,28 +356,7 @@ object AndroidStudioUsageTracker {
     ManifestMergerStatsTracker.reportMergerStats()
   }
 
-  /**
-   * Creates a [DeviceInfo] from a [IDevice] instance.
-   */
-  @JvmStatic
-  fun deviceToDeviceInfo(device: IDevice): DeviceInfo {
-    return DeviceInfo.newBuilder()
-      .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(device.serialNumber))
-      .setBuildTags(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TAGS)))
-      .setBuildType(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TYPE)))
-      .setBuildVersionRelease(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_VERSION)))
-      .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
-      .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
-      .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
-      .setDeviceType(if (device.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
-      .setMdnsConnectionType(when {
-                               device.isMdnsAutoConnectUnencrypted -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
-                               device.isMdnsAutoConnectTls -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
-                               else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
-                             })
-      .addAllCharacteristics(device.hardwareCharacteristics)
-      .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
-  }
+
 
   /**
    * Retrieves the corresponding [ProductDetails.IdeTheme] based on current IDE's settings

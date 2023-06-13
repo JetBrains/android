@@ -32,6 +32,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/assistant[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

@@ -22,5 +22,6 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="library" name="google-dexlib2" level="project" />
+    <orderEntry type="module" module-name="analytics" />
   </component>
 </module>

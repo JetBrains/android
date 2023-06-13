@@ -34,6 +34,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

@@ -16,9 +16,9 @@
 package com.android.tools.idea.gradle.service.notification
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.stats.withProjectId
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent

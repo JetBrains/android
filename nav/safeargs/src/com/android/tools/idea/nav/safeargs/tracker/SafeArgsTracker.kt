@@ -19,13 +19,11 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavSafeArgsEvent
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * A service which allows tracking safe args related metrics.

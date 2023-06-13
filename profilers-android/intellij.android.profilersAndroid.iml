@@ -63,5 +63,6 @@
     <orderEntry type="module" module-name="app-inspection.ide" />
     <orderEntry type="library" scope="TEST" name="perfetto-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
+    <orderEntry type="module" module-name="analytics" />
   </component>
 </module>

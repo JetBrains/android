@@ -19,7 +19,7 @@ import com.android.build.diagnostic.WindowsDefenderChecker
 import com.android.build.diagnostic.WindowsDefenderCheckerWrapper
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.google.wireless.android.sdk.stats.WindowsDefenderStatus

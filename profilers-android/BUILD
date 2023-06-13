@@ -55,6 +55,7 @@ iml_module(
         "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

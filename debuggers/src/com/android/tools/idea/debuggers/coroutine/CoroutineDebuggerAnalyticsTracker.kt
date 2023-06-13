@@ -16,10 +16,8 @@
 package com.android.tools.idea.debuggers.coroutine
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.AnonymizerUtil
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.google.wireless.android.sdk.stats.CoroutineDebuggerEvent
 import com.intellij.openapi.project.Project
 

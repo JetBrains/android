@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,17 @@
  */
 @file:JvmName("UsageTrackerUtils")
 
-package com.android.tools.idea.stats
+package com.android.tools.analytics
 
 import com.android.AndroidProjectTypes
+import com.android.ddmlib.IDevice
+import com.android.ide.common.util.isMdnsAutoConnectTls
+import com.android.ide.common.util.isMdnsAutoConnectUnencrypted
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.stats.AnonymizerUtil
+import com.google.common.base.Strings
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.diagnostic.getOrLogException
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.ModuleManager
@@ -86,6 +92,28 @@ private fun getApplicationId(project: Project): String? {
     }
   }
   return null
+}
+
+/**
+ * Creates a [DeviceInfo] from a [IDevice] instance.
+ */
+fun deviceToDeviceInfo(device: IDevice): DeviceInfo {
+  return DeviceInfo.newBuilder()
+    .setAnonymizedSerialNumber(AnonymizerUtil.anonymizeUtf8(device.serialNumber))
+    .setBuildTags(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TAGS)))
+    .setBuildType(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_TYPE)))
+    .setBuildVersionRelease(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_VERSION)))
+    .setBuildApiLevelFull(Strings.nullToEmpty(device.getProperty(IDevice.PROP_BUILD_API_LEVEL)))
+    .setCpuAbi(CommonMetricsData.applicationBinaryInterfaceFromString(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI)))
+    .setManufacturer(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)))
+    .setDeviceType(if (device.isEmulator) DeviceInfo.DeviceType.LOCAL_EMULATOR else DeviceInfo.DeviceType.LOCAL_PHYSICAL)
+    .setMdnsConnectionType(when {
+                             device.isMdnsAutoConnectUnencrypted -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
+                             device.isMdnsAutoConnectTls -> DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
+                             else -> DeviceInfo.MdnsConnectionType.MDNS_NONE
+                           })
+    .addAllCharacteristics(device.hardwareCharacteristics)
+    .setModel(Strings.nullToEmpty(device.getProperty(IDevice.PROP_DEVICE_MODEL))).build()
 }
 
 private val LOG = logger<AndroidStudioEvent>()

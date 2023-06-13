@@ -27,9 +27,9 @@ import com.android.ddmlib.IDevice
 import com.android.ide.common.repository.GMAVEN_BASE_URL
 import com.android.repository.api.ConsoleProgressIndicator
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.deviceToDeviceInfo
 import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sdk.StudioDownloader
-import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Transport
@@ -196,7 +196,7 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
       UsageTracker.log(
         AndroidStudioEvent.newBuilder()
           .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-          .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(device))
+          .setDeviceInfo(deviceToDeviceInfo(device))
           .setAndroidProfilerEvent(
             AndroidProfilerEvent.newBuilder()
               .setType(AndroidProfilerEvent.Type.PERFETTO_SDK_HANDSHAKE)

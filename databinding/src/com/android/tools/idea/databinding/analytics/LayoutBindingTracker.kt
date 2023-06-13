@@ -22,7 +22,7 @@ import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.project.LayoutBindingEnabledFacetsProvider
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.util.androidFacet
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

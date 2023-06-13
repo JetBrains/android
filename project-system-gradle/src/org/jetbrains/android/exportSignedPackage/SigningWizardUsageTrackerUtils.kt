@@ -16,7 +16,7 @@
 package org.jetbrains.android.exportSignedPackage
 
 import com.android.tools.analytics.UsageTracker.log
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SIGNING_WIZARD_CANCEL_ACTION
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SIGNING_WIZARD_GRADLE_SIGNING_FAILED

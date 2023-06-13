@@ -43,7 +43,7 @@ import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.AlwaysRunTasksAnalyzerData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

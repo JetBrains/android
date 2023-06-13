@@ -17,8 +17,8 @@ package com.android.build.output
 
 import com.android.build.attribution.analyzers.minGradleVersionProvidingDownloadEvents
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.stats.FeatureSurveys
-import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
 import com.intellij.build.events.BuildEventPresentationData

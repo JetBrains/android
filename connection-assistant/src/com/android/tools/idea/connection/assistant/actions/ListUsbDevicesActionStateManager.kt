@@ -28,7 +28,7 @@ import com.android.tools.idea.assistant.view.StatefulButtonMessage
 import com.android.tools.idea.assistant.view.UIUtils
 import com.android.tools.idea.concurrency.toCompletionStage
 import com.android.tools.idea.rendering.HtmlBuilderHelper
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.android.tools.usb.Platform
 import com.android.tools.usb.UsbDeviceCollector
 import com.android.tools.usb.UsbDeviceCollectorImpl
