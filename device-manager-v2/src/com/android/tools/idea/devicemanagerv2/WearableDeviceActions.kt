@@ -34,7 +34,17 @@ class PairWearableDeviceAction : AnAction("Pair Wearable") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabledAndVisible = wearPairingId(e) != null
+    val deviceRowData = e.deviceRowData()
+    if (deviceRowData?.wearPairingId == null) {
+      e.presentation.isEnabledAndVisible = false
+    } else {
+      // Visible if the device supports pairing
+      e.presentation.isVisible = true
+      // Enabled if the device can be paired at the moment: it's online, or we can make it be online
+      e.presentation.isEnabled =
+        deviceRowData.status == DeviceRowData.Status.ONLINE ||
+          deviceRowData.handle?.activationAction?.presentation?.value?.enabled == true
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
