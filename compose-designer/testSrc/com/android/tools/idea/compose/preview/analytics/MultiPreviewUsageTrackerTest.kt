@@ -22,14 +22,17 @@ import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder.getPreviewNodes
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -321,6 +324,26 @@ class MultiPreviewUsageTrackerTest {
         )
         .sorted()
     )
+  }
+
+  @Test
+  fun testLogEvent_LiteMode() {
+    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.override(true)
+    fun logAndGetMultiPreviewEvent() =
+      MultiPreviewUsageTracker.getInstance(null)
+        .logEvent(MultiPreviewEvent(listOf(), ""))
+        .composeMultiPreviewEvent
+
+    try {
+      val settings = AndroidEditorSettings.getInstance().globalState
+      settings.isComposePreviewLiteModeEnabled = false
+      assertFalse(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
+
+      settings.isComposePreviewLiteModeEnabled = true
+      assertTrue(logAndGetMultiPreviewEvent().isComposePreviewLiteMode)
+    } finally {
+      StudioFlags.COMPOSE_PREVIEW_LITE_MODE.clearOverride()
+    }
   }
 
   @Test
