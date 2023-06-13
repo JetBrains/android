@@ -20,160 +20,185 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
+import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.create
 import com.android.tools.idea.editors.strings.StringResourceData.Companion.summarizeLocales
 import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.res.DynamicValueResourceRepository
 import com.android.tools.idea.res.createTestModuleRepository
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 import java.util.Collections
 import java.util.concurrent.TimeUnit
 
-class StringResourceDataTest : AndroidTestCase() {
+@RunWith(JUnit4::class)
+@RunsInEdt
+class StringResourceDataTest {
+
+  @get:Rule
+  val androidProjectRule = AndroidProjectRule.onDisk().onEdt()
+
+  private val fixture by lazy {
+    androidProjectRule.fixture.apply {
+      testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+    }
+  }
+  private val module by lazy { fixture.module }
+  private val facet by lazy { module.androidFacet!! }
 
   private lateinit var resourceDirectory: VirtualFile
   private lateinit var data: StringResourceData
 
-  override fun setUp() {
-    super.setUp()
-    myFacet.properties.ALLOW_USER_CONFIGURATION = false
-    resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res")
+  @Before
+  fun setUp() {
+    facet.properties.ALLOW_USER_CONFIGURATION = false
+    resourceDirectory = fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
 
     val field = DynamicResourceValue(ResourceType.STRING, "L'Étranger")
 
     val dynamicRepository =
-      DynamicValueResourceRepository.createForTest(myFacet, ResourceNamespace.RES_AUTO, Collections.singletonMap("dynamic_key1", field))
+      DynamicValueResourceRepository.createForTest(facet, ResourceNamespace.RES_AUTO, Collections.singletonMap("dynamic_key1", field))
 
-    val moduleRepository = createTestModuleRepository(myFacet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO, dynamicRepository)
+    val moduleRepository = createTestModuleRepository(facet, listOf(resourceDirectory), ResourceNamespace.RES_AUTO, dynamicRepository)
 
-    data = create(myModule.project, Utils.createStringRepository(moduleRepository))
+    data = create(module.project, Utils.createStringRepository(moduleRepository))
   }
 
-  fun testSummarizeLocales() {
+  @Test
+  fun summarizeLocales() {
     fun localeListOf(vararg locales: String) = locales.map(Locale::create)
 
-    assertEquals("", summarizeLocales(emptySet()))
+    assertThat(summarizeLocales(emptySet())).isEqualTo("")
 
-    assertEquals("English (en) and French (fr)", summarizeLocales(localeListOf("fr", "en")))
+    assertThat(summarizeLocales(localeListOf("fr", "en"))).isEqualTo("English (en) and French (fr)")
 
-    assertEquals("English (en), French (fr) and Hindi (hi)", summarizeLocales(localeListOf("en", "fr", "hi")))
+    assertThat(summarizeLocales(localeListOf("en", "fr", "hi"))).isEqualTo("English (en), French (fr) and Hindi (hi)")
 
-    assertEquals("English (en), French (fr), Hindi (hi) and 1 more", summarizeLocales(localeListOf("en", "fr", "hi", "no")))
+    assertThat(summarizeLocales(localeListOf("en", "fr", "hi", "no"))).isEqualTo("English (en), French (fr), Hindi (hi) and 1 more")
 
-    assertEquals("English (en), French (fr), Hindi (hi) and 4 more",
-                 summarizeLocales(localeListOf("en", "fr", "hi", "no", "ta", "es", "ro")))
+    assertThat(summarizeLocales(localeListOf("en", "fr", "hi", "no", "ta", "es", "ro"))).isEqualTo(
+      "English (en), French (fr), Hindi (hi) and 4 more")
   }
 
-  fun testParser() {
-    val actual: Any = data.localeSet.map(Locale::toLocaleId).toSet()
+  @Test
+  fun parser() {
+    assertThat(data.localeSet.map(Locale::toLocaleId)).containsExactly("en", "en-GB", "en-IN", "fr", "hi")
 
-    assertEquals(setOf("en", "en-GB", "en-IN", "fr", "hi"), actual)
+    assertThat(data.getStringResource(newStringResourceKey("key1")).defaultValueAsResourceItem).isNotNull()
 
-    assertNotNull(data.getStringResource(newStringResourceKey("key1")).defaultValueAsResourceItem)
+    assertThat(data.getStringResource(newStringResourceKey("key5")).isTranslatable).isFalse()
 
-    assertFalse(data.getStringResource(newStringResourceKey("key5")).isTranslatable)
-
-    assertNull(data.getStringResource(newStringResourceKey("key1")).getTranslationAsResourceItem(Locale.create("hi")))
-    assertEquals("Key 2 hi", data.getStringResource(newStringResourceKey("key2")).getTranslationAsString(Locale.create("hi")))
+    assertThat(data.getStringResource(newStringResourceKey("key1")).getTranslationAsResourceItem(Locale.create("hi"))).isNull()
+    assertThat(data.getStringResource(newStringResourceKey("key2")).getTranslationAsString(Locale.create("hi"))).isEqualTo("Key 2 hi")
   }
 
-  fun testResourceToStringPsi() {
+  @Test
+  fun resourceToStringPsi() {
     val locale = Locale.create("fr")
 
-    assertEquals("L'Étranger", data.getStringResource(newStringResourceKey("key8")).getTranslationAsString(locale))
-    assertEquals("<![CDATA[L'Étranger]]>", data.getStringResource(newStringResourceKey("key9")).getTranslationAsString(locale))
-    assertEquals("<xliff:g>L'Étranger</xliff:g>", data.getStringResource(newStringResourceKey("key10")).getTranslationAsString(locale))
+    assertThat(data.getStringResource(newStringResourceKey("key8")).getTranslationAsString(locale)).isEqualTo("L'Étranger")
+    assertThat(data.getStringResource(newStringResourceKey("key9")).getTranslationAsString(locale)).isEqualTo("<![CDATA[L'Étranger]]>")
+    assertThat(data.getStringResource(newStringResourceKey("key10")).getTranslationAsString(locale)).isEqualTo(
+      "<xliff:g>L'Étranger</xliff:g>")
   }
 
-  fun testResourceToStringDynamic() {
-    assertEquals("L'Étranger", data.getStringResource(StringResourceKey("dynamic_key1")).defaultValueAsString)
+  @Test
+  fun resourceToStringDynamic() {
+    assertThat(data.getStringResource(StringResourceKey("dynamic_key1")).defaultValueAsString).isEqualTo("L'Étranger")
   }
 
-  fun testValidation() {
-    assertEquals(
-      "Key 'key1' has translations missing for locales French (fr) and Hindi (hi)",
-      data.validateKey(newStringResourceKey("key1"))
-    )
+  @Test
+  fun validation() {
+    assertThat(data.validateKey(newStringResourceKey("key1"))
+    ).isEqualTo("Key 'key1' has translations missing for locales French (fr) and Hindi (hi)")
 
-    assertNull(data.validateKey(newStringResourceKey("key2")))
-    assertNull(data.validateKey(newStringResourceKey("key3")))
-    assertEquals("Key 'key4' missing default value", data.validateKey(newStringResourceKey("key4")))
-    assertNull(data.validateKey(newStringResourceKey("key5")))
+    assertThat(data.validateKey(newStringResourceKey("key2"))).isNull()
+    assertThat(data.validateKey(newStringResourceKey("key3"))).isNull()
+    assertThat(data.validateKey(newStringResourceKey("key4"))).isEqualTo("Key 'key4' missing default value")
+    assertThat(data.validateKey(newStringResourceKey("key5"))).isNull()
 
-    assertEquals(
-      "Key 'key6' is marked as non translatable, but is translated in locale French (fr)",
-      data.validateKey(newStringResourceKey("key6"))
-    )
+    assertThat(data.validateKey(newStringResourceKey("key6"))
+    ).isEqualTo("Key 'key6' is marked as non translatable, but is translated in locale French (fr)")
 
-    assertEquals(
-      "Key \"key1\" is missing its Hindi (hi) translation",
-      data.getStringResource(newStringResourceKey("key1")).validateTranslation(Locale.create("hi"))
-    )
+    assertThat(data.getStringResource(newStringResourceKey("key1")).validateTranslation(Locale.create("hi"))
+    ).isEqualTo("Key \"key1\" is missing its Hindi (hi) translation")
 
-    assertNull(data.getStringResource(newStringResourceKey("key2")).validateTranslation(Locale.create("hi")))
+    assertThat(data.getStringResource(newStringResourceKey("key2")).validateTranslation(Locale.create("hi"))).isNull()
 
-    assertEquals(
-      "Key \"key6\" is untranslatable and should not be translated to French (fr)",
-      data.getStringResource(newStringResourceKey("key6")).validateTranslation(Locale.create("fr"))
-    )
+    assertThat(data.getStringResource(newStringResourceKey("key6")).validateTranslation(Locale.create("fr"))
+    ).isEqualTo("Key \"key6\" is untranslatable and should not be translated to French (fr)")
 
-    assertNull(data.getStringResource(newStringResourceKey("key1")).validateDefaultValue())
-    assertEquals("Key \"key4\" is missing its default value", data.getStringResource(newStringResourceKey("key4")).validateDefaultValue())
+    assertThat(data.getStringResource(newStringResourceKey("key1")).validateDefaultValue()).isNull()
+    assertThat(data.getStringResource(newStringResourceKey("key4")).validateDefaultValue()).isEqualTo(
+      "Key \"key4\" is missing its default value")
   }
 
-  fun testGetMissingTranslations() {
-     val expected = setOf(
-        Locale.create("en"), 
-        Locale.create("en-rGB"), 
-        Locale.create("en-rIN"), 
-        Locale.create("fr"), 
+  @Test
+  fun getMissingTranslations() {
+    assertThat(data.getMissingTranslations(newStringResourceKey("key7")))
+      .containsExactly(
+        Locale.create("en"),
+        Locale.create("en-rGB"),
+        Locale.create("en-rIN"),
+        Locale.create("fr"),
         Locale.create("hi"))
-    assertEquals(expected, data.getMissingTranslations(newStringResourceKey("key7")))
   }
 
-  fun testIsTranslationMissing() {
-    assertTrue(data.getStringResource(newStringResourceKey("key7")).isTranslationMissing(Locale.create("fr")))
+  @Test
+  fun isTranslationMissing() {
+    assertThat(data.getStringResource(newStringResourceKey("key7")).isTranslationMissing(Locale.create("fr"))).isTrue()
   }
 
-  fun testRegionQualifier() {
+  @Test
+  fun regionQualifier() {
     val en_rGB = Locale.create("en-rGB")
-    assertTrue(data.getStringResource(newStringResourceKey("key4")).isTranslationMissing(en_rGB))
-    assertFalse(data.getStringResource(newStringResourceKey("key3")).isTranslationMissing(en_rGB))
-    assertFalse(data.getStringResource(newStringResourceKey("key8")).isTranslationMissing(en_rGB))
+    assertThat(data.getStringResource(newStringResourceKey("key4")).isTranslationMissing(en_rGB)).isTrue()
+    assertThat(data.getStringResource(newStringResourceKey("key3")).isTranslationMissing(en_rGB)).isFalse()
+    assertThat(data.getStringResource(newStringResourceKey("key8")).isTranslationMissing(en_rGB)).isFalse()
   }
 
-  fun testEditingDoNotTranslate() {
+  @Test
+  fun editingDoNotTranslate() {
     val stringsFile = requireNotNull(resourceDirectory.findFileByRelativePath("values/strings.xml"))
 
-    assertTrue(data.getStringResource(newStringResourceKey("key1")).isTranslatable)
+    assertThat(data.getStringResource(newStringResourceKey("key1")).isTranslatable).isTrue()
     var tag = getNthXmlTag(stringsFile, 0)
-    assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME))
-    assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key1")
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isNull()
 
     data.setTranslatable(newStringResourceKey("key1"), false)
 
-    assertFalse(data.getStringResource(newStringResourceKey("key1")).isTranslatable)
+    assertThat(data.getStringResource(newStringResourceKey("key1")).isTranslatable).isFalse()
     tag = getNthXmlTag(stringsFile, 0)
-    assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isEqualTo(SdkConstants.VALUE_FALSE)
 
-    assertFalse(data.getStringResource(newStringResourceKey("key5")).isTranslatable)
+    assertThat(data.getStringResource(newStringResourceKey("key5")).isTranslatable).isFalse()
     tag = getNthXmlTag(stringsFile, 3)
-    assertEquals("key5", tag.getAttributeValue(SdkConstants.ATTR_NAME))
-    assertEquals(SdkConstants.VALUE_FALSE, tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key5")
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isEqualTo(SdkConstants.VALUE_FALSE)
 
     data.setTranslatable(newStringResourceKey("key5"), true)
 
-    assertTrue(data.getStringResource(newStringResourceKey("key5")).isTranslatable)
+    assertThat(data.getStringResource(newStringResourceKey("key5")).isTranslatable).isTrue()
     tag = getNthXmlTag(stringsFile, 3)
-    assertNull(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE)).isNull()
   }
 
-  fun testEditingCdata() {
+  @Test
+  fun editingCdata() {
     var expected = """<![CDATA[
         <b>Google I/O 2014</b><br>
         Version %s<br><br>
@@ -183,7 +208,7 @@ class StringResourceDataTest : AndroidTestCase() {
     val resource = data.getStringResource(newStringResourceKey("key1"))
     val locale = Locale.create("en-rIN")
 
-    assertEquals(expected, resource.getTranslationAsString(locale))
+    assertThat(resource.getTranslationAsString(locale)).isEqualTo(expected)
 
     expected = """<![CDATA[
         <b>Google I/O 2014</b><br>
@@ -191,77 +216,80 @@ class StringResourceDataTest : AndroidTestCase() {
         <a href="http://www.google.com/policies/privacy/">Privacy Policy</a>
   ]]>"""
 
-    assertTrue(putTranslation(resource, locale, expected))
-    assertEquals(expected, resource.getTranslationAsString(locale))
+    assertThat(putTranslation(resource, locale, expected)).isTrue()
+    assertThat(resource.getTranslationAsString(locale)).isEqualTo(expected)
 
     val file = requireNotNull(resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml"))
 
     val tag = getNthXmlTag(file, 0)
 
-    assertEquals("key1", tag.getAttributeValue(SdkConstants.ATTR_NAME))
-    assertEquals(expected, tag.value.text)
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key1")
+    assertThat(tag.value.text).isEqualTo(expected)
   }
 
-  fun testEditingXliff() {
+  @Test
+  fun editingXliff() {
     val resource = data.getStringResource(newStringResourceKey("key3"))
     val locale = Locale.create("en-rIN")
 
-    assertEquals("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end", resource.getTranslationAsString(locale))
+    assertThat(resource.getTranslationAsString(locale)).isEqualTo("start <xliff:g>middle1</xliff:g>%s<xliff:g>middle3</xliff:g> end")
 
     val expected = "start <xliff:g>middle1</xliff:g>%1\$s<xliff:g>middle3</xliff:g> end"
 
-    assertTrue(putTranslation(resource, locale, expected))
-    assertEquals(expected, resource.getTranslationAsString(locale))
+    assertThat(putTranslation(resource, locale, expected)).isTrue()
+    assertThat(resource.getTranslationAsString(locale)).isEqualTo(expected)
 
     val file = requireNotNull(resourceDirectory.findFileByRelativePath("values-en-rIN/strings.xml"))
 
     val tag = getNthXmlTag(file, 2)
 
-    assertEquals("key3", tag.getAttributeValue(SdkConstants.ATTR_NAME))
-    assertEquals(expected, tag.value.text)
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key3")
+    assertThat(tag.value.text).isEqualTo(expected)
   }
 
-  fun testAddingNewTranslation() {
+  @Test
+  fun addingNewTranslation() {
     val resource = data.getStringResource(newStringResourceKey("key4"))
     val locale = Locale.create("en")
 
-    assertNull(resource.getTranslationAsResourceItem(locale))
-    assertTrue(putTranslation(resource, locale, "Hello"))
-    assertEquals("Hello", resource.getTranslationAsString(locale))
+    assertThat(resource.getTranslationAsResourceItem(locale)).isNull()
+    assertThat(putTranslation(resource, locale, "Hello")).isTrue()
+    assertThat(resource.getTranslationAsString(locale)).isEqualTo("Hello")
 
     val file = requireNotNull(resourceDirectory.findFileByRelativePath("values-en/strings.xml"))
 
     // There was no key4 in the default locale en, a new key would be appended to the end of file.
     val tag = getNthXmlTag(file, 4)
 
-    assertEquals("key4", tag.getAttributeValue(SdkConstants.ATTR_NAME))
-    assertEquals("Hello", tag.value.text)
+    assertThat(tag.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key4")
+    assertThat(tag.value.text).isEqualTo("Hello")
   }
 
-  fun testInsertingTranslation() {
+  @Test
+  fun insertingTranslation() {
     // Adding key 2 first then adding key 1.
     // To follow the order of default locale file, the tag of key 1 should be before key 2, even key 2 is added first.
     val locale = Locale.create("zh")
 
     val resource2 = data.getStringResource(newStringResourceKey("key2"))
-    assertNull(resource2.getTranslationAsResourceItem(locale))
-    assertTrue(putTranslation(resource2, locale, "二"))
-    assertEquals("二", resource2.getTranslationAsString(locale))
+    assertThat(resource2.getTranslationAsResourceItem(locale)).isNull()
+    assertThat(putTranslation(resource2, locale, "二")).isTrue()
+    assertThat(resource2.getTranslationAsString(locale)).isEqualTo("二")
 
     val resource4 = data.getStringResource(newStringResourceKey("key1"))
-    assertNull(resource4.getTranslationAsResourceItem(locale))
-    assertTrue(putTranslation(resource4, locale, "一"))
-    assertEquals("一", resource4.getTranslationAsString(locale))
+    assertThat(resource4.getTranslationAsResourceItem(locale)).isNull()
+    assertThat(putTranslation(resource4, locale, "一")).isTrue()
+    assertThat(resource4.getTranslationAsString(locale)).isEqualTo("一")
 
     val file = requireNotNull(resourceDirectory.findFileByRelativePath("values-zh/strings.xml"))
 
     val tag1 = getNthXmlTag(file, 0)
-    assertEquals("key1", tag1.getAttributeValue(SdkConstants.ATTR_NAME))
-    assertEquals("一", tag1.value.text)
+    assertThat(tag1.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key1")
+    assertThat(tag1.value.text).isEqualTo("一")
 
     val tag2 = getNthXmlTag(file, 1)
-    assertEquals("key2", tag2.getAttributeValue(SdkConstants.ATTR_NAME))
-    assertEquals("二", tag2.value.text)
+    assertThat(tag2.getAttributeValue(SdkConstants.ATTR_NAME)).isEqualTo("key2")
+    assertThat(tag2.value.text).isEqualTo("二")
   }
 
   private fun putTranslation(resource: StringResource, locale: Locale, value: String): Boolean {
@@ -275,7 +303,7 @@ class StringResourceDataTest : AndroidTestCase() {
   }
 
   private fun getNthXmlTag(file: VirtualFile, index: Int): XmlTag {
-    val psiFile = requireNotNull(PsiManager.getInstance(myFacet.module.project).findFile(file) as XmlFile)
+    val psiFile = requireNotNull(PsiManager.getInstance(facet.module.project).findFile(file) as XmlFile)
     val rootTag = requireNotNull(psiFile.rootTag)
     return rootTag.findSubTags("string")[index]
   }
