@@ -3,5 +3,5 @@ visibility(["//tools/adt/idea/studio"])
 
 STUDIO_CODENAME = "Hedgehog"
 STUDIO_VERSION = "Canary"
-STUDIO_MICRO_PATCH = "1.8"
-STUDIO_RELEASE_NUMBER = 8
+STUDIO_MICRO_PATCH = "1.9"
+STUDIO_RELEASE_NUMBER = 9
