@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
@@ -148,6 +149,10 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   private var existingRunningDevicesTabs: List<TabId> = emptyList()
 
   init {
+    check(LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      "LayoutInspectorManager is intended for use only in embedded Layout Inspector."
+    }
+
     RunningDevicesStateObserver.getInstance(project).addListener(object : RunningDevicesStateObserver.Listener {
       override fun onSelectedTabChanged(tabId: TabId?) {
         selectedTab = if (tabId != null && tabsWithLayoutInspector.contains(tabId)) {
@@ -168,6 +173,11 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         // So if an emulator is disconnected with Layout Inspector turned on and later restarted, Layout Inspector will be on again.
       }
     })
+
+    val layoutInspector = project.getLayoutInspector()
+    layoutInspector.processModel?.addSelectedProcessListeners {
+      layoutInspector.inspectorClientSettings.isCapturingModeOn = true
+    }
   }
 
   private fun createTabState(tabId: TabId): SelectedTabState {

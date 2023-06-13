@@ -407,6 +407,19 @@ class LayoutInspectorManagerTest {
     assertThat(tabInfo.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(1)
   }
 
+  @Test
+  @RunsInEdt
+  fun testEnableLiveUpdatesOnProcessChange() {
+    LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspector.inspectorClientSettings.isCapturingModeOn = false
+
+    layoutInspector.processModel?.selectedProcess = MODERN_DEVICE.createProcess()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isTrue()
+  }
+
   private fun assertDoesNotHaveWorkbench(tabInfo: TabInfo) {
     assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
     assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
