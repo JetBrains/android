@@ -29,6 +29,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.replaceService
+import java.nio.file.Path
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
@@ -43,24 +48,23 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 private val TEST_VERSION = Version.parse("0.0.1-test")
 
 private object NopCompilerDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
-  override suspend fun compileRequest(files: Collection<PsiFile>,
-                                      module: Module,
-                                      outputDirectory: Path,
-                                      indicator: ProgressIndicator): CompilationResult = CompilationResult.Success
+  override suspend fun compileRequest(
+    files: Collection<PsiFile>,
+    module: Module,
+    outputDirectory: Path,
+    indicator: ProgressIndicator
+  ): CompilationResult = CompilationResult.Success
   override fun dispose() {}
 }
 
-fun nopCompileDaemonFactory(onCalled: (String) -> Unit): (String, Project, Logger, CoroutineScope) -> CompilerDaemonClient {
+fun nopCompileDaemonFactory(
+  onCalled: (String) -> Unit
+): (String, Project, Logger, CoroutineScope) -> CompilerDaemonClient {
   return { version, _, _, _ ->
     onCalled(version)
     NopCompilerDaemonClient
@@ -68,30 +72,34 @@ fun nopCompileDaemonFactory(onCalled: (String) -> Unit): (String, Project, Logge
 }
 
 internal class FastPreviewManagerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
 
-  @get:Rule
-  val autoDisableFlagRule = FlagRule(COMPOSE_FAST_PREVIEW_AUTO_DISABLE)
+  @get:Rule val autoDisableFlagRule = FlagRule(COMPOSE_FAST_PREVIEW_AUTO_DISABLE)
 
   private val testTracker = TestFastPreviewTrackerManager(showTimes = false)
 
   @Before
   fun setUp() {
-    projectRule.project.replaceService(FastPreviewTrackerManager::class.java, testTracker, projectRule.testRootDisposable)
+    projectRule.project.replaceService(
+      FastPreviewTrackerManager::class.java,
+      testTracker,
+      projectRule.testRootDisposable
+    )
   }
 
   @Test
   fun `pre-start daemon`() {
     val createdVersions = mutableListOf<String>()
     val latch = CountDownLatch(1)
-    val manager = FastPreviewManager.getTestInstance(project, nopCompileDaemonFactory {
-      createdVersions.add(it)
-    }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          nopCompileDaemonFactory { createdVersions.add(it) },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertTrue(createdVersions.isEmpty())
     manager.preStartDaemon(projectRule.module)
     latch.await(1, TimeUnit.SECONDS)
@@ -100,39 +108,47 @@ internal class FastPreviewManagerTest {
 
   @Test
   fun `request starts daemon`() = runBlocking {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val createdVersions = mutableListOf<String>()
-    val manager = FastPreviewManager.getTestInstance(project, nopCompileDaemonFactory {
-      createdVersions.add(it)
-    }, moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          nopCompileDaemonFactory { createdVersions.add(it) },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertTrue(createdVersions.isEmpty())
     // Start 10 requests to ensure only one daemon is started
-    coroutineScope {
-      repeat(10) {
-        launch {
-          manager.compileRequest(file, projectRule.module)
-        }
-      }
-    }
+    coroutineScope { repeat(10) { launch { manager.compileRequest(file, projectRule.module) } } }
     assertEquals("0.0.1-test", createdVersions.single())
   }
 
   @Test
   fun `identical requests only trigger 1 build`() {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val blockingDaemon = BlockingDaemonClient()
-    val manager = FastPreviewManager.getTestInstance(project,
-                                                     daemonFactory = { _, _, _, _ -> blockingDaemon },
-                                                     moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ -> blockingDaemon },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
 
     // Check that the same requests does not trigger more than one compilation
     val latch = CountDownLatch(10)
@@ -142,31 +158,43 @@ internal class FastPreviewManagerTest {
         latch.countDown()
       }
     }
-    blockingDaemon.complete()
+    blockingDaemon.completeOneRequest()
 
     latch.await() // Wait for the 10 requests to complete
-    assertEquals("Only one compilation was expected for the 10 identical requests", 1, blockingDaemon.requestReceived)
+    assertEquals(
+      "Only one compilation was expected for the 10 identical requests",
+      1,
+      blockingDaemon.requestReceived
+    )
     assertEquals(
       """
         compilationSucceeded (compiledFiles=1)
-     """.trimIndent(),
+     """
+        .trimIndent(),
       testTracker.logOutput()
     )
   }
 
   @Test
   fun `disabled request cache creates new compilations for every request`() {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val blockingDaemon = BlockingDaemonClient()
-    val manager = FastPreviewManager.getTestInstance(project,
-                                                     daemonFactory = { _, _, _, _ -> blockingDaemon },
-                                                     moduleRuntimeVersionLocator = { TEST_VERSION },
-                                                     maxCachedRequests = 0).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ -> blockingDaemon },
+          moduleRuntimeVersionLocator = { TEST_VERSION },
+          maxCachedRequests = 0
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
 
     // Check that the same requests does not trigger more than one compilation
     val latch = CountDownLatch(10)
@@ -176,29 +204,41 @@ internal class FastPreviewManagerTest {
         latch.countDown()
       }
     }
-    blockingDaemon.complete()
+    repeat(10) { blockingDaemon.completeOneRequest() }
 
     latch.await() // Wait for the 10 requests to complete
-    assertEquals("10 requests should have triggered 10 compilations", 10, blockingDaemon.requestReceived)
+    assertEquals(
+      "10 requests should have triggered 10 compilations",
+      10,
+      blockingDaemon.requestReceived
+    )
   }
 
   @Test
   fun `request caches does not trigger repeated builds`() {
-    val actualFile = projectRule.fixture.addFileToProject("test.kt", """
+    val actualFile =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     var modificationCount = 0L
 
     // Mock file to use so we control when it is signal as "modified".
-    val mockFile = object : MockPsiFile(actualFile.virtualFile, actualFile.manager) {
-      override fun getModificationStamp(): Long = modificationCount
-    }
+    val mockFile =
+      object : MockPsiFile(actualFile.virtualFile, actualFile.manager) {
+        override fun getModificationStamp(): Long = modificationCount
+      }
     val blockingDaemon = BlockingDaemonClient()
-    val manager = FastPreviewManager.getTestInstance(project,
-                                                     daemonFactory = { _, _, _, _ -> blockingDaemon },
-                                                     moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ -> blockingDaemon },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
 
     val latch = CountDownLatch(10)
@@ -212,7 +252,8 @@ internal class FastPreviewManagerTest {
         latch.countDown()
       }
     }
-    blockingDaemon.complete()
+
+    repeat(5) { blockingDaemon.completeOneRequest() }
 
     latch.await() // Wait for the 10 requests to complete
     assertEquals("Only 5 requests were expected to be different", 5, blockingDaemon.requestReceived)
@@ -220,38 +261,55 @@ internal class FastPreviewManagerTest {
 
   @Test
   fun `verify compiler request`() = runBlocking {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val compilationRequests = mutableListOf<List<String>>()
-    val manager = FastPreviewManager.getTestInstance(
-      project,
-      daemonFactory = { _, _, _, _ ->
-        object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(files: Collection<PsiFile>,
-                                              module: Module,
-                                              outputDirectory: Path,
-                                              indicator: ProgressIndicator): CompilationResult {
-            compilationRequests.add(files.map { it.virtualFile.path }.toList()
-                                    + module.name
-                                    + listOf(outputDirectory.toString()))
-            return CompilationResult.Success
-          }
-        }
-      },
-      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ ->
+            object : CompilerDaemonClient by NopCompilerDaemonClient {
+              override suspend fun compileRequest(
+                files: Collection<PsiFile>,
+                module: Module,
+                outputDirectory: Path,
+                indicator: ProgressIndicator
+              ): CompilationResult {
+                compilationRequests.add(
+                  files.map { it.virtualFile.path }.toList() +
+                    module.name +
+                    listOf(outputDirectory.toString())
+                )
+                return CompilationResult.Success
+              }
+            }
+          },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertTrue(compilationRequests.isEmpty())
     assertTrue(manager.compileRequest(file, projectRule.module).first == CompilationResult.Success)
     run {
-      val requestParameters = compilationRequests.single().joinToString("\n")
-        .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
-      assertEquals("""
+      val requestParameters =
+        compilationRequests
+          .single()
+          .joinToString("\n")
+          .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
+      assertEquals(
+        """
       /src/test.kt
       light_idea_test_case
       /tmp/overlay0
-    """.trimIndent(), requestParameters)
+    """
+          .trimIndent(),
+        requestParameters
+      )
     }
 
     // Check, disabling Live Literals disables the compiler flag.
@@ -259,99 +317,148 @@ internal class FastPreviewManagerTest {
       compilationRequests.clear()
       FastPreviewConfiguration.getInstance().isEnabled = false
       try {
-        val file2 = projectRule.fixture.addFileToProject("testB.kt", """
+        val file2 =
+          projectRule.fixture.addFileToProject(
+            "testB.kt",
+            """
           fun emptyB() {}
-        """.trimIndent())
-        assertTrue(manager.compileRequest(listOf(file2), projectRule.module).first == CompilationResult.Success)
-        val requestParameters = compilationRequests.single().joinToString("\n")
-          .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
-        assertEquals("""
+        """
+              .trimIndent()
+          )
+        assertTrue(
+          manager.compileRequest(listOf(file2), projectRule.module).first ==
+            CompilationResult.Success
+        )
+        val requestParameters =
+          compilationRequests
+            .single()
+            .joinToString("\n")
+            .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
+        assertEquals(
+          """
         /src/testB.kt
         light_idea_test_case
         /tmp/overlay0
-      """.trimIndent(), requestParameters)
-      }
-      finally {
+      """
+            .trimIndent(),
+          requestParameters
+        )
+      } finally {
         FastPreviewConfiguration.getInstance().resetDefault()
       }
     }
 
     run {
       compilationRequests.clear()
-      val file2 = projectRule.fixture.addFileToProject("testC.kt", """
+      val file2 =
+        projectRule.fixture.addFileToProject(
+          "testC.kt",
+          """
       fun emptyC() {}
-    """.trimIndent())
-      assertTrue(manager.compileRequest(listOf(file, file2), projectRule.module).first == CompilationResult.Success)
-      val requestParameters = compilationRequests.single().joinToString("\n")
-        .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
-      assertEquals("""
+    """
+            .trimIndent()
+        )
+      assertTrue(
+        manager.compileRequest(listOf(file, file2), projectRule.module).first ==
+          CompilationResult.Success
+      )
+      val requestParameters =
+        compilationRequests
+          .single()
+          .joinToString("\n")
+          .replace(Regex("\n.*overlay\\d+"), "\n/tmp/overlay0") // Overlay directories are random
+      assertEquals(
+        """
       /src/test.kt
       /src/testC.kt
       light_idea_test_case
       /tmp/overlay0
-    """.trimIndent(), requestParameters)
+    """
+          .trimIndent(),
+        requestParameters
+      )
     }
   }
 
   @Test
   fun `handle daemon start exception`() = runBlocking {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
-    val manager = FastPreviewManager.getTestInstance(
-      project,
-      daemonFactory = { _, _, _, _ ->
-        throw IllegalStateException("Unable to start compiler")
-      },
-      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    """
+          .trimIndent()
+      )
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ -> throw IllegalStateException("Unable to start compiler") },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     val result = manager.compileRequest(file, projectRule.module).first
     assertTrue(result.toString(), result is CompilationResult.DaemonStartFailure)
   }
 
   @Test
   fun `handle compile request exception`() = runBlocking {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
-    val manager = FastPreviewManager.getTestInstance(
-      project,
-      daemonFactory = { _, _, _, _ ->
-        object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(files: Collection<PsiFile>,
-                                              module: Module,
-                                              outputDirectory: Path,
-                                              indicator: ProgressIndicator): CompilationResult {
-            throw IllegalStateException("Unable to process request")
-          }
-        }
-      },
-      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    """
+          .trimIndent()
+      )
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ ->
+            object : CompilerDaemonClient by NopCompilerDaemonClient {
+              override suspend fun compileRequest(
+                files: Collection<PsiFile>,
+                module: Module,
+                outputDirectory: Path,
+                indicator: ProgressIndicator
+              ): CompilationResult {
+                throw IllegalStateException("Unable to process request")
+              }
+            }
+          },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     val result = manager.compileRequest(file, projectRule.module).first
     assertTrue(result.toString(), result is CompilationResult.RequestException)
   }
 
   @Test
   fun `handle compile failure`() = runBlocking {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
-    val manager = FastPreviewManager.getTestInstance(
-      project,
-      daemonFactory = { _, _, _, _ ->
-        object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(files: Collection<PsiFile>,
-                                              module: Module,
-                                              outputDirectory: Path,
-                                              indicator: ProgressIndicator): CompilationResult = CompilationResult.DaemonError(-1)
-        }
-      },
-      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    """
+          .trimIndent()
+      )
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ ->
+            object : CompilerDaemonClient by NopCompilerDaemonClient {
+              override suspend fun compileRequest(
+                files: Collection<PsiFile>,
+                module: Module,
+                outputDirectory: Path,
+                indicator: ProgressIndicator
+              ): CompilationResult = CompilationResult.DaemonError(-1)
+            }
+          },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     val result = manager.compileRequest(file, projectRule.module).first
     assertTrue(result.toString(), result is CompilationResult.DaemonError)
   }
@@ -360,33 +467,45 @@ internal class FastPreviewManagerTest {
   fun `auto disable on failure`(): Unit = runBlocking {
     COMPOSE_FAST_PREVIEW_AUTO_DISABLE.override(true)
 
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
-    val manager = FastPreviewManager.getTestInstance(
-      project,
-      daemonFactory = { _, _, _, _ ->
-        object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(files: Collection<PsiFile>,
-                                              module: Module,
-                                              outputDirectory: Path,
-                                              indicator: ProgressIndicator): CompilationResult {
-            throw IllegalStateException("Unable to process request")
-          }
-        }
-      },
-      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    """
+          .trimIndent()
+      )
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ ->
+            object : CompilerDaemonClient by NopCompilerDaemonClient {
+              override suspend fun compileRequest(
+                files: Collection<PsiFile>,
+                module: Module,
+                outputDirectory: Path,
+                indicator: ProgressIndicator
+              ): CompilationResult {
+                throw IllegalStateException("Unable to process request")
+              }
+            }
+          },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertNull(manager.disableReason)
     assertTrue(manager.isEnabled)
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
       assertFalse("FastPreviewManager should have been disable after a failure", manager.isEnabled)
-      assertTrue("Auto disable should not be persisted", FastPreviewConfiguration.getInstance().isEnabled)
+      assertTrue(
+        "Auto disable should not be persisted",
+        FastPreviewConfiguration.getInstance().isEnabled
+      )
       assertEquals(
         "DisableReason(title=Unable to compile using Preview Live Edit, description=Unable to process request, throwable=java.lang.IllegalStateException: Unable to process request)",
-        manager.disableReason.toString())
+        manager.disableReason.toString()
+      )
       manager.enable()
       assertNull(manager.disableReason)
     }
@@ -405,7 +524,8 @@ internal class FastPreviewManagerTest {
         compilationFailed (compiledFiles=1)
         userEnabled
         compilationFailed (compiledFiles=1)
-     """.trimIndent(),
+     """
+        .trimIndent(),
       testTracker.logOutput()
     )
   }
@@ -414,31 +534,39 @@ internal class FastPreviewManagerTest {
   fun `do not auto disable on syntax error`(): Unit = runBlocking {
     COMPOSE_FAST_PREVIEW_AUTO_DISABLE.override(true)
 
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty) { // Syntax error
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     // Utility method that allows to optionally wrap the exception before throwing it
-    var optionallyThrow: () -> Unit = {
-    }
-    val compilationError: CompilationResult = CompilationResult.CompilationError(java.lang.IllegalStateException())
-    val manager = FastPreviewManager.getTestInstance(
-      project,
-      daemonFactory = { _, _, _, _ ->
-        object : CompilerDaemonClient by NopCompilerDaemonClient {
-          override suspend fun compileRequest(files: Collection<PsiFile>,
-                                              module: Module,
-                                              outputDirectory: Path,
-                                              indicator: ProgressIndicator): CompilationResult {
-            val inputs = files.filterIsInstance<KtFile>()
-            assertTrue(inputs.isNotEmpty())
-            optionallyThrow()
-            return compilationError
-          }
-        }
-      },
-      moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    var optionallyThrow: () -> Unit = {}
+    val compilationError: CompilationResult =
+      CompilationResult.CompilationError(java.lang.IllegalStateException())
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ ->
+            object : CompilerDaemonClient by NopCompilerDaemonClient {
+              override suspend fun compileRequest(
+                files: Collection<PsiFile>,
+                module: Module,
+                outputDirectory: Path,
+                indicator: ProgressIndicator
+              ): CompilationResult {
+                val inputs = files.filterIsInstance<KtFile>()
+                assertTrue(inputs.isNotEmpty())
+                optionallyThrow()
+                return compilationError
+              }
+            }
+          },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     assertNull(manager.disableReason)
     assertTrue(manager.isEnabled)
     manager.compileRequest(file, projectRule.module).first.also { result ->
@@ -447,9 +575,7 @@ internal class FastPreviewManagerTest {
       assertNull(manager.disableReason)
     }
 
-    optionallyThrow = {
-      throw ExecutionException(null)
-    }
+    optionallyThrow = { throw ExecutionException(null) }
     manager.invalidateRequestsCache()
     manager.compileRequest(file, projectRule.module).first.also { result ->
       assertTrue(result.toString(), result is CompilationResult.RequestException)
@@ -461,7 +587,8 @@ internal class FastPreviewManagerTest {
         compilationFailed (compiledFiles=1)
         autoDisabled
         compilationFailed (compiledFiles=1)
-     """.trimIndent(),
+     """
+        .trimIndent(),
       testTracker.logOutput()
     )
   }
@@ -469,33 +596,45 @@ internal class FastPreviewManagerTest {
   // Regression test for http://b/222838793
   @Test
   fun `verify listener parent disposable`() {
-    val manager = FastPreviewManager.getTestInstance(project,
-                                                     daemonFactory = { _, _, _, _ -> NopCompilerDaemonClient },
-                                                     moduleRuntimeVersionLocator = { TEST_VERSION }).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ -> NopCompilerDaemonClient },
+          moduleRuntimeVersionLocator = { TEST_VERSION }
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
     val parentDisposable = Disposer.newDisposable()
-    manager.addListener(parentDisposable, object: FastPreviewManager.Companion.FastPreviewManagerListener {
-      override fun onCompilationStarted(files: Collection<PsiFile>) {}
-      override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {}
-    })
+    manager.addListener(
+      parentDisposable,
+      object : FastPreviewManager.Companion.FastPreviewManagerListener {
+        override fun onCompilationStarted(files: Collection<PsiFile>) {}
+        override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {}
+      }
+    )
     Disposer.dispose(parentDisposable)
     assertFalse(manager.isDisposed)
   }
 
   @Test
   fun `compiling state is true while processing a request`() {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val blockingDaemon = BlockingDaemonClient()
-    val manager = FastPreviewManager.getTestInstance(project,
-                                                     daemonFactory = { _, _, _, _ -> blockingDaemon },
-                                                     moduleRuntimeVersionLocator = { TEST_VERSION },
-                                                     maxCachedRequests = 0).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ -> blockingDaemon },
+          moduleRuntimeVersionLocator = { TEST_VERSION },
+          maxCachedRequests = 0
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
 
     val compilationComplete = CompletableDeferred<Unit>()
     assertFalse(manager.isCompiling)
@@ -506,7 +645,7 @@ internal class FastPreviewManagerTest {
     runBlocking {
       blockingDaemon.firstRequestReceived.await()
       assertTrue(manager.isCompiling)
-      blockingDaemon.complete()
+      blockingDaemon.completeOneRequest()
       compilationComplete.await()
     }
     assertFalse(manager.isCompiling)
@@ -514,41 +653,53 @@ internal class FastPreviewManagerTest {
 
   @Test
   fun `timeouts must call compilation listener`() {
-    val file = projectRule.fixture.addFileToProject("test.kt", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "test.kt",
+        """
       fun empty() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val scope = AndroidCoroutineScope(projectRule.testRootDisposable)
-    val timeoutDaemon = object : CompilerDaemonClient {
-      override val isRunning: Boolean
-        get() = false
+    val timeoutDaemon =
+      object : CompilerDaemonClient {
+        override val isRunning: Boolean
+          get() = false
 
-      override suspend fun compileRequest(files: Collection<PsiFile>,
-                                          module: Module,
-                                          outputDirectory: Path,
-                                          indicator: ProgressIndicator): CompilationResult {
-        throw ProcessCanceledException()
-      }
+        override suspend fun compileRequest(
+          files: Collection<PsiFile>,
+          module: Module,
+          outputDirectory: Path,
+          indicator: ProgressIndicator
+        ): CompilationResult {
+          throw ProcessCanceledException()
+        }
 
-      override fun dispose() {
+        override fun dispose() {}
       }
-    }
-    val manager = FastPreviewManager.getTestInstance(project,
-                                                     daemonFactory = { _, _, _, _ -> timeoutDaemon },
-                                                     moduleRuntimeVersionLocator = { TEST_VERSION },
-                                                     maxCachedRequests = 0).also {
-      Disposer.register(projectRule.testRootDisposable, it)
-    }
+    val manager =
+      FastPreviewManager.getTestInstance(
+          project,
+          daemonFactory = { _, _, _, _ -> timeoutDaemon },
+          moduleRuntimeVersionLocator = { TEST_VERSION },
+          maxCachedRequests = 0
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
 
     val compilationCounter = AtomicInteger(0)
-    manager.addListener(projectRule.testRootDisposable, object : FastPreviewManager.Companion.FastPreviewManagerListener {
-      override fun onCompilationStarted(files: Collection<PsiFile>) {
-        compilationCounter.incrementAndGet()
-      }
+    manager.addListener(
+      projectRule.testRootDisposable,
+      object : FastPreviewManager.Companion.FastPreviewManagerListener {
+        override fun onCompilationStarted(files: Collection<PsiFile>) {
+          compilationCounter.incrementAndGet()
+        }
 
-      override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
-        compilationCounter.decrementAndGet()
+        override fun onCompilationComplete(result: CompilationResult, files: Collection<PsiFile>) {
+          compilationCounter.decrementAndGet()
+        }
       }
-    })
+    )
 
     repeat(3) {
       val compilationComplete = CompletableDeferred<Unit>()
@@ -557,9 +708,7 @@ internal class FastPreviewManagerTest {
         manager.compileRequest(file, projectRule.module)
         compilationComplete.complete(Unit)
       }
-      runBlocking {
-        compilationComplete.await()
-      }
+      runBlocking { compilationComplete.await() }
     }
     assertEquals(0, compilationCounter.get())
   }

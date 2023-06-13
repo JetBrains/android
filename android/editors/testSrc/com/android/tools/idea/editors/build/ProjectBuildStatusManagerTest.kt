@@ -34,24 +34,38 @@ import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.CountDownLatch
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private fun ProjectBuildStatusManager.awaitReady(timeout: Duration = 5.seconds) = runBlocking {
-  statusFlow.awaitStatus("ProjectStatus is not Ready after $timeout", timeout) { it == ProjectStatus.Ready }
+  statusFlow.awaitStatus("ProjectStatus is not Ready after $timeout", timeout) {
+    it == ProjectStatus.Ready
+  }
 }
-private fun ProjectBuildStatusManager.awaitNeedsBuild(message: String? = null, timeout: Duration = 5.seconds) = runBlocking {
-  statusFlow.awaitStatus("ProjectStatus is not NeedsBuild after $timeout", timeout) { it == ProjectStatus.NeedsBuild }
+
+private fun ProjectBuildStatusManager.awaitNeedsBuild(
+    message: String? = null,
+    timeout: Duration = 5.seconds
+) = runBlocking {
+  statusFlow.awaitStatus("ProjectStatus is not NeedsBuild after $timeout", timeout) {
+    it == ProjectStatus.NeedsBuild
+  }
 }
-private fun ProjectBuildStatusManager.awaitOutOfDate(message: String? = null, timeout: Duration = 5.seconds) = runBlocking {
-  statusFlow.awaitStatus("ProjectStatus is not OutOfDate after $timeout", timeout) { it is ProjectStatus.OutOfDate }
+
+private fun ProjectBuildStatusManager.awaitOutOfDate(
+    message: String? = null,
+    timeout: Duration = 5.seconds
+) = runBlocking {
+  statusFlow.awaitStatus("ProjectStatus is not OutOfDate after $timeout", timeout) {
+    it is ProjectStatus.OutOfDate
+  }
 }
 
 class ProjectBuildStatusManagerTest {
@@ -70,16 +84,16 @@ class ProjectBuildStatusManagerTest {
 
     val blockingDaemon = BlockingDaemonClient()
     val fastPreviewManager =
-      FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
-        Disposer.register(projectRule.fixture.testRootDisposable, it)
-      }
+        FastPreviewManager.getTestInstance(project, { _, _, _, _ -> blockingDaemon }).also {
+          Disposer.register(projectRule.fixture.testRootDisposable, it)
+        }
     projectRule.replaceProjectService(FastPreviewManager::class.java, fastPreviewManager)
 
     val statusManager =
-      ProjectBuildStatusManager.create(
-        projectRule.fixture.testRootDisposable,
-        psiFile,
-      )
+        ProjectBuildStatusManager.create(
+            projectRule.fixture.testRootDisposable,
+            psiFile,
+        )
 
     runBlocking {
       val module = projectRule.fixture.module
@@ -91,6 +105,7 @@ class ProjectBuildStatusManagerTest {
       }
       blockingDaemon.firstRequestReceived.await()
       Assert.assertTrue(statusManager.isBuilding)
+      blockingDaemon.completeOneRequest()
 
       // Launch additional requests
       repeat(10) {
@@ -99,7 +114,11 @@ class ProjectBuildStatusManagerTest {
           latch.countDown()
         }
       }
-      blockingDaemon.complete()
+      asyncScope.launch(AndroidDispatchers.workerThread) {
+        repeat(10) {
+          blockingDaemon.completeOneRequest()
+        }
+      }
       latch.await()
       Assert.assertFalse(statusManager.isBuilding)
     }
@@ -110,18 +129,17 @@ class ProjectBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val statusManager =
-      ProjectBuildStatusManager.create(
-        projectRule.fixture.testRootDisposable,
-        psiFile,
-      )
+        ProjectBuildStatusManager.create(
+            projectRule.fixture.testRootDisposable,
+            psiFile,
+        )
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
       (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
-        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS
-      )
+          buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
 
       statusManager.awaitReady()
 
@@ -138,18 +156,17 @@ class ProjectBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val statusManager =
-      ProjectBuildStatusManager.create(
-        projectRule.fixture.testRootDisposable,
-        psiFile,
-      )
+        ProjectBuildStatusManager.create(
+            projectRule.fixture.testRootDisposable,
+            psiFile,
+        )
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
       (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
-        buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED
-      )
+          buildStatus = ProjectSystemBuildManager.BuildStatus.FAILED)
 
       statusManager.awaitNeedsBuild()
 
@@ -166,18 +183,17 @@ class ProjectBuildStatusManagerTest {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
     val statusManager =
-      ProjectBuildStatusManager.create(
-        projectRule.fixture.testRootDisposable,
-        psiFile,
-      )
+        ProjectBuildStatusManager.create(
+            projectRule.fixture.testRootDisposable,
+            psiFile,
+        )
 
     try {
       FastPreviewManager.getInstance(project).enable()
 
       // Simulate a successful build
       (statusManager as ProjectBuildStatusManagerForTests).simulateProjectSystemBuild(
-        buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS
-      )
+          buildStatus = ProjectSystemBuildManager.BuildStatus.SUCCESS)
 
       statusManager.awaitReady()
 
