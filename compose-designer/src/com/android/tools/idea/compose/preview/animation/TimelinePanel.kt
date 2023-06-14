@@ -19,7 +19,6 @@ import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElementStatus
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.UIUtil
@@ -47,7 +46,7 @@ internal const val DEFAULT_MAX_DURATION_MS = 10000L
 open class TimelinePanel(
   val tooltip: Tooltip,
   val previewState: AnimationPreviewState,
-  val tracker: ComposeAnimationEventTracker
+  val tracker: AnimationTracker
 ) : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
   private var cachedSliderWidth = 0
   private var cachedMax = 0
@@ -370,23 +369,15 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     override fun mouseReleased(e: MouseEvent) {
       super.mouseReleased(e)
-      timeline.tracker.invoke(
-        if (activeElement == null) {
-          if (isDragging)
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
-              .DRAG_ANIMATION_INSPECTOR_TIMELINE
-          else
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
-              .CLICK_ANIMATION_INSPECTOR_TIMELINE
-        } else {
-          if (isDragging)
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE
-          // TODO Add click event for timeline element.
-          else
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
-              .CLICK_ANIMATION_INSPECTOR_TIMELINE
-        }
-      )
+      if (activeElement == null) {
+        if (isDragging) timeline.tracker.dragAnimationInspectorTimeline()
+        else timeline.tracker.clickAnimationInspectorTimeline()
+      } else {
+        if (isDragging) timeline.tracker.dragTimelineLine()
+        // TODO Add click event for timeline element.
+        else timeline.tracker.clickAnimationInspectorTimeline()
+      }
+
       isDragging = false
       if (activeElement?.status == TimelineElementStatus.Dragged) {
         timeline.dragEndListeners.forEach { it() }

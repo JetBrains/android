@@ -70,7 +70,12 @@ class PlaybackControlsTest {
   @Test
   fun `create toolbar and each component is visible`() = invokeAndWaitIfNeeded {
     val playbackControl =
-      PlaybackControls(clockControl = SliderClockControl(JSlider()), {}, surface, parentDisposable)
+      PlaybackControls(
+        clockControl = SliderClockControl(JSlider()),
+        NoopAnimationTracker,
+        surface,
+        parentDisposable
+      )
     val toolbar = playbackControl.createToolbar().apply { setSize(300, 50) }
     val ui =
       FakeUi(toolbar).apply {
@@ -86,7 +91,12 @@ class PlaybackControlsTest {
   @Test
   fun `create toolbar with extra action and each component is visible`() = invokeAndWaitIfNeeded {
     val playbackControl =
-      PlaybackControls(clockControl = SliderClockControl(JSlider()), {}, surface, parentDisposable)
+      PlaybackControls(
+        clockControl = SliderClockControl(JSlider()),
+        NoopAnimationTracker,
+        surface,
+        parentDisposable
+      )
     val toolbar =
       playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }
     val ui =

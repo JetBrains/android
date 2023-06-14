@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.animation.state
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.AnimationCard
+import com.android.tools.idea.compose.preview.animation.NoopAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
@@ -44,7 +45,7 @@ class FromToStateTest {
   fun createCard() {
     var callbacks = 0
     val state =
-      FromToState({}) { callbacks++ }
+      FromToState(NoopAnimationTracker) { callbacks++ }
         .apply {
           updateStates(setOf("One", "Two", "Three"))
           setStartState("One")
@@ -55,8 +56,9 @@ class FromToStateTest {
           TestUtils.testPreviewState(),
           Mockito.mock(DesignSurface::class.java),
           ElementState("Title"),
-          state.extraActions
-        ) {}
+          state.extraActions,
+          NoopAnimationTracker
+        )
         .apply { size = Dimension(300, 300) }
 
     invokeAndWaitIfNeeded {

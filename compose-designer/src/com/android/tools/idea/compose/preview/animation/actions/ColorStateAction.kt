@@ -16,11 +16,10 @@
 package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
+import com.android.tools.idea.compose.preview.animation.AnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout.colorButtonOffset
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -38,7 +37,7 @@ private val DEFAULT_COLOR: Color = Color.white
 /** [AnAction] displaying the color state. It opens a color picker to select it. */
 class ColorStateAction(
   defaultState: ComposeUnit.Color = ComposeUnit.Color.create(DEFAULT_COLOR),
-  val tracker: ComposeAnimationEventTracker,
+  val tracker: AnimationTracker,
   private val onPropertiesUpdated: () -> Unit
 ) : CustomComponentAction, AnAction() {
 
@@ -79,7 +78,7 @@ class ColorStateAction(
       },
       colorResourcePickedCallback = {}
     )
-    tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.OPEN_PICKER)
+    tracker.openPicker()
   }
 
   var state: ComposeUnit.Color = defaultState

@@ -21,7 +21,6 @@ import androidx.compose.animation.tooling.TransitionInfo
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.AnimationPreview.Timeline
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
@@ -40,7 +39,6 @@ import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
@@ -76,10 +74,6 @@ private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
 /** Number of points for one curve. */
 private const val DEFAULT_CURVE_POINTS_NUMBER = 200
 
-// TODO Change to a tracker class.
-typealias ComposeAnimationEventTracker =
-  (type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType) -> Unit
-
 /**
  * Displays details about animations belonging to a Compose Preview. Allows users to see all the
  * properties (e.g. `ColorPropKeys`) being animated grouped by animation (e.g.
@@ -100,10 +94,8 @@ class AnimationPreview(
 
   val component = TooltipLayeredPane(animationPreviewPanel)
 
-  private val tracker: ComposeAnimationEventTracker =
-    { type: ComposeAnimationToolingEvent.ComposeAnimationToolingEventType ->
-      AnimationToolingUsageTracker.getInstance(surface).logEvent(AnimationToolingEvent(type))
-    }
+  private val tracker: AnimationTracker =
+    AnimationTracker(AnimationToolingUsageTracker.getInstance(surface))
 
   private val previewState =
     object : AnimationPreviewState {

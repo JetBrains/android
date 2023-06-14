@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Separator
@@ -40,7 +39,7 @@ import javax.swing.border.MatteBorder
 class BottomPanel(
   val previewState: AnimationPreviewState,
   surface: DesignSurface<*>,
-  private val tracker: ComposeAnimationEventTracker
+  private val tracker: AnimationTracker
 ) : JPanel(BorderLayout()) {
 
   var clockTimeMs = 0
@@ -91,7 +90,7 @@ class BottomPanel(
     ) {
     override fun actionPerformed(e: AnActionEvent) {
       resetListeners.forEach { it() }
-      tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.RESET_TIMELINE)
+      tracker.resetTimeline()
     }
 
     override fun updateButton(e: AnActionEvent) {

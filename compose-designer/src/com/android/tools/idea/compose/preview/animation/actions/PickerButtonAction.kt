@@ -17,10 +17,9 @@ package com.android.tools.idea.compose.preview.animation.actions
 
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.idea.compose.pickers.PsiPickerManager
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
+import com.android.tools.idea.compose.preview.animation.AnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.picker.AnimatedPropertiesModel
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -39,10 +38,8 @@ import javax.swing.JComponent
  *
  * @see [AnimatedPropertiesModel] for more details about the picker.
  */
-class PickerButtonAction(
-  val tracker: ComposeAnimationEventTracker,
-  private val onClick: () -> Unit
-) : CustomComponentAction, AnAction() {
+class PickerButtonAction(val tracker: AnimationTracker, private val onClick: () -> Unit) :
+  CustomComponentAction, AnAction() {
 
   private val stateListeners: MutableList<() -> Unit> = mutableListOf()
 
@@ -78,7 +75,7 @@ class PickerButtonAction(
           onClick()
         }
     )
-    tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.OPEN_PICKER)
+    tracker.openPicker()
   }
 
   private lateinit var initialState: ComposeUnit.Unit<*>

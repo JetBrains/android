@@ -20,7 +20,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.message
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -39,7 +38,7 @@ class AnimationCard(
   val surface: DesignSurface<*>,
   override val state: ElementState,
   extraActions: List<AnAction> = emptyList(),
-  private val tracker: ComposeAnimationEventTracker
+  private val tracker: AnimationTracker
 ) : JPanel(TabularLayout("*", "30px,30px")), Card {
 
   // Collapsed view:
@@ -123,11 +122,9 @@ class AnimationCard(
     override fun actionPerformed(e: AnActionEvent) {
       state.expanded = !state.expanded
       if (state.expanded) {
-        tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.EXPAND_ANIMATION_CARD)
+        tracker.expandAnimationCard()
       } else {
-        tracker(
-          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.COLLAPSE_ANIMATION_CARD
-        )
+        tracker.collapseAnimationCard()
       }
     }
 

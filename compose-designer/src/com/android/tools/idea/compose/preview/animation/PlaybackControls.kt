@@ -19,10 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
-import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
-import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.message
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -42,7 +39,7 @@ import javax.swing.JComponent
 /** Playback controls toolbar. */
 class PlaybackControls(
   val clockControl: SliderClockControl,
-  val tracker: ComposeAnimationEventTracker,
+  val tracker: AnimationTracker,
   val surface: DesignSurface<*>,
   parentDisposable: Disposable
 ) {
@@ -116,9 +113,7 @@ class PlaybackControls(
       ) {
       override fun actionPerformed(e: AnActionEvent) {
         clockControl.jumpToStart()
-        tracker(
-          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_START_ACTION
-        )
+        tracker.triggerJumpToStartAction()
         // Switch focus to Play button if animation is not playing at the moment.
         // If animation is playing - no need to switch focus as GoToStart button will be enabled
         // again.
@@ -139,9 +134,7 @@ class PlaybackControls(
       ) {
       override fun actionPerformed(e: AnActionEvent) {
         clockControl.jumpToEnd()
-        tracker(
-          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_END_ACTION
-        )
+        tracker.triggerJumpToEndAction()
         // Switch focus to Play button if animation is not playing in the loop at the moment.
         // If animation is playing in the loop - no need to switch focus as GoToEnd button will be
         // enabled again.
@@ -195,10 +188,10 @@ class PlaybackControls(
     override fun actionPerformed(e: AnActionEvent) =
       if (isPlaying) {
         pause()
-        tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_PAUSE_ACTION)
+        tracker.triggerPauseAction()
       } else {
         play()
-        tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_PLAY_ACTION)
+        tracker.triggerPlayAction()
       }
 
     override fun updateButton(e: AnActionEvent) {
@@ -272,12 +265,7 @@ class PlaybackControls(
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
         clockControl.speed = speed
-        val changeSpeedEvent =
-          AnimationToolingEvent(
-              ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.CHANGE_ANIMATION_SPEED
-            )
-            .withAnimationMultiplier(speed.speedMultiplier)
-        AnimationToolingUsageTracker.getInstance(surface).logEvent(changeSpeedEvent)
+        tracker.changeAnimationSpeed(speed.speedMultiplier)
       }
     }
   }
@@ -301,10 +289,7 @@ class PlaybackControls(
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       clockControl.playInLoop = state
-      tracker(
-        if (state) ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.ENABLE_LOOP_ACTION
-        else ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DISABLE_LOOP_ACTION
-      )
+      if (state) tracker.enableLoopAction() else tracker.disableLoopAction()
     }
   }
 }
