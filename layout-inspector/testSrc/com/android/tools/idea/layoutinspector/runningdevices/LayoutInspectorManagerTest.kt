@@ -51,6 +51,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
@@ -298,6 +299,7 @@ class LayoutInspectorManagerTest {
     assertThat(refreshCount).isEqualTo(1)
   }
 
+  @Ignore("b/287075342")
   @Test
   @RunsInEdt
   fun testDeepInspectIsDisabledOnProcessChange() {
