@@ -16,18 +16,11 @@
 
 package com.android.tools.idea;
 
-import com.intellij.openapi.extensions.ExtensionPointName;
-import org.jetbrains.annotations.NonNls;
-
 /** Customize Android IDE specific experience. */
 public class AndroidInitialConfigurator {
-  @NonNls
-  private static final ExtensionPointName<Runnable> EP_NAME =
-    ExtensionPointName.create("com.intellij.androidStudioInitializer");
 
   public AndroidInitialConfigurator() {
     setupSystemProperties();
-    activateAndroidStudioInitializerExtensions();
   }
 
   /**
@@ -45,12 +38,6 @@ public class AndroidInitialConfigurator {
       // Set the Java system properties expected by UpdateChecker.
       System.setProperty("idea.updates.url", updateUrl + "updates.xml");
       System.setProperty("idea.patches.url", updateUrl);
-    }
-  }
-
-  private static void activateAndroidStudioInitializerExtensions() {
-    for (Runnable r : EP_NAME.getExtensionList()) {
-      r.run();
     }
   }
 }
