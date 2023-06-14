@@ -1131,16 +1131,6 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     return getDependencyDisplayName(androidLibrary.getAddress());
   }
 
-  /**
-   * @see ColorUtil#softer(Color)
-   */
-  @NotNull
-  public static Color harder(@NotNull Color color) {
-    if (color.getBlue() == color.getRed() && color.getRed() == color.getGreen()) return color;
-    final float[] hsb = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
-    return Color.getHSBColor(hsb[0], 1f, hsb[2]);
-  }
-
   static class ManifestTreeNode extends DefaultMutableTreeNode {
 
     public ManifestTreeNode(@NotNull Node obj) {
