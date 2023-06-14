@@ -26,7 +26,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.android.SdkConstants;
+import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
@@ -68,15 +68,14 @@ public class GradleDependencyManagerTest {
   @Rule
   public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
 
-  private static final GradleCoordinate APP_COMPAT_DEPENDENCY = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
-  private static final GradleCoordinate RECYCLER_VIEW_DEPENDENCY = new GradleCoordinate("com.android.support", "recyclerview-v7", "+");
-  private static final GradleCoordinate EXISTING_ROOM_DEPENDENCY = new GradleCoordinate("androidx.room", "room-ktx", "2.5.0");
-  private static final GradleCoordinate ROOM_DEPENDENCY = new GradleCoordinate("androidx.room", "room-ktx", "2.5.1");
-  private static final GradleCoordinate DUMMY_DEPENDENCY = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
-  private static final GradleCoordinate VECTOR_DRAWABLE_DEPENDENCY =
-    new GradleCoordinate("com.android.support", "support-vector-drawable", "+");
+  private static final Dependency APP_COMPAT_DEPENDENCY = Dependency.Companion.parse("com.android.support:appcompat-v7:+");
+  private static final Dependency RECYCLER_VIEW_DEPENDENCY = Dependency.Companion.parse("com.android.support:recyclerview-v7:+");
+  private static final Dependency EXISTING_ROOM_DEPENDENCY = Dependency.Companion.parse("androidx.room:room-ktx:2.5.0");
+  private static final Dependency ROOM_DEPENDENCY = Dependency.Companion.parse("androidx.room:room-ktx:2.5.1");
+  private static final Dependency DUMMY_DEPENDENCY = Dependency.Companion.parse("dummy.group:dummy.artifact:0.0.0");
+  private static final Dependency VECTOR_DRAWABLE_DEPENDENCY = Dependency.Companion.parse("com.android.support:support-vector-drawable:+");
 
-  private static final List<GradleCoordinate> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
+  private static final List<Dependency> DEPENDENCIES = ImmutableList.of(APP_COMPAT_DEPENDENCY, DUMMY_DEPENDENCY);
 
   @Test
   public void testFindMissingDependenciesWithRegularProject() {
@@ -84,7 +83,7 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(appModule, DEPENDENCIES);
+      List<Dependency> missingDependencies = dependencyManager.findMissingDependencies(appModule, DEPENDENCIES);
       assertThat(missingDependencies).containsExactly(DUMMY_DEPENDENCY);
       return null;
     });
@@ -96,7 +95,7 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> missingDependencies = dependencyManager.findMissingDependencies(appModule, DEPENDENCIES);
+      List<Dependency> missingDependencies = dependencyManager.findMissingDependencies(appModule, DEPENDENCIES);
       assertThat(missingDependencies).containsExactly(DUMMY_DEPENDENCY);
       return null;
     });
@@ -110,7 +109,7 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
 
       Module appModule = TestModuleUtil.findAppModule(project);
-      List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
+      List<Dependency> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
@@ -134,7 +133,7 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
+      List<Dependency> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
 
       // Setup:
       // 1. RecyclerView artifact should not be declared in build script.
@@ -170,7 +169,7 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
+      List<Dependency> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
 
       // Setup:
       // 1. RecyclerView artifact should not be declared in build script.
@@ -199,11 +198,10 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
 
       Module appModule = TestModuleUtil.findAppModule(project);
-      List<GradleCoordinate> dependencies = ImmutableList.of(APP_COMPAT_DEPENDENCY, RECYCLER_VIEW_DEPENDENCY);
+      List<Dependency> dependencies = ImmutableList.of(APP_COMPAT_DEPENDENCY, RECYCLER_VIEW_DEPENDENCY);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> missing = dependencyManager.findMissingDependencies(appModule, dependencies);
+      List<Dependency> missing = dependencyManager.findMissingDependencies(appModule, dependencies);
       assertThat(missing.size()).isEqualTo(1);
-      assertThat(missing.get(0).getId()).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT);
       assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.4.0");
       assertFalse(isRecyclerInCatalog(project));
       return null;
@@ -217,12 +215,13 @@ public class GradleDependencyManagerTest {
 
       Module appModule = TestModuleUtil.findAppModule(project);
       // Make sure the app module depends on the vector drawable library:
-      assertNotNull(getModuleSystem(appModule).getResolvedDependency(VECTOR_DRAWABLE_DEPENDENCY));
+      GradleCoordinate vectorDrawableCoordinate = GradleCoordinate.parseCoordinateString(VECTOR_DRAWABLE_DEPENDENCY.toString());
+      assertNotNull(getModuleSystem(appModule).getResolvedDependency(vectorDrawableCoordinate));
 
       // Now check that the vector drawable library is NOT an explicit dependency:
-      List<GradleCoordinate> vectorDrawable = Collections.singletonList(VECTOR_DRAWABLE_DEPENDENCY);
+      List<Dependency> vectorDrawable = Collections.singletonList(VECTOR_DRAWABLE_DEPENDENCY);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> missing = dependencyManager.findMissingDependencies(appModule, vectorDrawable);
+      List<Dependency> missing = dependencyManager.findMissingDependencies(appModule, vectorDrawable);
       assertFalse(missing.isEmpty());
       assertFalse(isRecyclerInCatalog(project));
       return null;
@@ -245,7 +244,7 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
+      List<Dependency> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
@@ -270,7 +269,7 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> dependencies = Collections.singletonList(EXISTING_ROOM_DEPENDENCY);
+      List<Dependency> dependencies = Collections.singletonList(EXISTING_ROOM_DEPENDENCY);
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 
@@ -295,7 +294,7 @@ public class GradleDependencyManagerTest {
     preparedProject.open(it -> it, project -> {
       Module appModule = TestModuleUtil.findAppModule(project);
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
-      List<GradleCoordinate> dependencies = Collections.singletonList(ROOM_DEPENDENCY);
+      List<Dependency> dependencies = Collections.singletonList(ROOM_DEPENDENCY);
 
       assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
 

@@ -109,13 +109,12 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @Nullable
   @Override
-  public Version getHighestKnownVersion(@NonNull GradleCoordinate coordinate, @Nullable Predicate<Version> filter) {
+  public Version getHighestKnownVersion(@NonNull Dependency dependency, @Nullable Predicate<Version> filter) {
     AndroidSdkHandler sdkHandler = getSdk();
     if (sdkHandler == null) {
       return null;
     }
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    Dependency dependency = Dependency.Companion.parse(coordinate.toString());
     com.android.ide.common.gradle.Module module = dependency.getModule();
     if (module == null) return null;
     RemotePackage sdkPackage =

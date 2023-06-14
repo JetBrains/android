@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.gradle.Dependency
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
@@ -372,7 +372,7 @@ public class MyWebView extends android.webkit.WebView {
     val gradleDependencyManager = GradleDependencyManager.getInstance(projectRule.project)
     `when`(event.presentation).thenReturn(presentation)
     `when`(gradleDependencyManager.findMissingDependencies(any(Module::class.java), anyCollection()))
-      .thenReturn(listOf(GradleCoordinate.parseCoordinateString(SdkConstants.ADS_ARTIFACT)))
+      .thenReturn(listOf(Dependency.parse(SdkConstants.ADS_ARTIFACT)))
 
     // This statement would fail if the user is asked if they want to add a dependency on play-services-ads:
     myPanel!!.addToDesignAction.update(event)

@@ -157,6 +157,8 @@ class GradleModuleSystem(
     this.name == coordinate.artifactId &&
     RichVersion.parse(coordinate.revision).contains(this.version)
 
+  private fun GradleCoordinate.toDependency(): Dependency = Dependency.parse(toString());
+
   override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
     return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
       ?.let { dependencies ->
@@ -302,12 +304,12 @@ class GradleModuleSystem(
 
   override fun registerDependency(coordinate: GradleCoordinate, type: DependencyType) {
     val manager = GradleDependencyManager.getInstance(module.project)
-    val coordinates = Collections.singletonList(coordinate)
+    val dependencies = Collections.singletonList(coordinate.toDependency())
 
     when (type) {
       DependencyType.ANNOTATION_PROCESSOR -> {
         // addDependenciesWithoutSync doesn't support this: more direct implementation
-        manager.addDependenciesWithoutSync(module, coordinates) { _, name, _ ->
+        manager.addDependenciesWithoutSync(module, dependencies) { _, name, _ ->
           when {
             name.startsWith("androidTest") -> "androidTestAnnotationProcessor"
             name.startsWith("test") -> "testAnnotationProcessor"
@@ -316,19 +318,19 @@ class GradleModuleSystem(
         }
       }
       DependencyType.DEBUG_IMPLEMENTATION -> {
-        manager.addDependenciesWithoutSync(module, coordinates) { _, _, _ ->
+        manager.addDependenciesWithoutSync(module, dependencies) { _, _, _ ->
           "debugImplementation"
         }
       }
       else -> {
-        manager.addDependenciesWithoutSync(module, coordinates)
+        manager.addDependenciesWithoutSync(module, dependencies)
       }
     }
   }
 
   override fun updateLibrariesToVersion(toVersions: List<GradleCoordinate>) {
     val manager = GradleDependencyManager.getInstance(module.project)
-    manager.updateLibrariesToVersion(module, toVersions)
+    manager.updateLibrariesToVersion(module, toVersions.map { it.toDependency() })
   }
 
   override fun getModuleTemplates(targetDirectory: VirtualFile?): List<NamedModuleTemplate> {

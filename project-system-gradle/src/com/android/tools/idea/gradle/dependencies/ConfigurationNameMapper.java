@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.dependencies;
 
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.gradle.Dependency;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 
 /** Interface for mapping Gradle configuration names */
 public interface ConfigurationNameMapper {
-  @NotNull String mapName(@NotNull Module module, @NotNull String name, @NotNull GradleCoordinate coordinate);
+  @NotNull String mapName(@NotNull Module module, @NotNull String name, @NotNull Dependency dependency);
 }
