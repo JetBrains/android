@@ -771,9 +771,33 @@
     <option name="tilt" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
     <option name="snapshots" path="ActionManager" hit="Snapshots" />
     <option name="soft-wrap" path="ActionManager" hit="Soft-Wrap" />
+    <option name="start" path="ActionManager" hit="Start System Trace" />
+    <option name="system" path="ActionManager" hit="Start System Trace" />
+    <option name="trace" path="ActionManager" hit="Start System Trace" />
+    <option name="a" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="start" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="system" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="trace" path="ActionManager" hit="Start a system trace in the current profiling session" />
+    <option name="capture" path="ActionManager" hit="Stop CPU Capture" />
+    <option name="cpu" path="ActionManager" hit="Stop CPU Capture" />
+    <option name="stop" path="ActionManager" hit="Stop CPU Capture" />
     <option name="profiling" path="ActionManager" hit="Stop Profiling Session" />
     <option name="session" path="ActionManager" hit="Stop Profiling Session" />
     <option name="stop" path="ActionManager" hit="Stop Profiling Session" />
+    <option name="a" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="capture" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="cpu" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="stop" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Stop a CPU capture in the current profiling session" />
     <option name="current" path="ActionManager" hit="Stop the current profiling session" />
     <option name="profiling" path="ActionManager" hit="Stop the current profiling session" />
     <option name="session" path="ActionManager" hit="Stop the current profiling session" />
