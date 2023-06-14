@@ -18,7 +18,7 @@ package com.android.tools.idea.preview.lifecycle
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.concurrency.scopeDisposable
-import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -148,13 +148,13 @@ private constructor(
 
       onDeactivate()
 
-    if (PreviewEssentialsModeManager.isInEssentialsMode) {
-      // When on power saving mode, deactivate immediately to free resources.
-      onDelayedDeactivate()
-    } else {
-      scheduleDelayed(scopeDisposable, this::delayedDeactivate)
+      if (EssentialsMode.isEnabled()) {
+        // When on power saving mode, deactivate immediately to free resources.
+        onDelayedDeactivate()
+      } else {
+        scheduleDelayed(scopeDisposable, this::delayedDeactivate)
+      }
     }
-  }
 
   /** Allows to execute code that only makes sense in the active mode. */
   fun <T> executeIfActive(block: CoroutineScope.() -> T): T? = activationScope?.block()

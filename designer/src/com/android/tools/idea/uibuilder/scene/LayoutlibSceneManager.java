@@ -30,6 +30,8 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -51,29 +53,15 @@ import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.configurations.ConfigurationListener;
-import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.modes.essentials.EssentialsMode;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
-import com.android.tools.idea.rendering.parsers.PsiXmlFile;
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
-import com.android.tools.rendering.ExecuteCallbacksResult;
-import com.android.tools.rendering.InteractionEventResult;
-import com.android.tools.rendering.RenderAsyncActionExecutor;
-import com.android.tools.rendering.RenderLogger;
-import com.android.tools.rendering.RenderResult;
-import com.android.tools.rendering.RenderService;
-import com.android.tools.rendering.api.RenderModelModule;
-import com.android.tools.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResults;
-import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderConfiguration;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
-import com.android.tools.rendering.api.RenderConfiguration;
-import com.android.tools.rendering.imagepool.ImagePool;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -89,7 +77,19 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
 import com.android.tools.idea.util.ListenerCollection;
+import com.android.tools.rendering.ExecuteCallbacksResult;
+import com.android.tools.rendering.InteractionEventResult;
+import com.android.tools.rendering.RenderAsyncActionExecutor;
+import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.RenderProblem;
+import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
+import com.android.tools.rendering.api.RenderConfiguration;
+import com.android.tools.rendering.api.RenderModelModule;
+import com.android.tools.rendering.imagepool.ImagePool;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -777,7 +777,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
     @Override
     public void modelChanged(@NotNull NlModel model) {
-      if (PreviewEssentialsModeManager.INSTANCE.isInEssentialsMode() &&
+      if (EssentialsMode.isEnabled() &&
           powerModeChangesNotTriggeringRefresh.contains(model.getLastChangeType())) {
         isOutOfDate.set(true);
         return;

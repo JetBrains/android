@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
-import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.EditorNotifications
@@ -56,12 +55,6 @@ class ToggleFastPreviewAction : AnAction(null, null, null) {
     if (ComposePreviewLiteModeManager.isLiteModeEnabled) {
       presentation.description =
         message("action.preview.fast.refresh.disabled.in.lite.mode.description")
-      presentation.isEnabled = false
-    } else if (PreviewEssentialsModeManager.isInEssentialsMode) {
-      // TODO(b/280583075): merge description with Lite Mode when/if Power Save enables Lite Mode by
-      // default.
-      presentation.description =
-        message("action.preview.fast.refresh.disabled.in.power.save.description")
       presentation.isEnabled = false
     } else {
       presentation.description = message("action.preview.fast.refresh.toggle.description")

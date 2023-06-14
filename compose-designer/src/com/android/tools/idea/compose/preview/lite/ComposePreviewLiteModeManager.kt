@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.lite
 
-import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 /**
@@ -29,5 +29,5 @@ object ComposePreviewLiteModeManager {
     get() =
       StudioFlags.COMPOSE_PREVIEW_LITE_MODE.get() &&
         (AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled ||
-          PreviewEssentialsModeManager.isInEssentialsMode)
+          EssentialsMode.isEnabled())
 }

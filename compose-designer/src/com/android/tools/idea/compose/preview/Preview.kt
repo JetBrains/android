@@ -53,10 +53,10 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
@@ -227,7 +227,7 @@ fun configureLayoutlibSceneManager(
     setShrinkRendering(!showDecorations)
     interactive = isInteractive
     isUsePrivateClassLoader = requestPrivateClassLoader
-    setQuality(if (PreviewEssentialsModeManager.isInEssentialsMode) 0.75f else 0.95f)
+    setQuality(if (EssentialsMode.isEnabled()) 0.75f else 0.95f)
     setShowDecorations(showDecorations)
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib Scene
     // Manager to not
@@ -375,14 +375,14 @@ class ComposePreviewRepresentation(
         EssentialsModeMessenger.Listener {
           updateFpsForCurrentMode()
           // When getting out of Essentials Mode, request a refresh
-          if (!PreviewEssentialsModeManager.isInEssentialsMode) requestRefresh()
+          if (!EssentialsMode.isEnabled()) requestRefresh()
         }
       )
   }
 
   private fun updateFpsForCurrentMode() {
     fpsLimit =
-      if (PreviewEssentialsModeManager.isInEssentialsMode) {
+      if (EssentialsMode.isEnabled()) {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
       } else {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
@@ -939,7 +939,7 @@ class ComposePreviewRepresentation(
             }
 
             if (
-              !PreviewEssentialsModeManager.isInEssentialsMode &&
+              !EssentialsMode.isEnabled() &&
                 interactiveMode.isStoppingOrDisabled() &&
                 !animationInspection.get() &&
                 !ComposePreviewLiteModeManager.isLiteModeEnabled
@@ -993,7 +993,7 @@ class ComposePreviewRepresentation(
   // endregion
 
   override fun onCaretPositionChanged(event: CaretEvent, isModificationTriggered: Boolean) {
-    if (PreviewEssentialsModeManager.isInEssentialsMode) return
+    if (EssentialsMode.isEnabled()) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
     if (interactiveMode.isStartingOrReady()) return

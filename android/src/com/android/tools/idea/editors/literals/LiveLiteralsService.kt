@@ -8,9 +8,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.editors.mode.PreviewEssentialsModeManager.isInEssentialsMode
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
@@ -370,7 +370,7 @@ class LiveLiteralsService private constructor(private val project: Project,
       return
     }
 
-    if (isInEssentialsMode) return
+    if (EssentialsMode.isEnabled()) return
 
     val updateList = ArrayList<LiteralReference>()
     document.flatMap {

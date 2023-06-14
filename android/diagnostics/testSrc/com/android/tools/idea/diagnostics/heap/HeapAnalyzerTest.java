@@ -25,7 +25,6 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.TruncatingStringBuilder;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
@@ -386,7 +385,6 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   @Test
   public void testStudioStatsProtoCreation() {
-    StudioFlags.DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT.override(true);
     PowerSaveMode.setEnabled(true);
     ComponentsSet componentsSet = new ComponentsSet();
 

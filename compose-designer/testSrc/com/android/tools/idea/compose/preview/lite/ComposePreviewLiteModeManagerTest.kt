@@ -63,7 +63,6 @@ class ComposePreviewLiteModeManagerTest {
   @Test
   fun liteModeIsEnabledIfEssentialsModeIsEnabled() {
     StudioFlags.COMPOSE_PREVIEW_LITE_MODE.override(true)
-    StudioFlags.DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT.override(true)
     try {
       settings.isComposePreviewLiteModeEnabled = false
       assertFalse(ComposePreviewLiteModeManager.isLiteModeEnabled)
@@ -73,7 +72,6 @@ class ComposePreviewLiteModeManagerTest {
       EssentialsMode.setEnabled(true)
       assertTrue(ComposePreviewLiteModeManager.isLiteModeEnabled)
     } finally {
-      StudioFlags.DESIGN_TOOLS_ESSENTIALS_MODE_SUPPORT.clearOverride()
       EssentialsMode.setEnabled(false)
     }
   }
