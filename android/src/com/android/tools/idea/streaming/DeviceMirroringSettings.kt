@@ -67,6 +67,9 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
 
   override fun loadState(state: DeviceMirroringSettings) {
     XmlSerializerUtil.copyBean(state, this)
+    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      deviceMirroringEnabled = true
+    }
   }
 
   override fun initializeComponent() {
