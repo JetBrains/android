@@ -22,32 +22,34 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
 
-/**
- * Action for switching the units of dimension attribute values.
- */
+/** Action for switching the units of dimension attribute values. */
 @Suppress("ComponentNotRegistered")
-object DimensionUnitAction: DefaultActionGroup("Units", listOf(
+object DimensionUnitAction :
+  DefaultActionGroup(
+    "Units",
+    listOf(
+      object : ToggleAction("dp") {
+        override fun isSelected(event: AnActionEvent): Boolean =
+          PropertiesSettings.dimensionUnits == DimensionUnits.DP
 
-  object : ToggleAction("dp") {
-    override fun isSelected(event: AnActionEvent): Boolean = PropertiesSettings.dimensionUnits == DimensionUnits.DP
+        override fun setSelected(event: AnActionEvent, state: Boolean) {
+          if (state && PropertiesSettings.dimensionUnits != DimensionUnits.DP) {
+            setUnits(event, DimensionUnits.DP)
+          }
+        }
+      },
+      object : ToggleAction("pixels") {
+        override fun isSelected(event: AnActionEvent): Boolean =
+          PropertiesSettings.dimensionUnits == DimensionUnits.PIXELS
 
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
-      if (state && PropertiesSettings.dimensionUnits != DimensionUnits.DP) {
-        setUnits(event, DimensionUnits.DP)
+        override fun setSelected(event: AnActionEvent, state: Boolean) {
+          if (state && PropertiesSettings.dimensionUnits != DimensionUnits.PIXELS) {
+            setUnits(event, DimensionUnits.PIXELS)
+          }
+        }
       }
-    }
-  },
-
-  object : ToggleAction("pixels") {
-    override fun isSelected(event: AnActionEvent): Boolean = PropertiesSettings.dimensionUnits == DimensionUnits.PIXELS
-
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
-      if (state && PropertiesSettings.dimensionUnits != DimensionUnits.PIXELS) {
-        setUnits(event, DimensionUnits.PIXELS)
-      }
-    }
-  }
-)) {
+    )
+  ) {
   override fun update(event: AnActionEvent) {
     val model = LayoutInspector.get(event)?.inspectorModel
     event.presentation.isEnabled = model?.resourceLookup?.dpi != null
@@ -60,5 +62,7 @@ object DimensionUnitAction: DefaultActionGroup("Units", listOf(
 
 private fun setUnits(event: AnActionEvent, units: DimensionUnits) {
   PropertiesSettings.dimensionUnits = units
-  ToolContent.getToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))?.component?.repaint()
+  ToolContent.getToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))
+    ?.component
+    ?.repaint()
 }

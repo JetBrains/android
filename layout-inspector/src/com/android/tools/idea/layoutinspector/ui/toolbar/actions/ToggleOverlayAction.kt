@@ -29,9 +29,11 @@ import java.io.IOException
 import javax.imageio.ImageIO
 
 /**
- * Lets the user choose an image to overlay on top of the captured view to compare the app's visual against design mocks.
+ * Lets the user choose an image to overlay on top of the captured view to compare the app's visual
+ * against design mocks.
  */
-class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) : AnAction(StudioIcons.LayoutInspector.LOAD_OVERLAY) {
+class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) :
+  AnAction(StudioIcons.LayoutInspector.LOAD_OVERLAY) {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -39,8 +41,7 @@ class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) : 
     if (renderModel.overlay != null) {
       e.presentation.icon = StudioIcons.LayoutInspector.CLEAR_OVERLAY
       e.presentation.text = "Clear Overlay"
-    }
-    else {
+    } else {
       e.presentation.icon = StudioIcons.LayoutInspector.LOAD_OVERLAY
       e.presentation.text = "Load Overlay"
     }
@@ -51,8 +52,7 @@ class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) : 
     val renderModel = renderModelProvider()
     if (renderModel.overlay != null) {
       renderModel.overlay = null
-    }
-    else {
+    } else {
       loadOverlay(e)
     }
   }
@@ -60,8 +60,10 @@ class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) : 
   private fun loadOverlay(e: AnActionEvent) {
     // choose image
     val descriptor = FileTypeDescriptor("Choose Overlay", "svg", "png", "jpg")
-    val fileChooserDialog = FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
-    val toSelect = LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
+    val fileChooserDialog =
+      FileChooserFactory.getInstance().createFileChooser(descriptor, null, null)
+    val toSelect =
+      LocalFileSystem.getInstance().refreshAndFindFileByPath(e.project?.basePath ?: "/")
     val files = fileChooserDialog.choose(null, toSelect!!)
     if (files.isEmpty()) {
       return
@@ -74,9 +76,11 @@ class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) : 
   private fun loadImageFile(file: VirtualFile): Image? {
     return try {
       ImageIO.read(file.inputStream)
-    }
-    catch (e: IOException) {
-      Messages.showErrorDialog("Failed to read image from \"" + file.name + "\" Error: " + e.message, "Error")
+    } catch (e: IOException) {
+      Messages.showErrorDialog(
+        "Failed to read image from \"" + file.name + "\" Error: " + e.message,
+        "Error"
+      )
       return null
     }
   }

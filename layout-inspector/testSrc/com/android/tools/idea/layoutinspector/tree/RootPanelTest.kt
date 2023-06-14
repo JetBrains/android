@@ -27,35 +27,41 @@ import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLoadingPanel
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 
 class RootPanelTest {
 
   private val androidProjectRule = AndroidProjectRule.inMemory()
 
   private val appInspectorRule = AppInspectionInspectorRule(androidProjectRule)
-  private val layoutInspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), androidProjectRule)
+  private val layoutInspectorRule =
+    LayoutInspectorRule(
+      listOf(appInspectorRule.createInspectorClientProvider()),
+      androidProjectRule
+    )
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(androidProjectRule)
-    .around(appInspectorRule)
-    .around(layoutInspectorRule)
-    .around(EdtRule())!!
+  val ruleChain =
+    RuleChain.outerRule(androidProjectRule)
+      .around(appInspectorRule)
+      .around(layoutInspectorRule)
+      .around(EdtRule())!!
 
-  private val fakeDeviceDescriptor = object : DeviceDescriptor {
-    override val manufacturer = "manufacturer"
-    override val model = "model"
-    override val serial = "serial"
-    override val isEmulator = false
-    override val apiLevel = 0
-    override val version = "version"
-    override val codename = "codename"
-  }
+  private val fakeDeviceDescriptor =
+    object : DeviceDescriptor {
+      override val manufacturer = "manufacturer"
+      override val model = "model"
+      override val serial = "serial"
+      override val isEmulator = false
+      override val apiLevel = 0
+      override val version = "version"
+      override val codename = "codename"
+    }
 
   @Test
   fun testProcessNotDebuggablePanelIsShown() {
@@ -69,12 +75,16 @@ class RootPanelTest {
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
-      fakeDeviceDescriptor, ForegroundProcess(0, "fakeprocess"), false
+      fakeDeviceDescriptor,
+      ForegroundProcess(0, "fakeprocess"),
+      false
     )
     assertThat(rootPanel.showProcessNotDebuggableText).isTrue()
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
-      fakeDeviceDescriptor, ForegroundProcess(0, "fakeprocess"), true
+      fakeDeviceDescriptor,
+      ForegroundProcess(0, "fakeprocess"),
+      true
     )
     assertThat(rootPanel.showProcessNotDebuggableText).isFalse()
 
@@ -83,7 +93,9 @@ class RootPanelTest {
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
-      fakeDeviceDescriptor, ForegroundProcess(0, "fakeprocess"), false
+      fakeDeviceDescriptor,
+      ForegroundProcess(0, "fakeprocess"),
+      false
     )
     assertThat(rootPanel.showProcessNotDebuggableText).isFalse()
   }
@@ -99,15 +111,21 @@ class RootPanelTest {
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
     layoutInspectorRule.startLaunch(2)
-    layoutInspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    layoutInspectorRule.processes.selectedProcess =
+      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading }
+    waitForCondition(1, TimeUnit.SECONDS) {
+      rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
+    }
 
     // Release the response from the agent and wait for connection.
-    // The loading should stop and the empty text should not be visible, because now we are connected and showing views on screen
+    // The loading should stop and the empty text should not be visible, because now we are
+    // connected and showing views on screen
     layoutInspectorRule.awaitLaunch()
 
-    waitForCondition(1, TimeUnit.SECONDS) { !rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading }
+    waitForCondition(1, TimeUnit.SECONDS) {
+      !rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
+    }
   }
 
   @Test
@@ -119,7 +137,9 @@ class RootPanelTest {
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
-      fakeDeviceDescriptor, ForegroundProcess(0, "fakeprocess"), false
+      fakeDeviceDescriptor,
+      ForegroundProcess(0, "fakeprocess"),
+      false
     )
     assertThat(rootPanel.showProcessNotDebuggableText).isTrue()
 
@@ -128,16 +148,22 @@ class RootPanelTest {
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
     layoutInspectorRule.startLaunch(2)
-    layoutInspectorRule.processes.selectedProcess = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    layoutInspectorRule.processes.selectedProcess =
+      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading }
+    waitForCondition(1, TimeUnit.SECONDS) {
+      rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
+    }
 
     assertThat(rootPanel.showProcessNotDebuggableText).isFalse()
 
     // Release the response from the agent and wait for connection.
-    // The loading should stop and the empty text should not be visible, because now we are connected and showing views on screen
+    // The loading should stop and the empty text should not be visible, because now we are
+    // connected and showing views on screen
     layoutInspectorRule.awaitLaunch()
 
-    waitForCondition(1, TimeUnit.SECONDS) { !rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading }
+    waitForCondition(1, TimeUnit.SECONDS) {
+      !rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
+    }
   }
 }

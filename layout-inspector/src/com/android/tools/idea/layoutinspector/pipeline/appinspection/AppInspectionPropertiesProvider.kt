@@ -35,12 +35,12 @@ import com.android.tools.idea.layoutinspector.properties.addInternalProperties
 import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.application.runReadAction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Future
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AppInspectionPropertiesProvider(
   private val propertiesCache: ViewPropertiesCache,
@@ -70,8 +70,7 @@ class AppInspectionPropertiesProvider(
           completeProperties(view, viewData)
           propertiesTable = viewData.properties
         }
-      }
-      else {
+      } else {
         val composeData = parametersCache?.getDataFor(view)
         if (composeData != null) {
           completeParameters(view, composeData)
@@ -92,8 +91,10 @@ class AppInspectionPropertiesProvider(
   /**
    * Complete the properties table with information from the [ViewNode].
    *
-   * The properties were loaded from the agent, but the following cannot be completed before the [ViewNode] is known:
-   * - The agent does not specify which attributes is a dimension type. Get that from the Studio side.
+   * The properties were loaded from the agent, but the following cannot be completed before the
+   * [ViewNode] is known:
+   * - The agent does not specify which attributes is a dimension type. Get that from the Studio
+   *   side.
    * - Add the standard internal attributes from the [ViewNode].
    * - Add a call location to all known object types where the className is known.
    * - Create resolution stack items based on the resolution stack received from the agent.
@@ -107,15 +108,30 @@ class AppInspectionPropertiesProvider(
 
     if (model.resourceLookup.hasResolver) {
       runReadAction {
-        propertiesData.classNames.cellSet().mapNotNull { cell ->
-          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToItemWithClassLocation(it, cell.value!!) }
-        }.forEach { properties.put(it) }
-        propertiesData.resolutionStacks.cellSet().mapNotNull { cell ->
-          properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let { convertToResolutionStackItem(it, view, cell.value!!) }
-        }.forEach { properties.put(it) }
+        propertiesData.classNames
+          .cellSet()
+          .mapNotNull { cell ->
+            properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
+              convertToItemWithClassLocation(it, cell.value!!)
+            }
+          }
+          .forEach { properties.put(it) }
+        propertiesData.resolutionStacks
+          .cellSet()
+          .mapNotNull { cell ->
+            properties.getOrNull(cell.rowKey!!, cell.columnKey!!)?.let {
+              convertToResolutionStackItem(it, view, cell.value!!)
+            }
+          }
+          .forEach { properties.put(it) }
       }
     }
-    addInternalProperties(properties, view, properties.getOrNull(ANDROID_URI, ATTR_ID)?.value ,model)
+    addInternalProperties(
+      properties,
+      view,
+      properties.getOrNull(ANDROID_URI, ATTR_ID)?.value,
+      model
+    )
   }
 
   private fun completeParameters(view: ViewNode, parametersData: ComposeParametersData) {
@@ -128,42 +144,54 @@ class AppInspectionPropertiesProvider(
   /**
    * Generate items with a classLocation for known object types.
    *
-   * This strictly could have happened up front because the [ViewNode] is not needed for computing the
-   * [SourceLocation] for the class used for this value. However the computation takes time so this will
-   * delay that cost until it is needed to show the properties for the containing [ViewNode].
+   * This strictly could have happened up front because the [ViewNode] is not needed for computing
+   * the [SourceLocation] for the class used for this value. However the computation takes time so
+   * this will delay that cost until it is needed to show the properties for the containing
+   * [ViewNode].
    */
   private fun convertToItemWithClassLocation(
     item: InspectorPropertyItem,
     className: String
   ): InspectorPropertyItem? {
-    val classLocation = model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
-    return InspectorGroupPropertyItem(item.namespace, item.name, item.type, item.initialValue, classLocation,
-                                      item.section, item.source, item.viewId, item.lookup, emptyList())
+    val classLocation =
+      model.resourceLookup.resolveClassNameAsSourceLocation(className) ?: return null
+    return InspectorGroupPropertyItem(
+      item.namespace,
+      item.name,
+      item.type,
+      item.initialValue,
+      classLocation,
+      item.section,
+      item.source,
+      item.viewId,
+      item.lookup,
+      emptyList()
+    )
   }
 
   /**
    * Generate items for displaying the resolution stack.
    *
-   * Each property may include a resolution stack i.e. places and values in e.g. styles
-   * that are overridden by other attribute or style assignments.
+   * Each property may include a resolution stack i.e. places and values in e.g. styles that are
+   * overridden by other attribute or style assignments.
    *
-   * In the inspector properties table we have chosen to show these as independent values
-   * in collapsible sections for each property. The resolution stack is received as a list
-   * of resource references that may (or may not) set the value of the current attribute.
-   * The code below will lookup the value (from PSI source files) of each possible resource
-   * reference. If any values were found the original property item is replaced with a group
-   * item with children consisting of the available resource references where a value was
-   * found.
+   * In the inspector properties table we have chosen to show these as independent values in
+   * collapsible sections for each property. The resolution stack is received as a list of resource
+   * references that may (or may not) set the value of the current attribute. The code below will
+   * lookup the value (from PSI source files) of each possible resource reference. If any values
+   * were found the original property item is replaced with a group item with children consisting of
+   * the available resource references where a value was found.
    */
   private fun convertToResolutionStackItem(
     item: InspectorPropertyItem,
     view: ViewNode,
     resolutionStack: List<ResourceReference>
   ): InspectorPropertyItem? {
-    val map = resolutionStack
-      .associateWith { model.resourceLookup.findAttributeValue(item, view, it) }
-      .filterValues { it != null }
-      .toMutableMap()
+    val map =
+      resolutionStack
+        .associateWith { model.resourceLookup.findAttributeValue(item, view, it) }
+        .filterValues { it != null }
+        .toMutableMap()
     val firstRef = map.keys.firstOrNull()
     if (firstRef != null && firstRef == item.source) {
       map.remove(firstRef)
@@ -171,11 +199,21 @@ class AppInspectionPropertiesProvider(
     val classLocation: SourceLocation? = (item as? InspectorGroupPropertyItem)?.classLocation
     if (map.isNotEmpty() || item.source != null || classLocation != null) {
       // Make this item a group item such that the details are hidden until the item is expanded.
-      // Note that there doesn't have to be sub items in the group. A source location or class location is enough to trigger this.
-      return InspectorGroupPropertyItem(item.namespace, item.name, item.type, item.initialValue, classLocation,
-                                        item.section, item.source, item.viewId, item.lookup, map)
+      // Note that there doesn't have to be sub items in the group. A source location or class
+      // location is enough to trigger this.
+      return InspectorGroupPropertyItem(
+        item.namespace,
+        item.name,
+        item.type,
+        item.initialValue,
+        classLocation,
+        item.section,
+        item.source,
+        item.viewId,
+        item.lookup,
+        map
+      )
     }
     return null
   }
-
 }

@@ -32,14 +32,16 @@ import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
-class ShowLayoutInspectorAction : DumbAwareAction(
-  AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
-  AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-  StudioIcons.Shell.Menu.LAYOUT_INSPECTOR
-) {
+class ShowLayoutInspectorAction :
+  DumbAwareAction(
+    AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
+    AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
+    StudioIcons.Shell.Menu.LAYOUT_INSPECTOR
+  ) {
   override fun update(e: AnActionEvent) {
     val project = e.project
-    e.presentation.isEnabled = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+    e.presentation.isEnabled =
+      project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -47,26 +49,29 @@ class ShowLayoutInspectorAction : DumbAwareAction(
     if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
       showLayoutInspectorDiscoveryPopUp(project)
       activateToolWindow(project, RUNNING_DEVICES_TOOL_WINDOW_ID)
-    }
-    else {
+    } else {
       activateToolWindow(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     }
   }
 
   private fun showLayoutInspectorDiscoveryPopUp(project: Project) {
-    val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("LAYOUT_INSPECTOR_DISCOVERY")
-    val notification = notificationGroup
-      .createNotification(
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("LAYOUT_INSPECTOR_DISCOVERY")
+    val notification =
+      notificationGroup.createNotification(
         LayoutInspectorBundle.message("layout.inspector.discovery.title"),
         LayoutInspectorBundle.message("layout.inspector.discovery.description"),
         NotificationType.INFORMATION
       )
-    notification.addAction(object : NotificationAction(LayoutInspectorBundle.message("opt.out")) {
+    notification.addAction(
+      object : NotificationAction(LayoutInspectorBundle.message("opt.out")) {
         override fun actionPerformed(e: AnActionEvent, notification: Notification) {
           notification.expire()
-          ShowSettingsUtil.getInstance().showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+          ShowSettingsUtil.getInstance()
+            .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
         }
-      })
+      }
+    )
     notification.notify(project)
   }
 

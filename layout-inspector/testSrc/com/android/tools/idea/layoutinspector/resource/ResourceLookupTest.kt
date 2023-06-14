@@ -35,18 +35,16 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
-import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Rectangle
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Rule
+import org.junit.Test
 
 class ResourceLookupTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testUpdateConfiguration() {
@@ -55,8 +53,14 @@ class ResourceLookupTest {
     val resourceLookup = ResourceLookup(projectRule.project)
     val theme = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light")
     val process = MODERN_DEVICE.createProcess("com.example.test")
-    resourceLookup.updateConfiguration(FolderConfiguration(), theme, process,
-                                       fontScaleFromConfig = 1.0f, mainDisplayOrientation = 90, screenSize = Dimension(1440, 3120))
+    resourceLookup.updateConfiguration(
+      FolderConfiguration(),
+      theme,
+      process,
+      fontScaleFromConfig = 1.0f,
+      mainDisplayOrientation = 90,
+      screenSize = Dimension(1440, 3120)
+    )
     assertThat(resourceLookup.resolver).isNotNull()
     assertThat(resourceLookup.displayOrientation).isEqualTo(90)
   }
@@ -68,22 +72,40 @@ class ResourceLookupTest {
     val resourceLookup = ResourceLookup(projectRule.project)
     val theme = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme.Hole.Light")
     val process = MODERN_DEVICE.createProcess("com.example.test.debug")
-    resourceLookup.updateConfiguration(FolderConfiguration(), theme, process,
-                                       fontScaleFromConfig = 1.0f, mainDisplayOrientation = 90, screenSize = Dimension(1440, 3120))
+    resourceLookup.updateConfiguration(
+      FolderConfiguration(),
+      theme,
+      process,
+      fontScaleFromConfig = 1.0f,
+      mainDisplayOrientation = 90,
+      screenSize = Dimension(1440, 3120)
+    )
     assertThat(resourceLookup.resolver).isNotNull()
   }
 
   @Test
   fun testSingleColorIcon() {
     val title = ViewNode(1, "TextView", null, Rectangle(30, 60, 300, 100), null, "Hello Folks", 0)
-    val context = object : ViewNodeAndResourceLookup {
-      override val resourceLookup = ResourceLookup(projectRule.project)
-      override fun get(id: Long): ViewNode = title
-      override val selection: ViewNode? = null
-    }
-    val property = InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, PropertyType.COLOR, "#CC0000",
-                                         PropertySection.DECLARED, null, title.drawId, context)
+    val context =
+      object : ViewNodeAndResourceLookup {
+        override val resourceLookup = ResourceLookup(projectRule.project)
+        override fun get(id: Long): ViewNode = title
+        override val selection: ViewNode? = null
+      }
+    val property =
+      InspectorPropertyItem(
+        ANDROID_URI,
+        ATTR_TEXT_COLOR,
+        ATTR_TEXT_COLOR,
+        PropertyType.COLOR,
+        "#CC0000",
+        PropertySection.DECLARED,
+        null,
+        title.drawId,
+        context
+      )
     val icon = context.resourceLookup.resolveAsIcon(property, title)
-    assertThat(icon).isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
+    assertThat(icon)
+      .isEqualTo(JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, Color(0xCC0000), false)))
   }
 }

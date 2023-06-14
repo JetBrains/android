@@ -24,7 +24,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.PopupHandler
-import kotlinx.coroutines.CoroutineScope
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -40,16 +39,21 @@ import java.awt.geom.Point2D
 import javax.swing.JPanel
 import kotlin.math.abs
 import kotlin.math.max
+import kotlinx.coroutines.CoroutineScope
 
 /**
- * Panel responsible for rendering the [RenderModel] into a [Graphics] object and reacting to mouse and keyboard events.
+ * Panel responsible for rendering the [RenderModel] into a [Graphics] object and reacting to mouse
+ * and keyboard events.
+ *
  * @param displayRectangleProvider Returns the rectangle of the device screen. In physical pixels.
- * If used for rendering it needs to be scaled to logical pixels.
- * A Physical pixel corresponds to a real pixel on the display. A logical pixel corresponds to a physical pixels * screen scale.
- * For example on a Retina display a logical pixel is a physical pixel * 2.
- * @param screenScaleProvider Returns the screen scale. For example 1 on a regular display and 2 on a Retina display.
- * @param orientationQuadrantProvider Returns an integer that indicates the rotation that should be applied to the Layout Inspector's
- * rendering in order to match the rendering from Running Devices.
+ *   If used for rendering it needs to be scaled to logical pixels. A Physical pixel corresponds to
+ *   a real pixel on the display. A logical pixel corresponds to a physical pixels * screen scale.
+ *   For example on a Retina display a logical pixel is a physical pixel * 2.
+ * @param screenScaleProvider Returns the screen scale. For example 1 on a regular display and 2 on
+ *   a Retina display.
+ * @param orientationQuadrantProvider Returns an integer that indicates the rotation that should be
+ *   applied to the Layout Inspector's rendering in order to match the rendering from Running
+ *   Devices.
  */
 class LayoutInspectorRenderer(
   disposable: Disposable,
@@ -60,7 +64,7 @@ class LayoutInspectorRenderer(
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
   private val currentSessionStatistics: () -> SessionStatistics
-): JPanel(), Disposable {
+) : JPanel(), Disposable {
 
   var interceptClicks = false
 
@@ -76,10 +80,12 @@ class LayoutInspectorRenderer(
     Disposer.register(disposable, this)
     isOpaque = false
 
-    // TODO(b/265150325) when running devices the zoom does not affect the scale. Move this somewhere else.
+    // TODO(b/265150325) when running devices the zoom does not affect the scale. Move this
+    // somewhere else.
     renderLogic.renderSettings.scalePercent = 30
 
-    // Events are not dispatched to the parent if the child has a mouse listener. So we need to manually forward them.
+    // Events are not dispatched to the parent if the child has a mouse listener. So we need to
+    // manually forward them.
     ForwardingMouseListener({ parent }, { !interceptClicks }).also {
       addMouseListener(it)
       addMouseMotionListener(it)
@@ -115,27 +121,32 @@ class LayoutInspectorRenderer(
   }
 
   /**
-   * Transform the rendering from LI to match the display rendering from Running Devices.
-   * This function assumes the rendering from LI starts a coordinates (0, 0).
-   * @param displayRectangle The rectangle from Running Devices, on which the device display is rendered.
+   * Transform the rendering from LI to match the display rendering from Running Devices. This
+   * function assumes the rendering from LI starts a coordinates (0, 0).
+   *
+   * @param displayRectangle The rectangle from Running Devices, on which the device display is
+   *   rendered.
    */
   private fun getTransform(displayRectangle: Rectangle): AffineTransform {
     val layoutInspectorScreenDimension = renderModel.model.screenDimension
     // The rectangle containing LI rendering, in device scale.
-    val layoutInspectorDisplayRectangle = Rectangle(0, 0, layoutInspectorScreenDimension.width, layoutInspectorScreenDimension.height)
+    val layoutInspectorDisplayRectangle =
+      Rectangle(0, 0, layoutInspectorScreenDimension.width, layoutInspectorScreenDimension.height)
 
     val scale = calculateScaleDifference(displayRectangle, layoutInspectorDisplayRectangle)
     val orientationQuadrant = orientationQuadrantProvider()
 
     val transform = AffineTransform()
 
-    // Apply scale and rotation, this will transform LI rendering to match the rendering from RD, in terms of scale and orientation.
+    // Apply scale and rotation, this will transform LI rendering to match the rendering from RD, in
+    // terms of scale and orientation.
     transform.apply {
       scale(scale, scale)
       quadrantRotate(orientationQuadrant)
     }
 
-    // Create the new transformed shape of LI rendering. This will have same scale and orientation as the display from RD.
+    // Create the new transformed shape of LI rendering. This will have same scale and orientation
+    // as the display from RD.
     val deviceRectTrans = transform.createTransformedShape(layoutInspectorDisplayRectangle)
 
     // Calculate the distance between LI rendering and the display from RD.
@@ -155,15 +166,23 @@ class LayoutInspectorRenderer(
   }
 
   /**
-   * Calculate the scale difference between [displayRectangle] and [layoutInspectorDisplayRectangle].
-   * This function assumes that the two rectangles are the same rectangle, at different scale.
-   * @return A scale such that [layoutInspectorDisplayRectangle] * scale is equal to [displayRectangle].
+   * Calculate the scale difference between [displayRectangle] and
+   * [layoutInspectorDisplayRectangle]. This function assumes that the two rectangles are the same
+   * rectangle, at different scale.
+   *
+   * @return A scale such that [layoutInspectorDisplayRectangle] * scale is equal to
+   *   [displayRectangle].
    */
-  private fun calculateScaleDifference(displayRectangle: Rectangle, layoutInspectorDisplayRectangle: Rectangle): Double {
+  private fun calculateScaleDifference(
+    displayRectangle: Rectangle,
+    layoutInspectorDisplayRectangle: Rectangle
+  ): Double {
     // Get the biggest side of both rectangles and use them to calculate the difference in scale.
-    // Using the biggest side makes sure that if the rotation of the two rectangles is not the same, the scale difference is not affected.
+    // Using the biggest side makes sure that if the rotation of the two rectangles is not the same,
+    // the scale difference is not affected.
     val displayMaxSide = max(displayRectangle.width, displayRectangle.height)
-    val layoutInspectorDisplayMaxSide = max(layoutInspectorDisplayRectangle.width, layoutInspectorDisplayRectangle.height)
+    val layoutInspectorDisplayMaxSide =
+      max(layoutInspectorDisplayRectangle.width, layoutInspectorDisplayRectangle.height)
 
     return displayMaxSide.toDouble() / layoutInspectorDisplayMaxSide.toDouble()
   }
@@ -186,9 +205,7 @@ class LayoutInspectorRenderer(
     renderLogic.renderOverlay(g2d)
   }
 
-  /**
-   * Transform panel coordinates to model coordinates.
-   */
+  /** Transform panel coordinates to model coordinates. */
   private fun toModelCoordinates(originalCoordinates: Point2D): Point2D? {
     val scaledCoordinates = originalCoordinates.scale(screenScaleProvider())
     val transformedPoint2D = Point2D.Double()
@@ -203,7 +220,8 @@ class LayoutInspectorRenderer(
   private inner class LayoutInspectorPopupHandler : PopupHandler() {
     override fun invokePopup(comp: Component, x: Int, y: Int) {
       if (!interceptClicks) return
-      val modelCoordinates = toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
+      val modelCoordinates =
+        toModelCoordinates(Point2D.Double(x.toDouble(), y.toDouble())) ?: return
       val views = renderModel.findViewsAt(modelCoordinates.x, modelCoordinates.y)
       showViewContextMenu(views.toList(), renderModel.model, this@LayoutInspectorRenderer, x, y)
     }
@@ -217,15 +235,18 @@ class LayoutInspectorRenderer(
       renderModel.selectView(modelCoordinates.x, modelCoordinates.y)
       // Navigate to sources on double click.
       // TODO(b/265150325) move to RenderModel for consistency
-      GotoDeclarationAction.navigateToSelectedView(coroutineScope, renderModel.model, renderModel.notificationModel)
+      GotoDeclarationAction.navigateToSelectedView(
+        coroutineScope,
+        renderModel.model,
+        renderModel.notificationModel
+      )
       currentSessionStatistics().gotoSourceFromRenderDoubleClick()
       return true
     }
   }
 
-  private inner class LayoutInspectorMouseListener(
-    private val renderModel: RenderModel
-  ) : MouseAdapter() {
+  private inner class LayoutInspectorMouseListener(private val renderModel: RenderModel) :
+    MouseAdapter() {
     override fun mouseClicked(e: MouseEvent) {
       if (e.isConsumed || !interceptClicks) return
 
@@ -238,8 +259,10 @@ class LayoutInspectorRenderer(
     override fun mouseMoved(e: MouseEvent) {
       val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
 
-      val hoveredNodeDrawInfo = renderModel.findDrawInfoAt(modelCoordinates.x, modelCoordinates.y).firstOrNull()
-      renderModel.model.hoveredNode = hoveredNodeDrawInfo?.node?.findFilteredOwner(renderModel.treeSettings)
+      val hoveredNodeDrawInfo =
+        renderModel.findDrawInfoAt(modelCoordinates.x, modelCoordinates.y).firstOrNull()
+      renderModel.model.hoveredNode =
+        hoveredNodeDrawInfo?.node?.findFilteredOwner(renderModel.treeSettings)
 
       refresh()
     }
@@ -247,7 +270,8 @@ class LayoutInspectorRenderer(
 }
 
 /**
- * A mouse listener that forwards its events to the component provided by [componentProvider] if [shouldForward] returns true.
+ * A mouse listener that forwards its events to the component provided by [componentProvider] if
+ * [shouldForward] returns true.
  */
 private class ForwardingMouseListener(
   private val componentProvider: () -> Component,
@@ -270,8 +294,14 @@ private class ForwardingMouseListener(
 }
 
 private fun Rectangle.scale(physicalToLogicalScale: Double): Rectangle {
-  return Rectangle((x * physicalToLogicalScale).toInt(), (y * physicalToLogicalScale).toInt(), (width * physicalToLogicalScale).toInt(), (height *physicalToLogicalScale).toInt())
+  return Rectangle(
+    (x * physicalToLogicalScale).toInt(),
+    (y * physicalToLogicalScale).toInt(),
+    (width * physicalToLogicalScale).toInt(),
+    (height * physicalToLogicalScale).toInt()
+  )
 }
 
 private fun Point2D.scale(scale: Double) = Point2D.Double(x * scale, y * scale)
+
 private fun MouseEvent.coordinates() = Point2D.Double(x.toDouble(), y.toDouble())

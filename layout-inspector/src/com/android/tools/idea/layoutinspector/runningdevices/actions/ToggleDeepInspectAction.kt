@@ -21,16 +21,16 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import icons.StudioIcons
 
-/**
- * Action used to toggle Deep Inspect on and off.
- */
+/** Action used to toggle Deep Inspect on and off. */
 class ToggleDeepInspectAction(
   private val isSelected: () -> Boolean,
   private val setSelected: (Boolean) -> Unit
-) : ToggleAction(
-  { LayoutInspectorBundle.message("toggle.deep.inspect") },
-  StudioIcons.Compose.Toolbar.INSPECT_PREVIEW
-), TooltipDescriptionProvider {
+) :
+  ToggleAction(
+    { LayoutInspectorBundle.message("toggle.deep.inspect") },
+    StudioIcons.Compose.Toolbar.INSPECT_PREVIEW
+  ),
+  TooltipDescriptionProvider {
   override fun isSelected(e: AnActionEvent) = isSelected()
   override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
 

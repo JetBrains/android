@@ -30,8 +30,8 @@ import com.intellij.ui.content.ContentManagerListener
 data class TabId(val deviceSerialNumber: String)
 
 /**
- * Class responsible for observing the state of Running Devices tabs.
- * Can be used by other classes as source for Running Devices state.
+ * Class responsible for observing the state of Running Devices tabs. Can be used by other classes
+ * as source for Running Devices state.
  */
 @UiThread
 class RunningDevicesStateObserver(private val project: Project) {
@@ -69,7 +69,6 @@ class RunningDevicesStateObserver(private val project: Project) {
         return
       }
 
-
       field = value
       listeners.forEach { it.onExistingTabsChanged(value) }
     }
@@ -86,7 +85,8 @@ class RunningDevicesStateObserver(private val project: Project) {
   }
 
   /**
-   * Called to enable/disable the observer. Can be called periodically, for example from the update method of AnAction.
+   * Called to enable/disable the observer. Can be called periodically, for example from the update
+   * method of AnAction.
    */
   fun update(enabled: Boolean) {
     ApplicationManager.getApplication().assertIsDispatchThread()
@@ -106,8 +106,7 @@ class RunningDevicesStateObserver(private val project: Project) {
       val runningDevicesContentManagerListener = RunningDevicesContentManagerListener()
       contentManager.addContentManagerListener(runningDevicesContentManagerListener)
       contentManagerListener = runningDevicesContentManagerListener
-    }
-    else {
+    } else {
       if (contentManagerListener == null) {
         // listener is not registered, so we're not observing anything
         return
@@ -135,17 +134,20 @@ class RunningDevicesStateObserver(private val project: Project) {
   /** [ContentManagerListener] used to observe the content of the Running Devices Tool Window. */
   private inner class RunningDevicesContentManagerListener : ContentManagerListener {
     override fun contentAdded(event: ContentManagerEvent) {
-      // listeners are executed in order, if listeners before this one launched calls using invokeLater, they should be executed first.
+      // listeners are executed in order, if listeners before this one launched calls using
+      // invokeLater, they should be executed first.
       invokeLater { updateExistingTabs() }
     }
 
     override fun contentRemoveQuery(event: ContentManagerEvent) {
-      // listeners are executed in order, if listeners before this one launched calls using invokeLater, they should be executed first.
+      // listeners are executed in order, if listeners before this one launched calls using
+      // invokeLater, they should be executed first.
       invokeLater { updateExistingTabs() }
     }
 
     override fun selectionChanged(event: ContentManagerEvent) {
-      // listeners are executed in order, if listeners before this one launched calls using invokeLater, they should be executed first.
+      // listeners are executed in order, if listeners before this one launched calls using
+      // invokeLater, they should be executed first.
       invokeLater { updateSelectedTab() }
     }
   }
@@ -157,31 +159,27 @@ fun Project.getRunningDevicesContentManager(): ContentManager? {
     ?.contentManager
 }
 
-/**
- * Returns [TabId] of the selected tab in the Running Devices Tool Window.
- */
+/** Returns [TabId] of the selected tab in the Running Devices Tool Window. */
 private fun Project.getRunningDevicesSelectedTabDeviceSerialNumber(): TabId? {
   val contentManager = getRunningDevicesContentManager() ?: return null
   val selectedContent = contentManager.selectedContent ?: return null
   val selectedTabDataProvider = selectedContent.component as? DataProvider ?: return null
 
-  val deviceSerialNumber =  selectedTabDataProvider.getData(SERIAL_NUMBER_KEY.name) as? String ?: return null
+  val deviceSerialNumber =
+    selectedTabDataProvider.getData(SERIAL_NUMBER_KEY.name) as? String ?: return null
   return TabId(deviceSerialNumber)
 }
 
-/**
- * Returns the list of [TabId]s for every tab in the Running Devices Tool Window.
- */
+/** Returns the list of [TabId]s for every tab in the Running Devices Tool Window. */
 private fun Project.getRunningDevicesExistingTabsDeviceSerialNumber(): List<TabId> {
   val contentManager = getRunningDevicesContentManager() ?: return emptyList()
   val contents = contentManager.contents ?: return emptyList()
-  val tabIds = contents
-    .map { it.component }
-    .filterIsInstance<DataProvider>()
-    .mapNotNull { dataProvider ->
-      dataProvider.getData(SERIAL_NUMBER_KEY.name) as? String
-    }
-    .map { TabId(it) }
+  val tabIds =
+    contents
+      .map { it.component }
+      .filterIsInstance<DataProvider>()
+      .mapNotNull { dataProvider -> dataProvider.getData(SERIAL_NUMBER_KEY.name) as? String }
+      .map { TabId(it) }
 
   return tabIds
 }

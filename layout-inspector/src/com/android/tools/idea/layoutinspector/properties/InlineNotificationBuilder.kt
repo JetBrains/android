@@ -22,15 +22,23 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import javax.swing.JTextArea
 
-class InlineNotificationBuilder(private val model: InspectorPropertiesModel) : InspectorBuilder<InspectorPropertyItem> {
+class InlineNotificationBuilder(private val model: InspectorPropertiesModel) :
+  InspectorBuilder<InspectorPropertyItem> {
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
-    if (properties.namespaces.size > 1) return // If we have properties other than the "internal" generated for the dimension builder
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<InspectorPropertyItem>
+  ) {
+    if (properties.namespaces.size > 1)
+      return // If we have properties other than the "internal" generated for the dimension builder
     val node = model.layoutInspector?.inspectorModel?.selection
     if (node?.isInlined != true) return
     val titleModel = inspector.addExpandableTitle("Parameters", true)
-    val text = JTextArea("The selected composable is inlined. " +
-                         "Parameters are not available at this time for inline composables in the Layout Inspector.")
+    val text =
+      JTextArea(
+        "The selected composable is inlined. " +
+          "Parameters are not available at this time for inline composables in the Layout Inspector."
+      )
     text.wrapStyleWord = true
     text.lineWrap = true
     text.isEditable = false

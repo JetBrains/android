@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_DEFAULT_COLOR
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.actionSystem.DataKey
 import kotlin.properties.Delegates
 
 private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
@@ -48,40 +47,34 @@ interface RenderSettings {
   var highlightColor: Int
 }
 
-class EditorRenderSettings(scalePercent: Int = 100): RenderSettings {
+class EditorRenderSettings(scalePercent: Int = 100) : RenderSettings {
   override val modificationListeners = mutableListOf<() -> Unit>()
-  override var scalePercent: Int by Delegates.observable(scalePercent) { _, _, _ ->
-    modificationListeners.forEach { it() }
-  }
+  override var scalePercent: Int by
+    Delegates.observable(scalePercent) { _, _, _ -> modificationListeners.forEach { it() } }
 
-  override var drawBorders: Boolean by Delegates.observable(true) { _, _, _ ->
-    modificationListeners.forEach { it() }
-  }
+  override var drawBorders: Boolean by
+    Delegates.observable(true) { _, _, _ -> modificationListeners.forEach { it() } }
 
-  override var drawUntransformedBounds: Boolean by Delegates.observable(false) { _, _, _ ->
-    modificationListeners.forEach { it() }
-  }
+  override var drawUntransformedBounds: Boolean by
+    Delegates.observable(false) { _, _, _ -> modificationListeners.forEach { it() } }
 
-  override var drawLabel by Delegates.observable(true) { _, _, _ ->
-    modificationListeners.forEach { it() }
-  }
+  override var drawLabel by
+    Delegates.observable(true) { _, _, _ -> modificationListeners.forEach { it() } }
 
-  override var drawFold by Delegates.observable(true) { _, _, _ ->
-    modificationListeners.forEach { it() }
-  }
+  override var drawFold by
+    Delegates.observable(true) { _, _, _ -> modificationListeners.forEach { it() } }
 
   override var highlightColor: Int
     get() = 0xFF0000
     set(_) {}
 }
 
-class InspectorRenderSettings(scalePercent: Int = 100): RenderSettings {
+class InspectorRenderSettings(scalePercent: Int = 100) : RenderSettings {
   override val modificationListeners = mutableListOf<() -> Unit>()
 
   /** Scale of the view in percentage: 100 = 100% */
-  override var scalePercent: Int by Delegates.observable(scalePercent) {
-    _, _, _ -> modificationListeners.forEach { it() }
-  }
+  override var scalePercent: Int by
+    Delegates.observable(scalePercent) { _, _, _ -> modificationListeners.forEach { it() } }
 
   override var drawBorders: Boolean
     get() = PropertiesComponent.getInstance().getBoolean(DRAW_BORDERS_KEY, true)
@@ -112,13 +105,17 @@ class InspectorRenderSettings(scalePercent: Int = 100): RenderSettings {
     }
 
   override var highlightColor: Int
-    get() = if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get())
-      PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR) else HIGHLIGHT_DEFAULT_COLOR
+    get() =
+      if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get())
+        PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
+      else HIGHLIGHT_DEFAULT_COLOR
     set(value) {
       val actual = value.and(0xFFFFFF)
-      val old = PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
+      val old =
+        PropertiesComponent.getInstance().getInt(HIGHLIGHT_COLOR_KEY, HIGHLIGHT_DEFAULT_COLOR)
       if (old != actual) {
-        PropertiesComponent.getInstance().setValue(HIGHLIGHT_COLOR_KEY, actual, HIGHLIGHT_DEFAULT_COLOR)
+        PropertiesComponent.getInstance()
+          .setValue(HIGHLIGHT_COLOR_KEY, actual, HIGHLIGHT_DEFAULT_COLOR)
         modificationListeners.forEach { it() }
       }
     }

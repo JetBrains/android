@@ -20,24 +20,18 @@ import com.intellij.openapi.diagnostic.Logger
 
 private const val DIAGNOSTICS_PREFIX = "LI-DIAG: "
 
-/**
- * Optional logging for determining problems in released versions.
- */
+/** Optional logging for determining problems in released versions. */
 fun logDiagnostics(where: Class<*>, message: String, vararg arguments: Any?) =
   logDiagnostics(where, null, message, *arguments)
 
-/**
- * Optional logging for determining problems in released versions with lazy generated arguments.
- */
+/** Optional logging for determining problems in released versions with lazy generated arguments. */
 fun logDiagnostics(where: Class<*>, message: String, lazyArguments: () -> Array<Any?>) {
   if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_EXTRA_LOGGING.get()) {
     logDiagnostics(where, null, message, *lazyArguments())
   }
 }
 
-/**
- * Optional logging for determining problems in released versions with an optional exception.
- */
+/** Optional logging for determining problems in released versions with an optional exception. */
 fun logDiagnostics(where: Class<*>, t: Throwable?, message: String, vararg arguments: Any?) {
   if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_EXTRA_LOGGING.get()) {
     Logger.getInstance(where).warn(String.format(DIAGNOSTICS_PREFIX + message, *arguments), t)

@@ -46,11 +46,10 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-/**
- * Manifest sample xml file with 2 activities which have separate themes.
- */
+/** Manifest sample xml file with 2 activities which have separate themes. */
 @Language("XML")
-private val manifestSample = """
+private val manifestSample =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example">
   <application
@@ -65,31 +64,31 @@ private val manifestSample = """
           android:theme="@style/Login.Dark.Theme" />
   </application>
 </manifest>
-""".trimIndent()
+"""
+    .trimIndent()
 
-/**
- * Themes sample xml file which defines the themes referenced in the manifest.
- */
+/** Themes sample xml file which defines the themes referenced in the manifest. */
 @Language("XML")
-private val themesSample = """
+private val themesSample =
+  """
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
     <style name="App.Dark.Theme" parent="android:Theme.Dark" />
     <style name="Login.Dark.Theme" parent="android:Base.Theme.DeviceDefault"/>
 </resources>
-""".trimIndent()
+"""
+    .trimIndent()
 
-/**
- * Sample output from `adb shell am get-config` [Excerpt that gives a current configuration]
- */
-private val configSample = """
+/** Sample output from `adb shell am get-config` [Excerpt that gives a current configuration] */
+private val configSample =
+  """
 config: mcc310-mnc260-en-rUS-ldltr-sw411dp-w411dp-h842dp-normal-long-notround-port-notnight-420dpi-finger-keysexposed-nokeys-navexposed-dpad-v23
 abi: x86
-""".trim()
+"""
+    .trim()
 
-/**
- * Sample output from `adb shell activity activities` [Excerpt that gives the current activity]
- */
-private val activitiesSample = """
+/** Sample output from `adb shell activity activities` [Excerpt that gives the current activity] */
+private val activitiesSample =
+  """
 Display #0 (activities from top to bottom):
   Stack #11:
     Task id #14
@@ -98,10 +97,12 @@ Display #0 (activities from top to bottom):
   mFocusedActivity: ActivityRecord{9432e85 u0 com.example/.LoginActivity t14}
   mFocusedStack=ActivityStack{218aab3 stackId=11, 1 tasks} mLastFocusedStack=ActivityStack{218aab3 stackId=11, 1 tasks}
   mSleepTimeout=false
-  """.trimIndent()
+  """
+    .trimIndent()
 
 /**
- * Rule for providing a legacy device setup which will allow LegacyTreeLoader to initialize a configuration.
+ * Rule for providing a legacy device setup which will allow LegacyTreeLoader to initialize a
+ * configuration.
  */
 class LegacyDeviceRule(
   private val packageName: String = "com.example",
@@ -111,10 +112,11 @@ class LegacyDeviceRule(
   private val themes: String = themesSample
 ) : ExternalResource() {
   private val projectRule = AndroidProjectRule.withSdk()
-  private val commandHandler = FakeShellCommandHandler().apply {
-    extraCommands.add(SimpleCommand("am get-config", config))
-    extraCommands.add(SimpleCommand("dumpsys activity activities", activities))
-  }
+  private val commandHandler =
+    FakeShellCommandHandler().apply {
+      extraCommands.add(SimpleCommand("am get-config", config))
+      extraCommands.add(SimpleCommand("dumpsys activity activities", activities))
+    }
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
   private val adbServiceRule = AdbServiceRule(projectRule::project, adbRule)
   private val disposableRule = DisposableRule()
@@ -134,7 +136,13 @@ class LegacyDeviceRule(
 
   override fun before() {
     val device = LEGACY_DEVICE
-    adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
+    adbRule.attachDevice(
+      device.serial,
+      device.manufacturer,
+      device.model,
+      device.version,
+      device.apiLevel.toString()
+    )
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     projectRule.fixture.addFileToProject("/AndroidManifest.xml", manifest)
     projectRule.fixture.addFileToProject("res/values/themes.xml", themes)
@@ -143,28 +151,33 @@ class LegacyDeviceRule(
     clientInstance = createSimpleLegacyClient()
   }
 
-  /**
-   * Creates a real [LegacyClient] that's good enough for tests
-   */
+  /** Creates a real [LegacyClient] that's good enough for tests */
   private fun createSimpleLegacyClient(): LegacyClient {
     val model = model(project) {}
     val notificationModel = NotificationModel(project)
     val process = LEGACY_DEVICE.createProcess()
     val scope = AndroidCoroutineScope(disposableRule.disposable)
-    val client = LegacyClient(
-      process,
-      isInstantlyAutoConnected = false,
-      model,
-      notificationModel,
-      LayoutInspectorSessionMetrics(model.project, process),
-      scope,
-      disposableRule.disposable
-    ).apply {
-      launchMonitor = MockitoKt.mock()
-    }
+    val client =
+      LegacyClient(
+          process,
+          isInstantlyAutoConnected = false,
+          model,
+          notificationModel,
+          LayoutInspectorSessionMetrics(model.project, process),
+          scope,
+          disposableRule.disposable
+        )
+        .apply { launchMonitor = MockitoKt.mock() }
     // This causes the current client to register its listeners
     val treeSettings = FakeTreeSettings()
-    LayoutInspector(scope, InspectorClientSettings(projectRule.project), client, model, notificationModel, treeSettings)
+    LayoutInspector(
+      scope,
+      InspectorClientSettings(projectRule.project),
+      client,
+      model,
+      notificationModel,
+      treeSettings
+    )
     client.state = InspectorClient.State.CONNECTED
     return client
   }

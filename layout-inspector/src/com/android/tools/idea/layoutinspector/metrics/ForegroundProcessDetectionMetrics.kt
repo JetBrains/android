@@ -23,35 +23,32 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAutoConnectIn
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import layout_inspector.LayoutInspector
 
-/**
- * Utility class used to log metrics for [ForegroundProcessDetection] to Studio metrics.
- *
- */
+/** Utility class used to log metrics for [ForegroundProcessDetection] to Studio metrics. */
 object ForegroundProcessDetectionMetrics {
 
   /**
-   * Used to log the result of a handshake. SUPPORTED, NOT_SUPPORTED or UNKNOWN.
-   * In case of NOT_SUPPORTED we also log the reason why.
+   * Used to log the result of a handshake. SUPPORTED, NOT_SUPPORTED or UNKNOWN. In case of
+   * NOT_SUPPORTED we also log the reason why.
    */
   fun logHandshakeResult(
     handshakeInfo: LayoutInspector.TrackingForegroundProcessSupported,
     device: DeviceDescriptor,
     isRecoveryHandshake: Boolean
   ) {
-    val autoConnectInfo = getAutoConnectInfoBuilder(isRecoveryHandshake).buildAutoConnectInfo(handshakeInfo)
+    val autoConnectInfo =
+      getAutoConnectInfoBuilder(isRecoveryHandshake).buildAutoConnectInfo(handshakeInfo)
     val event = buildLayoutInspectorEvent(autoConnectInfo, device)
     UsageTracker.log(event)
   }
 
-  /**
-   * Used to log the conversion of a device with UNKNOWN support to SUPPORTED or NOT_SUPPORTED.
-   */
+  /** Used to log the conversion of a device with UNKNOWN support to SUPPORTED or NOT_SUPPORTED. */
   fun logHandshakeConversion(
     conversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion,
     device: DeviceDescriptor,
     isRecoveryHandshake: Boolean
   ) {
-    val autoConnectInfo = getAutoConnectInfoBuilder(isRecoveryHandshake).buildAutoConnectInfo(conversion)
+    val autoConnectInfo =
+      getAutoConnectInfoBuilder(isRecoveryHandshake).buildAutoConnectInfo(conversion)
     val event = buildLayoutInspectorEvent(autoConnectInfo, device)
     UsageTracker.log(event)
   }
@@ -62,10 +59,13 @@ object ForegroundProcessDetectionMetrics {
   ): AndroidStudioEvent.Builder {
     return AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
-      dynamicLayoutInspectorEvent = DynamicLayoutInspectorEvent.newBuilder().apply {
-        type = DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.AUTO_CONNECT_INFO
-        autoConnectInfo = autoConnect
-      }.build()
+      dynamicLayoutInspectorEvent =
+        DynamicLayoutInspectorEvent.newBuilder()
+          .apply {
+            type = DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.AUTO_CONNECT_INFO
+            autoConnectInfo = autoConnect
+          }
+          .build()
       deviceInfo = device.toDeviceInfo()
     }
   }
@@ -78,7 +78,9 @@ object ForegroundProcessDetectionMetrics {
       handshakeResult = supportType.toHandshakeResult()
     }
 
-    if (supportType == LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED) {
+    if (
+      supportType == LayoutInspector.TrackingForegroundProcessSupported.SupportType.NOT_SUPPORTED
+    ) {
       reasonNotSupported = supportInfo.reasonNotSupported.toAutoConnectReasonNotSupported()
     }
 
@@ -88,17 +90,18 @@ object ForegroundProcessDetectionMetrics {
   private fun DynamicLayoutInspectorAutoConnectInfo.Builder.buildAutoConnectInfo(
     handshakeConversion: DynamicLayoutInspectorAutoConnectInfo.HandshakeConversion,
   ): DynamicLayoutInspectorAutoConnectInfo {
-    return apply {
-      handshakeConversionInfo = handshakeConversion
-    }.build()
+    return apply { handshakeConversionInfo = handshakeConversion }.build()
   }
 
-  private fun getAutoConnectInfoBuilder(isRecoveryHandshake: Boolean): DynamicLayoutInspectorAutoConnectInfo.Builder {
-    return DynamicLayoutInspectorAutoConnectInfo.newBuilder().setIsRecoveryHandshake(isRecoveryHandshake)
+  private fun getAutoConnectInfoBuilder(
+    isRecoveryHandshake: Boolean
+  ): DynamicLayoutInspectorAutoConnectInfo.Builder {
+    return DynamicLayoutInspectorAutoConnectInfo.newBuilder()
+      .setIsRecoveryHandshake(isRecoveryHandshake)
   }
 
-  private fun LayoutInspector.TrackingForegroundProcessSupported.SupportType.toHandshakeResult()
-  : DynamicLayoutInspectorAutoConnectInfo.HandshakeResult {
+  private fun LayoutInspector.TrackingForegroundProcessSupported.SupportType.toHandshakeResult():
+    DynamicLayoutInspectorAutoConnectInfo.HandshakeResult {
     return when (this) {
       LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNKNOWN ->
         DynamicLayoutInspectorAutoConnectInfo.HandshakeResult.SUPPORT_UNKNOWN
@@ -111,17 +114,22 @@ object ForegroundProcessDetectionMetrics {
     }
   }
 
-  private fun LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.toAutoConnectReasonNotSupported()
-  : DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported {
+  private fun LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported
+    .toAutoConnectReasonNotSupported():
+    DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported {
     return when (this) {
       LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.DUMPSYS_NOT_FOUND ->
         DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported.DUMPSYS_NOT_FOUND
       LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.GREP_NOT_FOUND ->
         DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported.GREP_NOT_FOUND
-      LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.DUMPSYS_NO_TOP_ACTIVITY_NO_SLEEPING_ACTIVITIES ->
-        DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported.DUMPSYS_NO_TOP_ACTIVITY_NO_SLEEPING_ACTIVITIES
-      LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.DUMPSYS_NO_TOP_ACTIVITY_BUT_HAS_AWAKE_ACTIVITIES ->
-        DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported.DUMPSYS_NO_TOP_ACTIVITY_BUT_HAS_AWAKE_ACTIVITIES
+      LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported
+        .DUMPSYS_NO_TOP_ACTIVITY_NO_SLEEPING_ACTIVITIES ->
+        DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported
+          .DUMPSYS_NO_TOP_ACTIVITY_NO_SLEEPING_ACTIVITIES
+      LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported
+        .DUMPSYS_NO_TOP_ACTIVITY_BUT_HAS_AWAKE_ACTIVITIES ->
+        DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported
+          .DUMPSYS_NO_TOP_ACTIVITY_BUT_HAS_AWAKE_ACTIVITIES
       LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.UNRECOGNIZED,
       LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.UNKNOWN_REASON ->
         DynamicLayoutInspectorAutoConnectInfo.AutoConnectReasonNotSupported.UNSPECIFIED_REASON

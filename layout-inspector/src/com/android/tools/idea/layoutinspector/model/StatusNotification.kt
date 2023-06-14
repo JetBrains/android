@@ -17,9 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.intellij.ui.EditorNotificationPanel
 
-/**
- * A notification to be shown on top of the Inspector.
- */
+/** A notification to be shown on top of the Inspector. */
 class StatusNotification(
   val status: EditorNotificationPanel.Status,
   val id: String,
@@ -28,10 +26,5 @@ class StatusNotification(
   val actions: List<StatusNotificationAction>
 )
 
-/**
- * A notification action with a name.
- */
-class StatusNotificationAction(
-  val name: String,
-  val invoke: (StatusNotification) -> Unit
-)
+/** A notification action with a name. */
+class StatusNotificationAction(val name: String, val invoke: (StatusNotification) -> Unit)

@@ -35,54 +35,67 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 
-private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS =
+  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class LayoutInspectorMainToolbarLegacyDeviceTest {
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val layoutInspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider({ projectRule.testRootDisposable } )), projectRule)
+  private val layoutInspectorRule =
+    LayoutInspectorRule(
+      listOf(LegacyClientProvider({ projectRule.testRootDisposable })),
+      projectRule
+    )
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(layoutInspectorRule)!!
-
-  @Test
-  fun testLiveControlDisabledWithProcessFromLegacyDevice() = runWithEmbeddedLayoutInspector(false) {
-    layoutInspectorRule.attachDevice(LEGACY_DEVICE)
-    layoutInspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
-    waitForCondition(5, TimeUnit.SECONDS) { layoutInspectorRule.inspectorClient.isConnected }
-
-    val toolbar = createToolbar()
-
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    assertThat(toggle.isEnabled).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo("Live updates not available for devices below API 29")
-  }
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(layoutInspectorRule)!!
 
   @Test
-  fun testLiveControlDisabledWithProcessFromModernDevice() = runWithEmbeddedLayoutInspector(false) {
-    layoutInspectorRule.launchSynchronously = false
-    layoutInspectorRule.startLaunch(1)
+  fun testLiveControlDisabledWithProcessFromLegacyDevice() =
+    runWithEmbeddedLayoutInspector(false) {
+      layoutInspectorRule.attachDevice(LEGACY_DEVICE)
+      layoutInspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
+      waitForCondition(5, TimeUnit.SECONDS) { layoutInspectorRule.inspectorClient.isConnected }
 
-    layoutInspectorRule.processes.selectedProcess = MODERN_PROCESS
-    waitForCondition(5, TimeUnit.SECONDS) { layoutInspectorRule.inspectorClient.isConnected }
+      val toolbar = createToolbar()
 
-    val toolbar = createToolbar()
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      assertThat(toggle.isEnabled).isFalse()
+      assertThat(getPresentation(toggle).description)
+        .isEqualTo("Live updates not available for devices below API 29")
+    }
 
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    assertThat(toggle.isEnabled).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
-  }
+  @Test
+  fun testLiveControlDisabledWithProcessFromModernDevice() =
+    runWithEmbeddedLayoutInspector(false) {
+      layoutInspectorRule.launchSynchronously = false
+      layoutInspectorRule.startLaunch(1)
+
+      layoutInspectorRule.processes.selectedProcess = MODERN_PROCESS
+      waitForCondition(5, TimeUnit.SECONDS) { layoutInspectorRule.inspectorClient.isConnected }
+
+      val toolbar = createToolbar()
+
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      assertThat(toggle.isEnabled).isFalse()
+      assertThat(getPresentation(toggle).description)
+        .isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
+    }
 
   private fun createToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
@@ -91,10 +104,15 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
 
   private fun getPresentation(button: ActionButton): Presentation {
     val presentation = Presentation()
-    val event = AnActionEvent(
-      null, DataManager.getInstance().getDataContext(button),
-      "LayoutInspector.MainToolbar", presentation, ActionManager.getInstance(), 0
-    )
+    val event =
+      AnActionEvent(
+        null,
+        DataManager.getInstance().getDataContext(button),
+        "LayoutInspector.MainToolbar",
+        presentation,
+        ActionManager.getInstance(),
+        0
+      )
     button.action.update(event)
     return presentation
   }

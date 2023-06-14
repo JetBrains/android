@@ -18,18 +18,17 @@ package com.android.tools.idea.layoutinspector.pipeline.adb
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
-import kotlinx.coroutines.CoroutineScope
 import java.net.Socket
 import java.util.ArrayDeque
 import java.util.Deque
+import kotlinx.coroutines.CoroutineScope
 
 class SimpleCommand(val args: List<String>, val result: String?) {
   constructor(command: String, result: String?) : this(command.split(' '), result)
 }
 
 /**
- * A fake handler that intercepts ADB shell commands used at various points by the layout
- * inspector.
+ * A fake handler that intercepts ADB shell commands used at various points by the layout inspector.
  */
 class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewProperties {
   override var debugViewAttributes: String? = null
@@ -45,10 +44,11 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
     command: String,
     args: String
   ): Boolean {
-    val response = when (command) {
-      "shell" -> handleShellCommand(args) ?: return false
-      else -> return false
-    }
+    val response =
+      when (command) {
+        "shell" -> handleShellCommand(args) ?: return false
+        else -> return false
+      }
     writeOkay(socket.getOutputStream())
     writeString(socket.getOutputStream(), response)
     return true
@@ -56,7 +56,8 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
 
   private fun handleShellCommand(argsAsString: String): String? {
     val args = argsAsString.split(' ')
-    // DebugViewAttributes spawns a blocking subshell on a background thread in production; this flow is not easily testable so just
+    // DebugViewAttributes spawns a blocking subshell on a background thread in production; this
+    // flow is not easily testable so just
     // treat it like a no-op.
     return when (args.firstOrNull()) {
       "sh" -> ""
@@ -71,11 +72,12 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
     if (args.poll() != "global") {
       return null
     }
-    val variable = when (args.poll()) {
-      "debug_view_attributes" -> this::debugViewAttributes
-      "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
-      else -> return null
-    }
+    val variable =
+      when (args.poll()) {
+        "debug_view_attributes" -> this::debugViewAttributes
+        "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
+        else -> return null
+      }
     val argument = if (args.isEmpty()) "" else args.poll()
     if (args.isNotEmpty()) {
       return null
@@ -85,10 +87,14 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
         variable.get().toString()
       }
       "put" -> {
-        variable.set(argument); debugViewAttributesChangesCount++; ""
+        variable.set(argument)
+        debugViewAttributesChangesCount++
+        ""
       }
       "delete" -> {
-        variable.set(null); debugViewAttributesChangesCount++; ""
+        variable.set(null)
+        debugViewAttributesChangesCount++
+        ""
       }
       else -> null
     }

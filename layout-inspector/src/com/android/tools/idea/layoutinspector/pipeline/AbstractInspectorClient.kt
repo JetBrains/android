@@ -18,9 +18,9 @@ package com.android.tools.idea.layoutinspector.pipeline
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.executeShellCommand
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -34,9 +34,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Base class for [InspectorClient] implementations with some boilerplate logic provided.
- */
+/** Base class for [InspectorClient] implementations with some boilerplate logic provided. */
 abstract class AbstractInspectorClient(
   final override val clientType: ClientType,
   val project: Project,
@@ -60,13 +58,19 @@ abstract class AbstractInspectorClient(
       }
     }
 
-  private val stateCallbacks = ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
-  private val errorCallbacks = ListenerCollection.createWithDirectExecutor<(String?, Throwable?) -> Unit>()
+  private val stateCallbacks =
+    ListenerCollection.createWithDirectExecutor<(InspectorClient.State) -> Unit>()
+  private val errorCallbacks =
+    ListenerCollection.createWithDirectExecutor<(String?, Throwable?) -> Unit>()
   private val rootsEventCallbacks = ListenerCollection.createWithDirectExecutor<(List<*>) -> Unit>()
   private val treeEventCallbacks = ListenerCollection.createWithDirectExecutor<(Any) -> Unit>()
-  private val attachStateListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
+  private val attachStateListeners =
+    ListenerCollection.createWithDirectExecutor<
+      (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit
+    >()
 
-  var launchMonitor: InspectorClientLaunchMonitor = InspectorClientLaunchMonitor(project, notificationModel, attachStateListeners, stats)
+  var launchMonitor: InspectorClientLaunchMonitor =
+    InspectorClientLaunchMonitor(project, notificationModel, attachStateListeners, stats)
     @TestOnly set
 
   override fun dispose() {
@@ -89,20 +93,18 @@ abstract class AbstractInspectorClient(
     treeEventCallbacks.add(callback)
   }
 
-  final override fun registerConnectionTimeoutCallback(callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit) {
+  final override fun registerConnectionTimeoutCallback(
+    callback: (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit
+  ) {
     attachStateListeners.add(callback)
   }
 
-  /**
-   * Fire relevant callbacks registered with [registerStateCallback], if present.
-   */
+  /** Fire relevant callbacks registered with [registerStateCallback], if present. */
   private fun fireState(state: InspectorClient.State) {
     stateCallbacks.forEach { callback -> callback(state) }
   }
 
-  /**
-   * Fire relevant callbacks registered with [registerErrorCallback], if present
-   */
+  /** Fire relevant callbacks registered with [registerErrorCallback], if present */
   protected fun fireError(error: String?, ex: Throwable?) {
     errorCallbacks.forEach { callback -> callback(error, ex) }
   }
@@ -111,9 +113,7 @@ abstract class AbstractInspectorClient(
     rootsEventCallbacks.forEach { callback -> callback(roots) }
   }
 
-  /**
-   * Fire relevant callbacks registered with [registerTreeEventCallback], if present.
-   */
+  /** Fire relevant callbacks registered with [registerTreeEventCallback], if present. */
   protected fun fireTreeEvent(event: Any) {
     treeEventCallbacks.forEach { callback -> callback(event) }
   }
@@ -134,16 +134,19 @@ abstract class AbstractInspectorClient(
     try {
       doConnect()
       state = InspectorClient.State.CONNECTED
-    }
-    catch (t: Throwable) {
-      // TODO(b/254222091) consider moving error handling in exception handler in the coroutine scope
+    } catch (t: Throwable) {
+      // TODO(b/254222091) consider moving error handling in exception handler in the coroutine
+      // scope
       launchMonitor.onFailure(t)
       disconnect()
-      Logger.getInstance(AbstractInspectorClient::class.java).warn(
-        "Connection failure with " +
-        "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
-        "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
-        "cause:", t)
+      Logger.getInstance(AbstractInspectorClient::class.java)
+        .warn(
+          "Connection failure with " +
+            "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
+            "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
+            "cause:",
+          t
+        )
     }
   }
 
@@ -157,7 +160,10 @@ abstract class AbstractInspectorClient(
   final override fun disconnect() {
     coroutineScope.launch {
       synchronized(disconnectStateLock) {
-        if (state == InspectorClient.State.DISCONNECTED || state == InspectorClient.State.DISCONNECTING) {
+        if (
+          state == InspectorClient.State.DISCONNECTED ||
+            state == InspectorClient.State.DISCONNECTING
+        ) {
           return@launch
         }
         state = InspectorClient.State.DISCONNECTING

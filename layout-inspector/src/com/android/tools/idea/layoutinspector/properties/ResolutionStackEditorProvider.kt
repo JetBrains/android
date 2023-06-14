@@ -25,9 +25,7 @@ import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertyEditorModel
 import javax.swing.JComponent
 
-/**
- * [EditorProvider] that provides a link below the normal editor.
- */
+/** [EditorProvider] that provides a link below the normal editor. */
 class ResolutionStackEditorProvider(
   model: InspectorPropertiesModel,
   enumSupportProvider: EnumSupportProvider<InspectorPropertyItem>,
@@ -36,9 +34,13 @@ class ResolutionStackEditorProvider(
   private val baseTypeProvider = BaseTypeProvider(controlTypeProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, baseTypeProvider)
   private val resolutionStackModel = ResolutionStackModel(model)
-  private val linkEditorTypes = listOf(PropertyType.LAMBDA, PropertyType.FUNCTION_REFERENCE, PropertyType.SHOW_MORE_LINK)
+  private val linkEditorTypes =
+    listOf(PropertyType.LAMBDA, PropertyType.FUNCTION_REFERENCE, PropertyType.SHOW_MORE_LINK)
 
-  override fun createEditor(property: InspectorPropertyItem, context: EditorContext): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(
+    property: InspectorPropertyItem,
+    context: EditorContext
+  ): Pair<PropertyEditorModel, JComponent> {
     val (model, editor) = editorProvider.createEditor(property, context)
     model.readOnly = true
     if (!property.needsResolutionEditor) {

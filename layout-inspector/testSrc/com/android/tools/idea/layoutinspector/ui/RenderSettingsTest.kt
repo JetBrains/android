@@ -35,13 +35,16 @@ class RenderSettingsTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, DeviceViewSettingsRule(), disposableRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, DeviceViewSettingsRule(), disposableRule)
 
   @Before
   fun before() {
-    ApplicationManager.getApplication().replaceService(
-      PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
+    ApplicationManager.getApplication()
+      .replaceService(
+        PropertiesComponent::class.java,
+        PropertiesComponentMock(),
+        disposableRule.disposable
+      )
   }
 
   @Test

@@ -28,11 +28,7 @@ class TestStringTable : StringTable {
   override val keys: Set<Int> = strings.values
 
   fun add(value: String?): Int =
-    value.nullize()?.let {
-      strings.getOrPut(it) {
-        strings.size + 1
-      }
-    } ?: 0
+    value.nullize()?.let { strings.getOrPut(it) { strings.size + 1 } } ?: 0
 
   fun add(value: ResourceReference?): Resource? =
     value?.let {
@@ -44,8 +40,14 @@ class TestStringTable : StringTable {
     }
 
   fun asEntryList(): List<LayoutInspectorViewProtocol.StringEntry> =
-    strings.entries
-      .map { LayoutInspectorViewProtocol.StringEntry.newBuilder().apply { id = it.value; str = it.key }.build() }
+    strings.entries.map {
+      LayoutInspectorViewProtocol.StringEntry.newBuilder()
+        .apply {
+          id = it.value
+          str = it.key
+        }
+        .build()
+    }
 
   override operator fun get(id: Int): String = strings.inverse()[id].orEmpty()
 

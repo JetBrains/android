@@ -33,8 +33,12 @@ const val DECOR_VIEW = "com.android.internal.policy.DecorView"
 
 object DemoExample {
 
-  fun setUpDemo(fixture: CodeInsightTestFixture, body: InspectorViewDescriptor.() -> Unit = {}): InspectorModelDescriptor.() -> Unit {
-    fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
+  fun setUpDemo(
+    fixture: CodeInsightTestFixture,
+    body: InspectorViewDescriptor.() -> Unit = {}
+  ): InspectorModelDescriptor.() -> Unit {
+    fixture.testDataPath =
+      resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/resource").toString()
     fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML)
     fixture.copyFileToProject("res/color/app_text_color.xml")
     fixture.copyFileToProject("res/drawable/background_choice.xml")
@@ -56,7 +60,9 @@ object DemoExample {
     return createDemoViewNodes(body)
   }
 
-  private fun createDemoViewNodes(body: InspectorViewDescriptor.() -> Unit): InspectorModelDescriptor.() -> Unit = {
+  private fun createDemoViewNodes(
+    body: InspectorViewDescriptor.() -> Unit
+  ): InspectorModelDescriptor.() -> Unit = {
     val namespace = ResourceNamespace.fromPackageName("com.example")
     val layout = ResourceReference(namespace, ResourceType.LAYOUT, "demo")
     val relativeLayoutId = ResourceReference(namespace, ResourceType.ID, "relativeLayout")
@@ -65,13 +71,70 @@ object DemoExample {
     val frameId = ResourceReference(namespace, ResourceType.ID, "frame")
     this.also {
       view(1, 0, 0, 1200, 1600, qualifiedName = DECOR_VIEW) {
-        view(2, 0, 0, 1200, 1600, qualifiedName = FQCN_RELATIVE_LAYOUT, viewId = relativeLayoutId, layout = layout) {
-          view(3, 200, 400, 400, 100, qualifiedName = FQCN_TEXT_VIEW, viewId = textViewId, textValue = "@drawable/battery", layout = layout,
-               body = body)
-          view(4, 200, 500, 400, 100, qualifiedName = FQCN_BUTTON, viewId = buttonId, textValue = "@string/hello", layout = layout)
-          view(5, 200, 500, 400, 100, qualifiedName = FQCN_TEXT_VIEW, textValue = "TextView without an ID", layout = layout)
-          view(6, 200, 500, 400, 100, qualifiedName = FQCN_FRAME_LAYOUT, viewId = frameId, textValue = "@string/hello", layout = layout) {
-            view(7, 200, 500, 400, 100, qualifiedName = FQCN_TEXT_VIEW, textValue = "TextView without an ID", layout = layout)
+        view(
+          2,
+          0,
+          0,
+          1200,
+          1600,
+          qualifiedName = FQCN_RELATIVE_LAYOUT,
+          viewId = relativeLayoutId,
+          layout = layout
+        ) {
+          view(
+            3,
+            200,
+            400,
+            400,
+            100,
+            qualifiedName = FQCN_TEXT_VIEW,
+            viewId = textViewId,
+            textValue = "@drawable/battery",
+            layout = layout,
+            body = body
+          )
+          view(
+            4,
+            200,
+            500,
+            400,
+            100,
+            qualifiedName = FQCN_BUTTON,
+            viewId = buttonId,
+            textValue = "@string/hello",
+            layout = layout
+          )
+          view(
+            5,
+            200,
+            500,
+            400,
+            100,
+            qualifiedName = FQCN_TEXT_VIEW,
+            textValue = "TextView without an ID",
+            layout = layout
+          )
+          view(
+            6,
+            200,
+            500,
+            400,
+            100,
+            qualifiedName = FQCN_FRAME_LAYOUT,
+            viewId = frameId,
+            textValue = "@string/hello",
+            layout = layout
+          ) {
+            view(
+              7,
+              200,
+              500,
+              400,
+              100,
+              qualifiedName = FQCN_TEXT_VIEW,
+              textValue = "TextView without an ID",
+              layout = layout
+            )
           }
           view(8, 200, 500, 400, 100, qualifiedName = FQCN_LINEAR_LAYOUT, layout = layout)
         }

@@ -24,39 +24,43 @@ import java.awt.Image
 import java.io.ByteArrayInputStream
 import javax.imageio.ImageIO
 
-/**
- * An [AndroidWindow] used by legacy clients.
- */
+/** An [AndroidWindow] used by legacy clients. */
 class LegacyAndroidWindow(
   private val client: LegacyClient,
   root: ViewNode,
-  private val windowName: String)
-  : AndroidWindow(root, windowName, ImageType.BITMAP_AS_REQUESTED) {
+  private val windowName: String
+) : AndroidWindow(root, windowName, ImageType.BITMAP_AS_REQUESTED) {
 
   override fun refreshImages(scale: Double) {
-    val image = client.latestScreenshots[windowName]?.let { pngBytes ->
-      ImageIO.read(ByteArrayInputStream(pngBytes))?.let {
-        val scaledWidth = (it.width * scale).toInt()
-        val scaledHeight = (it.height * scale).toInt()
-        if (scaledWidth > 0 && scaledHeight > 0) {
-          it.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)
-        }
-        else {
-          null
+    val image =
+      client.latestScreenshots[windowName]?.let { pngBytes ->
+        ImageIO.read(ByteArrayInputStream(pngBytes))?.let {
+          val scaledWidth = (it.width * scale).toInt()
+          val scaledHeight = (it.height * scale).toInt()
+          if (scaledWidth > 0 && scaledHeight > 0) {
+            it.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)
+          } else {
+            null
+          }
         }
       }
-    }
     ViewNode.writeAccess {
       root.flatten().forEach { it.drawChildren.clear() }
       if (image != null) {
         root.drawChildren.add(DrawViewImage(image, root))
       }
-      root.flatten().forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
-      if (root.drawChildren.size != root.children.size) {
-        client.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER)
+      root.flatten().forEach {
+        it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
       }
-      else {
-        client.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER_NO_PICTURE)
+      if (root.drawChildren.size != root.children.size) {
+        client.logEvent(
+          DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_RENDER
+        )
+      } else {
+        client.logEvent(
+          DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+            .COMPATIBILITY_RENDER_NO_PICTURE
+        )
       }
     }
   }

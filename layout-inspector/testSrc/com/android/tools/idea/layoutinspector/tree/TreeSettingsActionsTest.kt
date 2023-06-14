@@ -49,23 +49,21 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.treeStructure.Tree
+import java.util.EnumSet
+import javax.swing.JComponent
+import javax.swing.JPanel
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.util.EnumSet
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 private val DO_NOT_CARE: () -> Boolean = { false }
 
 class TreeSettingsActionsTest {
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @get:Rule
@@ -83,14 +81,21 @@ class TreeSettingsActionsTest {
     val systemNodeFilterAction = SystemNodeFilterAction { null }
     val event = createEvent()
     systemNodeFilterAction.testActionVisibility(event, Capability.SUPPORTS_SYSTEM_NODES)
-    systemNodeFilterAction.testToggleAction(event, statsValue = { stats.hideSystemNodes }) { treeSettings.hideSystemNodes }
+    systemNodeFilterAction.testToggleAction(event, statsValue = { stats.hideSystemNodes }) {
+      treeSettings.hideSystemNodes
+    }
   }
 
   @Test
   fun testHighlightSemanticsFilterAction() {
     val event = createEvent()
     HighlightSemanticsAction.testActionVisibility(event, Capability.SUPPORTS_SEMANTICS)
-    HighlightSemanticsAction.testToggleAction(event, LayoutInspectorTreePanel::updateSemanticsFiltering) { treeSettings.highlightSemantics }
+    HighlightSemanticsAction.testToggleAction(
+      event,
+      LayoutInspectorTreePanel::updateSemanticsFiltering
+    ) {
+      treeSettings.highlightSemantics
+    }
   }
 
   @Test
@@ -148,7 +153,8 @@ class TreeSettingsActionsTest {
 
     // Check enabled enabled state:
     assertThat(event.presentation.isEnabled).isFalse()
-    assertThat(event.presentation.text).isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
+    assertThat(event.presentation.text)
+      .isEqualTo("Show Recomposition Counts (Needs Compose 1.2.1+)")
     capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     RecompositionCounts.update(event)
     assertThat(event.presentation.isEnabled).isTrue()
@@ -173,7 +179,10 @@ class TreeSettingsActionsTest {
     assertThat(RecompositionCounts.isSelected(event)).isFalse()
   }
 
-  private fun AnAction.testActionVisibility(event: AnActionEvent, vararg controllingCapabilities: Capability) {
+  private fun AnAction.testActionVisibility(
+    event: AnActionEvent,
+    vararg controllingCapabilities: Capability
+  ) {
     // All actions should be visible when not connected; no matter the controlling capability:
     isConnected = false
     capabilities.clear()
@@ -250,34 +259,36 @@ class TreeSettingsActionsTest {
     Mockito.doAnswer { capabilities }.whenever(client).capabilities
     Mockito.doAnswer { isConnected }.whenever(client).isConnected
 
-    val dataContext = object : DataContext {
-      override fun getData(dataId: String): Any? {
-        return null
-      }
+    val dataContext =
+      object : DataContext {
+        override fun getData(dataId: String): Any? {
+          return null
+        }
 
-      override fun <T> getData(key: DataKey<T>): T? {
-        @Suppress("UNCHECKED_CAST")
-        return when (key) {
-          PlatformCoreDataKeys.CONTEXT_COMPONENT -> panel as T
-          LAYOUT_INSPECTOR_DATA_KEY -> inspector as T
-          else -> null
+        override fun <T> getData(key: DataKey<T>): T? {
+          @Suppress("UNCHECKED_CAST")
+          return when (key) {
+            PlatformCoreDataKeys.CONTEXT_COMPONENT -> panel as T
+            LAYOUT_INSPECTOR_DATA_KEY -> inspector as T
+            else -> null
+          }
         }
       }
-    }
     val actionManager: ActionManager = mock()
     return AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
   }
 
   private fun createModel(): InspectorModel {
-    val screenSimple = ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
-    val appcompatScreenSimple = ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
-    val mainLayout = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+    val screenSimple =
+      ResourceReference(ResourceNamespace.ANDROID, ResourceType.LAYOUT, "screen_simple")
+    val appcompatScreenSimple =
+      ResourceReference(ResourceNamespace.APPCOMPAT, ResourceType.LAYOUT, "abc_screen_simple")
+    val mainLayout =
+      ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
     return model {
       view(ROOT) {
         view(VIEW1, layout = mainLayout) {
-          view(VIEW2, layout = screenSimple) {
-            view(VIEW3, layout = appcompatScreenSimple)
-          }
+          view(VIEW2, layout = screenSimple) { view(VIEW3, layout = appcompatScreenSimple) }
         }
       }
     }

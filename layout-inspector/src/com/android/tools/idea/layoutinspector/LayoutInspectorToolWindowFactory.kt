@@ -39,9 +39,7 @@ import javax.swing.event.HyperlinkEvent
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
-/**
- * ToolWindowFactory: For creating a layout inspector tool window for the project.
- */
+/** ToolWindowFactory: For creating a layout inspector tool window for the project. */
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun isApplicable(project: Project): Boolean {
@@ -53,21 +51,23 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector()
     val devicePanel = createDevicePanel(disposable, layoutInspector)
 
-    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, disposable).apply {
-      init(
-        devicePanel,
-        layoutInspector,
-        listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
-        false
-      )
-    }
+    val workbench =
+      WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, disposable).apply {
+        init(
+          devicePanel,
+          layoutInspector,
+          listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
+          false
+        )
+      }
 
     DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
 
-    val contentPanel = JPanel(BorderLayout()).apply {
-      add(InspectorBanner(layoutInspector.notificationModel), BorderLayout.NORTH)
-      add(workbench, BorderLayout.CENTER)
-    }
+    val contentPanel =
+      JPanel(BorderLayout()).apply {
+        add(InspectorBanner(layoutInspector.notificationModel), BorderLayout.NORTH)
+        add(workbench, BorderLayout.CENTER)
+      }
 
     val content = toolWindow.contentManager.factory.createContent(contentPanel, "", true)
     toolWindow.contentManager.addContent(content)
@@ -76,15 +76,21 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       .connect(toolWindow.disposable)
       .subscribe(
         ToolWindowManagerListener.TOPIC,
-        LayoutInspectorToolWindowManagerListener(project, toolWindow, layoutInspector, layoutInspector.launcher!!)
+        LayoutInspectorToolWindowManagerListener(
+          project,
+          toolWindow,
+          layoutInspector,
+          layoutInspector.launcher!!
+        )
       )
   }
 
-  private fun createDevicePanel(disposable: Disposable, layoutInspector: LayoutInspector): DeviceViewPanel {
-    val deviceViewPanel = DeviceViewPanel(
-      layoutInspector = layoutInspector,
-      disposableParent = disposable
-    )
+  private fun createDevicePanel(
+    disposable: Disposable,
+    layoutInspector: LayoutInspector
+  ): DeviceViewPanel {
+    val deviceViewPanel =
+      DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = disposable)
 
     // notify DeviceViewPanel that a new foreground process showed up
     layoutInspector.foregroundProcessDetection?.addForegroundProcessListener { _, _, isDebuggable ->
@@ -95,19 +101,21 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   }
 }
 
-/**
- * Listen to state changes for the create layout inspector tool window.
- */
-class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(private val project: Project,
-                                                                              private val clientLauncher: InspectorClientLauncher,
-                                                                              private val stopInspectors: () -> Unit = {},
-                                                                              private var wasWindowVisible: Boolean = false,
+/** Listen to state changes for the create layout inspector tool window. */
+class LayoutInspectorToolWindowManagerListener
+@VisibleForTesting
+constructor(
+  private val project: Project,
+  private val clientLauncher: InspectorClientLauncher,
+  private val stopInspectors: () -> Unit = {},
+  private var wasWindowVisible: Boolean = false,
 ) : ToolWindowManagerListener {
 
-  internal constructor(project: Project,
-                       toolWindow: ToolWindow,
-                       layoutInspector: LayoutInspector,
-                       clientLauncher: InspectorClientLauncher,
+  internal constructor(
+    project: Project,
+    toolWindow: ToolWindow,
+    layoutInspector: LayoutInspector,
+    clientLauncher: InspectorClientLauncher,
   ) : this(project, clientLauncher, { layoutInspector.stopInspector() }, toolWindow.isVisible)
 
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
@@ -118,15 +126,15 @@ class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(pr
     if (windowVisibilityChanged) {
       if (isWindowVisible) {
         LayoutInspectorMetrics.logEvent(DynamicLayoutInspectorEventType.OPEN)
-      }
-      else if (clientLauncher.activeClient.isConnected) {
+      } else if (clientLauncher.activeClient.isConnected) {
         toolWindowManager.notifyByBalloon(
           LAYOUT_INSPECTOR_TOOL_WINDOW_ID,
           MessageType.INFO,
           """
           <b>Layout Inspection</b> is running in the background.<br>
           You can either <a href="stop">stop</a> it, or leave it running and resume your session later.
-        """.trimIndent(),
+        """
+            .trimIndent(),
           null
         ) { hyperlinkEvent ->
           if (hyperlinkEvent.eventType == HyperlinkEvent.EventType.ACTIVATED) {

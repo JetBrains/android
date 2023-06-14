@@ -47,23 +47,27 @@ import com.intellij.execution.configurations.RemoteConnection
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
+import java.io.File
+import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import java.io.File
-import java.util.concurrent.TimeUnit
 
-private enum class DebuggerType { JAVA, HYBRID }
+private enum class DebuggerType {
+  JAVA,
+  HYBRID
+}
+
 private const val PORT = 53707
 
-private abstract class XClientProvidingDebugProcess(session: XDebugSession) : XDebugProcess(session) {
+private abstract class XClientProvidingDebugProcess(session: XDebugSession) :
+  XDebugProcess(session) {
   abstract val client: Client
 }
 
 class InspectorClientLaunchMonitorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun monitorOffersUserToStopsStuckConnection() {
@@ -72,16 +76,31 @@ class InspectorClientLaunchMonitorTest {
     val model = NotificationModel(project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor =
+        InspectorClientLaunchMonitor(
+          project,
+          model,
+          ListenerCollection.createWithDirectExecutor(),
+          stats,
+          scheduler
+        )
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      assertThat(model.notifications.single().message)
+        .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
       assertThat(stats.currentProgress).isEqualTo(AttachErrorState.NOT_STARTED)
       model.clear()
     }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor =
+        InspectorClientLaunchMonitor(
+          project,
+          model,
+          ListenerCollection.createWithDirectExecutor(),
+          stats,
+          scheduler
+        )
       val client = mock<InspectorClient>()
       monitor.start(client)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - 1, TimeUnit.SECONDS)
@@ -90,11 +109,19 @@ class InspectorClientLaunchMonitorTest {
       assertThat(model.notifications).isEmpty()
       assertThat(stats.currentProgress).isEqualTo(AttachErrorState.START_REQUEST_SENT)
       scheduler.advanceBy(2, TimeUnit.SECONDS)
-      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+      assertThat(model.notifications.single().message)
+        .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
       model.clear()
     }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor =
+        InspectorClientLaunchMonitor(
+          project,
+          model,
+          ListenerCollection.createWithDirectExecutor(),
+          stats,
+          scheduler
+        )
       monitor.updateProgress(CONNECTED_STATE)
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
       assertThat(model.notifications).isEmpty()
@@ -140,12 +167,20 @@ class InspectorClientLaunchMonitorTest {
     val model = NotificationModel(projectRule.project)
     val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+    val monitor =
+      InspectorClientLaunchMonitor(
+        project,
+        model,
+        ListenerCollection.createWithDirectExecutor(),
+        stats,
+        scheduler
+      )
     monitor.start(client)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
     val notification1 = model.notifications.single()
-    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification1.message)
+      .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
     assertThat(notification1.actions.first().name).isEqualTo("Continue Waiting")
     assertThat(notification1.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
@@ -156,7 +191,8 @@ class InspectorClientLaunchMonitorTest {
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
     val notification2 = model.notifications.single()
-    assertThat(notification2.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification2.message)
+      .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
     assertThat(notification2.actions.first().name).isEqualTo("Continue Waiting")
     assertThat(notification2.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
@@ -167,7 +203,8 @@ class InspectorClientLaunchMonitorTest {
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
     val notification3 = model.notifications.single()
-    assertThat(notification3.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification3.message)
+      .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
     assertThat(notification3.actions.first().name).isEqualTo("Continue Waiting")
     assertThat(notification3.actions.last().name).isEqualTo(expectedDisconnectMessage)
 
@@ -188,13 +225,21 @@ class InspectorClientLaunchMonitorTest {
     val model = NotificationModel(projectRule.project)
     val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+    val monitor =
+      InspectorClientLaunchMonitor(
+        project,
+        model,
+        ListenerCollection.createWithDirectExecutor(),
+        stats,
+        scheduler
+      )
     val client = mock<InspectorClient>()
     monitor.start(client)
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     verify(client, never()).disconnect()
     val notification1 = model.notifications.single()
-    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification1.message)
+      .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
     assertThat(notification1.actions.first().name).isEqualTo("Continue Waiting")
     assertThat(notification1.actions.last().name).isEqualTo("Disconnect")
 
@@ -214,7 +259,14 @@ class InspectorClientLaunchMonitorTest {
     val model = NotificationModel(projectRule.project)
     val scheduler = VirtualTimeScheduler()
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
-    val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+    val monitor =
+      InspectorClientLaunchMonitor(
+        project,
+        model,
+        ListenerCollection.createWithDirectExecutor(),
+        stats,
+        scheduler
+      )
     val client = mock<InspectorClient>()
     monitor.start(client)
     monitor.stop()
@@ -232,14 +284,23 @@ class InspectorClientLaunchMonitorTest {
     val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor =
+        InspectorClientLaunchMonitor(
+          project,
+          model,
+          ListenerCollection.createWithDirectExecutor(),
+          stats,
+          scheduler
+        )
       monitor.start(client)
       scheduler.advanceBy(DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      assertThat(model.notifications.single().message)
+        .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Check that the timeout warning is not shown when the debugger warning is shown
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      assertThat(model.notifications.single().message)
+        .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
       assertThat(model.notifications.single().actions.first().name).isEqualTo("Resume Debugger")
       assertThat(model.notifications.single().actions.last().name).isEqualTo("Disconnect")
 
@@ -265,14 +326,23 @@ class InspectorClientLaunchMonitorTest {
     val model = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT) { false }
     run {
-      val monitor = InspectorClientLaunchMonitor(project, model, ListenerCollection.createWithDirectExecutor(), stats, scheduler)
+      val monitor =
+        InspectorClientLaunchMonitor(
+          project,
+          model,
+          ListenerCollection.createWithDirectExecutor(),
+          stats,
+          scheduler
+        )
       monitor.start(client)
       scheduler.advanceBy(DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      assertThat(model.notifications.single().message)
+        .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Check that the timeout warning is not shown when the debugger warning is shown
       scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS - DEBUGGER_CHECK_SECONDS + 1, TimeUnit.SECONDS)
-      assertThat(model.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
+      assertThat(model.notifications.single().message)
+        .isEqualTo(LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY))
 
       // Resume the debugger:
       model.notifications.single().actions.first().invoke(mock())
@@ -283,10 +353,16 @@ class InspectorClientLaunchMonitorTest {
     }
   }
 
-  private fun setupDebuggingProcess(debuggerType: DebuggerType, pausedInJava: Boolean): InspectorClient {
+  private fun setupDebuggingProcess(
+    debuggerType: DebuggerType,
+    pausedInJava: Boolean
+  ): InspectorClient {
     val client: InspectorClient = mock()
     whenever(client.process).thenReturn(processDescriptor)
-    whenever(client.stats).thenReturn(SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { false }))
+    whenever(client.stats)
+      .thenReturn(
+        SessionStatisticsImpl(ClientType.APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { false })
+      )
     val adbFileProvider = projectRule.mockProjectService(AdbFileProvider::class.java)
     whenever(adbFileProvider.get()).thenReturn(mock())
     val adbService = projectRule.mockService(AdbService::class.java)
@@ -307,7 +383,11 @@ class InspectorClientLaunchMonitorTest {
     return client
   }
 
-  private fun setUpHybridDebugger(client: Client, debuggerType: DebuggerType, pausedInJava: Boolean) {
+  private fun setUpHybridDebugger(
+    client: Client,
+    debuggerType: DebuggerType,
+    pausedInJava: Boolean
+  ) {
     val manager = projectRule.mockProjectService(XDebuggerManager::class.java)
     val session: DebuggerSession = mock()
     val process: DebugProcessImpl = mock()
@@ -316,10 +396,11 @@ class InspectorClientLaunchMonitorTest {
     val nativeSession: XDebugSession = mock()
     val javaProcess: JavaDebugProcess = mock()
     val nativeProcess: XClientProvidingDebugProcess = mock()
-    val sessions = when (debuggerType) {
-      DebuggerType.JAVA -> arrayOf(javaSession)
-      DebuggerType.HYBRID -> arrayOf(javaSession, nativeSession)
-    }
+    val sessions =
+      when (debuggerType) {
+        DebuggerType.JAVA -> arrayOf(javaSession)
+        DebuggerType.HYBRID -> arrayOf(javaSession, nativeSession)
+      }
     whenever(manager.debugSessions).thenReturn(sessions)
     whenever(javaSession.debugProcess).thenReturn(javaProcess)
     whenever(javaSession.isPaused).thenReturn(pausedInJava)
@@ -333,21 +414,23 @@ class InspectorClientLaunchMonitorTest {
     whenever(connection.debuggerAddress).thenReturn(PORT.toString())
   }
 
-  private val processDescriptor = object : ProcessDescriptor {
-    override val device = object : DeviceDescriptor {
-      override val manufacturer = "mfg"
-      override val model = "model"
-      override val serial = "emulator-33"
-      override val isEmulator = true
-      override val apiLevel = 33
-      override val version = "10.0.0"
-      override val codename: String? = null
+  private val processDescriptor =
+    object : ProcessDescriptor {
+      override val device =
+        object : DeviceDescriptor {
+          override val manufacturer = "mfg"
+          override val model = "model"
+          override val serial = "emulator-33"
+          override val isEmulator = true
+          override val apiLevel = 33
+          override val version = "10.0.0"
+          override val codename: String? = null
+        }
+      override val abiCpuArch = "x86_64"
+      override val name = "my name"
+      override val packageName = "my package name"
+      override val isRunning = true
+      override val pid = 1234
+      override val streamId = 4321L
     }
-    override val abiCpuArch = "x86_64"
-    override val name = "my name"
-    override val packageName = "my package name"
-    override val isRunning = true
-    override val pid = 1234
-    override val streamId = 4321L
-  }
 }

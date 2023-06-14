@@ -27,18 +27,26 @@ import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
-* Object used to create an initialized instance of [ForegroundProcessDetection].
-* Doing this in a designated object is useful to facilitate testing.
-*/
+ * Object used to create an initialized instance of [ForegroundProcessDetection]. Doing this in a
+ * designated object is useful to facilitate testing.
+ */
 object ForegroundProcessDetectionInitializer {
 
   private val logger = Logger.getInstance(ForegroundProcessDetectionInitializer::class.java)
 
   @VisibleForTesting
-  fun getDefaultForegroundProcessListener(deviceModel: DeviceModel, processModel: ProcessesModel): ForegroundProcessListener {
+  fun getDefaultForegroundProcessListener(
+    deviceModel: DeviceModel,
+    processModel: ProcessesModel
+  ): ForegroundProcessListener {
     return object : ForegroundProcessListener {
-      override fun onNewProcess(device: DeviceDescriptor, foregroundProcess: ForegroundProcess, isDebuggable: Boolean) {
-        // There could be multiple projects open. Project1 with device1 selected, Project2 with device2 selected.
+      override fun onNewProcess(
+        device: DeviceDescriptor,
+        foregroundProcess: ForegroundProcess,
+        isDebuggable: Boolean
+      ) {
+        // There could be multiple projects open. Project1 with device1 selected, Project2 with
+        // device2 selected.
         // Because every event from the Transport is dispatched to every open project,
         // both Project1 and Project2 are going to receive events from device1 and device2.
         if (device != deviceModel.selectedDevice) {
@@ -46,12 +54,15 @@ object ForegroundProcessDetectionInitializer {
         }
 
         if (isDebuggable) {
-          logger.info("Process descriptor found for foreground process \"${foregroundProcess.processName}\" " +
-                      "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\"")
-        }
-        else {
-          logger.info("Process descriptor not found for foreground process \"${foregroundProcess.processName}\" " +
-                      "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\"")
+          logger.info(
+            "Process descriptor found for foreground process \"${foregroundProcess.processName}\" " +
+              "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
+          )
+        } else {
+          logger.info(
+            "Process descriptor not found for foreground process \"${foregroundProcess.processName}\" " +
+              "on device \"${device.manufacturer} ${device.model} API ${device.apiLevel}\""
+          )
         }
 
         // set the foreground process to be the selected process.
@@ -61,7 +72,8 @@ object ForegroundProcessDetectionInitializer {
   }
 
   private fun getDefaultTransportClient(): TransportClient {
-    // The following line has the side effect of starting the transport service if it has not been already.
+    // The following line has the side effect of starting the transport service if it has not been
+    // already.
     // The consequence of not doing this is gRPC calls are never responded to.
     TransportService.getInstance()
     return TransportClient(TransportService.channelName)
@@ -72,20 +84,22 @@ object ForegroundProcessDetectionInitializer {
     processModel: ProcessesModel,
     deviceModel: DeviceModel,
     coroutineScope: CoroutineScope,
-    foregroundProcessListener: ForegroundProcessListener = getDefaultForegroundProcessListener(deviceModel, processModel),
+    foregroundProcessListener: ForegroundProcessListener =
+      getDefaultForegroundProcessListener(deviceModel, processModel),
     transportClient: TransportClient = getDefaultTransportClient(),
     metrics: ForegroundProcessDetectionMetrics,
     layoutInspectorMetrics: LayoutInspectorMetrics = LayoutInspectorMetrics
   ): ForegroundProcessDetection {
-    val foregroundProcessDetection = ForegroundProcessDetectionImpl(
-      project,
-      deviceModel,
-      processModel,
-      transportClient,
-      layoutInspectorMetrics,
-      metrics,
-      coroutineScope
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        project,
+        deviceModel,
+        processModel,
+        transportClient,
+        layoutInspectorMetrics,
+        metrics,
+        coroutineScope
+      )
 
     foregroundProcessDetection.addForegroundProcessListener(foregroundProcessListener)
 
@@ -94,7 +108,8 @@ object ForegroundProcessDetectionInitializer {
       val selectedProcessDevice = processModel.selectedProcess?.device
       if (selectedProcessDevice != null && selectedProcessDevice != deviceModel.selectedDevice) {
         // If the selectedProcessDevice is different from the selectedDeviceModel.selectedDevice,
-        // it means that the change of processModel.selectedProcess was not triggered by ForegroundProcessDetection.
+        // it means that the change of processModel.selectedProcess was not triggered by
+        // ForegroundProcessDetection.
         // For example if the user deployed an app on a device from Studio.
         // When this happens, we should start polling the selectedProcessDevice.
         foregroundProcessDetection.startPollingDevice(selectedProcessDevice)

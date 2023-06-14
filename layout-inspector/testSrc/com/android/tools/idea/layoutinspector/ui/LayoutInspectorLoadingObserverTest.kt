@@ -26,32 +26,35 @@ import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.TimeUnit
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.TimeUnit
 
-private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS =
+  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class LayoutInspectorLoadingObserverTest {
 
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val appInspectorRule = AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
-  private val inspectorRule = LayoutInspectorRule(
-    clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
-    projectRule = projectRule,
-    isPreferredProcess =  { it.name == MODERN_PROCESS.name }
-  )
+  private val appInspectorRule =
+    AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
+  private val inspectorRule =
+    LayoutInspectorRule(
+      clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
+      projectRule = projectRule,
+      isPreferredProcess = { it.name == MODERN_PROCESS.name }
+    )
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(appInspectorRule)
-    .around(inspectorRule)
-    .around(EdtRule())
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(projectRule)
+      .around(appInspectorRule)
+      .around(inspectorRule)
+      .around(EdtRule())
 
   @Before
   fun before() {
@@ -70,15 +73,17 @@ class LayoutInspectorLoadingObserverTest {
 
     val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(inspectorRule.inspector)
     val listenerInvocations = mutableListOf<Boolean>()
-    layoutInspectorLoadingObserver.listeners.add(object : LayoutInspectorLoadingObserver.Listener {
-      override fun onStartLoading() {
-        listenerInvocations.add(true)
-      }
+    layoutInspectorLoadingObserver.listeners.add(
+      object : LayoutInspectorLoadingObserver.Listener {
+        override fun onStartLoading() {
+          listenerInvocations.add(true)
+        }
 
-      override fun onStopLoading() {
-        listenerInvocations.add(false)
+        override fun onStopLoading() {
+          listenerInvocations.add(false)
+        }
       }
-    })
+    )
 
     assertThat(layoutInspectorLoadingObserver.isLoading).isFalse()
 
@@ -89,7 +94,8 @@ class LayoutInspectorLoadingObserverTest {
     waitForCondition(1, TimeUnit.SECONDS) { layoutInspectorLoadingObserver.isLoading }
 
     // Release the response from the agent and wait for connection.
-    // The loading should stop and the empty text should not be visible, because now we are connected and showing views on screen
+    // The loading should stop and the empty text should not be visible, because now we are
+    // connected and showing views on screen
     latch.countDown()
     inspectorRule.awaitLaunch()
 
@@ -101,10 +107,12 @@ class LayoutInspectorLoadingObserverTest {
   @Test
   fun testDestroy() {
     val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(inspectorRule.inspector)
-    layoutInspectorLoadingObserver.listeners.add(object : LayoutInspectorLoadingObserver.Listener {
-      override fun onStartLoading() { }
-      override fun onStopLoading() { }
-    })
+    layoutInspectorLoadingObserver.listeners.add(
+      object : LayoutInspectorLoadingObserver.Listener {
+        override fun onStartLoading() {}
+        override fun onStopLoading() {}
+      }
+    )
 
     layoutInspectorLoadingObserver.destroy()
 

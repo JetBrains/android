@@ -44,8 +44,7 @@ private const val USER_PKG = 123
 class LinePainterTest {
   private val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around((EdtRule()))!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around((EdtRule()))!!
 
   @RunsInEdt
   @Test
@@ -56,39 +55,41 @@ class LinePainterTest {
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
     val clientSettings = InspectorClientSettings(projectRule.project)
-    val inspector = LayoutInspector(
-      coroutineScope,
-      mock(),
-      mock(),
-      null,
-      clientSettings,
-      mockLauncher,
-      model,
-      mock(),
-      treeSettings,
-      MoreExecutors.directExecutor()
-    )
+    val inspector =
+      LayoutInspector(
+        coroutineScope,
+        mock(),
+        mock(),
+        null,
+        clientSettings,
+        mockLauncher,
+        model,
+        mock(),
+        treeSettings,
+        MoreExecutors.directExecutor()
+      )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val treeModel = treePanel.tree.model
     treePanel.setToolContext(inspector)
 
-    val window = window(ROOT, ROOT) {
-      compose(2, "App", composePackageHash = USER_PKG) {
-        compose(3, "Theme", composePackageHash = USER_PKG) {
-          compose(4, "Surface", composePackageHash = USER_PKG) {
-            compose(5, "Box", composePackageHash = USER_PKG) {
-              compose(6, "Column", composePackageHash = USER_PKG) {
-                compose(7, "Layout", composePackageHash = SYSTEM_PKG) {
-                  compose(8, "Text", composePackageHash = USER_PKG)
-                  compose(9, "Box", composePackageHash = USER_PKG)
-                  compose(10, "Button", composePackageHash = USER_PKG)
+    val window =
+      window(ROOT, ROOT) {
+        compose(2, "App", composePackageHash = USER_PKG) {
+          compose(3, "Theme", composePackageHash = USER_PKG) {
+            compose(4, "Surface", composePackageHash = USER_PKG) {
+              compose(5, "Box", composePackageHash = USER_PKG) {
+                compose(6, "Column", composePackageHash = USER_PKG) {
+                  compose(7, "Layout", composePackageHash = SYSTEM_PKG) {
+                    compose(8, "Text", composePackageHash = USER_PKG)
+                    compose(9, "Box", composePackageHash = USER_PKG)
+                    compose(10, "Button", composePackageHash = USER_PKG)
+                  }
                 }
               }
             }
           }
         }
       }
-    }
     model.update(window, listOf(ROOT), 1)
     treeSettings.hideSystemNodes = true
     treeSettings.composeAsCallstack = true
@@ -102,7 +103,8 @@ class LinePainterTest {
 
     // With hidden system nodes, Column should have 3 children and show support lines:
     assertThat(node("Column").children.size).isEqualTo(3)
-    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("Column"))).isSameAs(node("Button"))
+    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("Column")))
+      .isSameAs(node("Button"))
 
     // Now make all system nodes visible in the tree including "Layout":
     treeSettings.hideSystemNodes = false
@@ -118,6 +120,7 @@ class LinePainterTest {
 
     // Layout should have 3 children and show support lines:
     assertThat(node("Layout").children.size).isEqualTo(3)
-    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("Layout"))).isSameAs(node("Button"))
+    assertThat(LINES.getLastOfMultipleChildren(treeModel, treeSettings, node("Layout")))
+      .isSameAs(node("Button"))
   }
 }

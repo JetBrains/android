@@ -45,14 +45,11 @@ import org.mockito.Mockito.verify
 
 class ShowLayoutInspectorActionTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var fakeToolWindowManager: FakeToolWindowManager
   private lateinit var fakeNotificationGroupManager: FakeNotificationGroupManager
@@ -60,12 +57,19 @@ class ShowLayoutInspectorActionTest {
   @Before
   fun setUp() {
     fakeToolWindowManager = FakeToolWindowManager(projectRule.project)
-    projectRule.project.replaceService(ToolWindowManager::class.java, fakeToolWindowManager, disposableRule.disposable)
+    projectRule.project.replaceService(
+      ToolWindowManager::class.java,
+      fakeToolWindowManager,
+      disposableRule.disposable
+    )
 
     fakeNotificationGroupManager = FakeNotificationGroupManager()
-    ApplicationManager.getApplication().replaceService(
-      NotificationGroupManager::class.java, fakeNotificationGroupManager, disposableRule.disposable
-    )
+    ApplicationManager.getApplication()
+      .replaceService(
+        NotificationGroupManager::class.java,
+        fakeNotificationGroupManager,
+        disposableRule.disposable
+      )
   }
 
   @Test
@@ -75,7 +79,9 @@ class ShowLayoutInspectorActionTest {
 
     val showLayoutInspectorAction = ShowLayoutInspectorAction()
     assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isFalse()
-    showLayoutInspectorAction.actionPerformed(createFakeEvent(projectRule.project, showLayoutInspectorAction))
+    showLayoutInspectorAction.actionPerformed(
+      createFakeEvent(projectRule.project, showLayoutInspectorAction)
+    )
     assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isTrue()
   }
 
@@ -86,7 +92,9 @@ class ShowLayoutInspectorActionTest {
 
     val showLayoutInspectorAction = ShowLayoutInspectorAction()
     assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isFalse()
-    showLayoutInspectorAction.actionPerformed(createFakeEvent(projectRule.project, showLayoutInspectorAction))
+    showLayoutInspectorAction.actionPerformed(
+      createFakeEvent(projectRule.project, showLayoutInspectorAction)
+    )
     assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isTrue()
   }
 
@@ -96,22 +104,26 @@ class ShowLayoutInspectorActionTest {
     settings.embeddedLayoutInspectorEnabled = true
 
     val showLayoutInspectorAction = ShowLayoutInspectorAction()
-    showLayoutInspectorAction.actionPerformed(createFakeEvent(projectRule.project, showLayoutInspectorAction))
-    verify(fakeNotificationGroupManager.mockNotificationGroup).createNotification(
-      "Layout Inspector is now embedded in the Running Devices window.",
-      "Launch or connect a device to start inspecting.",
-      NotificationType.INFORMATION
+    showLayoutInspectorAction.actionPerformed(
+      createFakeEvent(projectRule.project, showLayoutInspectorAction)
     )
+    verify(fakeNotificationGroupManager.mockNotificationGroup)
+      .createNotification(
+        "Layout Inspector is now embedded in the Running Devices window.",
+        "Launch or connect a device to start inspecting.",
+        NotificationType.INFORMATION
+      )
     verify(fakeNotificationGroupManager.mockNotification).notify(any())
   }
 }
 
-private fun createFakeEvent(project: Project, anAction: AnAction) = AnActionEvent.createFromAnAction(anAction,null, "") {
-  when (it) {
-    CommonDataKeys.PROJECT.name -> project
-    else -> null
+private fun createFakeEvent(project: Project, anAction: AnAction) =
+  AnActionEvent.createFromAnAction(anAction, null, "") {
+    when (it) {
+      CommonDataKeys.PROJECT.name -> project
+      else -> null
+    }
   }
-}
 
 private class FakeToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
   var runningDevicesToolWindow = FakeToolWindow(project)
@@ -126,7 +138,8 @@ private class FakeToolWindowManager(project: Project) : ToolWindowHeadlessManage
   }
 }
 
-private class FakeToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+private class FakeToolWindow(project: Project) :
+  ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private var isActive = false
 
   override fun activate(runnable: Runnable?) {
@@ -144,9 +157,13 @@ private class FakeNotificationGroupManager : NotificationGroupManager {
 
   init {
     whenever(
-      mockNotificationGroup.createNotification(
-        MockitoKt.any<String>(), MockitoKt.any<String>(), MockitoKt.any<NotificationType>())
-    ).thenAnswer { mockNotification }
+        mockNotificationGroup.createNotification(
+          MockitoKt.any<String>(),
+          MockitoKt.any<String>(),
+          MockitoKt.any<NotificationType>()
+        )
+      )
+      .thenAnswer { mockNotification }
   }
   override fun getNotificationGroup(groupId: String): NotificationGroup {
     return when (groupId) {
@@ -162,6 +179,6 @@ private class FakeNotificationGroupManager : NotificationGroupManager {
     }
   }
 
-  override fun getRegisteredNotificationGroups() =  mutableListOf(mockNotificationGroup)
+  override fun getRegisteredNotificationGroups() = mutableListOf(mockNotificationGroup)
   override fun isRegisteredNotificationId(notificationId: String) = false
 }

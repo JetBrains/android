@@ -52,7 +52,11 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     fileManager = null
   }
 
-  fun checkEditor(fileName: String, lineNumber: Int, text: String, ) {
+  fun checkEditor(
+    fileName: String,
+    lineNumber: Int,
+    text: String,
+  ) {
     val descriptor = checkEditorOpened(fileName, focusEditor = true)
     val line = findLineAtOffset(descriptor.file, descriptor.offset)
     Truth.assertThat(line.second).isEqualTo(text)
@@ -61,7 +65,8 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
 
   fun checkEditorOpened(fileName: String, focusEditor: Boolean): OpenFileDescriptor {
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.verify(fileManager!!, timeout(TIMEOUT)).openEditor(file.capture(), ArgumentMatchers.eq(focusEditor))
+    Mockito.verify(fileManager!!, timeout(TIMEOUT))
+      .openEditor(file.capture(), ArgumentMatchers.eq(focusEditor))
     val descriptor = file.value
     Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
     return descriptor
@@ -80,7 +85,12 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
 
   private fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    whenever(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+    whenever(
+        fileManager!!.openEditor(
+          ArgumentMatchers.any(OpenFileDescriptor::class.java),
+          ArgumentMatchers.anyBoolean()
+        )
+      )
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
     whenever(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     whenever(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)

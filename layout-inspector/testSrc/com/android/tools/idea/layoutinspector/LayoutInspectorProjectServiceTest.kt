@@ -25,11 +25,9 @@ import org.junit.Test
 
 class LayoutInspectorProjectServiceTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testCreateProcessesModel() {
@@ -38,9 +36,13 @@ class LayoutInspectorProjectServiceTest {
     val olderLegacyProcess = OLDER_LEGACY_DEVICE.createProcess()
 
     val processDiscovery = TestProcessDiscovery()
-    val model = createProcessesModel(
-      projectRule.project, disposableRule.disposable, processDiscovery, MoreExecutors.directExecutor()
-    )
+    val model =
+      createProcessesModel(
+        projectRule.project,
+        disposableRule.disposable,
+        processDiscovery,
+        MoreExecutors.directExecutor()
+      )
 
     // Verify that devices older than M will be included in the processes model:
     processDiscovery.fireConnected(olderLegacyProcess)

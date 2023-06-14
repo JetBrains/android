@@ -20,7 +20,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * A latch that allows a test to delay the response of a command, while performing another operation.
+ * A latch that allows a test to delay the response of a command, while performing another
+ * operation.
  */
 class CommandLatch(private val timeout: Long, private val unit: TimeUnit) {
   private val waitingCommand = AtomicBoolean(false)
@@ -30,19 +31,22 @@ class CommandLatch(private val timeout: Long, private val unit: TimeUnit) {
   /**
    * Enable this latch.
    *
-   * When this latch is enabled, incoming command responses will be delayed until [waitingCommand] is called.
-   * When this latch is disabled, incoming command responses are received immediately.
+   * When this latch is enabled, incoming command responses will be delayed until [waitingCommand]
+   * is called. When this latch is disabled, incoming command responses are received immediately.
    */
   var enabled: Boolean = false
 
   /**
    * Called from a command interceptor to allow a test to delay the response from the command.
    *
-   * If this latch is not [enabled] or a previous command is currently being delayed: the response will be returned immediately.
-   * Otherwise: release a test that may already have called [waitForCommand] and wait for that operation to finish.
+   * If this latch is not [enabled] or a previous command is currently being delayed: the response
+   * will be returned immediately. Otherwise: release a test that may already have called
+   * [waitForCommand] and wait for that operation to finish.
    */
   fun incomingCommand() {
-    if (enabled && !waitingCommand.getAndSet(true)) {  // Do not delay this command if a previous command is pending
+    if (
+      enabled && !waitingCommand.getAndSet(true)
+    ) { // Do not delay this command if a previous command is pending
       consumer.countDown()
       incoming.await(timeout, unit)
       incoming = ReportingCountDownLatch(1)

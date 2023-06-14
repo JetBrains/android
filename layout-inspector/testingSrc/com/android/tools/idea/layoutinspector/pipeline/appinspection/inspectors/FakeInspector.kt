@@ -28,9 +28,7 @@ import com.android.tools.app.inspection.AppInspection
  * @param E A generic type representing the inspector's event message
  */
 abstract class FakeInspector<C, R, E>(val connection: Connection<E>) {
-  /**
-   * Class that mimics androidx.inspection.Connection.
-   */
+  /** Class that mimics androidx.inspection.Connection. */
   abstract class Connection<E> {
     abstract fun sendEvent(event: E)
   }
@@ -52,8 +50,8 @@ abstract class FakeInspector<C, R, E>(val connection: Connection<E>) {
    * Only the first interceptor that matches its condition is used; in other words, multiple
    * overlapping interceptors are not allowed.
    *
-   * The callback should fire any events as appropriate using the [connection] property and
-   * return an appropriate response.
+   * The callback should fire any events as appropriate using the [connection] property and return
+   * an appropriate response.
    */
   fun interceptWhen(condition: (C) -> Boolean, interceptor: (C) -> R) {
     interceptors[condition] = interceptor
@@ -69,15 +67,14 @@ abstract class FakeInspector<C, R, E>(val connection: Connection<E>) {
   }
 
   /**
-   * Handle a received command, mimicking code that would normally exist on the device
-   * in `Inspector.onReceiveCommand`.
+   * Handle a received command, mimicking code that would normally exist on the device in
+   * `Inspector.onReceiveCommand`.
    *
    * This method should only be called by internal test framework logic.
    */
   fun handleCommand(command: C): R {
-    val interceptedResponse = interceptors.entries
-      .firstOrNull { it.key(command) }
-      ?.let { entry -> entry.value(command) }
+    val interceptedResponse =
+      interceptors.entries.firstOrNull { it.key(command) }?.let { entry -> entry.value(command) }
 
     listeners.filter { it.key(command) }.forEach { (_, listener) -> listener(command) }
     return interceptedResponse ?: handleCommandImpl(command)
@@ -86,8 +83,8 @@ abstract class FakeInspector<C, R, E>(val connection: Connection<E>) {
   /**
    * Default command handler for this fake inspector.
    *
-   * This will be called with a target [command] unless an interceptor was already registered
-   * that handled it.
+   * This will be called with a target [command] unless an interceptor was already registered that
+   * handled it.
    */
   protected abstract fun handleCommandImpl(command: C): R
 }

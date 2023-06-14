@@ -27,15 +27,26 @@ class FakeForegroundProcessDetection : ForegroundProcessDetection {
     foregroundProcessListeners.add(foregroundProcessListener)
   }
 
-  override fun removeForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {
+  override fun removeForegroundProcessListener(
+    foregroundProcessListener: ForegroundProcessListener
+  ) {
     foregroundProcessListeners.remove(foregroundProcessListener)
   }
 
-  override fun startPollingDevice(newDevice: DeviceDescriptor, stopPollingPreviousDevice: Boolean) { }
+  override fun startPollingDevice(
+    newDevice: DeviceDescriptor,
+    stopPollingPreviousDevice: Boolean
+  ) {}
 
-  override fun stopPollingSelectedDevice() { }
+  override fun stopPollingSelectedDevice() {}
 
-  fun addNewForegroundProcess(deviceDescriptor: DeviceDescriptor, foregroundProcess: ForegroundProcess, isDebuggable: Boolean) {
-    foregroundProcessListeners.forEach { it.onNewProcess(deviceDescriptor, foregroundProcess, isDebuggable) }
+  fun addNewForegroundProcess(
+    deviceDescriptor: DeviceDescriptor,
+    foregroundProcess: ForegroundProcess,
+    isDebuggable: Boolean
+  ) {
+    foregroundProcessListeners.forEach {
+      it.onNewProcess(deviceDescriptor, foregroundProcess, isDebuggable)
+    }
   }
 }

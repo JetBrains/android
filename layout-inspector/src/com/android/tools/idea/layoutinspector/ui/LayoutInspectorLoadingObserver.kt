@@ -20,8 +20,8 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import java.util.concurrent.Executors
 
 /**
- * This class observes [LayoutInspector] and keeps track of when it is in a loading state.
- * It can be used for example to show loading indicators in the UI.
+ * This class observes [LayoutInspector] and keeps track of when it is in a loading state. It can be
+ * used for example to show loading indicators in the UI.
  */
 class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspector) {
   interface Listener {
@@ -41,15 +41,17 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
 
       if (isLoading) {
         listeners.forEach { it.onStartLoading() }
-      }
-      else {
+      } else {
         listeners.forEach { it.onStopLoading() }
       }
     }
 
   init {
     layoutInspector.stopInspectorListeners.add(this::onStopInspector)
-    layoutInspector.processModel?.addSelectedProcessListeners(Executors.newSingleThreadExecutor(), this::onSelectedProcess)
+    layoutInspector.processModel?.addSelectedProcessListeners(
+      Executors.newSingleThreadExecutor(),
+      this::onSelectedProcess
+    )
     layoutInspector.inspectorModel.modificationListeners.add(this::onInspectorModelChanged)
   }
 
@@ -73,7 +75,11 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
     }
   }
 
-  private fun onInspectorModelChanged(oldWindow: AndroidWindow?, newWindow: AndroidWindow?, isStructuralChange: Boolean) {
+  private fun onInspectorModelChanged(
+    oldWindow: AndroidWindow?,
+    newWindow: AndroidWindow?,
+    isStructuralChange: Boolean
+  ) {
     isLoading = false
   }
 }

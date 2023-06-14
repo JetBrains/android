@@ -50,6 +50,10 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Dimension
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
@@ -57,29 +61,28 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Dimension
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
 
-private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+private val MODERN_PROCESS =
+  MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
 @RunsInEdt
 class LayoutInspectorMainToolbarTest {
   private val androidProjectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val appInspectorRule = AppInspectionInspectorRule(androidProjectRule, withDefaultResponse = false)
-  private val layoutInspectorRule = LayoutInspectorRule(
-    clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
-    projectRule = androidProjectRule,
-    isPreferredProcess =  { it.name == MODERN_PROCESS.name }
-  )
+  private val appInspectorRule =
+    AppInspectionInspectorRule(androidProjectRule, withDefaultResponse = false)
+  private val layoutInspectorRule =
+    LayoutInspectorRule(
+      clientProviders = listOf(appInspectorRule.createInspectorClientProvider()),
+      projectRule = androidProjectRule,
+      isPreferredProcess = { it.name == MODERN_PROCESS.name }
+    )
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain
-    .outerRule(androidProjectRule)
-    .around(appInspectorRule)
-    .around(layoutInspectorRule)
-    .around(EdtRule())
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(androidProjectRule)
+      .around(appInspectorRule)
+      .around(layoutInspectorRule)
+      .around(EdtRule())
 
   @Before
   fun setUp() {
@@ -92,192 +95,239 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() = runWithEmbeddedLayoutInspector(false) {
-    val toolbar = createToolbar()
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle.action).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-  }
+  fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() =
+    runWithEmbeddedLayoutInspector(false) {
+      val toolbar = createToolbar()
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      assertThat(toggle.isEnabled).isTrue()
+      assertThat(toggle.isSelected).isTrue()
+      assertThat(getPresentation(toggle.action).description)
+        .isEqualTo(
+          "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+            "impact runtime performance."
+        )
+    }
 
   @Test
-  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() = runWithEmbeddedLayoutInspector(false) {
-    val clientSettings = InspectorClientSettings(androidProjectRule.project)
-    clientSettings.isCapturingModeOn = false
+  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() =
+    runWithEmbeddedLayoutInspector(false) {
+      val clientSettings = InspectorClientSettings(androidProjectRule.project)
+      clientSettings.isCapturingModeOn = false
 
-    val toolbar = createToolbar()
+      val toolbar = createToolbar()
 
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle.action).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance."
-    )
-  }
-
-  @Test
-  fun testLiveControlEnabledAndSetByDefaultWhenConnected() = runWithEmbeddedLayoutInspector(false) {
-    installCommandHandlers()
-    latch = CountDownLatch(1)
-    connect(MODERN_PROCESS)
-    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
-
-    val toolbar = createToolbar()
-
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle.action).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-    assertThat(commands).hasSize(1)
-    assertThat(commands[0].hasStartFetchCommand()).isTrue()
-  }
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      assertThat(toggle.isEnabled).isTrue()
+      assertThat(toggle.isSelected).isFalse()
+      assertThat(getPresentation(toggle.action).description)
+        .isEqualTo(
+          "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+            "impact runtime performance."
+        )
+    }
 
   @Test
-  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() = runWithEmbeddedLayoutInspector(false) {
-    val clientSettings = InspectorClientSettings(androidProjectRule.project)
-    clientSettings.isCapturingModeOn = false
+  fun testLiveControlEnabledAndSetByDefaultWhenConnected() =
+    runWithEmbeddedLayoutInspector(false) {
+      installCommandHandlers()
+      latch = CountDownLatch(1)
+      connect(MODERN_PROCESS)
+      assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-    installCommandHandlers()
-    latch = CountDownLatch(1)
-    connect(MODERN_PROCESS)
-    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
+      val toolbar = createToolbar()
 
-    val toolbar = createToolbar()
-
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle.action).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-    assertThat(commands).hasSize(1)
-    assertThat(commands[0].startFetchCommand.continuous).isFalse()
-  }
-
-  @Test
-  fun testTurnOnSnapshotModeWhenDisconnected() = runWithEmbeddedLayoutInspector(false) {
-    installCommandHandlers()
-
-    val clientSettings = InspectorClientSettings(androidProjectRule.project)
-    clientSettings.isCapturingModeOn = true
-
-    val stats = layoutInspectorRule.inspector.currentClient.stats
-    stats.currentModeIsLive = true
-
-    val toolbar = createToolbar()
-
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    toolbar.component.size = Dimension(800, 200)
-    toolbar.component.doLayout()
-    val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.click(10, 10)
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle.action).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-
-    assertThat(commands).isEmpty()
-    assertThat(clientSettings.isCapturingModeOn).isFalse()
-    assertThat(stats.currentModeIsLive).isTrue() // unchanged
-  }
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      assertThat(toggle.isEnabled).isTrue()
+      assertThat(toggle.isSelected).isTrue()
+      assertThat(getPresentation(toggle.action).description)
+        .isEqualTo(
+          "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+            "impact runtime performance."
+        )
+      assertThat(commands).hasSize(1)
+      assertThat(commands[0].hasStartFetchCommand()).isTrue()
+    }
 
   @Test
-  fun testTurnOnLiveModeWhenDisconnected() = runWithEmbeddedLayoutInspector(false) {
-    installCommandHandlers()
-    val clientSettings = InspectorClientSettings(androidProjectRule.project)
-    clientSettings.isCapturingModeOn = false
+  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() =
+    runWithEmbeddedLayoutInspector(false) {
+      val clientSettings = InspectorClientSettings(androidProjectRule.project)
+      clientSettings.isCapturingModeOn = false
 
-    val stats = layoutInspectorRule.inspector.currentClient.stats
-    stats.currentModeIsLive = false
-    val toolbar = createToolbar()
+      installCommandHandlers()
+      latch = CountDownLatch(1)
+      connect(MODERN_PROCESS)
+      assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    toolbar.component.size = Dimension(800, 200)
-    toolbar.component.doLayout()
-    val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.click(10, 10)
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle.action).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
+      val toolbar = createToolbar()
 
-    assertThat(commands).isEmpty()
-    assertThat(clientSettings.isCapturingModeOn).isTrue()
-    assertThat(stats.currentModeIsLive).isFalse() // unchanged
-  }
-
-  @Test
-  fun testTurnOnSnapshotMode() = runWithEmbeddedLayoutInspector(false) {
-    latch = CountDownLatch(1)
-    installCommandHandlers()
-
-    connect(MODERN_PROCESS)
-    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    val stats = layoutInspectorRule.inspector.currentClient.stats
-    stats.currentModeIsLive = true
-    latch = CountDownLatch(2)
-    val toolbar = createToolbar()
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    toolbar.component.size = Dimension(800, 200)
-    toolbar.component.doLayout()
-    val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.click(10, 10)
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle.action).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-
-    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).hasSize(3)
-    assertThat(commands[0].hasStartFetchCommand()).isTrue()
-    // stop and update screenshot type can come in either order
-    assertThat(commands.find { it.hasStopFetchCommand() }).isNotNull()
-    assertThat(commands.find { it.hasUpdateScreenshotTypeCommand() }).isNotNull()
-    assertThat(stats.currentModeIsLive).isFalse()
-  }
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      assertThat(toggle.isEnabled).isTrue()
+      assertThat(toggle.isSelected).isFalse()
+      assertThat(getPresentation(toggle.action).description)
+        .isEqualTo(
+          "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+            "impact runtime performance."
+        )
+      assertThat(commands).hasSize(1)
+      assertThat(commands[0].startFetchCommand.continuous).isFalse()
+    }
 
   @Test
-  fun testTurnOnLiveMode() = runWithEmbeddedLayoutInspector(false) {
-    latch = CountDownLatch(1)
-    installCommandHandlers()
+  fun testTurnOnSnapshotModeWhenDisconnected() =
+    runWithEmbeddedLayoutInspector(false) {
+      installCommandHandlers()
 
-    val clientSettings = InspectorClientSettings(androidProjectRule.project)
-    clientSettings.isCapturingModeOn = false
+      val clientSettings = InspectorClientSettings(androidProjectRule.project)
+      clientSettings.isCapturingModeOn = true
 
-    connect(MODERN_PROCESS)
-    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    val stats = layoutInspectorRule.inspector.currentClient.stats
-    stats.currentModeIsLive = false
+      val stats = layoutInspectorRule.inspector.currentClient.stats
+      stats.currentModeIsLive = true
 
-    latch = CountDownLatch(1)
-    val toolbar = createToolbar()
-    val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
-    toolbar.component.size = Dimension(800, 200)
-    toolbar.component.doLayout()
+      val toolbar = createToolbar()
 
-    val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.click(10, 10)
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle.action).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might" +
-      " impact runtime performance.")
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      toolbar.component.size = Dimension(800, 200)
+      toolbar.component.doLayout()
+      val fakeUi = FakeUi(toggle)
+      fakeUi.mouse.click(10, 10)
+      assertThat(toggle.isEnabled).isTrue()
+      assertThat(toggle.isSelected).isFalse()
+      assertThat(getPresentation(toggle.action).description)
+        .isEqualTo(
+          "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+            "impact runtime performance."
+        )
 
-    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).hasSize(2)
-    assertThat(commands[0].startFetchCommand.continuous).isFalse()
-    assertThat(commands[1].startFetchCommand.continuous).isTrue()
+      assertThat(commands).isEmpty()
+      assertThat(clientSettings.isCapturingModeOn).isFalse()
+      assertThat(stats.currentModeIsLive).isTrue() // unchanged
+    }
 
-    assertThat(stats.currentModeIsLive).isTrue()
-  }
+  @Test
+  fun testTurnOnLiveModeWhenDisconnected() =
+    runWithEmbeddedLayoutInspector(false) {
+      installCommandHandlers()
+      val clientSettings = InspectorClientSettings(androidProjectRule.project)
+      clientSettings.isCapturingModeOn = false
+
+      val stats = layoutInspectorRule.inspector.currentClient.stats
+      stats.currentModeIsLive = false
+      val toolbar = createToolbar()
+
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      toolbar.component.size = Dimension(800, 200)
+      toolbar.component.doLayout()
+      val fakeUi = FakeUi(toggle)
+      fakeUi.mouse.click(10, 10)
+      assertThat(toggle.isEnabled).isTrue()
+      assertThat(toggle.isSelected).isTrue()
+      assertThat(getPresentation(toggle.action).description)
+        .isEqualTo(
+          "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+            "impact runtime performance."
+        )
+
+      assertThat(commands).isEmpty()
+      assertThat(clientSettings.isCapturingModeOn).isTrue()
+      assertThat(stats.currentModeIsLive).isFalse() // unchanged
+    }
+
+  @Test
+  fun testTurnOnSnapshotMode() =
+    runWithEmbeddedLayoutInspector(false) {
+      latch = CountDownLatch(1)
+      installCommandHandlers()
+
+      connect(MODERN_PROCESS)
+      assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
+      val stats = layoutInspectorRule.inspector.currentClient.stats
+      stats.currentModeIsLive = true
+      latch = CountDownLatch(2)
+      val toolbar = createToolbar()
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      toolbar.component.size = Dimension(800, 200)
+      toolbar.component.doLayout()
+      val fakeUi = FakeUi(toggle)
+      fakeUi.mouse.click(10, 10)
+      assertThat(toggle.isEnabled).isTrue()
+      assertThat(toggle.isSelected).isFalse()
+      assertThat(getPresentation(toggle.action).description)
+        .isEqualTo(
+          "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
+            "impact runtime performance."
+        )
+
+      assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
+      assertThat(commands).hasSize(3)
+      assertThat(commands[0].hasStartFetchCommand()).isTrue()
+      // stop and update screenshot type can come in either order
+      assertThat(commands.find { it.hasStopFetchCommand() }).isNotNull()
+      assertThat(commands.find { it.hasUpdateScreenshotTypeCommand() }).isNotNull()
+      assertThat(stats.currentModeIsLive).isFalse()
+    }
+
+  @Test
+  fun testTurnOnLiveMode() =
+    runWithEmbeddedLayoutInspector(false) {
+      latch = CountDownLatch(1)
+      installCommandHandlers()
+
+      val clientSettings = InspectorClientSettings(androidProjectRule.project)
+      clientSettings.isCapturingModeOn = false
+
+      connect(MODERN_PROCESS)
+      assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
+      val stats = layoutInspectorRule.inspector.currentClient.stats
+      stats.currentModeIsLive = false
+
+      latch = CountDownLatch(1)
+      val toolbar = createToolbar()
+      val toggle =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as ActionButton
+      toolbar.component.size = Dimension(800, 200)
+      toolbar.component.doLayout()
+
+      val fakeUi = FakeUi(toggle)
+      fakeUi.mouse.click(10, 10)
+      assertThat(toggle.isEnabled).isTrue()
+      assertThat(toggle.isSelected).isTrue()
+      assertThat(getPresentation(toggle.action).description)
+        .isEqualTo(
+          "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might" +
+            " impact runtime performance."
+        )
+
+      assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
+      assertThat(commands).hasSize(2)
+      assertThat(commands[0].startFetchCommand.continuous).isFalse()
+      assertThat(commands[1].startFetchCommand.continuous).isTrue()
+
+      assertThat(stats.currentModeIsLive).isTrue()
+    }
 
   @Test
   fun testFocusableActionButtons() {
@@ -288,7 +338,9 @@ class LayoutInspectorMainToolbarTest {
   @Test
   fun testDeviceSelectionToolbarIsImportant() {
     val toolbar = createToolbar()
-    val isImportant = toolbar.component.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean ?: false
+    val isImportant =
+      toolbar.component.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean
+        ?: false
     Truth.assertThat(isImportant).isTrue()
   }
 
@@ -309,17 +361,21 @@ class LayoutInspectorMainToolbarTest {
   }
 
   @Test
-  fun testLiveUpdatesAndRefreshActionsAreMissingFromEmbeddedLayoutInspector() = runWithEmbeddedLayoutInspector(true) {
-    val toolbar = createToolbar()
+  fun testLiveUpdatesAndRefreshActionsAreMissingFromEmbeddedLayoutInspector() =
+    runWithEmbeddedLayoutInspector(true) {
+      val toolbar = createToolbar()
 
-    val liveUpdatesAction = toolbar.component.components.find {
-      it is ActionButton && it.action is ToggleLiveUpdatesAction
-    } as? ActionButton
-    val refreshAction = toolbar.component.components.find { it is ActionButton && it.action is RefreshAction } as? ActionButton
+      val liveUpdatesAction =
+        toolbar.component.components.find {
+          it is ActionButton && it.action is ToggleLiveUpdatesAction
+        } as? ActionButton
+      val refreshAction =
+        toolbar.component.components.find { it is ActionButton && it.action is RefreshAction }
+          as? ActionButton
 
-    assertThat(liveUpdatesAction).isNull()
-    assertThat(refreshAction).isNull()
-  }
+      assertThat(liveUpdatesAction).isNull()
+      assertThat(refreshAction).isNull()
+    }
 
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
@@ -339,14 +395,15 @@ class LayoutInspectorMainToolbarTest {
         LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND -> {
           lastImageType = command.updateScreenshotTypeCommand.type.toImageType()
         }
-        else -> { }
+        else -> {}
       }
-      val window = window("w1", 1L, imageType = lastImageType) {
-        view(VIEW1, 0, 0, 10, 10, qualifiedName = "v1", layout = demoLayout, viewId = view1Id) {
-          view(VIEW2, 0, 0, 10, 10, qualifiedName = "v2", layout = demoLayout, viewId = view2Id)
-          view(VIEW3, 0, 5, 10, 5, qualifiedName = "v3", layout = demoLayout)
+      val window =
+        window("w1", 1L, imageType = lastImageType) {
+          view(VIEW1, 0, 0, 10, 10, qualifiedName = "v1", layout = demoLayout, viewId = view1Id) {
+            view(VIEW2, 0, 0, 10, 10, qualifiedName = "v2", layout = demoLayout, viewId = view2Id)
+            view(VIEW3, 0, 5, 10, 5, qualifiedName = "v3", layout = demoLayout)
+          }
         }
-      }
       layoutInspectorRule.inspectorModel.update(window, listOf("w1"), 1)
       latch?.countDown()
     }
@@ -365,10 +422,15 @@ class LayoutInspectorMainToolbarTest {
 
   private fun getPresentation(action: AnAction): Presentation {
     val presentation = Presentation()
-    val event = AnActionEvent(
-      null, DataContext.EMPTY_CONTEXT,
-      "LayoutInspector.MainToolbar", presentation, ActionManager.getInstance(), 0
-    )
+    val event =
+      AnActionEvent(
+        null,
+        DataContext.EMPTY_CONTEXT,
+        "LayoutInspector.MainToolbar",
+        presentation,
+        ActionManager.getInstance(),
+        0
+      )
     action.update(event)
     return presentation
   }

@@ -32,11 +32,12 @@ import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -46,8 +47,6 @@ import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 class LegacyClientTest {
   private val windowIds = mutableListOf<String>()
@@ -58,16 +57,23 @@ class LegacyClientTest {
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = mock(LegacyTreeLoader::class.java)
     doAnswer { windowIds }.whenever(loader).getAllWindowIds(ArgumentMatchers.any())
-    val client = LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector) as LegacyClient
+    val client =
+      LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector)
+        as LegacyClient
     val notificationModel = inspector.notificationModel
-    client.launchMonitor = InspectorClientLaunchMonitor(
-      projectRule.project, notificationModel, ListenerCollection.createWithDirectExecutor(), client.stats, scheduler)
+    client.launchMonitor =
+      InspectorClientLaunchMonitor(
+        projectRule.project,
+        notificationModel,
+        ListenerCollection.createWithDirectExecutor(),
+        client.stats,
+        scheduler
+      )
     client
   }
   private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider), projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
 
   @Before
   fun setUp() {
@@ -77,47 +83,54 @@ class LegacyClientTest {
   @Test
   fun testReloadAllWindows() {
     windowIds.addAll(listOf("window1", "window2", "window3"))
-    inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess() // This causes the tree to get loaded as a side effect
+    inspectorRule.processes.selectedProcess =
+      LEGACY_DEVICE.createProcess() // This causes the tree to get loaded as a side effect
     val client = inspectorRule.inspectorClient as LegacyClient
 
-    verify(client.treeLoader).loadComponentTree(
-      argThat { event: LegacyEvent -> event.windowId == "window1" },
-      any(ResourceLookup::class.java),
-      eq(client.process)
-    )
-    verify(client.treeLoader).loadComponentTree(
-      argThat { event: LegacyEvent -> event.windowId == "window2" },
-      any(ResourceLookup::class.java),
-      eq(client.process)
-    )
-    verify(client.treeLoader).loadComponentTree(
-      argThat { event: LegacyEvent -> event.windowId == "window3" },
-      any(ResourceLookup::class.java),
-      eq(client.process)
-    )
+    verify(client.treeLoader)
+      .loadComponentTree(
+        argThat { event: LegacyEvent -> event.windowId == "window1" },
+        any(ResourceLookup::class.java),
+        eq(client.process)
+      )
+    verify(client.treeLoader)
+      .loadComponentTree(
+        argThat { event: LegacyEvent -> event.windowId == "window2" },
+        any(ResourceLookup::class.java),
+        eq(client.process)
+      )
+    verify(client.treeLoader)
+      .loadComponentTree(
+        argThat { event: LegacyEvent -> event.windowId == "window3" },
+        any(ResourceLookup::class.java),
+        eq(client.process)
+      )
   }
 
   @Test
   fun testReloadAllWindowsWithNone() {
     // This test may end up in a deadlock if a synchronized launcher is used.
     inspectorRule.launchSynchronously = false
-    // The launch will attempt to launch an app inspection client and the a legacy client both on connect and the later disconnect.
+    // The launch will attempt to launch an app inspection client and the a legacy client both on
+    // connect and the later disconnect.
     // i.e. a total of 4 launches.
-    // The legacy connection will never succeed (because there are no windows). Do not call awaitLaunch before the end of the test.
+    // The legacy connection will never succeed (because there are no windows). Do not call
+    // awaitLaunch before the end of the test.
     inspectorRule.startLaunch(4)
     val executor = Executors.newSingleThreadExecutor()
-    executor.execute {
-      inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
-    }
+    executor.execute { inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess() }
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient is LegacyClient }
     val client = inspectorRule.inspectorClient as LegacyClient
-    waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.currentProgress == AttachErrorState.ADB_PING }
+    waitForCondition(5, TimeUnit.SECONDS) {
+      client.launchMonitor.currentProgress == AttachErrorState.ADB_PING
+    }
     waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.timeoutHandlerScheduled }
     assertThat(client.reloadAllWindows()).isFalse()
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
     val notificationModel = inspectorRule.notificationModel
     val notification1 = notificationModel.notifications.single()
-    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    assertThat(notification1.message)
+      .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:
     notification1.actions.last().invoke(MockitoKt.mock())
@@ -134,10 +147,11 @@ class LegacyClientTest {
     }
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     val client = inspectorRule.inspectorClient as LegacyClient
-    verify(client.treeLoader).loadComponentTree(
-      argThat { event: LegacyEvent -> event.windowId == "window1" },
-      any(ResourceLookup::class.java),
-      eq(client.process)
-    )
+    verify(client.treeLoader)
+      .loadComponentTree(
+        argThat { event: LegacyEvent -> event.windowId == "window1" },
+        any(ResourceLookup::class.java),
+        eq(client.process)
+      )
   }
 }

@@ -27,10 +27,11 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
 
 /**
- * A [DropDownAction] that shows the list of debuggable processes running in the device corresponding to [targetDeviceSerialNumber].
- * Each process can be selected.
+ * A [DropDownAction] that shows the list of debuggable processes running in the device
+ * corresponding to [targetDeviceSerialNumber]. Each process can be selected.
  *
- * This action will automatically show and hide itself when the device supports or doesn't support auto-connect.
+ * This action will automatically show and hide itself when the device supports or doesn't support
+ * auto-connect.
  */
 class SingleDeviceSelectProcessAction(
   private val deviceModel: DeviceModel,
@@ -47,17 +48,16 @@ class SingleDeviceSelectProcessAction(
     // no need to show the process picker if the device supports auto-connect
     event.presentation.isVisible = !deviceModel.supportsForegroundProcessDetection(targetDevice)
     event.presentation.icon = targetDevice.toIcon()
-    deviceModel.selectedProcess?.name?.let {
-      event.presentation.text = it
-    }
+    deviceModel.selectedProcess?.name?.let { event.presentation.text = it }
   }
 
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
 
-    val processes = deviceModel.processes
-      .sortedBy { it.name }
-      .filter { (it.isRunning) && (it.device.serial == targetDeviceSerialNumber) }
+    val processes =
+      deviceModel.processes
+        .sortedBy { it.name }
+        .filter { (it.isRunning) && (it.device.serial == targetDeviceSerialNumber) }
 
     for (process in processes) {
       add(SelectProcessAction(process))
@@ -69,9 +69,8 @@ class SingleDeviceSelectProcessAction(
     return true
   }
 
-  private inner class SelectProcessAction(
-    private val processDescriptor: ProcessDescriptor
-  ) : ToggleAction(processDescriptor.name) {
+  private inner class SelectProcessAction(private val processDescriptor: ProcessDescriptor) :
+    ToggleAction(processDescriptor.name) {
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == deviceModel.selectedProcess
     }

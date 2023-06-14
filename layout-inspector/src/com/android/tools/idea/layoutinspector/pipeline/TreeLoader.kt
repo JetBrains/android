@@ -22,24 +22,23 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 
 /**
- * A mechanism for using an [InspectorClient] and some data (dependant on the type of client) to create a [ViewNode] tree.
+ * A mechanism for using an [InspectorClient] and some data (dependant on the type of client) to
+ * create a [ViewNode] tree.
  */
 interface TreeLoader {
-  /**
-   * Load the component tree corresponding to the given [data] (implementation specific).
-   */
-  fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData?
+  /** Load the component tree corresponding to the given [data] (implementation specific). */
+  fun loadComponentTree(
+    data: Any?,
+    resourceLookup: ResourceLookup,
+    process: ProcessDescriptor
+  ): ComponentTreeData?
 
   fun getAllWindowIds(data: Any?): List<*>?
 }
 
-/**
- * The result of [TreeLoader.loadComponentTree].
- */
+/** The result of [TreeLoader.loadComponentTree]. */
 data class ComponentTreeData(
-  /**
-   * The loaded [AndroidWindow], or null if all windows are gone.
-   */
+  /** The loaded [AndroidWindow], or null if all windows are gone. */
   val window: AndroidWindow?,
 
   /**
@@ -47,8 +46,6 @@ data class ComponentTreeData(
    */
   val generation: Int,
 
-  /**
-   * Dynamic capabilities based on the loaded data.
-   */
+  /** Dynamic capabilities based on the loaded data. */
   val dynamicCapabilities: Set<Capability>
 )

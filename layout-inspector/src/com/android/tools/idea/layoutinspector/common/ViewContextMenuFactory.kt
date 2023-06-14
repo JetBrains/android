@@ -33,75 +33,87 @@ import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.util.text.nullize
-import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import javax.swing.event.PopupMenuEvent
+import org.jetbrains.annotations.VisibleForTesting
 
-fun showViewContextMenu(views: List<ViewNode>, inspectorModel: InspectorModel, source: JComponent, x: Int, y: Int) {
+fun showViewContextMenu(
+  views: List<ViewNode>,
+  inspectorModel: InspectorModel,
+  source: JComponent,
+  x: Int,
+  y: Int
+) {
   if (inspectorModel.isEmpty) {
     return
   }
   val actionManager = ActionManager.getInstance()
-  val group = object : ActionGroup("", true) {
-    override fun getChildren(event: AnActionEvent?): Array<AnAction> {
-      val showAllAction = object : AnAction("Show All") {
-        override fun actionPerformed(event: AnActionEvent) {
-          inspectorModel.showAll()
+  val group =
+    object : ActionGroup("", true) {
+      override fun getChildren(event: AnActionEvent?): Array<AnAction> {
+        val showAllAction =
+          object : AnAction("Show All") {
+            override fun actionPerformed(event: AnActionEvent) {
+              inspectorModel.showAll()
+            }
+
+            override fun update(actionEvent: AnActionEvent) {
+              actionEvent.presentation.isEnabled = inspectorModel.hasHiddenNodes()
+            }
+          }
+
+        val result = mutableListOf<AnAction>()
+        if (views.size > 1) {
+          val viewMenu = DropDownAction("Select View", null, null)
+          viewMenu.addAll(views.map { SelectViewAction(it, inspectorModel) })
+          result.add(viewMenu)
         }
 
-        override fun update(actionEvent: AnActionEvent) {
-          actionEvent.presentation.isEnabled = inspectorModel.hasHiddenNodes()
+        val client = event?.let { LayoutInspector.get(it)?.currentClient }
+        if (client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
+          if (views.isNotEmpty()) {
+            val topView = views.first()
+            result.add(HideSubtreeAction(inspectorModel, client, topView))
+            result.add(ShowOnlySubtreeAction(inspectorModel, client, topView))
+            result.add(ShowOnlyParentsAction(inspectorModel, client, topView))
+          }
+          result.add(showAllAction)
         }
+        result.add(GotoDeclarationAction)
+        return result.toTypedArray()
       }
-
-      val result = mutableListOf<AnAction>()
-      if (views.size > 1) {
-        val viewMenu = DropDownAction("Select View", null, null)
-        viewMenu.addAll(views.map { SelectViewAction(it, inspectorModel) })
-        result.add(viewMenu)
-      }
-
-      val client = event?.let { LayoutInspector.get(it)?.currentClient }
-      if (client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true) {
-        if (views.isNotEmpty()) {
-          val topView = views.first()
-          result.add(HideSubtreeAction(inspectorModel, client, topView))
-          result.add(ShowOnlySubtreeAction(inspectorModel, client, topView))
-          result.add(ShowOnlyParentsAction(inspectorModel, client, topView))
-        }
-        result.add(showAllAction)
-      }
-      result.add(GotoDeclarationAction)
-      return result.toTypedArray()
     }
-  }
   val popupMenu = actionManager.createActionPopupMenu("LayoutInspector", group)
   val popupComponent = popupMenu.component
 
   if (views.size > 1) {
-    // Add listeners to highlight the hovered item. Unfortunately the necessary components to which to add listeners aren't available right
+    // Add listeners to highlight the hovered item. Unfortunately the necessary components to which
+    // to add listeners aren't available right
     // away, so we have to have this chain of listeners and invokeLaters.
-    popupComponent.addPopupMenuListener(object : PopupMenuListenerAdapter() {
-      override fun popupMenuWillBecomeVisible(unuxed: PopupMenuEvent?) {
-        ApplicationManager.getApplication().invokeLater {
-          val subMenu = popupComponent.subElements[0].subElements[0] as? JPopupMenu ?: return@invokeLater
-          subMenu.addPopupMenuListener(object : PopupMenuListenerAdapter() {
-            override fun popupMenuWillBecomeVisible(unused: PopupMenuEvent) {
-              subMenu.subElements
-                .filterIsInstance<ActionMenuItem>()
-                .forEach { menuItem ->
-                  menuItem.addChangeListener {
-                    if (menuItem.isArmed) {
-                      inspectorModel.hoveredNode = (menuItem.anAction as SelectViewAction).view
+    popupComponent.addPopupMenuListener(
+      object : PopupMenuListenerAdapter() {
+        override fun popupMenuWillBecomeVisible(unuxed: PopupMenuEvent?) {
+          ApplicationManager.getApplication().invokeLater {
+            val subMenu =
+              popupComponent.subElements[0].subElements[0] as? JPopupMenu ?: return@invokeLater
+            subMenu.addPopupMenuListener(
+              object : PopupMenuListenerAdapter() {
+                override fun popupMenuWillBecomeVisible(unused: PopupMenuEvent) {
+                  subMenu.subElements.filterIsInstance<ActionMenuItem>().forEach { menuItem ->
+                    menuItem.addChangeListener {
+                      if (menuItem.isArmed) {
+                        inspectorModel.hoveredNode = (menuItem.anAction as SelectViewAction).view
+                      }
                     }
                   }
                 }
-            }
-          })
+              }
+            )
+          }
         }
       }
-    })
+    )
   }
   popupComponent.show(source, x, y)
 }
@@ -110,7 +122,7 @@ private class HideSubtreeAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
   val topView: ViewNode
-  ) : AnAction("Hide Subtree") {
+) : AnAction("Hide Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     inspectorModel.hideSubtree(topView)
@@ -121,7 +133,7 @@ private class ShowOnlySubtreeAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
   val topView: ViewNode
-  ) : AnAction("Show Only Subtree") {
+) : AnAction("Show Only Subtree") {
   override fun actionPerformed(event: AnActionEvent) {
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     inspectorModel.showOnlySubtree(topView)
@@ -132,7 +144,7 @@ private class ShowOnlyParentsAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
   val topView: ViewNode
-  ) : AnAction("Show Only Parents") {
+) : AnAction("Show Only Parents") {
   override fun actionPerformed(event: AnActionEvent) {
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     inspectorModel.showOnlyParents(topView)
@@ -143,9 +155,12 @@ private fun generateText(viewNode: ViewNode) =
   viewNode.viewId?.name.nullize() ?: viewNode.textValue.nullize() ?: viewNode.qualifiedName
 
 @VisibleForTesting
-class SelectViewAction(
-  val view: ViewNode, val inspectorModel: InspectorModel
-) : AnAction(generateText(view), null, IconProvider.getIconForView(view.qualifiedName, view is ComposeViewNode)) {
+class SelectViewAction(val view: ViewNode, val inspectorModel: InspectorModel) :
+  AnAction(
+    generateText(view),
+    null,
+    IconProvider.getIconForView(view.qualifiedName, view is ComposeViewNode)
+  ) {
 
   override fun actionPerformed(event: AnActionEvent) {
     inspectorModel.setSelection(view, SelectionOrigin.INTERNAL)

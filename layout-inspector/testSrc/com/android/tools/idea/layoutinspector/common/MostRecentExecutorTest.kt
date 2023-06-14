@@ -16,13 +16,14 @@
 package com.android.tools.idea.layoutinspector.common
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import org.junit.Test
 
 class MostRecentExecutorTest {
-  private class TestRunnable(waitForProceed: Boolean = false, val fail: Boolean = false) : Runnable {
+  private class TestRunnable(waitForProceed: Boolean = false, val fail: Boolean = false) :
+    Runnable {
     var ran = false
       private set
     private val waitLatch = CountDownLatch(if (waitForProceed) 1 else 0)

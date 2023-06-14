@@ -25,17 +25,16 @@ import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqua
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import com.intellij.testFramework.ProjectRule
+import java.nio.file.Files
+import javax.imageio.ImageIO
 import layoutinspector.snapshots.Metadata
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
-import javax.imageio.ImageIO
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class LegacySnapshotLoaderTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val testDataPath = TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH)
 
@@ -45,7 +44,8 @@ class LegacySnapshotLoaderTest {
     val notificationModel = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     val snapshotMetadata =
-      LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v1.li"), model, notificationModel, stats)
+      LegacySnapshotLoader()
+        .loadFile(testDataPath.resolve("legacy-snapshot-v1.li"), model, notificationModel, stats)
     // We don't get any metadata from V1, so just verify the version
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version1)
 
@@ -58,7 +58,8 @@ class LegacySnapshotLoaderTest {
     val notificationModel = NotificationModel(projectRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
     val snapshotMetadata =
-      LegacySnapshotLoader().loadFile(testDataPath.resolve("legacy-snapshot-v3.li"), model, notificationModel, stats)
+      LegacySnapshotLoader()
+        .loadFile(testDataPath.resolve("legacy-snapshot-v3.li"), model, notificationModel, stats)
     assertThat(snapshotMetadata.snapshotVersion).isEqualTo(ProtocolVersion.Version3)
     assertThat(snapshotMetadata.apiLevel).isEqualTo(27)
     assertThat(snapshotMetadata.processName).isEqualTo("com.example.myapplication")
@@ -82,11 +83,7 @@ class LegacySnapshotLoaderTest {
           view(ANY_DRAW_ID)
           view(ANY_DRAW_ID) {
             view(ANY_DRAW_ID) {
-              view(ANY_DRAW_ID) {
-                view(ANY_DRAW_ID) {
-                  view(ANY_DRAW_ID)
-                }
-              }
+              view(ANY_DRAW_ID) { view(ANY_DRAW_ID) { view(ANY_DRAW_ID) } }
               view(ANY_DRAW_ID) {
                 view(ANY_DRAW_ID) {
                   view(ANY_DRAW_ID)

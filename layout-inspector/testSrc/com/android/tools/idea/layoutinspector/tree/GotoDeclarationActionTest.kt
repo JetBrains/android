@@ -43,22 +43,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.runInEdtAndGet
+import java.awt.Dimension
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.awt.Dimension
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
 
 class GotoDeclarationActionTest {
 
   private val projectRule = AndroidProjectRule.withSdk()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule)!!
 
   @Before
   fun setup() {
@@ -90,13 +89,17 @@ class GotoDeclarationActionTest {
     runBlocking { GotoDeclarationAction.lastAction?.join() }
     assertThat(notificationModel.notifications).hasSize(1)
     assertThat(notificationModel.notifications.first().message)
-      .isEqualTo("Cannot navigate to source because LinearLayout in the layout demo.xml doesn't have an id.")
+      .isEqualTo(
+        "Cannot navigate to source because LinearLayout in the layout demo.xml doesn't have an id."
+      )
     model.setSelection(model[5], SelectionOrigin.INTERNAL)
     GotoDeclarationAction.actionPerformed(event)
     runBlocking { GotoDeclarationAction.lastAction?.join() }
     assertThat(notificationModel.notifications).hasSize(1)
     assertThat(notificationModel.notifications.first().message)
-      .isEqualTo("Cannot navigate to source because TextView in the layout demo.xml doesn't have an id.")
+      .isEqualTo(
+        "Cannot navigate to source because TextView in the layout demo.xml doesn't have an id."
+      )
   }
 
   @Test
@@ -109,8 +112,11 @@ class GotoDeclarationActionTest {
     assertThat(event.presentation.isEnabled).isTrue()
     GotoDeclarationAction.actionPerformed(event)
     runBlocking { GotoDeclarationAction.lastAction?.join() }
-    fileOpenCaptureRule.checkEditor("MyCompose.kt", 17,
-                                    "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
+    fileOpenCaptureRule.checkEditor(
+      "MyCompose.kt",
+      17,
+      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),"
+    )
     checkStats(stats, keyStrokeCount = 1)
   }
 
@@ -141,22 +147,28 @@ class GotoDeclarationActionTest {
 
   private fun loadComposeFiles() {
     val fixture = projectRule.fixture
-    fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath =
+      resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
     fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
 
   private fun createModel(): InspectorModel =
-    model(projectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(projectRule.fixture) {
-      view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
-        compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
-          compose(-3, "Text", "MyCompose.kt", 49835523, 593, 18)
-          compose(-4, "Greeting", "MyCompose.kt", 49835523, 622, 19) {
-            compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
+    model(
+      projectRule.project,
+      FakeTreeSettings(),
+      body =
+        DemoExample.setUpDemo(projectRule.fixture) {
+          view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
+            compose(-2, "Column", "MyCompose.kt", 49835523, 540, 17) {
+              compose(-3, "Text", "MyCompose.kt", 49835523, 593, 18)
+              compose(-4, "Greeting", "MyCompose.kt", 49835523, 622, 19) {
+                compose(-5, "Text", "MyCompose.kt", 1216697758, 164, 3)
+              }
+            }
           }
         }
-      }
-    })
+    )
 
   private fun createEvent(
     model: InspectorModel,
@@ -168,12 +180,20 @@ class GotoDeclarationActionTest {
     whenever(client.stats).thenReturn(stats)
     val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
     val clientSettings = InspectorClientSettings(projectRule.project)
-    val inspector = LayoutInspector(coroutineScope, clientSettings, client, model, notificationModel, mock())
+    val inspector =
+      LayoutInspector(coroutineScope, clientSettings, client, model, notificationModel, mock())
     val dataContext: DataContext = mock()
     whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
     val actionManager: ActionManager = mock()
     val inputEvent = if (fromShortcut) mock<KeyEvent>() else mock<InputEvent>()
-    return AnActionEvent(inputEvent, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
+    return AnActionEvent(
+      inputEvent,
+      dataContext,
+      ActionPlaces.UNKNOWN,
+      Presentation(),
+      actionManager,
+      0
+    )
   }
 
   private fun checkStats(stats: SessionStatistics, clickCount: Int = 0, keyStrokeCount: Int = 0) {

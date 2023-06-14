@@ -16,9 +16,9 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import javax.swing.JPanel
 import kotlin.test.fail
+import org.junit.Test
 
 class WrapLogicTest {
 
@@ -76,8 +76,7 @@ class WrapLogicTest {
     try {
       wrapLogic.wrapComponent { JPanel() }
       fail("Expected exception not thrown")
-    } catch (_: IllegalStateException) {
-    }
+    } catch (_: IllegalStateException) {}
   }
 
   @Test
@@ -92,7 +91,6 @@ class WrapLogicTest {
     try {
       wrapLogic.unwrapComponent()
       fail("Expected exception not thrown")
-    } catch (_: IllegalStateException) {
-    }
+    } catch (_: IllegalStateException) {}
   }
 }

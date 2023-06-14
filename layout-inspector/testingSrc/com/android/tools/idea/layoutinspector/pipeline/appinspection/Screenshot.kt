@@ -28,7 +28,8 @@ import java.util.zip.Deflater
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 /**
- * Process a target image png file and create the data that normally would have been generated on a target device.
+ * Process a target image png file and create the data that normally would have been generated on a
+ * target device.
  */
 class Screenshot(filename: String, bitmapType: BitmapType) {
   val image: BufferedImage
@@ -40,18 +41,38 @@ class Screenshot(filename: String, bitmapType: BitmapType) {
     image = bitmapType.createImage(buffer, origImage.width, origImage.height)
     val graphics = image.graphics
     graphics.drawImage(origImage, 0, 0, null)
-    val imageBytes = ArrayList<Byte>(image.width * image.height * bitmapType.pixelSize + BITMAP_HEADER_SIZE)
+    val imageBytes =
+      ArrayList<Byte>(image.width * image.height * bitmapType.pixelSize + BITMAP_HEADER_SIZE)
     if (bitmapType == BitmapType.RGB_565) {
-      val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
-                                                      ShortArray(image.width * image.height)) as ShortArray
-      dataElements.flatMapTo(imageBytes) { listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte()) }
-    }
-    else {
-      val dataElements = image.raster.getDataElements(0, 0, image.width, image.height,
-                                                      IntArray(image.width * image.height)) as IntArray
+      val dataElements =
+        image.raster.getDataElements(
+          0,
+          0,
+          image.width,
+          image.height,
+          ShortArray(image.width * image.height)
+        ) as ShortArray
+      dataElements.flatMapTo(imageBytes) {
+        listOf((it.toInt() and 0xFF).toByte(), (it.toInt() ushr 8).toByte())
+      }
+    } else {
+      val dataElements =
+        image.raster.getDataElements(
+          0,
+          0,
+          image.width,
+          image.height,
+          IntArray(image.width * image.height)
+        ) as IntArray
       dataElements.flatMapTo(imageBytes) { it.toBytes().asIterable() }
     }
-    bytes = (image.width.toBytes().asList() + image.height.toBytes().asList() + bitmapType.byteVal + imageBytes).toByteArray().compress()
+    bytes =
+      (image.width.toBytes().asList() +
+          image.height.toBytes().asList() +
+          bitmapType.byteVal +
+          imageBytes)
+        .toByteArray()
+        .compress()
   }
 }
 

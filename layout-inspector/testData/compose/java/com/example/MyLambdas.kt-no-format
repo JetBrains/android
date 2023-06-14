@@ -40,11 +40,14 @@ fun f2(a1: (Int) -> Int, a2: (Int) -> Int, a3: (Int) -> Int = { -1 }): Int {
 }
 
 fun f3(a1: Int): Int = a1 + 1
+
 fun f4(a1: Int): Int = a1 + 1
+
 fun f5(a1: Int): Int = a1 + 1
+
 fun f6(a1: Int): Int = a1 + 1
-fun f7(a1: () -> IntArray): Int =
-  a1().sum()
+
+fun f7(a1: () -> IntArray): Int = a1().sum()
 
 fun f8(): Int = f7 {
   intArrayOf(

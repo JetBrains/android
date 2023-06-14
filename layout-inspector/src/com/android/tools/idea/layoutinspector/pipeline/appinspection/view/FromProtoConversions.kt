@@ -114,7 +114,8 @@ import java.awt.Dimension
 import java.awt.Polygon
 import java.awt.Shape
 
-// TODO(b/275714274) Remove these constants when android U / 34 is merged into prebuilts, and use the constants from the android jar.
+// TODO(b/275714274) Remove these constants when android U / 34 is merged into prebuilts, and use
+// the constants from the android jar.
 const val GRAMMATICAL_GENDER_NEUTRAL = 1
 const val GRAMMATICAL_GENDER_FEMININE = 2
 const val GRAMMATICAL_GENDER_MASCULINE = 3
@@ -122,7 +123,8 @@ const val GRAMMATICAL_GENDER_MASCULINE = 3
 fun LayoutInspectorViewProtocol.Screenshot.Type.toImageType(): AndroidWindow.ImageType {
   return when (this) {
     LayoutInspectorViewProtocol.Screenshot.Type.SKP -> AndroidWindow.ImageType.SKP_PENDING
-    LayoutInspectorViewProtocol.Screenshot.Type.BITMAP -> AndroidWindow.ImageType.BITMAP_AS_REQUESTED
+    LayoutInspectorViewProtocol.Screenshot.Type.BITMAP ->
+      AndroidWindow.ImageType.BITMAP_AS_REQUESTED
     else -> AndroidWindow.ImageType.UNKNOWN
   }
 }
@@ -171,20 +173,27 @@ fun LayoutInspectorViewProtocol.Property.Type.convert(): PropertyType {
 }
 
 fun LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.toAttachErrorState() =
-  when(this) {
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED -> AttachErrorState.START_RECEIVED
+  when (this) {
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED ->
+      AttachErrorState.START_RECEIVED
     LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.STARTED -> AttachErrorState.STARTED
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK -> AttachErrorState.VIEW_INVALIDATION_CALLBACK
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT -> AttachErrorState.ROOTS_EVENT_SENT
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED -> AttachErrorState.SCREENSHOT_CAPTURED
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED -> AttachErrorState.VIEW_HIERARCHY_CAPTURED
-    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT -> AttachErrorState.RESPONSE_SENT
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK ->
+      AttachErrorState.VIEW_INVALIDATION_CALLBACK
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT ->
+      AttachErrorState.ROOTS_EVENT_SENT
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED ->
+      AttachErrorState.SCREENSHOT_CAPTURED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED ->
+      AttachErrorState.VIEW_HIERARCHY_CAPTURED
+    LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT ->
+      AttachErrorState.RESPONSE_SENT
     else -> AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   }
 
 fun LayoutInspectorViewProtocol.ErrorCode.toAttachErrorCode() =
   when (this) {
-    LayoutInspectorViewProtocol.ErrorCode.NO_HARDWARE_ACCELERATION -> AttachErrorCode.NO_HARDWARE_ACCELERATION
+    LayoutInspectorViewProtocol.ErrorCode.NO_HARDWARE_ACCELERATION ->
+      AttachErrorCode.NO_HARDWARE_ACCELERATION
     LayoutInspectorViewProtocol.ErrorCode.NO_ROOT_VIEWS_FOUND -> AttachErrorCode.NO_ROOT_VIEWS_FOUND
     else -> AttachErrorCode.UNKNOWN_VIEW_AGENT_ERROR
   }
@@ -194,7 +203,8 @@ fun LayoutInspectorViewProtocol.Quad.toShape(): Shape {
 }
 
 /**
- * Create a [FolderConfiguration] based on a [LayoutInspectorViewProtocol.Configuration] proto received from a device.
+ * Create a [FolderConfiguration] based on a [LayoutInspectorViewProtocol.Configuration] proto
+ * received from a device.
  */
 fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: Int): FolderConfiguration {
   val config = FolderConfiguration()
@@ -341,20 +351,24 @@ private fun navigationMethodFromRawValue(value: Int): NavigationMethodQualifier?
 
 private fun grammaticalGenderQualifierFromRawValue(value: Int): GrammaticalGenderQualifier? =
   when (value) {
-      GRAMMATICAL_GENDER_NEUTRAL -> GrammaticalGender.NEUTER
-      GRAMMATICAL_GENDER_FEMININE -> GrammaticalGender.FEMININE
-      GRAMMATICAL_GENDER_MASCULINE -> GrammaticalGender.MASCULINE
-      else -> null
+    GRAMMATICAL_GENDER_NEUTRAL -> GrammaticalGender.NEUTER
+    GRAMMATICAL_GENDER_FEMININE -> GrammaticalGender.FEMININE
+    GRAMMATICAL_GENDER_MASCULINE -> GrammaticalGender.MASCULINE
+    else -> null
   }?.let { GrammaticalGenderQualifier(it) }
 
-private fun LayoutInspectorViewProtocol.FoldEvent.FoldState.convert() = when (this) {
-  LayoutInspectorViewProtocol.FoldEvent.FoldState.FLAT -> InspectorModel.Posture.FLAT
-  LayoutInspectorViewProtocol.FoldEvent.FoldState.HALF_OPEN -> InspectorModel.Posture.HALF_OPEN
-  else -> null
-}
+private fun LayoutInspectorViewProtocol.FoldEvent.FoldState.convert() =
+  when (this) {
+    LayoutInspectorViewProtocol.FoldEvent.FoldState.FLAT -> InspectorModel.Posture.FLAT
+    LayoutInspectorViewProtocol.FoldEvent.FoldState.HALF_OPEN -> InspectorModel.Posture.HALF_OPEN
+    else -> null
+  }
 
-private fun LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.convert() = when (this) {
-  LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL -> InspectorModel.FoldOrientation.HORIZONTAL
-  LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL -> InspectorModel.FoldOrientation.VERTICAL
-  else -> null
-}
+private fun LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.convert() =
+  when (this) {
+    LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.HORIZONTAL ->
+      InspectorModel.FoldOrientation.HORIZONTAL
+    LayoutInspectorViewProtocol.FoldEvent.FoldOrientation.VERTICAL ->
+      InspectorModel.FoldOrientation.VERTICAL
+    else -> null
+  }

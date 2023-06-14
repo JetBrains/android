@@ -37,29 +37,36 @@ class FloatingToolbarProvider(
 ) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
 
   /** Defines the groups of actions shown in the floating toolbar */
-  private val actionGroup = object : EditorActionsToolbarActionGroups {
-    override val zoomLabelGroup = DefaultActionGroup().apply {
-      add(ZoomLabelAction)
-      add(ZoomResetAction)
+  private val actionGroup =
+    object : EditorActionsToolbarActionGroups {
+      override val zoomLabelGroup =
+        DefaultActionGroup().apply {
+          add(ZoomLabelAction)
+          add(ZoomResetAction)
+        }
+
+      override val zoomControlsGroup =
+        DefaultActionGroup().apply {
+          add(ZoomInAction.getInstance())
+          add(ZoomOutAction.getInstance())
+          add(ZoomToFitAction.getInstance())
+        }
+
+      val panSurfaceGroup = DefaultActionGroup().apply { add(PanSurfaceAction) }
+      val toggle3dGroup =
+        DefaultActionGroup().apply {
+          add(Toggle3dAction { deviceViewPanel.layoutInspector.renderModel })
+        }
+
+      override val otherGroups: List<ActionGroup> = listOf(panSurfaceGroup, toggle3dGroup)
     }
-
-    override val zoomControlsGroup = DefaultActionGroup().apply {
-      add(ZoomInAction.getInstance())
-      add(ZoomOutAction.getInstance())
-      add(ZoomToFitAction.getInstance())
-    }
-
-    val panSurfaceGroup = DefaultActionGroup().apply { add(PanSurfaceAction) }
-    val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction { deviceViewPanel.layoutInspector.renderModel }) }
-
-    override val otherGroups: List<ActionGroup> = listOf(
-      panSurfaceGroup,
-      toggle3dGroup
-    )
-  }
 
   val toggle3dActionButton: ActionButton?
-    get() = findActionButton(actionGroup.toggle3dGroup, Toggle3dAction { deviceViewPanel.layoutInspector.renderModel })
+    get() =
+      findActionButton(
+        actionGroup.toggle3dGroup,
+        Toggle3dAction { deviceViewPanel.layoutInspector.renderModel }
+      )
 
   init {
     updateToolbar()

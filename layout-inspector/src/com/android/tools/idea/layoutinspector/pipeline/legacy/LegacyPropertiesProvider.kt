@@ -100,7 +100,18 @@ class LegacyPropertiesProvider : PropertiesProvider {
           val name = definition.name
           val type = definition.type
           val value = definition.value_mapper(rawValue)
-          val property = InspectorPropertyItem(ANDROID_URI, name, name, type, value, section, null, view.drawId, lookup)
+          val property =
+            InspectorPropertyItem(
+              ANDROID_URI,
+              name,
+              name,
+              type,
+              value,
+              section,
+              null,
+              view.drawId,
+              lookup
+            )
           table.put(property.namespace, property.name, property)
         }
 
@@ -108,24 +119,30 @@ class LegacyPropertiesProvider : PropertiesProvider {
         if (!stop) {
           start += 1
         }
-      }
-      while (!stop)
+      } while (!stop)
 
       val parentTable: PropertiesTable<InspectorPropertyItem>? = parent?.let { temp[parent.drawId] }
       val parentScrollX = parentTable?.getOrNull(ANDROID_URI, ATTR_SCROLL_X)?.dimensionValue ?: 0
       val parentScrollY = parentTable?.getOrNull(ANDROID_URI, ATTR_SCROLL_Y)?.dimensionValue ?: 0
-      view.layoutBounds.x = (table.remove(ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - parentScrollX
-      view.layoutBounds.y = (table.remove(ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - parentScrollY
-      view.layoutBounds.width = table.remove(ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
-      view.layoutBounds.height = table.remove(ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
+      view.layoutBounds.x =
+        (table.remove(ANDROID_URI, ATTR_LEFT)?.dimensionValue ?: 0) - parentScrollX
+      view.layoutBounds.y =
+        (table.remove(ANDROID_URI, ATTR_TOP)?.dimensionValue ?: 0) - parentScrollY
+      view.layoutBounds.width =
+        table.remove(ANDROID_URI, SdkConstants.ATTR_WIDTH)?.dimensionValue ?: 0
+      view.layoutBounds.height =
+        table.remove(ANDROID_URI, SdkConstants.ATTR_HEIGHT)?.dimensionValue ?: 0
       view.renderBounds = view.layoutBounds
       view.textValue = table[ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""
       val url = table[ANDROID_URI, ATTR_ID]?.value?.let { ResourceUrl.parse(it) }
-      view.viewId = url?.let { ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, it.name) }
+      view.viewId =
+        url?.let { ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, it.name) }
       // TODO: add other layout flags if we care about them
-      // TODO(171901393): since we're taking a screenshot rather than images of each view, disable setting layoutFlags for now, so we don't
+      // TODO(171901393): since we're taking a screenshot rather than images of each view, disable
+      // setting layoutFlags for now, so we don't
       // add a Dimmer DrawViewNode (with this API the captured image is already dimmed).
-      view.layoutFlags = table.remove(ANDROID_URI, ATTR_DIM_BEHIND)?.value?.let { PropertyMapper.toInt(it) } ?: 0
+      view.layoutFlags =
+        table.remove(ANDROID_URI, ATTR_DIM_BEHIND)?.value?.let { PropertyMapper.toInt(it) } ?: 0
 
       // Remove other attributes that we already have elsewhere:
       table.remove(ANDROID_URI, ATTR_X)

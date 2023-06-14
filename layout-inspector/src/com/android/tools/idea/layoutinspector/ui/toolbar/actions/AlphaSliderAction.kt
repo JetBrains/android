@@ -32,12 +32,15 @@ import javax.swing.JSlider
 private const val SLIDER_KEY = "SliderKey"
 const val INITIAL_ALPHA_PERCENT = 60
 
-class AlphaSliderAction(private val renderModelProvider: () -> RenderModel) : AnAction(), CustomComponentAction {
+class AlphaSliderAction(private val renderModelProvider: () -> RenderModel) :
+  AnAction(), CustomComponentAction {
   override fun actionPerformed(event: AnActionEvent) {
-    val component = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
+    val component =
+      event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
     val slider = component.getClientProperty(SLIDER_KEY) as JSlider
     // The event for Custom components actions are constructed differently than normal actions.
-    // If this action is shown in a popup toolbar (when there is not enough space to show the whole toolbar in-place),
+    // If this action is shown in a popup toolbar (when there is not enough space to show the whole
+    // toolbar in-place),
     // go through the action toolbar data context to find the model.
     renderModelProvider().overlayAlpha = slider.value / 100.0f
   }
@@ -48,7 +51,9 @@ class AlphaSliderAction(private val renderModelProvider: () -> RenderModel) : An
     val slider = JSlider(JSlider.HORIZONTAL, 0, 100, INITIAL_ALPHA_PERCENT)
     slider.addChangeListener {
       val dataContext = DataManager.getInstance().getDataContext(slider)
-      actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.TOOLBAR, presentation, dataContext))
+      actionPerformed(
+        AnActionEvent.createFromDataContext(ActionPlaces.TOOLBAR, presentation, dataContext)
+      )
     }
     panel.add(slider)
     panel.putClientProperty(SLIDER_KEY, slider)

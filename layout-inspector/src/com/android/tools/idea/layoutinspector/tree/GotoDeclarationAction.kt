@@ -36,19 +36,20 @@ import kotlinx.coroutines.withContext
 
 private const val VIEW_NOT_FOUND_KEY = "view.not.found"
 
-/**
- * Action for navigating to the currently selected node in the layout inspector.
- */
+/** Action for navigating to the currently selected node in the layout inspector. */
 object GotoDeclarationAction : AnAction("Go To Declaration") {
-  @get:VisibleForTesting
-  var lastAction: Job? = null
+  @get:VisibleForTesting var lastAction: Job? = null
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
     inspector.currentClient.stats.gotoSourceFromTreeActionMenu(event)
-    navigateToSelectedView(inspector.coroutineScope, inspector.inspectorModel, inspector.notificationModel)
+    navigateToSelectedView(
+      inspector.coroutineScope,
+      inspector.inspectorModel,
+      inspector.notificationModel
+    )
   }
 
   override fun update(event: AnActionEvent) {
@@ -57,33 +58,42 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
     event.presentation.isEnabled = inspector?.inspectorModel?.resourceLookup?.hasResolver == true
   }
 
-  fun navigateToSelectedView(coroutineScope: CoroutineScope, inspectorModel: InspectorModel, notificationModel: NotificationModel) {
-    lastAction = coroutineScope.launch {
-      val navigatable = findNavigatable(inspectorModel, notificationModel) ?: return@launch
-      withContext(AndroidDispatchers.uiThread) {
-        navigatable.navigate(true)
+  fun navigateToSelectedView(
+    coroutineScope: CoroutineScope,
+    inspectorModel: InspectorModel,
+    notificationModel: NotificationModel
+  ) {
+    lastAction =
+      coroutineScope.launch {
+        val navigatable = findNavigatable(inspectorModel, notificationModel) ?: return@launch
+        withContext(AndroidDispatchers.uiThread) { navigatable.navigate(true) }
       }
-    }
   }
 
   @Slow
   private suspend fun findNavigatable(
     model: InspectorModel,
     notificationModel: NotificationModel
-  ): Navigatable? = withContext(AndroidDispatchers.workerThread) {
-    val resourceLookup = model.resourceLookup
-    val node = model.selection ?: return@withContext null
-    if (node is ComposeViewNode) {
-      runReadAction { resourceLookup.findComposableNavigatable(node) }
-    }
-    else {
-      val navigatable = withContext(AndroidDispatchers.uiThread) { resourceLookup.findFileLocation (node)?.navigatable }
-      val layout = node.layout?.name
-      if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
-        notificationModel.addNotification(VIEW_NOT_FOUND_KEY,
-                                          LayoutInspectorBundle.message(VIEW_NOT_FOUND_KEY, node.unqualifiedName, layout), Status.Warning)
+  ): Navigatable? =
+    withContext(AndroidDispatchers.workerThread) {
+      val resourceLookup = model.resourceLookup
+      val node = model.selection ?: return@withContext null
+      if (node is ComposeViewNode) {
+        runReadAction { resourceLookup.findComposableNavigatable(node) }
+      } else {
+        val navigatable =
+          withContext(AndroidDispatchers.uiThread) {
+            resourceLookup.findFileLocation(node)?.navigatable
+          }
+        val layout = node.layout?.name
+        if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
+          notificationModel.addNotification(
+            VIEW_NOT_FOUND_KEY,
+            LayoutInspectorBundle.message(VIEW_NOT_FOUND_KEY, node.unqualifiedName, layout),
+            Status.Warning
+          )
+        }
+        navigatable
       }
-      navigatable
     }
-  }
 }

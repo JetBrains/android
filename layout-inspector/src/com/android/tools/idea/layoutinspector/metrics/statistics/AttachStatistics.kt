@@ -20,9 +20,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 
-/**
- * Attachment information for the current session.
- */
+/** Attachment information for the current session. */
 class AttachStatistics(
   private val clientType: ClientType,
   private val multipleProjectsOpen: () -> Boolean,
@@ -63,6 +61,7 @@ class AttachStatistics(
 
   /**
    * The current progress from the launch monitor.
+   *
    * TODO: Consider renaming the proto field.
    */
   var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE

@@ -52,59 +52,75 @@ const val ACTIVITY_RESTART_KEY = "activity.restart"
 const val KEY_HIDE_ACTIVITY_RESTART_BANNER = "live.layout.inspector.activity.restart.banner.hide"
 
 /**
- * Show a banner with "Activity Restarted" and a link to turn on "Layout inspection without an activity restart".
+ * Show a banner with "Activity Restarted" and a link to turn on "Layout inspection without an
+ * activity restart".
  */
-fun showActivityRestartedInBanner(project: Project, notificationModel: NotificationModel, process: ProcessDescriptor) {
+fun showActivityRestartedInBanner(
+  project: Project,
+  notificationModel: NotificationModel,
+  process: ProcessDescriptor
+) {
 
   /**
    * Action for opening the "Miscellaneous" tab in the Android run configuration for the project,
    * and mark where the "Enable layout inspection without an activity restart" checkbox is.
    */
-  val enableInRunConfigAction = StatusNotificationAction(LayoutInspectorBundle.message("activity.restart.action")) {
-    val configurable = ProjectRunConfigurationConfigurable(project)
-    ShowSettingsUtil.getInstance().editConfigurable(project, configurable) {
-      configurable.selectConfigurableOnShow()
-      ApplicationManager.getApplication().invokeLater {
-        val dialog = SwingUtilities.windowForComponent(configurable.tree)
-        val tabbedPanel = dialog.firstComponentOfClass(JBTabbedPane::class.java)
-        val checkBox = tabbedPanel?.firstComponentWithName(AndroidRunConfigurationEditor.LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART)
-                         as? JComponent ?: return@invokeLater
-        val editor = SwingUtilities.getAncestorOfClass(SingleSettingEditor::class.java, tabbedPanel) as SingleSettingEditor
-        val glassPanel = GlassPanel(editor)
-        val painter = object : AbstractPainter() {
-          override fun executePaint(component: Component, g: Graphics2D) {
-            glassPanel.paintSpotlight(g, editor)
-          }
+  val enableInRunConfigAction =
+    StatusNotificationAction(LayoutInspectorBundle.message("activity.restart.action")) {
+      val configurable = ProjectRunConfigurationConfigurable(project)
+      ShowSettingsUtil.getInstance().editConfigurable(project, configurable) {
+        configurable.selectConfigurableOnShow()
+        ApplicationManager.getApplication().invokeLater {
+          val dialog = SwingUtilities.windowForComponent(configurable.tree)
+          val tabbedPanel = dialog.firstComponentOfClass(JBTabbedPane::class.java)
+          val checkBox =
+            tabbedPanel?.firstComponentWithName(
+              AndroidRunConfigurationEditor.LAYOUT_INSPECTION_WITHOUT_ACTIVITY_RESTART
+            ) as? JComponent
+              ?: return@invokeLater
+          val editor =
+            SwingUtilities.getAncestorOfClass(SingleSettingEditor::class.java, tabbedPanel)
+              as SingleSettingEditor
+          val glassPanel = GlassPanel(editor)
+          val painter =
+            object : AbstractPainter() {
+              override fun executePaint(component: Component, g: Graphics2D) {
+                glassPanel.paintSpotlight(g, editor)
+              }
 
-          override fun needsRepaint() = true
+              override fun needsRepaint() = true
+            }
+          glassPanel.addSpotlight(checkBox)
+          val disposable = Disposer.newDisposable()
+          IdeGlassPaneUtil.installPainter(editor, painter, disposable)
+          tabbedPanel.selectTabWithComponent(checkBox)
+          dialog.addComponentListener(
+            object : ComponentAdapter() {
+              override fun componentHidden(event: ComponentEvent) {
+                // Remove the painter when the dialog is closed:
+                Disposer.dispose(disposable)
+              }
+            }
+          )
         }
-        glassPanel.addSpotlight(checkBox)
-        val disposable = Disposer.newDisposable()
-        IdeGlassPaneUtil.installPainter(editor, painter, disposable)
-        tabbedPanel.selectTabWithComponent(checkBox)
-        dialog.addComponentListener(object : ComponentAdapter() {
-          override fun componentHidden(event: ComponentEvent) {
-            // Remove the painter when the dialog is closed:
-            Disposer.dispose(disposable)
-          }
-        })
       }
     }
-  }
 
-  val doNotShowAgainAction = StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification ->
-    PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
-    notificationModel.dismissAction.invoke(notification)
-  }
+  val doNotShowAgainAction =
+    StatusNotificationAction(LayoutInspectorBundle.message("do.not.show.again")) { notification ->
+      PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
+      notificationModel.dismissAction.invoke(notification)
+    }
 
   if (PropertiesComponent.getInstance().getBoolean(KEY_HIDE_ACTIVITY_RESTART_BANNER)) {
     return // The user already opted out of this banner
   }
 
   // Only add enableInRunConfigAction if we are inspecting the current project.
-  val module = ApplicationManager.getApplication().runReadAction<Module?> {
-    moduleFromCurrentProjectBeingInspected(project, process)
-  }
+  val module =
+    ApplicationManager.getApplication().runReadAction<Module?> {
+      moduleFromCurrentProjectBeingInspected(project, process)
+    }
 
   val config = module?.let { getConfiguration(module) }
   val showEnableAction = config?.INSPECTION_WITHOUT_ACTIVITY_RESTART == false
@@ -112,25 +128,31 @@ fun showActivityRestartedInBanner(project: Project, notificationModel: Notificat
   if (showEnableAction) {
     actions.add(0, enableInRunConfigAction)
   }
-  notificationModel.addNotification(ACTIVITY_RESTART_KEY, LayoutInspectorBundle.message(ACTIVITY_RESTART_KEY), Status.Info, actions)
+  notificationModel.addNotification(
+    ACTIVITY_RESTART_KEY,
+    LayoutInspectorBundle.message(ACTIVITY_RESTART_KEY),
+    Status.Info,
+    actions
+  )
 }
 
-private fun moduleFromCurrentProjectBeingInspected(project: Project, process: ProcessDescriptor): Module? =
-  project.modules.firstOrNull { process.name == StudioAndroidModuleInfo.getInstance(it)?.packageName }
+private fun moduleFromCurrentProjectBeingInspected(
+  project: Project,
+  process: ProcessDescriptor
+): Module? =
+  project.modules.firstOrNull {
+    process.name == StudioAndroidModuleInfo.getInstance(it)?.packageName
+  }
 
-/**
- * Get the [AndroidRunConfiguration] for the specified [module].
- */
+/** Get the [AndroidRunConfiguration] for the specified [module]. */
 private fun getConfiguration(module: Module): AndroidRunConfiguration? {
   val runManager = RunManager.getInstance(module.project)
-  return runManager.allConfigurationsList
-    .filterIsInstance<AndroidRunConfiguration>()
-    .singleOrNull { it.configurationModule.module == module }
+  return runManager.allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().singleOrNull {
+    it.configurationModule.module == module
+  }
 }
 
-/**
- * Return the first subcomponent (DFS) of class [cls] found in the current [Container]
- */
+/** Return the first subcomponent (DFS) of class [cls] found in the current [Container] */
 private fun <T : Component> Component.firstComponentOfClass(cls: Class<T>): T? {
   if (cls.isInstance(this)) {
     return cls.cast(this)
@@ -141,24 +163,22 @@ private fun <T : Component> Component.firstComponentOfClass(cls: Class<T>): T? {
   return null
 }
 
-/**
- * Return the first subcomponent (DFS) with the name [name] found in the current [Container]
- */
+/** Return the first subcomponent (DFS) with the name [name] found in the current [Container] */
 private fun Component.firstComponentWithName(name: String): Component? {
   if (this.name == name) {
     return this
   }
   if (this is Container) {
     components.asSequence().forEach { component ->
-      component.firstComponentWithName(name)?.let { return it }
+      component.firstComponentWithName(name)?.let {
+        return it
+      }
     }
   }
   return null
 }
 
-/**
- * Select the tab that contains the [wantedComponent].
- */
+/** Select the tab that contains the [wantedComponent]. */
 private fun JBTabbedPane.selectTabWithComponent(wantedComponent: Component) {
   val tabs = components
   var component: Component? = wantedComponent

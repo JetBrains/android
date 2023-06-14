@@ -41,18 +41,15 @@ import org.mockito.Mockito.doAnswer
 
 class InspectorTreeSettingsTest {
 
-  @get:Rule
-  val cleaner = MockitoCleanerRule()
+  @get:Rule val cleaner = MockitoCleanerRule()
 
   @get:Rule
   val recompositionFlagRule =
     FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private val client: InspectorClient = mock()
   private val capabilities = mutableSetOf<Capability>()
@@ -63,25 +60,44 @@ class InspectorTreeSettingsTest {
   @Before
   fun before() {
     val application = ApplicationManager.getApplication()
-    application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
+    application.registerServiceInstance(
+      PropertiesComponent::class.java,
+      PropertiesComponentMock(),
+      disposableRule.disposable
+    )
     settings = InspectorTreeSettings { client }
-    val model = InspectorModel( projectRule.project)
+    val model = InspectorModel(projectRule.project)
     val mockLauncher = mock<InspectorClientLauncher>()
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
     inspector =
-      LayoutInspector(mock(), mock(), mock(), mock(), mock(), mockLauncher, model, mock(), settings, MoreExecutors.directExecutor())
+      LayoutInspector(
+        mock(),
+        mock(),
+        mock(),
+        mock(),
+        mock(),
+        mockLauncher,
+        model,
+        mock(),
+        settings,
+        MoreExecutors.directExecutor()
+      )
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
   }
 
   @Test
   fun testHideSystemNodes() {
-    testFlag(DEFAULT_HIDE_SYSTEM_NODES, KEY_HIDE_SYSTEM_NODES, Capability.SUPPORTS_SYSTEM_NODES) { settings.hideSystemNodes }
+    testFlag(DEFAULT_HIDE_SYSTEM_NODES, KEY_HIDE_SYSTEM_NODES, Capability.SUPPORTS_SYSTEM_NODES) {
+      settings.hideSystemNodes
+    }
   }
 
   @Test
   fun testComposeAsCallStack() {
-    testFlag(DEFAULT_COMPOSE_AS_CALLSTACK, KEY_COMPOSE_AS_CALLSTACK, null) { settings.composeAsCallstack }
+    testFlag(DEFAULT_COMPOSE_AS_CALLSTACK, KEY_COMPOSE_AS_CALLSTACK, null) {
+      settings.composeAsCallstack
+    }
   }
 
   @Test
@@ -100,7 +116,13 @@ class InspectorTreeSettingsTest {
 
   @Test
   fun testShowRecompositions() {
-    testFlag(DEFAULT_RECOMPOSITIONS, KEY_RECOMPOSITIONS, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) { settings.showRecompositions }
+    testFlag(
+      DEFAULT_RECOMPOSITIONS,
+      KEY_RECOMPOSITIONS,
+      Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS
+    ) {
+      settings.showRecompositions
+    }
 
     capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     settings.showRecompositions = true
@@ -110,7 +132,12 @@ class InspectorTreeSettingsTest {
     assertThat(settings.showRecompositions).isFalse()
   }
 
-  private fun testFlag(defaultValue: Boolean, key: String, controllingCapability: Capability?, flag: () -> Boolean) {
+  private fun testFlag(
+    defaultValue: Boolean,
+    key: String,
+    controllingCapability: Capability?,
+    flag: () -> Boolean
+  ) {
     capabilities.clear()
 
     // All flags should return their actual value in disconnected state:
@@ -128,20 +155,27 @@ class InspectorTreeSettingsTest {
       properties.setValue(key, !defaultValue, defaultValue)
       assertThat(flag()).named("Connected (opposite): $key").isEqualTo(!defaultValue)
       properties.unsetValue(key)
-    }
-    else {
-      // All flags (except supportLines) should return false if connected and their controlling capability is off:
+    } else {
+      // All flags (except supportLines) should return false if connected and their controlling
+      // capability is off:
       isConnected = true
       assertThat(flag()).named("Connected without $controllingCapability (default): $key").isFalse()
       properties.setValue(key, !defaultValue, defaultValue)
-      assertThat(flag()).named("Connected without $controllingCapability (opposite): $key").isFalse()
+      assertThat(flag())
+        .named("Connected without $controllingCapability (opposite): $key")
+        .isFalse()
       properties.unsetValue(key)
 
-      // All flags should return their actual value if connected and their controlling capability is on:
+      // All flags should return their actual value if connected and their controlling capability is
+      // on:
       capabilities.add(controllingCapability)
-      assertThat(flag()).named("Connected with $controllingCapability (default): $key").isEqualTo(defaultValue)
+      assertThat(flag())
+        .named("Connected with $controllingCapability (default): $key")
+        .isEqualTo(defaultValue)
       properties.setValue(key, !defaultValue, defaultValue)
-      assertThat(flag()).named("Connected with $controllingCapability (opposite): $key").isEqualTo(!defaultValue)
+      assertThat(flag())
+        .named("Connected with $controllingCapability (opposite): $key")
+        .isEqualTo(!defaultValue)
       properties.unsetValue(key)
     }
   }

@@ -21,33 +21,31 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.Par
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.property.ptable.PTableGroupModification
 
-/**
- * Provides [ViewNode] and [ResourceLookup] for an [InspectorPropertyItem].
- */
+/** Provides [ViewNode] and [ResourceLookup] for an [InspectorPropertyItem]. */
 interface ViewNodeAndResourceLookup {
-  /**
-   * Find the [ViewNode] associated with the specified id.
-   */
+  /** Find the [ViewNode] associated with the specified id. */
   operator fun get(id: Long): ViewNode?
 
-  /**
-   * Provide a resource lookup.
-   */
+  /** Provide a resource lookup. */
   val resourceLookup: ResourceLookup
 
-  /**
-   * The current selected node
-   */
+  /** The current selected node */
   val selection: ViewNode?
 
   /**
    * Perform a lookup of a compose parameter item given a parameter reference
    *
-   * @param callback containing a [ParameterGroupItem] with the wanted child elements
-   * and the [PTableGroupModification] performed on that [ParameterGroupItem] to retrieve those child elements.
+   * @param callback containing a [ParameterGroupItem] with the wanted child elements and the
+   *   [PTableGroupModification] performed on that [ParameterGroupItem] to retrieve those child
+   *   elements.
    *
    * TODO: b/182196505 we should split out view PropertyItems and Compose ParameterItems.
    */
-  fun resolve(rootId: Long, reference: ParameterReference, startIndex: Int, maxElements: Int,
-              callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit) {}
+  fun resolve(
+    rootId: Long,
+    reference: ParameterReference,
+    startIndex: Int,
+    maxElements: Int,
+    callback: (ParameterGroupItem?, PTableGroupModification?) -> Unit
+  ) {}
 }

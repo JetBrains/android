@@ -57,13 +57,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
 import com.jetbrains.rd.swing.fillRect
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TestName
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito.doAnswer
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -76,6 +69,13 @@ import javax.imageio.ImageIO
 import javax.swing.JComponent
 import javax.swing.JPopupMenu
 import kotlin.io.path.pathString
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.rules.TestName
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito.doAnswer
 
 private val TEST_DATA_PATH = Path.of("tools", "adt", "idea", "layout-inspector", "testData")
 private const val DIFF_THRESHOLD = 0.2
@@ -85,17 +85,13 @@ class LayoutInspectorRendererTest {
   private val androidProjectRule = AndroidProjectRule.withSdk()
   private val fileOpenCaptureRule = FileOpenCaptureRule(androidProjectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(androidProjectRule).around(fileOpenCaptureRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(androidProjectRule).around(fileOpenCaptureRule)!!
 
-  @get:Rule
-  val testName = TestName()
+  @get:Rule val testName = TestName()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   private lateinit var sessionStats: SessionStatisticsImpl
 
@@ -109,23 +105,23 @@ class LayoutInspectorRendererTest {
   private val screenDimension = Dimension(200, 250)
   /** The dimension of the device screen */
   private val deviceScreenDimension = Dimension(100, 150)
-  /** The rectangle that contains the device rendering, LI rendering should be overlaid to this rectangle. */
-  private val deviceDisplayRectangle = Rectangle(10, 10, deviceScreenDimension.width, deviceScreenDimension.height)
+  /**
+   * The rectangle that contains the device rendering, LI rendering should be overlaid to this
+   * rectangle.
+   */
+  private val deviceDisplayRectangle =
+    Rectangle(10, 10, deviceScreenDimension.width, deviceScreenDimension.height)
 
   private val verticalInspectorModel = model {
     view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-      view(VIEW1, 10, 15, 25, 25) {
-        image()
-      }
+      view(VIEW1, 10, 15, 25, 25) { image() }
       compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
     }
   }
 
   private val horizontalInspectorModel = model {
     view(ROOT, 0, 0, deviceScreenDimension.height, deviceScreenDimension.width) {
-      view(VIEW1, 10, 15, 25, 25) {
-        image()
-      }
+      view(VIEW1, 10, 15, 25, 25) { image() }
       compose(COMPOSE1, "Text", composeCount = 15, x = 10, y = 50, width = 80, height = 50)
     }
   }
@@ -150,14 +146,13 @@ class LayoutInspectorRendererTest {
   fun testScreenWithLeftBorder() {
     val inspectorModelWithLeftBorder = model {
       view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
-        view(VIEW1, 10, 15, 25, 25) {
-          image()
-        }
+        view(VIEW1, 10, 15, 25, 25) { image() }
       }
     }
     inspectorModelWithLeftBorder.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel = RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
+    val renderModel =
+      RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
     val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
 
     val renderImage = createRenderImage()
@@ -169,14 +164,13 @@ class LayoutInspectorRendererTest {
   fun testScreenWithRightBorder() {
     val inspectorModelWithRightBorder = model {
       view(ROOT, 0, 0, deviceScreenDimension.width - 10, deviceScreenDimension.height) {
-        view(VIEW1, 10, 15, 25, 25) {
-          image()
-        }
+        view(VIEW1, 10, 15, 25, 25) { image() }
       }
     }
     inspectorModelWithRightBorder.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel = RenderModel(inspectorModelWithRightBorder, mock(), treeSettings) { DisconnectedClient }
+    val renderModel =
+      RenderModel(inspectorModelWithRightBorder, mock(), treeSettings) { DisconnectedClient }
     val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
 
     val renderImage = createRenderImage()
@@ -188,14 +182,13 @@ class LayoutInspectorRendererTest {
   fun testScreenWithTopBorder() {
     val inspectorModelWithTopBorder = model {
       view(ROOT, 0, 10, deviceScreenDimension.width, deviceScreenDimension.height) {
-        view(VIEW1, 10, 15, 25, 25) {
-          image()
-        }
+        view(VIEW1, 10, 15, 25, 25) { image() }
       }
     }
     inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel = RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
+    val renderModel =
+      RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
     val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
 
     val renderImage = createRenderImage()
@@ -207,14 +200,13 @@ class LayoutInspectorRendererTest {
   fun testScreenWithBottomBorder() {
     val inspectorModelWithTopBorder = model {
       view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
-        view(VIEW1, 10, 15, 25, 25) {
-          image()
-        }
+        view(VIEW1, 10, 15, 25, 25) { image() }
       }
     }
     inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
 
-    val renderModel = RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
+    val renderModel =
+      RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
     val layoutInspectorRenderer = createRenderer(renderModel = renderModel)
 
     val renderImage = createRenderImage()
@@ -224,7 +216,10 @@ class LayoutInspectorRendererTest {
 
   private data class RotationCombination(val displayQuadrant: Int, val deviceRotation: Int)
 
-  private fun allPossibleCombinations(displayQuadrants: List<Int>, deviceRotations: List<Int>): List<RotationCombination> {
+  private fun allPossibleCombinations(
+    displayQuadrants: List<Int>,
+    deviceRotations: List<Int>
+  ): List<RotationCombination> {
     val combinations = mutableListOf<RotationCombination>()
 
     for (num1 in displayQuadrants) {
@@ -244,30 +239,33 @@ class LayoutInspectorRendererTest {
     combinations.forEach {
       val inspectorModelWithTopBorder = model {
         view(ROOT, 0, 0, deviceScreenDimension.width, deviceScreenDimension.height - 10) {
-          view(VIEW1, 10, 15, 25, 25) {
-            image()
-          }
+          view(VIEW1, 10, 15, 25, 25) { image() }
         }
       }
       inspectorModelWithTopBorder.resourceLookup.screenDimension = deviceScreenDimension
       verticalInspectorModel.resourceLookup.displayOrientation = it.deviceRotation
-      val inspectorModel = when (it.deviceRotation) {
-        0, 180 -> {
-          verticalInspectorModel.resourceLookup.screenDimension = Dimension(1080, 1920)
-          verticalInspectorModel
+      val inspectorModel =
+        when (it.deviceRotation) {
+          0,
+          180 -> {
+            verticalInspectorModel.resourceLookup.screenDimension = Dimension(1080, 1920)
+            verticalInspectorModel
+          }
+          // assume that when the device is horizontal the app is in landscape mode.
+          90,
+          270 -> {
+            horizontalInspectorModel.resourceLookup.screenDimension = Dimension(1920, 1080)
+            horizontalInspectorModel
+          }
+          else -> throw IllegalArgumentException()
         }
-        // assume that when the device is horizontal the app is in landscape mode.
-        90, 270 -> {
-          horizontalInspectorModel.resourceLookup.screenDimension = Dimension(1920, 1080)
-          horizontalInspectorModel
-        }
-        else -> throw IllegalArgumentException()
-      }
 
-      val renderModel = RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
+      val renderModel =
+        RenderModel(inspectorModelWithTopBorder, mock(), treeSettings) { DisconnectedClient }
       val quadrant = calculateRotationCorrection(inspectorModel, { it.displayQuadrant }, { 0 })
 
-      val layoutInspectorRenderer = createRenderer(renderModel = renderModel, displayOrientation = quadrant)
+      val layoutInspectorRenderer =
+        createRenderer(renderModel = renderModel, displayOrientation = quadrant)
 
       val renderImage = createRenderImage()
       paint(renderImage, layoutInspectorRenderer, displayQuadrant = it.displayQuadrant)
@@ -279,7 +277,10 @@ class LayoutInspectorRendererTest {
   fun testOverlayIsRendered() {
     val layoutInspectorRenderer = createRenderer()
 
-    renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
+    renderModel.overlay =
+      ImageIO.read(
+        TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+      )
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -304,7 +305,10 @@ class LayoutInspectorRendererTest {
 
     assertThat(renderModel.model.hoveredNode).isEqualTo(renderModel.model[VIEW1])
 
-    renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
+    renderModel.overlay =
+      ImageIO.read(
+        TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+      )
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -334,7 +338,10 @@ class LayoutInspectorRendererTest {
 
     assertThat(renderModel.model.selection).isEqualTo(renderModel.model[VIEW1])
 
-    renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
+    renderModel.overlay =
+      ImageIO.read(
+        TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+      )
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -385,17 +392,28 @@ class LayoutInspectorRendererTest {
     layoutInspectorRenderer.interceptClicks = true
 
     var latestPopup: FakeActionPopupMenu? = null
-    ApplicationManager.getApplication().replaceService(ActionManager::class.java, MockitoKt.mock(), androidProjectRule.testRootDisposable)
+    ApplicationManager.getApplication()
+      .replaceService(
+        ActionManager::class.java,
+        MockitoKt.mock(),
+        androidProjectRule.testRootDisposable
+      )
     doAnswer { invocation ->
-      latestPopup = FakeActionPopupMenu(invocation.getArgument(1))
-      latestPopup
-    }.whenever(ActionManager.getInstance()).createActionPopupMenu(anyString(), any<ActionGroup>())
+        latestPopup = FakeActionPopupMenu(invocation.getArgument(1))
+        latestPopup
+      }
+      .whenever(ActionManager.getInstance())
+      .createActionPopupMenu(anyString(), any<ActionGroup>())
 
     val fakeUi = FakeUi(layoutInspectorRenderer)
     fakeUi.render()
 
     // Right click on VIEW1 when system views are showing:
-    fakeUi.mouse.click(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15, FakeMouse.Button.RIGHT)
+    fakeUi.mouse.click(
+      deviceDisplayRectangle.x + 10,
+      deviceDisplayRectangle.y + 15,
+      FakeMouse.Button.RIGHT
+    )
     latestPopup!!.assertSelectViewActionAndGotoDeclaration(ROOT, VIEW1)
   }
 
@@ -476,18 +494,34 @@ class LayoutInspectorRendererTest {
     assertThat(fakeMouseListener.mouseDraggedCount).isEqualTo(0)
   }
 
-  private fun paint(image: BufferedImage, layoutInspectorRenderer: LayoutInspectorRenderer, displayQuadrant: Int = 0) {
+  private fun paint(
+    image: BufferedImage,
+    layoutInspectorRenderer: LayoutInspectorRenderer,
+    displayQuadrant: Int = 0
+  ) {
     val graphics = image.createGraphics()
     // add a gray background
-    graphics.fillRect(Rectangle(0, 0, screenDimension.width, screenDimension.height), Color(250, 250, 250))
+    graphics.fillRect(
+      Rectangle(0, 0, screenDimension.width, screenDimension.height),
+      Color(250, 250, 250)
+    )
     // render the display rectangle in black, the rendering from LI should be overlaid to it.
     graphics.color = Color(0, 0, 0)
     // rotate the device display rectangle to match the quadrant rotation
-    val displayRect = when (displayQuadrant) {
-      0, 2 -> deviceDisplayRectangle
-      1, 3 -> Rectangle(deviceDisplayRectangle.y, deviceDisplayRectangle.x, deviceDisplayRectangle.height, deviceDisplayRectangle.width)
-      else -> throw IllegalArgumentException()
-    }
+    val displayRect =
+      when (displayQuadrant) {
+        0,
+        2 -> deviceDisplayRectangle
+        1,
+        3 ->
+          Rectangle(
+            deviceDisplayRectangle.y,
+            deviceDisplayRectangle.x,
+            deviceDisplayRectangle.height,
+            deviceDisplayRectangle.width
+          )
+        else -> throw IllegalArgumentException()
+      }
     graphics.draw(displayRect)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
@@ -507,7 +541,9 @@ class LayoutInspectorRendererTest {
       displayRectangleProvider = { deviceDisplayRectangle },
       screenScaleProvider = { 1.0 },
       orientationQuadrantProvider = { displayOrientation },
-    ) { sessionStats }
+    ) {
+      sessionStats
+    }
   }
 
   private fun createRenderImage(): BufferedImage {
@@ -516,31 +552,39 @@ class LayoutInspectorRendererTest {
   }
 
   /**
-   * Check that the generated [renderImage] is similar to the one stored on disk.
-   * If the image stored on disk does not exist, it is created.
+   * Check that the generated [renderImage] is similar to the one stored on disk. If the image
+   * stored on disk does not exist, it is created.
    */
   private fun assertSimilar(renderImage: BufferedImage, imageName: String) {
     val testDataPath = TEST_DATA_PATH.resolve(this.javaClass.simpleName)
     ImageDiffUtil.assertImageSimilar(
-      TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString), renderImage, DIFF_THRESHOLD
+      TestUtils.resolveWorkspacePathUnchecked(testDataPath.resolve("$imageName.png").pathString),
+      renderImage,
+      DIFF_THRESHOLD
     )
   }
 
   private fun createModel(): InspectorModel =
-    model(androidProjectRule.project, FakeTreeSettings(), body = DemoExample.setUpDemo(androidProjectRule.fixture) {
-      view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
-        compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
-          compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)
-          compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) {
-            compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3)
+    model(
+      androidProjectRule.project,
+      FakeTreeSettings(),
+      body =
+        DemoExample.setUpDemo(androidProjectRule.fixture) {
+          view(0, qualifiedName = "androidx.ui.core.AndroidComposeView") {
+            compose(-2, "Column", "MyCompose.kt", 49835523, 532, 17) {
+              compose(-3, "Text", "MyCompose.kt", 49835523, 585, 18)
+              compose(-4, "Greeting", "MyCompose.kt", 49835523, 614, 19) {
+                compose(-5, "Text", "MyCompose.kt", 1216697758, 156, 3)
+              }
+            }
           }
         }
-      }
-    })
+    )
 
   private fun loadComposeFiles() {
     val fixture = androidProjectRule.fixture
-    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
     fixture.copyFileToProject("java/com/example/composable/MyCompose.kt")
   }
@@ -584,7 +628,7 @@ private class FakeMouseListener : MouseAdapter() {
   }
 }
 
-private class FakeActionPopupMenu(private val group: ActionGroup): ActionPopupMenu {
+private class FakeActionPopupMenu(private val group: ActionGroup) : ActionPopupMenu {
   val popup: JPopupMenu = MockitoKt.mock()
   override fun getComponent(): JPopupMenu = popup
   override fun getActionGroup(): ActionGroup = group
@@ -598,7 +642,8 @@ private class FakeActionPopupMenu(private val group: ActionGroup): ActionPopupMe
     assertThat(actions.size).isEqualTo(2)
     assertThat(actions[0]).isInstanceOf(DropDownAction::class.java)
     val selectActions = (actions[0] as DropDownAction).getChildren(event)
-    val selectedViewsIds = selectActions.toList().filterIsInstance(SelectViewAction::class.java).map { it.view.drawId }
+    val selectedViewsIds =
+      selectActions.toList().filterIsInstance(SelectViewAction::class.java).map { it.view.drawId }
     assertThat(selectedViewsIds).containsExactlyElementsIn(expected.toList())
     assertThat(actions[1]).isEqualTo(GotoDeclarationAction)
   }

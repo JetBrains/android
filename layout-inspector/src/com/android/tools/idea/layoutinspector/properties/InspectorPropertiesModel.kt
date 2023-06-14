@@ -25,19 +25,19 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.containers.ContainerUtil
-import org.jetbrains.annotations.VisibleForTesting
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Layout Inspector Properties Model
  *
- * Holds the [properties] shown in the properties and is responsible for:
- * requesting a new table of properties when needed and notifying the UI
- * for misc updates.
+ * Holds the [properties] shown in the properties and is responsible for: requesting a new table of
+ * properties when needed and notifying the UI for misc updates.
  */
 class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
-  private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> = ContainerUtil.createConcurrentList()
+  private val modelListeners: MutableList<PropertiesModelListener<InspectorPropertyItem>> =
+    ContainerUtil.createConcurrentList()
   private var provider: PropertiesProvider? = null
   private val selectionListener = ::handleNewSelection
   private val modificationListener = ::handleModelChange
@@ -54,7 +54,11 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   var layoutInspector: LayoutInspector? by Delegates.observable(null, ::inspectorChanged)
 
   @Suppress("UNUSED_PARAMETER")
-  private fun inspectorChanged(property: KProperty<*>, oldInspector: LayoutInspector?, newInspector: LayoutInspector?) {
+  private fun inspectorChanged(
+    property: KProperty<*>,
+    oldInspector: LayoutInspector?,
+    newInspector: LayoutInspector?
+  ) {
     oldInspector?.inspectorModel?.selectionListeners?.remove(selectionListener)
     newInspector?.inspectorModel?.selectionListeners?.add(selectionListener)
     oldInspector?.inspectorModel?.modificationListeners?.remove(modificationListener)
@@ -80,15 +84,18 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     val currentProvider = provider
     if (newView != null && currentProvider != null && currentProvider != EmptyPropertiesProvider) {
       currentProvider.requestProperties(newView)
-    }
-    else {
+    } else {
       properties = PropertiesTable.emptyTable()
       firePropertiesGenerated()
     }
   }
 
   @Suppress("UNUSED_PARAMETER")
-  private fun handleModelChange(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
+  private fun handleModelChange(
+    old: AndroidWindow?,
+    new: AndroidWindow?,
+    structuralChange: Boolean
+  ) {
     if (structuralChange) {
       structuralUpdates++
     }
@@ -101,7 +108,11 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     provider?.addResultListener(propertiesListener)
   }
 
-  private fun updateProperties(from: PropertiesProvider, view: ViewNode, table: PropertiesTable<InspectorPropertyItem>) {
+  private fun updateProperties(
+    from: PropertiesProvider,
+    view: ViewNode,
+    table: PropertiesTable<InspectorPropertyItem>
+  ) {
     val selectedView = layoutInspector?.inspectorModel?.selection
     if (from != provider || selectedView == null || selectedView.drawId != view.drawId) {
       return
@@ -111,6 +122,8 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
   }
 
   private fun firePropertiesGenerated() {
-    modelListeners.forEach { ApplicationManager.getApplication().invokeLater { it.propertiesGenerated(this) } }
+    modelListeners.forEach {
+      ApplicationManager.getApplication().invokeLater { it.propertiesGenerated(this) }
+    }
   }
 }

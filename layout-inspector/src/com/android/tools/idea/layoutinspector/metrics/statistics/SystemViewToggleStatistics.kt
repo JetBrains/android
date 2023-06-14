@@ -17,36 +17,24 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSystemNode
 
-/**
- * Accumulator of system view toggle (between hidden and visible system views) statistics
- */
+/** Accumulator of system view toggle (between hidden and visible system views) statistics */
 class SystemViewToggleStatistics {
-  /**
-   * How many clicks to select a View node while system nodes are hidden did the user perform
-   */
+  /** How many clicks to select a View node while system nodes are hidden did the user perform */
   private var hiddenSystemViewClicks = 0
 
-  /**
-   * How many clicks to select a View node while system nodes are visible did the user perform
-   */
+  /** How many clicks to select a View node while system nodes are visible did the user perform */
   private var visibleSystemViewClicks = 0
 
-  /**
-   * The system nodes are currently hidden.
-   */
+  /** The system nodes are currently hidden. */
   var hideSystemNodes = false
 
-  /**
-   * Start a new session by resetting all counters.
-   */
+  /** Start a new session by resetting all counters. */
   fun start() {
     hiddenSystemViewClicks = 0
     visibleSystemViewClicks = 0
   }
 
-  /**
-   * Save the session data recorded since [start].
-   */
+  /** Save the session data recorded since [start]. */
   fun save(dataSupplier: () -> DynamicLayoutInspectorSystemNode.Builder) {
     if (hiddenSystemViewClicks > 0 || visibleSystemViewClicks > 0) {
       dataSupplier().let {
@@ -56,9 +44,7 @@ class SystemViewToggleStatistics {
     }
   }
 
-  /**
-   * Log that a component was selected.
-   */
+  /** Log that a component was selected. */
   fun selectionMade() {
     if (hideSystemNodes) hiddenSystemViewClicks++ else visibleSystemViewClicks++
   }

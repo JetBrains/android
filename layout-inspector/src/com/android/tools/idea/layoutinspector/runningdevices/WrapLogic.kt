@@ -18,9 +18,7 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import java.awt.Container
 import javax.swing.JComponent
 
-/**
- * Class used to wrap and unwrap [component] inside another view.
- */
+/** Class used to wrap and unwrap [component] inside another view. */
 class WrapLogic(
   private val component: JComponent,
   private val container: Container,

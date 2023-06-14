@@ -25,16 +25,15 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
 
-/**
- * This file contains view options for the component tree.
- */
+/** This file contains view options for the component tree. */
 
-/**
- * Filter menu group
- */
-class FilterGroupAction(
-  renderModelProvider: () -> RenderModel?
-) : DropDownAction("Filter", "View Options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
+/** Filter menu group */
+class FilterGroupAction(renderModelProvider: () -> RenderModel?) :
+  DropDownAction(
+    "Filter",
+    "View Options for Component Tree",
+    StudioIcons.Common.VISIBILITY_INLINE
+  ) {
   init {
     add(SystemNodeFilterAction(renderModelProvider))
     add(HighlightSemanticsAction)
@@ -44,10 +43,9 @@ class FilterGroupAction(
   }
 }
 
-/**
- * Filter system nodes from view hierarchy and compose hierarchy.
- */
-class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?) : ToggleAction("Filter System-Defined Layers") {
+/** Filter system nodes from view hierarchy and compose hierarchy. */
+class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?) :
+  ToggleAction("Filter System-Defined Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
     LayoutInspector.get(event)?.treeSettings?.hideSystemNodes ?: DEFAULT_HIDE_SYSTEM_NODES
 
@@ -61,7 +59,10 @@ class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?
       val model = inspector.inspectorModel
       val selectedNode = model.selection
       if (selectedNode != null && !selectedNode.isInComponentTree(treeSettings)) {
-        model.setSelection(selectedNode.findClosestUnfilteredNode(treeSettings), SelectionOrigin.COMPONENT_TREE)
+        model.setSelection(
+          selectedNode.findClosestUnfilteredNode(treeSettings),
+          SelectionOrigin.COMPONENT_TREE
+        )
       }
       val hoveredNode = model.hoveredNode
       if (hoveredNode != null && !hoveredNode.isInComponentTree(treeSettings)) {
@@ -140,16 +141,22 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
-                                   StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get()
-    event.presentation.isEnabled = isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    event.presentation.isVisible =
+      isActionActive(event, Capability.SUPPORTS_COMPOSE) &&
+        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get()
+    event.presentation.isEnabled =
+      isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
     event.presentation.text =
-      if (event.presentation.isEnabled) "Show Recomposition Counts" else "Show Recomposition Counts (Needs Compose 1.2.1+)"
+      if (event.presentation.isEnabled) "Show Recomposition Counts"
+      else "Show Recomposition Counts (Needs Compose 1.2.1+)"
   }
 }
 
 fun isActionActive(event: AnActionEvent, vararg capabilities: Capability): Boolean =
   LayoutInspector.get(event)?.currentClient?.let { client ->
-    !client.isConnected || // If not running, default to visible so user can modify selection when next client is connected
-    capabilities.all { client.capabilities.contains(it) }
-  } ?: true
+    !client
+      .isConnected || // If not running, default to visible so user can modify selection when next
+      // client is connected
+      capabilities.all { client.capabilities.contains(it) }
+  }
+    ?: true

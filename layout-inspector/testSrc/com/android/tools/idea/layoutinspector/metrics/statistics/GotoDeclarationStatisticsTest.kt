@@ -20,8 +20,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorGotoDeclaration
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.junit.Test
 import java.awt.event.KeyEvent
+import org.junit.Test
 
 class GotoDeclarationStatisticsTest {
 

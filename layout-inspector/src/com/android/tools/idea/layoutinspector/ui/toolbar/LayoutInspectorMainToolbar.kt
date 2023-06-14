@@ -35,9 +35,7 @@ import javax.swing.JComponent
 
 const val LAYOUT_INSPECTOR_MAIN_TOOLBAR = "LayoutInspector.MainToolbar"
 
-/**
- * Creates the main toolbar used by Layout Inspector.
- */
+/** Creates the main toolbar used by Layout Inspector. */
 fun createLayoutInspectorMainToolbar(
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
@@ -45,7 +43,9 @@ fun createLayoutInspectorMainToolbar(
   extraActions: List<AnAction> = emptyList()
 ): ActionToolbar {
   val actionGroup = LayoutInspectorActionGroup(layoutInspector, selectProcessAction, extraActions)
-  val actionToolbar = ActionManager.getInstance().createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
+  val actionToolbar =
+    ActionManager.getInstance()
+      .createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
   ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
   actionToolbar.component.name = LAYOUT_INSPECTOR_MAIN_TOOLBAR
   actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
@@ -54,9 +54,7 @@ fun createLayoutInspectorMainToolbar(
   return actionToolbar
 }
 
-/**
- * Action Group containing all the actions used in Layout Inspector's main toolbar.
- */
+/** Action Group containing all the actions used in Layout Inspector's main toolbar. */
 private class LayoutInspectorActionGroup(
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
@@ -67,16 +65,21 @@ private class LayoutInspectorActionGroup(
       add(selectProcessAction)
     }
     add(Separator.getInstance())
-    add(RenderSettingsAction(
-      renderModelProvider = { layoutInspector.renderModel },
-      renderSettingsProvider = { layoutInspector.renderLogic.renderSettings })
+    add(
+      RenderSettingsAction(
+        renderModelProvider = { layoutInspector.renderModel },
+        renderSettingsProvider = { layoutInspector.renderLogic.renderSettings }
+      )
     )
     add(ToggleOverlayAction { layoutInspector.renderModel })
     if (!layoutInspector.isSnapshot) {
       add(SnapshotAction)
     }
     add(AlphaSliderAction { layoutInspector.renderModel })
-    if (!layoutInspector.isSnapshot && !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+    if (
+      !layoutInspector.isSnapshot &&
+        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    ) {
       add(Separator.getInstance())
       add(ToggleLiveUpdatesAction(layoutInspector))
       add(RefreshAction)

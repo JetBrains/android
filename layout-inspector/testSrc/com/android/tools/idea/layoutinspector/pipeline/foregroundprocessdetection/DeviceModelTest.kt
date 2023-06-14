@@ -30,20 +30,20 @@ import org.junit.Test
 
 class DeviceModelTest {
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var processModel: ProcessesModel
 
-  private val fakeProcess = object : ProcessDescriptor {
-    override val device = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
-    override val abiCpuArch = "fake_arch"
-    override val name = "fake_process"
-    override val packageName = name
-    override val isRunning = true
-    override val pid = 1
-    override val streamId = 1L
-  }
+  private val fakeProcess =
+    object : ProcessDescriptor {
+      override val device = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
+      override val abiCpuArch = "fake_arch"
+      override val name = "fake_process"
+      override val packageName = name
+      override val isRunning = true
+      override val pid = 1
+      override val streamId = 1L
+    }
 
   @Before
   fun setUp() {
@@ -71,9 +71,7 @@ class DeviceModelTest {
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
     var newDevice: DeviceDescriptor? = null
 
-    deviceModel.newSelectedDeviceListeners.add {
-      newDevice = it
-    }
+    deviceModel.newSelectedDeviceListeners.add { newDevice = it }
 
     deviceModel.setSelectedDevice(FakeTransportService.FAKE_DEVICE.toDeviceDescriptor())
 
@@ -86,7 +84,8 @@ class DeviceModelTest {
     assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1)
 
     val deviceModel2 = DeviceModel(disposableRule.disposable, processModel)
-    assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1, deviceModel2)
+    assertThat(ForegroundProcessDetectionImpl.deviceModels)
+      .containsExactly(deviceModel1, deviceModel2)
 
     Disposer.dispose(deviceModel2)
     assertThat(ForegroundProcessDetectionImpl.deviceModels).containsExactly(deviceModel1)

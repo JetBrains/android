@@ -28,12 +28,13 @@ import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
-import kotlinx.coroutines.CoroutineScope
 import java.nio.file.Path
+import kotlinx.coroutines.CoroutineScope
 
 /**
- * [InspectorClient] that supports pre-api 29 devices.
- * Since it doesn't use `com.android.tools.idea.transport.TransportService`, some relevant event listeners are manually fired.
+ * [InspectorClient] that supports pre-api 29 devices. Since it doesn't use
+ * `com.android.tools.idea.transport.TransportService`, some relevant event listeners are manually
+ * fired.
  */
 class LegacyClient(
   process: ProcessDescriptor,
@@ -44,16 +45,17 @@ class LegacyClient(
   coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(
-  LEGACY_CLIENT,
-  model.project,
-  notificationModel,
-  process,
-  isInstantlyAutoConnected,
-  SessionStatisticsImpl(LEGACY_CLIENT),
-  coroutineScope,
-  parentDisposable
-) {
+) :
+  AbstractInspectorClient(
+    LEGACY_CLIENT,
+    model.project,
+    notificationModel,
+    process,
+    isInstantlyAutoConnected,
+    SessionStatisticsImpl(LEGACY_CLIENT),
+    coroutineScope,
+    parentDisposable
+  ) {
 
   private val lookup: ViewNodeAndResourceLookup = model
 
@@ -68,8 +70,7 @@ class LegacyClient(
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
       metrics.logEvent(type, stats)
-    }
-    else if (!loggedInitialRender) {
+    } else if (!loggedInitialRender) {
       metrics.logEvent(type, stats)
       loggedInitialRender = true
     }
@@ -123,10 +124,20 @@ class LegacyClient(
   @Slow
   override fun saveSnapshot(path: Path) {
     val startTime = System.currentTimeMillis()
-    val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, latestConfig, latestTheme, process, model)
+    val snapshotMetadata =
+      saveLegacySnapshot(
+        path,
+        latestData,
+        latestScreenshots,
+        latestConfig,
+        latestTheme,
+        process,
+        model
+      )
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorSessionMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
+    val saveMetrics =
+      LayoutInspectorSessionMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
@@ -154,11 +165,16 @@ class LegacyClient(
     latestScreenshots.clear()
   }
 
-  class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")
+  class LegacyFetchingUnsupportedOperationException :
+    UnsupportedOperationException("Fetching is not supported by legacy clients")
 
   override suspend fun startFetching() = throw LegacyFetchingUnsupportedOperationException()
 
   override suspend fun stopFetching() = throw LegacyFetchingUnsupportedOperationException()
 }
 
-data class LegacyEvent(val windowId: String, val propertyUpdater: LegacyPropertiesProvider.Updater, val allWindows: List<String>)
+data class LegacyEvent(
+  val windowId: String,
+  val propertyUpdater: LegacyPropertiesProvider.Updater,
+  val allWindows: List<String>
+)

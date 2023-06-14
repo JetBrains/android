@@ -25,12 +25,12 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.text.nullize
 import icons.StudioIcons
 import org.junit.Test
-import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 class SelectedViewModelTest {
 
@@ -76,12 +76,30 @@ class SelectedViewModelTest {
 
   private fun nameOf(name: String): InspectorPropertyItem {
     val lookup: ViewNodeAndResourceLookup = mock()
-    return InspectorPropertyItem(ANDROID_URI, ATTR_NAME, PropertyType.STRING, name, PropertySection.VIEW, null, 1L, lookup)
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      ATTR_NAME,
+      PropertyType.STRING,
+      name,
+      PropertySection.VIEW,
+      null,
+      1L,
+      lookup
+    )
   }
 
   private fun idOf(id: String?): InspectorPropertyItem {
     val lookup: ViewNodeAndResourceLookup = mock()
     val value = id.nullize()?.let { "@id/$id" } ?: id
-    return InspectorPropertyItem(ANDROID_URI, ATTR_ID, PropertyType.STRING, value, PropertySection.VIEW, null, 1L, lookup)
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      ATTR_ID,
+      PropertyType.STRING,
+      value,
+      PropertySection.VIEW,
+      null,
+      1L,
+      lookup
+    )
   }
 }

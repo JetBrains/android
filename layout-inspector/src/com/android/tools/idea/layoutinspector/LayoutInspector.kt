@@ -45,20 +45,17 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.EditorNotificationPanel.Status
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 
-@VisibleForTesting
-const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
+@VisibleForTesting const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
 val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
 
-/**
- * Create a [DataProvider] for the specified [layoutInspector].
- */
+/** Create a [DataProvider] for the specified [layoutInspector]. */
 fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector): DataProvider {
   return DataProvider { dataId ->
     when {
@@ -70,10 +67,9 @@ fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector): DataProvid
 
 private val logger = Logger.getInstance(LayoutInspector::class.java)
 
-/**
- * Top level class which manages the high level state of layout inspection.
- */
-class LayoutInspector private constructor(
+/** Top level class which manages the high level state of layout inspection. */
+class LayoutInspector
+private constructor(
   val inspectorModel: InspectorModel,
   val notificationModel: NotificationModel,
   val coroutineScope: CoroutineScope,
@@ -104,7 +100,8 @@ class LayoutInspector private constructor(
     notificationModel: NotificationModel,
     treeSettings: TreeSettings,
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-    renderModel: RenderModel = RenderModel(layoutInspectorModel, notificationModel, treeSettings) { launcher.activeClient },
+    renderModel: RenderModel =
+      RenderModel(layoutInspectorModel, notificationModel, treeSettings) { launcher.activeClient },
     renderLogic: RenderLogic = RenderLogic(renderModel, InspectorRenderSettings()),
   ) : this(
     layoutInspectorModel,
@@ -126,7 +123,8 @@ class LayoutInspector private constructor(
   }
 
   /**
-   * Construct a LayoutInspector tied to a specific [InspectorClient], e.g. for viewing a snapshot file.
+   * Construct a LayoutInspector tied to a specific [InspectorClient], e.g. for viewing a snapshot
+   * file.
    */
   constructor(
     coroutineScope: CoroutineScope,
@@ -136,7 +134,8 @@ class LayoutInspector private constructor(
     notificationModel: NotificationModel,
     treeSettings: TreeSettings,
     executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
-    renderModel: RenderModel = RenderModel(layoutInspectorModel, notificationModel, treeSettings) { client },
+    renderModel: RenderModel =
+      RenderModel(layoutInspectorModel, notificationModel, treeSettings) { client },
     renderLogic: RenderLogic = RenderLogic(renderModel, EditorRenderSettings()),
   ) : this(
     inspectorModel = layoutInspectorModel,
@@ -165,7 +164,8 @@ class LayoutInspector private constructor(
     }
   }
 
-  val currentClient get() = currentClientProvider()
+  val currentClient
+    get() = currentClientProvider()
 
   private val latestLoadTime = AtomicLong(-1)
 
@@ -174,9 +174,8 @@ class LayoutInspector private constructor(
   val stopInspectorListeners: MutableList<() -> Unit> = mutableListOf()
 
   /**
-   * Stops LayoutInspector.
-   * If a device is selected, stops foreground process detection.
-   * If a device is not selected, stops process inspection by setting the selected process to null.
+   * Stops LayoutInspector. If a device is selected, stops foreground process detection. If a device
+   * is not selected, stops process inspection by setting the selected process to null.
    *
    * A process can be selected when a device does not support foreground process detection.
    *
@@ -190,8 +189,7 @@ class LayoutInspector private constructor(
         debugViewAttributes.clear(inspectorModel.project, selectedDevice)
       }
       foregroundProcessDetection?.stopPollingSelectedDevice()
-    }
-    else {
+    } else {
       processModel?.stop()
       processModel?.selectedProcess = null
     }
@@ -204,12 +202,16 @@ class LayoutInspector private constructor(
       client.registerErrorCallback(::logError)
       client.registerRootsEventCallback(::adjustRoots)
       client.registerTreeEventCallback(::loadComponentTree)
-      client.registerStateCallback { state -> if (state == InspectorClient.State.CONNECTED) updateConnection(client) }
-      client.registerConnectionTimeoutCallback { state -> inspectorModel.fireAttachStateEvent(state) }
+      client.registerStateCallback { state ->
+        if (state == InspectorClient.State.CONNECTED) updateConnection(client)
+      }
+      client.registerConnectionTimeoutCallback { state ->
+        inspectorModel.fireAttachStateEvent(state)
+      }
       client.stats.start()
-    }
-    else {
-      // If disconnected, e.g. stopped, force models to clear their state and, by association, the UI
+    } else {
+      // If disconnected, e.g. stopped, force models to clear their state and, by association, the
+      // UI
       inspectorModel.updateConnection(DisconnectedClient)
       ApplicationManager.getApplication().invokeLater {
         if (currentClient === DisconnectedClient) {
@@ -240,7 +242,9 @@ class LayoutInspector private constructor(
       val time = System.currentTimeMillis()
       val treeLoader = currentClient.treeLoader
       val allIds = treeLoader.getAllWindowIds(event)
-      val data = treeLoader.loadComponentTree(event, inspectorModel.resourceLookup, currentClient.process) ?: return@execute
+      val data =
+        treeLoader.loadComponentTree(event, inspectorModel.resourceLookup, currentClient.process)
+          ?: return@execute
       currentClient.updateProgress(AttachErrorState.PARSED_COMPONENT_TREE)
       currentClient.addDynamicCapabilities(data.dynamicCapabilities)
       if (allIds != null) {
@@ -255,7 +259,9 @@ class LayoutInspector private constructor(
               currentClient.updateProgress(AttachErrorState.MODEL_UPDATED)
               if (logger.isDebugEnabled) {
                 // This logger.debug statement is for integration tests
-                logger.debug("g:${data.generation} Model Updated for process: ${currentClient.process.name}")
+                logger.debug(
+                  "g:${data.generation} Model Updated for process: ${currentClient.process.name}"
+                )
               }
             }
           }
@@ -270,26 +276,27 @@ class LayoutInspector private constructor(
   }
 
   private fun logError(error: String?, throwable: Throwable?) {
-    val message = when {
-      throwable is ConnectionFailedException -> {
-        Logger.getInstance(LayoutInspector::class.java).warn(error)
-        throwable.message
+    val message =
+      when {
+        throwable is ConnectionFailedException -> {
+          Logger.getInstance(LayoutInspector::class.java).warn(error)
+          throwable.message
+        }
+        throwable is CancellationException -> {
+          // Do not alert the user. This can happen in normal circumstances e.g. b/264667192
+          Logger.getInstance(LayoutInspector::class.java).warn(throwable)
+          return
+        }
+        throwable != null -> {
+          logUnexpectedError(InspectorConnectionError(throwable))
+          "Unknown error"
+        }
+        !error.isNullOrEmpty() -> {
+          logUnexpectedError(InspectorConnectionError(error))
+          error
+        }
+        else -> return
       }
-      throwable is CancellationException -> {
-        // Do not alert the user. This can happen in normal circumstances e.g. b/264667192
-        Logger.getInstance(LayoutInspector::class.java).warn(throwable)
-        return
-      }
-      throwable != null -> {
-        logUnexpectedError(InspectorConnectionError(throwable))
-        "Unknown error"
-      }
-      !error.isNullOrEmpty() -> {
-        logUnexpectedError(InspectorConnectionError(error))
-        error
-      }
-      else -> return
-    }
     if (message != null) {
       notificationModel.addNotification(message, message, Status.Error)
 
@@ -302,7 +309,8 @@ class LayoutInspector private constructor(
   }
 
   companion object {
-    fun get(component: Component): LayoutInspector? = DataManager.getInstance().getDataContext(component).getData(LAYOUT_INSPECTOR_DATA_KEY)
+    fun get(component: Component): LayoutInspector? =
+      DataManager.getInstance().getDataContext(component).getData(LAYOUT_INSPECTOR_DATA_KEY)
     fun get(event: AnActionEvent): LayoutInspector? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
   }
 }

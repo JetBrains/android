@@ -22,13 +22,13 @@ import org.junit.Rule
 import org.junit.Test
 
 class ToggleDeepInspectActionTest {
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun testActionClick() {
     var isSelected = false
-    val toggleDeepInspectAction = ToggleDeepInspectAction({ isSelected }, { isSelected = !isSelected })
+    val toggleDeepInspectAction =
+      ToggleDeepInspectAction({ isSelected }, { isSelected = !isSelected })
 
     toggleDeepInspectAction.actionPerformed(createTestActionEvent(toggleDeepInspectAction))
     assertThat(isSelected).isTrue()
@@ -39,11 +39,12 @@ class ToggleDeepInspectActionTest {
 
   @Test
   fun testTitleAndDescription() {
-    val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, { })
+    val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, {})
 
     val event = createTestActionEvent(toggleDeepInspectAction)
     toggleDeepInspectAction.update(event)
     assertThat(event.presentation.text).isEqualTo("Toggle Deep Inspect")
-    assertThat(event.presentation.description).isEqualTo("Enter Deep Inspect to be able to select components by clicking on the device")
+    assertThat(event.presentation.description)
+      .isEqualTo("Enter Deep Inspect to be able to select components by clicking on the device")
   }
 }

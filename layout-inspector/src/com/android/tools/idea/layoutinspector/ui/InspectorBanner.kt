@@ -23,9 +23,7 @@ import com.intellij.util.ui.UIUtil
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 
-/**
- * A banner for showing notifications in the Layout Inspector.
- */
+/** A banner for showing notifications in the Layout Inspector. */
 class InspectorBanner(private val notificationModel: NotificationModel) : JPanel() {
   private var notifications: List<StatusNotification> = emptyList()
 

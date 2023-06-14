@@ -21,17 +21,16 @@ import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
+import javax.swing.JCheckBox
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JCheckBox
-import javax.swing.JPanel
 
 class LayoutInspectorConfigurableProviderTest {
   private lateinit var layoutInspectorSettings: LayoutInspectorSettings
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Before
   fun testSetUp() {
@@ -56,16 +55,19 @@ class LayoutInspectorConfigurableProviderTest {
 
   @Test
   fun testConfigurableControls() {
-    val configurable1 = LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
+    val configurable1 =
+      LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
     val component1 = configurable1.createComponent()!!
 
     assertThat(component1.components).hasLength(2)
-    assertThat((component1.components[0] as JCheckBox).text).isEqualTo("Enable auto connect (requires a restart of Android Studio)")
+    assertThat((component1.components[0] as JCheckBox).text)
+      .isEqualTo("Enable auto connect (requires a restart of Android Studio)")
 
     val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
 
-    val configurable2 = LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
+    val configurable2 =
+      LayoutInspectorConfigurableProvider().createConfigurable() as SearchableConfigurable
     val component2 = configurable2.createComponent()!!
     val enableEmbeddedLiPanel = component2.components[1] as JPanel
 
@@ -127,7 +129,6 @@ class LayoutInspectorConfigurableProviderTest {
     val enableEmbeddedLiPanel = configurable.createComponent()!!.getComponent(1) as JPanel
     val enableEmbeddedLiCheckBox = enableEmbeddedLiPanel.components.first() as JCheckBox
     assertThat(enableEmbeddedLiPanel.components[2]).isInstanceOf(ActionLink::class.java)
-
 
     // make sure to start with property set to true
     layoutInspectorSettings.embeddedLayoutInspectorEnabled = true

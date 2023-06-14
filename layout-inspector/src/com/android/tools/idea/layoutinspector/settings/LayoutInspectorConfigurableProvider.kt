@@ -34,9 +34,7 @@ import javax.swing.JPanel
 const val STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL =
   "https://developer.android.com/studio/preview/features?utm_source=android-studio#embedded-layout-inspector"
 
-/**
- * Class used to provide a [Configurable] to show in Android Studio settings panel.
- */
+/** Class used to provide a [Configurable] to show in Android Studio settings panel. */
 class LayoutInspectorConfigurableProvider : ConfigurableProvider() {
 
   override fun canCreateConfigurable(): Boolean {
@@ -53,29 +51,41 @@ class LayoutInspectorConfigurable : SearchableConfigurable {
   private val component: JPanel = JPanel()
   private val enableAutoConnect = JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
   private val embeddedLayoutInspectorSettingPanel = JPanel()
-  private val enableEmbeddedLayoutInspectorCheckBox = JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector"))
+  private val enableEmbeddedLayoutInspectorCheckBox =
+    JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector"))
 
   private val settings = LayoutInspectorSettings.getInstance()
-  private val autoConnectSettingControl = ToggleSettingController(
-    enableAutoConnect,
-    Setting(getValue = { settings.autoConnectEnabled }, setValue = { settings.autoConnectEnabled = it })
-  )
-  private val embeddedLayoutInspectorSettingControl = ToggleSettingController(
-    enableEmbeddedLayoutInspectorCheckBox,
-    Setting(getValue = { settings.embeddedLayoutInspectorEnabled }, setValue = { settings.embeddedLayoutInspectorEnabled = it })
-  )
+  private val autoConnectSettingControl =
+    ToggleSettingController(
+      enableAutoConnect,
+      Setting(
+        getValue = { settings.autoConnectEnabled },
+        setValue = { settings.autoConnectEnabled = it }
+      )
+    )
+  private val embeddedLayoutInspectorSettingControl =
+    ToggleSettingController(
+      enableEmbeddedLayoutInspectorCheckBox,
+      Setting(
+        getValue = { settings.embeddedLayoutInspectorEnabled },
+        setValue = { settings.embeddedLayoutInspectorEnabled = it }
+      )
+    )
 
   init {
     component.layout = BoxLayout(component, BoxLayout.PAGE_AXIS)
     component.add(enableAutoConnect)
     enableAutoConnect.alignmentX = Component.LEFT_ALIGNMENT
 
-    embeddedLayoutInspectorSettingPanel.layout = BoxLayout(embeddedLayoutInspectorSettingPanel, BoxLayout.LINE_AXIS)
+    embeddedLayoutInspectorSettingPanel.layout =
+      BoxLayout(embeddedLayoutInspectorSettingPanel, BoxLayout.LINE_AXIS)
     embeddedLayoutInspectorSettingPanel.add(enableEmbeddedLayoutInspectorCheckBox)
     embeddedLayoutInspectorSettingPanel.add(Box.createRigidArea(Dimension(20, 0)))
-    embeddedLayoutInspectorSettingPanel.add(ActionLink(LayoutInspectorBundle.message("learn.more")) {
-      BrowserUtil.browse(STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL)
-    })
+    embeddedLayoutInspectorSettingPanel.add(
+      ActionLink(LayoutInspectorBundle.message("learn.more")) {
+        BrowserUtil.browse(STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL)
+      }
+    )
 
     if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()) {
       component.add(embeddedLayoutInspectorSettingPanel)
@@ -85,7 +95,8 @@ class LayoutInspectorConfigurable : SearchableConfigurable {
 
   override fun createComponent() = component
 
-  override fun isModified() = autoConnectSettingControl.isModified || embeddedLayoutInspectorSettingControl.isModified
+  override fun isModified() =
+    autoConnectSettingControl.isModified || embeddedLayoutInspectorSettingControl.isModified
 
   override fun apply() {
     autoConnectSettingControl.apply()
@@ -105,8 +116,10 @@ class LayoutInspectorConfigurable : SearchableConfigurable {
 }
 
 private class Setting<T>(val getValue: () -> T, val setValue: (T) -> Unit)
+
 private class ToggleSettingController(val checkBox: JCheckBox, val setting: Setting<Boolean>) {
-  val isModified: Boolean get() = checkBox.isSelected != setting.getValue()
+  val isModified: Boolean
+    get() = checkBox.isSelected != setting.getValue()
 
   fun apply() {
     setting.setValue(checkBox.isSelected)

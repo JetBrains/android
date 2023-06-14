@@ -27,8 +27,7 @@ import org.junit.Test
 
 class InspectorBannerTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Test
   fun testInitiallyHidden() {
@@ -41,10 +40,13 @@ class InspectorBannerTest {
   fun testVisibleWithStatus() {
     val notificationModel = NotificationModel(projectRule.project)
     val banner = InspectorBanner(notificationModel)
-    notificationModel.addNotification("key1", "There is an error somewhere", Status.Error, emptyList())
-    invokeAndWaitIfNeeded {
-      UIUtil.dispatchAllInvocationEvents()
-    }
+    notificationModel.addNotification(
+      "key1",
+      "There is an error somewhere",
+      Status.Error,
+      emptyList()
+    )
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isTrue()
   }
 
@@ -52,11 +54,14 @@ class InspectorBannerTest {
   fun testInvisibleAfterEmptyStatus() {
     val notificationModel = NotificationModel(projectRule.project)
     val banner = InspectorBanner(notificationModel)
-    notificationModel.addNotification("key1", "There is an error somewhere", Status.Error, emptyList())
+    notificationModel.addNotification(
+      "key1",
+      "There is an error somewhere",
+      Status.Error,
+      emptyList()
+    )
     notificationModel.clear()
-    invokeAndWaitIfNeeded {
-      UIUtil.dispatchAllInvocationEvents()
-    }
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isFalse()
   }
 }

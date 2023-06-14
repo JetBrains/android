@@ -19,9 +19,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 private val IDENTITY: (String) -> String = { it }
 
-/**
- * A definition of a Property used to map legacy property names into attribute names.
- */
+/** A definition of a Property used to map legacy property names into attribute names. */
 class PropertyDefinition(
   /**
    * A name of a runtime value in an Android View.
@@ -30,16 +28,14 @@ class PropertyDefinition(
    */
   val name: String,
 
-  /**
-   * The type of this property.
-   */
+  /** The type of this property. */
   val type: PropertyType,
 
   /**
    * A mapper lambda to convert legacy values into a more readable form.
    *
-   * If possible the resulting value should be the same format that a user would
-   * apply to the relevant XML attribute.
+   * If possible the resulting value should be the same format that a user would apply to the
+   * relevant XML attribute.
    */
   val value_mapper: (String) -> String = IDENTITY
 )

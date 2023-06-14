@@ -24,19 +24,16 @@ import com.intellij.openapi.Disposable
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.components.BorderLayoutPanel
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Graphics
 import javax.swing.JComponent
+import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Panel responsible for rendering the component tree, state messages and loading state.
- */
-class RootPanel(
-  parentDisposable: Disposable,
-  componentTreePanel: JComponent
-) : BorderLayoutPanel() {
-  private val isEmbedded get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+/** Panel responsible for rendering the component tree, state messages and loading state. */
+class RootPanel(parentDisposable: Disposable, componentTreePanel: JComponent) :
+  BorderLayoutPanel() {
+  private val isEmbedded
+    get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
   @VisibleForTesting
   var showProcessNotDebuggableText = false
     private set
@@ -71,8 +68,7 @@ class RootPanel(
 
       invalidate()
       repaint()
-    }
-    else {
+    } else {
       showProcessNotDebuggableText = true
       loadingPanel.isVisible = false
       invalidate()
@@ -81,14 +77,16 @@ class RootPanel(
   }
 
   /** Status text rendered when the foreground process is not debuggable */
-  private val processNotDebuggableText = TreeStatusText(
-    owner = this,
-    lines = listOf(
-      LayoutInspectorBundle.message("application.not.inspectable"),
-      LayoutInspectorBundle.message("navigate.to.debuggable.application")
-    ),
-    shouldShow = { showProcessNotDebuggableText && isEmbedded }
-  )
+  private val processNotDebuggableText =
+    TreeStatusText(
+      owner = this,
+      lines =
+        listOf(
+          LayoutInspectorBundle.message("application.not.inspectable"),
+          LayoutInspectorBundle.message("navigate.to.debuggable.application")
+        ),
+      shouldShow = { showProcessNotDebuggableText && isEmbedded }
+    )
 
   /** Panel used to show a loading indicator */
   private val loadingPanel = JBLoadingPanel(BorderLayout(), parentDisposable, 0)
@@ -103,24 +101,32 @@ class RootPanel(
     processNotDebuggableText.paint(this, g)
   }
 
-  private fun createLoadingObserver(layoutInspector: LayoutInspector): LayoutInspectorLoadingObserver {
+  private fun createLoadingObserver(
+    layoutInspector: LayoutInspector
+  ): LayoutInspectorLoadingObserver {
     val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(layoutInspector)
-    layoutInspectorLoadingObserver.listeners.add(object : LayoutInspectorLoadingObserver.Listener {
-      override fun onStartLoading() {
-        loadingPanel.isVisible = true
-        showProcessNotDebuggableText = false
-        loadingPanel.startLoading()
-      }
+    layoutInspectorLoadingObserver.listeners.add(
+      object : LayoutInspectorLoadingObserver.Listener {
+        override fun onStartLoading() {
+          loadingPanel.isVisible = true
+          showProcessNotDebuggableText = false
+          loadingPanel.startLoading()
+        }
 
-      override fun onStopLoading() {
-        loadingPanel.stopLoading()
+        override fun onStopLoading() {
+          loadingPanel.stopLoading()
+        }
       }
-    })
+    )
     return layoutInspectorLoadingObserver
   }
 }
 
-private class TreeStatusText(owner: JComponent, lines: List<String>, private val shouldShow: () -> Boolean) : StatusText(owner) {
+private class TreeStatusText(
+  owner: JComponent,
+  lines: List<String>,
+  private val shouldShow: () -> Boolean
+) : StatusText(owner) {
   init {
     lines.forEach { appendLine(it) }
   }

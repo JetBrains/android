@@ -43,36 +43,26 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import icons.StudioIcons
+import java.util.concurrent.TimeUnit
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
-import java.util.concurrent.TimeUnit
 
 class Toggle3dActionTest {
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  val cleaner = MockitoCleanerRule()
+  @get:Rule val cleaner = MockitoCleanerRule()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   private val scheduler = VirtualTimeScheduler()
 
-  private val inspectorModel = model {
-    view(1) {
-      view(2) {
-        image()
-      }
-    }
-  }
+  private val inspectorModel = model { view(1) { view(2) { image() } } }
   private lateinit var inspector: LayoutInspector
   private lateinit var renderModel: RenderModel
 
@@ -85,7 +75,11 @@ class Toggle3dActionTest {
   @Before
   fun setUp() {
     val application = ApplicationManager.getApplication()
-    application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
+    application.registerServiceInstance(
+      PropertiesComponent::class.java,
+      PropertiesComponentMock(),
+      disposableRule.disposable
+    )
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(capabilities)
     whenever(client.isConnected).thenReturn(true)
@@ -95,18 +89,19 @@ class Toggle3dActionTest {
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
     val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
-    inspector = LayoutInspector(
-      coroutineScope,
-      mock(),
-      mock(),
-      null,
-      mock(),
-      launcher,
-      inspectorModel,
-      mock(),
-      mock(),
-      MoreExecutors.directExecutor()
-    )
+    inspector =
+      LayoutInspector(
+        coroutineScope,
+        mock(),
+        mock(),
+        null,
+        mock(),
+        launcher,
+        inspectorModel,
+        mock(),
+        mock(),
+        MoreExecutors.directExecutor()
+      )
     renderModel = RenderModel(inspectorModel, mock(), inspector.treeSettings) { DisconnectedClient }
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)
@@ -121,8 +116,9 @@ class Toggle3dActionTest {
     toggle3dAction.update(event)
     verify(presentation).isEnabled = true
     verify(presentation).text = "3D Mode"
-    verify(presentation).description = "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this " +
-                                       "mode consumes more device resources and might impact runtime performance."
+    verify(presentation).description =
+      "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this " +
+        "mode consumes more device resources and might impact runtime performance."
     verify(presentation).icon = StudioIcons.LayoutInspector.MODE_3D
   }
 
@@ -169,10 +165,11 @@ class Toggle3dActionTest {
   @Test
   fun testNoRendererFallback() {
     val toggle3dAction = Toggle3dAction { renderModel }
-    val window = window(3, 1, imageType = BITMAP_AS_REQUESTED) {
-      image()
-      view(2)
-    }
+    val window =
+      window(3, 1, imageType = BITMAP_AS_REQUESTED) {
+        image()
+        view(2)
+      }
     capabilities.clear()
     inspectorModel.update(window, listOf(3), 0)
     toggle3dAction.update(event)

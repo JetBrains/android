@@ -41,24 +41,21 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.components.BorderLayoutPanel
+import javax.swing.JPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verifyNoMoreInteractions
-import javax.swing.JPanel
 
 @RunsInEdt
 class ToggleLayoutInspectorActionTest {
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val displayViewRule = EmulatorViewRule()
+  @get:Rule val displayViewRule = EmulatorViewRule()
 
   private lateinit var fakeLayoutInspectorManager: FakeLayoutInspectorManager
   private lateinit var displayView: AbstractDisplayView
@@ -81,11 +78,20 @@ class ToggleLayoutInspectorActionTest {
     // replace CustomActionsSchema with mocked one
     val mockCustomActionSchema = mock<CustomActionsSchema>()
     whenever(mockCustomActionSchema.getCorrectedAction(any())).thenAnswer { getFakeAction() }
-    ApplicationManager.getApplication().replaceService(CustomActionsSchema::class.java, mockCustomActionSchema, displayViewRule.disposable)
+    ApplicationManager.getApplication()
+      .replaceService(
+        CustomActionsSchema::class.java,
+        mockCustomActionSchema,
+        displayViewRule.disposable
+      )
 
     // replace LayoutInspectorManager with fake one
     fakeLayoutInspectorManager = FakeLayoutInspectorManager()
-    displayViewRule.project.replaceService(LayoutInspectorManager::class.java, fakeLayoutInspectorManager, displayViewRule.disposable)
+    displayViewRule.project.replaceService(
+      LayoutInspectorManager::class.java,
+      fakeLayoutInspectorManager,
+      displayViewRule.disposable
+    )
   }
 
   @Test
@@ -123,30 +129,36 @@ class ToggleLayoutInspectorActionTest {
   }
 
   @Test
-  fun testActionNotVisibleWhenEmbeddedLayoutInspectorIsDisabled() = runWithEmbeddedLayoutInspector(false) {
-    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
-    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
+  fun testActionNotVisibleWhenEmbeddedLayoutInspectorIsDisabled() =
+    runWithEmbeddedLayoutInspector(false) {
+      val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
+      val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
 
-    toggleLayoutInspectorAction.update(fakeActionEvent)
-    assertThat(fakeActionEvent.presentation.isVisible).isFalse()
-  }
+      toggleLayoutInspectorAction.update(fakeActionEvent)
+      assertThat(fakeActionEvent.presentation.isVisible).isFalse()
+    }
 
   @Test
-  fun testLayoutInspectorManagerNotCreatedWhenEmbeddedLayoutInspectorIsDisabled() = runWithEmbeddedLayoutInspector(false) {
-    val mockLayoutInspectorManager = mock<LayoutInspectorManager>()
-    displayViewRule.project.replaceService(LayoutInspectorManager::class.java, mockLayoutInspectorManager, displayViewRule.disposable)
+  fun testLayoutInspectorManagerNotCreatedWhenEmbeddedLayoutInspectorIsDisabled() =
+    runWithEmbeddedLayoutInspector(false) {
+      val mockLayoutInspectorManager = mock<LayoutInspectorManager>()
+      displayViewRule.project.replaceService(
+        LayoutInspectorManager::class.java,
+        mockLayoutInspectorManager,
+        displayViewRule.disposable
+      )
 
-    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
-    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
+      val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
+      val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
 
-    toggleLayoutInspectorAction.update(fakeActionEvent)
-    assertThat(fakeActionEvent.presentation.isVisible).isFalse()
+      toggleLayoutInspectorAction.update(fakeActionEvent)
+      assertThat(fakeActionEvent.presentation.isVisible).isFalse()
 
-    toggleLayoutInspectorAction.isSelected(fakeActionEvent)
-    toggleLayoutInspectorAction.setSelected(fakeActionEvent, true)
+      toggleLayoutInspectorAction.isSelected(fakeActionEvent)
+      toggleLayoutInspectorAction.setSelected(fakeActionEvent, true)
 
-    verifyNoMoreInteractions(mockLayoutInspectorManager)
-  }
+      verifyNoMoreInteractions(mockLayoutInspectorManager)
+    }
 
   private fun runWithEmbeddedLayoutInspector(enable: Boolean, block: () -> Unit) {
     val previous = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
@@ -175,7 +187,7 @@ class ToggleLayoutInspectorActionTest {
 
   private fun getFakeAction(): AnAction {
     return object : AnAction() {
-      override fun actionPerformed(e: AnActionEvent) { }
+      override fun actionPerformed(e: AnActionEvent) {}
     }
   }
 
@@ -183,7 +195,7 @@ class ToggleLayoutInspectorActionTest {
     var isEnabled = false
     var toggleLayoutInspectorInvocations = 0
 
-    override fun addStateListener(listener: LayoutInspectorManager.StateListener) { }
+    override fun addStateListener(listener: LayoutInspectorManager.StateListener) {}
 
     override fun enableLayoutInspector(tabId: TabId, enable: Boolean) {
       toggleLayoutInspectorInvocations += 1

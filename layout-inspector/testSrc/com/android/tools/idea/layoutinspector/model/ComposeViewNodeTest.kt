@@ -69,9 +69,24 @@ class ComposeViewNodeTest {
       view(ROOT) {
         compose(VIEW1, "MyApplicationTheme") {
           compose(VIEW2, "Column", composeFlags = FLAG_IS_INLINED, composePackageHash = EXAMPLE) {
-            compose(VIEW3, "Text", composeFlags = FLAG_HAS_MERGED_SEMANTICS, composePackageHash = EXAMPLE) {
-              compose(VIEW4, "Text", composeFlags = FLAG_HAS_UNMERGED_SEMANTICS, composePackageHash = EXAMPLE) {
-                compose(VIEW5, "CoreText", composeFlags = FLAG_SYSTEM_DEFINED, composePackageHash = EXAMPLE)
+            compose(
+              VIEW3,
+              "Text",
+              composeFlags = FLAG_HAS_MERGED_SEMANTICS,
+              composePackageHash = EXAMPLE
+            ) {
+              compose(
+                VIEW4,
+                "Text",
+                composeFlags = FLAG_HAS_UNMERGED_SEMANTICS,
+                composePackageHash = EXAMPLE
+              ) {
+                compose(
+                  VIEW5,
+                  "CoreText",
+                  composeFlags = FLAG_SYSTEM_DEFINED,
+                  composePackageHash = EXAMPLE
+                )
               }
             }
           }

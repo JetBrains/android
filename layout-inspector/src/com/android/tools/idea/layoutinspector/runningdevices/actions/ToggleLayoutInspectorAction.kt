@@ -30,10 +30,9 @@ import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import javax.swing.JComponent
 
-/**
- * Action used to turn Layout Inspector on and off in Running Devices tool window.
- */
-class ToggleLayoutInspectorAction : ToggleAction(), TooltipDescriptionProvider, TooltipLinkProvider {
+/** Action used to turn Layout Inspector on and off in Running Devices tool window. */
+class ToggleLayoutInspectorAction :
+  ToggleAction(), TooltipDescriptionProvider, TooltipLinkProvider {
   override fun isSelected(e: AnActionEvent): Boolean {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
       return false
@@ -53,7 +52,8 @@ class ToggleLayoutInspectorAction : ToggleAction(), TooltipDescriptionProvider, 
     val project = e.project ?: return
     val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(e.dataContext) ?: return
 
-    LayoutInspectorManager.getInstance(project).enableLayoutInspector(TabId(deviceSerialNumber), state)
+    LayoutInspectorManager.getInstance(project)
+      .enableLayoutInspector(TabId(deviceSerialNumber), state)
   }
 
   override fun update(e: AnActionEvent) {
@@ -68,15 +68,13 @@ class ToggleLayoutInspectorAction : ToggleAction(), TooltipDescriptionProvider, 
     val apiLevel = displayView?.apiLevel
     if (apiLevel == null) {
       e.presentation.isEnabled = false
-    }
-    else if (apiLevel < 29) {
+    } else if (apiLevel < 29) {
       // We decided to always have Live Updates ON in Embedded Layout Inspector.
       // Live updates requires API 29+.
       // TODO(b/285889090): provide a better experience for devices with API lower than 29.
       e.presentation.isEnabled = false
       e.presentation.description = LayoutInspectorBundle.message("api.29.limit")
-    }
-    else {
+    } else {
       e.presentation.isEnabled = true
       e.presentation.description = ""
     }

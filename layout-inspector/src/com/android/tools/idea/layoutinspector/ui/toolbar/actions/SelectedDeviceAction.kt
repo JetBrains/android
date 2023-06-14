@@ -32,9 +32,9 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.Toggleable
 import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.Icon
 import javax.swing.JComponent
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Action used to display a dropdown of all inspectable devices.
@@ -46,13 +46,9 @@ class SelectDeviceAction(
   private val onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   private val onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
   private val detachPresentation: DetachPresentation = DetachPresentation(),
-  private val onDetachAction: (() -> Unit) = { },
+  private val onDetachAction: (() -> Unit) = {},
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> }
-) :
-  DropDownAction(
-    "Select device",
-    "Select a device to connect to.",
-    ICON_PHONE) {
+) : DropDownAction("Select device", "Select a device to connect to.", ICON_PHONE) {
 
   var button: JComponent? = null
     private set
@@ -65,21 +61,23 @@ class SelectDeviceAction(
     val selectedDevice = deviceModel.selectedDevice
     val selectedProcess = deviceModel.selectedProcess
 
-    val dropDownPresentation = if (selectedDevice != null) {
-      // if a device is selected, use the device
-      DropDownPresentation(createDeviceLabel(selectedDevice), selectedDevice.toIcon())
-    }
-    else if (selectedProcess != null) {
-      // if a device is not selected, but a process is, use the process's device
-      // this is for the case where ForegroundProcessDetection does not work, and we fall back to having the user selecting the process.
-      DropDownPresentation(createDeviceLabel(selectedProcess.device, selectedProcess), selectedProcess.device.toIcon())
-    }
-    else if (deviceModel.devices.isEmpty()) {
-      DropDownPresentation("No Device Available", null)
-    }
-    else {
-      DropDownPresentation("No Device Selected", null)
-    }
+    val dropDownPresentation =
+      if (selectedDevice != null) {
+        // if a device is selected, use the device
+        DropDownPresentation(createDeviceLabel(selectedDevice), selectedDevice.toIcon())
+      } else if (selectedProcess != null) {
+        // if a device is not selected, but a process is, use the process's device
+        // this is for the case where ForegroundProcessDetection does not work, and we fall back to
+        // having the user selecting the process.
+        DropDownPresentation(
+          createDeviceLabel(selectedProcess.device, selectedProcess),
+          selectedProcess.device.toIcon()
+        )
+      } else if (deviceModel.devices.isEmpty()) {
+        DropDownPresentation("No Device Available", null)
+      } else {
+        DropDownPresentation("No Device Selected", null)
+      }
 
     event.presentation.icon = dropDownPresentation.icon
     event.presentation.text = dropDownPresentation.text
@@ -89,14 +87,15 @@ class SelectDeviceAction(
     removeAll()
 
     // Rebuild the action tree.
-    deviceModel.devices.sortedBy { it.buildDeviceName() }.forEach { device ->
-      if (deviceModel.supportsForegroundProcessDetection(device)) {
-        add(DeviceAction(device))
+    deviceModel.devices
+      .sortedBy { it.buildDeviceName() }
+      .forEach { device ->
+        if (deviceModel.supportsForegroundProcessDetection(device)) {
+          add(DeviceAction(device))
+        } else {
+          add(DeviceProcessPickerAction(device))
+        }
       }
-      else {
-        add(DeviceProcessPickerAction(device))
-      }
-    }
 
     if (childrenCount == 0) {
       add(NO_DEVICE_ACTION)
@@ -110,20 +109,17 @@ class SelectDeviceAction(
 
   override fun displayTextInToolbar() = true
 
-  class DetachPresentation(val text: String = "Stop Inspector",
-                           val desc: String = "Stop running the layout inspector against the current device.")
+  class DetachPresentation(
+    val text: String = "Stop Inspector",
+    val desc: String = "Stop running the layout inspector against the current device."
+  )
 
-  /**
-   * Action used to detach the inspector.
-   */
+  /** Action used to detach the inspector. */
   @VisibleForTesting
-  inner class DetachInspectorAction : AnAction(detachPresentation.text,
-                                               detachPresentation.desc,
-                                               StudioIcons.Shell.Toolbar.STOP) {
+  inner class DetachInspectorAction :
+    AnAction(detachPresentation.text, detachPresentation.desc, StudioIcons.Shell.Toolbar.STOP) {
 
-    /**
-     * This action is enabled each time a device is selected.
-     */
+    /** This action is enabled each time a device is selected. */
     @VisibleForTesting
     fun isEnabled(): Boolean {
       return deviceModel.selectedDevice != null || deviceModel.selectedProcess != null
@@ -138,9 +134,7 @@ class SelectDeviceAction(
     }
   }
 
-  /**
-   * A device which the user can select.
-   */
+  /** A device which the user can select. */
   private inner class DeviceAction(
     private val device: DeviceDescriptor,
   ) : ToggleAction(device.buildDeviceName(), null, device.toIcon()) {
@@ -165,22 +159,24 @@ class SelectDeviceAction(
   }
 
   /**
-   * A device with all its debuggable processes, which the user can select.
-   * This is shown if [device] doesn't support foreground process detection.
+   * A device with all its debuggable processes, which the user can select. This is shown if
+   * [device] doesn't support foreground process detection.
    */
   private inner class DeviceProcessPickerAction(
     private val device: DeviceDescriptor,
-  ) : DropDownAction(
-    "${device.buildDeviceName()} ${LayoutInspectorBundle.message("cant.detect.foreground.process")}",
-    null,
-    device.toIcon()
-  ) {
+  ) :
+    DropDownAction(
+      "${device.buildDeviceName()} ${LayoutInspectorBundle.message("cant.detect.foreground.process")}",
+      null,
+      device.toIcon()
+    ) {
     override fun displayTextInToolbar() = true
 
     init {
-      val processes = deviceModel.processes
-        .sortedBy { it.name }
-        .filter { (it.isRunning) && (it.device.serial == device.serial) }
+      val processes =
+        deviceModel.processes
+          .sortedBy { it.name }
+          .filter { (it.isRunning) && (it.device.serial == device.serial) }
 
       for (process in processes) {
         add(ConnectAction(process))
@@ -208,11 +204,13 @@ class SelectDeviceAction(
   }
 }
 
-private fun createDeviceLabel(device: DeviceDescriptor, process: ProcessDescriptor? = null): String {
+private fun createDeviceLabel(
+  device: DeviceDescriptor,
+  process: ProcessDescriptor? = null
+): String {
   return if (process != null) {
     "${device.buildDeviceName()} > ${process.name}"
-  }
-  else {
+  } else {
     device.buildDeviceName()
   }
 }

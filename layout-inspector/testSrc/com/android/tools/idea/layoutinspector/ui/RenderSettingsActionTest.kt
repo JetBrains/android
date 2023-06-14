@@ -36,33 +36,34 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.testFramework.ApplicationRule
+import java.awt.event.InputEvent
+import java.util.EnumSet
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.doAnswer
-import java.awt.event.InputEvent
-import java.util.EnumSet
 
 class RenderSettingsActionTest {
   private lateinit var event: AnActionEvent
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @get:Rule
-  val rules: RuleChain = RuleChain
-    .outerRule(MockitoCleanerRule())
-    .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true))
-    .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true))
+  val rules: RuleChain =
+    RuleChain.outerRule(MockitoCleanerRule())
+      .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true))
+      .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true))
 
   private val treeSettings = FakeTreeSettings().apply { showRecompositions = true }
   private val fakeRenderSettings = FakeRenderSettings()
-  private val capabilities = EnumSet.noneOf(Capability::class.java).apply { add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) }
+  private val capabilities =
+    EnumSet.noneOf(Capability::class.java).apply {
+      add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
+    }
   private var isConnected = true
 
   @Before
@@ -102,14 +103,15 @@ class RenderSettingsActionTest {
 
   @Test
   fun testSelectedColor() {
-    val colors = mapOf(
-      0xFF0000 to "Red",
-      0x4F9EE3 to "Blue",
-      0x479345 to "Green",
-      0xFFC66D to "Yellow",
-      0x871094 to "Purple",
-      0xE1A336 to "Orange"
-    )
+    val colors =
+      mapOf(
+        0xFF0000 to "Red",
+        0x4F9EE3 to "Blue",
+        0x479345 to "Green",
+        0xFFC66D to "Yellow",
+        0x871094 to "Purple",
+        0xE1A336 to "Orange"
+      )
     val highlightColorAction = HighlightColorAction { fakeRenderSettings }
 
     for ((color, text) in colors) {
@@ -145,11 +147,18 @@ class RenderSettingsActionTest {
     }
     val actionManager: ActionManager = mock()
     val inputEvent = mock<InputEvent>()
-    return AnActionEvent(inputEvent, dataContext, ActionPlaces.UNKNOWN, Presentation(), actionManager, 0)
+    return AnActionEvent(
+      inputEvent,
+      dataContext,
+      ActionPlaces.UNKNOWN,
+      Presentation(),
+      actionManager,
+      0
+    )
   }
 }
 
-class FakeRenderSettings: RenderSettings {
+class FakeRenderSettings : RenderSettings {
   override val modificationListeners = mutableListOf<() -> Unit>()
   override var scalePercent = 100
   override var drawBorders = true

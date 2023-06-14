@@ -22,13 +22,14 @@ import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
 import org.junit.Test
 
-private val AUTO_CONNECT_FLAG = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
-private val EMBEDDED_LAYOUT_INSPECTOR_FLAG = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED
+private val AUTO_CONNECT_FLAG =
+  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+private val EMBEDDED_LAYOUT_INSPECTOR_FLAG =
+  StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED
 
 class LayoutInspectorSettingsTest {
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun testAutoConnectEnabledFlag() {

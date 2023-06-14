@@ -22,8 +22,8 @@ import com.intellij.openapi.project.Project
 private const val IS_CAPTURING_KEY = "live.layout.inspector.capturing"
 
 /**
- * Inspector pipeline settings that should be considered global within a project and preserved across multiple
- * inspector clients.
+ * Inspector pipeline settings that should be considered global within a project and preserved
+ * across multiple inspector clients.
  */
 class InspectorClientSettings(private val project: Project) {
   /**
@@ -35,7 +35,9 @@ class InspectorClientSettings(private val project: Project) {
     set(value) = PropertiesComponent.getInstance(project).setValue(IS_CAPTURING_KEY, value, true)
 
   /**
-   * Disable capturing of bitmap screenshots. The agent will only capture view boundaries and SKP screenshots.
+   * Disable capturing of bitmap screenshots. The agent will only capture view boundaries and SKP
+   * screenshots.
    */
-  val disableBitmapScreenshot: Boolean get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+  val disableBitmapScreenshot: Boolean
+    get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
 }

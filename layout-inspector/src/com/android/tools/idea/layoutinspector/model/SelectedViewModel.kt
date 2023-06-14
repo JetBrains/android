@@ -24,13 +24,15 @@ private const val UNNAMED_COMPONENT = "<unnamed>"
 /**
  * Model for supplying data to a SelectedComponentPanel.
  *
- * For displaying which component is being edited.
- * Intended for being shown at the top of the properties panel.
+ * For displaying which component is being edited. Intended for being shown at the top of the
+ * properties panel.
  */
-class SelectedViewModel(name: InspectorPropertyItem, id: InspectorPropertyItem?) : SelectedComponentModel {
+class SelectedViewModel(name: InspectorPropertyItem, id: InspectorPropertyItem?) :
+  SelectedComponentModel {
   private val unqualifiedName = name.value?.substringAfterLast('.') ?: ""
 
-  override val icon: Icon = IconProvider.getIconForView(unqualifiedName, id?.value?.isEmpty() == true)
+  override val icon: Icon =
+    IconProvider.getIconForView(unqualifiedName, id?.value?.isEmpty() == true)
 
   override val id: String = id?.value ?: UNNAMED_COMPONENT
 

@@ -37,15 +37,15 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import javax.swing.Icon
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Utility for looking up resources in a project.
  *
- * This class contains facilities for finding property values and to navigate to
- * the property definition or property assignment.
+ * This class contains facilities for finding property values and to navigate to the property
+ * definition or property assignment.
  */
 class ResourceLookup(private val project: Project) {
   private val composeResolver = LambdaResolver(project)
@@ -88,9 +88,7 @@ class ResourceLookup(private val project: Project) {
   val defaultTheme: StyleResourceValue?
     get() = resolver?.defaultTheme
 
-  /**
-   * Updates the configuration after a possible configuration change detected on the device.
-   */
+  /** Updates the configuration after a possible configuration change detected on the device. */
   @Slow
   fun updateConfiguration(
     folderConfig: FolderConfiguration,
@@ -107,10 +105,12 @@ class ResourceLookup(private val project: Project) {
     displayOrientation = mainDisplayOrientation
   }
 
-  /**
-   * Update the configuration after a legacy reload, or snapshot load.
-   */
-  fun updateConfiguration(deviceDpi: Int?, deviceFontScale: Float? = null, screenSize: Dimension? = null) {
+  /** Update the configuration after a legacy reload, or snapshot load. */
+  fun updateConfiguration(
+    deviceDpi: Int?,
+    deviceFontScale: Float? = null,
+    screenSize: Dimension? = null
+  ) {
     dpi = deviceDpi?.takeIf { it > 0 }
     fontScale = deviceFontScale?.takeIf { it > 0f }
     resolver = null
@@ -123,44 +123,48 @@ class ResourceLookup(private val project: Project) {
     theme: ResourceReference?,
     process: ProcessDescriptor
   ): ResourceLookupResolver? {
-    val facet = ReadAction.compute<AndroidFacet?, RuntimeException> { findFacetFromPackage(project, process.name) } ?: return null
+    val facet =
+      ReadAction.compute<AndroidFacet?, RuntimeException> {
+        findFacetFromPackage(project, process.name)
+      }
+        ?: return null
     val themeStyle = mapReference(facet, theme)?.resourceUrl?.toString() ?: return null
     val mgr = ConfigurationManager.getOrCreateInstance(facet.module)
     val cache = mgr.resolverCache
-    val resourceResolver = ReadAction.compute<ResourceResolver, RuntimeException> {
-      cache.getResourceResolver(mgr.target, themeStyle, folderConfig)
-    }
+    val resourceResolver =
+      ReadAction.compute<ResourceResolver, RuntimeException> {
+        cache.getResourceResolver(mgr.target, themeStyle, folderConfig)
+      }
     return ResourceLookupResolver(project, facet, folderConfig, resourceResolver)
   }
 
   /**
    * Find the file locations for a [property].
    *
-   * The list of file locations will start from [InspectorPropertyItem.source]. If that is a reference
-   * the definition of that reference will be next etc.
-   * The [max] guards against recursive indirection in the resources.
-   * Each file location is specified by:
-   *  - a string containing the file name and a line number
-   *  - a [Navigatable] that can be used to goto the source location
+   * The list of file locations will start from [InspectorPropertyItem.source]. If that is a
+   * reference the definition of that reference will be next etc. The [max] guards against recursive
+   * indirection in the resources. Each file location is specified by:
+   * - a string containing the file name and a line number
+   * - a [Navigatable] that can be used to goto the source location
    */
-  fun findFileLocations(property: InspectorPropertyItem, view: ViewNode, max: Int = MAX_RESOURCE_INDIRECTION): List<SourceLocation> =
+  fun findFileLocations(
+    property: InspectorPropertyItem,
+    view: ViewNode,
+    max: Int = MAX_RESOURCE_INDIRECTION
+  ): List<SourceLocation> =
     resolver?.findFileLocations(property, view, property.source, max) ?: emptyList()
 
-  /**
-   * Find the location of the specified [view].
-   */
-  fun findFileLocation(view: ViewNode): SourceLocation? =
-    resolver?.findFileLocation(view)
+  /** Find the location of the specified [view]. */
+  fun findFileLocation(view: ViewNode): SourceLocation? = resolver?.findFileLocation(view)
 
-  /**
-   * Find the attribute value from resource reference.
-   */
-  fun findAttributeValue(property: InspectorPropertyItem, view: ViewNode, location: ResourceReference): String? =
-    resolver?.findAttributeValue(property, view, location)
+  /** Find the attribute value from resource reference. */
+  fun findAttributeValue(
+    property: InspectorPropertyItem,
+    view: ViewNode,
+    location: ResourceReference
+  ): String? = resolver?.findAttributeValue(property, view, location)
 
-  /**
-   * Find the lambda source location.
-   */
+  /** Find the lambda source location. */
   @Slow
   fun findLambdaLocation(
     packageName: String,
@@ -170,38 +174,40 @@ class ResourceLookup(private val project: Project) {
     startLine: Int,
     endLine: Int
   ): SourceLocation =
-    composeResolver.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLine, endLine)
+    composeResolver.findLambdaLocation(
+      packageName,
+      fileName,
+      lambdaName,
+      functionName,
+      startLine,
+      endLine
+    )
 
-  /**
-   * Find the source navigatable of a composable function.
-   */
+  /** Find the source navigatable of a composable function. */
   @Slow
   fun findComposableNavigatable(composable: ComposeViewNode): Navigatable? =
     composeResolver.findComposableNavigatable(composable)
 
-  /**
-   * Find the icon from this drawable property.
-   */
+  /** Find the icon from this drawable property. */
   fun resolveAsIcon(property: InspectorPropertyItem, view: ViewNode): Icon? {
-    resolver?.resolveAsIcon(property, view)?.let { return it }
+    resolver?.resolveAsIcon(property, view)?.let {
+      return it
+    }
     val value = property.value
     val color = value?.let { parseColor(value) } ?: return null
     return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
   }
 
-  /**
-   * Convert a class name to a source location.
-   */
+  /** Convert a class name to a source location. */
   fun resolveClassNameAsSourceLocation(className: String): SourceLocation? {
-    val psiClass = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
+    val psiClass =
+      JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))
     val navigatable = psiClass?.let { findNavigatable(psiClass) } ?: return null
     val source = ClassUtil.extractClassName(className)
     return SourceLocation(source, navigatable)
   }
 
-  /**
-   * Is this attribute a dimension according to the resource manager.
-   */
+  /** Is this attribute a dimension according to the resource manager. */
   @Slow
   fun isDimension(view: ViewNode, attributeName: String): Boolean =
     ReadAction.compute<Boolean, Nothing> { resolver?.isDimension(view, attributeName) ?: false }

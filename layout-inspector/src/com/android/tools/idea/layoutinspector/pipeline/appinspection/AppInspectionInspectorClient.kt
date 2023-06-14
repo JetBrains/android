@@ -60,6 +60,9 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.EditorNotificationPanel.Status
+import java.nio.file.Path
+import java.util.EnumSet
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -67,25 +70,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.nio.file.Path
-import java.util.EnumSet
-import java.util.concurrent.TimeUnit
 
 const val SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY = "system.image.live.unsupported"
-@com.google.common.annotations.VisibleForTesting
-const val API_29_BUG_MESSAGE_KEY = "api29.message"
+@com.google.common.annotations.VisibleForTesting const val API_29_BUG_MESSAGE_KEY = "api29.message"
 @com.google.common.annotations.VisibleForTesting
 const val API_29_BUG_UPGRADE_KEY = "api29.upgrade.message"
-@com.google.common.annotations.VisibleForTesting
-const val MIN_API_29_GOOGLE_APIS_SYSIMG_REV = 12
-@com.google.common.annotations.VisibleForTesting
-const val MIN_API_29_AOSP_SYSIMG_REV = 8
+@com.google.common.annotations.VisibleForTesting const val MIN_API_29_GOOGLE_APIS_SYSIMG_REV = 12
+@com.google.common.annotations.VisibleForTesting const val MIN_API_29_AOSP_SYSIMG_REV = 8
 
 /**
  * An [InspectorClient] that talks to an app-inspection based inspector running on a target device.
  *
  * @param apiServices App inspection services used for initializing and shutting down app
- *     inspection-based inspectors.
+ *   inspection-based inspectors.
  */
 class AppInspectionInspectorClient(
   process: ProcessDescriptor,
@@ -97,18 +94,22 @@ class AppInspectionInspectorClient(
   private val inspectorClientSettings: InspectorClientSettings,
   private val coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
-  @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
-  @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-) : AbstractInspectorClient(
-  APP_INSPECTION_CLIENT,
-  model.project,
-  notificationModel,
-  process,
-  isInstantlyAutoConnected,
-  SessionStatisticsImpl(APP_INSPECTION_CLIENT),
-  coroutineScope,
-  parentDisposable
-) {
+  @TestOnly
+  private val apiServices: AppInspectionApiServices =
+    AppInspectionDiscoveryService.instance.apiServices,
+  @TestOnly
+  private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+) :
+  AbstractInspectorClient(
+    APP_INSPECTION_CLIENT,
+    model.project,
+    notificationModel,
+    process,
+    isInstantlyAutoConnected,
+    SessionStatisticsImpl(APP_INSPECTION_CLIENT),
+    coroutineScope,
+    parentDisposable
+  ) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
@@ -125,21 +126,20 @@ class AppInspectionInspectorClient(
   private var debugViewAttributesChanged = false
 
   override val capabilities =
-    EnumSet.of(Capability.SUPPORTS_CONTINUOUS_MODE,
-               Capability.SUPPORTS_SYSTEM_NODES,
-               Capability.SUPPORTS_SKP)!!
+    EnumSet.of(
+      Capability.SUPPORTS_CONTINUOUS_MODE,
+      Capability.SUPPORTS_SYSTEM_NODES,
+      Capability.SUPPORTS_SKP
+    )!!
 
-  private val skiaParser = SkiaParserImpl(
-    {
+  private val skiaParser =
+    SkiaParserImpl({
       viewInspector?.updateScreenshotType(LayoutInspectorViewProtocol.Screenshot.Type.BITMAP)
       capabilities.remove(Capability.SUPPORTS_SKP)
     })
 
-  override val treeLoader: TreeLoader = AppInspectionTreeLoader(
-    notificationModel,
-    logEvent = ::logEvent,
-    skiaParser
-  )
+  override val treeLoader: TreeLoader =
+    AppInspectionTreeLoader(notificationModel, logEvent = ::logEvent, skiaParser)
   override val provider: PropertiesProvider
     get() = propertiesProvider
   override val isCapturing: Boolean
@@ -151,82 +151,106 @@ class AppInspectionInspectorClient(
     checkApi29Version(process, model.project, sdkHandler)
 
     runCatching {
-      logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+        logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
-      // Create the app inspection connection now, so we can log that it happened.
-      apiServices.attachToProcess(process, model.project.name)
-      launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
+        // Create the app inspection connection now, so we can log that it happened.
+        apiServices.attachToProcess(process, model.project.name)
+        launchMonitor.updateProgress(
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS
+        )
 
-      composeInspector = ComposeLayoutInspectorClient.launch(
-        apiServices, process, model, notificationModel, treeSettings, capabilities, launchMonitor, ::logComposeAttachError
-      )
-      val viewIns = ViewLayoutInspectorClient.launch(
-        apiServices, process, model, stats, coroutineScope, composeInspector, ::fireError, ::fireRootsEvent, ::fireTreeEvent, launchMonitor
-      )
-      propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
-      viewInspector = viewIns
+        composeInspector =
+          ComposeLayoutInspectorClient.launch(
+            apiServices,
+            process,
+            model,
+            notificationModel,
+            treeSettings,
+            capabilities,
+            launchMonitor,
+            ::logComposeAttachError
+          )
+        val viewIns =
+          ViewLayoutInspectorClient.launch(
+            apiServices,
+            process,
+            model,
+            stats,
+            coroutineScope,
+            composeInspector,
+            ::fireError,
+            ::fireRootsEvent,
+            ::fireTreeEvent,
+            launchMonitor
+          )
+        propertiesProvider =
+          AppInspectionPropertiesProvider(
+            viewIns.propertiesCache,
+            composeInspector?.parametersCache,
+            model
+          )
+        viewInspector = viewIns
 
-      logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
+        logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-      debugViewAttributesChanged = DebugViewAttributes.getInstance().set(model.project, process)
-      if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
-        showActivityRestartedInBanner(model.project, notificationModel, process)
+        debugViewAttributesChanged = DebugViewAttributes.getInstance().set(model.project, process)
+        if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
+          showActivityRestartedInBanner(model.project, notificationModel, process)
+        }
+
+        val completableDeferred = CompletableDeferred<Unit>()
+        val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
+          completableDeferred.complete(Unit)
+        }
+
+        model.modificationListeners.add(updateListener)
+
+        if (inspectorClientSettings.disableBitmapScreenshot) {
+          disableBitmapScreenshots(true)
+        }
+
+        if (isCapturing) {
+          startFetchingInternal()
+        } else {
+          refreshInternal()
+        }
+
+        // wait until we start receiving updates
+        completableDeferred.await()
+        model.modificationListeners.remove(updateListener)
       }
-
-      val completableDeferred = CompletableDeferred<Unit>()
-      val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
-        completableDeferred.complete(Unit)
+      .recover {
+        handleException(it)
+        throw it
       }
-
-      model.modificationListeners.add(updateListener)
-
-      if (inspectorClientSettings.disableBitmapScreenshot) {
-        disableBitmapScreenshots(true)
-      }
-
-      if (isCapturing) {
-        startFetchingInternal()
-      }
-      else {
-        refreshInternal()
-      }
-
-      // wait until we start receiving updates
-      completableDeferred.await()
-      model.modificationListeners.remove(updateListener)
-    }.recover {
-      handleException(it)
-      throw it
-    }
   }
 
   private fun handleException(throwable: Throwable) {
     fireError(throwable.message, throwable)
   }
 
-  override suspend fun doDisconnect() = withContext(AndroidDispatchers.workerThread) {
-    try {
-      val debugViewAttributes = DebugViewAttributes.getInstance()
-      if (debugViewAttributesChanged && !debugViewAttributes.usePerDeviceSettings()) {
-        debugViewAttributes.clear(model.project, process)
+  override suspend fun doDisconnect() =
+    withContext(AndroidDispatchers.workerThread) {
+      try {
+        val debugViewAttributes = DebugViewAttributes.getInstance()
+        if (debugViewAttributesChanged && !debugViewAttributes.usePerDeviceSettings()) {
+          debugViewAttributes.clear(model.project, process)
+        }
+        viewInspector?.disconnect()
+        composeInspector?.disconnect()
+        // TODO: skiaParser#shutdown is a blocking function. Should be ported to coroutines
+        skiaParser.shutdown()
+        logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
+      } catch (t: Throwable) {
+        fireError(t.message, t)
+        throw t
       }
-      viewInspector?.disconnect()
-      composeInspector?.disconnect()
-      // TODO: skiaParser#shutdown is a blocking function. Should be ported to coroutines
-      skiaParser.shutdown()
-      logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
-
-    } catch (t: Throwable) {
-      fireError(t.message, t)
-      throw t
     }
-  }
 
   override suspend fun startFetching() {
     try {
       startFetchingInternal()
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       handleException(t)
       throw t
     }
@@ -247,8 +271,7 @@ class AppInspectionInspectorClient(
       // Reset the scale to 1 to support zooming while paused, and get an SKP if possible.
       if (capabilities.contains(Capability.SUPPORTS_SKP)) {
         updateScreenshotType(AndroidWindow.ImageType.SKP, 1.0f)
-      }
-      else {
+      } else {
         viewInspector?.updateScreenshotType(null, 1.0f)
       }
       stats.currentModeIsLive = false
@@ -260,9 +283,7 @@ class AppInspectionInspectorClient(
   }
 
   override fun refresh() {
-    coroutineScope.launch(loggingExceptionHandler) {
-      refreshInternal()
-    }
+    coroutineScope.launch(loggingExceptionHandler) { refreshInternal() }
   }
 
   private fun logEvent(eventType: DynamicLayoutInspectorEventType) {
@@ -289,9 +310,7 @@ class AppInspectionInspectorClient(
   }
 
   fun updateRecompositionCountSettings() {
-    coroutineScope.launch(loggingExceptionHandler) {
-      composeInspector?.updateSettings()
-    }
+    coroutineScope.launch(loggingExceptionHandler) { composeInspector?.updateSettings() }
   }
 
   @Slow
@@ -309,7 +328,8 @@ class AppInspectionInspectorClient(
     project: Project,
     sdkHandler: AndroidSdkHandler
   ) {
-    val (success, image) = checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
+    val (success, image) =
+      checkSystemImageForAppInspectionCompatibility(process, project, sdkHandler)
     if (success || image == null) {
       return
     }
@@ -317,41 +337,74 @@ class AppInspectionInspectorClient(
     val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
     if (tags.contains(SystemImage.GOOGLE_APIS_TAG) || tags.contains(SystemImage.DEFAULT_TAG)) {
       val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
-      val showBanner = RepoManager.RepoLoadedListener { packages ->
-        val message: String
-        val actions: List<StatusNotificationAction>
-        val remote = packages.consolidatedPkgs[image.path]?.remote
-        if (remote != null &&
-            ((tags.contains(SystemImage.GOOGLE_APIS_TAG) && remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-             (tags.contains(SystemImage.DEFAULT_TAG) && remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))) {
-          message = "${LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)} ${LayoutInspectorBundle.message(API_29_BUG_UPGRADE_KEY)}"
-          actions = listOf(StatusNotificationAction("Download Update") {
-            if (SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))?.showAndGet() == true) {
-              Messages.showInfoMessage(project, "Please restart the emulator for update to take effect.", "Restart Required")
-            }
-          }, notificationModel.dismissAction)
+      val showBanner =
+        RepoManager.RepoLoadedListener { packages ->
+          val message: String
+          val actions: List<StatusNotificationAction>
+          val remote = packages.consolidatedPkgs[image.path]?.remote
+          if (
+            remote != null &&
+              ((tags.contains(SystemImage.GOOGLE_APIS_TAG) &&
+                remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
+                (tags.contains(SystemImage.DEFAULT_TAG) &&
+                  remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))
+          ) {
+            message =
+              "${LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)} ${LayoutInspectorBundle.message(API_29_BUG_UPGRADE_KEY)}"
+            actions =
+              listOf(
+                StatusNotificationAction("Download Update") {
+                  if (
+                    SdkQuickfixUtils.createDialogForPaths(project, listOf(image.path))
+                      ?.showAndGet() == true
+                  ) {
+                    Messages.showInfoMessage(
+                      project,
+                      "Please restart the emulator for update to take effect.",
+                      "Restart Required"
+                    )
+                  }
+                },
+                notificationModel.dismissAction
+              )
+          } else {
+            message = LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)
+            actions = listOf(notificationModel.dismissAction)
+          }
+          notificationModel.addNotification(
+            SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
+            message,
+            Status.Warning,
+            actions
+          )
         }
-        else {
-          message = LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY)
-          actions = listOf(notificationModel.dismissAction)
-        }
-        notificationModel.addNotification(SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY, message, Status.Warning, actions)
-      }
-      sdkHandler.getSdkManager(logger).load(0, null, listOf(showBanner), null,
-                                            StudioProgressRunner(false, false, "Checking available system images", null),
-                                            StudioDownloader(), StudioSettingsController.getInstance())
+      sdkHandler
+        .getSdkManager(logger)
+        .load(
+          0,
+          null,
+          listOf(showBanner),
+          null,
+          StudioProgressRunner(false, false, "Checking available system images", null),
+          StudioDownloader(),
+          StudioSettingsController.getInstance()
+        )
+    } else {
+      notificationModel.addNotification(
+        SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY,
+        LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY),
+        Status.Warning,
+        listOf(notificationModel.dismissAction)
+      )
     }
-    else {
-      notificationModel.addNotification(SYSTEM_IMAGE_LIVE_UNSUPPORTED_KEY, LayoutInspectorBundle.message(API_29_BUG_MESSAGE_KEY),
-                                        Status.Warning, listOf(notificationModel.dismissAction))
-    }
-    throw ConnectionFailedException("Unsupported system image revision", AttachErrorCode.LOW_API_LEVEL)
+    throw ConnectionFailedException(
+      "Unsupported system image revision",
+      AttachErrorCode.LOW_API_LEVEL
+    )
   }
 }
 
-/**
- * Check whether the current target's system image is compatible with app inspection.
- */
+/** Check whether the current target's system image is compatible with app inspection. */
 fun checkSystemImageForAppInspectionCompatibility(
   process: ProcessDescriptor,
   project: Project,
@@ -359,14 +412,24 @@ fun checkSystemImageForAppInspectionCompatibility(
 ): Pair<Boolean, RepoPackage?> {
   if (process.device.isEmulator && process.device.apiLevel == 29) {
     val adb = AdbUtils.getAdbFuture(project).get()
-    val avdName = adb?.devices?.find { it.serialNumber == process.device.serial }?.avdData?.get(1, TimeUnit.SECONDS)?.name
-    val avd = avdName?.let { AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName) }
+    val avdName =
+      adb
+        ?.devices
+        ?.find { it.serialNumber == process.device.serial }
+        ?.avdData
+        ?.get(1, TimeUnit.SECONDS)
+        ?.name
+    val avd =
+      avdName?.let { AvdManagerConnection.getAvdManagerConnection(sdkHandler).findAvd(avdName) }
     val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
     if (imagePackage != null) {
-      if ((SystemImage.GOOGLE_APIS_TAG == avd.tag && imagePackage.version < Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-          (SystemImage.DEFAULT_TAG == avd.tag && imagePackage.version < Revision(MIN_API_29_AOSP_SYSIMG_REV) ||
-           // We don't know when the play store images will be updated yet
-           SystemImage.PLAY_STORE_TAG == avd.tag)
+      if (
+        (SystemImage.GOOGLE_APIS_TAG == avd.tag &&
+          imagePackage.version < Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
+          (SystemImage.DEFAULT_TAG == avd.tag &&
+            imagePackage.version < Revision(MIN_API_29_AOSP_SYSIMG_REV) ||
+            // We don't know when the play store images will be updated yet
+            SystemImage.PLAY_STORE_TAG == avd.tag)
       ) {
         return Pair(false, imagePackage)
       }

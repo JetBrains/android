@@ -29,23 +29,31 @@ import org.jetbrains.android.facet.AndroidFacet
 private const val COMPOSE_WARNING_KEY = "compose.warning"
 private const val COMPOSE_WARNING_V29_KEY = "compose.warning.v29"
 
-/**
- * Supply a warning banner if a LegacyClient is used for a compose application.
- */
-class ComposeWarning(private val project: Project, private val notificationModel: NotificationModel) {
+/** Supply a warning banner if a LegacyClient is used for a compose application. */
+class ComposeWarning(
+  private val project: Project,
+  private val notificationModel: NotificationModel
+) {
   fun performCheck(client: InspectorClient) {
     if (isRunningCurrentProject(client) && isUsingCompose()) {
       val apiLevel = client.process.device.apiLevel
-      val message = if (apiLevel < 29) {
-        LayoutInspectorBundle.message(COMPOSE_WARNING_V29_KEY)
-      } else {
-        LayoutInspectorBundle.message(COMPOSE_WARNING_KEY)
-      }
-      notificationModel.addNotification(COMPOSE_WARNING_KEY, message, Status.Warning, listOf(notificationModel.dismissAction))
+      val message =
+        if (apiLevel < 29) {
+          LayoutInspectorBundle.message(COMPOSE_WARNING_V29_KEY)
+        } else {
+          LayoutInspectorBundle.message(COMPOSE_WARNING_KEY)
+        }
+      notificationModel.addNotification(
+        COMPOSE_WARNING_KEY,
+        message,
+        Status.Warning,
+        listOf(notificationModel.dismissAction)
+      )
     }
   }
 
-  // Check if this is the current project, in which case we can check if this is a compose application with "isUsingCompose"
+  // Check if this is the current project, in which case we can check if this is a compose
+  // application with "isUsingCompose"
   private fun isRunningCurrentProject(client: InspectorClient): Boolean =
     project.modules.any { module ->
       val facet = AndroidFacet.getInstance(module)
@@ -54,6 +62,5 @@ class ComposeWarning(private val project: Project, private val notificationModel
       packageName == client.process.name
     }
 
-  private fun isUsingCompose(): Boolean =
-    project.modules.any { it.getModuleSystem().usesCompose }
+  private fun isUsingCompose(): Boolean = project.modules.any { it.getModuleSystem().usesCompose }
 }

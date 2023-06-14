@@ -65,14 +65,18 @@ import javax.swing.JPanel
 
 private const val LAYOUT_INSPECTOR_SNAPSHOT_ID = "Layout Inspector Snapshot"
 
-class LayoutInspectorFileEditor(val project: Project, private val path: Path) : UserDataHolderBase(), FileEditor {
+class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
+  UserDataHolderBase(), FileEditor {
   private var metrics: LayoutInspectorSessionMetrics? = null
   private var stats: SessionStatistics = DisconnectedClient.stats
 
   override fun getFile() = VfsUtil.findFile(path, true)
 
   override fun dispose() {
-    metrics?.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA, stats)
+    metrics?.logEvent(
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SESSION_DATA,
+      stats
+    )
   }
 
   private var component: JComponent? = null
@@ -82,7 +86,9 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
     if (modificationCount < (file?.modificationCount ?: -1)) {
       component = null
     }
-    component?.let { return it }
+    component?.let {
+      return it
+    }
     modificationCount = file?.modificationCount ?: -1
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
@@ -99,73 +105,86 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       snapshotLoader = SnapshotLoader.createSnapshotLoader(path)
       val model = InspectorModel(project)
       stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
-      metadata = snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()
-      val client = object : InspectorClient by DisconnectedClient {
-        override val provider: PropertiesProvider
-          get() = snapshotLoader.propertiesProvider
+      metadata =
+        snapshotLoader?.loadFile(path, model, notificationModel, stats) ?: throw Exception()
+      val client =
+        object : InspectorClient by DisconnectedClient {
+          override val provider: PropertiesProvider
+            get() = snapshotLoader.propertiesProvider
 
-        override val capabilities: Set<InspectorClient.Capability>
-          get() = mutableSetOf<InspectorClient.Capability>().apply {
-            if (model.pictureType == AndroidWindow.ImageType.SKP) {
-              add(InspectorClient.Capability.SUPPORTS_SKP)
-            }
-            addAll(snapshotLoader.capabilities)
-          }
+          override val capabilities: Set<InspectorClient.Capability>
+            get() =
+              mutableSetOf<InspectorClient.Capability>().apply {
+                if (model.pictureType == AndroidWindow.ImageType.SKP) {
+                  add(InspectorClient.Capability.SUPPORTS_SKP)
+                }
+                addAll(snapshotLoader.capabilities)
+              }
 
-        override val process = snapshotLoader.processDescriptor
+          override val process = snapshotLoader.processDescriptor
 
-        override val stats: SessionStatistics
-          get() = this@LayoutInspectorFileEditor.stats
+          override val stats: SessionStatistics
+            get() = this@LayoutInspectorFileEditor.stats
 
-        override val isConnected
-          get() = true
-      }
+          override val isConnected
+            get() = true
+        }
 
       val layoutInspectorCoroutineScope = AndroidCoroutineScope(this)
 
       // TODO: persisted tree setting scoped to file
       val treeSettings = EditorTreeSettings(client.capabilities)
       val inspectorClientSettings = InspectorClientSettings(project)
-      val layoutInspector = LayoutInspector(
-        layoutInspectorCoroutineScope,
-        inspectorClientSettings,
-        client,
-        model,
-        notificationModel,
-        treeSettings
-      )
-      val deviceViewPanel = DeviceViewPanel(
-        layoutInspector = layoutInspector,
-        disposableParent = workbench
-      )
+      val layoutInspector =
+        LayoutInspector(
+          layoutInspectorCoroutineScope,
+          inspectorClientSettings,
+          client,
+          model,
+          notificationModel,
+          treeSettings
+        )
+      val deviceViewPanel =
+        DeviceViewPanel(layoutInspector = layoutInspector, disposableParent = workbench)
       DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
-      workbench.init(deviceViewPanel, layoutInspector, listOf(
-        LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()), false)
+      workbench.init(
+        deviceViewPanel,
+        layoutInspector,
+        listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()),
+        false
+      )
 
       metadata.loadDuration = System.currentTimeMillis() - startTime
       model.updateConnection(client)
-      // Since the model was updated before the panel was created, we need to zoom to fit explicitly.
-      // If startup is in progress we have to wait until after so tools windows are opened and the window is its final size.
+      // Since the model was updated before the panel was created, we need to zoom to fit
+      // explicitly.
+      // If startup is in progress we have to wait until after so tools windows are opened and the
+      // window is its final size.
       // TODO: save zoom in editor state
       StartupManager.getInstance(project).runAfterOpened {
         invokeLater(ModalityState.any()) { deviceViewPanel.zoom(ZoomType.FIT) }
       }
-      metrics = LayoutInspectorSessionMetrics(project, snapshotLoader.processDescriptor, snapshotMetadata = metadata)
+      metrics =
+        LayoutInspectorSessionMetrics(
+          project,
+          snapshotLoader.processDescriptor,
+          snapshotMetadata = metadata
+        )
       metrics?.logEvent(SNAPSHOT_LOADED, stats)
-    }
-    catch (exception: Exception) {
+    } catch (exception: Exception) {
       // TODO: better error panel
-      Logger.getInstance(LayoutInspectorFileEditor::class.java).warn("Error loading snapshot", exception)
-      LayoutInspectorSessionMetrics(project, snapshotLoader?.processDescriptor, metadata).logEvent(SNAPSHOT_LOAD_ERROR, stats)
-      val status = object : StatusText() {
-        override fun isStatusVisible() = true
-      }
+      Logger.getInstance(LayoutInspectorFileEditor::class.java)
+        .warn("Error loading snapshot", exception)
+      LayoutInspectorSessionMetrics(project, snapshotLoader?.processDescriptor, metadata)
+        .logEvent(SNAPSHOT_LOAD_ERROR, stats)
+      val status =
+        object : StatusText() {
+          override fun isStatusVisible() = true
+        }
       status.appendLine("Error loading snapshot")
-      (exception as? SnapshotLoaderException)?.message?.let {
-        status.appendLine(it)
-      }
+      (exception as? SnapshotLoaderException)?.message?.let { status.appendLine(it) }
 
-      return object: JPanel() {
+      return object : JPanel() {
         init {
           status.attachTo(this)
           component = this
@@ -202,15 +221,15 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
     return null
   }
 
-  /**
-   * Factory for [LayoutInspectorFileEditor]s.
-   */
+  /** Factory for [LayoutInspectorFileEditor]s. */
   class Provider : FileEditorProvider, DumbAware {
     override fun accept(project: Project, file: VirtualFile): Boolean {
-      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") == LayoutInspectorFileType
+      return FileTypeRegistry.getInstance().getFileTypeByExtension(file.extension ?: "") ==
+        LayoutInspectorFileType
     }
 
-    override fun createEditor(project: Project, file: VirtualFile) = LayoutInspectorFileEditor(project, file.toNioPath())
+    override fun createEditor(project: Project, file: VirtualFile) =
+      LayoutInspectorFileEditor(project, file.toNioPath())
 
     override fun getEditorTypeId() = "dynamic-layout-inspector"
 

@@ -21,6 +21,7 @@ import java.awt.Dimension
 
 /**
  * Misc. context about the current running app.
+ *
  * @param mainDisplayOrientation The orientation of the device main display in degrees.
  */
 class AppContext(
@@ -29,6 +30,10 @@ class AppContext(
   val mainDisplayOrientation: Int,
   val themeString: String = ""
 ) {
-  fun createThemeReference(stringTable: StringTable, projectPackageName: String): ResourceReference? =
-    if (themeString.isEmpty()) theme?.createReference(stringTable) else createReference(themeString, projectPackageName)
+  fun createThemeReference(
+    stringTable: StringTable,
+    projectPackageName: String
+  ): ResourceReference? =
+    if (themeString.isEmpty()) theme?.createReference(stringTable)
+    else createReference(themeString, projectPackageName)
 }

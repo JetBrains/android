@@ -22,19 +22,20 @@ import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.isSystemComposeNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
+import java.awt.Rectangle
+import java.util.EnumSet
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.GetComposablesResponse
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Quad
-import java.awt.Rectangle
-import java.util.EnumSet
 
 private val composeSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE)
-private val semanticsSupport = EnumSet.of(Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
+private val semanticsSupport =
+  EnumSet.of(Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
 
 /**
- * Helper class which handles the logic of using data from a [LayoutInspectorComposeProtocol.GetComposablesResponse] in order to
- * create [ComposeViewNode]s.
+ * Helper class which handles the logic of using data from a
+ * [LayoutInspectorComposeProtocol.GetComposablesResponse] in order to create [ComposeViewNode]s.
  */
 class ComposeViewNodeCreator(result: GetComposablesResult) {
   private val response = result.response
@@ -44,12 +45,11 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
   private var composeFlags = 0
   private var nodesCreated = false
 
-  /**
-   * The dynamic capabilities based on the loaded data for compose.
-   */
+  /** The dynamic capabilities based on the loaded data for compose. */
   val dynamicCapabilities: Set<Capability>
     get() {
-      val hasSemantics = (composeFlags and (FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)) != 0
+      val hasSemantics =
+        (composeFlags and (FLAG_HAS_MERGED_SEMANTICS or FLAG_HAS_UNMERGED_SEMANTICS)) != 0
       return when {
         nodesCreated && hasSemantics -> semanticsSupport
         nodesCreated -> composeSupport
@@ -60,7 +60,8 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
   /**
    * AndroidViews embedded in this Compose application.
    *
-   * Maps an AndroidView uniqueDrawingId to the [ComposeViewNode] that should be the parent of the Android View.
+   * Maps an AndroidView uniqueDrawingId to the [ComposeViewNode] that should be the parent of the
+   * Android View.
    */
   val androidViews = mutableMapOf<Long, ComposeViewNode>()
 
@@ -69,11 +70,11 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
    *
    * This includes RippleContainers with RippleHostViews.
    */
-  val viewsToSkip = response.rootsList.associateBy({ it.viewId }, { it.viewsToSkipList})
+  val viewsToSkip = response.rootsList.associateBy({ it.viewId }, { it.viewsToSkipList })
 
   /**
-   * Given an ID that should correspond to an AndroidComposeView, create a list of compose nodes
-   * for any Composable children it may have.
+   * Given an ID that should correspond to an AndroidComposeView, create a list of compose nodes for
+   * any Composable children it may have.
    *
    * This can return null if the ID passed in isn't found, either because it's not an
    * AndroidComposeView or it references a view not referenced by this particular
@@ -81,45 +82,52 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
    */
   fun createForViewId(id: Long, shouldInterrupt: () -> Boolean): List<ComposeViewNode>? {
     androidViews.clear()
-    val result = ViewNode.writeAccess {
-      roots[id]?.map { node -> node.convert(shouldInterrupt, this) }
-    }
+    val result =
+      ViewNode.writeAccess { roots[id]?.map { node -> node.convert(shouldInterrupt, this) } }
     nodesCreated = nodesCreated || (result?.isNotEmpty() ?: false)
     return result
   }
 
-  private fun ComposableNode.convert(shouldInterrupt: () -> Boolean, access: ViewNode.WriteAccess): ComposeViewNode {
+  private fun ComposableNode.convert(
+    shouldInterrupt: () -> Boolean,
+    access: ViewNode.WriteAccess
+  ): ComposeViewNode {
     if (shouldInterrupt()) {
       throw InterruptedException()
     }
 
     val layoutBounds = Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h)
-    val renderBounds = bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
+    val renderBounds =
+      bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
     val ignoreRecompositions =
       pendingRecompositionCountReset ||
-      (isSystemComposeNode(packageHash) && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK.get())
-    val node = ComposeViewNode(
-      id,
-      stringTable[name],
-      null,
-      layoutBounds,
-      renderBounds,
-      null,
-      "",
-      0,
-      if (ignoreRecompositions) 0 else recomposeCount,
-      if (ignoreRecompositions) 0 else recomposeSkips,
-      stringTable[filename],
-      packageHash,
-      offset,
-      lineNumber,
-      flags,
-      anchorHash
-    )
+        (isSystemComposeNode(packageHash) &&
+          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK.get())
+    val node =
+      ComposeViewNode(
+        id,
+        stringTable[name],
+        null,
+        layoutBounds,
+        renderBounds,
+        null,
+        "",
+        0,
+        if (ignoreRecompositions) 0 else recomposeCount,
+        if (ignoreRecompositions) 0 else recomposeSkips,
+        stringTable[filename],
+        packageHash,
+        offset,
+        lineNumber,
+        flags,
+        anchorHash
+      )
 
     composeFlags = composeFlags or flags
     access.apply {
-      childrenList.mapTo(node.children) { it.convert(shouldInterrupt, access).apply { parent = node } }
+      childrenList.mapTo(node.children) {
+        it.convert(shouldInterrupt, access).apply { parent = node }
+      }
     }
     if (viewId != 0L) {
       androidViews[viewId] = node

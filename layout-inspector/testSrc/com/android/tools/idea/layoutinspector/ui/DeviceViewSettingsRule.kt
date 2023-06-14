@@ -19,7 +19,8 @@ import com.android.tools.idea.testing.NamedExternalResource
 import org.junit.runner.Description
 
 /**
- * You must use this in a chain inside ApplicationRule (or something else that sets up ServiceManager)
+ * You must use this in a chain inside ApplicationRule (or something else that sets up
+ * ServiceManager)
  */
 class DeviceViewSettingsRule : NamedExternalResource() {
 

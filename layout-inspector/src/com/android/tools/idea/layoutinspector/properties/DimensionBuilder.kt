@@ -32,36 +32,45 @@ import com.android.tools.property.ptable.PTableModel
 /**
  * Adds the bounds of a view to the layout inspectors property table.
  *
- * Currently displayed are: x, y, width, height where the position is relative to the top
- * left of the device.
+ * Currently displayed are: x, y, width, height where the position is relative to the top left of
+ * the device.
  */
 object DimensionBuilder : InspectorBuilder<InspectorPropertyItem> {
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<InspectorPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<InspectorPropertyItem>
+  ) {
     val tableModel = DimensionTableModel(properties)
-    val enumSupportProvider = object : EnumSupportProvider<InspectorPropertyItem> {
-      // TODO: Make this a 1 liner
-      override fun invoke(property: InspectorPropertyItem): EnumSupport? = null
-    }
-    val controlTypeProvider = object : ControlTypeProvider<InspectorPropertyItem> {
-      // TODO: Make this a 1 liner
-      override fun invoke(property: InspectorPropertyItem): ControlType = ControlType.TEXT_EDITOR
-    }
+    val enumSupportProvider =
+      object : EnumSupportProvider<InspectorPropertyItem> {
+        // TODO: Make this a 1 liner
+        override fun invoke(property: InspectorPropertyItem): EnumSupport? = null
+      }
+    val controlTypeProvider =
+      object : ControlTypeProvider<InspectorPropertyItem> {
+        // TODO: Make this a 1 liner
+        override fun invoke(property: InspectorPropertyItem): ControlType = ControlType.TEXT_EDITOR
+      }
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
     val uiProvider = TableUIProvider(controlTypeProvider, editorProvider)
     inspector.addTable(tableModel, true, uiProvider)
   }
 
-  private class DimensionTableModel(properties: PropertiesTable<InspectorPropertyItem>): PTableModel {
+  private class DimensionTableModel(properties: PropertiesTable<InspectorPropertyItem>) :
+    PTableModel {
     override val items = createDimensionItems(properties)
     override var editedItem: PTableItem? = null
 
-    private fun createDimensionItems(properties: PropertiesTable<InspectorPropertyItem>): List<PTableItem> {
+    private fun createDimensionItems(
+      properties: PropertiesTable<InspectorPropertyItem>
+    ): List<PTableItem> {
       return listOfNotNull(
         properties.getOrNull(NAMESPACE_INTERNAL, ATTR_X),
         properties.getOrNull(NAMESPACE_INTERNAL, ATTR_Y),
         properties.getOrNull(NAMESPACE_INTERNAL, ATTR_WIDTH),
-        properties.getOrNull(NAMESPACE_INTERNAL, ATTR_HEIGHT))
+        properties.getOrNull(NAMESPACE_INTERNAL, ATTR_HEIGHT)
+      )
     }
 
     override fun addItem(item: PTableItem): PTableItem {

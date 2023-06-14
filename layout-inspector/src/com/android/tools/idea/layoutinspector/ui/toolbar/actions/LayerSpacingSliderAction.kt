@@ -33,12 +33,15 @@ private const val SLIDER_KEY = "SliderKey"
 const val INITIAL_LAYER_SPACING = 150
 const val MAX_LAYER_SPACING = 500
 
-class LayerSpacingSliderAction(private val renderModelProvider: () -> RenderModel) : AnAction(), CustomComponentAction {
+class LayerSpacingSliderAction(private val renderModelProvider: () -> RenderModel) :
+  AnAction(), CustomComponentAction {
   override fun actionPerformed(event: AnActionEvent) {
-    val component = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
+    val component =
+      event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
     val slider = component.getClientProperty(SLIDER_KEY) as JSlider
     // The event for Custom components actions are constructed differently than normal actions.
-    // If this action is shown in a popup toolbar (when there is not enough space to show the whole toolbar in-place),
+    // If this action is shown in a popup toolbar (when there is not enough space to show the whole
+    // toolbar in-place),
     // go through the action toolbar data context to find the model.
     renderModelProvider().layerSpacing = slider.value
   }
@@ -49,7 +52,9 @@ class LayerSpacingSliderAction(private val renderModelProvider: () -> RenderMode
     val slider = JSlider(JSlider.HORIZONTAL, 0, MAX_LAYER_SPACING, INITIAL_LAYER_SPACING)
     slider.addChangeListener {
       val dataContext = DataManager.getInstance().getDataContext(slider)
-      actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.TOOLBAR, presentation, dataContext))
+      actionPerformed(
+        AnActionEvent.createFromDataContext(ActionPlaces.TOOLBAR, presentation, dataContext)
+      )
     }
     panel.add(slider)
     panel.putClientProperty(SLIDER_KEY, slider)
@@ -60,7 +65,8 @@ class LayerSpacingSliderAction(private val renderModelProvider: () -> RenderMode
     val isRotated = renderModelProvider().isRotated
     e.presentation.isEnabled = isRotated
     e.presentation.isVisible = isRotated
-    val component = e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? JPanel ?: return
+    val component =
+      e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? JPanel ?: return
     component.components.forEach { it.isEnabled = e.presentation.isEnabled }
   }
 }

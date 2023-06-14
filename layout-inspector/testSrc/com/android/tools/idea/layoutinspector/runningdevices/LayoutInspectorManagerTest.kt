@@ -49,26 +49,23 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import java.awt.Component
+import java.awt.Container
+import javax.swing.JPanel
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
-import java.awt.Component
-import java.awt.Container
-import javax.swing.JPanel
 
 class LayoutInspectorManagerTest {
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val displayViewRule = EmulatorViewRule()
+  @get:Rule val displayViewRule = EmulatorViewRule()
 
   private lateinit var layoutInspector: LayoutInspector
   private lateinit var notificationModel: NotificationModel
@@ -98,29 +95,35 @@ class LayoutInspectorManagerTest {
     notificationModel = NotificationModel(displayViewRule.project)
 
     val coroutineScope = AndroidCoroutineScope(displayViewRule.disposable)
-    val launcher = InspectorClientLauncher(
-      processModel,
-      emptyList(),
-      displayViewRule.project,
-      notificationModel,
-      coroutineScope,
-      displayViewRule.disposable,
-    )
+    val launcher =
+      InspectorClientLauncher(
+        processModel,
+        emptyList(),
+        displayViewRule.project,
+        notificationModel,
+        coroutineScope,
+        displayViewRule.disposable,
+      )
 
-    layoutInspector = LayoutInspector(
-      coroutineScope = coroutineScope,
-      processModel = processModel,
-      deviceModel = deviceModel,
-      foregroundProcessDetection = null,
-      inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
-      launcher = launcher,
-      layoutInspectorModel = model { },
-      notificationModel = notificationModel,
-      treeSettings = FakeTreeSettings()
-    )
+    layoutInspector =
+      LayoutInspector(
+        coroutineScope = coroutineScope,
+        processModel = processModel,
+        deviceModel = deviceModel,
+        foregroundProcessDetection = null,
+        inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
+        launcher = launcher,
+        layoutInspectorModel = model {},
+        notificationModel = notificationModel,
+        treeSettings = FakeTreeSettings()
+      )
 
     whenever(mockLayoutInspectorProjectService.getLayoutInspector()).thenAnswer { layoutInspector }
-    displayViewRule.project.replaceService(LayoutInspectorProjectService::class.java, mockLayoutInspectorProjectService, displayViewRule.disposable)
+    displayViewRule.project.replaceService(
+      LayoutInspectorProjectService::class.java,
+      mockLayoutInspectorProjectService,
+      displayViewRule.disposable
+    )
 
     RunningDevicesStateObserver.getInstance(displayViewRule.project).update(true)
   }
@@ -271,10 +274,12 @@ class LayoutInspectorManagerTest {
     fakeToolWindowManager.removeContent(tab1)
 
     // assert that the workbench was not removed from tab1.
-    // it should not be removed because in the real world tab1 doesn't exist anymore after being removed
+    // it should not be removed because in the real world tab1 doesn't exist anymore after being
+    // removed
     // so trying to remove the workbench would cause problems.
     assertHasWorkbench(tab1)
-    // the same for stopping the inspector, it should not be called because the device is not connected anymore.
+    // the same for stopping the inspector, it should not be called because the device is not
+    // connected anymore.
     assertThat(stopInspectorCounts).isEqualTo(2)
     assertHasWorkbench(tab2)
   }
@@ -287,7 +292,8 @@ class LayoutInspectorManagerTest {
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
 
-    val layoutInspectorRenderer = tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+    val layoutInspectorRenderer =
+      tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
     layoutInspectorRenderer.addListener { refreshCount += 1 }
 
     layoutInspector.inspectorModel.setSelection(ViewNode("node1"), SelectionOrigin.COMPONENT_TREE)
@@ -307,7 +313,8 @@ class LayoutInspectorManagerTest {
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
 
-    val layoutInspectorRenderer = tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+    val layoutInspectorRenderer =
+      tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
     assertThat(layoutInspectorRenderer.interceptClicks).isFalse()
 
     layoutInspectorRenderer.interceptClicks = true
@@ -330,7 +337,8 @@ class LayoutInspectorManagerTest {
     val notifications1 = notificationModel.notifications
     assertThat(notifications1).hasSize(1)
     val firstNotification = notifications1.single()
-    assertThat(firstNotification.message).isEqualTo("(Experimental) Layout Inspector is now embedded within Running Devices window")
+    assertThat(firstNotification.message)
+      .isEqualTo("(Experimental) Layout Inspector is now embedded within Running Devices window")
     assertThat(firstNotification.actions[0].name).isEqualTo("Don't Show Again")
     assertThat(firstNotification.actions[1].name).isEqualTo("Opt-out")
 
@@ -367,20 +375,24 @@ class LayoutInspectorManagerTest {
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
 
-    val layoutInspectorRenderer = tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+    val layoutInspectorRenderer =
+      tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
 
-    val toolbars = tab1.container
-      .allChildren()
-      .filterIsInstance<ActionToolbar>()
-      .first { it.component.name == "LayoutInspector.MainToolbar" }
+    val toolbars =
+      tab1.container.allChildren().filterIsInstance<ActionToolbar>().first {
+        it.component.name == "LayoutInspector.MainToolbar"
+      }
 
-    val toggleDeepInspectAction = toolbars.actions.filterIsInstance<ToggleDeepInspectAction>().first()
-    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction))).isFalse()
+    val toggleDeepInspectAction =
+      toolbars.actions.filterIsInstance<ToggleDeepInspectAction>().first()
+    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction)))
+      .isFalse()
     assertThat(layoutInspectorRenderer.interceptClicks).isFalse()
 
     toggleDeepInspectAction.actionPerformed(createTestActionEvent(toggleDeepInspectAction))
 
-    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction))).isTrue()
+    assertThat(toggleDeepInspectAction.isSelected(createTestActionEvent(toggleDeepInspectAction)))
+      .isTrue()
     assertThat(layoutInspectorRenderer.interceptClicks).isTrue()
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
@@ -388,25 +400,26 @@ class LayoutInspectorManagerTest {
 
   private fun assertHasWorkbench(tabInfo: TabInfo) {
     assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
-    assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
+    assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>())
+      .hasSize(1)
 
-    val toolbars = tabInfo.container
-      .allChildren()
-      .filterIsInstance<ActionToolbar>()
-      .filter { it.component.name == "LayoutInspector.MainToolbar" }
+    val toolbars =
+      tabInfo.container.allChildren().filterIsInstance<ActionToolbar>().filter {
+        it.component.name == "LayoutInspector.MainToolbar"
+      }
 
     assertThat(toolbars).hasSize(1)
 
-    assertThat(toolbars.first().actions.filterIsInstance<SingleDeviceSelectProcessAction>()).hasSize(1)
+    assertThat(toolbars.first().actions.filterIsInstance<SingleDeviceSelectProcessAction>())
+      .hasSize(1)
     assertThat(toolbars.first().actions.filterIsInstance<ToggleDeepInspectAction>()).hasSize(1)
 
-    val inspectorBanner = tabInfo.container
-      .allChildren()
-      .filterIsInstance<InspectorBanner>()
+    val inspectorBanner = tabInfo.container.allChildren().filterIsInstance<InspectorBanner>()
 
     assertThat(inspectorBanner).hasSize(1)
 
-    assertThat(tabInfo.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(1)
+    assertThat(tabInfo.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>())
+      .hasSize(1)
   }
 
   @Test
@@ -424,23 +437,23 @@ class LayoutInspectorManagerTest {
 
   private fun assertDoesNotHaveWorkbench(tabInfo: TabInfo) {
     assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
-    assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
+    assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>())
+      .hasSize(0)
     assertThat(tabInfo.content.parent).isEqualTo(tabInfo.container)
 
-    val toolbars = tabInfo.container
-      .allChildren()
-      .filterIsInstance<ActionToolbar>()
-      .filter { it.component.name == "LayoutInspector.MainToolbar" }
+    val toolbars =
+      tabInfo.container.allChildren().filterIsInstance<ActionToolbar>().filter {
+        it.component.name == "LayoutInspector.MainToolbar"
+      }
 
     assertThat(toolbars).hasSize(0)
 
-    val inspectorBanner = tabInfo.container
-      .allChildren()
-      .filterIsInstance<InspectorBanner>()
+    val inspectorBanner = tabInfo.container.allChildren().filterIsInstance<InspectorBanner>()
 
     assertThat(inspectorBanner).hasSize(0)
 
-    assertThat(tabInfo.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>()).hasSize(0)
+    assertThat(tabInfo.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>())
+      .hasSize(0)
   }
 
   private fun Component.parents(): List<Container> {

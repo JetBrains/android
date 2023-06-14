@@ -34,14 +34,15 @@ fun FakeInspector.Connection<Event>.sendEvent(init: Event.Builder.() -> Unit) {
   sendEvent(Event.newBuilder().apply(init).build())
 }
 
-class FakeViewLayoutInspector(connection: Connection<Event>)
-  : FakeInspector<Command, Response, Event>(connection) {
+class FakeViewLayoutInspector(connection: Connection<Event>) :
+  FakeInspector<Command, Response, Event>(connection) {
 
   private fun sendProgress(progress: LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint) {
     connection.sendEvent {
-      progressEvent = LayoutInspectorViewProtocol.ProgressEvent.newBuilder().apply {
-        checkpoint = progress
-      }.build()
+      progressEvent =
+        LayoutInspectorViewProtocol.ProgressEvent.newBuilder()
+          .apply { checkpoint = progress }
+          .build()
     }
   }
 
@@ -51,45 +52,58 @@ class FakeViewLayoutInspector(connection: Connection<Event>)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.START_RECEIVED)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.STARTED)
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.ROOTS_EVENT_SENT)
-        connection.sendEvent {
-          rootsEvent = WindowRootsEvent.newBuilder().addIds(123).build()
-        }
-        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK)
-        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED)
-        sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED)
+        connection.sendEvent { rootsEvent = WindowRootsEvent.newBuilder().addIds(123).build() }
+        sendProgress(
+          LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_INVALIDATION_CALLBACK
+        )
+        sendProgress(
+          LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.SCREENSHOT_CAPTURED
+        )
+        sendProgress(
+          LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.VIEW_HIERARCHY_CAPTURED
+        )
         sendProgress(LayoutInspectorViewProtocol.ProgressEvent.ProgressCheckpoint.RESPONSE_SENT)
         connection.sendEvent {
-          layoutEvent = LayoutEvent.newBuilder().apply {
-            rootViewBuilder.id = 123
-            rootViewBuilder.packageName = 40
-            rootViewBuilder.className = 41
-            ViewString(40, "android.view")
-            ViewString(41, "TextView")
-          }.build()
+          layoutEvent =
+            LayoutEvent.newBuilder()
+              .apply {
+                rootViewBuilder.id = 123
+                rootViewBuilder.packageName = 40
+                rootViewBuilder.className = 41
+                ViewString(40, "android.view")
+                ViewString(41, "TextView")
+              }
+              .build()
         }
         if (!command.startFetchCommand.continuous) {
-          connection.sendEvent {
-            propertiesEvent = PropertiesEvent.getDefaultInstance()
-          }
+          connection.sendEvent { propertiesEvent = PropertiesEvent.getDefaultInstance() }
         }
         Response.newBuilder().setStartFetchResponse(StartFetchResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND -> {
-        Response.newBuilder().setUpdateScreenshotTypeResponse(UpdateScreenshotTypeResponse.getDefaultInstance()).build()
+        Response.newBuilder()
+          .setUpdateScreenshotTypeResponse(UpdateScreenshotTypeResponse.getDefaultInstance())
+          .build()
       }
       Command.SpecializedCase.STOP_FETCH_COMMAND -> {
         Response.newBuilder().setStopFetchResponse(StopFetchResponse.getDefaultInstance()).build()
       }
       Command.SpecializedCase.GET_PROPERTIES_COMMAND -> {
-        Response.newBuilder().setGetPropertiesResponse(GetPropertiesResponse.getDefaultInstance()).build()
+        Response.newBuilder()
+          .setGetPropertiesResponse(GetPropertiesResponse.getDefaultInstance())
+          .build()
       }
       Command.SpecializedCase.CAPTURE_SNAPSHOT_COMMAND -> {
-        Response.newBuilder().setCaptureSnapshotResponse(CaptureSnapshotResponse.getDefaultInstance()).build()
+        Response.newBuilder()
+          .setCaptureSnapshotResponse(CaptureSnapshotResponse.getDefaultInstance())
+          .build()
       }
       Command.SpecializedCase.DISABLE_BITMAP_SCREENSHOT_COMMAND -> {
-        Response.newBuilder().setDisableBitmapScreenshotResponse(
-          LayoutInspectorViewProtocol.DisableBitmapScreenshotResponse.getDefaultInstance()
-        ).build()
+        Response.newBuilder()
+          .setDisableBitmapScreenshotResponse(
+            LayoutInspectorViewProtocol.DisableBitmapScreenshotResponse.getDefaultInstance()
+          )
+          .build()
       }
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }

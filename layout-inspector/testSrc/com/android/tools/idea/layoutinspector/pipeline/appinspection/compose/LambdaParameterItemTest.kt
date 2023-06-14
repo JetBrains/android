@@ -36,6 +36,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.awt.RelativePoint
+import java.util.concurrent.Future
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,7 +46,6 @@ import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import java.util.concurrent.Future
 
 @RunsInEdt
 class LambdaParameterItemTest {
@@ -58,7 +58,8 @@ class LambdaParameterItemTest {
   @Before
   fun before() {
     val fixture = projectRule.fixture
-    fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
+    fixture.testDataPath =
+      TestUtils.resolveWorkspacePath("tools/adt/idea/layout-inspector/testData/compose").toString()
     fixture.copyFileToProject("java/com/example/MyCompose.kt")
   }
 
@@ -73,7 +74,10 @@ class LambdaParameterItemTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verifyNoInteractions(balloon)
     fileOpenCaptureRule.checkEditor(
-      "MyCompose.kt", 17, "Column(modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),")
+      "MyCompose.kt",
+      17,
+      "modifier = Modifier.padding(20.dp).clickable(onClick = { selectColumn() }),"
+    )
   }
 
   @Test
@@ -105,14 +109,31 @@ class LambdaParameterItemTest {
     fileOpenCaptureRule.checkNoNavigation()
   }
 
-  private fun createParameterItem(fileName: String, startLineNumber: Int, endLineNumber: Int): LambdaParameterItem {
-    val lookup = object : ViewNodeAndResourceLookup {
-      override val resourceLookup = ResourceLookup(projectRule.project)
-      override fun get(id: Long): ViewNode? = null
-      override val selection: ViewNode? = null
-    }
-    return LambdaParameterItem("modifier", PropertySection.PARAMETERS, -99, 1, -1, "com.example", fileName, "1", "", startLineNumber,
-                               endLineNumber, lookup)
+  private fun createParameterItem(
+    fileName: String,
+    startLineNumber: Int,
+    endLineNumber: Int
+  ): LambdaParameterItem {
+    val lookup =
+      object : ViewNodeAndResourceLookup {
+        override val resourceLookup = ResourceLookup(projectRule.project)
+        override fun get(id: Long): ViewNode? = null
+        override val selection: ViewNode? = null
+      }
+    return LambdaParameterItem(
+      "modifier",
+      PropertySection.PARAMETERS,
+      -99,
+      1,
+      -1,
+      "com.example",
+      fileName,
+      "1",
+      "",
+      startLineNumber,
+      endLineNumber,
+      lookup
+    )
   }
 
   private fun mockBalloonBuilder(): Balloon {
@@ -120,7 +141,8 @@ class LambdaParameterItemTest {
     val factory = JBPopupFactory.getInstance()
     val builder: BalloonBuilder = mock()
     val balloon: Balloon = mock()
-    whenever(factory.createHtmlTextBalloonBuilder(anyString(), any(), any(), isNull())).thenReturn(builder)
+    whenever(factory.createHtmlTextBalloonBuilder(anyString(), any(), any(), isNull()))
+      .thenReturn(builder)
     whenever(factory.guessBestPopupLocation(any(DataContext::class.java))).thenReturn(mock())
     whenever(builder.setBorderColor(any())).thenReturn(builder)
     whenever(builder.setBorderInsets(any())).thenReturn(builder)

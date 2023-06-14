@@ -21,13 +21,13 @@ import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
-import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -35,6 +35,8 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import java.net.Socket
+import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -43,32 +45,30 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.net.Socket
-import java.nio.file.Path
 
 class AbstractInspectorClientTest {
 
   private var shouldEcho = true
-  private val commandHandler = object : DeviceCommandHandler("shell") {
-    override fun accept(
-      server: FakeAdbServer,
-      socketScope: CoroutineScope,
-      socket: Socket,
-      device: DeviceState,
-      command: String,
-      args: String
-    ) =
-      if (command == ("shell")) {
-        writeOkay(socket.getOutputStream())
-        if (shouldEcho && args.startsWith("echo ")) {
-          writeString(socket.getOutputStream(), args.substringAfter("echo "))
+  private val commandHandler =
+    object : DeviceCommandHandler("shell") {
+      override fun accept(
+        server: FakeAdbServer,
+        socketScope: CoroutineScope,
+        socket: Socket,
+        device: DeviceState,
+        command: String,
+        args: String
+      ) =
+        if (command == ("shell")) {
+          writeOkay(socket.getOutputStream())
+          if (shouldEcho && args.startsWith("echo ")) {
+            writeString(socket.getOutputStream(), args.substringAfter("echo "))
+          }
+          true
+        } else {
+          false
         }
-        true
-      }
-      else {
-        false
-      }
-  }
+    }
 
   private val disposableRule = DisposableRule()
   private val projectRule = ProjectRule()
@@ -76,12 +76,18 @@ class AbstractInspectorClientTest {
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(disposableRule).around(adbRule).around(adbService)!!
+  val ruleChain =
+    RuleChain.outerRule(projectRule).around(disposableRule).around(adbRule).around(adbService)!!
 
   @Before
   fun before() {
-    adbRule.attachDevice(MODERN_DEVICE.serial, MODERN_DEVICE.manufacturer, MODERN_DEVICE.model, MODERN_DEVICE.version,
-                         MODERN_DEVICE.apiLevel.toString())
+    adbRule.attachDevice(
+      MODERN_DEVICE.serial,
+      MODERN_DEVICE.manufacturer,
+      MODERN_DEVICE.model,
+      MODERN_DEVICE.version,
+      MODERN_DEVICE.apiLevel.toString()
+    )
   }
 
   @Test
@@ -92,7 +98,7 @@ class AbstractInspectorClientTest {
     val client = MyClient(project, NotificationModel(project), disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
-    runBlocking { client.connect (projectRule.project) }
+    runBlocking { client.connect(projectRule.project) }
     assertThat(client.isConnected).isTrue()
     verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
@@ -105,32 +111,30 @@ class AbstractInspectorClientTest {
     val client = MyClient(project, NotificationModel(project), disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
-    runBlocking { client.connect (projectRule.project) }
+    runBlocking { client.connect(projectRule.project) }
     assertThat(client.isConnected).isFalse()
-    verify(monitor, times(0)).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    verify(monitor, times(0))
+      .updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
 
-  class MyClient(
-    project: Project,
-    notificationModel: NotificationModel,
-    disposable: Disposable
-  ) : AbstractInspectorClient(
-    ClientType.UNKNOWN_CLIENT_TYPE,
-    project,
-    notificationModel,
-    MODERN_DEVICE.createProcess(),
-    true,
-    DisconnectedClient.stats,
-    AndroidCoroutineScope(disposable),
-    disposable
-  ) {
-    override suspend fun doConnect() { }
+  class MyClient(project: Project, notificationModel: NotificationModel, disposable: Disposable) :
+    AbstractInspectorClient(
+      ClientType.UNKNOWN_CLIENT_TYPE,
+      project,
+      notificationModel,
+      MODERN_DEVICE.createProcess(),
+      true,
+      DisconnectedClient.stats,
+      AndroidCoroutineScope(disposable),
+      disposable
+    ) {
+    override suspend fun doConnect() {}
 
-    override suspend fun doDisconnect() { }
+    override suspend fun doDisconnect() {}
 
-    override suspend fun startFetching() { }
+    override suspend fun startFetching() {}
 
-    override suspend fun stopFetching() { }
+    override suspend fun stopFetching() {}
 
     override fun refresh() {}
 

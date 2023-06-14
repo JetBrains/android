@@ -40,10 +40,8 @@ import org.junit.Test
 
 class TargetSelectionActionFactoryTest {
 
-  @get:Rule
-  val disposableRule = DisposableRule()
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var layoutInspector: LayoutInspector
 
@@ -58,32 +56,35 @@ class TargetSelectionActionFactoryTest {
     whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
     val inspectorModel = InspectorModel(projectRule.project)
     val mockTreeSettings = mock<TreeSettings>()
-    layoutInspector = LayoutInspector(
-      scope,
-      processModel,
-      deviceModel,
-      mockForegroundProcessDetection,
-      mockClientSettings,
-      mockLauncher,
-      inspectorModel,
-      mock(),
-      mockTreeSettings
-    )
+    layoutInspector =
+      LayoutInspector(
+        scope,
+        processModel,
+        deviceModel,
+        mockForegroundProcessDetection,
+        mockClientSettings,
+        mockLauncher,
+        inspectorModel,
+        mock(),
+        mockTreeSettings
+      )
   }
 
   @Test
-  fun testDeviceSelectorIsCreated() = runWithFlagState(true) {
-    val action = TargetSelectionActionFactory.getAction(layoutInspector)
-    assertThat(action).isNotNull()
-    assertThat(action!!.dropDownAction).isInstanceOf(SelectDeviceAction::class.java)
-  }
+  fun testDeviceSelectorIsCreated() =
+    runWithFlagState(true) {
+      val action = TargetSelectionActionFactory.getAction(layoutInspector)
+      assertThat(action).isNotNull()
+      assertThat(action!!.dropDownAction).isInstanceOf(SelectDeviceAction::class.java)
+    }
 
   @Test
-  fun testProcessSelectorIsCreated() = runWithFlagState(false) {
-    val action = TargetSelectionActionFactory.getAction(layoutInspector)
-    assertThat(action).isNotNull()
-    assertThat(action!!.dropDownAction).isInstanceOf(SelectProcessAction::class.java)
-  }
+  fun testProcessSelectorIsCreated() =
+    runWithFlagState(false) {
+      val action = TargetSelectionActionFactory.getAction(layoutInspector)
+      assertThat(action).isNotNull()
+      assertThat(action!!.dropDownAction).isInstanceOf(SelectProcessAction::class.java)
+    }
 
   private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
     val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED

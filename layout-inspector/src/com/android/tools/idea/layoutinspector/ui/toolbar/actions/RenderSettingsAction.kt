@@ -29,8 +29,8 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
 import kotlin.reflect.KMutableProperty1
+import org.jetbrains.annotations.VisibleForTesting
 
 const val HIGHLIGHT_COLOR_RED = 0xFF0000
 const val HIGHLIGHT_COLOR_BLUE = 0x4F9EE3
@@ -41,19 +41,41 @@ const val HIGHLIGHT_COLOR_ORANGE = 0xE1A336
 
 const val HIGHLIGHT_DEFAULT_COLOR = HIGHLIGHT_COLOR_BLUE
 
-/**
- * Action shown in Layout Inspector toolbar, used to control Layout Inspector [RenderSettings].
- */
+/** Action shown in Layout Inspector toolbar, used to control Layout Inspector [RenderSettings]. */
 class RenderSettingsAction(
   private val renderModelProvider: () -> RenderModel,
   renderSettingsProvider: () -> RenderSettings
 ) : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
 
   init {
-    add(ToggleRenderSettingsAction("Show Borders", renderSettingsProvider, RenderSettings::drawBorders))
-    add(ToggleRenderSettingsAction("Show Layout Bounds", renderSettingsProvider, RenderSettings::drawUntransformedBounds))
-    add(ToggleRenderSettingsAction("Show View Label", renderSettingsProvider, RenderSettings::drawLabel))
-    add(ToggleRenderSettingsAction("Show Fold Hinge and Angle", renderSettingsProvider, RenderSettings::drawFold))
+    add(
+      ToggleRenderSettingsAction(
+        "Show Borders",
+        renderSettingsProvider,
+        RenderSettings::drawBorders
+      )
+    )
+    add(
+      ToggleRenderSettingsAction(
+        "Show Layout Bounds",
+        renderSettingsProvider,
+        RenderSettings::drawUntransformedBounds
+      )
+    )
+    add(
+      ToggleRenderSettingsAction(
+        "Show View Label",
+        renderSettingsProvider,
+        RenderSettings::drawLabel
+      )
+    )
+    add(
+      ToggleRenderSettingsAction(
+        "Show Fold Hinge and Angle",
+        renderSettingsProvider,
+        RenderSettings::drawFold
+      )
+    )
     add(HighlightColorAction(renderSettingsProvider))
   }
 
@@ -80,18 +102,18 @@ private class ToggleRenderSettingsAction(
 }
 
 @VisibleForTesting
-class HighlightColorAction(
-  renderSettingsProvider: () -> RenderSettings
-) : DefaultActionGroup("Recomposition Highlight Color", true) {
+class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
+  DefaultActionGroup("Recomposition Highlight Color", true) {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
     val layoutInspector = LayoutInspector.get(event)
     val isConnected = layoutInspector?.currentClient?.isConnected ?: false
-    event.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
-                                   StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-                                   layoutInspector?.treeSettings?.showRecompositions ?: false &&
-                                   (!isConnected || isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
+    event.presentation.isVisible =
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
+        StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
+        layoutInspector?.treeSettings?.showRecompositions ?: false &&
+        (!isConnected || isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
     event.presentation.isEnabled = isConnected
   }
 
@@ -109,8 +131,9 @@ private class ColorSettingAction(
   actionName: String,
   private val color: Int,
   private val renderSettingsProvider: () -> RenderSettings
-): CheckboxAction(actionName, null, null) {
-  override fun isSelected(event: AnActionEvent): Boolean = renderSettingsProvider().highlightColor == color
+) : CheckboxAction(actionName, null, null) {
+  override fun isSelected(event: AnActionEvent): Boolean =
+    renderSettingsProvider().highlightColor == color
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     renderSettingsProvider().highlightColor = color

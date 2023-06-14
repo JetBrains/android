@@ -43,19 +43,18 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.util.io.write
 import com.intellij.util.ui.UIUtil
+import java.awt.Component
+import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.doAnswer
-import java.awt.Component
-import java.nio.file.Path
 
 class SnapshotActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule)!!
 
   private var isConnected = false
 
@@ -100,44 +99,59 @@ class SnapshotActionTest {
     whenever(client.process).thenReturn(process)
     whenever(process.name).thenReturn("process.name")
     doAnswer { invocation ->
-      val path = invocation.arguments[0] as Path
-      path.write(byteArrayOf(1,2,3))
-    }.whenever(client).saveSnapshot(any(Path::class.java))
+        val path = invocation.arguments[0] as Path
+        path.write(byteArrayOf(1, 2, 3))
+      }
+      .whenever(client)
+      .saveSnapshot(any(Path::class.java))
     doAnswer { isConnected }.whenever(client).isConnected
-    val dataContext = DataContext { dataId -> if (dataId == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null }
+    val dataContext = DataContext { dataId ->
+      if (dataId == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null
+    }
     return AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), mock(), 0)
   }
 
   @Suppress("SameParameterValue")
   private fun overrideFileChooser(expectedFileName: String, fileToReturn: VirtualFileWrapper?) {
-    val factory: FileChooserFactoryImpl = object : FileChooserFactoryImpl() {
-      override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
-        return object : FileSaverDialog {
-          override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper? {
-            assertThat(filename?.startsWith(expectedFileName) ?: false).isTrue()
-            return fileToReturn
-          }
+    val factory: FileChooserFactoryImpl =
+      object : FileChooserFactoryImpl() {
+        override fun createSaveFileDialog(
+          descriptor: FileSaverDescriptor,
+          project: Project?
+        ): FileSaverDialog {
+          return object : FileSaverDialog {
+            override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper? {
+              assertThat(filename?.startsWith(expectedFileName) ?: false).isTrue()
+              return fileToReturn
+            }
 
-          override fun save(baseDir: Path?, filename: String?): VirtualFileWrapper? {
-            assertThat(filename?.startsWith(expectedFileName) ?: false).isTrue()
-            return fileToReturn
+            override fun save(baseDir: Path?, filename: String?): VirtualFileWrapper? {
+              assertThat(filename?.startsWith(expectedFileName) ?: false).isTrue()
+              return fileToReturn
+            }
+          }
+        }
+
+        override fun createFileChooser(
+          descriptor: FileChooserDescriptor,
+          project: Project?,
+          parent: Component?
+        ): FileChooserDialog {
+          return object : FileChooserDialog {
+            @Deprecated("Deprecated in Java")
+            override fun choose(toSelect: VirtualFile?, project: Project?): Array<VirtualFile> {
+              error("not implemented")
+            }
+
+            override fun choose(
+              project: Project?,
+              vararg toSelect: VirtualFile?
+            ): Array<VirtualFile> {
+              return arrayOf(fileToReturn!!.virtualFile!!)
+            }
           }
         }
       }
-
-      override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
-        return object : FileChooserDialog {
-          @Deprecated("Deprecated in Java")
-          override fun choose(toSelect: VirtualFile?, project: Project?): Array<VirtualFile> {
-            error("not implemented")
-          }
-
-          override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> {
-            return arrayOf(fileToReturn!!.virtualFile!!)
-          }
-        }
-      }
-    }
     projectRule.replaceService(FileChooserFactory::class.java, factory)
   }
 }

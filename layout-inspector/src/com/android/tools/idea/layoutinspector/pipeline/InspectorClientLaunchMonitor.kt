@@ -36,12 +36,12 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.util.concurrency.AppExecutorUtil
-import kotlinx.coroutines.CancellationException
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CancellationException
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 @VisibleForTesting val CONNECTED_STATE = AttachErrorState.MODEL_UPDATED
 @VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L
@@ -54,11 +54,13 @@ class InspectorClientLaunchMonitor(
   private val notificationModel: NotificationModel,
   private val attachErrorStateListeners: ListenerCollection<(AttachErrorState) -> Unit>,
   private val stats: SessionStatistics,
-  @TestOnly private val executorService: ScheduledExecutorService = AppExecutorUtil.getAppScheduledExecutorService()
+  @TestOnly
+  private val executorService: ScheduledExecutorService =
+    AppExecutorUtil.getAppScheduledExecutorService()
 ) {
   private var lastUpdate: Long = 0L
   private var timeoutFuture: ScheduledFuture<*>? = null
-  private var debuggerFuture:  ScheduledFuture<*>? = null
+  private var debuggerFuture: ScheduledFuture<*>? = null
   private val clientLock = Any()
 
   var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
@@ -66,20 +68,16 @@ class InspectorClientLaunchMonitor(
 
   // This is to make sure we never schedule a timeout check after the monitor is stopped.
   // Note: a stop() call could happen while updateProgress is being executed (on different threads).
-  @GuardedBy("clientLock")
-  private var client: InspectorClient? = null
+  @GuardedBy("clientLock") private var client: InspectorClient? = null
 
   fun start(client: InspectorClient) {
     assert(this.client == null)
-    synchronized(clientLock) {
-      this.client = client
-    }
+    synchronized(clientLock) { this.client = client }
     updateProgress(AttachErrorState.NOT_STARTED)
   }
 
   val timeoutHandlerScheduled: Boolean
-    @TestOnly
-    get() = timeoutFuture != null
+    @TestOnly get() = timeoutFuture != null
 
   fun updateProgress(progress: AttachErrorState) {
     attachErrorStateListeners.forEach { it.invoke(progress) }
@@ -95,8 +93,14 @@ class InspectorClientLaunchMonitor(
       lastUpdate = System.currentTimeMillis()
       synchronized(clientLock) {
         if (client != null) {
-          timeoutFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-          debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
+          timeoutFuture =
+            executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+          debuggerFuture =
+            executorService.schedule(
+              ::handleDebuggerCheck,
+              DEBUGGER_CHECK_SECONDS,
+              TimeUnit.SECONDS
+            )
         }
       }
     }
@@ -105,7 +109,8 @@ class InspectorClientLaunchMonitor(
   }
 
   fun onFailure(t: Throwable) {
-    // CancellationExceptions will be forwarded to LayoutInspector.logError no need to handle it here.
+    // CancellationExceptions will be forwarded to LayoutInspector.logError no need to handle it
+    // here.
     if (t !is CancellationException) {
       logAttachError(t.errorCode.code)
     }
@@ -119,24 +124,39 @@ class InspectorClientLaunchMonitor(
         client?.stats?.debuggerInUse(isPaused = false)
       }
       notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
-      debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
+      debuggerFuture =
+        executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
       return
     }
     client?.stats?.debuggerInUse(isPaused = true)
-    // Cancel the timeout check since we now know that the attach delay is caused by a debugging session:
+    // Cancel the timeout check since we now know that the attach delay is caused by a debugging
+    // session:
     timeoutFuture?.cancel(true)
-    val resumeDebugger = StatusNotificationAction("Resume Debugger") {
-      notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
-      synchronized(clientLock) {
-        if (client != null) {
-          adbClient?.let { resumeDebugger(it) }
-          debuggerFuture = executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
+    val resumeDebugger =
+      StatusNotificationAction("Resume Debugger") {
+        notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
+        synchronized(clientLock) {
+          if (client != null) {
+            adbClient?.let { resumeDebugger(it) }
+            debuggerFuture =
+              executorService.schedule(
+                ::handleDebuggerCheck,
+                DEBUGGER_CHECK_SECONDS,
+                TimeUnit.SECONDS
+              )
+          }
         }
       }
-    }
-    val disconnect = createDisconnectAction(attemptDumpViews = false) // The legacy inspector cannot get information either...
-    notificationModel.addNotification(DEBUGGER_CHECK_MESSAGE_KEY, LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY), Status.Error,
-                                      listOf(resumeDebugger, disconnect))
+    val disconnect =
+      createDisconnectAction(
+        attemptDumpViews = false
+      ) // The legacy inspector cannot get information either...
+    notificationModel.addNotification(
+      DEBUGGER_CHECK_MESSAGE_KEY,
+      LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY),
+      Status.Error,
+      listOf(resumeDebugger, disconnect)
+    )
     notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
   }
 
@@ -146,26 +166,37 @@ class InspectorClientLaunchMonitor(
       return
     }
     // Allow the user to wait as long as they want in case it takes a long time to connect.
-    // This action simply removes the banner and schedules another check after CONNECT_TIMEOUT_SECONDS.
-    val continueWaiting = StatusNotificationAction("Continue Waiting") {
-      notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
-      synchronized(clientLock) {
-        if (client != null) {
-          timeoutFuture = executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    // This action simply removes the banner and schedules another check after
+    // CONNECT_TIMEOUT_SECONDS.
+    val continueWaiting =
+      StatusNotificationAction("Continue Waiting") {
+        notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
+        synchronized(clientLock) {
+          if (client != null) {
+            timeoutFuture =
+              executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+          }
         }
       }
-    }
     val disconnect = createDisconnectAction(attemptDumpViews = true)
-    notificationModel.addNotification(CONNECT_TIMEOUT_MESSAGE_KEY, LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY),
-                                      Status.Warning, listOf(continueWaiting, disconnect))
+    notificationModel.addNotification(
+      CONNECT_TIMEOUT_MESSAGE_KEY,
+      LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY),
+      Status.Warning,
+      listOf(continueWaiting, disconnect)
+    )
   }
 
   private fun createDisconnectAction(attemptDumpViews: Boolean): StatusNotificationAction {
-    val disconnectText = if (attemptDumpViews && client?.clientType == ClientType.APP_INSPECTION_CLIENT) "Dump Views" else "Disconnect"
+    val disconnectText =
+      if (attemptDumpViews && client?.clientType == ClientType.APP_INSPECTION_CLIENT) "Dump Views"
+      else "Disconnect"
     return StatusNotificationAction(disconnectText) {
       notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
-      Logger.getInstance(InspectorClientLaunchMonitor::class.java).warn(
-        "Client $client timed out during attach at step $currentProgress on the users request")
+      Logger.getInstance(InspectorClientLaunchMonitor::class.java)
+        .warn(
+          "Client $client timed out during attach at step $currentProgress on the users request"
+        )
       logAttachError(AttachErrorCode.CONNECT_TIMEOUT)
       client?.disconnect()
     }
@@ -176,14 +207,17 @@ class InspectorClientLaunchMonitor(
 
   private fun logAttachError(errorCode: AttachErrorCode) {
     val stats = client?.stats ?: DisconnectedClient.stats
-    LayoutInspectorSessionMetrics(null, client?.process, null).logEvent(
-      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR, stats, currentProgress, errorCode)
+    LayoutInspectorSessionMetrics(null, client?.process, null)
+      .logEvent(
+        DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR,
+        stats,
+        currentProgress,
+        errorCode
+      )
   }
 
   fun stop() {
-    synchronized(clientLock) {
-      client = null
-    }
+    synchronized(clientLock) { client = null }
     timeoutFuture?.cancel(true)
     timeoutFuture = null
     debuggerFuture?.cancel(true)

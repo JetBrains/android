@@ -33,26 +33,28 @@ import com.intellij.ui.EditorNotificationPanel.Status
 
 private const val TWO_VERSIONS_RUNNING_KEY = "two.versions.of.studio.running"
 
-/**
- * Class responsible for listening to events published by the transport.
- */
+/** Class responsible for listening to events published by the transport. */
 class TransportErrorListener(
   project: Project,
   private val notificationModel: NotificationModel,
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
   disposable: Disposable
-  ) : TransportDeviceManager.TransportDeviceManagerListener {
+) : TransportDeviceManager.TransportDeviceManagerListener {
 
   private var hasStartServerFailed = false
     set(value) {
       field = value
       if (hasStartServerFailed) {
-        // the banner can't be dismissed. It will automatically be dismissed when the Transport tries to start again.
+        // the banner can't be dismissed. It will automatically be dismissed when the Transport
+        // tries to start again.
         notificationModel.addNotification(
-          TWO_VERSIONS_RUNNING_KEY, LayoutInspectorBundle.message(TWO_VERSIONS_RUNNING_KEY), Status.Error, emptyList())
+          TWO_VERSIONS_RUNNING_KEY,
+          LayoutInspectorBundle.message(TWO_VERSIONS_RUNNING_KEY),
+          Status.Error,
+          emptyList()
+        )
         // TODO(b/258453315) log to metrics
-      }
-      else {
+      } else {
         notificationModel.removeNotification(TWO_VERSIONS_RUNNING_KEY)
       }
     }
@@ -65,11 +67,14 @@ class TransportErrorListener(
     hasStartServerFailed = false
   }
 
-  override fun onTransportDaemonException(device: Common.Device, exception: java.lang.Exception) { }
+  override fun onTransportDaemonException(device: Common.Device, exception: java.lang.Exception) {}
 
-  override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) { }
+  override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) {}
 
-  override fun onStartTransportDaemonServerFail(device: Common.Device, exception: FailedToStartServerException) {
+  override fun onStartTransportDaemonServerFail(
+    device: Common.Device,
+    exception: FailedToStartServerException
+  ) {
     // this happens if the transport can't start the server on the designated port.
     // for example if multiple versions of Studio are running.
     hasStartServerFailed = true
@@ -79,7 +84,10 @@ class TransportErrorListener(
     )
   }
 
-  override fun customizeProxyService(proxy: TransportProxy) { }
-  override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) { }
-  override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) { }
+  override fun customizeProxyService(proxy: TransportProxy) {}
+  override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {}
+  override fun customizeAgentConfig(
+    configBuilder: Agent.AgentConfig.Builder,
+    runConfig: AndroidRunConfigurationBase?
+  ) {}
 }

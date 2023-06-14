@@ -30,19 +30,18 @@ import org.junit.Test
 class SessionStatisticsTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatisticsImpl(
-      APP_INSPECTION_CLIENT,
-      areMultipleProjectsOpen = { false },
-      isAutoConnectEnabled = { true },
-      isEmbeddedLayoutInspector = { true },
-    )
+    val stats =
+      SessionStatisticsImpl(
+        APP_INSPECTION_CLIENT,
+        areMultipleProjectsOpen = { false },
+        isAutoConnectEnabled = { true },
+        isEmbeddedLayoutInspector = { true },
+      )
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.frameReceived()
     stats.save(data)
@@ -71,12 +70,13 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatisticsImpl(
-      APP_INSPECTION_CLIENT,
-      areMultipleProjectsOpen = { true },
-      isAutoConnectEnabled = { true },
-      isEmbeddedLayoutInspector = { true }
-    )
+    val stats =
+      SessionStatisticsImpl(
+        APP_INSPECTION_CLIENT,
+        areMultipleProjectsOpen = { true },
+        isAutoConnectEnabled = { true },
+        isEmbeddedLayoutInspector = { true }
+      )
     val compose1 = model[COMPOSE1]
     stats.start()
     model.notifyModified(structuralChange = true)
@@ -120,12 +120,12 @@ class SessionStatisticsTest {
   fun testHasMultipleProjectsIsUpdated() {
     var hasMultipleProjects = false
     var isAutoConnectEnabled = false
-    val stats = SessionStatisticsImpl(
-      APP_INSPECTION_CLIENT,
-      areMultipleProjectsOpen = { hasMultipleProjects },
-      isAutoConnectEnabled = { isAutoConnectEnabled }
-    )
-
+    val stats =
+      SessionStatisticsImpl(
+        APP_INSPECTION_CLIENT,
+        areMultipleProjectsOpen = { hasMultipleProjects },
+        isAutoConnectEnabled = { isAutoConnectEnabled }
+      )
 
     stats.start()
 

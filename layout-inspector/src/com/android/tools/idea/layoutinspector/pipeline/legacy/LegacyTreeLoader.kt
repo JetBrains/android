@@ -38,26 +38,31 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Lists
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.openapi.project.modules
-import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 
 private val CONFIGURATION_REGEX = Regex("config: (.*)")
 private val ACTIVITY_REGEX = Regex("mFocusedActivity: ActivityRecord\\{[^ ]+ [^ ]+ ([^ ]+) [^ ]+}")
 
 /**
- * A [TreeLoader] that can handle pre-api 29 devices. Loads the view hierarchy and screenshot using DDM, and parses it into [ViewNode]s
+ * A [TreeLoader] that can handle pre-api 29 devices. Loads the view hierarchy and screenshot using
+ * DDM, and parses it into [ViewNode]s
  */
 class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
   private val LegacyClient.selectedDdmClient: Client?
-    get() = ddmClientOverride ?: AdbUtils.getAdbFuture(client.model.project).get()?.findClient(process)
+    get() =
+      ddmClientOverride ?: AdbUtils.getAdbFuture(client.model.project).get()?.findClient(process)
 
-  @VisibleForTesting
-  var ddmClientOverride: Client? = null
+  @VisibleForTesting var ddmClientOverride: Client? = null
 
-  override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, process: ProcessDescriptor): ComponentTreeData? {
+  override fun loadComponentTree(
+    data: Any?,
+    resourceLookup: ResourceLookup,
+    process: ProcessDescriptor
+  ): ComponentTreeData? {
     val (windowName, updater, _) = data as? LegacyEvent ?: return null
     return capture(windowName, updater)?.let { ComponentTreeData(it, 0, emptySet()) }
   }
@@ -65,12 +70,12 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
   override fun getAllWindowIds(data: Any?): List<String>? {
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED)
     val ddmClient = client.selectedDdmClient ?: return null
-    val result = if (data is LegacyEvent) {
-      data.allWindows
-    }
-    else {
-      ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
-    }
+    val result =
+      if (data is LegacyEvent) {
+        data.allWindows
+      } else {
+        ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
+      }
     client.latestScreenshots.keys.retainAll(result)
     client.latestData.keys.retainAll(result)
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED)
@@ -78,7 +83,10 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
   }
 
   @Slow
-  private fun capture(windowName: String, propertiesUpdater: LegacyPropertiesProvider.Updater): AndroidWindow? {
+  private fun capture(
+    windowName: String,
+    propertiesUpdater: LegacyPropertiesProvider.Updater
+  ): AndroidWindow? {
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
     val ddmClient = client.selectedDdmClient ?: return null
     val hierarchyHandler = CaptureByteArrayHandler()
@@ -91,16 +99,14 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
       // The hierarchy data may be cut short if the client was closed under us
       return null
     }
-    val (rootNode, hash) = LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
+    val (rootNode, hash) =
+      LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
     val imageHandler = CaptureByteArrayHandler()
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_SCREENSHOT_REQUESTED)
     ddmClient.captureView(windowName, hash, imageHandler)
     try {
-      imageHandler.getData()?.let {
-        client.latestScreenshots[windowName] = it
-      }
-    }
-    catch (e: IOException) {
+      imageHandler.getData()?.let { client.latestScreenshots[windowName] = it }
+    } catch (e: IOException) {
       // We didn't get an image, but still return the hierarchy and properties
     }
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_SCREENSHOT_RECEIVED)
@@ -113,16 +119,18 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
     val folderConfiguration = adb?.let { findConfiguration(it) }
     val theme = adb?.let { findTheme(it) }
     if (folderConfiguration != null) {
-      client.model.resourceLookup.updateConfiguration(folderConfiguration, theme, client.process, fontScaleFromConfig = 1f)
-    }
-    else {
+      client.model.resourceLookup.updateConfiguration(
+        folderConfiguration,
+        theme,
+        client.process,
+        fontScaleFromConfig = 1f
+      )
+    } else {
       client.model.resourceLookup.updateConfiguration(ddmClient.device.density)
     }
   }
 
-  /**
-   * Find the folder configuration for the current device.
-   */
+  /** Find the folder configuration for the current device. */
   private fun findConfiguration(adb: AndroidDebugBridge): FolderConfiguration? {
     client.latestConfig = ""
     val configurations = adb.executeShellCommand(client.process.device, "am get-config")
@@ -136,21 +144,22 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
   }
 
   /**
-   * Find the theme reference for the current activity.
-   * If this fails: fallback to the application theme.
+   * Find the theme reference for the current activity. If this fails: fallback to the application
+   * theme.
    */
   private fun findTheme(adb: AndroidDebugBridge): ResourceReference? {
     client.latestTheme = ""
     val activity = findCurrentActivity(adb)
-    val module = client.model.project.modules.find { it.isAndroidModule() && it.isMainModule() } ?: return null
-    val themeString = activity?.let { module.getThemeNameForActivity(it) } ?: module.getAppThemeName() ?: return null
+    val module =
+      client.model.project.modules.find { it.isAndroidModule() && it.isMainModule() } ?: return null
+    val themeString =
+      activity?.let { module.getThemeNameForActivity(it) }
+        ?: module.getAppThemeName() ?: return null
     client.latestTheme = themeString
     return createReference(themeString, client.process.packageName)
   }
 
-  /**
-   * Find the current activity.
-   */
+  /** Find the current activity. */
   private fun findCurrentActivity(adb: AndroidDebugBridge): String? {
     val activities = adb.executeShellCommand(client.process.device, "dumpsys activity activities")
     val result = ACTIVITY_REGEX.find(activities) ?: return null

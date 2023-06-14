@@ -44,7 +44,6 @@ import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
@@ -64,6 +63,7 @@ import javax.swing.JPanel
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
 import kotlin.math.min
+import org.jetbrains.annotations.TestOnly
 
 private const val MAX_ZOOM = 300
 private const val MIN_ZOOM = 10
@@ -75,23 +75,25 @@ const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
 
 val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("Toggle3DActionButtonKey")
 
-/**
- * Panel that shows the device screen in the layout inspector.
- */
+/** Panel that shows the device screen in the layout inspector. */
 class DeviceViewPanel(
   val layoutInspector: LayoutInspector,
   disposableParent: Disposable,
-  @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
+  @TestOnly
+  private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
   private val renderSettings = layoutInspector.renderLogic.renderSettings
 
-  override val scale get() = renderSettings.scaleFraction
+  override val scale
+    get() = renderSettings.scaleFraction
 
   override val screenScalingFactor = 1.0
 
   override var isPanning = false
-    get() = ( field || isMiddleMousePressed || isSpacePressed ) && (layoutInspector.isSnapshot || layoutInspector.processModel?.selectedProcess != null)
+    get() =
+      (field || isMiddleMousePressed || isSpacePressed) &&
+        (layoutInspector.isSnapshot || layoutInspector.processModel?.selectedProcess != null)
 
   private var isSpacePressed = false
   private var isMiddleMousePressed = false
@@ -102,89 +104,100 @@ class DeviceViewPanel(
 
   private val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(layoutInspector)
 
-  private val contentPanel = DeviceViewContentPanel(
-    inspectorModel = layoutInspector.inspectorModel,
-    deviceModel = layoutInspector.deviceModel,
-    treeSettings = layoutInspector.treeSettings,
-    currentClient = { layoutInspector.currentClient },
-    pannable = this,
-    selectTargetAction = targetSelectedAction,
-    disposableParent = disposableParent,
-    isLoading = { layoutInspectorLoadingObserver.isLoading },
-    isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable },
-    hasForegroundProcess = { hasForegroundProcess },
-    renderLogic = layoutInspector.renderLogic,
-    renderModel = layoutInspector.renderModel,
-    coroutineScope = layoutInspector.coroutineScope
-  )
+  private val contentPanel =
+    DeviceViewContentPanel(
+      inspectorModel = layoutInspector.inspectorModel,
+      deviceModel = layoutInspector.deviceModel,
+      treeSettings = layoutInspector.treeSettings,
+      currentClient = { layoutInspector.currentClient },
+      pannable = this,
+      selectTargetAction = targetSelectedAction,
+      disposableParent = disposableParent,
+      isLoading = { layoutInspectorLoadingObserver.isLoading },
+      isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable },
+      hasForegroundProcess = { hasForegroundProcess },
+      renderLogic = layoutInspector.renderLogic,
+      renderModel = layoutInspector.renderModel,
+      coroutineScope = layoutInspector.coroutineScope
+    )
 
   private fun showGrab() {
-    cursor = if (isPanning) {
-      AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
-    }
-    else {
-      Cursor.getDefaultCursor()
-    }
-  }
-
-  private val panMouseListener: MouseAdapter = object : MouseAdapter() {
-    override fun mouseEntered(e: MouseEvent) {
-      showGrab()
-    }
-
-    override fun mouseMoved(e: MouseEvent) {
-      showGrab()
-    }
-
-    override fun mousePressed(e: MouseEvent) {
-      contentPanel.requestFocus()
-      isMiddleMousePressed = SwingUtilities.isMiddleMouseButton(e)
+    cursor =
       if (isPanning) {
-        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
-        lastPanMouseLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
-        e.consume()
+        AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
+      } else {
+        Cursor.getDefaultCursor()
       }
-    }
-
-    override fun mouseDragged(e: MouseEvent) {
-      val lastLocation = lastPanMouseLocation
-      // convert to non-scrollable coordinates, otherwise as soon as the scroll is changed the mouse position also changes.
-      val newLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
-      lastPanMouseLocation = newLocation
-      if (isPanning && lastLocation != null) {
-        cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
-        val extent = scrollPane.viewport.extentSize
-        val view = scrollPane.viewport.viewSize
-        val p = scrollPane.viewport.viewPosition
-        p.translate(lastLocation.x - newLocation.x, lastLocation.y - newLocation.y)
-        val availableWidth = (view.width - extent.width).coerceAtLeast(0)
-        val availableHeight = (view.height - extent.height).coerceAtLeast(0)
-        p.x = p.x.coerceIn(0, availableWidth)
-        p.y = p.y.coerceIn(0, availableHeight)
-
-        scrollPane.viewport.viewPosition = p
-        e.consume()
-      }
-    }
-
-    override fun mouseReleased(e: MouseEvent) {
-      isMiddleMousePressed = false
-      if (lastPanMouseLocation != null) {
-        cursor = if (isPanning) AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB) else Cursor.getDefaultCursor()
-        lastPanMouseLocation = null
-        e.consume()
-      }
-    }
   }
+
+  private val panMouseListener: MouseAdapter =
+    object : MouseAdapter() {
+      override fun mouseEntered(e: MouseEvent) {
+        showGrab()
+      }
+
+      override fun mouseMoved(e: MouseEvent) {
+        showGrab()
+      }
+
+      override fun mousePressed(e: MouseEvent) {
+        contentPanel.requestFocus()
+        isMiddleMousePressed = SwingUtilities.isMiddleMouseButton(e)
+        if (isPanning) {
+          cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
+          lastPanMouseLocation =
+            SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
+          e.consume()
+        }
+      }
+
+      override fun mouseDragged(e: MouseEvent) {
+        val lastLocation = lastPanMouseLocation
+        // convert to non-scrollable coordinates, otherwise as soon as the scroll is changed the
+        // mouse position also changes.
+        val newLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
+        lastPanMouseLocation = newLocation
+        if (isPanning && lastLocation != null) {
+          cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRABBING)
+          val extent = scrollPane.viewport.extentSize
+          val view = scrollPane.viewport.viewSize
+          val p = scrollPane.viewport.viewPosition
+          p.translate(lastLocation.x - newLocation.x, lastLocation.y - newLocation.y)
+          val availableWidth = (view.width - extent.width).coerceAtLeast(0)
+          val availableHeight = (view.height - extent.height).coerceAtLeast(0)
+          p.x = p.x.coerceIn(0, availableWidth)
+          p.y = p.y.coerceIn(0, availableHeight)
+
+          scrollPane.viewport.viewPosition = p
+          e.consume()
+        }
+      }
+
+      override fun mouseReleased(e: MouseEvent) {
+        isMiddleMousePressed = false
+        if (lastPanMouseLocation != null) {
+          cursor =
+            if (isPanning) AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.GRAB)
+            else Cursor.getDefaultCursor()
+          lastPanMouseLocation = null
+          e.consume()
+        }
+      }
+    }
 
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
   private val loadingPane: JBLoadingPanel = JBLoadingPanel(BorderLayout(), disposableParent)
   private val floatingToolbarProvider = FloatingToolbarProvider(this, disposableParent)
-  private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.renderModel.layerSpacing },
-                                                              { contentPanel.rootLocation })
+  private val viewportLayoutManager =
+    MyViewportLayoutManager(
+      scrollPane.viewport,
+      { contentPanel.renderModel.layerSpacing },
+      { contentPanel.rootLocation }
+    )
 
-  private val actionToolbar = createLayoutInspectorMainToolbar(this, layoutInspector, targetSelectedAction?.dropDownAction)
+  private val actionToolbar =
+    createLayoutInspectorMainToolbar(this, layoutInspector, targetSelectedAction?.dropDownAction)
 
   private var isCurrentForegroundProcessDebuggable = false
   private var hasForegroundProcess = false
@@ -199,15 +212,17 @@ class DeviceViewPanel(
   }
 
   init {
-    layoutInspectorLoadingObserver.listeners.add(object : LayoutInspectorLoadingObserver.Listener {
-      override fun onStartLoading() {
-        loadingPane.startLoading()
-      }
+    layoutInspectorLoadingObserver.listeners.add(
+      object : LayoutInspectorLoadingObserver.Listener {
+        override fun onStartLoading() {
+          loadingPane.startLoading()
+        }
 
-      override fun onStopLoading() {
-        loadingPane.stopLoading()
+        override fun onStopLoading() {
+          loadingPane.stopLoading()
+        }
       }
-    })
+    )
 
     layoutInspector.deviceModel?.newSelectedDeviceListeners?.add { _ ->
       // as soon as a new device is connected default to the process not being debuggable.
@@ -227,21 +242,23 @@ class DeviceViewPanel(
     keyboardListeners.forEach { contentPanel.removeKeyListener(it) }
     contentPanel.addMouseListener(panMouseListener)
     contentPanel.addMouseMotionListener(panMouseListener)
-    contentPanel.addKeyListener(object : KeyAdapter() {
-      override fun keyPressed(e: KeyEvent) {
-        if (e.keyCode == VK_SPACE) {
-          isSpacePressed = true
-          showGrab()
+    contentPanel.addKeyListener(
+      object : KeyAdapter() {
+        override fun keyPressed(e: KeyEvent) {
+          if (e.keyCode == VK_SPACE) {
+            isSpacePressed = true
+            showGrab()
+          }
         }
-      }
 
-      override fun keyReleased(e: KeyEvent) {
-        if (e.keyCode == VK_SPACE) {
-          isSpacePressed = false
-          showGrab()
+        override fun keyReleased(e: KeyEvent) {
+          if (e.keyCode == VK_SPACE) {
+            isSpacePressed = false
+            showGrab()
+          }
         }
       }
-    })
+    )
     mouseListeners.forEach { contentPanel.addMouseListener(it) }
     mouseMotionListeners.forEach { contentPanel.addMouseMotionListener(it) }
     keyboardListeners.forEach { contentPanel.addKeyListener(it) }
@@ -256,32 +273,49 @@ class DeviceViewPanel(
     val notificationModel = layoutInspector.notificationModel
 
     model.attachStageListeners.add { state ->
-      val text = when (state) {
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE -> "Unknown state"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.NOT_STARTED -> "Starting"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING -> "Adb ping success"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS -> "Attach success"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT -> "Start request sent"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED -> "Start request received"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.STARTED -> "Started"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT -> "Roots sent"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED -> "Roots received"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK -> "Capture started"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED -> "Screenshot captured"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED -> "Hierarchy captured"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT -> "Response sent"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED -> "View information received"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT -> "Compose information request"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED -> "Compose information received"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED -> "Legacy window list requested"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED -> "Legacy window list received"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED -> "Legacy hierarchy requested"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED -> "Legacy hierarchy received"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED -> "Legacy screenshot requested"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED -> "Legacy screenshot received"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE -> "Compose tree parsed"
-        DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED -> "Update complete"
-      }
+      val text =
+        when (state) {
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE ->
+            "Unknown state"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.NOT_STARTED -> "Starting"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING -> "Adb ping success"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS -> "Attach success"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.START_REQUEST_SENT ->
+            "Start request sent"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.START_RECEIVED ->
+            "Start request received"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.STARTED -> "Started"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_SENT -> "Roots sent"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.ROOTS_EVENT_RECEIVED -> "Roots received"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_INVALIDATION_CALLBACK ->
+            "Capture started"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.SCREENSHOT_CAPTURED ->
+            "Screenshot captured"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.VIEW_HIERARCHY_CAPTURED ->
+            "Hierarchy captured"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.RESPONSE_SENT -> "Response sent"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.LAYOUT_EVENT_RECEIVED ->
+            "View information received"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_REQUEST_SENT ->
+            "Compose information request"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.COMPOSE_RESPONSE_RECEIVED ->
+            "Compose information received"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_REQUESTED ->
+            "Legacy window list requested"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_WINDOW_LIST_RECEIVED ->
+            "Legacy window list received"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED ->
+            "Legacy hierarchy requested"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_RECEIVED ->
+            "Legacy hierarchy received"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_REQUESTED ->
+            "Legacy screenshot requested"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_SCREENSHOT_RECEIVED ->
+            "Legacy screenshot received"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.PARSED_COMPONENT_TREE ->
+            "Compose tree parsed"
+          DynamicLayoutInspectorErrorInfo.AttachErrorState.MODEL_UPDATED -> "Update complete"
+        }
 
       if (text.isNotEmpty()) {
         loadingPane.setLoadingText(text)
@@ -291,16 +325,23 @@ class DeviceViewPanel(
     contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
         actionToolbar.updateActionsImmediately()
-        val performanceWarningNeeded = layoutInspector.currentClient.isCapturing && (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
+        val performanceWarningNeeded =
+          layoutInspector.currentClient.isCapturing &&
+            (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
         if (performanceWarningNeeded != performanceWarningGiven) {
           if (performanceWarningNeeded) {
             when {
               contentPanel.renderModel.isRotated -> PERFORMANCE_WARNING_3D
               model.hasHiddenNodes() -> PERFORMANCE_WARNING_HIDDEN
               else -> null
-            }?.let { notificationModel.addNotification(it, LayoutInspectorBundle.message(it), Status.Warning) }
-          }
-          else {
+            }?.let {
+              notificationModel.addNotification(
+                it,
+                LayoutInspectorBundle.message(it),
+                Status.Warning
+              )
+            }
+          } else {
             notificationModel.removeNotification(PERFORMANCE_WARNING_3D)
             notificationModel.removeNotification(PERFORMANCE_WARNING_HIDDEN)
           }
@@ -312,32 +353,34 @@ class DeviceViewPanel(
     layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
     layeredPane.setLayer(floatingToolbarProvider.floatingToolbar, JLayeredPane.PALETTE_LAYER)
 
-    layeredPane.layout = object : BorderLayout() {
-      override fun layoutContainer(parent: Container?) {
-        super.layoutContainer(parent)
-        // Position the floating toolbar
-        updateLayeredPaneSize()
+    layeredPane.layout =
+      object : BorderLayout() {
+        override fun layoutContainer(parent: Container?) {
+          super.layoutContainer(parent)
+          // Position the floating toolbar
+          updateLayeredPaneSize()
+        }
       }
-    }
 
     layeredPane.add(floatingToolbarProvider.floatingToolbar)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     var shouldZoomToFit = true
-    layoutInspector.processModel?.addSelectedProcessListeners {
-      shouldZoomToFit = true
-    }
+    layoutInspector.processModel?.addSelectedProcessListeners { shouldZoomToFit = true }
 
     model.modificationListeners.add { oldWindow, newWindow, _ ->
       if (oldWindow == null && newWindow != null) {
         // TODO(b/265150325) move to a more generic place
-        layoutInspector.currentClient.stats.recompositionHighlightColor = renderSettings.highlightColor
+        layoutInspector.currentClient.stats.recompositionHighlightColor =
+          renderSettings.highlightColor
 
         if (shouldZoomToFit) {
           // Zoom to fit each time a new window shows up immediately after a process change
-          // we should do this only after a process change, because the new window showing up could be a dialog being open, in which case
+          // we should do this only after a process change, because the new window showing up could
+          // be a dialog being open, in which case
           // we don't want to change the zoom.
-          // And we should do it only if the new window is different from null, so we know the view is available and we can scroll to
+          // And we should do it only if the new window is different from null, so we know the view
+          // is available and we can scroll to
           // center it.
           zoom(ZoomType.FIT)
           shouldZoomToFit = false
@@ -354,9 +397,7 @@ class DeviceViewPanel(
         backgroundExecutor.execute {
           floatingToolbarProvider.zoomChanged(prevZoom / 100.0, renderSettings.scalePercent / 100.0)
           prevZoom = renderSettings.scalePercent
-          model.windows.values.forEach {
-            it.refreshImages(renderSettings.scaleFraction)
-          }
+          model.windows.values.forEach { it.refreshImages(renderSettings.scaleFraction) }
           contentPanel.renderModel.refresh()
         }
       }
@@ -367,8 +408,11 @@ class DeviceViewPanel(
     scrollPane.size = layeredPane.size
     val floatingToolbar = floatingToolbarProvider.floatingToolbar
     floatingToolbar.size = floatingToolbar.preferredSize
-    floatingToolbar.location = Point(layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
-                                     layeredPane.height - floatingToolbar.height - TOOLBAR_INSET)
+    floatingToolbar.location =
+      Point(
+        layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
+        layeredPane.height - floatingToolbar.height - TOOLBAR_INSET
+      )
   }
 
   override fun zoom(type: ZoomType): Boolean {
@@ -385,8 +429,7 @@ class DeviceViewPanel(
       renderSettings.scalePercent = newZoom
       contentPanel.revalidate()
       true
-    }
-    else {
+    } else {
       false
     }
   }
@@ -399,19 +442,23 @@ class DeviceViewPanel(
     val desiredHeight = (size.height).toDouble()
     return if (desiredHeight == 0.0 || desiredWidth == 0.0) {
       100
-    }
-    else {
+    } else {
       (90 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
     }
   }
 
-  override fun canZoomIn() = renderSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty
+  override fun canZoomIn() =
+    renderSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomOut() = renderSettings.scalePercent > MIN_ZOOM && !layoutInspector.inspectorModel.isEmpty
+  override fun canZoomOut() =
+    renderSettings.scalePercent > MIN_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomToFit() = !layoutInspector.inspectorModel.isEmpty && getFitZoom() != renderSettings.scalePercent
+  override fun canZoomToFit() =
+    !layoutInspector.inspectorModel.isEmpty && getFitZoom() != renderSettings.scalePercent
 
-  override fun canZoomToActual() = renderSettings.scalePercent < 100 && canZoomIn() || renderSettings.scalePercent > 100 && canZoomOut()
+  override fun canZoomToActual() =
+    renderSettings.scalePercent < 100 && canZoomIn() ||
+      renderSettings.scalePercent > 100 && canZoomOut()
 
   override fun getData(dataId: String): Any? {
     if (ZOOMABLE_KEY.`is`(dataId) || PANNABLE_KEY.`is`(dataId)) {
@@ -424,14 +471,17 @@ class DeviceViewPanel(
   }
 
   override val isPannable: Boolean
-    get() = contentPanel.width > scrollPane.viewport.width || contentPanel.height > scrollPane.viewport.height
+    get() =
+      contentPanel.width > scrollPane.viewport.width ||
+        contentPanel.height > scrollPane.viewport.height
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition
     set(_) {}
 
   private fun createToolbarPanel(actionToolbar: ActionToolbar): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
+    panel.border =
+      BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
 
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     leftPanel.add(actionToolbar.component, BorderLayout.CENTER)
@@ -457,30 +507,47 @@ class MyViewportLayoutManager(
     when {
       layerSpacing() != lastLayerSpacing -> {
         lastLayerSpacing = layerSpacing()
-        val position = viewport.viewPosition.apply { translate(-viewport.view.width / 2, -viewport.view.height / 2) }
+        val position =
+          viewport.viewPosition.apply {
+            translate(-viewport.view.width / 2, -viewport.view.height / 2)
+          }
         origLayout.layoutContainer(parent)
-        viewport.viewPosition = position.apply { translate(viewport.view.width / 2, viewport.view.height / 2) }
+        viewport.viewPosition =
+          position.apply { translate(viewport.view.width / 2, viewport.view.height / 2) }
       }
       currentZoomOperation != null -> {
-        viewport.viewPosition = when (currentZoomOperation) {
-          ZoomType.FIT -> {
-            origLayout.layoutContainer(parent)
-            val bounds = viewport.extentSize
-            val size = viewport.view.preferredSize
-            Point((size.width - bounds.width).coerceAtLeast(0) / 2, (size.height - bounds.height).coerceAtLeast(0) / 2)
-          }
-          else -> {
-            val position = SwingUtilities.convertPoint(viewport, Point(viewport.width / 2, viewport.height / 2), viewport.view)
-            val xPercent = position.x.toDouble() / viewport.view.width.toDouble()
-            val yPercent = position.y.toDouble() / viewport.view.height.toDouble()
+        viewport.viewPosition =
+          when (currentZoomOperation) {
+            ZoomType.FIT -> {
+              origLayout.layoutContainer(parent)
+              val bounds = viewport.extentSize
+              val size = viewport.view.preferredSize
+              Point(
+                (size.width - bounds.width).coerceAtLeast(0) / 2,
+                (size.height - bounds.height).coerceAtLeast(0) / 2
+              )
+            }
+            else -> {
+              val position =
+                SwingUtilities.convertPoint(
+                  viewport,
+                  Point(viewport.width / 2, viewport.height / 2),
+                  viewport.view
+                )
+              val xPercent = position.x.toDouble() / viewport.view.width.toDouble()
+              val yPercent = position.y.toDouble() / viewport.view.height.toDouble()
 
-            origLayout.layoutContainer(parent)
+              origLayout.layoutContainer(parent)
 
-            val newPosition = Point((viewport.view.width * xPercent).toInt(), (viewport.view.height * yPercent).toInt())
-            newPosition.translate(-viewport.extentSize.width / 2, -viewport.extentSize.height / 2)
-            newPosition
+              val newPosition =
+                Point(
+                  (viewport.view.width * xPercent).toInt(),
+                  (viewport.view.height * yPercent).toInt()
+                )
+              newPosition.translate(-viewport.extentSize.width / 2, -viewport.extentSize.height / 2)
+              newPosition
+            }
           }
-        }
         currentZoomOperation = null
       }
       else -> {
@@ -492,20 +559,26 @@ class MyViewportLayoutManager(
         if (view.size != lastViewSize && lastRoot != null && currentRootLocation != null) {
           val newRootLocation = SwingUtilities.convertPoint(view, currentRootLocation, viewport)
           val preferredSize = view.preferredSize
-          val newPosition = viewport.viewPosition.apply { translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y) }
+          val newPosition =
+            viewport.viewPosition.apply {
+              translate(newRootLocation.x - lastRoot.x, newRootLocation.y - lastRoot.y)
+            }
           if (view.width > preferredSize.width) {
-            // If there is room for the entire image set x position to 0 (required to remove the horizontal scrollbar).
+            // If there is room for the entire image set x position to 0 (required to remove the
+            // horizontal scrollbar).
             newPosition.x = 0
           }
           if (view.height > preferredSize.height) {
-            // If there is room for the entire image set y position to 0 (required to remove the vertical scrollbar).
+            // If there is room for the entire image set y position to 0 (required to remove the
+            // vertical scrollbar).
             newPosition.y = 0
           }
           viewport.viewPosition = newPosition
         }
       }
     }
-    lastRootLocation = rootLocation()?.let { SwingUtilities.convertPoint(viewport.view, it, viewport) }
+    lastRootLocation =
+      rootLocation()?.let { SwingUtilities.convertPoint(viewport.view, it, viewport) }
     lastViewSize = viewport.view.size
   }
 }

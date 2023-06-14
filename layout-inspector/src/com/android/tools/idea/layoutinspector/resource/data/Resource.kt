@@ -25,7 +25,8 @@ import com.android.tools.idea.layoutinspector.common.StringTable
 /**
  * Represents the components of a resource ID.
  *
- * For example, with "@android:id/textView", "android" is the namespace, "id" is the type, and "textView" is the name.
+ * For example, with "@android:id/textView", "android" is the namespace, "id" is the type, and
+ * "textView" is the name.
  */
 class Resource(
   val type: Int = 0, // Key for a StringTable

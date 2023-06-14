@@ -17,9 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline
 
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 
-/**
- * An error description with a error [code] and optional [args] for generating a message.
- */
+/** An error description with a error [code] and optional [args] for generating a message. */
 data class ErrorInfo(
   // The analytics error code
   val code: AttachErrorCode,
@@ -30,4 +28,6 @@ data class ErrorInfo(
 
 // Convenience methods for creating an ErrorInfo
 fun AttachErrorCode.info(): ErrorInfo = ErrorInfo(this, emptyMap())
-fun AttachErrorCode.info(vararg params: Pair<String, String>): ErrorInfo = ErrorInfo(this, params.associate { it })
+
+fun AttachErrorCode.info(vararg params: Pair<String, String>): ErrorInfo =
+  ErrorInfo(this, params.associate { it })

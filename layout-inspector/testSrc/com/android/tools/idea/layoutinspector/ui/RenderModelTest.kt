@@ -37,34 +37,33 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
-import org.mockito.Mockito.verify
 import java.awt.Polygon
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
+import org.junit.Test
+import org.mockito.Mockito.verify
 
-private val activityMain = ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
+private val activityMain =
+  ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT, "activity_main")
 private const val EPSILON = 0.001
 
 class RenderModelTest {
 
   @Test
   fun testOverlappingRects() {
-    val rectMap = mapOf(
-      ROOT to Rectangle(0, 0, 100, 100),
-      VIEW1 to Rectangle(0, 0, 100, 50),
-      VIEW2 to Rectangle(0, 0, 100, 50),
-      VIEW3 to Rectangle(0, 50, 100, 50),
-      VIEW4 to Rectangle(40, 40, 20, 20))
+    val rectMap =
+      mapOf(
+        ROOT to Rectangle(0, 0, 100, 100),
+        VIEW1 to Rectangle(0, 0, 100, 50),
+        VIEW2 to Rectangle(0, 0, 100, 50),
+        VIEW3 to Rectangle(0, 50, 100, 50),
+        VIEW4 to Rectangle(40, 40, 20, 20)
+      )
 
     val model = model {
       view(ROOT, rectMap[ROOT]) {
-        view(VIEW1, rectMap[VIEW1]) {
-          view(VIEW2, rectMap[VIEW2]) {
-            image()
-          }
-        }
+        view(VIEW1, rectMap[VIEW1]) { view(VIEW2, rectMap[VIEW2]) { image() } }
         view(VIEW3, rectMap[VIEW3])
         view(VIEW4, rectMap[VIEW4])
       }
@@ -75,23 +74,19 @@ class RenderModelTest {
 
   @Test
   fun testOverlappingRects2() {
-    val rectMap = mapOf(
-      ROOT to Rectangle(0, 0, 100, 100),
-      VIEW1 to Rectangle(0, 0, 100, 100),
-      VIEW2 to Rectangle(0, 0, 10, 10),
-      VIEW3 to Rectangle(0, 0, 100, 100),
-      VIEW4 to Rectangle(40, 40, 20, 20))
+    val rectMap =
+      mapOf(
+        ROOT to Rectangle(0, 0, 100, 100),
+        VIEW1 to Rectangle(0, 0, 100, 100),
+        VIEW2 to Rectangle(0, 0, 10, 10),
+        VIEW3 to Rectangle(0, 0, 100, 100),
+        VIEW4 to Rectangle(40, 40, 20, 20)
+      )
 
     val model = model {
       view(ROOT, rectMap[ROOT]) {
-        view(VIEW1, rectMap[VIEW1]) {
-          view(VIEW2, rectMap[VIEW2]) {
-            image()
-          }
-        }
-        view(VIEW3, rectMap[VIEW3]) {
-          view(VIEW4, rectMap[VIEW4])
-        }
+        view(VIEW1, rectMap[VIEW1]) { view(VIEW2, rectMap[VIEW2]) { image() } }
+        view(VIEW3, rectMap[VIEW3]) { view(VIEW4, rectMap[VIEW4]) }
       }
     }
 
@@ -101,37 +96,34 @@ class RenderModelTest {
   @Test
   fun testResetRotation() {
     val model = model {
-      view(ROOT, Rectangle(0, 0, 100, 200)) {
-        view(VIEW1, Rectangle(10, 10, 50, 100)) {
-          image()
-        }
-      }
+      view(ROOT, Rectangle(0, 0, 100, 200)) { view(VIEW1, Rectangle(10, 10, 50, 100)) { image() } }
     }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     panelModel.rotate(0.1, 0.2)
-    assertEqualAffineTransform(AffineTransform(0.995, -0.010, -0.010, 0.980, -15.0, -30.0), panelModel.hitRects[0].transform)
+    assertEqualAffineTransform(
+      AffineTransform(0.995, -0.010, -0.010, 0.980, -15.0, -30.0),
+      panelModel.hitRects[0].transform
+    )
 
     panelModel.resetRotation()
-    assertEqualAffineTransform(AffineTransform(1.0, 0.0, 0.0, 1.0, 0.0, -0.0), panelModel.hitRects[0].transform)
+    assertEqualAffineTransform(
+      AffineTransform(1.0, 0.0, 0.0, 1.0, 0.0, -0.0),
+      panelModel.hitRects[0].transform
+    )
   }
 
   @Test
   fun testRootBoundsUpdate() {
     val model = model {
       view(ROOT, Rectangle(0, 0, 100, 200)) {
-        view(VIEW1, Rectangle(10, -10, 50, 100)) {
-          image()
-        }
+        view(VIEW1, Rectangle(10, -10, 50, 100)) { image() }
         view(VIEW3, 20, 20, 10, 10)
       }
     }
-    val window1 = window(ROOT2, ROOT2, -10, 0, 10, 10) {
-      view(VIEW2, Rectangle(-10, 0, 10, 10)) {
-        image()
-      }
-    }
+    val window1 =
+      window(ROOT2, ROOT2, -10, 0, 10, 10) { view(VIEW2, Rectangle(-10, 0, 10, 10)) { image() } }
     model.update(window1, listOf(ROOT, ROOT2), 0)
 
     val treeSettings = FakeTreeSettings()
@@ -150,9 +142,7 @@ class RenderModelTest {
 
   @Test
   fun testSwitchDevices() {
-    val model = model {
-      view(ROOT)
-    }
+    val model = model { view(ROOT) }
     val treeSettings = FakeTreeSettings()
     val capabilities = mutableSetOf(InspectorClient.Capability.SUPPORTS_SKP)
     val client: InspectorClient = mock()
@@ -185,38 +175,35 @@ class RenderModelTest {
   fun testFindViewsAt() {
     var model = model {
       view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 0, 0, 30, 30) {
-          view(VIEW2, 0, 0, 10, 10)
-        }
+        view(VIEW1, 0, 0, 30, 30) { view(VIEW2, 0, 0, 10, 10) }
         image()
         view(VIEW3, 50, 50, 20, 20)
       }
     }
     val treeSettings = FakeTreeSettings()
     var panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
-    assertThat(panelModel.findViewsAt(5.0, 5.0).map { it.drawId }.toList()).containsExactly(VIEW2, VIEW1, ROOT)
+    assertThat(panelModel.findViewsAt(5.0, 5.0).map { it.drawId }.toList())
+      .containsExactly(VIEW2, VIEW1, ROOT)
     assertThat(panelModel.findViewsAt(99.0, 99.0).map { it.drawId }.toList()).containsExactly(ROOT)
-    assertThat(panelModel.findViewsAt(60.0, 60.0).map { it.drawId }.toList()).containsExactly(VIEW3, ROOT)
+    assertThat(panelModel.findViewsAt(60.0, 60.0).map { it.drawId }.toList())
+      .containsExactly(VIEW3, ROOT)
 
     model = model {
       view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 0, 0, 100, 100) {
-          view(VIEW2, 0, 0, 100, 100)
-        }
+        view(VIEW1, 0, 0, 100, 100) { view(VIEW2, 0, 0, 100, 100) }
         view(VIEW3, 0, 0, 100, 100)
       }
     }
     panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
-    assertThat(panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList()).containsExactly(VIEW3, VIEW2, VIEW1, ROOT)
+    assertThat(panelModel.findViewsAt(0.0, 0.0).map { it.drawId }.toList())
+      .containsExactly(VIEW3, VIEW2, VIEW1, ROOT)
   }
 
   @Test
   fun testAllNodesInvisible() {
     val model = model {
       view(ROOT, Rectangle(0, 0, 100, 200)) {
-        view(VIEW1, Rectangle(10, 10, 50, 100)) {
-          view(VIEW2, 10, 10, 10, 10)
-        }
+        view(VIEW1, Rectangle(10, 10, 50, 100)) { view(VIEW2, 10, 10, 10, 10) }
         view(VIEW3, 50, 50, 20, 20)
       }
     }
@@ -258,9 +245,7 @@ class RenderModelTest {
     val treeSettings = FakeTreeSettings()
     val model = model {
       view(ROOT, 0, 0, 100, 100) {
-        view(VIEW1, 0, 0, 100, 100) {
-          view(VIEW2, 0, 0, 100, 100)
-        }
+        view(VIEW1, 0, 0, 100, 100) { view(VIEW2, 0, 0, 100, 100) }
         view(VIEW3, 0, 0, 100, 100)
       }
     }
@@ -275,19 +260,19 @@ class RenderModelTest {
   }
 
   private fun checkRects(xOff: Double, yOff: Double, hideSystemNodes: Boolean = false) {
-    val rectMap = mapOf(
-      ROOT to Rectangle(0, 0, 100, 200),
-      VIEW1 to Rectangle(0, 0, 50, 60),
-      VIEW2 to Rectangle(60, 70, 10, 10),
-      VIEW3 to Rectangle(10, 20, 30, 40))
+    val rectMap =
+      mapOf(
+        ROOT to Rectangle(0, 0, 100, 200),
+        VIEW1 to Rectangle(0, 0, 50, 60),
+        VIEW2 to Rectangle(60, 70, 10, 10),
+        VIEW3 to Rectangle(10, 20, 30, 40)
+      )
 
     @Suppress("MapGetWithNotNullAssertionOperator")
     val model = model {
       view(ROOT, rectMap[ROOT]!!, imageType = AndroidWindow.ImageType.SKP, layout = null) {
         view(VIEW1, rectMap[VIEW1]!!, layout = null) {
-          view(VIEW3, rectMap[VIEW3]!!, layout = activityMain) {
-            image()
-          }
+          view(VIEW3, rectMap[VIEW3]!!, layout = activityMain) { image() }
         }
         view(VIEW2, rectMap[VIEW2]!!, layout = activityMain)
       }
@@ -308,11 +293,19 @@ class RenderModelTest {
     val panelModel = RenderModel(model, mock(), treeSettings) { DisconnectedClient }
     panelModel.rotate(xOff, yOff)
 
-    val actualTransforms = panelModel.hitRects.associate { it.node.findFilteredOwner(treeSettings)?.drawId to it.transform }
+    val actualTransforms =
+      panelModel.hitRects.associate {
+        it.node.findFilteredOwner(treeSettings)?.drawId to it.transform
+      }
 
-    panelModel.hitRects.associateBy { it.node.findFilteredOwner(treeSettings)?.drawId }.forEach { (drawId, info) ->
-      assertPathEqual(actualTransforms[drawId]?.createTransformedShape(rectMap[drawId])!!, info.bounds)
-    }
+    panelModel.hitRects
+      .associateBy { it.node.findFilteredOwner(treeSettings)?.drawId }
+      .forEach { (drawId, info) ->
+        assertPathEqual(
+          actualTransforms[drawId]?.createTransformedShape(rectMap[drawId])!!,
+          info.bounds
+        )
+      }
   }
 
   private fun assertPathEqual(expected: Shape, actual: Shape) {
@@ -321,7 +314,8 @@ class RenderModelTest {
     val expectedIter = expected.getPathIterator(AffineTransform())
     val actualIter = actual.getPathIterator(AffineTransform())
     while (!expectedIter.isDone && !actualIter.isDone) {
-      assertThat(actualIter.currentSegment(actualVals)).isEqualTo(expectedIter.currentSegment(expectedVals))
+      assertThat(actualIter.currentSegment(actualVals))
+        .isEqualTo(expectedIter.currentSegment(expectedVals))
       assertThat(actualVals).usingTolerance(EPSILON).containsExactly(expectedVals)
       expectedIter.next()
       actualIter.next()

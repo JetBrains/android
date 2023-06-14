@@ -40,15 +40,13 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
 
-/**
- * Class used to keep track of open projects, for metrics purposes
- */
+/** Class used to keep track of open projects, for metrics purposes */
 object LayoutInspectorOpenProjectsTracker {
   internal var openProjects = 0
 
@@ -58,10 +56,11 @@ object LayoutInspectorOpenProjectsTracker {
 /**
  * A project service that creates and holds an instance of [LayoutInspector].
  *
- * Methods of this class are meant to be called on the UI thread, so we don't need to worry about concurrency.
+ * Methods of this class are meant to be called on the UI thread, so we don't need to worry about
+ * concurrency.
  */
 @UiThread
-class LayoutInspectorProjectService(private val project: Project): Disposable {
+class LayoutInspectorProjectService(private val project: Project) : Disposable {
 
   companion object {
     @JvmStatic
@@ -83,7 +82,7 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
   }
 
   @UiThread
-  private fun createLayoutInspector(project: Project, disposable: Disposable): LayoutInspector  {
+  private fun createLayoutInspector(project: Project, disposable: Disposable): LayoutInspector {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     val layoutInspectorCoroutineScope = AndroidCoroutineScope(disposable)
@@ -98,17 +97,19 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
     val notificationModel = NotificationModel(project)
     TransportErrorListener(project, notificationModel, LayoutInspectorMetrics, disposable)
 
-    val processesModel = createProcessesModel(
-      project,
-      disposable,
-      AppInspectionDiscoveryService.instance.apiServices.processDiscovery,
-      edtExecutor
-    )
+    val processesModel =
+      createProcessesModel(
+        project,
+        disposable,
+        AppInspectionDiscoveryService.instance.apiServices.processDiscovery,
+        edtExecutor
+      )
     val scheduledExecutor = createScheduledExecutor(disposable)
     val model = InspectorModel(project, scheduledExecutor)
 
     processesModel.addSelectedProcessListeners {
-      // Reset notification bar every time active process changes, since otherwise we might leave up stale notifications from an error
+      // Reset notification bar every time active process changes, since otherwise we might leave up
+      // stale notifications from an error
       // encountered during a previous run.
       notificationModel.clear()
     }
@@ -116,21 +117,26 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
     lateinit var launcher: InspectorClientLauncher
     val treeSettings = InspectorTreeSettings { launcher.activeClient }
     val metrics = LayoutInspectorSessionMetrics(project, null)
-    launcher = InspectorClientLauncher.createDefaultLauncher(
-      processesModel,
-      model,
-      notificationModel,
-      metrics,
-      treeSettings,
-      inspectorClientSettings,
-      layoutInspectorCoroutineScope,
-      disposable
-    )
+    launcher =
+      InspectorClientLauncher.createDefaultLauncher(
+        processesModel,
+        model,
+        notificationModel,
+        metrics,
+        treeSettings,
+        inspectorClientSettings,
+        layoutInspectorCoroutineScope,
+        disposable
+      )
 
     val deviceModel = DeviceModel(disposable, processesModel)
-    val foregroundProcessDetection = createForegroundProcessDetection(
-      project, processesModel, deviceModel, layoutInspectorCoroutineScope
-    )
+    val foregroundProcessDetection =
+      createForegroundProcessDetection(
+        project,
+        processesModel,
+        deviceModel,
+        layoutInspectorCoroutineScope
+      )
 
     return LayoutInspector(
       coroutineScope = layoutInspectorCoroutineScope,
@@ -168,13 +174,12 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
         coroutineScope = coroutineScope,
         metrics = ForegroundProcessDetectionMetrics
       )
-    }
-    else {
+    } else {
       null
     }
   }
 
-  override fun dispose() { }
+  override fun dispose() {}
 }
 
 @VisibleForTesting
@@ -185,8 +190,9 @@ fun createProcessesModel(
   executor: Executor
 ): ProcessesModel {
   return ProcessesModel(
-    executor = executor,
-    processDiscovery = processDiscovery,
-    isPreferred = { RecentProcess.isRecentProcess(it, project) }
-  ).also { Disposer.register(disposable, it) }
+      executor = executor,
+      processDiscovery = processDiscovery,
+      isPreferred = { RecentProcess.isRecentProcess(it, project) }
+    )
+    .also { Disposer.register(disposable, it) }
 }

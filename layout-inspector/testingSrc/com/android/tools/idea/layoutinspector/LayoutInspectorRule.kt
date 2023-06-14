@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.idea.layoutinspector
+
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
@@ -49,40 +50,43 @@ import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
-val MODERN_DEVICE = object : DeviceDescriptor {
-  override val manufacturer = "Google"
-  override val model = "Modern Model"
-  override val serial = "123456"
-  override val isEmulator = false
-  override val apiLevel = AndroidVersion.VersionCodes.Q
-  override val version = "Q"
-  override val codename: String? = null
-}
+val MODERN_DEVICE =
+  object : DeviceDescriptor {
+    override val manufacturer = "Google"
+    override val model = "Modern Model"
+    override val serial = "123456"
+    override val isEmulator = false
+    override val apiLevel = AndroidVersion.VersionCodes.Q
+    override val version = "Q"
+    override val codename: String? = null
+  }
 
-val LEGACY_DEVICE = object : DeviceDescriptor by MODERN_DEVICE {
-  override val model = "Legacy Model"
-  override val serial = "123"
-  override val apiLevel = AndroidVersion.VersionCodes.M
-  override val version = "M"
-}
+val LEGACY_DEVICE =
+  object : DeviceDescriptor by MODERN_DEVICE {
+    override val model = "Legacy Model"
+    override val serial = "123"
+    override val apiLevel = AndroidVersion.VersionCodes.M
+    override val version = "M"
+  }
 
-val OLDER_LEGACY_DEVICE = object : DeviceDescriptor by MODERN_DEVICE {
-  override val model = "Older Legacy Model"
-  override val serial = "12"
-  override val apiLevel = AndroidVersion.VersionCodes.LOLLIPOP
-  override val version = "L"
-}
+val OLDER_LEGACY_DEVICE =
+  object : DeviceDescriptor by MODERN_DEVICE {
+    override val model = "Older Legacy Model"
+    override val serial = "12"
+    override val apiLevel = AndroidVersion.VersionCodes.LOLLIPOP
+    override val version = "L"
+  }
 
 fun DeviceDescriptor.createProcess(
   name: String = "com.example",
@@ -112,14 +116,13 @@ fun interface InspectorClientProvider {
   fun create(params: InspectorClientLauncher.Params, inspector: LayoutInspector): InspectorClient?
 }
 
-/**
- * Simple, convenient provider for generating a real [LegacyClient]
- */
+/** Simple, convenient provider for generating a real [LegacyClient] */
 fun LegacyClientProvider(
   getDisposable: () -> Disposable,
-  treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
-    whenever(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
-  }
+  treeLoaderOverride: LegacyTreeLoader? =
+    Mockito.mock(LegacyTreeLoader::class.java).also {
+      whenever(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
+    }
 ) = InspectorClientProvider { params, inspector ->
   LegacyClient(
     params.process,
@@ -138,15 +141,16 @@ fun LegacyClientProvider(
  *
  * This includes things like fake ADB support, process management, and [InspectorClient] setup.
  *
- * Note that, when the rule first starts up, that [inspectorClient] will be set to a disconnected client. You must first
- * call [TestProcessDiscovery.fireConnected] (with a process that has a preferred process name) or
- * [ProcessesModel.selectedProcess] directly, to trigger a new client to get created.
+ * Note that, when the rule first starts up, that [inspectorClient] will be set to a disconnected
+ * client. You must first call [TestProcessDiscovery.fireConnected] (with a process that has a
+ * preferred process name) or [ProcessesModel.selectedProcess] directly, to trigger a new client to
+ * get created.
  *
  * @param projectRule A rule providing access to a test project.
- *
- * @param isPreferredProcess Optionally provide a process selector that, when connected via [TestProcessDiscovery],
- *     will be automatically attached to. This simulates the experience when the user presses the "Run" button for example.
- *     Otherwise, the test caller must set [ProcessesModel.selectedProcess] directly.
+ * @param isPreferredProcess Optionally provide a process selector that, when connected via
+ *   [TestProcessDiscovery], will be automatically attached to. This simulates the experience when
+ *   the user presses the "Run" button for example. Otherwise, the test caller must set
+ *   [ProcessesModel.selectedProcess] directly.
  */
 class LayoutInspectorRule(
   private val clientProviders: List<InspectorClientProvider>,
@@ -165,14 +169,16 @@ class LayoutInspectorRule(
   private val launcherExecutor = Executor { runnable ->
     if (launchSynchronously) {
       runnable.run()
-    }
-    else {
-      asyncLauncherThreads.add(Thread {
-        runningThreadCount.incrementAndGet()
-        runnable.run()
-        runningThreadCount.decrementAndGet()
-        asyncLaunchLatch.countDown()
-      }.apply { start() })
+    } else {
+      asyncLauncherThreads.add(
+        Thread {
+            runningThreadCount.incrementAndGet()
+            runnable.run()
+            runningThreadCount.decrementAndGet()
+            asyncLaunchLatch.countDown()
+          }
+          .apply { start() }
+      )
     }
   }
 
@@ -186,26 +192,22 @@ class LayoutInspectorRule(
   }
 
   /**
-   * Set this to false if the test requires the launcher to execute on a different thread.
-   * Use [asyncLaunchLatch] to make sure the thread finished.
+   * Set this to false if the test requires the launcher to execute on a different thread. Use
+   * [asyncLaunchLatch] to make sure the thread finished.
    */
   var launchSynchronously = true
 
-  /**
-   * Use this latch to control the execution of background launchers
-   */
+  /** Use this latch to control the execution of background launchers */
   private lateinit var asyncLaunchLatch: CountDownLatch
 
-  /**
-   * Convenience accessor, as this property is used a lot
-   */
-  val project get() = projectRule.project
+  /** Convenience accessor, as this property is used a lot */
+  val project
+    get() = projectRule.project
 
-  val disposable get() = projectRule.testRootDisposable
+  val disposable
+    get() = projectRule.testRootDisposable
 
-  /**
-   * A notifier which acts as a source of processes being externally connected.
-   */
+  /** A notifier which acts as a source of processes being externally connected. */
   val processNotifier = TestProcessDiscovery()
 
   /**
@@ -217,9 +219,8 @@ class LayoutInspectorRule(
   private lateinit var deviceModel: DeviceModel
 
   val adbRule = FakeAdbRule()
-  val adbProperties: AdbDebugViewProperties = FakeShellCommandHandler().apply {
-    adbRule.withDeviceCommandHandler(this)
-  }
+  val adbProperties: AdbDebugViewProperties =
+    FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   lateinit var inspector: LayoutInspector
@@ -244,7 +245,13 @@ class LayoutInspectorRule(
    */
   fun attachDevice(device: DeviceDescriptor) {
     if (adbRule.bridge.devices.none { it.serialNumber == device.serial }) {
-      adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
+      adbRule.attachDevice(
+        device.serial,
+        device.manufacturer,
+        device.model,
+        device.version,
+        device.apiLevel.toString()
+      )
     }
   }
 
@@ -256,24 +263,29 @@ class LayoutInspectorRule(
     deviceModel = DeviceModel(disposable, processes)
     inspectorModel = InspectorModel(project)
     notificationModel = NotificationModel(project)
-    launcher = InspectorClientLauncher(
-      processes,
-      clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
-      project,
-      notificationModel,
-      layoutInspectorCoroutineScope,
-      launcherDisposable,
-      executor = launcherExecutor
-    )
+    launcher =
+      InspectorClientLauncher(
+        processes,
+        clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
+        project,
+        notificationModel,
+        layoutInspectorCoroutineScope,
+        launcherDisposable,
+        executor = launcherExecutor
+      )
     Disposer.register(projectRule.testRootDisposable, launcherDisposable)
-    AndroidFacet.getInstance(projectRule.module)?.let { AndroidModel.set(it, TestAndroidModel("com.example")) }
+    AndroidFacet.getInstance(projectRule.module)?.let {
+      AndroidModel.set(it, TestAndroidModel("com.example"))
+    }
 
-    // Client starts disconnected, and will be updated after the ProcessesModel's selected process is updated
+    // Client starts disconnected, and will be updated after the ProcessesModel's selected process
+    // is updated
     inspectorClient = launcher.activeClient
     assertThat(inspectorClient.isConnected).isFalse()
     processes.addSelectedProcessListeners {
       processes.selectedProcess?.let { process ->
-        // If a process is selected, let's just make sure we have ADB aware of the device as well. Some client code expects
+        // If a process is selected, let's just make sure we have ADB aware of the device as well.
+        // Some client code expects
         // ADB and our processes model to by in sync in normal situations.
         attachDevice(process.device)
       }
@@ -283,21 +295,20 @@ class LayoutInspectorRule(
 
     // This factory will be triggered when LayoutInspector is created
     val treeSettings = FakeTreeSettings()
-    inspector = LayoutInspector(
-      coroutineScope = layoutInspectorCoroutineScope,
-      processModel = processes,
-      deviceModel = deviceModel,
-      foregroundProcessDetection = fakeForegroundProcessDetection,
-      inspectorClientSettings = InspectorClientSettings(project),
-      launcher = launcher,
-      layoutInspectorModel = inspectorModel,
-      notificationModel = notificationModel,
-      treeSettings = treeSettings,
-      executor = MoreExecutors.directExecutor()
-    )
-    launcher.addClientChangedListener {
-      inspectorClient = it
-    }
+    inspector =
+      LayoutInspector(
+        coroutineScope = layoutInspectorCoroutineScope,
+        processModel = processes,
+        deviceModel = deviceModel,
+        foregroundProcessDetection = fakeForegroundProcessDetection,
+        inspectorClientSettings = InspectorClientSettings(project),
+        launcher = launcher,
+        layoutInspectorModel = inspectorModel,
+        notificationModel = notificationModel,
+        treeSettings = treeSettings,
+        executor = MoreExecutors.directExecutor()
+      )
+    launcher.addClientChangedListener { inspectorClient = it }
 
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
       dataProviderForLayoutInspector(inspector),
@@ -312,7 +323,9 @@ class LayoutInspectorRule(
     // might happen on a background thread after the test framework is done tearing down.
     launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
 
-    launchSynchronously = true // Do not start more threads, since that would cause ConcurrentModificationException below
+    launchSynchronously =
+      true // Do not start more threads, since that would cause ConcurrentModificationException
+    // below
     asyncLauncherThreads.forEach {
       it.join(1000) // Wait for the thread to finish
       if (it.isAlive) {
@@ -329,17 +342,19 @@ class LayoutInspectorRule(
   override fun apply(base: Statement, description: Description): Statement {
     // List of rules that will be applied in order, with this rule being last
     val innerRules = listOf(adbService, adbRule)
-    val coreStatement = object : Statement() {
-      override fun evaluate() {
-        before()
-        try {
-          base.evaluate()
-        }
-        finally {
-          after()
+    val coreStatement =
+      object : Statement() {
+        override fun evaluate() {
+          before()
+          try {
+            base.evaluate()
+          } finally {
+            after()
+          }
         }
       }
+    return innerRules.fold(coreStatement) { stmt: Statement, rule: TestRule ->
+      rule.apply(stmt, description)
     }
-    return innerRules.fold(coreStatement) { stmt: Statement, rule: TestRule -> rule.apply(stmt, description) }
   }
 }
