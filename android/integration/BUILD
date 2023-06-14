@@ -345,6 +345,32 @@ iml_studio_test(
 )
 
 iml_studio_test(
+    name = "DebugNativeApkTest",
+    timeout = "moderate",
+    data = [
+        ":minnativeapp-apk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/android-31",
+        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
+    ],
+    module = ":intellij.android.core.integration",
+    tags_linux = [
+        "block-network",
+        "very_flaky",  # b/260867011
+    ],
+    tags_mac = [
+        "no_mac",  # No need to consume Mac resources. Testing on Linux is sufficient.
+    ],
+    tags_windows = [
+        # TODO(b/287284693): Add Windows support for this test.
+        "no_windows",
+    ],
+    test_class = "com.android.tools.idea.DebugNativeApkTest",
+)
+
+iml_studio_test(
     name = "BuildAndRunInstrumentedTest",
     timeout = "long",
     data = [
@@ -527,6 +553,11 @@ filegroup(
 filegroup(
     name = "helloworldapk",
     srcs = glob(["testData/helloworldapk/**"]),
+)
+
+filegroup(
+    name = "minnativeapp-apk",
+    srcs = glob(["testData/minnativeapp-apk/**"]),
 )
 
 filegroup(

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="apk" name="APK">
+      <configuration>
+        <option name="APK_PATH" value="$MODULE_DIR$/minnativeapp-debug.apk" />
+        <option name="APP_PACKAGE" value="com.example.minnativeapp" />
+        <option name="SETUP_ISSUES">
+          <list />
+        </option>
+        <option name="NATIVE_LIBRARIES">
+          <list>
+            <NativeLibrary>
+              <option name="sharedObjectFilePaths">
+                <list>
+                  <option value="$MODULE_DIR$/lib/x86_64/libminnativeapp.so" />
+                  <option value="$MODULE_DIR$/lib/arm64-v8a/libminnativeapp.so" />
+                </list>
+              </option>
+              <option name="name" value="libminnativeapp.so" />
+              <option name="debuggableSharedObjectFilesByAbi">
+                <map>
+                  <entry key="arm64-v8a">
+                    <value>
+                      <DebuggableSharedObjectFile>
+                        <option name="path" value="$MODULE_DIR$/minnativeapp/build/intermediates/merged_native_libs/debug/out/lib/arm64-v8a/libminnativeapp.so" />
+                        <option name="debugSymbolPaths">
+                          <list>
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libcxx/include" />
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libcxx/src" />
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libcxxabi/include" />
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libcxxabi/src" />
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libunwind_llvm/include" />
+                            <option value="/buildbot/src/android/ndk-release-r21/out/linux/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/9.0.9/include" />
+                            <option value="/buildbot/src/android/ndk-release-r21/out/linux/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include" />
+                            <option value="/tmp/980bfa06a14a76a548e4a431dc004d5e/sysroot/usr/include" />
+                            <option value="/usr/local/google/buildbot/src/android/gcc/toolchain/gcc/gcc-4.9/include" />
+                            <option value="/usr/local/google/buildbot/src/android/gcc/toolchain/gcc/gcc-4.9/libgcc" />
+                            <option value="/usr/local/google/buildbot/tmp/build/toolchain/gcc-4.9/aarch64-linux-android/libgcc" />
+                            <option value="/usr/local/google/buildbot/tmp/build/toolchain/gcc-4.9/gcc/include" />
+                            <option value="$USER_HOME$/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/9.0.9/include" />
+                            <option value="$USER_HOME$/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include" />
+                            <option value="/tmp/minnativeapp/src/main/cpp" />
+                          </list>
+                        </option>
+                      </DebuggableSharedObjectFile>
+                    </value>
+                  </entry>
+                  <entry key="x86_64">
+                    <value>
+                      <DebuggableSharedObjectFile>
+                        <option name="path" value="$MODULE_DIR$/minnativeapp/build/intermediates/merged_native_libs/debug/out/lib/x86_64/libminnativeapp.so" />
+                        <option name="debugSymbolPaths">
+                          <list>
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libcxx/include" />
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libcxx/src" />
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libcxxabi/include" />
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libcxxabi/src" />
+                            <option value="/buildbot/src/android/ndk-release-r21/external/libunwind_llvm/include" />
+                            <option value="/buildbot/src/android/ndk-release-r21/out/linux/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/9.0.9/include" />
+                            <option value="/buildbot/src/android/ndk-release-r21/out/linux/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include" />
+                            <option value="/tmp/b2cfda2f94ca52e686067264acee525a/sysroot/usr/include" />
+                            <option value="/usr/local/google/buildbot/src/android/gcc/toolchain/gcc/gcc-4.9/gcc/config/i386" />
+                            <option value="/usr/local/google/buildbot/src/android/gcc/toolchain/gcc/gcc-4.9/include" />
+                            <option value="/usr/local/google/buildbot/src/android/gcc/toolchain/gcc/gcc-4.9/libgcc" />
+                            <option value="/usr/local/google/buildbot/tmp/build/toolchain/gcc-4.9/gcc/include" />
+                            <option value="/usr/local/google/buildbot/tmp/build/toolchain/gcc-4.9/x86_64-linux-android/libgcc" />
+                            <option value="$USER_HOME$/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/9.0.9/include" />
+                            <option value="$USER_HOME$/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include" />
+                            <option value="/tmp/minnativeapp/src/main/cpp" />
+                          </list>
+                        </option>
+                      </DebuggableSharedObjectFile>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="pathMappings">
+                <map>
+                  <entry key="/buildbot/src/android/ndk-release-r21/external/libcxx/include" value="" />
+                  <entry key="/buildbot/src/android/ndk-release-r21/external/libcxx/src" value="" />
+                  <entry key="/buildbot/src/android/ndk-release-r21/external/libcxxabi/include" value="" />
+                  <entry key="/buildbot/src/android/ndk-release-r21/external/libcxxabi/src" value="" />
+                  <entry key="/buildbot/src/android/ndk-release-r21/external/libunwind_llvm/include" value="" />
+                  <entry key="/buildbot/src/android/ndk-release-r21/out/linux/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/9.0.9/include" value="" />
+                  <entry key="/buildbot/src/android/ndk-release-r21/out/linux/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include" value="" />
+                  <entry key="/tmp/980bfa06a14a76a548e4a431dc004d5e/sysroot/usr/include" value="" />
+                  <entry key="/tmp/b2cfda2f94ca52e686067264acee525a/sysroot/usr/include" value="" />
+                  <entry key="/usr/local/google/buildbot/src/android/gcc/toolchain/gcc/gcc-4.9/gcc/config/i386" value="" />
+                  <entry key="/usr/local/google/buildbot/src/android/gcc/toolchain/gcc/gcc-4.9/include" value="" />
+                  <entry key="/usr/local/google/buildbot/src/android/gcc/toolchain/gcc/gcc-4.9/libgcc" value="" />
+                  <entry key="/usr/local/google/buildbot/tmp/build/toolchain/gcc-4.9/aarch64-linux-android/libgcc" value="" />
+                  <entry key="/usr/local/google/buildbot/tmp/build/toolchain/gcc-4.9/gcc/include" value="" />
+                  <entry key="/usr/local/google/buildbot/tmp/build/toolchain/gcc-4.9/x86_64-linux-android/libgcc" value="" />
+                  <entry key="/tmp/minnativeapp/src/main/cpp" value="$MODULE_DIR$/minnativeapp/src/main/cpp" />
+                </map>
+              </option>
+              <option name="hasDebugSymbols" value="true" />
+            </NativeLibrary>
+          </list>
+        </option>
+        <option name="JAVA_SOURCE_FOLDER_PATHS">
+          <set />
+        </option>
+      </configuration>
+    </facet>
+    <facet type="android" name="Android">
+      <configuration />
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$USER_HOME$/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/9.0.9/include">
+      <sourceFolder url="file://$USER_HOME$/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/9.0.9/include" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include">
+      <sourceFolder url="file://$USER_HOME$/Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/lib" />
+    </content>
+    <content url="file:///tmp/minnativeapp2/src/main/cpp">
+      <sourceFolder url="file:///tmp/minnativeapp2/src/main/cpp" isTestSource="false" />
+    </content>
+
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="jdk" jdkName="Android API 31 Platform" jdkType="Android SDK" />
+  </component>
+</module>
