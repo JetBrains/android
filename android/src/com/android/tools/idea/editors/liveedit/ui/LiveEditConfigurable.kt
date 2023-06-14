@@ -57,7 +57,7 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
         if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
           lateinit var rb : Cell<JBRadioButton>
           row {
-            radioButton(message("live.edit.configurable.display.name"), LIVE_EDIT)
+            rb = radioButton(message("live.edit.configurable.display.name"), LIVE_EDIT)
               .comment(message("live.edit.configurable.display.name.comment"))
           }
           row { // Add a row to indent
