@@ -64,7 +64,7 @@ internal class StartStopButton(
         combine(
             when {
               state.error != null && repairPresentation != null ->
-                listOf(repairPresentation, activationPresentation, deactivationPresentation)
+                listOf(activationPresentation, repairPresentation, deactivationPresentation)
               state is Disconnected -> listOf(activationPresentation, deactivationPresentation)
               else -> listOf(deactivationPresentation, activationPresentation)
             }
