@@ -105,7 +105,7 @@ private fun languageModificationFlow(project: Project, languages: Set<Language>)
  * Multi-Preview can cause previews to be altered in this file.
  */
 @OptIn(FlowPreview::class)
-suspend fun previewElementFlowForFile(
+fun previewElementFlowForFile(
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
   filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder,
 ): Flow<Set<ComposePreviewElement>> {

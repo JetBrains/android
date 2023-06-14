@@ -17,25 +17,9 @@ package com.android.tools.idea.compose.preview
 
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import javax.swing.Icon
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.ApiStatus
-
-/** Class representing groups available for selection in the [ComposePreviewManager]. */
-@Suppress("DataClassPrivateConstructor")
-data class PreviewGroup
-private constructor(val displayName: String, val icon: Icon?, val name: String?) {
-  companion object {
-    fun namedGroup(
-      displayName: String,
-      icon: Icon? = null,
-      name: String = displayName
-    ): PreviewGroup = PreviewGroup(displayName, icon, name)
-
-    /** [PreviewGroup] to be used when no filtering is to be applied to the preview. */
-    val ALL_PREVIEW_GROUP =
-      PreviewGroup(displayName = message("group.switch.all"), icon = null, name = null)
-  }
-}
 
 /** Interface that provides access to the Compose Preview logic. */
 interface ComposePreviewManager : Disposable {
@@ -93,17 +77,16 @@ interface ComposePreviewManager : Disposable {
   fun status(): Status
 
   /**
-   * List of available groups in this preview. The editor can contain multiple groups and only will
-   * be displayed at a given time.
+   * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
+   * and only one will be displayed at a given time.
    */
-  val availableGroups: Collection<PreviewGroup>
+  val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>>
 
-  /** List of available elements in this preview. */
-  val availableElements: Collection<ComposePreviewElementInstance>
+  /** [StateFlow] of available elements in this preview with no filters applied. */
+  val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>>
 
   /**
-   * Group name from [availableGroups] currently selected or null if we do not want to do group
-   * filtering.
+   * Currently selected group from [availableGroupsFlow] or [PreviewGroup.All] if none is selected.
    */
   var groupFilter: PreviewGroup
 
@@ -112,12 +95,6 @@ interface ComposePreviewManager : Disposable {
    * refresh and stop any other preview mode (Animation, Interactive, UI Check...).
    */
   var singlePreviewElementInstance: ComposePreviewElementInstance?
-
-  /**
-   * Represents the [ComposePreviewElementInstance] open in the Interactive Preview. Null if no
-   * preview is in interactive mode.
-   */
-  val interactivePreviewElementInstance: ComposePreviewElementInstance?
 
   /**
    * Represents the [ComposePreviewElementInstance] open in the Animation Inspector. Null if no
@@ -196,11 +173,12 @@ class NopComposePreviewManager : ComposePreviewManager {
       ComposePreviewManager.InteractiveMode.DISABLED
     )
 
-  override val availableGroups = emptyList<PreviewGroup>()
-  override val availableElements = emptySet<ComposePreviewElementInstance>()
-  override var groupFilter = PreviewGroup.ALL_PREVIEW_GROUP
+  override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
+    MutableStateFlow(emptySet())
+  override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
+    MutableStateFlow(emptySet())
+  override var groupFilter: PreviewGroup = PreviewGroup.All
   override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
-  override val interactivePreviewElementInstance: ComposePreviewElementInstance? = null
   override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null

@@ -27,6 +27,7 @@ import com.intellij.testFramework.TestActionEvent.createTestEvent
 import java.awt.Component
 import java.util.stream.Collectors
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -36,7 +37,9 @@ class ComposeEssentialsModeTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private class TestManager : TestComposePreviewManager() {
-    override var availableElements: Collection<ComposePreviewElementInstance> = emptyList()
+    override val allPreviewElementsInFileFlow:
+      MutableStateFlow<Collection<ComposePreviewElementInstance>> =
+      MutableStateFlow(emptySet())
     override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
   }
 
@@ -46,7 +49,7 @@ class ComposeEssentialsModeTest {
       SingleComposePreviewElementInstance.forTesting("PreviewMethod1", groupName = "GroupA")
     val composePreviewManager =
       TestManager().apply {
-        availableElements =
+        allPreviewElementsInFileFlow.value =
           mutableListOf(
             firstElement,
             SingleComposePreviewElementInstance.forTesting("PreviewMethod2", groupName = "GroupA"),

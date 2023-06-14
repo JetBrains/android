@@ -20,10 +20,10 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.pickers.preview.property.referenceDeviceIds
 import com.android.tools.idea.compose.preview.essentials.ComposeEssentialsMode
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
@@ -46,13 +46,12 @@ import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -175,10 +174,7 @@ class ComposePreviewRepresentationTest {
 
       mainSurface.models.forEach { assertTrue(navigationHandler.defaultNavigationMap.contains(it)) }
 
-      assertArrayEquals(
-        arrayOf("groupA"),
-        preview.availableGroups.map { it.displayName }.toTypedArray()
-      )
+      assertThat(preview.availableGroupsFlow.value.map { it.displayName }).containsExactly("groupA")
 
       val status = preview.status()
       val debugStatus = preview.debugStatusForTesting()
@@ -255,48 +251,80 @@ class ComposePreviewRepresentationTest {
 
         delayWhileRefreshingOrDumb(preview)
       }
-      assertInstanceOf<ComposePreviewRepresentation.DefaultPreviewElementProvider>(
-        preview.previewElementProvider.previewProvider
+      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Disabled>(
+        preview.uiCheckFilterFlow.value
       )
 
       val previewElements =
         mainSurface.models.mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
-      val uiCheckElement = previewElements.first()
+      val uiCheckElement = previewElements.single { it.composableMethodFqn == "TestKt.Preview1" }
 
       preview.startUiCheckPreview(uiCheckElement)
       delayUntilCondition(250) { preview.isUiCheckPreview }
 
-      assertInstanceOf<ComposePreviewRepresentation.UiCheckPreviewElementProvider>(
-        preview.previewElementProvider.previewProvider
+      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Enabled>(
+        preview.uiCheckFilterFlow.value
       )
 
       assertTrue(preview.atfChecksEnabled)
-      assert(preview.availableGroups.size == 1)
-      assertEquals("Screen sizes", preview.availableGroups.first().displayName)
-      val devices = mutableListOf<String>()
-      mainSurface.models
-        .mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
-        .forEach {
-          assertEquals(uiCheckElement.composableMethodFqn, it.composableMethodFqn)
-          devices.add(it.configuration.deviceSpec)
+      assertThat(preview.availableGroupsFlow.value.map { it.displayName })
+        .containsExactly("Screen sizes")
+      preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+        "Failed set uiCheckMode",
+        5.seconds
+      ) {
+        it.size > 2
+      }
+      assertEquals(
+        """
+          TestKt.Preview1
+          spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
+
+          TestKt.Preview1
+          spec:shape=Normal,width=673,height=841,unit=dp,dpi=480
+
+          TestKt.Preview1
+          spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420
+
+          TestKt.Preview1
+          spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420
+
+          TestKt.Preview1
+          spec:parent=_device_class_phone,orientation=landscape
+
+        """
+          .trimIndent(),
+        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+          "${it.composableMethodFqn}\n${it.configuration.deviceSpec}\n"
         }
-      val deviceDefs =
-        mutableSetOf("spec:parent=_device_class_phone,orientation=landscape").apply {
-          addAll(referenceDeviceIds.keys)
-        }
-      assertThat(devices.sorted(), `is`(deviceDefs.sorted()))
+      )
 
       preview.stopUiCheckPreview()
       delayUntilCondition(250) { !preview.isUiCheckPreview }
-      assertInstanceOf<ComposePreviewRepresentation.DefaultPreviewElementProvider>(
-        preview.previewElementProvider.previewProvider
+      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Disabled>(
+        preview.uiCheckFilterFlow.value
       )
 
-      mainSurface.models
-        .mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
-        .forEachIndexed { index, previewElement ->
-          assertEquals(previewElements[index], previewElement)
+      preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+        "Failed stop uiCheckMode",
+        5.seconds
+      ) {
+        it.size == 2
+      }
+      assertEquals(
+        """
+          TestKt.Preview1
+
+
+          TestKt.Preview2
+
+
+        """
+          .trimIndent(),
+        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+          "${it.composableMethodFqn}\n${it.configuration.deviceSpec}\n"
         }
+      )
 
       preview.onDeactivate()
     }

@@ -16,6 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 open class TestComposePreviewManager(
   initialInteractiveMode: ComposePreviewManager.InteractiveMode =
@@ -38,20 +40,21 @@ open class TestComposePreviewManager(
     }
   override fun status(): ComposePreviewManager.Status = currentStatus
 
-  override val availableGroups: Collection<PreviewGroup> = emptyList()
-  override val availableElements: Collection<ComposePreviewElementInstance> = emptyList()
-  override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
+  override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
+    MutableStateFlow(emptySet())
+  override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
+    MutableStateFlow(emptySet())
+  override var groupFilter: PreviewGroup = PreviewGroup.All
   override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
-  override var interactivePreviewElementInstance: ComposePreviewElementInstance? = null
   override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
   override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
-    interactivePreviewElementInstance = instance
+    singlePreviewElementInstance = instance
   }
 
   override fun stopInteractivePreview() {
-    interactivePreviewElementInstance = null
+    singlePreviewElementInstance = null
   }
 
   override fun invalidate() {}

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.concurrency
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert
 import kotlin.time.Duration
@@ -31,3 +34,8 @@ suspend fun <T> StateFlow<T>.awaitStatus(message: String? = null, timeout: Durat
     filter { condition(it) }
       .first()
   } ?: Assert.fail(message)
+
+/**
+ * Waits for an element in the [Flow].
+ */
+suspend fun <T> Flow<T>.next(): T = take(1).single()

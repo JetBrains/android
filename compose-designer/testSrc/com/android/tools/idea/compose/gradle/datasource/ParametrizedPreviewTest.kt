@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
@@ -31,6 +30,8 @@ import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstanc
 import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
+import com.android.tools.idea.concurrency.awaitStatus
+import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
@@ -42,12 +43,15 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.LogLevel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.assertInstanceOf
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -65,6 +69,8 @@ class ParametrizedPreviewTest {
 
   @Before
   fun setUp() {
+    Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
@@ -262,7 +268,7 @@ class ParametrizedPreviewTest {
   }
 
   @Test
-  fun testUiCheckForParametrizedPreview() = runBlocking {
+  fun testUiCheckForParametrizedPreview(): Unit = runBlocking {
     val project = projectRule.project
 
     val parametrizedPreviews =
@@ -301,24 +307,34 @@ class ParametrizedPreviewTest {
     preview.startUiCheckPreview(uiCheckElement)
     delayUntilCondition(250) { preview.isUiCheckPreview }
 
-    assertInstanceOf<ComposePreviewRepresentation.UiCheckPreviewElementProvider>(
-      preview.previewElementProvider.previewProvider
+    assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Enabled>(
+      preview.uiCheckFilterFlow.value
     )
 
-    assert(preview.availableGroups.size == 1)
-    assertEquals("Screen sizes", preview.availableGroups.first().displayName)
-    mainSurface.models
-      .mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
-      .forEach {
-        assertInstanceOf<ParametrizedComposePreviewElementInstance>(it)
-        assertEquals(uiCheckElement.composableMethodFqn, it.composableMethodFqn)
-        assertEquals(
-          uiCheckElement.providerClassFqn,
-          (it as ParametrizedComposePreviewElementInstance).providerClassFqn
-        )
-        assertEquals(uiCheckElement.index, it.index)
-        assertEquals(uiCheckElement.maxIndex, it.maxIndex)
-      }
+    assertEquals(1, preview.availableGroupsFlow.value.size)
+    assertEquals("Screen sizes", preview.availableGroupsFlow.value.first().displayName)
+    preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+      "Failed waiting to start UI check mode",
+      5.seconds
+    ) {
+      val stringValue =
+        it
+          .filterIsInstance<ParametrizedComposePreviewElementInstance>()
+          .map {
+            "${it.composableMethodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
+          }
+          .joinToString("\n")
+
+      stringValue ==
+        """
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        """
+          .trimIndent()
+    }
   }
 
   private fun getEnumerationNumberFromPreviewName(elements: List<ComposePreviewElementInstance>) =

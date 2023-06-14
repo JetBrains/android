@@ -37,7 +37,7 @@ class ComposeEssentialsMode(rootComponent: JComponent) {
 
   private val keysProvider: (DataContext) -> Set<PreviewElementKey> = { dataContext ->
     findComposePreviewManagersForContext(dataContext)
-      .flatMap { it.availableElements }
+      .flatMap { it.allPreviewElementsInFileFlow.value }
       .map { element -> PreviewElementKey(element) }
       .toSet()
   }

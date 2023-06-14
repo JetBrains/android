@@ -143,7 +143,7 @@ interface ComposePreviewView {
     modelUpdater: NlModel.NlModelUpdaterInterface,
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
-  ): List<ComposePreviewElement> {
+  ): List<ComposePreviewElementInstance> {
     return mainSurface.updatePreviewsAndRefresh(
       // Don't reuse models when in essentials mode to avoid briefly showing an unexpected/mixed
       // state of the old and new preview.
