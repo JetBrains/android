@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
@@ -50,6 +51,10 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val instanceId = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
     manager.startUiCheckPreview(instanceId)
+    e.project?.let {
+      IssuePanelService.getInstance(it)
+        .setIssuePanelVisibility(true, IssuePanelService.Tab.DESIGN_TOOLS)
+    }
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
