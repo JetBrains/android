@@ -236,7 +236,7 @@ class AndroidPositionManagerTest {
   fun sourcePosition_locationHasNoDeclaringType() {
     // No declaring type results in `PositionManagerImpl.getPsiFileByLocation()` return a null PsiFile, so this tests a branch of
     // `AndroidPositionManager.getSourcePosition`.
-    val location: Location = mock()
+    val location: MockLocation = mock()
     whenever(location.declaringType()).thenReturn(null)
 
     assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
@@ -244,10 +244,10 @@ class AndroidPositionManagerTest {
 
   @Test
   fun sourcePosition_locationIsNonAndroidFile() {
-    val type: ReferenceType = mock()
+    val type: MockReferenceType = mock()
     whenever(type.name()).thenReturn(TOP_CLASS_NAME)
 
-    val location: Location = mock()
+    val location: MockLocation = mock()
     whenever(location.declaringType()).thenReturn(type)
 
     @Language("JAVA") val text = """
@@ -481,7 +481,7 @@ class AndroidPositionManagerTest {
 
     private fun mockReferenceTypes(mockVmProxy: VirtualMachineProxyImpl, vararg typeNames: String): Map<String, ReferenceType> {
       val map = typeNames.associateWith { typeName ->
-        val type: ReferenceType = mock(withSettings().name(typeName).defaultAnswer(RETURNS_DEFAULTS))!!
+        val type: MockReferenceType = mock(withSettings().name(typeName).defaultAnswer(RETURNS_DEFAULTS))!!
         whenever(type.name()).thenReturn(typeName)
         whenever(mockVmProxy.classesByName(typeName)).thenReturn(listOf(type))
         type
@@ -493,12 +493,19 @@ class AndroidPositionManagerTest {
 
     private val androidSdkClassLocation: Location
       get() {
-        val type: ReferenceType = mock()
+        val type: MockReferenceType = mock()
         whenever(type.name()).thenReturn("android.view.View")
         whenever(type.sourceName()).thenReturn("View.java")
-        val location: Location = mock()
+        val location: MockLocation = mock()
         whenever(location.declaringType()).thenReturn(type)
         return location
       }
   }
+
+  /**
+   * IDEA doesn't like it when interfaces from `com.sun.jdi` are mocked.
+   */
+
+  private interface MockReferenceType: ReferenceType
+  private interface MockLocation: Location
 }
