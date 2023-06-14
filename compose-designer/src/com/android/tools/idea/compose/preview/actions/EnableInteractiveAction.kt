@@ -44,6 +44,7 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
     val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
     e.presentation.isVisible = true
     e.presentation.isEnabled = !isLiteModeEnabled
+    e.presentation.text = if (isLiteModeEnabled) null else message("action.interactive.title")
     e.presentation.description =
       if (isLiteModeEnabled) message("action.interactive.lite.mode.description")
       else message("action.interactive.description")

@@ -47,6 +47,7 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
       isEnabled = !isLiteModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = getPreviewElement()?.hasAnimations == true
+      text = if (isLiteModeEnabled) null else message("action.animation.inspector.title")
       description =
         if (isLiteModeEnabled) message("action.animation.inspector.lite.mode.description")
         else message("action.animation.inspector.description")

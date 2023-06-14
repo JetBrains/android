@@ -63,6 +63,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
       val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
       isEnabled = !isTestFile && !isLiteModeEnabled
       isVisible = true
+      text = if (isLiteModeEnabled) null else message("action.run.title")
       description =
         if (isTestFile) message("action.run.description.test.files")
         else {

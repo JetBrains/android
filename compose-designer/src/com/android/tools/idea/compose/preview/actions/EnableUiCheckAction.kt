@@ -41,6 +41,7 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
     val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
     e.presentation.isVisible = isUiCheckModeEnabled
     e.presentation.isEnabled = isUiCheckModeEnabled && !isLiteModeEnabled
+    e.presentation.text = if (isLiteModeEnabled) null else message("action.uicheck.title")
     e.presentation.description =
       if (isLiteModeEnabled) message("action.uicheck.lite.mode.description")
       else message("action.uicheck.description")
