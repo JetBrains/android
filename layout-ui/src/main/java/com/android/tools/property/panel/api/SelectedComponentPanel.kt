@@ -18,8 +18,7 @@ package com.android.tools.property.panel.api
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.property.panel.impl.ui.ExpandableLabel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
-import com.intellij.ui.Gray
-import com.intellij.ui.JBColor
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
@@ -36,7 +35,7 @@ class SelectedComponentPanel(private val model: SelectedComponentModel) : JPanel
   init {
     background = secondaryPanelBackground
     PropertyTextField.addBorderAtTextFieldBorderSize(this)
-    left.foreground = JBColor(Gray._192, Gray._128)
+    left.foreground = UIUtil.getInactiveTextColor()
     add(left, BorderLayout.WEST)
     add(right, BorderLayout.EAST)
     updateAfterModelChange()
