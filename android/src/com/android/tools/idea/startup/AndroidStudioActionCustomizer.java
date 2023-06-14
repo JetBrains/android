@@ -31,6 +31,7 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
     setUpNewFilePopupActions(actionManager);
     hideRarelyUsedIntellijActions(actionManager);
     setupResourceManagerActions(actionManager);
+    setUpCodeMenuActions(actionManager);
   }
 
   private static void setupResourceManagerActions(ActionManager actionManager) {
@@ -55,6 +56,11 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
     // Hide individual actions that aren't part of a group
     Actions.hideAction(actionManager, "Groovy.NewClass");
     Actions.hideAction(actionManager, "Groovy.NewScript");
+  }
+
+  // Remove code menu actions that we don't use
+  private static void setUpCodeMenuActions(ActionManager actionManager) {
+    Actions.hideAction(actionManager, "GenerateModuleDescriptors");
   }
 
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {
