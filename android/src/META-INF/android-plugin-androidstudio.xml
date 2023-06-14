@@ -127,7 +127,7 @@
 
     <action id="WelcomeScreen.AndroidStudio.apkProfilingAndDebugging"
             class="com.android.tools.idea.apk.ImportApkAction">
-      <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.ImportProject" anchor="before"/>
+      <add-to-group group-id="WelcomeScreen.QuickStart" />
     </action>
 
     <action id="ImportApkAction"

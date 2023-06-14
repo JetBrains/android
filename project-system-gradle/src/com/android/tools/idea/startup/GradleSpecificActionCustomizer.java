@@ -99,9 +99,6 @@ public class GradleSpecificActionCustomizer implements ActionConfigurationCustom
     Actions.replaceAction(actionManager, "WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     Actions.replaceAction(actionManager, "TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
-    Actions.moveAction(actionManager, "WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
-               "WelcomeScreen.QuickStart", new Constraints(AFTER, "Vcs.VcsClone"));
-
     AnAction getFromVcsAction = actionManager.getAction("Vcs.VcsClone");
     if (getFromVcsAction != null) {
       getFromVcsAction.getTemplatePresentation().setText("Get project from Version Control");
