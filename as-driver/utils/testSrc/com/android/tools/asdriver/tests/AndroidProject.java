@@ -52,12 +52,16 @@ public class AndroidProject {
     Path project = TestUtils.resolveWorkspacePath(this.path);
     targetProject = Files.createTempDirectory(tempDir, "project");
     FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
+    injectGradle();
+    return targetProject;
+  }
+
+  protected void injectGradle() throws IOException {
     Path wrapper = targetProject.resolve("gradle/wrapper/gradle-wrapper.properties");
     String content = Files.readString(wrapper);
     String replacedDistributionUrl = distribution.toUri().toString().replace("file:", "file\\:");
     content = content.replaceAll("distributionUrl=.*", "distributionUrl=" + replacedDistributionUrl);
     Files.writeString(wrapper, content);
-    return targetProject;
   }
 
   /**

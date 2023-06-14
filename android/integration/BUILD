@@ -331,7 +331,6 @@ iml_studio_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-31",
-        "//tools/base/build-system:gradle-distrib-7.2",
         "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
     module = ":intellij.android.core.integration",

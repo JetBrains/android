@@ -28,7 +28,7 @@ class RunApkTest {
 
   @Test
   fun runApkTest() {
-    val project = "tools/adt/idea/android/integration/testData/helloworldapk";
+    val project = AndroidProjectWithoutGradle("tools/adt/idea/android/integration/testData/helloworldapk")
 
     system.installation.setGlobalSdk(system.sdk)
 
@@ -36,10 +36,6 @@ class RunApkTest {
     // even if it did, it would do so with the latest API level. Both of those issues would cause
     // failures in this test, so we force auto-creation at the API level that we expect.
     system.installation.addVmOption("-Dtesting.android.platform.to.autocreate=31")
-
-    // TODO: figure out if this is even needed, and if not, remove "//tools/base/build-system:gradle-distrib-7.2"
-    // from the BUILD file.
-    //project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
 
     system.runAdb { adb ->
       system.runEmulator(Emulator.SystemImage.API_31) { emulator ->
