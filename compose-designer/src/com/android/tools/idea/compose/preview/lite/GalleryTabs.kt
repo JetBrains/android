@@ -111,7 +111,7 @@ class GalleryTabs<Key : TitledKey>(
 
   /** Toolbar button that shows all available previews in a dropdown. */
   private inner class AllTabsDropdown :
-    AnActionButton(message("action.gallery.show.hidden"), AllIcons.Actions.More) {
+    AnActionButton(message("action.gallery.show.hidden"), AllIcons.General.ChevronDown) {
 
     var popup: ListPopup? = null
     override fun actionPerformed(e: AnActionEvent) {
