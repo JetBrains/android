@@ -38,6 +38,7 @@
     <fileEditorProvider implementation="com.android.build.attribution.ui.BuildReportEditorProvider"/>
     <notificationGroup id="Build Analyzer" displayType="TOOL_WINDOW" toolWindowId="Build"/>
     <backgroundPostStartupActivity implementation="com.android.build.attribution.StudioWindowsDefenderCheckerActivity" os="windows"/>
+    <applicationService serviceImplementation="com.android.build.diagnostic.WindowsDefenderChecker"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <operationHelperExtension implementation="com.android.sync.analyzer.SyncAnalyzerOperationHelperExtension"/>

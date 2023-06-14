@@ -29,7 +29,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.android.build.attribution.WindowsDefenderCheckService
 import com.android.build.attribution.ui.controllers.WindowsDefenderPageHandlerImpl
-import com.intellij.diagnostic.WindowsDefenderCheckerWrapper
+import com.android.build.diagnostic.WindowsDefenderCheckerWrapper
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule

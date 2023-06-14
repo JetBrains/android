@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.diagnostic
+package com.android.build.diagnostic
 
 import com.intellij.openapi.project.Project
 import java.nio.file.Path

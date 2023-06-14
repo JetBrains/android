@@ -15,6 +15,8 @@
  */
 package com.android.build.attribution
 
+import com.android.build.diagnostic.WindowsDefenderChecker
+import com.android.build.diagnostic.WindowsDefenderCheckerWrapper
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.stats.withProjectId
@@ -22,8 +24,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.google.wireless.android.sdk.stats.WindowsDefenderStatus
 import com.intellij.diagnostic.DiagnosticBundle
-import com.intellij.diagnostic.WindowsDefenderChecker
-import com.intellij.diagnostic.WindowsDefenderCheckerWrapper
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.actions.ShowLogAction
 import com.intellij.idea.ActionsBundle

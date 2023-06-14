@@ -15,10 +15,10 @@
  */
 package com.android.build.attribution
 
+import com.android.build.diagnostic.WindowsDefenderCheckerWrapper
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.intellij.diagnostic.WindowsDefenderCheckerWrapper
 import com.intellij.notification.Notification
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionManager
