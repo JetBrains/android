@@ -1029,7 +1029,7 @@ MODULE                        : TestCompositeLib1
         externalSystemId              : GRADLE
 MODULE                        : TestCompositeLib1.app
     GradleModuleModel
-        agpVersion                    : 7.3.0-rc01
+        agpVersion                    : 7.3.0
         gradlePath                    : :app
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/TestCompositeLib1/app/build.gradle
@@ -1051,7 +1051,7 @@ MODULE                        : TestCompositeLib1.app
     BuildId                       : <ROOT>/TestCompositeLib1
     BuildName                     : includedLib1
     ProjectPath                   : :app
-    ModelVersion                  : 7.3.0-rc01
+    ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/app/build [-]
@@ -1221,7 +1221,7 @@ MODULE                        : TestCompositeLib1.app
                     ShadersDirectories            : <ROOT>/TestCompositeLib1/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib1/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib1/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib1/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2338,7 +2338,7 @@ MODULE                        : TestCompositeLib1.app.main
 MODULE                        : TestCompositeLib1.app.unitTest
 MODULE                        : TestCompositeLib1.lib
     GradleModuleModel
-        agpVersion                    : 7.3.0-rc01
+        agpVersion                    : 7.3.0
         gradlePath                    : :lib
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/TestCompositeLib1/lib/build.gradle
@@ -2360,7 +2360,7 @@ MODULE                        : TestCompositeLib1.lib
     BuildId                       : <ROOT>/TestCompositeLib1
     BuildName                     : includedLib1
     ProjectPath                   : :lib
-    ModelVersion                  : 7.3.0-rc01
+    ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib1/lib/build [-]
@@ -2524,7 +2524,7 @@ MODULE                        : TestCompositeLib1.lib
                     ShadersDirectories            : <ROOT>/TestCompositeLib1/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib1/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -4034,7 +4034,7 @@ MODULE                        : TestCompositeLib3
         externalSystemId              : GRADLE
 MODULE                        : TestCompositeLib3.app
     GradleModuleModel
-        agpVersion                    : 7.3.0-rc01
+        agpVersion                    : 7.3.0
         gradlePath                    : :app
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/TestCompositeLib3/app/build.gradle
@@ -4056,7 +4056,7 @@ MODULE                        : TestCompositeLib3.app
     BuildId                       : <ROOT>/TestCompositeLib3
     BuildName                     : TestCompositeLib3
     ProjectPath                   : :app
-    ModelVersion                  : 7.3.0-rc01
+    ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/app/build [-]
@@ -4226,7 +4226,7 @@ MODULE                        : TestCompositeLib3.app
                     ShadersDirectories            : <ROOT>/TestCompositeLib3/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib3/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib3/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib3/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -5319,7 +5319,7 @@ MODULE                        : TestCompositeLib3.app.main
 MODULE                        : TestCompositeLib3.app.unitTest
 MODULE                        : TestCompositeLib3.lib
     GradleModuleModel
-        agpVersion                    : 7.3.0-rc01
+        agpVersion                    : 7.3.0
         gradlePath                    : :lib
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/TestCompositeLib3/lib/build.gradle
@@ -5341,7 +5341,7 @@ MODULE                        : TestCompositeLib3.lib
     BuildId                       : <ROOT>/TestCompositeLib3
     BuildName                     : TestCompositeLib3
     ProjectPath                   : :lib
-    ModelVersion                  : 7.3.0-rc01
+    ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/TestCompositeLib3/lib/build [-]
@@ -5505,7 +5505,7 @@ MODULE                        : TestCompositeLib3.lib
                     ShadersDirectories            : <ROOT>/TestCompositeLib3/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
+            ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0 [-]
             ProguardFiles                 : <ROOT>/TestCompositeLib3/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -7169,7 +7169,7 @@ MODULE                        : project
         externalSystemId              : GRADLE
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 7.3.0-rc01
+        agpVersion                    : 7.3.0
         gradlePath                    : :app
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/app/build.gradle
@@ -7191,7 +7191,7 @@ MODULE                        : project.app
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.3.0-rc01
+    ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -7361,7 +7361,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -8484,7 +8484,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 7.3.0-rc01
+        agpVersion                    : 7.3.0
         gradlePath                    : :lib
         gradleVersion                 : 7.4
         buildFile                     : <ROOT>/lib/build.gradle
@@ -8506,7 +8506,7 @@ MODULE                        : project.lib
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :lib
-    ModelVersion                  : 7.3.0-rc01
+    ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -8670,7 +8670,7 @@ MODULE                        : project.lib
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0-rc01 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android.txt-7.3.0 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.pro [-]
             IsDebuggable                  : false
             IsJniDebuggable               : false
