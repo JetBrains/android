@@ -68,7 +68,6 @@ internal class TestComposePreviewView(
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = false
   override var hasRendered: Boolean = false
-  override val requestRefresh: () -> Unit = { mainSurface.requestRender() }
 
   private val nextRefreshLock = Any()
   private var nextRefreshListener: CompletableDeferred<Unit>? = null

@@ -79,6 +79,6 @@ class PreviewFilters(
 
   /** Returns all available preview elements even if filter is applied. */
   @Slow
-  suspend fun allAvailablePreviewElements(): Sequence<ComposePreviewElement> =
+  suspend fun allAvailablePreviewElements(): Sequence<ComposePreviewElementInstance> =
     instantiatedElementProvider.previewElements()
 }

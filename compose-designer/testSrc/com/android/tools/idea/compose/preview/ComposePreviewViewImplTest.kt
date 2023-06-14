@@ -192,7 +192,6 @@ class ComposePreviewViewImplTest {
         project,
         mainFileSmartPointer,
         statusManager,
-        {},
         nopDataProvider,
         mainSurfaceBuilder,
         fixture.testRootDisposable,

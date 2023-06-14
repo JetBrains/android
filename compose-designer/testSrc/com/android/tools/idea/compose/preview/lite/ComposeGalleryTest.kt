@@ -36,7 +36,8 @@ class ComposeGalleryTest {
   fun selectedComponent() {
     var refreshNeededCalls = 0
     val gallery = ComposeGallery(JPanel(), JPanel()) { refreshNeededCalls++ }
-    val selected = gallery.updateAndGetSelected(sequenceOf(element1, element2, element3))
+    gallery.updateTabs(listOf(element1, element2, element3))
+    val selected = gallery.selectedKey!!.element
     assertEquals(element1, selected)
     assertEquals(1, refreshNeededCalls)
   }
@@ -45,10 +46,12 @@ class ComposeGalleryTest {
   fun selectedComponentRemoved() {
     var refreshNeededCalls = 0
     val gallery = ComposeGallery(JPanel(), JPanel()) { refreshNeededCalls++ }
-    var selected = gallery.updateAndGetSelected(sequenceOf(element1, element2, element3))
+    gallery.updateTabs(listOf(element1, element2, element3))
+    var selected = gallery.selectedKey!!.element
     assertEquals(element1, selected)
     assertEquals(1, refreshNeededCalls)
-    selected = gallery.updateAndGetSelected(sequenceOf(element2, element3))
+    gallery.updateTabs(listOf(element2, element3))
+    selected = gallery.selectedKey!!.element
     assertEquals(element2, selected)
     assertEquals(2, refreshNeededCalls)
   }
@@ -57,10 +60,12 @@ class ComposeGalleryTest {
   fun sameSequenceSet() {
     var refreshNeededCalls = 0
     val gallery = ComposeGallery(JPanel(), JPanel()) { refreshNeededCalls++ }
-    var selected = gallery.updateAndGetSelected(sequenceOf(element1, element2, element3))
+    gallery.updateTabs(listOf(element1, element2, element3))
+    var selected = gallery.selectedKey!!.element
     assertEquals(element1, selected)
     assertEquals(1, refreshNeededCalls)
-    selected = gallery.updateAndGetSelected(sequenceOf(element1, element2, element3))
+    gallery.updateTabs(listOf(element1, element2, element3))
+    selected = gallery.selectedKey!!.element
     assertEquals(element1, selected)
     // No refresh requested.
     assertEquals(1, refreshNeededCalls)

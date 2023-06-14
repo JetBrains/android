@@ -95,9 +95,6 @@ interface ComposePreviewView {
   /** If true, the contents have been at least rendered once. */
   var hasRendered: Boolean
 
-  /** Requests the previews displayed by this [ComposePreviewView] to be refreshed. */
-  val requestRefresh: () -> Unit
-
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)
 
@@ -185,7 +182,6 @@ fun interface ComposePreviewViewProvider {
     project: Project,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     projectBuildStatusManager: ProjectBuildStatusManager,
-    refreshNeeded: () -> Unit,
     dataProvider: DataProvider,
     mainDesignSurfaceBuilder: NlDesignSurface.Builder,
     parentDisposable: Disposable
@@ -219,7 +215,6 @@ fun interface ComposePreviewViewProvider {
  *   panel. Used to handle which notifications should be displayed.
  * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build
  *   status and show/hide the correct loading message.
- * @param requestRefresh requests the previews of this component to be refreshed.
  * @param dataProvider the [DataProvider] to be used by the [mainSurface] panel.
  * @param mainDesignSurfaceBuilder a builder to create main design surface
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
@@ -228,7 +223,6 @@ internal class ComposePreviewViewImpl(
   private val project: Project,
   private val psiFilePointer: SmartPsiElementPointer<PsiFile>,
   private val projectBuildStatusManager: ProjectBuildStatusManager,
-  override val requestRefresh: () -> Unit,
   dataProvider: DataProvider,
   mainDesignSurfaceBuilder: NlDesignSurface.Builder,
   parentDisposable: Disposable
@@ -315,7 +309,13 @@ internal class ComposePreviewViewImpl(
         ComposeGallery(
           content = mainSurface,
           rootComponent = mainSurface,
-          requestRefresh = requestRefresh
+          tabChangeListener = { tab ->
+            val previewElement = tab?.element
+            findComposePreviewManagersForContext(
+                DataManager.getInstance().getDataContext(mainSurface)
+              )
+              .forEach { it.singlePreviewElementInstance = previewElement }
+          }
         )
     }
 
@@ -410,7 +410,7 @@ internal class ComposePreviewViewImpl(
   ): List<ComposePreviewElement> {
     gallery?.let {
       val elements = previewElementProvider.allAvailablePreviewElements()
-      previewElementProvider.instanceFilter = it.updateAndGetSelected(elements)
+      it.updateTabs(elements.toList())
     }
     return mainSurface.updatePreviewsAndRefresh(
       reinflate,

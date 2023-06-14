@@ -40,6 +40,7 @@ class TestComposePreviewManager(
 
   override val availableGroups: Collection<PreviewGroup> = emptyList()
   override var groupFilter: PreviewGroup = PreviewGroup.ALL_PREVIEW_GROUP
+  override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
   override var interactivePreviewElementInstance: ComposePreviewElementInstance? = null
     private set
   override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null

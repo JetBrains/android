@@ -420,6 +420,19 @@ class ComposePreviewRepresentation(
       }
     }
 
+  override var singlePreviewElementInstance: ComposePreviewElementInstance? by
+    Delegates.observable(null) { _, oldValue, newValue ->
+      if (oldValue != newValue) {
+        stopInteractivePreview()
+        stopUiCheckPreview()
+        log.debug("New instance selection: $newValue")
+        previewElementProvider.instanceFilter = newValue
+        // Force refresh to ensure the new preview elements are picked up
+        invalidate()
+        requestRefresh()
+      }
+    }
+
   @Volatile override var availableGroups: Set<PreviewGroup> = emptySet()
 
   private val navigationHandler = ComposePreviewNavigationHandler()
@@ -657,7 +670,6 @@ class ComposePreviewRepresentation(
             project,
             psiFilePointer,
             projectBuildStatusManager,
-            ::requestRefresh,
             dataProvider,
             createMainDesignSurfaceBuilder(
               project,
