@@ -23,15 +23,28 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
 import javax.swing.JComponent
 
-/**
- * Helper object for binding the 3 standard help operation to standard keys.
- */
+/** Helper object for binding the 3 standard help operation to standard keys. */
 object HelpSupportBinding {
 
-  fun registerHelpKeyActions(component: JComponent, getProperty: () -> PropertyItem?, condition: Int = JComponent.WHEN_FOCUSED) {
-    component.registerAnActionKey({ getProperty()?.helpSupport?.help }, KeyStrokes.F1, "help", condition)
-    component.registerAnActionKey({ getProperty()?.helpSupport?.secondaryHelp }, KeyStrokes.SHIFT_F1, "help2", condition)
+  fun registerHelpKeyActions(
+    component: JComponent,
+    getProperty: () -> PropertyItem?,
+    condition: Int = JComponent.WHEN_FOCUSED
+  ) {
+    component.registerAnActionKey(
+      { getProperty()?.helpSupport?.help },
+      KeyStrokes.F1,
+      "help",
+      condition
+    )
+    component.registerAnActionKey(
+      { getProperty()?.helpSupport?.secondaryHelp },
+      KeyStrokes.SHIFT_F1,
+      "help2",
+      condition
+    )
     ActionManager.getInstance()?.getAction(IdeActions.ACTION_GOTO_DECLARATION)?.let {
-      component.registerActionShortCutSet({ getProperty()?.helpSupport?.browse() }, it.shortcutSet) }
+      component.registerActionShortCutSet({ getProperty()?.helpSupport?.browse() }, it.shortcutSet)
+    }
   }
 }

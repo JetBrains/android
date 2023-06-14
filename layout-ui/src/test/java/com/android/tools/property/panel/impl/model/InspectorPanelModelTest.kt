@@ -37,7 +37,8 @@ class InspectorPanelModelTest {
     val model = InspectorPanelModel()
 
     private val colorProperty = FakePropertyItem(SdkConstants.ANDROID_URI, ATTR_COLOR, "#00FF00")
-    private val backgroundProperty = FakePropertyItem(SdkConstants.TOOLS_URI, ATTR_BACKGROUND, "#00FF00")
+    private val backgroundProperty =
+      FakePropertyItem(SdkConstants.TOOLS_URI, ATTR_BACKGROUND, "#00FF00")
     private val textProperty = FakePropertyItem(SdkConstants.AUTO_URI, ATTR_TEXT, "hello")
     private val textAppProperty = FakePropertyItem(SdkConstants.AUTO_URI, "textApp", "")
     private val someProperty = FakePropertyItem("SomeNamespace", "some", "world")
@@ -55,13 +56,16 @@ class InspectorPanelModelTest {
     val outerGroup = CollapsibleLabelModel("OuterGroup", null, true, properties)
     val colorItem = CollapsibleLabelModel(ATTR_COLOR, colorEditor, true, properties)
     val innerGroup = CollapsibleLabelModel("textApp", textAppEditor, true, properties)
-    val backgroundItem = CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundEditor, true, properties)
+    val backgroundItem =
+      CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundEditor, true, properties)
     val textItem = CollapsibleLabelModel(ATTR_TEXT, textEditor, true, properties)
     val someItem = CollapsibleLabelModel("some", someEditor, true, properties)
     val otherItem = CollapsibleLabelModel("other", otherEditor, false, properties)
     val genericLine = GenericInspectorLineModel()
-    val tableLineModel1 = FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), mock(), true)
-    val tableLineModel2 = FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), mock(), false)
+    val tableLineModel1 =
+      FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), mock(), true)
+    val tableLineModel2 =
+      FakeTableLineModel(FakePTableModel(false, emptyMap(), emptyList()), mock(), false)
 
     init {
       outerGroup.makeExpandable(true)
@@ -199,7 +203,8 @@ class InspectorPanelModelTest {
     assertThat(listener.called).isTrue()
   }
 
-  private class RecursiveValueChangedListener(private val model: InspectorPanelModel) : ValueChangedListener {
+  private class RecursiveValueChangedListener(private val model: InspectorPanelModel) :
+    ValueChangedListener {
     var called = false
 
     override fun valueChanged() {

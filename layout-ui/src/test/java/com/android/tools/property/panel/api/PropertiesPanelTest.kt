@@ -23,24 +23,21 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import javax.swing.JPanel
+import javax.swing.JTabbedPane
 import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JPanel
-import javax.swing.JTabbedPane
 
 class PropertiesPanelTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private var model1: FakePropertyModel? = null
   private var model2: FakePropertyModel? = null
@@ -161,10 +158,12 @@ class PropertiesPanelTest {
     assertThat(properties.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Last")
 
     tabs.selectedIndex = 0
-    assertThat(properties.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Simple")
+    assertThat(properties.getValue("android.last.property.tab.Navigation Editor"))
+      .isEqualTo("Simple")
 
     tabs.selectedIndex = 1
-    assertThat(properties.getValue("android.last.property.tab.Navigation Editor")).isEqualTo("Extra")
+    assertThat(properties.getValue("android.last.property.tab.Navigation Editor"))
+      .isEqualTo("Extra")
   }
 
   @Test
@@ -240,7 +239,10 @@ class PropertiesPanelTest {
     assertThat(hidden.getComponent(3)).isInstanceOf(JTabbedPane::class.java)
   }
 
-  private fun checkBothTabsVisibleInView1(panel: PropertiesPanel<FakePropertyItem>, expectedCallCount: Int = 1) {
+  private fun checkBothTabsVisibleInView1(
+    panel: PropertiesPanel<FakePropertyItem>,
+    expectedCallCount: Int = 1
+  ) {
     assertThat(panel.pages.size).isEqualTo(2)
     assertThat(builder1!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
     assertThat(builder1a!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
@@ -259,7 +261,10 @@ class PropertiesPanelTest {
     assertThat(tabs.getTitleAt(1)).isEqualTo("Advanced")
   }
 
-  private fun checkAllThreeTabsVisibleInView2(panel: PropertiesPanel<FakePropertyItem>, expectedCallCount: Int = 1) {
+  private fun checkAllThreeTabsVisibleInView2(
+    panel: PropertiesPanel<FakePropertyItem>,
+    expectedCallCount: Int = 1
+  ) {
     assertThat(panel.pages.size).isEqualTo(3)
     assertThat(builder2!!.attachToInspectorCalled).isEqualTo(expectedCallCount)
     assertThat(builder2a!!.attachToInspectorCalled).isEqualTo(expectedCallCount)

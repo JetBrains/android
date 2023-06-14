@@ -31,23 +31,20 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
+import javax.swing.SwingUtilities
+import javax.swing.event.TreeModelEvent
+import javax.swing.tree.TreeSelectionModel
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.SwingUtilities
-import javax.swing.event.TreeModelEvent
-import javax.swing.tree.TreeSelectionModel
 
 class TreeTableModelImplTest {
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val edtTule = EdtRule()
+  @get:Rule val edtTule = EdtRule()
 
   private val style1 = Style("style1")
   private val style2 = Style("style2")
@@ -55,20 +52,25 @@ class TreeTableModelImplTest {
   private val item2 = Item(FQCN_TEXT_VIEW)
   private val item3 = Item(FQCN_BUTTON)
   private val count = NotificationCount()
-  private val model = TreeTableModelImpl(listOf(), mapOf(Pair(Item::class.java, ItemNodeType()),
-                                                         Pair(Style::class.java, StyleNodeType())), SwingUtilities::invokeLater)
-  private val table = TreeTableImpl(
-    model,
-    contextPopup = { _, _, _, _ -> },
-    doubleClick = {},
-    painter = null,
-    installKeyboardActions = {},
-    treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
-    installTreeSearch = false,
-    autoScroll = false,
-    expandAllOnRootChange = false,
-    treeHeaderRenderer = null
-  )
+  private val model =
+    TreeTableModelImpl(
+      listOf(),
+      mapOf(Pair(Item::class.java, ItemNodeType()), Pair(Style::class.java, StyleNodeType())),
+      SwingUtilities::invokeLater
+    )
+  private val table =
+    TreeTableImpl(
+      model,
+      contextPopup = { _, _, _, _ -> },
+      doubleClick = {},
+      painter = null,
+      installKeyboardActions = {},
+      treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
+      installTreeSearch = false,
+      autoScroll = false,
+      expandAllOnRootChange = false,
+      treeHeaderRenderer = null
+    )
   private val selectionModel = table.treeTableSelectionModel
 
   @Before
@@ -245,7 +247,12 @@ class TreeTableModelImplTest {
     var nodesRemoved = 0
     var treeChanged = 0
 
-    fun anyChanges(): Boolean = inserted != 0 || structureChanges != 0 || nodesChanged != 0 || nodesRemoved != 0 || treeChanged != 0
+    fun anyChanges(): Boolean =
+      inserted != 0 ||
+        structureChanges != 0 ||
+        nodesChanged != 0 ||
+        nodesRemoved != 0 ||
+        treeChanged != 0
 
     override fun treeNodesInserted(event: TreeModelEvent) {
       inserted++

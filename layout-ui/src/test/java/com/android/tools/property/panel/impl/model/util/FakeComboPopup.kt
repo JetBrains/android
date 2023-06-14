@@ -51,8 +51,7 @@ class FakeComboPopup(private val comboBox: JComboBox<Any>) : ComboPopup {
   private fun setListSelection(selectedIndex: Int) {
     if (selectedIndex == -1) {
       list.clearSelection()
-    }
-    else {
+    } else {
       list.selectedIndex = selectedIndex
       list.ensureIndexIsVisible(selectedIndex)
     }

@@ -26,14 +26,11 @@ import javax.swing.JTable
 import javax.swing.border.Border
 import javax.swing.table.TableCellRenderer
 
-/**
- * Renderer should use this for creating a border based on the [ColumnInfo] specification.
- */
-fun ColumnInfo.createBorder(): Border = with(insets) { JBUI.Borders.empty(top, left + if (leftDivider) 1 else 0, bottom, right) }
+/** Renderer should use this for creating a border based on the [ColumnInfo] specification. */
+fun ColumnInfo.createBorder(): Border =
+  with(insets) { JBUI.Borders.empty(top, left + if (leftDivider) 1 else 0, bottom, right) }
 
-/**
- * Renderer used each [IntColumn] specified.
- */
+/** Renderer used each [IntColumn] specified. */
 class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRenderer, JBLabel() {
   init {
     horizontalAlignment = JLabel.CENTER
@@ -52,7 +49,9 @@ class IntTableCellRenderer(private val columnInfo: IntColumn) : TableCellRendere
     val focused = table.hasFocus()
     text = intValue?.toString() ?: ""
     background = UIUtil.getTableBackground(isSelected, focused)
-    foreground = columnInfo.foreground.takeIf { !isSelected || !focused } ?: UIUtil.getTableForeground(isSelected, focused)
+    foreground =
+      columnInfo.foreground.takeIf { !isSelected || !focused }
+        ?: UIUtil.getTableForeground(isSelected, focused)
     toolTipText = columnInfo.getTooltipText(value)
     return this
   }

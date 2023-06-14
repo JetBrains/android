@@ -21,7 +21,11 @@ import com.android.tools.property.panel.impl.ui.EnumValueListCellRenderer
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.ListCellRenderer
 
-class FakeEnumSupport(vararg elements: String, action: AnAction? = null, private val delayed: Boolean = false) : EnumSupport {
+class FakeEnumSupport(
+  vararg elements: String,
+  action: AnAction? = null,
+  private val delayed: Boolean = false
+) : EnumSupport {
 
   override val values: List<EnumValue>
     get() {
@@ -34,9 +38,7 @@ class FakeEnumSupport(vararg elements: String, action: AnAction? = null, private
       return enumValues
     }
 
-  override val renderer: ListCellRenderer<EnumValue> by lazy {
-    EnumValueListCellRenderer()
-  }
+  override val renderer: ListCellRenderer<EnumValue> by lazy { EnumValueListCellRenderer() }
 
   private val lock = Object()
   private var lockCount = 0

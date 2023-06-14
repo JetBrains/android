@@ -22,16 +22,14 @@ package com.android.tools.property.panel.api
  */
 interface TableSupport {
 
-  /**
-   * Toggle the group item in a table.
-   */
+  /** Toggle the group item in a table. */
   fun toggleGroup() {}
 
   /**
    * Update the row height for this editor.
    *
-   * This should only be called if the editor requires a non
-   * standard height see [PropertyEditorModel.isCustomHeight].
+   * This should only be called if the editor requires a non standard height see
+   * [PropertyEditorModel.isCustomHeight].
    */
   fun updateRowHeight(scrollIntoView: Boolean) {}
 }

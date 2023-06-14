@@ -37,13 +37,14 @@ private const val PROPERTY_TAB_NAME = "tab.name"
 /**
  * The top level class for creating UI classes and model classes for a properties panel.
  *
- * Creates the main [component] for the properties panel which at this point contains
- * a property inspector. The panel consists of a main view followed by a tabular view.
+ * Creates the main [component] for the properties panel which at this point contains a property
+ * inspector. The panel consists of a main view followed by a tabular view.
  *
- * The content of the inspector is controlled by a list of [PropertiesView]s which
- * must be added to this class using [addView].
+ * The content of the inspector is controlled by a list of [PropertiesView]s which must be added to
+ * this class using [addView].
  */
-class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposable, PropertiesModelListener<P> {
+class PropertiesPanel<P : PropertyItem>(parentDisposable: Disposable) :
+  Disposable, PropertiesModelListener<P> {
 
   private var activeModel: PropertiesModel<*>? = null
   private var activeView: PropertiesView<*>? = null
@@ -53,14 +54,13 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
   private val hidden = JPanel()
   private var updatingPageVisibility = false
 
-  @VisibleForTesting
-  val mainPage = PropertiesPage(this)
+  @VisibleForTesting val mainPage = PropertiesPage(this)
 
-  @VisibleForTesting
-  val pages = mutableListOf<PropertiesPage>()
+  @VisibleForTesting val pages = mutableListOf<PropertiesPage>()
 
   val component = JPanel(BorderLayout())
-  var filter: String by Delegates.observable("") { _, oldValue, newValue -> filterChanged(oldValue, newValue) }
+  var filter: String by
+    Delegates.observable("") { _, oldValue, newValue -> filterChanged(oldValue, newValue) }
 
   init {
     component.name = PROPERTIES_PANEL_NAME
@@ -124,7 +124,8 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
       page.component.putClientProperty(PROPERTY_TAB_NAME, tab.name)
     }
     pages.subList(view.tabs.size, pages.size).clear()
-    val preferredTab = PropertiesComponent.getInstance().getValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true))
+    val preferredTab =
+      PropertiesComponent.getInstance().getValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true))
     watermark.model = view.watermark
     updatePageVisibility(preferredTab)
   }
@@ -135,7 +136,8 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
     }
     val tabName = selectedTab()
     val view = activeView ?: return
-    PropertiesComponent.getInstance().setValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true), tabName)
+    PropertiesComponent.getInstance()
+      .setValue(RECENT_TAB_PREFIX + escapeProperty(view.id, true), tabName)
   }
 
   @VisibleForTesting
@@ -151,14 +153,15 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
   /**
    * Update the visibility of the current pages.
    *
-   * This will be called after the inspector is repopulated and after a filter changed.
-   * What the user will see depends on how many visible tabs we have.
-   *  - If there are multiple visible tabs, add each tab page to the [tabbedPanel]
-   *  - If there is only 1 visible tab, show the page of that tab and hide the other pages and the [tabbedPanel]
+   * This will be called after the inspector is repopulated and after a filter changed. What the
+   * user will see depends on how many visible tabs we have.
+   * - If there are multiple visible tabs, add each tab page to the [tabbedPanel]
+   * - If there is only 1 visible tab, show the page of that tab and hide the other pages and the
+   *   [tabbedPanel]
    *
-   *  Hidden pages (and the [tabbedPanel]) are retained for quick display, and are kept in the
-   *  swing component tree such that LookAndFeel changes are applied while they are hidden.
-   *  The [hidden] panel is always hidden, and serves as the keeper of other hidden pages.
+   * Hidden pages (and the [tabbedPanel]) are retained for quick display, and are kept in the swing
+   * component tree such that LookAndFeel changes are applied while they are hidden. The [hidden]
+   * panel is always hidden, and serves as the keeper of other hidden pages.
    */
   private fun updatePageVisibility(preferredTabName: String? = null) {
     val view = activeView ?: return
@@ -171,8 +174,7 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
       tabbedPanel.removeAll()
       if ((filter.isEmpty() || view.main.searchable) && !mainPage.isEmpty) {
         component.add(mainPage.component, BorderLayout.NORTH)
-      }
-      else {
+      } else {
         hidden.add(mainPage.component)
       }
       for (index in view.tabs.indices) {
@@ -193,8 +195,7 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
       }
       if (visibleTabCount < 2) {
         hidden.add(tabbedPanel)
-      }
-      else {
+      } else {
         component.add(tabbedPanel, BorderLayout.CENTER)
         if (preferredTabIndex >= 0) {
           tabbedPanel.selectedIndex = preferredTabIndex
@@ -202,22 +203,22 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
       }
       if (component.componentCount == 0) {
         component.add(watermark, BorderLayout.CENTER)
-      }
-      else {
+      } else {
         hidden.add(watermark)
       }
       component.add(hidden, BorderLayout.SOUTH)
       component.revalidate()
       component.repaint()
-    }
-    finally {
+    } finally {
       updatingPageVisibility = false
     }
   }
 
   private fun findVisibleTabCount(): Int {
     val view = activeView ?: return 0
-    return view.tabs.indices.count { (filter.isEmpty() || view.tabs[it].searchable) && !pages[it].isEmpty }
+    return view.tabs.indices.count {
+      (filter.isEmpty() || view.tabs[it].searchable) && !pages[it].isEmpty
+    }
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {

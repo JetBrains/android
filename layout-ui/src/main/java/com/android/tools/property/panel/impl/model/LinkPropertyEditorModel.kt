@@ -17,10 +17,8 @@ package com.android.tools.property.panel.impl.model
 
 import com.android.tools.property.panel.api.LinkPropertyItem
 
-/**
- * Model for a link property which commonly is displayed as the value as text followed by a link
- */
-class LinkPropertyEditorModel(property: LinkPropertyItem): BasePropertyEditorModel(property) {
+/** Model for a link property which commonly is displayed as the value as text followed by a link */
+class LinkPropertyEditorModel(property: LinkPropertyItem) : BasePropertyEditorModel(property) {
   val linkProperty: LinkPropertyItem
     get() = property as LinkPropertyItem
 }

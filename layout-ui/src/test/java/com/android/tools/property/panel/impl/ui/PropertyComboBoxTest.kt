@@ -36,9 +36,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
-import org.junit.ClassRule
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.KeyEvent
@@ -46,17 +43,17 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
 import kotlin.test.assertEquals
+import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.Test
 
 class PropertyComboBoxTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   @Test
   fun testInitialTextWithEmptyValue() {
@@ -222,7 +219,10 @@ class PropertyComboBoxTest {
     assertThat(isPopupVisible(comboBox)).isFalse()
   }
 
-  private fun createFakeUiForComboBoxEditor(comboBox: PropertyComboBox, size: Dimension = Dimension(200,20)): FakeUi {
+  private fun createFakeUiForComboBoxEditor(
+    comboBox: PropertyComboBox,
+    size: Dimension = Dimension(200, 20)
+  ): FakeUi {
     val editor = comboBox.editor
     editor.size = size
     val ui = FakeUi(editor)
@@ -241,7 +241,8 @@ class PropertyComboBoxTest {
   private fun getWrappedComboBox(comboBox: PropertyComboBox): CommonComboBox<EnumValue, *> {
     val editor = comboBox.editor
     @Suppress("UNCHECKED_CAST")
-    return (editor.parent ?: comboBox.components.single { it.isVisible }) as CommonComboBox<EnumValue, *>
+    return (editor.parent ?: comboBox.components.single { it.isVisible })
+      as CommonComboBox<EnumValue, *>
   }
 
   private fun isPopupVisible(comboBox: PropertyComboBox): Boolean =
@@ -261,13 +262,9 @@ class PropertyComboBoxTest {
   }
 
   private fun wrapComboBoxInKeyboardConsumer(comboBox: PropertyComboBox): MyKeyboardConsumer =
-    MyKeyboardConsumer().apply {
-      add(comboBox)
-    }
+    MyKeyboardConsumer().apply { add(comboBox) }
 
-  /**
-   * Container that may consume ESCAPE keyboard events.
-   */
+  /** Container that may consume ESCAPE keyboard events. */
   private class MyKeyboardConsumer : JPanel() {
     private var _keyCount = 0
 
@@ -275,7 +272,12 @@ class PropertyComboBoxTest {
       get() = _keyCount
 
     init {
-      registerActionKey({ _keyCount++ }, KeyStrokes.ESCAPE, "escape", condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+      registerActionKey(
+        { _keyCount++ },
+        KeyStrokes.ESCAPE,
+        "escape",
+        condition = JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+      )
     }
   }
 }

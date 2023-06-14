@@ -22,7 +22,9 @@ import org.mockito.Mockito.*
 
 class GenericInspectorLineModelTest {
 
-  private fun createModel(hidden: Boolean = false): Pair<GenericInspectorLineModel, ValueChangedListener> {
+  private fun createModel(
+    hidden: Boolean = false
+  ): Pair<GenericInspectorLineModel, ValueChangedListener> {
     val model = GenericInspectorLineModel()
     model.hidden = hidden
     val listener = mock(ValueChangedListener::class.java)
@@ -69,7 +71,8 @@ class GenericInspectorLineModelTest {
     assertThat(listener.called).isTrue()
   }
 
-  private class RecursiveValueChangedListener(private val model: GenericInspectorLineModel) : ValueChangedListener {
+  private class RecursiveValueChangedListener(private val model: GenericInspectorLineModel) :
+    ValueChangedListener {
     var called = false
 
     override fun valueChanged() {

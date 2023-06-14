@@ -49,6 +49,7 @@ import javax.swing.JComponent
  *
  * For a given property this class will provide a model and a UI for an editor of that property.
  * This implementation is computing the [ControlType] using the specified providers.
+ *
  * @param P a client defined property class that must implement the interface: [PropertyItem]
  * @property enumSupportProvider provides an [EnumSupport] for a property or null if there isn't any
  * @property controlTypeProvider provides the [ControlType] given a property and its [EnumSupport]
@@ -58,57 +59,52 @@ open class EditorProviderImpl<in P : PropertyItem>(
   private val controlTypeProvider: ControlTypeProvider<P>
 ) : EditorProvider<P> {
 
-  /**
-   * Create an editor for [property].
-   *
-   */
-  override fun createEditor(property: P, context: EditorContext): Pair<PropertyEditorModel, JComponent> =
+  /** Create an editor for [property]. */
+  override fun createEditor(
+    property: P,
+    context: EditorContext
+  ): Pair<PropertyEditorModel, JComponent> =
     when (controlTypeProvider(property)) {
       ControlType.COMBO_BOX ->
         createComboBoxEditor(property, true, enumSupportProvider(property)!!, context)
-
       ControlType.DROPDOWN ->
         createComboBoxEditor(property, false, enumSupportProvider(property)!!, context)
-
       ControlType.TEXT_EDITOR -> {
-        // For table cell renderers: use a JLabel based component instead of a JTextEdit based component,
+        // For table cell renderers: use a JLabel based component instead of a JTextEdit based
+        // component,
         // to avoid unwanted horizontal scrolling.
         val model = TextFieldPropertyEditorModel(property, true)
-        val editor = if (context != EditorContext.TABLE_RENDERER) PropertyTextField(model) else PropertyLabel(model)
+        val editor =
+          if (context != EditorContext.TABLE_RENDERER) PropertyTextField(model)
+          else PropertyLabel(model)
         Pair(model, addActionButtonBinding(model, editor))
       }
-
       ControlType.COLOR_EDITOR -> {
         val model = ColorFieldPropertyEditorModel(property)
         val editor = PropertyTextFieldWithLeftButton(model, context)
         Pair(model, addActionButtonBinding(model, editor))
       }
-
       ControlType.THREE_STATE_BOOLEAN -> {
         val model = ThreeStateBooleanPropertyEditorModel(property)
         val editor = PropertyThreeStateCheckBox(model, context)
         Pair(model, addActionButtonBinding(model, editor))
       }
-
       ControlType.FLAG_EDITOR -> {
         val model = FlagPropertyEditorModel(property as FlagsPropertyItem<*>)
         val editor = FlagPropertyEditor(model, context)
         Pair(model, addActionButtonBinding(model, editor))
       }
-
       ControlType.BOOLEAN -> {
         val model = BooleanPropertyEditorModel(property)
         val editor = PropertyCheckBox(model, context)
         Pair(model, addActionButtonBinding(model, editor))
       }
-
       ControlType.LINK_EDITOR -> {
         val model = LinkPropertyEditorModel(property as LinkPropertyItem)
         val editor = PropertyLink(model)
         Pair(model, addActionButtonBinding(model, editor))
       }
-
-      ControlType.CUSTOM_EDITOR_1,   // Placeholders for custom controls
+      ControlType.CUSTOM_EDITOR_1, // Placeholders for custom controls
       ControlType.CUSTOM_EDITOR_2 -> throw NotImplementedError()
     }
 
@@ -124,7 +120,10 @@ open class EditorProviderImpl<in P : PropertyItem>(
     return Pair(model, addActionButtonBinding(model, comboBox))
   }
 
-  protected open fun addActionButtonBinding(model: BasePropertyEditorModel, editor: JComponent): JComponent {
+  protected open fun addActionButtonBinding(
+    model: BasePropertyEditorModel,
+    editor: JComponent
+  ): JComponent {
     return if (model.property.browseButton == null) editor else ActionButtonBinding(model, editor)
   }
 }

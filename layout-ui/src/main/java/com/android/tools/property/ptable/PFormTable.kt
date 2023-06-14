@@ -21,8 +21,8 @@ import javax.swing.table.TableModel
 /**
  * A table where the <tab> order includes all the editors in the table.
  *
- * By default a Swing table will <tab> over the table and use arrow keys for
- * navigation inside the table. Sometimes it is convenient to make the table
- * feel like a form although the underlying implementation is still a table.
+ * By default a Swing table will <tab> over the table and use arrow keys for navigation inside the
+ * table. Sometimes it is convenient to make the table feel like a form although the underlying
+ * implementation is still a table.
  */
 open class PFormTable(model: TableModel) : PFormTableImpl(model)

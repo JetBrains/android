@@ -15,10 +15,10 @@
  */
 package com.android.tools.property.panel.impl.model
 
+import com.android.tools.property.panel.impl.model.util.FakePTableModel
+import com.android.tools.property.panel.impl.model.util.TestGroupItem
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableGroupItem
-import com.android.tools.property.panel.impl.model.util.TestGroupItem
-import com.android.tools.property.panel.impl.model.util.FakePTableModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -80,9 +80,16 @@ class TableLineModelTest {
   }
 
   class TableTest(expanded: Boolean = false) {
-    private val group1: PTableGroupItem = TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
-    private val group2: PTableGroupItem = TestGroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
-    val model = FakePTableModel(expanded, mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"), listOf(group1, group2))
+    private val group1: PTableGroupItem =
+      TestGroupItem("border", mapOf("left" to "4", "right" to "4", "top" to "8", "bottom" to "8"))
+    private val group2: PTableGroupItem =
+      TestGroupItem("group2", mapOf("size" to "4dp", "tone" to "C"))
+    val model =
+      FakePTableModel(
+        expanded,
+        mapOf("color" to "blue", "topText" to "Hello", "container" to "id2"),
+        listOf(group1, group2)
+      )
     val table = PTable.create(model)
 
     fun applyTableLineModel(tableLineModel: TableLineModelImpl) {

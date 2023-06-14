@@ -55,16 +55,18 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
 
   private fun createCenteredSeparator(): JComponent {
     // Make the separator appear in the middle of the list element.
-    // Remove this when CompoBoxWithWidePopup no longer requires all elements to have this minimum height.
+    // Remove this when CompoBoxWithWidePopup no longer requires all elements to have this minimum
+    // height.
     // See WideSelectionListUI.updateLayoutState
     val separator = JPanel(BorderLayout())
     val line = JSeparator()
-    val panel = object : JPanel(BorderLayout()) {
-      override fun updateUI() {
-        super.updateUI()
-        updateBorder(this, line)
+    val panel =
+      object : JPanel(BorderLayout()) {
+        override fun updateUI() {
+          super.updateUI()
+          updateBorder(this, line)
+        }
       }
-    }
     panel.add(line, BorderLayout.CENTER)
     panel.background = secondaryPanelBackground
     separator.add(panel, BorderLayout.CENTER)
@@ -79,7 +81,11 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
   }
 
   override fun getListCellRendererComponent(
-    list: JList<out EnumValue>, item: EnumValue?, index: Int, selected: Boolean, hasFocus: Boolean
+    list: JList<out EnumValue>,
+    item: EnumValue?,
+    index: Int,
+    selected: Boolean,
+    hasFocus: Boolean
   ): Component? {
     clear()
     when (item) {
@@ -96,21 +102,27 @@ open class EnumValueListCellRenderer : ColoredListCellRenderer<EnumValue>() {
     return headerLabel
   }
 
-  override fun customizeCellRenderer(list: JList<out EnumValue>, item: EnumValue, index: Int, selected: Boolean, hasFocus: Boolean) {
+  override fun customizeCellRenderer(
+    list: JList<out EnumValue>,
+    item: EnumValue,
+    index: Int,
+    selected: Boolean,
+    hasFocus: Boolean
+  ) {
     ipad.left = indent(item, index)
     customize(item)
   }
 
   protected open fun customize(item: EnumValue) {
-    if(item.value == null) {
+    if (item.value == null) {
       append(item.display, GRAYED_ATTRIBUTES)
-    }
-    else {
+    } else {
       append(item.display)
     }
   }
 
-  // The index will be -1 if this is a dropdown (i.e. a non editable comboBox) when displaying the selected value
+  // The index will be -1 if this is a dropdown (i.e. a non editable comboBox) when displaying the
+  // selected value
   private fun indent(item: EnumValue, index: Int) =
     when {
       index < 0 -> 0

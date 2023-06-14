@@ -20,11 +20,14 @@ import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import javax.swing.JPanel
 
-class FakeInspectorBuilder: InspectorBuilder<FakePropertyItem> {
+class FakeInspectorBuilder : InspectorBuilder<FakePropertyItem> {
   var applicable = true
   var attachToInspectorCalled = 0
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<FakePropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<FakePropertyItem>
+  ) {
     attachToInspectorCalled += 1
     if (applicable) {
       inspector.addComponent(JPanel())

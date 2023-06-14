@@ -15,7 +15,6 @@
  */
 package com.android.tools.property.ptable.impl
 
-import org.jdesktop.swingx.plaf.basic.core.BasicTransferable
 import java.awt.Component
 import java.awt.Container
 import java.awt.datatransfer.DataFlavor
@@ -23,12 +22,11 @@ import java.awt.datatransfer.Transferable
 import javax.swing.JComponent
 import javax.swing.JTextField
 import javax.swing.TransferHandler
+import org.jdesktop.swingx.plaf.basic.core.BasicTransferable
 
 class PTableTransferHandler : TransferHandler() {
 
-  /**
-   * Create a Transferable to use as the source for a data transfer.
-   */
+  /** Create a Transferable to use as the source for a data transfer. */
   override fun createTransferable(component: JComponent?): Transferable? {
     val table = component as? PTableImpl ?: return null
     val rows = table.selectedRows

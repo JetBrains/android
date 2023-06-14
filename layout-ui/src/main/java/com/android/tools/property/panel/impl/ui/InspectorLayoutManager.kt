@@ -23,15 +23,18 @@ import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager2
 
-enum class Placement {LEFT, RIGHT, LINE}
+enum class Placement {
+  LEFT,
+  RIGHT,
+  LINE
+}
 
 private const val MIN_WIDTH = 120
 private const val MIN_HEIGHT = 240
 
-/**
- * Layout for 2 column grid used in [InspectorPanelImpl].
- */
-class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = ColumnFraction()): LayoutManager2 {
+/** Layout for 2 column grid used in [InspectorPanelImpl]. */
+class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = ColumnFraction()) :
+  LayoutManager2 {
   private var leftWidth = -1
   private var rightWidth = -1
   private var totalHeight = -1
@@ -59,7 +62,9 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
       val component = container.getComponent(index)
       if (component.isVisible) {
         val placement = placementMap.getOrDefault(component, Placement.LINE)
-        val height = if (rowIndex < rowHeights.size) rowHeights.getInt(rowIndex) else component.preferredSize.height
+        val height =
+          if (rowIndex < rowHeights.size) rowHeights.getInt(rowIndex)
+          else component.preferredSize.height
         when (placement) {
           Placement.LEFT -> component.setBounds(leftMargin, y, left, height)
           Placement.RIGHT -> component.setBounds(leftMargin + left, y, right, height)
@@ -88,8 +93,12 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
 
   override fun addLayoutComponent(component: Component, place: Any?) {
     val placement = place as? Placement ?: Placement.LINE
-    require(!(lastAdded == Placement.LEFT && placement != Placement.RIGHT)) { "Expected a right side component" }
-    require(!(lastAdded != Placement.LEFT && placement == Placement.RIGHT)) { "Expected a left side component" }
+    require(!(lastAdded == Placement.LEFT && placement != Placement.RIGHT)) {
+      "Expected a right side component"
+    }
+    require(!(lastAdded != Placement.LEFT && placement == Placement.RIGHT)) {
+      "Expected a left side component"
+    }
     placementMap.put(component, placement)
     invalidateLayout()
     lastAdded = placement
@@ -117,9 +126,9 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
   /**
    * Return the height of the "other" component in a line that contains [component].
    *
-   * @return the height of the component to the right [index + 1] of a component that is placed to the left
-   *         the height of the component to the left [index - 1] of a component that is placed to the right
-   *         -1 if this component takes the entire space in the line
+   * @return the height of the component to the right [index + 1] of a component that is placed to
+   *   the left the height of the component to the left [index - 1] of a component that is placed to
+   *   the right -1 if this component takes the entire space in the line
    */
   private fun otherComponentHeight(component: Component): Int {
     val container = component.parent
@@ -128,7 +137,9 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
       Placement.LINE -> -1
       Placement.LEFT -> {
         val index = indexOf(container, component)
-        if (index >= 0 && index + 1 < container.componentCount) container.getComponent(index + 1).height else -1
+        if (index >= 0 && index + 1 < container.componentCount)
+          container.getComponent(index + 1).height
+        else -1
       }
       Placement.RIGHT -> {
         val index = indexOf(container, component)
@@ -158,9 +169,9 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
   /**
    * Compute the size of the grid.
    *
-   * Go through all components and compute the width of the widest line and the
-   * sum of the heights of all lines. For the width computation take the wanted
-   * fractions into account (ideally the labels are 40% of the width).
+   * Go through all components and compute the width of the widest line and the sum of the heights
+   * of all lines. For the width computation take the wanted fractions into account (ideally the
+   * labels are 40% of the width).
    */
   private fun computePreferredGridSize(container: Container) {
     if (totalHeight >= 0) return
@@ -194,7 +205,13 @@ class InspectorLayoutManager(private val nameColumnFraction: ColumnFraction = Co
     }
 
     val rightFraction = 1.0f - nameColumnFraction.value
-    val width = maxOf(leftMaxWidth / nameColumnFraction.value, rightMaxWidth / rightFraction, lineMaxWidth.toFloat()).toInt()
+    val width =
+      maxOf(
+          leftMaxWidth / nameColumnFraction.value,
+          rightMaxWidth / rightFraction,
+          lineMaxWidth.toFloat()
+        )
+        .toInt()
     leftWidth = (width * nameColumnFraction.value).toInt()
     rightWidth = width - leftWidth
     totalHeight = maxHeight

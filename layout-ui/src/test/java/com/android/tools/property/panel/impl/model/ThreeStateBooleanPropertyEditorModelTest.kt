@@ -30,13 +30,12 @@ import org.junit.Test
 class ThreeStateBooleanPropertyEditorModelTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   private fun createModel(): ThreeStateBooleanPropertyEditorModel {
-    val property = FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, "@bool/boolValue")
+    val property =
+      FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, "@bool/boolValue")
     property.resolvedValue = "true"
     return ThreeStateBooleanPropertyEditorModel(property)
   }

@@ -33,6 +33,10 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.replaceService
 import icons.StudioIcons
+import java.awt.event.MouseEvent
+import javax.swing.JComponent
+import javax.swing.JTable
+import javax.swing.SwingUtilities
 import org.junit.After
 import org.junit.Before
 import org.junit.ClassRule
@@ -42,28 +46,22 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import java.awt.event.MouseEvent
-import javax.swing.JComponent
-import javax.swing.JTable
-import javax.swing.SwingUtilities
 
 class DefaultNameTableCellRendererTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   var manager: IdeTooltipManager? = null
 
   @Before
   fun setUp() {
     manager = mock(IdeTooltipManager::class.java)
-    ApplicationManager.getApplication().replaceService(IdeTooltipManager::class.java, manager!!, disposableRule.disposable)
+    ApplicationManager.getApplication()
+      .replaceService(IdeTooltipManager::class.java, manager!!, disposableRule.disposable)
   }
 
   @After
@@ -77,12 +75,15 @@ class DefaultNameTableCellRendererTest {
     val table = createTable() as PTable
     val jTable = table.component as JTable
     val item = table.item(1)
-    val component = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false)
+    val component =
+      renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false)
     val rect = jTable.getCellRect(0, 0, true)
     component.setBounds(0, 0, rect.width, rect.height)
     component.doLayout()
     val event = MouseEvent(table.component, 0, 0L, 0, rect.width / 2, rect.height / 2, 1, false)
-    val control = SwingUtilities.getDeepestComponentAt(component, event.x - rect.x, event.y - rect.y) as? JComponent
+    val control =
+      SwingUtilities.getDeepestComponentAt(component, event.x - rect.x, event.y - rect.y)
+        as? JComponent
     control!!.getToolTipText(event)
 
     val captor = ArgumentCaptor.forClass(PropertyTooltip::class.java)
@@ -97,10 +98,14 @@ class DefaultNameTableCellRendererTest {
     val renderer = DefaultNameTableCellRenderer()
     val table = createTable() as PTable
     val item = table.item(1)
-    val unselected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false) as DefaultNameComponent
+    val unselected =
+      renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, false, false, false)
+        as DefaultNameComponent
     assertThat(unselected.icon).isSameAs(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
 
-    val selected = renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true, false) as DefaultNameComponent
+    val selected =
+      renderer.getEditorComponent(table, item, PTableColumn.NAME, 0, true, true, false)
+        as DefaultNameComponent
     assertThat(IconTester.hasOnlyWhiteColors(selected.icon!!)).isTrue()
   }
 

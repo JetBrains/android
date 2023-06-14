@@ -57,11 +57,12 @@ class PTableFocusTraversalPolicy(val table: JTable) : LayoutFocusTraversalPolicy
     }
     val rows = table.rowCount
     val columns = table.columnCount
-    val pos = when {
-      table.isEditing -> PTablePosition(table.editingRow, table.editingColumn, rows, columns)
-      forwards -> PTablePosition(-1, columns - 1, rows, columns)
-      else -> PTablePosition(rows, 0, rows, columns)
-    }
+    val pos =
+      when {
+        table.isEditing -> PTablePosition(table.editingRow, table.editingColumn, rows, columns)
+        forwards -> PTablePosition(-1, columns - 1, rows, columns)
+        else -> PTablePosition(rows, 0, rows, columns)
+      }
 
     while (true) {
       if (!pos.next(forwards)) {
@@ -83,14 +84,14 @@ class PTableFocusTraversalPolicy(val table: JTable) : LayoutFocusTraversalPolicy
     return null
   }
 
-  // Note: When an editor was just created, the label and the new editor are the only children of the table.
+  // Note: When an editor was just created, the label and the new editor are the only children of
+  // the table.
   // The editor created may be composed of multiple focusable components.
   // Use LayoutFocusTraversalPolicy to identify the next focus candidate.
   private fun getFocusCandidateFromNewlyCreatedEditor(forwards: Boolean): Component? {
     if (forwards) {
       return super.getFirstComponent(table)
-    }
-    else {
+    } else {
       return super.getLastComponent(table)
     }
   }

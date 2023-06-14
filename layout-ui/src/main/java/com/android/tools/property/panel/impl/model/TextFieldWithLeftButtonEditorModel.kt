@@ -24,17 +24,13 @@ import javax.swing.Icon
  *
  * @property editable True if the value is editable with a text editor.
  */
-open class TextFieldWithLeftButtonEditorModel(property: PropertyItem,
-                                              editable: Boolean) : TextFieldPropertyEditorModel(property, editable) {
+open class TextFieldWithLeftButtonEditorModel(property: PropertyItem, editable: Boolean) :
+  TextFieldPropertyEditorModel(property, editable) {
 
-  /**
-   * The icon displayed on the left button if any.
-   */
+  /** The icon displayed on the left button if any. */
   open val leftButtonIcon: Icon? = null
 
-  /**
-   * The action performed when the user clicks the left button.
-   */
+  /** The action performed when the user clicks the left button. */
   open val buttonAction: AnAction?
     get() = null
 }

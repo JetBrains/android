@@ -27,10 +27,15 @@ import org.mockito.Mockito
 
 class ColorFieldPropertyEditorModelTest {
 
-  private fun createModel(actualProperty: FakePropertyItem? = null): Pair<ColorFieldPropertyEditorModel, AnAction> {
+  private fun createModel(
+    actualProperty: FakePropertyItem? = null
+  ): Pair<ColorFieldPropertyEditorModel, AnAction> {
     val action = Mockito.mock(AnAction::class.java)
-    val actionButton = FakeActionIconButton(true, StudioIcons.LayoutEditor.Properties.FAVORITES, action)
-    val property = actualProperty ?: FakePropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, "#330066", null, actionButton)
+    val actionButton =
+      FakeActionIconButton(true, StudioIcons.LayoutEditor.Properties.FAVORITES, action)
+    val property =
+      actualProperty
+        ?: FakePropertyItem(ANDROID_URI, ATTR_TEXT_COLOR, "#330066", null, actionButton)
     val model = ColorFieldPropertyEditorModel(property)
     return Pair(model, action)
   }

@@ -29,10 +29,9 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
   /**
    * Adds a [PropertyItem] to the table model.
    *
-   * The added item will be placed in its natural order among the
-   * existing items. If the added item implements [NewPropertyItem]
-   * it will be placed at the bottom the table.
-   * Adding an already existing item is a noop.
+   * The added item will be placed in its natural order among the existing items. If the added item
+   * implements [NewPropertyItem] it will be placed at the bottom the table. Adding an already
+   * existing item is a noop.
    *
    * The returned item is the current item after the operation.
    */
@@ -40,9 +39,7 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
 
   companion object PTableModelFactory {
 
-    /**
-     * Comparator that is sorting [PTableItem] in alphabetical sorting order.
-     */
+    /** Comparator that is sorting [PTableItem] in alphabetical sorting order. */
     val alphabeticalSortOrder: Comparator<PTableItem> = Comparator.comparing(PTableItem::name)
   }
 }
@@ -50,23 +47,19 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
 /**
  * Create an implementation of [FilteredPTableModel].
  *
- * The [model] specifies where the items are retrieved from. Only
- * the items satisfying the [itemFilter] are included in the table.
+ * The [model] specifies where the items are retrieved from. Only the items satisfying the
+ * [itemFilter] are included in the table.
  *
- * The [refresh] method will repopulate the table with items from
- * the available properties from the [model] applying the [itemFilter].
- * The [deleteOperation] is applied when [removeItem] is called.
- * If the model includes an item implementing [NewPropertyItem] that
- * item will be excluded if a corresponding matching item is found
- * in the [model] except if [keepNewAfterFlyAway] is true, then the
- * item will be included at the end of the table after setting its
- * name to null i.e. the new item line will be ready for the user
- * to add another item to the table.
- * Use [allowEditing] to turn off editing completely in all cells.
- * Use [valueEditable] to turn off editing for some values. Group item
- * and items implementing [NewPropertyItem] will be editable regardless.
- * The [groups] specifies which item are grouped under a specified
- * group name. The items are sorted using [itemComparator].
+ * The [refresh] method will repopulate the table with items from the available properties from the
+ * [model] applying the [itemFilter]. The [deleteOperation] is applied when [removeItem] is called.
+ * If the model includes an item implementing [NewPropertyItem] that item will be excluded if a
+ * corresponding matching item is found in the [model] except if [keepNewAfterFlyAway] is true, then
+ * the item will be included at the end of the table after setting its name to null i.e. the new
+ * item line will be ready for the user to add another item to the table. Use [allowEditing] to turn
+ * off editing completely in all cells. Use [valueEditable] to turn off editing for some values.
+ * Group item and items implementing [NewPropertyItem] will be editable regardless. The [groups]
+ * specifies which item are grouped under a specified group name. The items are sorted using
+ * [itemComparator].
  */
 inline fun <reified P : PropertyItem> FilteredPTableModel(
   model: PropertiesModel<P>,
@@ -80,6 +73,17 @@ inline fun <reified P : PropertyItem> FilteredPTableModel(
   noinline valueEditable: (P) -> Boolean = { true },
   noinline hasCustomCursor: (P) -> Boolean = { false }
 ): FilteredPTableModel<P> {
-  return FilteredPTableModelImpl(P::class.java, model, itemFilter, insertOperation, deleteOperation, itemComparator, groups,
-                                 keepNewAfterFlyAway, allowEditing, valueEditable, hasCustomCursor)
+  return FilteredPTableModelImpl(
+    P::class.java,
+    model,
+    itemFilter,
+    insertOperation,
+    deleteOperation,
+    itemComparator,
+    groups,
+    keepNewAfterFlyAway,
+    allowEditing,
+    valueEditable,
+    hasCustomCursor
+  )
 }

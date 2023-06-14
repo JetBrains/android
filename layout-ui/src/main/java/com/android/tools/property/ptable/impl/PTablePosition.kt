@@ -15,16 +15,13 @@
  */
 package com.android.tools.property.ptable.impl
 
-/**
- * Helper class to advance in a table cell by cell (row first).
- */
+/** Helper class to advance in a table cell by cell (row first). */
 class PTablePosition(var row: Int, var column: Int, val rows: Int, val columns: Int) {
 
   fun next(forward: Boolean): Boolean {
     if (forward) {
       return forwards()
-    }
-    else {
+    } else {
       return backwards()
     }
   }

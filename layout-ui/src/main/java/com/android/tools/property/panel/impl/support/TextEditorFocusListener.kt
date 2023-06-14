@@ -21,9 +21,11 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import javax.swing.JComponent
 
-class TextEditorFocusListener(private val editor: CommonTextField<*>,
-                              private val scrollTo: JComponent,
-                              private val model: BasePropertyEditorModel) : FocusListener {
+class TextEditorFocusListener(
+  private val editor: CommonTextField<*>,
+  private val scrollTo: JComponent,
+  private val model: BasePropertyEditorModel
+) : FocusListener {
 
   override fun focusGained(event: FocusEvent) {
     model.focusGained()

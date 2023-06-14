@@ -16,14 +16,19 @@
 package com.android.tools.property.panel.impl.model.util
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.property.ptable.PTableModel
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.ptable.PTableModel
 import com.intellij.openapi.actionSystem.AnAction
 import javax.swing.JComponent
 
 enum class FakeLineType {
-  TITLE, SUBTITLE, PROPERTY, TABLE, PANEL, SEPARATOR
+  TITLE,
+  SUBTITLE,
+  PROPERTY,
+  TABLE,
+  PANEL,
+  SEPARATOR
 }
 
 open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
@@ -73,4 +78,5 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   }
 }
 
-class FakeComponentLineModel(override val component: JComponent) : FakeInspectorLineModel(FakeLineType.PANEL)
+class FakeComponentLineModel(override val component: JComponent) :
+  FakeInspectorLineModel(FakeLineType.PANEL)

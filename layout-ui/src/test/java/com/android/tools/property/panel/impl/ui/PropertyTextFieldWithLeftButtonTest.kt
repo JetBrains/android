@@ -23,21 +23,18 @@ import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditor
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
-import org.junit.ClassRule
-import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.JComponent
 import javax.swing.JTextField
+import org.junit.ClassRule
+import org.junit.Test
 
 class PropertyTextFieldWithLeftButtonTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @Test
@@ -51,13 +48,15 @@ class PropertyTextFieldWithLeftButtonTest {
     assertThat(container.components.singleOrNull { it is PropertyLabel }).isNull()
 
     var toggleCount = 0
-    container.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(event: MouseEvent) {
-        if (event.clickCount > 1) {
-          toggleCount++
+    container.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(event: MouseEvent) {
+          if (event.clickCount > 1) {
+            toggleCount++
+          }
         }
       }
-    })
+    )
     container.size = Dimension(500, 200)
     container.doLayout()
     val textField = (container.layout as BorderLayout).getLayoutComponent(BorderLayout.CENTER)

@@ -25,15 +25,15 @@ import javax.swing.Icon
  * Model for a popup with checkboxes for editing a [FlagsPropertyItem] ie. a property with flags.
  *
  * The logic here is complicated by:
- *  - each flag has a maskValue: an integer bit mask representing its value
- *  - the maskValue of a flag may be contained in a different flags maskValue
- *  - there may be a flag value that contains all the flags used by all flag values
- *  - there may be a flag value that represent the maskValue of 0 (zero)
- *  - the property may have a default value such that removing all flags will not result in a 0 maskValue
+ * - each flag has a maskValue: an integer bit mask representing its value
+ * - the maskValue of a flag may be contained in a different flags maskValue
+ * - there may be a flag value that contains all the flags used by all flag values
+ * - there may be a flag value that represent the maskValue of 0 (zero)
+ * - the property may have a default value such that removing all flags will not result in a 0
+ *   maskValue
  *
- *  In addition the logic in this model will not change the property before [applyChanges]
- *  is called. This means that this model must keep state for a value that is different
- *  from the property value.
+ * In addition the logic in this model will not change the property before [applyChanges] is called.
+ * This means that this model must keep state for a value that is different from the property value.
  */
 class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
   TextFieldWithLeftButtonEditorModel(flagsProperty, false) {
@@ -80,13 +80,14 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
   val flagDividerVisible: Boolean
     get() {
       if (filter.isEmpty()) {
-        return initialSelectedItems.isNotEmpty() && flagsProperty.children.size > initialSelectedItems.size
+        return initialSelectedItems.isNotEmpty() &&
+          flagsProperty.children.size > initialSelectedItems.size
       }
-      return !(initialSelectedItems.none { isMatch(it) } || initialItemsBelowSeparator.none { isMatch(it) })
+      return !(initialSelectedItems.none { isMatch(it) } ||
+        initialItemsBelowSeparator.none { isMatch(it) })
     }
 
-  override val leftButtonIcon: Icon? =
-    StudioIcons.LayoutEditor.Properties.FLAG
+  override val leftButtonIcon: Icon? = StudioIcons.LayoutEditor.Properties.FLAG
 
   /** Returns true if a named flag is currently set */
   fun isSelected(item: String): Boolean {
@@ -129,11 +130,12 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
    *
    * Computes:
    * <ul>
-   *   <li> maskAll   : All the flags bit values as one mask </li>
-   *   <li> zeroValue : Which flag has no bits set </li>
-   *   <li> initialSelectedItems : The names of the flags currently set as the value of the property </li>
-   *   <li> selectedItems        : Reset to the same as initialSelectedItems </li>
-   *   <li> maskValue            : The bit values of the flags currently set </li>
+   * <li> maskAll : All the flags bit values as one mask </li>
+   * <li> zeroValue : Which flag has no bits set </li>
+   * <li> initialSelectedItems : The names of the flags currently set as the value of the property
+   *   </li>
+   * <li> selectedItems : Reset to the same as initialSelectedItems </li>
+   * <li> maskValue : The bit values of the flags currently set </li>
    * </ul>
    */
   private fun initDialogState() {
@@ -166,33 +168,33 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
     value = Joiner.on("|").join(list)
   }
 
-  /** Select all possible bits in the mask. This may be just 1 flag or may be all non zero value flags */
+  /**
+   * Select all possible bits in the mask. This may be just 1 flag or may be all non zero value
+   * flags
+   */
   fun selectAll() {
     if (filter.isEmpty()) {
       selectedItems.clear()
       val flag = flagsProperty.children.firstOrNull { it.maskValue == maskAll }
       if (flag != null) {
         selectedItems.add(flag.name)
-      }
-      else {
+      } else {
         flagsProperty.children.filter { it.maskValue != 0 }.forEach { selectedItems.add(it.name) }
       }
-    }
-    else {
+    } else {
       flagsProperty.children.filter { isMatch(it.name) }.forEach { selectedItems.add(it.name) }
     }
     computeDialogState()
   }
 
   /**
-   * Clear all possible bits in the mask.
-   * If a default value is set use the zeroValue. Otherwise just remove all flags.
+   * Clear all possible bits in the mask. If a default value is set use the zeroValue. Otherwise
+   * just remove all flags.
    */
   fun clearAll() {
     if (filter.isEmpty()) {
       selectedItems.clear()
-    }
-    else {
+    } else {
       selectedItems.removeIf { isMatch(it) }
       filter = ""
     }
@@ -217,8 +219,8 @@ class FlagPropertyEditorModel(private val flagsProperty: FlagsPropertyItem<*>) :
   }
 
   /**
-   * This method should be called initially and after each change of a flag.
-   * The current values are updated and the editor is notified about changes.
+   * This method should be called initially and after each change of a flag. The current values are
+   * updated and the editor is notified about changes.
    */
   private fun computeDialogState() {
     maskValue = 0

@@ -25,6 +25,10 @@ fun toHtmlString(value: String): String =
 fun toHtmlUnderlinedString(value: String): String =
   "<html><nobr><u>${HtmlEscapers.htmlEscaper().escape(value)}</u></nobr></html>"
 
-fun expandableText(value: String?, tableExpansionState: TableExpansionState, underlined: Boolean = false) =
+fun expandableText(
+  value: String?,
+  tableExpansionState: TableExpansionState,
+  underlined: Boolean = false
+) =
   if (tableExpansionState == TableExpansionState.NORMAL) value
-  else value?.let { if (underlined) toHtmlUnderlinedString(it) else toHtmlString (it) }
+  else value?.let { if (underlined) toHtmlUnderlinedString(it) else toHtmlString(it) }

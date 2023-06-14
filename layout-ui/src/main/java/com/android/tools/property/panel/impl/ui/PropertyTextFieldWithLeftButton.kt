@@ -51,7 +51,8 @@ open class PropertyTextFieldWithLeftButton(
   // For table cell renderers: use a JLabel based component instead of a JTextEdit based component,
   // to avoid unwanted horizontal scrolling.
   protected val textField: JComponent =
-    if (context != EditorContext.TABLE_RENDERER) PropertyTextField(editorModel) else PropertyLabel(editorModel)
+    if (context != EditorContext.TABLE_RENDERER) PropertyTextField(editorModel)
+    else PropertyLabel(editorModel)
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
@@ -108,8 +109,13 @@ open class PropertyTextFieldWithLeftButton(
     background = editorModel.displayedBackground(UIUtil.TRANSPARENT_COLOR)
     isOpaque = editorModel.isUsedInRendererWithSelection
     toolTipText = editorModel.tooltip
-    // Avoid painting the right vertical edge of the cell border if this is the left part of the complete value:
-    ClientProperty.put(this, HIDE_RIGHT_BORDER, editorModel.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP)
+    // Avoid painting the right vertical edge of the cell border if this is the left part of the
+    // complete value:
+    ClientProperty.put(
+      this,
+      HIDE_RIGHT_BORDER,
+      editorModel.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP
+    )
   }
 
   override fun getData(dataId: String): Any? {

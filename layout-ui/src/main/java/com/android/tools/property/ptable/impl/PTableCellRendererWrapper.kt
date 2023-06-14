@@ -28,15 +28,21 @@ import javax.swing.table.TableCellRenderer
 /**
  * A [TableCellRenderer] that delegates to a [PTableCellRenderer].
  *
- * A thin wrapper around a [TableCellRenderer] that can be used in a [JTable].
- * By default a [DefaultPTableCellRenderer] is used, but it can be overridden with
- * a different implementation by setting the [renderer]
+ * A thin wrapper around a [TableCellRenderer] that can be used in a [JTable]. By default a
+ * [DefaultPTableCellRenderer] is used, but it can be overridden with a different implementation by
+ * setting the [renderer]
  */
-class PTableCellRendererWrapper: TableCellRenderer {
+class PTableCellRendererWrapper : TableCellRenderer {
   var renderer: PTableCellRenderer = DefaultPTableCellRenderer()
 
-  override fun getTableCellRendererComponent(table: JTable, value: Any?, isSelected: Boolean, withFocus: Boolean,
-                                             row: Int, column: Int): Component? {
+  override fun getTableCellRendererComponent(
+    table: JTable,
+    value: Any?,
+    isSelected: Boolean,
+    withFocus: Boolean,
+    row: Int,
+    column: Int
+  ): Component? {
     // PTable shows focus for the entire row. Not per cell.
     val rowIsLead = table.selectionModel.leadSelectionIndex == row
     val hasFocus = (table.hasFocus() || table.editingRow == row) && rowIsLead
@@ -45,15 +51,28 @@ class PTableCellRendererWrapper: TableCellRenderer {
     val item = value as PTableItem
     val isExpanded = pTable.isExpandedItem(row, column)
     val component =
-      renderer.getEditorComponent(pTable, item, PTableColumn.fromColumn(column), model.depth(item), isSelected, hasFocus, isExpanded)
+      renderer.getEditorComponent(
+        pTable,
+        item,
+        PTableColumn.fromColumn(column),
+        model.depth(item),
+        isSelected,
+        hasFocus,
+        isExpanded
+      )
     if (isSelected && !hasFocus) {
-      // The JBTable.prepareRenderer overrides the background color to indicate when the mouse is hovering the row.
-      // If the cell is selected the background is not overridden since the renderer component may be showing the table selection.
-      // Since the property table is only showing the table selection when the table has focus, we set the hovering color here when
+      // The JBTable.prepareRenderer overrides the background color to indicate when the mouse is
+      // hovering the row.
+      // If the cell is selected the background is not overridden since the renderer component may
+      // be showing the table selection.
+      // Since the property table is only showing the table selection when the table has focus, we
+      // set the hovering color here when
       // the cell is selected but does not have focus.
       @Suppress("UnstableApiUsage")
       component?.background =
-        if (TableHoverListener.getHoveredRow(table) == row) JBUI.CurrentTheme.Table.Hover.background(true) else table.background
+        if (TableHoverListener.getHoveredRow(table) == row)
+          JBUI.CurrentTheme.Table.Hover.background(true)
+        else table.background
     }
     return component
   }

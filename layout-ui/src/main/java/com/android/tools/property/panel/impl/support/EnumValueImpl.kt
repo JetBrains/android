@@ -27,10 +27,9 @@ import com.intellij.openapi.application.ApplicationManager
 /**
  * Implementation of [EnumValue]
  *
- * This class and its derived classes provides implementations of [EnumValue].
- * The aim is to keep the size of the object small.
- * The value should always be the raw string value of the attribute, but the display
- * value may be something else.
+ * This class and its derived classes provides implementations of [EnumValue]. The aim is to keep
+ * the size of the object small. The value should always be the raw string value of the attribute,
+ * but the display value may be something else.
  */
 sealed class EnumValueImpl : EnumValue {
   override fun withIndentation(): EnumValue {
@@ -49,15 +48,19 @@ data class IndentedItemEnumValue(override val value: String) : EnumValueImpl() {
   override fun toString() = value
 }
 
-data class ItemWithDisplayEnumValue(override val value: String, override val display: String) : EnumValueImpl() {
+data class ItemWithDisplayEnumValue(override val value: String, override val display: String) :
+  EnumValueImpl() {
   override fun toString() = value
 }
 
-data class EmptyDisplayEnumValue(override val display: String): EnumValueImpl() {
+data class EmptyDisplayEnumValue(override val display: String) : EnumValueImpl() {
   override fun toString() = ""
 }
 
-data class IndentedItemWithDisplayEnumValue(override val value: String, override val display: String) : EnumValueImpl() {
+data class IndentedItemWithDisplayEnumValue(
+  override val value: String,
+  override val display: String
+) : EnumValueImpl() {
   override val indented
     get() = true
 
@@ -85,15 +88,25 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
   // AnAction does not override hashCode and equals...
   override fun equals(other: Any?): Boolean {
     val otherActionValue = other as? BaseActionEnumValue ?: return false
-    return action.javaClass == otherActionValue.action.javaClass
-        && display == otherActionValue.display
-        && indented == otherActionValue.indented
+    return action.javaClass == otherActionValue.action.javaClass &&
+      display == otherActionValue.display &&
+      indented == otherActionValue.indented
   }
 
   override fun select(property: PropertyItem): Boolean {
     ApplicationManager.getApplication().invokeLater {
-      val propertyContext = DataContext { if (EnumValue.Companion.PROPERTY_ITEM_KEY.`is`(it)) property else null }
-      val event = AnActionEvent(null, propertyContext, "", action.templatePresentation.clone(), ActionManager.getInstance(), 0)
+      val propertyContext = DataContext {
+        if (EnumValue.Companion.PROPERTY_ITEM_KEY.`is`(it)) property else null
+      }
+      val event =
+        AnActionEvent(
+          null,
+          propertyContext,
+          "",
+          action.templatePresentation.clone(),
+          ActionManager.getInstance(),
+          0
+        )
       action.actionPerformed(event)
     }
     return false
@@ -106,4 +119,5 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
 
 class AnActionEnumValue(action: AnAction) : BaseActionEnumValue(action)
 
-internal class GenericActionEnumValue(action: AnAction, override val indented: Boolean) : BaseActionEnumValue(action)
+internal class GenericActionEnumValue(action: AnAction, override val indented: Boolean) :
+  BaseActionEnumValue(action)

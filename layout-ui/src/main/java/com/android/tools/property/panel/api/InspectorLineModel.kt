@@ -23,15 +23,15 @@ private const val ERROR_NOT_SEARCHABLE = "Component is not searchable"
 /**
  * The model of a line in an inspector.
  *
- * The inspector is generated from a list of [InspectorBuilder]s which
- * in turn generates a list of lines in the inspector.
+ * The inspector is generated from a list of [InspectorBuilder]s which in turn generates a list of
+ * lines in the inspector.
  */
 interface InspectorLineModel {
   /**
    * Controls the visibility of a line in the inspector.
    *
-   * The inspector will set this property based on sections being collapsed
-   * or search filters being applied.
+   * The inspector will set this property based on sections being collapsed or search filters being
+   * applied.
    */
   var visible: Boolean
 
@@ -45,37 +45,32 @@ interface InspectorLineModel {
   /**
    * If true, this line should be hidden at all times.
    *
-   * An [InspectorBuilder] may choose to hide certain lines based on the
-   * value of certain properties. Some components have properties that only
-   * make sense if another property has certain values.
-   * When this property is true, [visible] should return false independently
-   * of inspector filters and collapsible sections.
+   * An [InspectorBuilder] may choose to hide certain lines based on the value of certain
+   * properties. Some components have properties that only make sense if another property has
+   * certain values. When this property is true, [visible] should return false independently of
+   * inspector filters and collapsible sections.
    */
   var hidden: Boolean
 
-  /**
-   * Returns true if this line can receive focus.
-   */
+  /** Returns true if this line can receive focus. */
   val focusable: Boolean
 
   /**
    * Show this line in enabled state.
    *
-   * Title lines have the option of being displayed with a faded text color.
-   * Ignored for other lines.
+   * Title lines have the option of being displayed with a faded text color. Ignored for other
+   * lines.
    */
   var enabled: Boolean
 
-  /**
-   * Request the focus to be placed in this line.
-   */
+  /** Request the focus to be placed in this line. */
   fun requestFocus()
 
   /**
    * Return true if it is possible to search inside this line.
    *
-   * Most lines are not searchable. Some lines may contain complex content,
-   * where searching is possible.
+   * Most lines are not searchable. Some lines may contain complex content, where searching is
+   * possible.
    */
   val isSearchable: Boolean
     get() = false
@@ -92,34 +87,33 @@ interface InspectorLineModel {
   /**
    * Return true, if this line should be shown for the specified search filter.
    *
-   * For implementing search in the inspector, allow a line to control
-   * whether it is a search match. This method will never be called if
-   * [isSearchable] is true.
+   * For implementing search in the inspector, allow a line to control whether it is a search match.
+   * This method will never be called if [isSearchable] is true.
+   *
    * @param matcher the current string matcher.
    * @return true if this line is a match, false if not.
    */
   fun isMatch(matcher: Matcher): Boolean = false
 
-  /**
-   * Refresh the content after a potential property value change.
-   */
+  /** Refresh the content after a potential property value change. */
   fun refresh() {}
 
   /**
    * Make this line expandable.
    *
-   * Must be called before any children is added to this line.
-   * Note: Use with care since not all lines can be made expandable.
-   * If [initiallyExpanded] is true the group should be "open" initially
-   * unless we are restoring this state from earlier.
+   * Must be called before any children is added to this line. Note: Use with care since not all
+   * lines can be made expandable. If [initiallyExpanded] is true the group should be "open"
+   * initially unless we are restoring this state from earlier.
    */
-  fun makeExpandable(initiallyExpanded: Boolean) { throw IllegalStateException() }
+  fun makeExpandable(initiallyExpanded: Boolean) {
+    throw IllegalStateException()
+  }
 
   /**
    * Is the current line expanded, or set to make it expanded/collapsed.
    *
-   * The method makeExpandable must be called earlier.
-   * Note: Use with care since not all lines can be made expandable.
+   * The method makeExpandable must be called earlier. Note: Use with care since not all lines can
+   * be made expandable.
    */
   var expanded: Boolean
     get() = true
@@ -130,8 +124,6 @@ interface InspectorLineModel {
    */
   fun addValueChangedListener(listener: ValueChangedListener) {}
 
-  /**
-   *  Remove a [ValueChangedListener] registered by [addValueChangedListener].
-   */
+  /** Remove a [ValueChangedListener] registered by [addValueChangedListener]. */
   fun removeValueChangedListener(listener: ValueChangedListener) {}
 }

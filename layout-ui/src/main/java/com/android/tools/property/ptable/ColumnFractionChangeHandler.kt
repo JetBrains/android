@@ -30,9 +30,10 @@ private const val MIN_WIDTH = 1
 /**
  * A utility for handling a column fraction is a 2 column panel.
  *
- * The [nameColumnFraction] is updated with the position of the column divider in a fraction of the [currentWidth] of the
- * 2 column panel. [xOffset] is the offset of the mouse positions received, and [minFirstColumnSize] is the minimum size of
- * the first column. The onResizeModeChange will be called whenever the mouse shape should be changed.
+ * The [nameColumnFraction] is updated with the position of the column divider in a fraction of the
+ * [currentWidth] of the 2 column panel. [xOffset] is the offset of the mouse positions received,
+ * and [minFirstColumnSize] is the minimum size of the first column. The onResizeModeChange will be
+ * called whenever the mouse shape should be changed.
  */
 class ColumnFractionChangeHandler(
   private val nameColumnFraction: ColumnFraction,
@@ -41,7 +42,8 @@ class ColumnFractionChangeHandler(
   private val minFirstColumnSize: () -> Int,
   onResizeModeChange: (Boolean) -> Unit
 ) : MouseAdapter() {
-  var resizeMode by Delegates.observable(false) { _, old, new -> if (old != new) onResizeModeChange(new) }
+  var resizeMode by
+    Delegates.observable(false) { _, old, new -> if (old != new) onResizeModeChange(new) }
     private set
 
   private var xMinResize = 1
@@ -76,8 +78,7 @@ class ColumnFractionChangeHandler(
       val mid = (width * nameColumnFraction.value).roundToInt() - xOffset()
       xMinResize = mid - thumbWidth / 2
       xMaxResize = xMinResize + thumbWidth
-    }
-    else {
+    } else {
       xMinResize = 1
       xMaxResize = 0
     }

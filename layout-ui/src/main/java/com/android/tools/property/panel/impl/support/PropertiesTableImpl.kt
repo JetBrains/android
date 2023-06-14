@@ -22,10 +22,11 @@ import com.google.common.collect.Table
 /**
  * A [PropertiesTable] which uses a [Table] as a backing store.
  *
- * This API is readonly. No methods in [PropertiesTable] can
- * change the content of the backing [Table].
+ * This API is readonly. No methods in [PropertiesTable] can change the content of the backing
+ * [Table].
  */
-class PropertiesTableImpl<P: PropertyItem>(private val table: Table<String, String, P>): PropertiesTable<P> {
+class PropertiesTableImpl<P : PropertyItem>(private val table: Table<String, String, P>) :
+  PropertiesTable<P> {
 
   override operator fun get(namespace: String, name: String): P {
     return table[namespace, name] ?: throw NoSuchElementException()

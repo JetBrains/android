@@ -21,14 +21,19 @@ import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.PTableItem
 import javax.swing.JComponent
 
-/**
- * Table cell renderer for the name of a [PTableItem].
- */
+/** Table cell renderer for the name of a [PTableItem]. */
 class DefaultNameTableCellRenderer : PTableCellRenderer {
   private val component = DefaultNameComponent()
 
-  override fun getEditorComponent(table: PTable, item: PTableItem, column: PTableColumn, depth: Int,
-                                  isSelected: Boolean, hasFocus: Boolean, isExpanded: Boolean): JComponent {
+  override fun getEditorComponent(
+    table: PTable,
+    item: PTableItem,
+    column: PTableColumn,
+    depth: Int,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    isExpanded: Boolean
+  ): JComponent {
     return component.setUpItem(table, item, depth, isSelected, hasFocus, isExpanded)
   }
 }

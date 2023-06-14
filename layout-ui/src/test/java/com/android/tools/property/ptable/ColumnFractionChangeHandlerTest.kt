@@ -20,9 +20,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.scale.JBUIScale.scale
 import com.intellij.util.ui.JBDimension
-import org.junit.Test
 import java.awt.BorderLayout
 import javax.swing.JPanel
+import org.junit.Test
 
 class ColumnFractionChangeHandlerTest {
 
@@ -41,14 +41,16 @@ class ColumnFractionChangeHandlerTest {
 
     var modeChanges = 0
     var lastMode = false
-    val handler = ColumnFractionChangeHandler(fraction, { panel3.x }, { panel1.width }, { scale(10) }) {
-      lastMode = it
-      modeChanges++
-    }
+    val handler =
+      ColumnFractionChangeHandler(fraction, { panel3.x }, { panel1.width }, { scale(10) }) {
+        lastMode = it
+        modeChanges++
+      }
     panel3.addMouseListener(handler)
     panel3.addMouseMotionListener(handler)
 
-    // With an offset of 10, expect the range to be from 0-40 with a resize range of 13..18 (which with the offset corresponds to 23..28).
+    // With an offset of 10, expect the range to be from 0-40 with a resize range of 13..18 (which
+    // with the offset corresponds to 23..28).
     val ui = FakeUi(panel3)
     ui.mouse.moveTo(0, 0)
     assertThat(lastMode).isFalse()

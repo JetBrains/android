@@ -18,8 +18,6 @@ package com.android.tools.property.panel.api
 import com.intellij.openapi.actionSystem.AnAction
 
 interface LinkPropertyItem : PropertyItem {
-  /**
-   * An action which can be represented as a link in a property editor.
-   */
+  /** An action which can be represented as a link in a property editor. */
   val link: AnAction
 }

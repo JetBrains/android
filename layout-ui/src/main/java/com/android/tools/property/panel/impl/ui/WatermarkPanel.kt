@@ -34,7 +34,7 @@ private const val HORIZONTAL_MARGIN = 16
  *
  * TODO: Add the ability to specify and show actions in the actionMessage.
  */
-class WatermarkPanel: AdtSecondaryPanel() {
+class WatermarkPanel : AdtSecondaryPanel() {
   private val messageLabel = JBLabel()
   private val actionMessageLabel = JBLabel()
   private val help = JBLabel()

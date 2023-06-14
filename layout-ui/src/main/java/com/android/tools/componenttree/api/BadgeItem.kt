@@ -17,14 +17,10 @@ package com.android.tools.componenttree.api
 
 import javax.swing.Icon
 
-/**
- * A badge is an optional icon that can be shown to the right of a tree item.
- */
+/** A badge is an optional icon that can be shown to the right of a tree item. */
 interface BadgeItem : ColumnInfo {
 
-  /**
-   * Return the icon for the specified [item].
-   */
+  /** Return the icon for the specified [item]. */
   fun getIcon(item: Any): Icon?
 
   /**

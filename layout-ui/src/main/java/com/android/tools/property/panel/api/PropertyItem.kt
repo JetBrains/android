@@ -19,29 +19,19 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.property.ptable.PTableItem
 import javax.swing.Icon
 
-/**
- * Defines basic information about a property.
- */
+/** Defines basic information about a property. */
 interface PropertyItem : PTableItem {
-  /**
-   * The namespace of the property e.g. "http://schemas.android.com/apk/res/android"
-   */
+  /** The namespace of the property e.g. "http://schemas.android.com/apk/res/android" */
   val namespace: String
 
-  /**
-   * Optional icon to indicate a namespace
-   */
+  /** Optional icon to indicate a namespace */
   val namespaceIcon: Icon?
     get() = null
 
-  /**
-   * The name of the property e.g. "gravity"
-   */
+  /** The name of the property e.g. "gravity" */
   override val name: String
 
-  /**
-   * The property value
-   */
+  /** The property value */
   override var value: String?
 
   /**
@@ -58,17 +48,15 @@ interface PropertyItem : PTableItem {
   val resolvedValue: String?
     get() = value
 
-  /**
-   * Whether the original [value] is a reference value
-   */
+  /** Whether the original [value] is a reference value */
   val isReference: Boolean
     get() = false
 
   /**
    * An editor may display a button on the right
    *
-   * The use is implementation defined, but is usually used to
-   * provide a dialog where possible values can be selected.
+   * The use is implementation defined, but is usually used to provide a dialog where possible
+   * values can be selected.
    */
   val browseButton: ActionIconButton?
     get() = null
@@ -76,34 +64,25 @@ interface PropertyItem : PTableItem {
   /**
    * A color control may display an icon on the left
    *
-   * An implementation should use this to provide custom
-   * representation and editing color values. This value
-   * is used for [ControlType.COLOR_EDITOR] controls.
+   * An implementation should use this to provide custom representation and editing color values.
+   * This value is used for [ControlType.COLOR_EDITOR] controls.
    */
   val colorButton: ActionIconButton?
     get() = null
 
-  /**
-   * The tooltip for this property name
-   */
+  /** The tooltip for this property name */
   val tooltipForName: String
     get() = ""
 
-  /**
-   * The tooltip for the value of this property
-   */
+  /** The tooltip for the value of this property */
   val tooltipForValue: String
     get() = ""
 
-  /**
-   * Help support for this property
-   */
+  /** Help support for this property */
   val helpSupport: HelpSupport
     get() = HelpSupport.INSTANCE
 
-  /**
-   * Editing support while editing this property
-   */
+  /** Editing support while editing this property */
   val editingSupport: EditingSupport
     get() = EditingSupport.INSTANCE
 }

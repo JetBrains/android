@@ -27,11 +27,11 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.awt.Color
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import java.awt.Color
 
 class BasePropertyEditorModelTest {
 
@@ -112,7 +112,8 @@ class BasePropertyEditorModelTest {
     assertThat(model.displayedIcon(StudioIcons.Common.ERROR)).isSameAs(StudioIcons.Common.ERROR)
 
     model.isUsedInRendererWithSelection = true
-    assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!)).isEqualTo(!isNewUI())
+    assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!))
+      .isEqualTo(!isNewUI())
   }
 
   @Test
@@ -133,7 +134,8 @@ class BasePropertyEditorModelTest {
     assertThat(model.displayedForeground(JBColor.BLUE)).isEqualTo(JBColor.BLUE)
 
     model.isUsedInRendererWithSelection = true
-    assertThat(model.displayedForeground(JBColor.BLUE)).isEqualTo(UIUtil.getTableForeground(true, true))
+    assertThat(model.displayedForeground(JBColor.BLUE))
+      .isEqualTo(UIUtil.getTableForeground(true, true))
   }
 
   @Test
@@ -142,10 +144,12 @@ class BasePropertyEditorModelTest {
     assertThat(model.displayedBackground(JBColor.RED)).isEqualTo(JBColor.RED)
 
     model.isUsedInRendererWithSelection = true
-    assertThat(model.displayedBackground(JBColor.RED)).isEqualTo(UIUtil.getTableBackground(true, true))
+    assertThat(model.displayedBackground(JBColor.RED))
+      .isEqualTo(UIUtil.getTableBackground(true, true))
   }
 
-  private class RecursiveValueChangedListener(private val model: BasePropertyEditorModel) : ValueChangedListener {
+  private class RecursiveValueChangedListener(private val model: BasePropertyEditorModel) :
+    ValueChangedListener {
     var called = false
 
     override fun valueChanged() {

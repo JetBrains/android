@@ -20,9 +20,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Graphics
 import javax.swing.JPanel
 
-/**
- * A component meant to cover the area above the vertical scrollbar in the table header area.
- */
+/** A component meant to cover the area above the vertical scrollbar in the table header area. */
 class UpperRightCorner : JPanel() {
   init {
     background = UIUtil.TRANSPARENT_COLOR

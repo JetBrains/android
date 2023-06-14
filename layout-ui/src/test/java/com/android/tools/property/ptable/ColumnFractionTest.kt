@@ -28,8 +28,7 @@ class ColumnFractionTest {
     try {
       ColumnFraction().value = 0.6f
       error("unexpected")
-    }
-    catch (ex: Exception) {
+    } catch (ex: Exception) {
       assertThat(ex.message).isEqualTo("Not supported")
     }
   }

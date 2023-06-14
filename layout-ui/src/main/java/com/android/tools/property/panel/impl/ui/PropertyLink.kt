@@ -32,10 +32,8 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-/**
- * Editor for a property link consisting of a text field and a link
- */
-class PropertyLink(private val model: LinkPropertyEditorModel): JPanel(BorderLayout()) {
+/** Editor for a property link consisting of a text field and a link */
+class PropertyLink(private val model: LinkPropertyEditorModel) : JPanel(BorderLayout()) {
   private val label = JBLabel(model.value)
   private val link = CommonHyperLinkLabel(showAsLink = true, strikeout = false)
 
@@ -60,7 +58,12 @@ class PropertyLink(private val model: LinkPropertyEditorModel): JPanel(BorderLay
   private fun updateFromModel() {
     label.text = expandableText(model.value, model.tableExpansionState)
     label.foreground = model.displayedForeground(UIUtil.getLabelForeground())
-    link.text = expandableText(model.linkProperty.link.templateText, model.tableExpansionState, underlined = true)
+    link.text =
+      expandableText(
+        model.linkProperty.link.templateText,
+        model.tableExpansionState,
+        underlined = true
+      )
     link.foreground = model.displayedForeground(link.normalForegroundColor)
     background = model.displayedBackground(UIUtil.TRANSPARENT_COLOR)
     isOpaque = model.isUsedInRendererWithSelection
@@ -71,7 +74,8 @@ class PropertyLink(private val model: LinkPropertyEditorModel): JPanel(BorderLay
     val presentation = action.templatePresentation.clone()
     val dataContext = DataManager.getInstance().getDataContext(this)
     val manager = ActionManager.getInstance()
-    val actionEvent = AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, presentation, manager, 0)
+    val actionEvent =
+      AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, presentation, manager, 0)
     action.actionPerformed(actionEvent)
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.property.panel.impl.table
 
-import com.android.tools.property.ptable.*
 import com.android.tools.property.panel.api.*
+import com.android.tools.property.ptable.*
 import com.intellij.util.ui.UIUtil
 
 /**
@@ -30,14 +30,27 @@ class PTableCellRendererProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   nameEditorProvider: EditorProvider<N>,
   valueType: Class<P>,
   valueControlTypeProvider: ControlTypeProvider<P>,
-  valueEditorProvider: EditorProvider<P>) : PTableCellRendererProvider {
+  valueEditorProvider: EditorProvider<P>
+) : PTableCellRendererProvider {
 
   private var defaultNameRenderer = DefaultNameTableCellRenderer()
   private var defaultValueRenderer = DefaultValueTableCellRenderer()
-  private val nameRenderer = EditorBasedTableCellRenderer(
-    nameType, nameControlTypeProvider, nameEditorProvider, UIUtil.FontSize.SMALL, defaultNameRenderer)
-  private val valueRenderer = EditorBasedTableCellRenderer(
-    valueType, valueControlTypeProvider, valueEditorProvider, UIUtil.FontSize.NORMAL, defaultValueRenderer)
+  private val nameRenderer =
+    EditorBasedTableCellRenderer(
+      nameType,
+      nameControlTypeProvider,
+      nameEditorProvider,
+      UIUtil.FontSize.SMALL,
+      defaultNameRenderer
+    )
+  private val valueRenderer =
+    EditorBasedTableCellRenderer(
+      valueType,
+      valueControlTypeProvider,
+      valueEditorProvider,
+      UIUtil.FontSize.NORMAL,
+      defaultValueRenderer
+    )
 
   override fun invoke(table: PTable, item: PTableItem, column: PTableColumn): PTableCellRenderer {
     return when (column) {

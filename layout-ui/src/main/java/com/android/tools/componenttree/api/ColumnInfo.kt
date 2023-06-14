@@ -47,60 +47,43 @@ interface ColumnInfo {
    */
   val width: Int
 
-  /**
-   * The column renderer.
-   */
+  /** The column renderer. */
   val renderer: TableCellRenderer?
 
-  /**
-   * The header renderer.
-   */
+  /** The header renderer. */
   val headerRenderer: TableCellRenderer?
     get() = null
 
-  /**
-   * Return the tooltip text for the column of the specified [item].
-   */
+  /** Return the tooltip text for the column of the specified [item]. */
   fun getTooltipText(item: Any): String? = null
 
-  /**
-   * Display a divider on the left.
-   */
+  /** Display a divider on the left. */
   val leftDivider: Boolean
     get() = false
 
-  /**
-   * Foreground text color.
-   */
+  /** Foreground text color. */
   val foreground: Color?
     get() = null
 
-  /**
-   * Border sizes.
-   */
+  /** Border sizes. */
   val insets: Insets
     get() = DEFAULT_INSETS
 
   /**
    * Perform this action when a cell in this column is clicked on.
+   *
    * @param item the item that the cell belongs to
    * @param component the Swing component presenting the icon
    * @param bounds the bounds of the cell relative to [component]
    */
   fun performAction(item: Any, component: JComponent, bounds: Rectangle) {}
 
-  /**
-   * Show an (optional) popup after a right click on a cell in this column.
-   */
+  /** Show an (optional) popup after a right click on a cell in this column. */
   fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {}
 
-  /**
-   * Compute the max width of the column based on all possible items.
-   */
+  /** Compute the max width of the column based on all possible items. */
   fun computeWidth(table: JTable, data: Sequence<*>): Int = width
 
-  /**
-   * Invalidate the renderer after a look and feel (or size) change.
-   */
+  /** Invalidate the renderer after a look and feel (or size) change. */
   fun updateUI() {}
 }

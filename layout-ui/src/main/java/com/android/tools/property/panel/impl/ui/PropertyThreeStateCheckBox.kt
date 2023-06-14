@@ -25,9 +25,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.ThreeStateCheckBox
 
-/**
- * A standard control for editing a boolean property value with 3 states: on/off/unset.
- */
+/** A standard control for editing a boolean property value with 3 states: on/off/unset. */
 class PropertyThreeStateCheckBox(
   model: ThreeStateBooleanPropertyEditorModel,
   context: EditorContext
@@ -38,7 +36,9 @@ class PropertyThreeStateCheckBox(
   @VisibleForTesting
   var state: ThreeStateCheckBox.State
     get() = checkBox.state
-    set(value) { checkBox.state = value }
+    set(value) {
+      checkBox.state = value
+    }
 
   override fun updateFromModel() {
     super.updateFromModel()
@@ -72,8 +72,7 @@ private class CustomThreeStateCheckBox(
     try {
       state = toThreeStateValue(propertyModel.value)
       isFocusable = !propertyModel.readOnly
-    }
-    finally {
+    } finally {
       stateChangeFromModel = false
     }
   }
@@ -88,7 +87,8 @@ private class CustomThreeStateCheckBox(
 
   private fun toThreeStateValue(value: String?) =
     when (value) {
-      "", null -> State.DONT_CARE
+      "",
+      null -> State.DONT_CARE
       SdkConstants.VALUE_TRUE -> State.SELECTED
       else -> State.NOT_SELECTED
     }

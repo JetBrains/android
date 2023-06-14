@@ -26,7 +26,11 @@ class PTableModelImplTest {
 
   @Test
   fun testDepth() {
-    val model = createModel(Item("weight"), Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff")))))
+    val model =
+      createModel(
+        Item("weight"),
+        Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff"))))
+      )
     val impl = PTableModelImpl(model)
     assertThat(impl.depth(model.find("weight")!!)).isEqualTo(0)
     assertThat(impl.depth(model.find("weiss")!!)).isEqualTo(0)
@@ -39,7 +43,11 @@ class PTableModelImplTest {
 
   @Test
   fun testParentOf() {
-    val model = createModel(Item("weight"), Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff")))))
+    val model =
+      createModel(
+        Item("weight"),
+        Group("weiss", Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff"))))
+      )
     val impl = PTableModelImpl(model)
     assertThat(impl.parentOf(model.find("weight")!!)).isNull()
     assertThat(impl.parentOf(model.find("weiss")!!)).isNull()
@@ -52,11 +60,25 @@ class PTableModelImplTest {
 
   @Test
   fun testRestoreExpandedGroups() {
-    val model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible"), Group("weiss", Item("siphon"), Item("extra")))
+    val model =
+      createModel(
+        Item("weight"),
+        Item("size"),
+        Item("readonly"),
+        Item("visible"),
+        Group("weiss", Item("siphon"), Item("extra"))
+      )
     val groupBefore = model.items[4] as PTableGroupItem
     val impl = PTableModelImpl(model)
     impl.expand(4)
-    model.updateTo(true, Item("weight"), Item("size"), Item("readonly"), Group("weiss", Item("siphon"), Item("extra")), Item("zebra"))
+    model.updateTo(
+      true,
+      Item("weight"),
+      Item("size"),
+      Item("readonly"),
+      Group("weiss", Item("siphon"), Item("extra")),
+      Item("zebra")
+    )
     val groupAfter = model.items[3] as PTableGroupItem
 
     assertThat(impl.isExpanded(groupAfter)).isTrue()
@@ -71,7 +93,11 @@ class PTableModelImplTest {
 
   @Test
   fun testCloseGroupWithNestedGroups() {
-    val model = createModel(Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
+    val model =
+      createModel(
+        Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))),
+        Item("item2")
+      )
     val impl = PTableModelImpl(model)
     impl.expand(0)
     impl.expand(2)
@@ -82,7 +108,11 @@ class PTableModelImplTest {
 
   @Test
   fun testReopenClosedGroupWithNestedGroups() {
-    val model = createModel(Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
+    val model =
+      createModel(
+        Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))),
+        Item("item2")
+      )
     val impl = PTableModelImpl(model)
     impl.expand(0)
     impl.expand(2)
@@ -94,11 +124,20 @@ class PTableModelImplTest {
 
   @Test
   fun testRestoreExpandedGroupsWithNestedGroups() {
-    val model = createModel(Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
+    val model =
+      createModel(
+        Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))),
+        Item("item2")
+      )
     val impl = PTableModelImpl(model)
     impl.expand(0)
     impl.expand(2)
-    model.updateTo(true, Item("extra"), Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))), Item("item2"))
+    model.updateTo(
+      true,
+      Item("extra"),
+      Group("group", Item("item1"), Group("visibility", Item("show"), Item("hide"))),
+      Item("item2")
+    )
 
     checkRows(impl, "extra", "group", "item1", "visibility", "show", "hide", "item2")
   }
@@ -119,7 +158,10 @@ class PTableModelImplTest {
 
   @Test
   fun testExpansionWithMultipleEqualGroupNodes() {
-    val model = createModel(Group("top", Group("group", Item("item1")), Group("group", Item("item2")), Item("item3")))
+    val model =
+      createModel(
+        Group("top", Group("group", Item("item1")), Group("group", Item("item2")), Item("item3"))
+      )
     val top = model.items.single() as Group
     val group1 = top.children.first() as Group
     val group2 = top.children[1] as Group
@@ -151,7 +193,9 @@ class PTableModelImplTest {
     impl.toggle(weiss)
     checkRows(impl, "weight", "weiss")
 
-    weiss.children.addAll(listOf(Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff")))))
+    weiss.children.addAll(
+      listOf(Item("siphon"), Group("extra", Item("some"), Group("more", Item("stuff"))))
+    )
     checkRows(impl, "weight", "weiss")
 
     weiss.expandNow(true)

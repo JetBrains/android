@@ -17,9 +17,7 @@ package com.android.tools.property.ptable
 
 import java.lang.IndexOutOfBoundsException
 
-/**
- * Column enumeration specifying either the [NAME] or the [VALUE] column.
- */
+/** Column enumeration specifying either the [NAME] or the [VALUE] column. */
 enum class PTableColumn {
   NAME,
   VALUE;

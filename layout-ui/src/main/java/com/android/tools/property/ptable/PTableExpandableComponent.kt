@@ -18,7 +18,7 @@ package com.android.tools.property.ptable
 import com.intellij.openapi.util.Key
 
 /**
- * A component in cell renderer that allows the cell expansion should set this client property.
- * The lambda should return true if the value is currently visually restricted.
+ * A component in cell renderer that allows the cell expansion should set this client property. The
+ * lambda should return true if the value is currently visually restricted.
  */
 val KEY_IS_VISUALLY_RESTRICTED = Key.create<() -> Boolean>("IsVisuallyRestricted")

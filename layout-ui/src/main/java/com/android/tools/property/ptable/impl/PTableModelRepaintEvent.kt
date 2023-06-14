@@ -18,4 +18,4 @@ package com.android.tools.property.ptable.impl
 import javax.swing.event.TableModelEvent
 import javax.swing.table.TableModel
 
-class PTableModelRepaintEvent(source: TableModel): TableModelEvent(source)
+class PTableModelRepaintEvent(source: TableModel) : TableModelEvent(source)

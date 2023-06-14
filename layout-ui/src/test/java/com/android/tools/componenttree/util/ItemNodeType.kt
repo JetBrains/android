@@ -44,7 +44,13 @@ class ItemNodeType : ViewNodeType<Item>() {
   override fun canInsert(node: Item, data: Transferable) =
     node.canInsert ?: node.children.isNotEmpty()
 
-  override fun insert(node: Item, data: Transferable, before: Any?, isMove: Boolean, draggedFromTree: List<Any>): Boolean {
+  override fun insert(
+    node: Item,
+    data: Transferable,
+    before: Any?,
+    isMove: Boolean,
+    draggedFromTree: List<Any>
+  ): Boolean {
     if (!node.acceptInsert) {
       return false
     }

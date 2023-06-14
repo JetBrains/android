@@ -23,18 +23,11 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
  * @param initialValue the initial fraction of the divider position.
  * @param resizeSupported true if the fraction can be changed.
  */
-class ColumnFraction(
-  initialValue: Float = 0.4f,
-  val resizeSupported: Boolean = false
-) {
-  /**
-   * Listeners of changes to the left fraction.
-   */
+class ColumnFraction(initialValue: Float = 0.4f, val resizeSupported: Boolean = false) {
+  /** Listeners of changes to the left fraction. */
   var listeners = mutableListOf<ValueChangedListener>()
 
-  /**
-   * The position of the middle divider as a fraction of the total width.
-   */
+  /** The position of the middle divider as a fraction of the total width. */
   var value: Float = initialValue
     set(value) {
       if (!resizeSupported) {
@@ -42,7 +35,7 @@ class ColumnFraction(
       }
       val changed = field != value
       if (changed) {
-      // Don't allow any values outside of 0.01..0.99 (to avoid divide by zero errors).
+        // Don't allow any values outside of 0.01..0.99 (to avoid divide by zero errors).
         field = value.coerceIn(0.01f, 0.99f)
         listeners.toTypedArray().forEach { it.valueChanged() }
       }

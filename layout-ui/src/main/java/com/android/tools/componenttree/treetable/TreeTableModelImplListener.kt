@@ -23,15 +23,14 @@ interface TreeTableModelImplListener : TreeModelListener {
   /**
    * Invoked after the tree root has changed.
    *
-   * This is similar to firing [treeStructureChanged] except that for this event the tree is expected to maintain:
+   * This is similar to firing [treeStructureChanged] except that for this event the tree is
+   * expected to maintain:
    * - the selection (if possible)
    * - the expanded nodes (if possible)
    */
   fun treeChanged(event: TreeModelEvent)
 
-  /**
-   * Invoked after the tree column data has changed.
-   */
+  /** Invoked after the tree column data has changed. */
   fun columnDataChanged()
 }
 

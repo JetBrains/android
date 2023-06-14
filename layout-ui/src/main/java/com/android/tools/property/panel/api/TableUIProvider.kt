@@ -15,37 +15,45 @@
  */
 package com.android.tools.property.panel.api
 
-import com.android.tools.property.ptable.PTableCellEditorProvider
-import com.android.tools.property.ptable.PTableCellRendererProvider
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.panel.impl.table.TableUIProviderImpl
+import com.android.tools.property.ptable.PTableCellEditorProvider
+import com.android.tools.property.ptable.PTableCellRendererProvider
 
 interface TableUIProvider {
   val tableCellRendererProvider: PTableCellRendererProvider
   val tableCellEditorProvider: PTableCellEditorProvider
 }
 
-/**
- * A [TableUIProvider] for editing of property values only.
- */
+/** A [TableUIProvider] for editing of property values only. */
 inline fun <reified P : PropertyItem> TableUIProvider(
   valueControlTypeProvider: ControlTypeProvider<P>,
   valueEditorProvider: EditorProvider<P>
 ): TableUIProvider {
   return TableUIProviderImpl(
-    NewPropertyItem::class.java, SimpleControlTypeProvider(ControlType.TEXT_EDITOR), EditorProvider.createForNames(),
-    P::class.java, valueControlTypeProvider, valueEditorProvider)
+    NewPropertyItem::class.java,
+    SimpleControlTypeProvider(ControlType.TEXT_EDITOR),
+    EditorProvider.createForNames(),
+    P::class.java,
+    valueControlTypeProvider,
+    valueEditorProvider
+  )
 }
 
-/**
- * A [TableUIProvider] for editing of property values and property names.
- */
+/** A [TableUIProvider] for editing of property values and property names. */
 inline fun <reified P : PropertyItem, reified N : NewPropertyItem> TableUIProvider(
   nameControlTypeProvider: ControlTypeProvider<N>,
   nameEditorProvider: EditorProvider<N>,
   valueControlTypeProvider: ControlTypeProvider<P>,
-  valueEditorProvider: EditorProvider<P>): TableUIProvider {
+  valueEditorProvider: EditorProvider<P>
+): TableUIProvider {
 
-  return TableUIProviderImpl(N::class.java, nameControlTypeProvider, nameEditorProvider,
-                             P::class.java, valueControlTypeProvider, valueEditorProvider)
+  return TableUIProviderImpl(
+    N::class.java,
+    nameControlTypeProvider,
+    nameEditorProvider,
+    P::class.java,
+    valueControlTypeProvider,
+    valueEditorProvider
+  )
 }

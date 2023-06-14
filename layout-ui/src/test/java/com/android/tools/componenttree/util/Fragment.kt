@@ -19,10 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 
-class Fragment(
-  val text: String,
-  val attr: SimpleTextAttributes
-) {
+class Fragment(val text: String, val attr: SimpleTextAttributes) {
   fun check(expected: Fragment, name: String = "Fragment") {
     assertThat(text).named(name).isEqualTo(expected.text)
     assertThat(attr.fgColor).named("$name with: Font Color").isEqualTo(expected.attr.fgColor)

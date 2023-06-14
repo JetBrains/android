@@ -15,24 +15,26 @@
  */
 package com.android.tools.property.panel.impl.model
 
-import com.android.SdkConstants.VALUE_TRUE
 import com.android.SdkConstants.VALUE_FALSE
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.tools.property.panel.api.PropertyItem
 
-/**
- * Model for a 3 state boolean property: on/off/unset.
- */
-class ThreeStateBooleanPropertyEditorModel(property: PropertyItem) : TextFieldWithLeftButtonEditorModel(property, true) {
+/** Model for a 3 state boolean property: on/off/unset. */
+class ThreeStateBooleanPropertyEditorModel(property: PropertyItem) :
+  TextFieldWithLeftButtonEditorModel(property, true) {
 
   override var value: String
     get() = property.resolvedValue.orEmpty()
-    set(value) { super.value = value }
+    set(value) {
+      super.value = value
+    }
 
   override fun toggleValue() {
-    value = when (value) {
-      VALUE_TRUE -> VALUE_FALSE
-      VALUE_FALSE -> ""
-      else -> VALUE_TRUE
-    }
+    value =
+      when (value) {
+        VALUE_TRUE -> VALUE_FALSE
+        VALUE_FALSE -> ""
+        else -> VALUE_TRUE
+      }
   }
 }

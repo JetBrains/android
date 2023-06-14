@@ -22,7 +22,7 @@ import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.api.TableSupport
 
-class FakePropertyEditorModel(override var property: PropertyItem): PropertyEditorModel {
+class FakePropertyEditorModel(override var property: PropertyItem) : PropertyEditorModel {
   override var value: String = property.value ?: ""
 
   override var visible = true

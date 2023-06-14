@@ -22,10 +22,9 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * An inspector line that wraps a custom component.
- */
-class GenericLinePanel(component: JComponent, private val model: GenericInspectorLineModel): JPanel(BorderLayout()) {
+/** An inspector line that wraps a custom component. */
+class GenericLinePanel(component: JComponent, private val model: GenericInspectorLineModel) :
+  JPanel(BorderLayout()) {
   init {
     add(component)
     model.addValueChangedListener(ValueChangedListener { valueChanged() })

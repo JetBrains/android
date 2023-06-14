@@ -15,11 +15,14 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import javax.swing.border.MatteBorder
 import java.awt.Color
+import javax.swing.border.MatteBorder
 
-class CellBorder(top: Int, left: Int, bottom: Int, right: Int, color: Color?) : MatteBorder(top, left, bottom, right, color) {
+class CellBorder(top: Int, left: Int, bottom: Int, right: Int, color: Color?) :
+  MatteBorder(top, left, bottom, right, color) {
   var background: Color?
     get() = color
-    set(value) { color = value }
+    set(value) {
+      color = value
+    }
 }

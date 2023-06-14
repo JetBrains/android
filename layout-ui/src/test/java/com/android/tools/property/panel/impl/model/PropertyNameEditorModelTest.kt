@@ -32,7 +32,8 @@ import org.mockito.Mockito.times
 class PropertyNameEditorModelTest {
 
   private fun createModel(): Pair<PropertyNameEditorModel, ValueChangedListener> {
-    val property = FakeNewPropertyItem(mapOf(ATTR_TEXT_COLOR to FakePropertyItem(ANDROID_URI, ATTR_TEXT_COLOR)))
+    val property =
+      FakeNewPropertyItem(mapOf(ATTR_TEXT_COLOR to FakePropertyItem(ANDROID_URI, ATTR_TEXT_COLOR)))
     val model = PropertyNameEditorModel(property)
     val listener = Mockito.mock(ValueChangedListener::class.java)
     model.addListener(listener)

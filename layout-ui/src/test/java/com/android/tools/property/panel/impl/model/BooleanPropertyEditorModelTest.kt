@@ -27,13 +27,16 @@ import org.junit.Test
 class BooleanPropertyEditorModelTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   private fun createModel(): BooleanPropertyEditorModel {
-    val property = FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, SdkConstants.VALUE_TRUE)
+    val property =
+      FakePropertyItem(
+        SdkConstants.ANDROID_URI,
+        SdkConstants.ATTR_INDETERMINATE,
+        SdkConstants.VALUE_TRUE
+      )
     property.resolvedValue = SdkConstants.VALUE_TRUE
     return BooleanPropertyEditorModel(property)
   }

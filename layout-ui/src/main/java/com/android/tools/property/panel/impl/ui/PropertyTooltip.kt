@@ -48,12 +48,12 @@ private const val TIP_WIDTH_END = "</div>"
 /**
  * Implementation of custom tool tips for displaying errors and warnings.
  *
- * This implementation only works when running in the IDE, since we are using
- * the IJ IdeTooltipManager.
+ * This implementation only works when running in the IDE, since we are using the IJ
+ * IdeTooltipManager.
  */
-class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(component, point, TooltipComponent()) {
-  @VisibleForTesting
-  internal val tip = tipComponent as TooltipComponent
+class PropertyTooltip(val component: JComponent, point: Point) :
+  IdeTooltip(component, point, TooltipComponent()) {
+  @VisibleForTesting internal val tip = tipComponent as TooltipComponent
 
   override fun onHidden() {
     // Remove references to this custom tool tip
@@ -67,31 +67,37 @@ class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(comp
       val manager = IdeTooltipManager.getInstance()
       if (text == null) {
         manager.hideCurrent(event)
-      }
-      else {
+      } else {
         val tooltip = createTooltipWithContent(component, event.point, text, null, null, null, null)
         manager.setCustomTooltip(component, tooltip)
       }
       return null
     }
 
-    fun setToolTip(component: JComponent, event: MouseEvent, property: PropertyItem?, forValue: Boolean, text: String): String? {
+    fun setToolTip(
+      component: JComponent,
+      event: MouseEvent,
+      property: PropertyItem?,
+      forValue: Boolean,
+      text: String
+    ): String? {
       val manager = IdeTooltipManager.getInstance()
       if (property == null) {
         manager.hideCurrent(event)
-      }
-      else {
+      } else {
         val tooltip = createToolTip(component, event.point, property, forValue, text)
         manager.setCustomTooltip(component, tooltip)
       }
       return null
     }
 
-    private fun createToolTip(component: JComponent,
-                              point: Point,
-                              property: PropertyItem,
-                              forValue: Boolean,
-                              currentText: String): PropertyTooltip? {
+    private fun createToolTip(
+      component: JComponent,
+      point: Point,
+      property: PropertyItem,
+      forValue: Boolean,
+      currentText: String
+    ): PropertyTooltip? {
       if (!forValue) {
         val text = property.tooltipForName.nullize() ?: return null
         return createTooltipWithContent(component, point, text)
@@ -100,10 +106,22 @@ class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(comp
       val validation = property.editingSupport.validation(currentText)
       when (validation.first) {
         EditingErrorCategory.ERROR ->
-          return createTooltipWithContent(component, point, validation.second, StudioIcons.Common.ERROR_INLINE,
-                                          ERROR_BUBBLE_BORDER_COLOR, ERROR_BUBBLE_TEXT_COLOR, ERROR_BUBBLE_FILL_COLOR)
+          return createTooltipWithContent(
+            component,
+            point,
+            validation.second,
+            StudioIcons.Common.ERROR_INLINE,
+            ERROR_BUBBLE_BORDER_COLOR,
+            ERROR_BUBBLE_TEXT_COLOR,
+            ERROR_BUBBLE_FILL_COLOR
+          )
         EditingErrorCategory.WARNING ->
-          return createTooltipWithContent(component, point, validation.second, StudioIcons.Common.WARNING_INLINE)
+          return createTooltipWithContent(
+            component,
+            point,
+            validation.second,
+            StudioIcons.Common.WARNING_INLINE
+          )
         else -> {
           val text = property.tooltipForValue.nullize() ?: return null
           return createTooltipWithContent(component, point, text, null, null, null, null)
@@ -111,13 +129,15 @@ class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(comp
       }
     }
 
-    private fun createTooltipWithContent(component: JComponent,
-                                         point: Point,
-                                         text: String,
-                                         icon: Icon? = null,
-                                         border: Color? = null,
-                                         foreground: Color? = null,
-                                         background: Color? = null): PropertyTooltip {
+    private fun createTooltipWithContent(
+      component: JComponent,
+      point: Point,
+      text: String,
+      icon: Icon? = null,
+      border: Color? = null,
+      foreground: Color? = null,
+      background: Color? = null
+    ): PropertyTooltip {
       val tooltip = PropertyTooltip(component, point)
       tooltip.tip.icon = icon
       tooltip.tip.text = text
@@ -134,7 +154,7 @@ class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(comp
 }
 
 @VisibleForTesting
-internal class TooltipComponent: JPanel(BorderLayout()) {
+internal class TooltipComponent : JPanel(BorderLayout()) {
   private val iconLabel = JBLabel()
   private val textLabel = JBLabel()
 
@@ -166,8 +186,7 @@ internal class TooltipComponent: JPanel(BorderLayout()) {
     val content: String
     if (value.startsWith(HTML_START) && value.endsWith(HTML_END)) {
       content = value.removePrefix(HTML_START).removeSuffix(HTML_END)
-    }
-    else {
+    } else {
       content = HtmlEscapers.htmlEscaper().escape(value)
     }
     var widthStart = ""

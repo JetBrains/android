@@ -42,7 +42,8 @@ class SelectedComponentPanel(private val model: SelectedComponentModel) : JPanel
     updateAfterModelChange()
   }
 
-  // The [SelectedComponentPanel] is short-lived. Make sure the listener is removed when the panel goes away.
+  // The [SelectedComponentPanel] is short-lived. Make sure the listener is removed when the panel
+  // goes away.
   override fun addNotify() {
     super.addNotify()
     model.addValueChangedListener(listener)

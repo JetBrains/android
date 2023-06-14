@@ -36,8 +36,7 @@ class FakeComboBoxUI : DarculaComboBoxUI() {
   override fun setPopupVisible(comboBox: JComboBox<*>?, visible: Boolean) {
     if (visible) {
       popup.show()
-    }
-    else {
+    } else {
       popup.hide()
     }
   }

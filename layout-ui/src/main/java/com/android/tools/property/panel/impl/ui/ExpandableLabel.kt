@@ -33,8 +33,8 @@ private const val RIGHT_OVERLAY_MARGIN = 6
  *
  * Use the actualText property instead of the text property to specify the text in this component.
  *
- * If the text is too wide ellipses will be shown at the end of the text (standard JLabel behaviour).
- * When the mouse is hovering over the text a popup will complete the hidden text.
+ * If the text is too wide ellipses will be shown at the end of the text (standard JLabel
+ * behaviour). When the mouse is hovering over the text a popup will complete the hidden text.
  */
 class ExpandableLabel : JLabel() {
   private val expandableLabelHandler = ExpandableLabelHandler(this)
@@ -56,9 +56,7 @@ class ExpandableLabel : JLabel() {
     super.setText(if (showEllipsis) actualText else htmlText)
   }
 
-  /**
-   * Hack: Determine when the popup was closed, and start showing the ellipsis again.
-   */
+  /** Hack: Determine when the popup was closed, and start showing the ellipsis again. */
   override fun repaint(r: Rectangle) {
     super.repaint(r)
     showEllipsis = !expandableLabelHandler.isShowing
@@ -67,8 +65,8 @@ class ExpandableLabel : JLabel() {
   /**
    * Handles expansion of property labels.
    *
-   * The tricky part of this code is to be able to show ellipsis in labels that are too wide,
-   * but remove the ellipsis when the text is expanded.
+   * The tricky part of this code is to be able to show ellipsis in labels that are too wide, but
+   * remove the ellipsis when the text is expanded.
    */
   private class ExpandableLabelHandler(component: ExpandableLabel) :
     AbstractExpandableItemsHandler<ExpandableLabel, ExpandableLabel>(component) {
@@ -87,7 +85,8 @@ class ExpandableLabel : JLabel() {
         return null
       }
 
-      // This renderer is used to display the text that expands to the right of the original label component.
+      // This renderer is used to display the text that expands to the right of the original label
+      // component.
       // This is done in a popup in [AbstractExpandableItemsHandler].
       renderer.text = key.text
       renderer.icon = key.icon
