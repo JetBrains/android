@@ -1474,7 +1474,7 @@ public final class StudioFlags {
       "insights.change.aware.annotation",
       "Change-aware Annotation Support",
       "Enhance annotation to aid crash investigation with the recorded VCS info",
-      false);
+      true);
 
   public static final Flag<Boolean> APP_INSIGHTS_VCS_SUPPORT =
     Flag.create(
