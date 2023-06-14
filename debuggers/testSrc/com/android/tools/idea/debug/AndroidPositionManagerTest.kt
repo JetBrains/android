@@ -140,18 +140,15 @@ class AndroidPositionManagerTest {
 
   @Test
   fun testDesugaringSupport_SimpleClass() {
-    @Language("JAVA") val text = """package p1.p2;
+    @Language("JAVA") val text = """
+      package p1.p2;
 
-class Foo {
-  public void bar() {
-    int test = 2;
-  }
-
-  class Inner {
-    static void doSomething() {
-    }
-  }
-}"""
+      class Foo {
+        public void bar() {
+          int test = 2;
+        }
+      }
+   """.trimIndent()
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
     assertThat(file).isNotNull()
     val position = createSourcePositionForOneBasedLineNumber(file, 5)
@@ -161,17 +158,14 @@ class Foo {
   @Test
   fun testDesugaringSupport_InterfaceWithStaticInitializer() {
     @Suppress("UnnecessaryModifier", "StringOperationCanBeSimplified")
-    @Language("JAVA") val text = """package p1.p2;
-
-interface Foo {
-  public static final String STR = new String()
-    .concat("foo");
-
-  class Inner {
-    static void doSomething() {
-    }
-  }
-}"""
+    @Language("JAVA") val text = """
+      package p1.p2;
+      
+      interface Foo {
+        public static final String STR = new String()
+          .concat("foo");
+      }
+    """.trimIndent()
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
     assertThat(file).isNotNull()
     val position = createSourcePositionForOneBasedLineNumber(file, 5)
@@ -180,18 +174,16 @@ interface Foo {
 
   @Test
   fun testDesugaringSupport_InterfaceWithDefaultMethod() {
-    @Language("JAVA") val text = """package p1.p2;
+    @Language("JAVA") val text = """
+      package p1.p2;
+      
+      interface Foo {
+        default void bar() {
+          int test = 2;
+        }
+      }
+    """.trimIndent()
 
-interface Foo {
-  default void bar() {
-    int test = 2;
-  }
-
-  class Inner {
-    static void doSomething() {
-    }
-  }
-}"""
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
     assertThat(file).isNotNull()
     val position = createSourcePositionForOneBasedLineNumber(file, 5)
@@ -200,90 +192,19 @@ interface Foo {
 
   @Test
   fun testDesugaringSupport_InterfaceWithStaticMethod() {
-    @Language("JAVA") val text = """package p1.p2;
-
-interface Foo {
-  static void bar() {
-    int test = 2;
-  }
-
-  class Inner {
-    static void doSomething() {
-    }
-  }
-}"""
+    @Language("JAVA") val text = """
+      package p1.p2;
+      
+      interface Foo {
+        static void bar() {
+          int test = 2;
+        }
+      }
+    """.trimIndent()
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
     assertThat(file).isNotNull()
     val position = createSourcePositionForOneBasedLineNumber(file, 5)
     runTestDesugaringSupportWhenDesugaringIsRequired(position, true)
-  }
-
-  private fun runTestDesugaringSupportWhenDesugaringIsRequired(position: SourcePosition, isDesugaringRequired: Boolean) {
-    // Mock the VirtualMachine proxy to manage tested types.
-    val vmProxy: VirtualMachineProxyImpl = mock()
-    whenever(mockDebugProcessImpl.virtualMachineProxy).thenReturn(vmProxy)
-    val typesMap = mockReferenceTypes(vmProxy, TOP_CLASS_NAME, INNER_CLASS_NAME, SYNTHESIZED_CLASS_NAME)
-
-    // Mock the RequestManager for the class prepare requests.
-    val mockRequestManager: RequestManagerImpl = mock()
-    whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManager)
-
-    // Attach current project to the mocked debug process.
-    whenever(mockDebugProcessImpl.project).thenReturn(project)
-
-    // Mock locationsOfLine to reflect which class contains the source position.
-    val topClass = typesMap[TOP_CLASS_NAME]!!
-    val innerClassWithoutLocation = typesMap[INNER_CLASS_NAME]!!
-    val desugarCompanionClass = typesMap[SYNTHESIZED_CLASS_NAME]!!
-    val mockLocation: Location = mock()
-    if (isDesugaringRequired) {
-      // If desugaring applies to an interface, its code moves to a synthesized class
-      whenever(myPositionManager.locationsOfLine(topClass, position)).thenReturn(emptyList())
-      whenever(myPositionManager.locationsOfLine(desugarCompanionClass, position)).thenReturn(listOf(mockLocation))
-    }
-    else {
-      // If desugaring was not needed, the interface remains unchanged.
-      whenever(myPositionManager.locationsOfLine(topClass, position)).thenReturn(listOf(mockLocation))
-      whenever(myPositionManager.locationsOfLine(desugarCompanionClass, position)).thenReturn(emptyList())
-    }
-    // The existing inner class is not related to the source position.
-    whenever(myPositionManager.locationsOfLine(innerClassWithoutLocation, position)).thenReturn(emptyList())
-
-    // Check that the list of types contains both the top class and the potential synthesized class.
-    val typesWithPosition = myPositionManager.getAllClasses(position)
-    assertThat(typesWithPosition).isNotNull()
-    if (isDesugaringRequired) {
-      // If desugaring may happen, both interface and its companion class should be returned.
-      assertThat(typesWithPosition).hasSize(2)
-      assertThat(typesWithPosition).containsExactly(topClass, desugarCompanionClass)
-    }
-    else {
-      // Without desugaring, the interface is the only class that contains the source position.
-      assertThat(typesWithPosition).hasSize(1)
-      assertThat(typesWithPosition).containsExactly(topClass)
-    }
-
-    // Mock class prepare requests.
-    val topClassPrepareRequest: ClassPrepareRequest = mock(withSettings().name("CPR:$TOP_CLASS_NAME").defaultAnswer(RETURNS_DEFAULTS))
-    val allInnerClassesPrepareRequest: ClassPrepareRequest = mock(
-      withSettings().name("CPR:all inner classes").defaultAnswer(RETURNS_DEFAULTS))
-    whenever(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq(TOP_CLASS_NAME)))
-      .thenReturn(topClassPrepareRequest)
-    whenever(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq("$TOP_CLASS_NAME$*")))
-      .thenReturn(allInnerClassesPrepareRequest)
-    val mockRequestor: ClassPrepareRequestor = mock()
-    val classPrepareRequests = myPositionManager.createPrepareRequests(mockRequestor, position)
-    assertThat(classPrepareRequests).isNotNull()
-    if (isDesugaringRequired) {
-      // If desugaring is required, we also create a class prepare request for all inner types of the interface so that we can find
-      // the source position in the companion class (which is one of the inner classes).
-      assertThat(classPrepareRequests).hasSize(2)
-      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest, allInnerClassesPrepareRequest)
-    }
-    else {
-      assertThat(classPrepareRequests).hasSize(1)
-      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest)
-    }
   }
 
   @Test
@@ -329,12 +250,14 @@ interface Foo {
     val location: Location = mock()
     whenever(location.declaringType()).thenReturn(type)
 
-    @Language("JAVA") val text = """package p1.p2;
-class Foo {
-  private void Bar() {
-    int test = 2;
-  }
-}"""
+    @Language("JAVA") val text = """
+      package p1.p2;
+      class Foo {
+        private void Bar() {
+          int test = 2;
+        }
+      }
+    """.trimIndent()
 
     val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/Foo.java", text)
 
@@ -473,6 +396,74 @@ class Foo {
     verify(mockFileEditorManager).closeFile(mockVirtualFile)
 
     componentStack.restore()
+  }
+
+  private fun runTestDesugaringSupportWhenDesugaringIsRequired(position: SourcePosition, isDesugaringRequired: Boolean) {
+    // Mock the VirtualMachine proxy to manage tested types.
+    val vmProxy: VirtualMachineProxyImpl = mock()
+    whenever(mockDebugProcessImpl.virtualMachineProxy).thenReturn(vmProxy)
+    val typesMap = mockReferenceTypes(vmProxy, TOP_CLASS_NAME, INNER_CLASS_NAME, SYNTHESIZED_CLASS_NAME)
+
+    // Mock the RequestManager for the class prepare requests.
+    val mockRequestManager: RequestManagerImpl = mock()
+    whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManager)
+
+    // Attach current project to the mocked debug process.
+    whenever(mockDebugProcessImpl.project).thenReturn(project)
+
+    // Mock locationsOfLine to reflect which class contains the source position.
+    val topClass = typesMap[TOP_CLASS_NAME]!!
+    val innerClassWithoutLocation = typesMap[INNER_CLASS_NAME]!!
+    val desugarCompanionClass = typesMap[SYNTHESIZED_CLASS_NAME]!!
+    val mockLocation: Location = mock()
+    if (isDesugaringRequired) {
+      // If desugaring applies to an interface, its code moves to a synthesized class
+      whenever(myPositionManager.locationsOfLine(topClass, position)).thenReturn(emptyList())
+      whenever(myPositionManager.locationsOfLine(desugarCompanionClass, position)).thenReturn(listOf(mockLocation))
+    }
+    else {
+      // If desugaring was not needed, the interface remains unchanged.
+      whenever(myPositionManager.locationsOfLine(topClass, position)).thenReturn(listOf(mockLocation))
+      whenever(myPositionManager.locationsOfLine(desugarCompanionClass, position)).thenReturn(emptyList())
+    }
+    // The existing inner class is not related to the source position.
+    whenever(myPositionManager.locationsOfLine(innerClassWithoutLocation, position)).thenReturn(emptyList())
+
+    // Check that the list of types contains both the top class and the potential synthesized class.
+    val typesWithPosition = myPositionManager.getAllClasses(position)
+    assertThat(typesWithPosition).isNotNull()
+    if (isDesugaringRequired) {
+      // If desugaring may happen, both interface and its companion class should be returned.
+      assertThat(typesWithPosition).hasSize(2)
+      assertThat(typesWithPosition).containsExactly(topClass, desugarCompanionClass)
+    }
+    else {
+      // Without desugaring, the interface is the only class that contains the source position.
+      assertThat(typesWithPosition).hasSize(1)
+      assertThat(typesWithPosition).containsExactly(topClass)
+    }
+
+    // Mock class prepare requests.
+    val topClassPrepareRequest: ClassPrepareRequest = mock(withSettings().name("CPR:$TOP_CLASS_NAME").defaultAnswer(RETURNS_DEFAULTS))
+    val allInnerClassesPrepareRequest: ClassPrepareRequest = mock(
+      withSettings().name("CPR:all inner classes").defaultAnswer(RETURNS_DEFAULTS))
+    whenever(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq(TOP_CLASS_NAME)))
+      .thenReturn(topClassPrepareRequest)
+    whenever(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq("$TOP_CLASS_NAME$*")))
+      .thenReturn(allInnerClassesPrepareRequest)
+    val mockRequestor: ClassPrepareRequestor = mock()
+    val classPrepareRequests = myPositionManager.createPrepareRequests(mockRequestor, position)
+    assertThat(classPrepareRequests).isNotNull()
+    if (isDesugaringRequired) {
+      // If desugaring is required, we also create a class prepare request for all inner types of the interface so that we can find
+      // the source position in the companion class (which is one of the inner classes).
+      assertThat(classPrepareRequests).hasSize(2)
+      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest, allInnerClassesPrepareRequest)
+    }
+    else {
+      assertThat(classPrepareRequests).hasSize(1)
+      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest)
+    }
   }
 
   companion object {
