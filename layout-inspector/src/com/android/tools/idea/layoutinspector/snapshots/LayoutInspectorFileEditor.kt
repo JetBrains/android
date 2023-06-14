@@ -91,13 +91,13 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
     }
     modificationCount = file?.modificationCount ?: -1
 
+    val contentPanel = JPanel(BorderLayout())
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_SNAPSHOT_ID, null, this)
     var snapshotLoader: SnapshotLoader? = null
     val startTime = System.currentTimeMillis()
     var metadata: SnapshotMetadata? = null
     try {
       val notificationModel = NotificationModel(project)
-      val contentPanel = JPanel(BorderLayout())
       contentPanel.add(InspectorBanner(notificationModel), BorderLayout.NORTH)
       contentPanel.add(workbench, BorderLayout.CENTER)
 
@@ -196,8 +196,8 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
         }
       }
     }
-    component = workbench
-    return workbench
+    component = contentPanel
+    return contentPanel
   }
 
   override fun getPreferredFocusedComponent(): JComponent? = null
