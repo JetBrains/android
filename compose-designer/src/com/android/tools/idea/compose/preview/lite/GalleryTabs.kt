@@ -34,8 +34,8 @@ import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBThinOverlappingScrollBar
-import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import java.awt.Adjustable
 import java.awt.BorderLayout
 import javax.swing.JComponent
@@ -73,7 +73,7 @@ class GalleryTabs<Key : TitledKey>(
           ActionPlaces.TOOLBAR,
           ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
         )
-        .apply { font = JBFont.medium() }
+        .apply { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) }
 
     override fun actionPerformed(e: AnActionEvent) {
       selectedKey = key
