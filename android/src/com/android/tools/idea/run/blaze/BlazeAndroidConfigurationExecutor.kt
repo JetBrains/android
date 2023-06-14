@@ -34,7 +34,6 @@ import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLink
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
-import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -46,6 +45,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.indicatorRunBlockingCancellable
+import com.intellij.xdebugger.XDebugSession
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -165,12 +165,8 @@ class BlazeAndroidConfigurationExecutor(
     doRun(devices, processHandler, true, indicator, console)
 
     val device = devices.single()
-    val debuggerTask = myLaunchTasksProvider.connectDebuggerTask
-                       ?: throw RuntimeException(
-                         "ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.javaClass.name)
     indicator.text = "Connecting debugger"
-    val session = debuggerTask.perform(device, applicationId, env, indicator, console)
-    session.runContentDescriptor
+    myLaunchTasksProvider.startDebugSession(env, device, console, indicator, applicationId).runContentDescriptor
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = throw UnsupportedOperationException("Apply Changes are not supported for Blaze")
@@ -192,8 +188,11 @@ interface BlazeLaunchTasksProvider {
   @Throws(ExecutionException::class)
   fun getTasks(device: IDevice, isDebug: Boolean): List<BlazeLaunchTask>
 
-  @get:Throws(ExecutionException::class)
-  val connectDebuggerTask: ConnectDebuggerTask?
+  @Throws(ExecutionException::class)
+  fun startDebugSession(
+    environment: ExecutionEnvironment, device: IDevice, console: ConsoleView,
+    indicator: ProgressIndicator, packageName: String
+  ): XDebugSession
 }
 
 

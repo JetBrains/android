@@ -121,7 +121,11 @@ class AndroidTestRunConfigurationExecutorTest {
     val deviceState = fakeAdb.connectAndWaitForDevice()
     deviceState.setActivityManager { args, _ ->
       if (args[0] == "instrument") {
-        FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1235, "testApplicationId", true)
+        FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1235, "applicationId", true)
+        Thread.sleep(2000) // let debugger to connect
+      }
+      if (args.joinToString(" ") == "force-stop applicationId") {
+        deviceState.stopClient(1235)
       }
     }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()

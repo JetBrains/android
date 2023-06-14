@@ -30,6 +30,8 @@ import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.execution.common.adb.shell.tasks.launchSandboxSdk
 import com.android.tools.idea.execution.common.clearAppStorage
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
+import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.deploy.deployAndHandleError
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
@@ -46,7 +48,6 @@ import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.configuration.isDebug
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.tasks.RunInstantApp
-import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
@@ -259,8 +260,23 @@ class AndroidRunConfigurationExecutor(
   private fun startDebugSession(
     device: IDevice, packageName: String, indicator: ProgressIndicator, console: ConsoleView
   ) = RunStats.from(env).track("startDebuggerSession") {
-    val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env)
-    debuggerTask.perform(device, packageName, env, indicator, console)
+    val debugger = configuration.androidDebuggerContext.androidDebugger
+      ?: throw ExecutionException("Unable to determine debugger to use for this launch")
+    LOG.info("Using debugger: " + debugger.id)
+    val debuggerState = configuration.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
+      ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
+
+    DebugSessionStarter.attachDebuggerToStartedProcess(
+      device,
+      packageName,
+      env,
+      debugger,
+      debuggerState,
+      destroyRunningProcess = { d -> d.forceStop(packageName) },
+      indicator,
+      console,
+      15
+    )
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
@@ -384,7 +400,8 @@ class AndroidRunConfigurationExecutor(
 
     if (needsNewRunContentDescriptor ||
       existingRunContentDescriptor?.processHandler == null ||
-      existingRunContentDescriptor.processHandler?.isProcessTerminated == true) {
+      existingRunContentDescriptor.processHandler?.isProcessTerminated == true
+    ) {
       existingRunContentDescriptor?.processHandler?.detachProcess()
       if (env.executor.isDebug) {
         startDebugSession(devices.single(), packageName, indicator, createConsole()).runContentDescriptor
