@@ -43,20 +43,23 @@ internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
 internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHandle) :
   ActionButtonsPanel() {
 
-  val openDeviceExplorer = project?.let { OpenDeviceExplorerButton(it, handle) }
-  val overflowButton = OverflowButton()
+  private val openDeviceExplorer = project?.let { OpenDeviceExplorerButton(it, handle) }
+  private val overflowButton = OverflowButton()
 
   init {
-    handle.activationAction?.let { activationAction ->
-      handle.deactivationAction?.let { deactivationAction ->
+    val activationAction = handle.activationAction
+    val deactivationAction = handle.deactivationAction
+    when {
+      activationAction != null && deactivationAction != null -> {
         setUp(
           StartStopButton(handle, activationAction, deactivationAction, handle.repairDeviceAction),
           openDeviceExplorer,
           overflowButton
         )
       }
+      project == null -> setUp(overflowButton)
+      else -> setUp(StartStopMirroringButton(handle, project), openDeviceExplorer, overflowButton)
     }
-      ?: setUp(openDeviceExplorer, overflowButton)
   }
 
   override fun updateState(state: DeviceRowData) {
@@ -68,7 +71,7 @@ internal class DeviceTemplateButtonsPanel(
   coroutineScope: CoroutineScope,
   deviceTemplate: DeviceTemplate
 ) : ActionButtonsPanel() {
-  val activateTemplateButton = ActivateTemplateButton(coroutineScope, deviceTemplate)
+  private val activateTemplateButton = ActivateTemplateButton(coroutineScope, deviceTemplate)
 
   init {
     setUp(activateTemplateButton)
