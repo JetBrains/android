@@ -122,6 +122,12 @@ interface ComposePreviewView {
   fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit)
 
   /**
+   * Called when the full list of preview elements has been updated. The view will use this to
+   * update UI components that rely on the full list.
+   */
+  fun onUpdateAllPreviewElements(previewElements: Collection<ComposePreviewElementInstance>)
+
+  /**
    * Updates the list of previews to be rendered in this [ComposePreviewView], requests a refresh
    * and returns the list of [ComposePreviewElement] being rendered.
    *
@@ -131,7 +137,7 @@ interface ComposePreviewView {
    */
   suspend fun updatePreviewsAndRefresh(
     reinflate: Boolean,
-    previewElementProvider: PreviewFilters,
+    previewElements: Collection<ComposePreviewElementInstance>,
     psiFile: PsiFile,
     progressIndicator: ProgressIndicator,
     onRenderCompleted: () -> Unit,
@@ -142,7 +148,7 @@ interface ComposePreviewView {
   ): List<ComposePreviewElement> {
     return mainSurface.updatePreviewsAndRefresh(
       reinflate,
-      previewElementProvider,
+      previewElements,
       Logger.getInstance(ComposePreviewView::class.java),
       psiFile,
       mainSurface,
@@ -397,33 +403,13 @@ internal class ComposePreviewViewImpl(
       notificationPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
     }
 
-  override suspend fun updatePreviewsAndRefresh(
-    reinflate: Boolean,
-    previewElementProvider: PreviewFilters,
-    psiFile: PsiFile,
-    progressIndicator: ProgressIndicator,
-    onRenderCompleted: () -> Unit,
-    previewElementModelAdapter: ComposePreviewElementModelAdapter,
-    modelUpdater: NlModel.NlModelUpdaterInterface,
-    configureLayoutlibSceneManager:
-      (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
-  ): List<ComposePreviewElement> {
-    gallery?.let {
-      val elements = previewElementProvider.allAvailablePreviewElements()
-      it.updateTabs(elements.toList())
-    }
-    return mainSurface.updatePreviewsAndRefresh(
-      reinflate,
-      previewElementProvider,
-      Logger.getInstance(ComposePreviewView::class.java),
-      psiFile,
-      mainSurface,
-      progressIndicator,
-      onRenderCompleted,
-      previewElementModelAdapter,
-      modelUpdater,
-      configureLayoutlibSceneManager
-    )
+  override fun onUpdateAllPreviewElements(
+    previewElements: Collection<ComposePreviewElementInstance>
+  ) {
+    // TODO(b/287259320): Ideally we should remove onUpdateAllPreviewElements and rely on the
+    // update() method of Gallery once it is converted
+    // to an IntelliJ component.
+    gallery?.updateTabs(previewElements)
   }
 
   /** Method called to ask all notifications to update. */

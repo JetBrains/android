@@ -225,7 +225,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     val showingPreviewElements =
       surface.updatePreviewsAndRefresh(
         true,
-        previewElementProvider,
+        previewElementProvider.previewElements().toList(),
         LOG,
         psiFile,
         this,

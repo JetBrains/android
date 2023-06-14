@@ -1169,10 +1169,15 @@ class ComposePreviewRepresentation(
 
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
+    // TODO(b/287259320): Do not call this method on refresh. Move it to be called only when the
+    // previews have been updated.
+    composeWorkBench.onUpdateAllPreviewElements(
+      previewElementProvider.allAvailablePreviewElements().toList()
+    )
     val showingPreviewElements =
       composeWorkBench.updatePreviewsAndRefresh(
         !quickRefresh,
-        previewElementProvider,
+        previewElementProvider.previewElements().toList(),
         psiFile,
         progressIndicator,
         this::onAfterRender,

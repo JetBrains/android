@@ -239,7 +239,7 @@ class ComposePreviewViewImplTest {
     runBlocking(workerThread) {
       surface.updatePreviewsAndRefresh(
         true,
-        previewProvider,
+        previewProvider.previewElements().toList(),
         Logger.getInstance(ComposePreviewViewImplTest::class.java),
         mainFileSmartPointer.element!!,
         fixture.testRootDisposable,
