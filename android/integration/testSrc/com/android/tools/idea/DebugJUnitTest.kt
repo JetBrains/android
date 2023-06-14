@@ -54,12 +54,7 @@ class DebugJUnitTest {
 
       System.out.println("Debugging the JUnit test")
       studio.executeAction("android.deploy.DebugWithoutBuild")
-
-      // XDebuggerTree's presence represents that the debugger hit a breakpoint.
-      System.out.println("Checking for the debugger UI")
-      val builder = ComponentMatchersBuilder()
-      builder.addSwingClassRegexMatch(".*XDebuggerTree$")
-      studio.waitForComponent(builder)
+      studio.resumeProgramFromDebugging()
     }
   }
 }
