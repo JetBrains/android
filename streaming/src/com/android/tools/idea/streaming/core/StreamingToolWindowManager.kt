@@ -38,6 +38,9 @@ import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.MirroringHandle
+import com.android.tools.idea.streaming.MirroringManager
+import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.core.RunningDevicePanel.UiState
 import com.android.tools.idea.streaming.device.DeviceClient
@@ -386,7 +389,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       is DeviceId.PhysicalDeviceId -> {
         val deviceClient = deviceClients[activeDeviceId.serialNumber]
         if (deviceClient != null) {
-          activateMirroring(activeDeviceId.serialNumber, deviceClient)
+          activateMirroring(activeDeviceId.serialNumber, deviceClient, ActivationLevel.ACTIVATE_TAB)
         }
       }
 
@@ -401,7 +404,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     for ((serialNumber, deviceClient) in deviceClients) {
       if (serialNumber != lastSelectedDeviceId?.serialNumber) {
-        activateMirroring(serialNumber, deviceClient)
+        activateMirroring(serialNumber, deviceClient, ActivationLevel.CREATE_TAB)
       }
     }
 
@@ -446,10 +449,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
     addPanel(EmulatorToolWindowPanel(project, emulator))
-  }
-
-  private fun addPhysicalDevicePanel(deviceClient: DeviceClient) {
-    addPanel(DeviceToolWindowPanel(project, deviceClient))
   }
 
   private fun addPanel(panel: RunningDevicePanel) {
@@ -515,7 +514,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun removePhysicalDevicePanel(panel: DeviceToolWindowPanel) {
     val serialNumber = panel.id.serialNumber
-    deviceClients.remove(serialNumber)?.let { Disposer.dispose(it) }
+    deviceClients.remove(serialNumber)?.let {
+      Disposer.dispose(it)
+      updateMirroringHandlesFlow()
+    }
     mirroredDevices.remove(serialNumber)
     removePanel(panel)
   }
@@ -646,13 +648,26 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
+  private fun deactivateMirroring(serialNumber: String) {
+    if (contentCreated) {
+      val panel = findPanelBySerialNumber(serialNumber) as? DeviceToolWindowPanel ?: return
+      mirroredDevices.remove(serialNumber)
+      removePanel(panel)
+    }
+    else {
+      stopMirroring(serialNumber)
+    }
+  }
+
   private fun stopMirroring(serialNumber: String) {
     mirroredDevices.remove(serialNumber)
     val deviceClient = deviceClients.remove(serialNumber)
     if (deviceClient != null) {
+      updateMirroringHandlesFlow()
       devicesExcludedFromMirroring[serialNumber] =
           DeviceDescription(deviceClient.deviceName, serialNumber, deviceClient.deviceHandle, deviceClient.deviceConfig)
       Disposer.dispose(deviceClient)
+      updateMirroringHandlesFlow()
     }
   }
 
@@ -675,16 +690,15 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val serialNumber = deviceDescription.serialNumber
     val deviceClient = getOrCreateDeviceClient(serialNumber, deviceDescription.handle, deviceDescription.config) ?: return
     if (!mirroredDevices.contains(serialNumber)) {
-      startMirroringIfConfirmed(serialNumber, deviceClient)
+      startMirroringIfConfirmed(serialNumber, deviceClient, ActivationLevel.ACTIVATE_TAB)
     }
-    onPhysicalDeviceHeadsUp(serialNumber, ActivationLevel.ACTIVATE_TAB)
   }
 
   private fun activateMirroring(serialNumber: String, device: DeviceHandle, config: DeviceConfiguration, activationLevel: ActivationLevel) {
     recentAttentionRequests.invalidate(serialNumber)
     val deviceClient = getOrCreateDeviceClient(serialNumber, device, config) ?: return
     if (contentCreated) {
-      activateMirroring(serialNumber, deviceClient)
+      activateMirroring(serialNumber, deviceClient, activationLevel)
       if (activationLevel >= ActivationLevel.SELECT_TAB) {
         onPhysicalDeviceHeadsUp(serialNumber, activationLevel)
       }
@@ -697,16 +711,16 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  private fun activateMirroring(serialNumber: String, deviceClient: DeviceClient) {
+  private fun activateMirroring(serialNumber: String, deviceClient: DeviceClient, activationLevel: ActivationLevel) {
     if (serialNumber !in mirroredDevices && serialNumber !in devicesExcludedFromMirroring) {
-      startMirroringIfConfirmed(serialNumber, deviceClient)
+      startMirroringIfConfirmed(serialNumber, deviceClient, activationLevel)
     }
   }
 
-  private fun startMirroringIfConfirmed(serialNumber: String, deviceClient: DeviceClient) {
+  private fun startMirroringIfConfirmed(serialNumber: String, deviceClient: DeviceClient, activationLevel: ActivationLevel) {
     // Reservable devices are assumed to be privacy protected.
     if (deviceMirroringSettings.confirmationDialogShown || deviceClient.deviceHandle.reservationAction != null) {
-      startMirroring(serialNumber, deviceClient)
+      startMirroring(serialNumber, deviceClient, activationLevel)
     }
     else if (!mirroringConfirmationDialogShowing) { // Ignore a recursive call inside the dialog's event loop.
       mirroringConfirmationDialogShowing = true
@@ -714,7 +728,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val dialogWrapper = MirroringConfirmationDialog(title).createWrapper(project).apply { show() }
       mirroringConfirmationDialogShowing = false
       when (dialogWrapper.exitCode) {
-        MirroringConfirmationDialog.ACCEPT_EXIT_CODE -> startMirroring(serialNumber, deviceClient)
+        MirroringConfirmationDialog.ACCEPT_EXIT_CODE -> startMirroring(serialNumber, deviceClient, activationLevel)
         MirroringConfirmationDialog.REJECT_EXIT_CODE -> deviceMirroringSettings.deviceMirroringEnabled = false
         else -> return
       }
@@ -722,15 +736,47 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  private fun startMirroring(serialNumber: String, deviceClient: DeviceClient) {
+  private fun startMirroring(serialNumber: String, deviceClient: DeviceClient, activationLevel: ActivationLevel) {
     devicesExcludedFromMirroring.remove(serialNumber)
-    if (serialNumber in onlineDevices && mirroredDevices.add(serialNumber)) {
-      deviceClient.establishAgentConnectionWithoutVideoStreamAsync() // Start the agent and connect to it proactively.
-      showLiveIndicator()
+    if (serialNumber in onlineDevices) {
       if (contentCreated) {
-        addPhysicalDevicePanel(deviceClient)
+        if (mirroredDevices.add(serialNumber)) {
+          updateMirroringHandlesFlow()
+          deviceClient.establishAgentConnectionWithoutVideoStreamAsync() // Start the agent and connect to it proactively.
+          showLiveIndicator()
+          val panel = DeviceToolWindowPanel(project, deviceClient)
+          addPanel(panel)
+          if (activationLevel >= ActivationLevel.SELECT_TAB) {
+            selectPanel(panel, requestFocus = activationLevel >= ActivationLevel.ACTIVATE_TAB)
+          }
+        }
+      }
+      else if (activationLevel >= ActivationLevel.SHOW_TOOL_WINDOW) {
+        lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
+        toolWindow.activate(activationLevel)
       }
     }
+  }
+
+  private fun selectPanel(panel: DeviceToolWindowPanel, requestFocus: Boolean) {
+    val contentManager = toolWindow.contentManager
+    val content = contentManager.getContent(panel) ?: return
+    contentManager.setSelectedContent(content, requestFocus)
+  }
+
+  private fun updateMirroringHandlesFlow() {
+    val mirroringHandles = mutableMapOf<DeviceHandle, MirroringHandle>()
+    for (device in devicesExcludedFromMirroring.values) {
+      if (device.handle.reservationAction == null) {
+        mirroringHandles[device.handle] = MirroringActivator(device)
+      }
+    }
+    for (client in deviceClients.values) {
+      if (client.deviceHandle.reservationAction == null) {
+        mirroringHandles[client.deviceHandle] = MirroringDeactivator(client.deviceSerialNumber)
+      }
+    }
+    project.service<MirroringManager>().mirroringHandles.value = mirroringHandles
   }
 
   @AnyThread
@@ -754,19 +800,24 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
       else {
         // The device is excluded from mirroring.
-        devicesExcludedFromMirroring.computeIfAbsent(serialNumber) {
-          DeviceDescription(config.deviceName, serialNumber, deviceHandle, config)
+        val deviceDescription = devicesExcludedFromMirroring[serialNumber]
+        if (deviceDescription == null) {
+          devicesExcludedFromMirroring[serialNumber] = DeviceDescription(config.deviceName, serialNumber, deviceHandle, config)
+          updateMirroringHandlesFlow()
         }
       }
     }
   }
 
   private fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient? {
-    return physicalDeviceWatcher?.let { disposable ->
-      deviceClients.computeIfAbsent(serialNumber) { serial ->
-        DeviceClient(disposable, serial, deviceHandle, config, config.deviceProperties.abi.toString(), project)
-      }
+    val disposable = physicalDeviceWatcher ?: return null
+    var deviceClient = deviceClients[serialNumber]
+    if (deviceClient == null) {
+      deviceClient = DeviceClient(disposable, serialNumber, deviceHandle, config, config.deviceProperties.abi.toString(), project)
+      deviceClients[serialNumber] = deviceClient
+      updateMirroringHandlesFlow()
     }
+    return deviceClient
   }
 
   private suspend fun showDeviceActionPopup(anchorComponent: Component?, dataContext: DataContext) {
@@ -792,7 +843,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       if (deviceDescriptions.isNotEmpty()) {
         add(Separator("Connected Devices"))
         for (deviceDescription in deviceDescriptions) {
-          add(StartMirroringAction(deviceDescription))
+          add(StartDeviceMirroringAction(deviceDescription))
         }
         add(Separator.getInstance())
       }
@@ -923,6 +974,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
     override fun dispose() {
       deviceClients.clear() // The clients have been disposed already.
+      updateMirroringHandlesFlow()
       removeAllPhysicalDevicePanels()
     }
   }
@@ -942,7 +994,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
-  private inner class StartMirroringAction(
+  private inner class StartDeviceMirroringAction(
     private val device: DeviceDescription,
   ) : DumbAwareAction(device.deviceName, null, device.config.deviceProperties.deviceType?.icon) {
 
@@ -986,6 +1038,24 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  }
+
+  private inner class MirroringActivator(private val device: DeviceDescription) : MirroringHandle {
+    override val mirroringState: MirroringState
+      get() = MirroringState.INACTIVE
+
+    override fun toggleMirroring() {
+      activateMirroring(device)
+    }
+  }
+
+  private inner class MirroringDeactivator(private val serialNumber: String) : MirroringHandle {
+    override val mirroringState: MirroringState
+      get() = MirroringState.ACTIVE
+
+    override fun toggleMirroring() {
+      deactivateMirroring(serialNumber)
+    }
   }
 
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,

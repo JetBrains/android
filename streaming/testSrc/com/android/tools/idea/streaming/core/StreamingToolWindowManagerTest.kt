@@ -34,11 +34,14 @@ import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.MirroringManager
+import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.ToolWindowHeadlessManagerImpl
 import com.android.tools.idea.streaming.createTestEvent
@@ -66,6 +69,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
@@ -81,6 +85,7 @@ import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import icons.StudioIcons
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -560,6 +565,7 @@ class StreamingToolWindowManagerTest {
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
     assertThat(popup.actions[2].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
+    // Activate mirroring of Pixel 7 API 33.
     executeStreamingAction(popup.actions[2], toolWindow.component, project)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 7 API 33")
@@ -571,6 +577,7 @@ class StreamingToolWindowManagerTest {
         "[Separator (Connected Devices), Pixel 4 API 30 (null), " +
                 "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
+    // Activate mirroring of Pixel 4 API 30.
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
@@ -580,6 +587,45 @@ class StreamingToolWindowManagerTest {
     popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+  }
+
+  @Test
+  fun testMirroringManager() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
+    createToolWindowContent()
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+
+    val mirroringManager = project.service<MirroringManager>()
+    val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
+    assertThat(mirroringManager.mirroringHandles.value).isEmpty()
+
+    agentRule.connectDevice("Pixel 2", 25, Dimension(1080, 1920)) // API too low for mirroring.
+    agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
+    waitForCondition(2, TimeUnit.SECONDS) { deviceProvisioner.devices.value.size == 3 }
+    val pixel4 = deviceProvisioner.devices.value[1]
+    assertThat(pixel4.state.properties.model).isEqualTo("Pixel 4")
+    val pixel7 = deviceProvisioner.devices.value[2]
+    assertThat(pixel7.state.properties.model).isEqualTo("Pixel 7")
+    waitForCondition(2, TimeUnit.SECONDS) { mirroringManager.mirroringHandles.value.size == 2 }
+    assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+    assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+
+    runBlocking { mirroringManager.mirroringHandles.value[pixel4]?.toggleMirroring() }
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).contains(pixel4.state.properties.model)
+    assertThat(contentManager.selectedContent?.displayName).contains(pixel4.state.properties.model)
+    assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
+    assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+
+    runBlocking { mirroringManager.mirroringHandles.value[pixel4]?.toggleMirroring() }
+    waitForCondition(1, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+    assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
   }
 
   @Test
