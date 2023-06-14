@@ -22,6 +22,7 @@ import com.android.processmonitor.common.ProcessEvent
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.ProcessNameMonitorImpl
 import com.android.processmonitor.monitor.ddmlib.AdbAdapterImpl
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.AndroidAdbLogger
@@ -69,7 +70,7 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
   }
 
   private fun getAgentPath(): Path {
-    return when (StudioPathManager.isRunningFromSources()) {
+    return when (StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio) {
       true -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
       false -> PluginPathManager.getPluginHome("android").toPath().resolve(AGENT_RESOURCE_PROD)
     }
