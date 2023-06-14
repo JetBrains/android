@@ -529,7 +529,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       }
 
       // Otherwise fall back to using the model from the injected model builder.
-      val artifactId = stripExtensionAndClassifier(library.name)
+      val artifactId = library.component?.toIdentifier() ?: library.name
       // First check to see if we just obtained any paths from Gradle. Since we don't request all the paths this can be null
       // or contain an incomplete set of entries. In order to complete this set we need to obtain the reminder from LibraryFilePaths cache.
       val artifacts = additionalArtifactsMap[artifactId]

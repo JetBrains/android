@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdePreResolvedModuleLibrary
@@ -182,16 +181,6 @@ private fun IdeUnresolvedLibraryTable.resolve(
       }
     }
   )
-}
-
-/**
- * Removes name extension or qualifier or classifier from the given [libraryName]. If the given [libraryName]
- * can't be parsed as a [GradleCoordinate] this method returns the [libraryName] un-edited.
- */
-internal fun stripExtensionAndClassifier(libraryName: String): String {
-  val parts = libraryName.split(':')
-  if (parts.size < 3) return libraryName // There is not enough parts to form a group:id:version string.
-  return "${parts[0]}:${parts[1]}:${parts[2]}"
 }
 
 internal fun maybeLinkLibraryAndWorkOutLibraryLevel(projectDataNode: DataNode<ProjectData>, libraryData: LibraryData): LibraryLevel {
