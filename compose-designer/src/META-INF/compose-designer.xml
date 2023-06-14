@@ -97,7 +97,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.AnimatedContentLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.animated.content.no.label.parameter.set.name"
                      level="WARNING"/>
@@ -105,7 +105,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.InfiniteTransitionLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.remember.infinite.transition.no.label.parameter.set.name"
                      level="WARNING"/>
@@ -113,7 +113,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.AnimateAsStateLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.animate.as.state.no.label.parameter.set.name"
                      level="WARNING"/>
@@ -121,7 +121,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.CrossfadeLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.crossfade.no.label.parameter.set.name"
                      level="WARNING"/>
@@ -137,7 +137,7 @@
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.InfinitePropertiesLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
-                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.infinite.transition.properties.no.label.parameter.set.name"
                      level="WARNING"/>
