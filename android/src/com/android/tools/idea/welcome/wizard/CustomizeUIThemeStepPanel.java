@@ -187,11 +187,6 @@ public class CustomizeUIThemeStepPanel extends JPanel {
     return size;
   }
 
-  @Override
-  public String getTitle() {
-    return IdeBundle.message("step.title.ui.themes");
-  }
-
   private void applyLaf(ThemeInfo theme, Component component) {
     UIManager.LookAndFeelInfo info = new UIManager.LookAndFeelInfo(theme.name, theme.laf);
     try {
