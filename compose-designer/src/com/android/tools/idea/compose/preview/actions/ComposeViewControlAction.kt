@@ -56,6 +56,10 @@ class ComposeViewControlAction(
     super.update(e)
     e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
     e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
+    e.presentation.description =
+      if (ComposePreviewLiteModeManager.isLiteModeEnabled)
+        message("action.scene.view.control.lite.mode.description")
+      else message("action.scene.view.control.description")
   }
 
   @VisibleForTesting
