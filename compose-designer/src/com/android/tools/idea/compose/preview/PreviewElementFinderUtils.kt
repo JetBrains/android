@@ -308,9 +308,9 @@ internal fun UAnnotation.getContainingComposableUMethod() =
 private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
 
 internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
-  when (val resolvedImplmentation = this.resolve()) {
+  when (val resolvedImplementation = this.resolve()) {
     is ClsClassImpl ->
-      resolvedImplmentation.methods
+      resolvedImplementation.methods
         .map { psiMethod ->
           Pair(
             psiMethod.name,
@@ -319,7 +319,7 @@ internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
         }
         .toMap()
     is KtLightClass ->
-      resolvedImplmentation.methods
+      resolvedImplementation.methods
         .map { psiMethod ->
           Pair(
             psiMethod.name,
