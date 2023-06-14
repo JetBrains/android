@@ -35,6 +35,7 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
@@ -362,6 +363,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
           }
         }
         else {
+          LogUtils.log(getClass(), "CPU capture successfully parsed");
           myCapture = capture;
           onCaptureParsed(capture);
           setState(State.ANALYZING);
@@ -470,6 +472,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }
 
     if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null) {
+      LogUtils.log(getClass(), "CPU capture contains system trace data");
       createDisplayPipelineTrackGroups((SystemTraceCpuCapture)capture)
         .forEach(myTrackGroupModels::add);
     }
