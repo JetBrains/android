@@ -31,6 +31,7 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
@@ -70,9 +71,13 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
   }
 
   private fun getAgentPath(): Path {
-    return when (StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio) {
-      true -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
-      false -> PluginPathManager.getPluginHome("android").toPath().resolve(AGENT_RESOURCE_PROD)
+    return when  {
+      !IdeInfo.getInstance().isAndroidStudio -> {
+        Paths.get(PathManager.getSystemPath(), "android/android-plugin-resources/223.0.1.0/plugins/android")
+          .resolve(AGENT_RESOURCE_PROD)
+      }
+      StudioPathManager.isRunningFromSources() -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
+      else -> PluginPathManager.getPluginHome("android").toPath().resolve(AGENT_RESOURCE_PROD)
     }
 
   }
