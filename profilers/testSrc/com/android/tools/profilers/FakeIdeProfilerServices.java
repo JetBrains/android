@@ -69,7 +69,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   public static final ProfilingConfiguration ART_INSTRUMENTED_CONFIG = new ArtInstrumentedConfiguration(FAKE_ART_INSTRUMENTED_NAME);
   public static final ProfilingConfiguration SIMPLEPERF_CONFIG = new SimpleperfConfiguration(FAKE_SIMPLEPERF_NAME);
   public static final ProfilingConfiguration ATRACE_CONFIG = new AtraceConfiguration(FAKE_ATRACE_NAME);
-  public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME);
+  public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME, false);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private final CodeNavigator myFakeNavigationService = new CodeNavigator(
@@ -124,6 +124,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    * Whether the task-based UX should be visible.
    */
   private boolean myTaskBasedUxEnabled = false;
+
+  /**
+   * Whether we should be load tracebox.
+   */
+  private boolean myTraceboxEnabled = false;
 
   /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
@@ -278,6 +283,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isTaskBasedUxEnabled() {
         return myTaskBasedUxEnabled;
       }
+
+      @Override
+      public boolean isTraceboxEnabled() {
+        return myTraceboxEnabled;
+      }
     };
   }
 
@@ -350,7 +360,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       config = new SimpleperfConfiguration(name);
     }
     else if (type == TraceType.PERFETTO) {
-      config = new PerfettoConfiguration(name);
+      config = new PerfettoConfiguration(name, getFeatureConfig().isTraceboxEnabled());
     }
     else if (type == TraceType.ATRACE) {
       config = new AtraceConfiguration(name);

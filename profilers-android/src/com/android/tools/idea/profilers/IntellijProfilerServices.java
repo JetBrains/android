@@ -420,5 +420,10 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     public boolean isTaskBasedUxEnabled() {
       return StudioFlags.PROFILER_TASK_BASED_UX.get();
     }
+
+    @Override
+    public boolean isTraceboxEnabled() {
+      return StudioFlags.PROFILER_TRACEBOX.get();
+    }
   }
 }

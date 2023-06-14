@@ -31,6 +31,7 @@ public interface FeatureConfig {
   boolean isProfileableBuildsEnabled();
   boolean isTestingModeEnabled();
   boolean isTaskBasedUxEnabled();
+  boolean isTraceboxEnabled();
 
   PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();
   // Add new features alphabetically instead of at the end of the list

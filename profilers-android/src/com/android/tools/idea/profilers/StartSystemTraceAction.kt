@@ -41,7 +41,7 @@ class StartSystemTraceAction : DumbAwareAction(
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers
     val stage = CpuProfilerStage(profilers)
-    stage.profilerConfigModel.profilingConfiguration = PerfettoConfiguration(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName())
+    stage.profilerConfigModel.profilingConfiguration = PerfettoConfiguration(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(), StudioFlags.PROFILER_TRACEBOX.get())
     profilers.stage = stage
     stage.recordingModel.start()
   }

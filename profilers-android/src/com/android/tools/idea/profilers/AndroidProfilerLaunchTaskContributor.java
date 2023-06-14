@@ -24,6 +24,7 @@ import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
@@ -278,7 +279,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
-    featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(configuration));
+    featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(configuration, StudioFlags.PROFILER_TRACEBOX.get()));
 
     if (profilingConfiguration.getTraceType() != TraceType.ART) {
       return "";

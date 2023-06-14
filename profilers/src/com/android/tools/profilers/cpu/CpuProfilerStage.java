@@ -157,6 +157,8 @@ public class CpuProfilerStage extends StreamingStage {
    */
   private final CpuCaptureMetadata.CpuProfilerEntryPoint myEntryPoint;
 
+  private final boolean isTraceboxEnabled;
+
   @VisibleForTesting
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN);
@@ -222,6 +224,8 @@ public class CpuProfilerStage extends StreamingStage {
         .filter(info -> info.getToTimestamp() != -1).collect(Collectors.toList());
     existingCompletedTraceInfoList.forEach(info -> myCompletedTraceIdToInfoMap.put(info.getTraceId(), new CpuTraceInfo(info)));
     myInProgressTraceHandler = new InProgressTraceHandler();
+
+    isTraceboxEnabled = getStudioProfilers().getIdeServices().getFeatureConfig().isTraceboxEnabled();
   }
 
   private static Logger getLogger() {
@@ -451,7 +455,7 @@ public class CpuProfilerStage extends StreamingStage {
     if (myCompletedTraceIdToInfoMap.containsKey(traceId)) {
       CpuCaptureStage stage = CpuCaptureStage.create(
         getStudioProfilers(),
-        ProfilingConfiguration.fromProto(myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration()),
+        ProfilingConfiguration.fromProto(myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration(), isTraceboxEnabled),
         myEntryPoint, traceId);
       if (stage != null) {
         getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> getStudioProfilers().setStage(stage));
@@ -631,7 +635,7 @@ public class CpuProfilerStage extends StreamingStage {
           if (trace.getStopStatus().getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
             LogUtils.log(getClass(), "CPU capture stop succeeded");
             CpuCaptureMetadata captureMetadata =
-              new CpuCaptureMetadata(ProfilingConfiguration.fromProto(finishedTraceToSelect.getConfiguration()));
+              new CpuCaptureMetadata(ProfilingConfiguration.fromProto(finishedTraceToSelect.getConfiguration(), isTraceboxEnabled));
             // If the capture is successful, we can track a more accurate time, calculated from the capture itself.
             captureMetadata.setCaptureDurationMs(TimeUnit.NANOSECONDS.toMillis(trace.getToTimestamp() - trace.getFromTimestamp()));
             captureMetadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(trace.getStopStatus().getStoppingDurationNs()));
@@ -703,7 +707,7 @@ public class CpuProfilerStage extends StreamingStage {
       }
       else {
         // Updates myProfilerConfigModel to the ongoing profiler configuration.
-        myProfilerConfigModel.setProfilingConfiguration(ProfilingConfiguration.fromProto(traceInfo.getConfiguration()));
+        myProfilerConfigModel.setProfilingConfiguration(ProfilingConfiguration.fromProto(traceInfo.getConfiguration(), isTraceboxEnabled));
       }
       setCaptureState(state);
       getTimeline().setStreaming(true);

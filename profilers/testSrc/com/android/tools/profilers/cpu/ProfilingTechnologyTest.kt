@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.TraceMode
 import com.android.tools.profilers.TraceConfigOptionsUtils
@@ -100,8 +101,9 @@ class ProfilingTechnologyTest {
 
   @Test
   fun fromConfigPerfetto() {
-    val perfettoConfiguration = PerfettoConfiguration("MyConfiguration")
+    val perfettoConfiguration = PerfettoConfiguration("MyConfiguration", false)
     assertThat(ProfilingTechnology.fromConfig(perfettoConfiguration)).isEqualTo(ProfilingTechnology.SYSTEM_TRACE)
+    assertThat(perfettoConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.P)
   }
 
   @Test(expected = IllegalStateException::class)
