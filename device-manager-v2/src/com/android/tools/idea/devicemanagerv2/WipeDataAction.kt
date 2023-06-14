@@ -30,23 +30,31 @@ class WipeDataAction :
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::wipeDataAction)
+    e.updateFromDeviceActionOrDeactivateAction(DeviceHandle::wipeDataAction)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val deviceHandle = e.deviceHandle()
-    val wipeDataAction = deviceHandle?.wipeDataAction ?: return
+    val deviceRowData = e.deviceRowData() ?: return
+    val deviceHandle = deviceRowData.handle ?: return
+    val wipeDataAction = deviceHandle.wipeDataAction ?: return
 
+    val isRunning = deviceRowData.status == DeviceRowData.Status.ONLINE
+    val runningSuffix = " This will stop the device.".takeIf { isRunning } ?: ""
     if (
       MessageDialogBuilder.yesNo(
           "Confirm Data Wipe",
-          "Do you really want to wipe user files from " + deviceHandle.state.properties.title + "?"
+          "Do you really want to wipe user files from ${deviceHandle.state.properties.title}?$runningSuffix"
         )
         .ask(e.componentToRestoreFocusTo())
     ) {
-      DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_WIPE_DATA_ACTION)
+      deviceHandle.scope.launch {
+        if (isRunning) {
+          deviceHandle.deactivationAction?.deactivate()
+        }
 
-      deviceHandle.scope.launch { wipeDataAction.wipeData() }
+        DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_WIPE_DATA_ACTION)
+        wipeDataAction.wipeData()
+      }
     }
   }
 }

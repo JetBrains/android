@@ -33,8 +33,29 @@ fun AnActionEvent.updateFromDeviceAction(deviceActionProperty: DeviceHandle.() -
   }
 }
 
+/**
+ * Updates the presentation from the given action, except that it is also enabled if the
+ * deactivation action is enabled. (This is for Delete and Wipe Data, which are enabled in the UI if
+ * it's possible to stop the device in order to wipe / delete it.)
+ */
+fun AnActionEvent.updateFromDeviceActionOrDeactivateAction(
+  deviceActionProperty: DeviceHandle.() -> DeviceAction?
+) {
+  val handle = deviceHandle()
+  when (val deviceAction = handle?.deviceActionProperty()) {
+    null -> presentation.isEnabledAndVisible = false
+    else -> {
+      presentation.isVisible = true
+      presentation.isEnabled = deviceAction.isEnabled() || handle.deactivationAction.isEnabled()
+      presentation.text = deviceAction.presentation.value.label
+    }
+  }
+}
+
 fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
 
 internal fun AnActionEvent.deviceRowData() = DEVICE_ROW_DATA_KEY.getData(dataContext)
 
 internal fun AnActionEvent.deviceManagerPanel() = DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
+
+internal fun DeviceAction?.isEnabled() = this?.presentation?.value?.enabled == true

@@ -17,25 +17,17 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.adblib.utils.createChildScope
-import com.android.sdklib.deviceprovisioner.ActivationAction
-import com.android.sdklib.deviceprovisioner.DeactivationAction
 import com.android.sdklib.deviceprovisioner.DeviceError
-import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
-import com.android.sdklib.deviceprovisioner.RepairDeviceAction
-import com.android.sdklib.deviceprovisioner.TestDefaultDeviceActionPresentation
-import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.testFramework.ApplicationRule
 import icons.StudioIcons
 import javax.swing.SwingUtilities
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -47,59 +39,6 @@ import org.junit.rules.RuleChain
 class StartStopButtonTest {
 
   @get:Rule val ruleChain = RuleChain.outerRule(ApplicationRule()).around(AndroidExecutorsRule())
-
-  class FakeDeviceHandle(
-    override val scope: CoroutineScope,
-  ) : DeviceHandle {
-    override val stateFlow =
-      MutableStateFlow<DeviceState>(DeviceState.Disconnected(DeviceProperties.build {}))
-    override val activationAction = FakeActivationAction()
-    override val deactivationAction = FakeDeactivationAction()
-    override val repairDeviceAction = FakeRepairDeviceAction()
-
-    var active = false
-
-    inner class FakeActivationAction : ActivationAction {
-      var invoked = 0
-      override suspend fun activate() {
-        invoked++
-        active = true
-        presentation.update { it.copy(enabled = false) }
-        deactivationAction.presentation.update { it.copy(enabled = true) }
-      }
-
-      override val presentation =
-        MutableStateFlow(
-          TestDefaultDeviceActionPresentation.fromContext().copy(icon = StudioIcons.Avd.RUN)
-        )
-    }
-
-    inner class FakeDeactivationAction : DeactivationAction {
-      var invoked = 0
-      override suspend fun deactivate() {
-        invoked++
-        active = false
-        presentation.update { it.copy(enabled = false) }
-        activationAction.presentation.update { it.copy(enabled = true) }
-      }
-
-      override val presentation =
-        MutableStateFlow(
-          TestDefaultDeviceActionPresentation.fromContext()
-            .copy(icon = StudioIcons.Avd.STOP, enabled = false)
-        )
-    }
-
-    inner class FakeRepairDeviceAction : RepairDeviceAction {
-      var invoked = 0
-      override val presentation =
-        MutableStateFlow(TestDefaultDeviceActionPresentation.fromContext())
-
-      override suspend fun repair() {
-        invoked++
-      }
-    }
-  }
 
   @Test
   fun enabled(): Unit = runBlocking {

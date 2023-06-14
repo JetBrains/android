@@ -134,13 +134,8 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
 
         override suspend fun downloadAvdSystemImage(avdInfo: AvdInfo) {
           val path = AvdManagerConnection.getRequiredSystemImagePath(avdInfo) ?: return
-          val ok =
-            withContext(uiThread) {
-              SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet()
-            }
-          if (ok == true) {
-            // Multiple AVDs can have the same missing system image, so refresh all
-            rescanAvds()
+          withContext(uiThread) {
+            SdkQuickfixUtils.createDialogForPaths(project, listOf(path))?.showAndGet()
           }
         }
       }

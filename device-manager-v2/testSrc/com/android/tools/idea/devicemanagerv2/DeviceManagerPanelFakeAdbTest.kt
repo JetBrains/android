@@ -15,15 +15,9 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
-import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
-import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.isActive
@@ -50,12 +44,12 @@ class DeviceManagerPanelFakeAdbTest {
     deviceProvisionerRule.deviceProvisionerPlugin.addDevice(device2)
 
     // Select device 1
-    ViewDetailsAction().actionPerformed(actionEvent(deviceManager, device1))
+    ViewDetailsAction().actionPerformed(actionEvent(dataContext(deviceManager, device1)))
 
     assertThat(deviceManager.deviceDetailsPanel?.handle).isEqualTo(device1)
 
     // Select device 2
-    ViewDetailsAction().actionPerformed(actionEvent(deviceManager, device2))
+    ViewDetailsAction().actionPerformed(actionEvent(dataContext(deviceManager, device2)))
 
     assertThat(deviceManager.deviceDetailsPanel?.handle).isEqualTo(device2)
 
@@ -65,23 +59,5 @@ class DeviceManagerPanelFakeAdbTest {
 
     assertThat(deviceManager.deviceDetailsPanel).isNull()
     assertThat(scope!!.isActive).isFalse()
-  }
-
-  private fun actionEvent(deviceManager: DeviceManagerPanel, device: DeviceHandle) =
-    AnActionEvent(
-      null,
-      dataContext(deviceManager, device),
-      "",
-      Presentation(),
-      ActionManager.getInstance(),
-      0
-    )
-
-  private fun dataContext(deviceManager: DeviceManagerPanel, device: DeviceHandle) = DataContext {
-    when {
-      DEVICE_HANDLE_KEY.`is`(it) -> device
-      DEVICE_MANAGER_PANEL_KEY.`is`(it) -> deviceManager
-      else -> null
-    }
   }
 }

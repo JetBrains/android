@@ -30,17 +30,20 @@ class DeleteAction : AnAction("Delete", "Delete this device", StudioIcons.Common
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.updateFromDeviceAction(DeviceHandle::deleteAction)
+    e.updateFromDeviceActionOrDeactivateAction(DeviceHandle::deleteAction)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val deviceHandle = e.deviceHandle()
-    val deleteAction = deviceHandle?.deleteAction ?: return
+    val deviceRowData = e.deviceRowData() ?: return
+    val deviceHandle = deviceRowData.handle ?: return
+    val deleteAction = deviceHandle.deleteAction ?: return
 
+    val isRunning = deviceRowData.status == DeviceRowData.Status.ONLINE
+    val runningSuffix = " This will stop the device.".takeIf { isRunning } ?: ""
     if (
       MessageDialogBuilder.yesNo(
           "Confirm Deletion",
-          "Do you really want to delete ${deviceHandle.state.properties.title}?"
+          "Do you really want to delete ${deviceHandle.state.properties.title}?$runningSuffix"
         )
         .ask(e.componentToRestoreFocusTo())
     ) {
@@ -51,7 +54,13 @@ class DeleteAction : AnAction("Delete", "Delete this device", StudioIcons.Common
         }
       )
 
-      deviceHandle.scope.launch { deleteAction.delete() }
+      deviceHandle.scope.launch {
+        if (isRunning) {
+          deviceHandle.deactivationAction?.deactivate()
+        }
+
+        deleteAction.delete()
+      }
     }
   }
 }
