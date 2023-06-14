@@ -331,4 +331,27 @@ class ComposeRenderErrorContributorTest {
       stripImages(issues[0].htmlContent)
     )
   }
+
+  @Test
+  fun `compose preview timeout exception`() {
+    val throwable = createExceptionFromDesc("""
+     java.util.concurrent.TimeoutException: The render action was too slow to execute (100000ms)
+
+      """.trimIndent())
+    val logger = RenderLogger(androidProjectRule.project).apply {
+      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+    }
+
+    assertTrue(isHandledByComposeContributor(throwable))
+    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    assertEquals(1, issues.size)
+    assertEquals(HighlightSeverity.ERROR, issues[0].severity)
+    assertEquals("Timeout error", issues[0].summary)
+    assertEquals(
+      "The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code." +
+      "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker." +
+      "<BR/><BR/><A HREF=\"runnable:0\">Report Bug</A>",
+      stripImages(issues[0].htmlContent)
+    )
+  }
 }

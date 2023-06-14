@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.errors
 
+import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.rendering.HtmlBuilderHelper
 import com.android.tools.idea.rendering.ShowExceptionFix
 import com.android.tools.rendering.HtmlLinkManager
@@ -42,5 +43,15 @@ fun HtmlBuilder.addShowException(linkManager: HtmlLinkManager, project: Project?
     newline()
     addLink("Show Exception", linkManager.createRunnableLink(ShowExceptionFix(project, throwable)))
   }
+  return this
+}
+
+/**
+ * Adds a "Report Bug" call action that opens the issue tracker report page.
+ */
+fun HtmlBuilder.addReportBug(linkManager: HtmlLinkManager, project: Project): HtmlBuilder {
+  newlineIfNecessary()
+    .newline()
+    .addLink("Report Bug", linkManager.createRunnableLink { SendFeedbackAction.submit(project) })
   return this
 }

@@ -21,6 +21,7 @@ import com.android.tools.rendering.HtmlLinkManager
 import com.android.utils.HtmlBuilder
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.Project
+import java.util.concurrent.TimeoutException
 import javax.swing.event.HyperlinkListener
 
 object ComposeRenderErrorContributor {
@@ -68,12 +69,20 @@ object ComposeRenderErrorContributor {
     return throwable is NoSuchMethodException && throwable.message?.endsWith("${'$'}FailToLoadPreviewParameterProvider") == true
   }
 
+  /**
+   * Returns true if [throwable] is a [TimeoutException] happening during the rendering of a Compose Preview.
+   */
+  private fun isTimeoutToLoadPreview(throwable: Throwable?): Boolean {
+    return throwable is TimeoutException
+  }
+
   @JvmStatic
   fun isHandledByComposeContributor(throwable: Throwable?): Boolean =
     isComposeNotFoundThrowable(throwable) ||
     isCompositionLocalStackTrace(throwable) ||
     isPreviewParameterMismatchThrowable(throwable) ||
     isFailToLoadPreviewParameterProvider(throwable) ||
+    isTimeoutToLoadPreview(throwable) ||
     isViewModelStackTrace(throwable) // Keep this one as last, as it needs to visit multiple stack trace elements
 
   @JvmStatic
@@ -139,6 +148,18 @@ object ComposeRenderErrorContributor {
                 HtmlBuilder()
                   .add("There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the " +
                        "values property implementation. The IDE logs should contain the full exception stack trace.")
+              )
+          }
+          isTimeoutToLoadPreview(it.throwable) -> {
+            RenderErrorModel.Issue.builder()
+              .setSeverity(HighlightSeverity.ERROR)
+              .setSummary("Timeout error")
+              .setHtmlContent(
+                HtmlBuilder()
+                  .add("The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code.")
+                  .newline()
+                  .add("If you think this issue is not caused by your code, you can report a bug in our issue tracker.")
+                  .addReportBug(linkManager, project)
               )
           }
           else -> null
