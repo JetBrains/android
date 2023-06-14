@@ -35,7 +35,9 @@ fun createBenchmarkTestRule(projectName: String): BenchmarkTestRule {
 
   val wrappedRules =  RuleChain.outerRule(testEnvironmentRule)
     .around(projectSetupRule)
-    .around(MemoryConstrainedTestRule(projectName))
+    .around(MemoryConstrainedTestRule(projectName).also {
+      projectSetupRule.addListener(it.listener)
+    })
     .around(CollectDaemonLogsRule())
   return object : BenchmarkTestRule,
                   ProjectSetupRule by projectSetupRule,

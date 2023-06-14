@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync.cpu
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.GRADLE_SYNC_TOPIC
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementCheckpoint
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
@@ -26,7 +25,6 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.intellij.openapi.project.Project
-import com.intellij.util.messages.Topic
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.annotations.SystemIndependent
@@ -34,7 +32,6 @@ import org.junit.rules.ExternalResource
 import java.io.File
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-
 import com.android.tools.idea.gradle.project.sync.MeasurementCheckpoint as AndroidMeasurementCheckpoint
 
 
@@ -66,11 +63,10 @@ private data class Durations (
   val gradleAndroidExecution: Duration,
   val gradleAfterAndroidExecution: Duration,
   val ide: Duration,
-  val finishTimestamp: Instant
-) {
-  val gradle get() = gradleConfiguration + gradleBeforeAndroidExecution + gradleAndroidExecution + gradleAfterAndroidExecution
-  val total get() = gradle + ide
-}
+  val finishTimestamp: Instant,
+  val gradle: Duration = gradleConfiguration + gradleBeforeAndroidExecution + gradleAndroidExecution + gradleAfterAndroidExecution,
+  val total: Duration = gradle + ide
+)
 
 class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
   private val results = mutableListOf<Durations>()
@@ -82,31 +78,32 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
     MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureHistograms = false)
   }
 
-  val listeners = mapOf<Topic<GradleSyncListenerWithRoot>, GradleSyncListenerWithRoot>(
-      GRADLE_SYNC_TOPIC to object : GradleSyncListenerWithRoot {
-        override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
-          println("Project import started: attempt #${results.size + 1}")
-          syncStartTimestamp = Clock.System.now()
-        }
+  val listener = object : GradleSyncListenerWithRoot {
+    override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
+      println("Project import started: attempt #${results.size + 1}")
+      syncStartTimestamp = Clock.System.now()
+    }
 
-        override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-          val configurationFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.CONFIGURATION_FINISHED.name)
-          val androidStartedTimestamp = getTimestampForCheckpoint(AndroidMeasurementCheckpoint.ANDROID_STARTED.name)
-          val androidFinishedTimestamp = getTimestampForCheckpoint(AndroidMeasurementCheckpoint.ANDROID_FINISHED.name)
-          val gradleSyncFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.SYNC_FINISHED.name)
-          val ideFinishedTimestamp = Clock.System.now()
+    override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
+      val configurationFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.CONFIGURATION_FINISHED.name)
+      val androidStartedTimestamp = getTimestampForCheckpoint(AndroidMeasurementCheckpoint.ANDROID_STARTED.name)
+      val androidFinishedTimestamp = getTimestampForCheckpoint(AndroidMeasurementCheckpoint.ANDROID_FINISHED.name)
+      val gradleSyncFinishedTimestamp = getTimestampForCheckpoint(MeasurementCheckpoint.SYNC_FINISHED.name)
+      val ideFinishedTimestamp = Clock.System.now()
 
-          results.add(Durations(
-            gradleConfiguration = configurationFinishedTimestamp - syncStartTimestamp,
-            gradleBeforeAndroidExecution = androidStartedTimestamp - configurationFinishedTimestamp,
-            gradleAndroidExecution = androidFinishedTimestamp - androidStartedTimestamp,
-            gradleAfterAndroidExecution = gradleSyncFinishedTimestamp - androidFinishedTimestamp,
-            ide = ideFinishedTimestamp - gradleSyncFinishedTimestamp,
-            finishTimestamp =  ideFinishedTimestamp
-          ))
-        }
-      }
-  )
+      val result = Durations(
+        gradleConfiguration = configurationFinishedTimestamp - syncStartTimestamp,
+        gradleBeforeAndroidExecution = androidStartedTimestamp - configurationFinishedTimestamp,
+        gradleAndroidExecution = androidFinishedTimestamp - androidStartedTimestamp,
+        gradleAfterAndroidExecution = gradleSyncFinishedTimestamp - androidFinishedTimestamp,
+        ide = ideFinishedTimestamp - gradleSyncFinishedTimestamp,
+        finishTimestamp =  ideFinishedTimestamp
+      )
+      println("Result: $result")
+      results.add(result)
+    }
+  }
+
   fun recordMeasurements(projectName: String) {
     val initialPrefix = "Initial_"
     val droppedPrefix = "Dropped_"

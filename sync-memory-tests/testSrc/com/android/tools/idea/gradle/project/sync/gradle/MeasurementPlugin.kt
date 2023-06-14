@@ -25,11 +25,13 @@ import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import java.io.Closeable
 import java.io.File
+import java.lang.management.GarbageCollectorMXBean
 import java.lang.management.ManagementFactory
 import java.time.Instant
 import javax.inject.Inject
 import javax.management.MBeanServer
 import javax.management.ObjectName
+import kotlin.time.Duration.Companion.milliseconds
 
 enum class MeasurementCheckpoint {
   CONFIGURATION_FINISHED,
@@ -78,11 +80,14 @@ abstract class HistogramService : OperationCompletionListener, Closeable, BuildS
 
   override fun close() {
     EventRecorder.recordEvent(MeasurementCheckpoint.SYNC_FINISHED)
+    EventRecorder.captureGcCollectionTime()
   }
 }
 
 // Functions can't be top level and has to be static to keep Gradle happy.
 object EventRecorder {
+  const val GC_COLLECTION_TIME_FILE_NAME_SUFFIX = "gcCollectionTime"
+
   @JvmStatic
   fun recordEvent(checkpoint: MeasurementCheckpoint) {
     println("Recording event ${checkpoint.name}")
@@ -91,6 +96,16 @@ object EventRecorder {
     } else {
       captureEventTimestamp(checkpoint)
     }
+  }
+
+  @JvmStatic
+  fun captureGcCollectionTime() {
+    val collectionTime = ManagementFactory.getGarbageCollectorMXBeans().sumOf {
+      (it as GarbageCollectorMXBean).collectionTime
+    }
+    val file = File(MeasurementPluginConfig.outputPath).resolve("${Instant.now().toEpochMilli()}_$GC_COLLECTION_TIME_FILE_NAME_SUFFIX")
+    file.writeText(collectionTime.toString())
+    println("Total accumulated GC Collection time: ${collectionTime.milliseconds}")
   }
 
   @JvmStatic

@@ -46,22 +46,24 @@ private val SUBSET_TO_DIFF = mapOf(
 
 interface ProjectSetupRule {
   val projectName: String
-  fun openProject(
-    subscriptions: Map<Topic<GradleSyncListenerWithRoot>, GradleSyncListenerWithRoot> = emptyMap(),
-    body: (Project) -> Any = {}
-  )
+  fun openProject(body: (Project) -> Any = {})
+  fun addListener(listener: GradleSyncListenerWithRoot)
 }
 
 class ProjectSetupRuleImpl(
   override val projectName: String,
   private val testEnvironmentRule: IntegrationTestEnvironmentRule) : ProjectSetupRule, ExternalResource() {
+  private val listeners = mutableListOf<GradleSyncListenerWithRoot>()
 
   override fun before() {
     setUpProject(listOfNotNull(SUBSET_TO_DIFF[projectName]))
   }
 
+  override fun addListener(listener: GradleSyncListenerWithRoot) {
+    listeners.add(listener)
+  }
+
   override fun openProject(
-    subscriptions: Map<Topic<GradleSyncListenerWithRoot>, GradleSyncListenerWithRoot>,
     body: (Project) -> Any
   ) {
     testEnvironmentRule.prepareTestProject(
@@ -72,8 +74,8 @@ class ProjectSetupRuleImpl(
       updateOptions = {
         it.copy(
           subscribe = { connection ->
-            subscriptions.forEach {
-              connection.subscribe(it.key, it.value)
+            listeners.forEach {
+              connection.subscribe(GRADLE_SYNC_TOPIC, it)
             }
           }
         )

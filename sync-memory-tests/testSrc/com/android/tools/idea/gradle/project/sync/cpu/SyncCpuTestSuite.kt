@@ -65,7 +65,8 @@ class Benchmark4200CpuTest {
 
 private fun runTest(benchmarkTestRule: BenchmarkTestRule,
                     measureSyncExecutionTimeRule: MeasureSyncExecutionTimeRule) {
-  benchmarkTestRule.openProject(measureSyncExecutionTimeRule.listeners) { project ->
+  benchmarkTestRule.addListener(measureSyncExecutionTimeRule.listener)
+  benchmarkTestRule.openProject { project ->
     repeat(measureSyncExecutionTimeRule.syncCount) {
       project.requestSyncAndWait()
     }
