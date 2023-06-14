@@ -220,6 +220,10 @@ def _studio_plugin_impl(ctx):
     _studio_plugin_os(ctx, MAC_ARM, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_mac_arm)
     _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_win)
 
+    for lib in ctx.attr.libs:
+        if PluginInfo in lib:
+            fail("Plugin dependencies should be in the deps attribute, not in libs")
+
     # Check that all modules needed by the modules in this plugin, are either present in the
     # plugin or in its dependencies.
     need = depset(transitive =

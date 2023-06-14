@@ -585,15 +585,13 @@ studio_plugin(
 studio_plugin(
     name = "com.android.gmdcodecompletion",
     directory = "gmd-code-completion",
-    libs = [
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-    ],
     modules = {"gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"]},
     visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.testing",
         ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )
 
