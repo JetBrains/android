@@ -23,8 +23,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.ui.showOkCancelDialog
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
@@ -51,17 +49,6 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
     val modelDataContext = dataContextProvider()
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val instanceId = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
-
-    val answer =
-      showOkCancelDialog(
-        title = message("action.uicheck.dialog.title"),
-        message = message("action.uicheck.dialog.description"),
-        okText = message("action.uicheck.dialog.oktext"),
-        icon = Messages.getInformationIcon()
-      )
-    if (answer == Messages.CANCEL) {
-      return
-    }
     manager.startUiCheckPreview(instanceId)
   }
 
