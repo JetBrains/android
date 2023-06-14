@@ -194,8 +194,8 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   /**
    * If a subclass needs to update the popup menu actions dynamically, it should override this class.
    *
-   * @return true id the actions were updated, false otherwise.
-   * <p>Returning false allows the popup previous popup instance to be reused
+   * @return true if the actions were updated, false otherwise.
+   * <p>Returning false allows the previous popup instance to be reused
    */
   protected boolean updateActions(@NotNull DataContext context) {
     return false;
