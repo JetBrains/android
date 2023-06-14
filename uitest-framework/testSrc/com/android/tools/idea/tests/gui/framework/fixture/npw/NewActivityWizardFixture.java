@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,13 @@ public class NewActivityWizardFixture extends AbstractWizardFixture<NewActivityW
   private NewActivityWizardFixture(@NotNull IdeFrameFixture ideFrameFixture, @NotNull JDialog target) {
     super(NewActivityWizardFixture.class, ideFrameFixture.robot(), target);
     myIdeFrameFixture = ideFrameFixture;
+  }
+
+  @NotNull
+  public static NewActivityWizardFixture createActivity(@NotNull IdeFrameFixture ideFrameFixture, String ActivityType, String ActivityName) {
+    // Path of the new activity
+    ideFrameFixture.invokeMenuPath("File", "New", ActivityType, ActivityName);
+    return find(ideFrameFixture);
   }
 
   @NotNull
