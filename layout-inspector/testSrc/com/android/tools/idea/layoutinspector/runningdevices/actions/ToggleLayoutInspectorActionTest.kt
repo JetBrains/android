@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.FakeToolWindowManag
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.TabId
 import com.android.tools.idea.layoutinspector.runningdevices.TabInfo
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
@@ -44,6 +45,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.verifyNoMoreInteractions
 import javax.swing.JPanel
 
 @RunsInEdt
@@ -118,6 +120,39 @@ class ToggleLayoutInspectorActionTest {
     toggleLayoutInspectorAction.update(fakeActionEvent)
 
     assertThat(fakeActionEvent.presentation.isEnabled).isTrue()
+  }
+
+  @Test
+  fun testActionNotVisibleWhenEmbeddedLayoutInspectorIsDisabled() = runWithEmbeddedLayoutInspector(false) {
+    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
+    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
+
+    toggleLayoutInspectorAction.update(fakeActionEvent)
+    assertThat(fakeActionEvent.presentation.isVisible).isFalse()
+  }
+
+  @Test
+  fun testLayoutInspectorManagerNotCreatedWhenEmbeddedLayoutInspectorIsDisabled() = runWithEmbeddedLayoutInspector(false) {
+    val mockLayoutInspectorManager = mock<LayoutInspectorManager>()
+    displayViewRule.project.replaceService(LayoutInspectorManager::class.java, mockLayoutInspectorManager, displayViewRule.disposable)
+
+    val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
+    val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
+
+    toggleLayoutInspectorAction.update(fakeActionEvent)
+    assertThat(fakeActionEvent.presentation.isVisible).isFalse()
+
+    toggleLayoutInspectorAction.isSelected(fakeActionEvent)
+    toggleLayoutInspectorAction.setSelected(fakeActionEvent, true)
+
+    verifyNoMoreInteractions(mockLayoutInspectorManager)
+  }
+
+  private fun runWithEmbeddedLayoutInspector(enable: Boolean, block: () -> Unit) {
+    val previous = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = enable
+    block()
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = previous
   }
 
   private fun AnAction.getFakeActionEvent(): AnActionEvent {

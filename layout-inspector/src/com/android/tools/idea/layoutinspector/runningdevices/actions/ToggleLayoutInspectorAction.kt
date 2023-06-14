@@ -35,6 +35,10 @@ import javax.swing.JComponent
  */
 class ToggleLayoutInspectorAction : ToggleAction(), TooltipDescriptionProvider, TooltipLinkProvider {
   override fun isSelected(e: AnActionEvent): Boolean {
+    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      return false
+    }
+
     val project = e.project ?: return false
     val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(e.dataContext) ?: return false
 
@@ -42,6 +46,10 @@ class ToggleLayoutInspectorAction : ToggleAction(), TooltipDescriptionProvider, 
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
+    if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      return
+    }
+
     val project = e.project ?: return
     val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(e.dataContext) ?: return
 
