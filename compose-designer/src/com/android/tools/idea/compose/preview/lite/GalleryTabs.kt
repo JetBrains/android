@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.lite
 
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.compose.preview.message
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -110,7 +111,7 @@ class GalleryTabs<Key : TitledKey>(
 
   /** Toolbar button that shows all available previews in a dropdown. */
   private inner class AllTabsDropdown :
-    AnActionButton("All Previews", "All previews", AllIcons.Actions.More) {
+    AnActionButton(message("action.gallery.show.hidden"), AllIcons.Actions.More) {
 
     var popup: ListPopup? = null
     override fun actionPerformed(e: AnActionEvent) {
