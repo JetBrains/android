@@ -64,6 +64,7 @@ import java.lang.ref.WeakReference
 class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : PositionManagerImpl(myDebugProcess) {
 
   private val myAndroidVersion: AndroidVersion? = myDebugProcess.processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
+  private val desugarUtils = DesugarUtils(this, myDebugProcess)
 
   init {
     val disposable = myDebugProcess.getDisposable()
@@ -84,7 +85,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   @Throws(NoDataException::class)
   override fun getAllClasses(position: SourcePosition): List<ReferenceType> {
     // For desugaring, we also need to add the extra synthesized classes that may contain the source position.
-    val referenceTypes = DesugarUtils.addExtraClassesIfNeeded(myDebugProcess, position, super.getAllClasses(position), this)
+    val referenceTypes = desugarUtils.addExtraClassesIfNeeded(position, super.getAllClasses(position))
     if (referenceTypes.isEmpty()) {
       throw NoDataException.INSTANCE
     }
@@ -94,8 +95,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   @Throws(NoDataException::class)
   override fun createPrepareRequests(requestor: ClassPrepareRequestor, position: SourcePosition): List<ClassPrepareRequest> {
     // For desugaring, we also need to add prepare requests for the extra synthesized classes that may contain the source position.
-    val requests =
-      DesugarUtils.addExtraPrepareRequestsIfNeeded(myDebugProcess, requestor, position, super.createPrepareRequests(requestor, position))
+    val requests = desugarUtils.addExtraPrepareRequestsIfNeeded(requestor, position, super.createPrepareRequests(requestor, position))
     if (requests.isEmpty()) {
       throw NoDataException.INSTANCE
     }
@@ -107,7 +107,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   override fun getAcceptedFileTypes(): Set<FileType> = setOf(JavaFileType.INSTANCE)
 
   @Throws(NoDataException::class)
-  override fun getSourcePosition(location: Location?): SourcePosition? {
+  override fun getSourcePosition(location: Location?): SourcePosition {
     if (location == null) throw NoDataException.INSTANCE
 
     if (myAndroidVersion == null) {
