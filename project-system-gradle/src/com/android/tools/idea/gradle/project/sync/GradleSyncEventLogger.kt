@@ -110,7 +110,8 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     syncStats.syncType = syncType ?: GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_UNKNOWN
     syncStats.usesBuildGradle = buildFileTypes.contains(SdkConstants.DOT_GRADLE)
     syncStats.usesBuildGradleKts = buildFileTypes.contains(SdkConstants.DOT_KTS)
-    syncStats.versionCatalogDetectorState = GradleVersionCatalogDetector.getInstance(project).versionCatalogDetectorResult.state
+    // TODO nvuk Handle Slow operation exception
+    //syncStats.versionCatalogDetectorState = GradleVersionCatalogDetector.getInstance(project).versionCatalogDetectorResult.state
     if (rootProjectPath != null) {
       syncStats.updateUserRequestedParallelSyncMode(project, rootProjectPath)
     }
