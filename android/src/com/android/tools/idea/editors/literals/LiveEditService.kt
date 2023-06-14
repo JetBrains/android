@@ -69,6 +69,9 @@ interface LiveEditService : Disposable {
     fun isLeTriggerManual() = isLeTriggerManual(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
 
     @JvmStatic
+    fun isLeTriggerOnSave() = LiveEditApplicationConfiguration.getInstance().leTriggerMode == LiveEditTriggerMode.ON_SAVE
+
+    @JvmStatic
     fun manualLiveEdit(project: Project) {
       if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit) {
         return

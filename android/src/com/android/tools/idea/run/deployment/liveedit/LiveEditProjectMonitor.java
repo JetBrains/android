@@ -389,13 +389,12 @@ public class LiveEditProjectMonitor implements Disposable {
 
     updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
 
-    while(!processChanges(project, bufferedEvents, LiveEditEvent.Mode.MANUAL)) {
+    while(!processChanges(project, bufferedEvents,
+                          LiveEditService.isLeTriggerOnSave() ? LiveEditEvent.Mode.ON_SAVE : LiveEditEvent.Mode.MANUAL)) {
         LOGGER.info("ProcessChanges was interrupted");
     }
     bufferedEvents.clear();
   }
-
-
 
   @Trace
   boolean handleChangedMethods(Project project, List<EditEvent> changes) {
