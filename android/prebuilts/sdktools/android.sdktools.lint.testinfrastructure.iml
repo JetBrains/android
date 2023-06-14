@@ -9,7 +9,7 @@
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="android.sdktools.lint.cli" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-lint.testinfrastructure" type="repository">
+      <library name="precompiled-lint-testinfrastructure" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.testinfrastructure:223.0.1.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure/223.0.1.0/studio.android.sdktools.lint.testinfrastructure-223.0.1.0.jar!/" />
@@ -19,7 +19,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-lint.testinfrastructure-test" type="repository">
+      <library name="precompiled-lint-testinfrastructure-test" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.testinfrastructure_test:223.0.1.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure_test/223.0.1.0/studio.android.sdktools.lint.testinfrastructure_test-223.0.1.0.jar!/" />

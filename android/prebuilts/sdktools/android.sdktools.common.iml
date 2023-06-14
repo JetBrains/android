@@ -6,7 +6,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="module-library" exported="">
-      <library name="version" type="repository">
+      <library name="android-libversion" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libversion:223.0.1.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libversion/223.0.1.0/libversion-223.0.1.0.jar!/" />

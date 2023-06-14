@@ -22,8 +22,8 @@
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
-    <orderEntry type="module-library">
-      <library>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="compiler-hosted">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT.jar!/" />
         </CLASSES>

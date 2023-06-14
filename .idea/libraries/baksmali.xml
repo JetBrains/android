@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="google-baksmali">
+  <library name="baksmali">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/android/tools/smali/smali-baksmali/3.0.0/smali-baksmali-3.0.0.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/android/tools/smali/smali-util/3.0.0/smali-util-3.0.0.jar!/" />

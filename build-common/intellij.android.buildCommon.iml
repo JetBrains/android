@@ -12,25 +12,25 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library name="apkzlib" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.build:apkzlib:4.0.0" />
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build:apkzlib:7.3.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apkzlib/4.0.0/apkzlib-4.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apkzlib/7.3.1/apkzlib-7.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apkzlib/4.0.0/apkzlib-4.0.0-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apkzlib/7.3.1/apkzlib-7.3.1-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library name="apksig" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.build:apksig:4.0.0" />
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build:apksig:7.3.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apksig/4.0.0/apksig-4.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apksig/7.3.1/apksig-7.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apksig/4.0.0/apksig-4.0.0-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apksig/7.3.1/apksig-7.3.1-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -41,7 +41,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="library" name="android.tools.build.apkzlib" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="Gradle" level="project" />

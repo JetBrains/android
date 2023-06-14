@@ -8,7 +8,7 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-build-analyzer.common" type="repository">
+      <library name="precompiled-build-analyzer-common" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.build-analyzer.common:223.0.1.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common/223.0.1.0/studio.android.build-analyzer.common-223.0.1.0.jar!/" />
@@ -18,7 +18,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-build-analyzer.common-test" type="repository">
+      <library name="precompiled-build-analyzer-common-test" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.build-analyzer.common_test:223.0.1.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common_test/223.0.1.0/studio.android.build-analyzer.common_test-223.0.1.0.jar!/" />

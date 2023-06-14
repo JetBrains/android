@@ -37,7 +37,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="google-dexlib2" level="project" />
-    <orderEntry type="library" name="google-baksmali" level="project" />
+    <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />

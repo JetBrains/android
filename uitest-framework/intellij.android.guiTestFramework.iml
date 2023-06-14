@@ -15,7 +15,7 @@
     <orderEntry type="module" module-name="fest-swing" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" scope="TEST">
-      <library>
+      <library name="spantable" >
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../android/lib/spantable.jar!/" />
         </CLASSES>

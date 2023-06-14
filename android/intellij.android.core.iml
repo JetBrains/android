@@ -18,7 +18,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module-library">
-      <library>
+      <library name="spantable">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/spantable.jar!/" />
         </CLASSES>
@@ -35,7 +35,7 @@
     <orderEntry type="module" module-name="android.sdktools.db-compiler" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
     <orderEntry type="library" name="layoutlib" level="project" />
-    <orderEntry type="library" name="google-baksmali" level="project" />
+    <orderEntry type="library" name="baksmali" level="project" />
     <orderEntry type="library" name="google-dexlib2" level="project" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
@@ -123,10 +123,10 @@
     <orderEntry type="module" module-name="android.sdktools.process-monitor" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module-library">
-      <library name="r8" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:r8:223.0.1.0" />
+      <library name="jb-r8" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:223.0.1.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/r8/223.0.1.0/r8-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/223.0.1.0/jb-r8-223.0.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
