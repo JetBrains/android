@@ -526,8 +526,8 @@ class ParametrizedComposePreviewElementTemplate(
   val parameterProviders: Collection<PreviewParameter>
 ) : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
   /**
-   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The will be
-   * [ComposePreviewElement] populated with data from the parameter providers.
+   * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
+   * will be populated with data from the parameter providers.
    */
   override fun instances(
     renderContext: ModuleRenderContext?

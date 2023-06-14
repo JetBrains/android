@@ -42,7 +42,9 @@ interface ComposePreviewManager : Disposable {
   /**
    * Enum that determines the current status of the interactive preview.
    *
-   * The transitions are are like: DISABLED -> STARTED -> READY -> STOPPING
+   * The transitions are like:
+   *
+   * DISABLED -> STARTED -> READY -> STOPPING
    *
    * ```
    *    ^                               +
