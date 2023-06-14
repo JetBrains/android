@@ -145,12 +145,6 @@ import org.jetbrains.kotlin.psi.KtFile
 /** Background color for the surface while "Interactive" is enabled. */
 private val INTERACTIVE_BACKGROUND_COLOR = JBColor(0xF7F8FA, 0x2B2D30)
 
-/**
- * Default background used by the surface. This is used to restore the state after disabling the
- * interactive preview.
- */
-private val DEFAULT_BACKGROUND_COLOR = JBColor(0xFFFFFF, 0x1E1F22)
-
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
 
@@ -544,7 +538,7 @@ class ComposePreviewRepresentation(
 
   private fun onStaticPreviewStart() {
     sceneComponentProvider.enabled = true
-    surface.background = DEFAULT_BACKGROUND_COLOR
+    surface.background = Colors.DEFAULT_BACKGROUND_COLOR
   }
 
   private fun onInteractivePreviewStop() {
@@ -688,7 +682,7 @@ class ComposePreviewRepresentation(
           )
         }
       )
-      .apply { mainSurface.background = DEFAULT_BACKGROUND_COLOR }
+      .apply { mainSurface.background = Colors.DEFAULT_BACKGROUND_COLOR }
 
   @VisibleForTesting
   val staticPreviewInteractionHandler =

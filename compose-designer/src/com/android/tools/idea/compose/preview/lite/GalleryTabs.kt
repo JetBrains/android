@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.lite
 
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.compose.preview.Colors
 import com.android.tools.idea.compose.preview.message
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -153,7 +154,10 @@ class GalleryTabs<Key : TitledKey>(
   private val labelActions: MutableMap<Key, TabLabelAction> = mutableMapOf()
   private val centerPanel = JPanel(BorderLayout())
   private val scrollBar = JBThinOverlappingScrollBar(Adjustable.HORIZONTAL)
-  private val allTabToolbar: JComponent = createToolbar("More Tabs", listOf(allTabDropdown))
+  private val allTabToolbar: JComponent =
+    createToolbar("More Tabs", listOf(allTabDropdown)).apply {
+      background = Colors.DEFAULT_BACKGROUND_COLOR
+    }
   private var previousToolbar: JComponent? = null
 
   init {
@@ -186,7 +190,10 @@ class GalleryTabs<Key : TitledKey>(
       // Remove previous toolbar if exists.
       previousToolbar?.let { centerPanel.remove(it) }
       // Create new toolbar.
-      val toolbar = createToolbar("Gallery Tabs", labelActions.values.toList())
+      val toolbar =
+        createToolbar("Gallery Tabs", labelActions.values.toList()).apply {
+          background = Colors.DEFAULT_BACKGROUND_COLOR
+        }
       centerPanel.add(toolbar, BorderLayout.CENTER)
       previousToolbar = toolbar
       // If selectedKey was removed, select first key.
