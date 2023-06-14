@@ -165,6 +165,7 @@
     </action>
   </actions>
 
-  <xi:include href="plugin.k1.xml" includeUnless="idea.kotlin.plugin.use.k2" />
-  <xi:include href="plugin.k2.xml" includeIf="idea.kotlin.plugin.use.k2"/>
+  <xi:include href="plugin.k1.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!--  <xi:include href="plugin.k1.xml" includeUnless="idea.kotlin.plugin.use.k2" />-->
+<!--  <xi:include href="plugin.k2.xml" includeIf="idea.kotlin.plugin.use.k2"/>-->
 </idea-plugin>
