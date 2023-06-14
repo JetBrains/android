@@ -39,6 +39,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Adjustable
 import java.awt.BorderLayout
+import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
@@ -129,7 +130,11 @@ class GalleryTabs<Key : TitledKey>(
             null,
             true,
           )
-          .also { it.showInCenterOf(allTabToolbar) }
+          .also {
+            val location: Point = allTabToolbar.locationOnScreen
+            location.translate(0, allTabToolbar.height)
+            it.showInScreenCoordinates(allTabToolbar, location)
+          }
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
