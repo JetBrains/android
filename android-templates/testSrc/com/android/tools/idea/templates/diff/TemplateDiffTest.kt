@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.diff
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
@@ -259,5 +260,224 @@ class TemplateDiffTest(private val testMode: TestMode) {
         moduleData.isMaterial3 = true
       }
     checkCreateTemplate("Basic Views Activity", withKotlin, withMaterial3)
+  }
+
+  @Test
+  fun testNewViewModelActivity() {
+    checkCreateTemplate("Fragment + ViewModel")
+  }
+
+  @Test
+  fun testNewViewModelActivityWithKotlin() {
+    checkCreateTemplate("Fragment + ViewModel", withKotlin)
+  }
+
+  @Test
+  fun testNewTabbedActivity() {
+    checkCreateTemplate("Tabbed Views Activity")
+  }
+
+  @Test
+  fun testNewTabbedActivityWithKotlin() {
+    checkCreateTemplate("Tabbed Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testNewNavigationDrawerActivity() {
+    checkCreateTemplate("Navigation Drawer Views Activity")
+  }
+
+  @Test
+  fun testNewNavigationDrawerActivityWithKotlin() {
+    checkCreateTemplate("Navigation Drawer Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testNewPrimaryDetailFlow() {
+    checkCreateTemplate("Primary/Detail Views Flow")
+  }
+
+  @Test
+  fun testNewPrimaryDetailFlowWithKotlin() {
+    checkCreateTemplate("Primary/Detail Views Flow", withKotlin)
+  }
+
+  @Test
+  fun testNewFullscreenActivity() {
+    checkCreateTemplate("Fullscreen Views Activity")
+  }
+
+  @Test
+  fun testNewFullscreenActivityWithKotlin() {
+    checkCreateTemplate("Fullscreen Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testNewFullscreenActivity_activityNotInRootPackage() {
+    checkCreateTemplate(
+      "Fullscreen Views Activity",
+      withApplicationId("com.mycompany.myapp"),
+      withPackage("com.mycompany.myapp.subpackage")
+    )
+  }
+
+  @Test
+  fun testNewFullscreenActivityWithKotlin_activityNotInRootPackage() {
+    checkCreateTemplate(
+      "Fullscreen Views Activity",
+      withKotlin,
+      withApplicationId("com.mycompany.myapp"),
+      withPackage("com.mycompany.myapp.subpackage")
+    )
+  }
+
+  @Test
+  fun testNewLoginActivity() {
+    checkCreateTemplate("Login Views Activity")
+  }
+
+  @Test
+  fun testNewLoginActivityWithKotlin() {
+    checkCreateTemplate("Login Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testNewScrollingActivity() {
+    checkCreateTemplate("Scrolling Views Activity")
+  }
+
+  @Test
+  fun testNewScrollingActivityWithKotlin() {
+    checkCreateTemplate("Scrolling Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testNewSettingsActivity() {
+    checkCreateTemplate("Settings Views Activity")
+  }
+
+  @Test
+  fun testNewSettingsActivityWithKotlin() {
+    checkCreateTemplate("Settings Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testBottomNavigationActivity() {
+    checkCreateTemplate("Bottom Navigation Views Activity")
+  }
+
+  @Test
+  fun testBottomNavigationActivityWithKotlin() {
+    checkCreateTemplate("Bottom Navigation Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testGoogleAdMobAdsActivity() {
+    checkCreateTemplate("Google AdMob Ads Views Activity")
+  }
+
+  @Test
+  fun testGoogleAdMobAdsActivityWithKotlin() {
+    checkCreateTemplate("Google AdMob Ads Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testGoogleMapsActivity() {
+    checkCreateTemplate("Google Maps Views Activity")
+  }
+
+  @Test
+  fun testGoogleMapsActivityWithKotlin() {
+    checkCreateTemplate("Google Maps Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testGooglePayActivity() {
+    checkCreateTemplate("Google Pay Views Activity")
+  }
+
+  @Test
+  fun testGooglePayActivityWithKotlin() {
+    checkCreateTemplate("Google Pay Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testGoogleWalletActivity() {
+    checkCreateTemplate("Google Wallet Activity")
+  }
+
+  @Test
+  fun testGoogleWalletActivityWithKotlin() {
+    checkCreateTemplate("Google Wallet Activity", withKotlin)
+  }
+
+  @Test
+  fun testGameActivity() {
+    checkCreateTemplate("Game Activity (C++)")
+  }
+
+  @Test
+  fun testGameActivityWithKotlin() {
+    checkCreateTemplate("Game Activity (C++)", withKotlin)
+  }
+
+  @Test
+  fun testComposeActivityMaterial3() {
+    val withSpecificKotlin: ProjectStateCustomizer =
+      { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
+      }
+    checkCreateTemplate("Empty Activity", withSpecificKotlin) // Compose is always Kotlin
+  }
+
+  @Test
+  fun testResponsiveActivity() {
+    checkCreateTemplate("Responsive Views Activity")
+  }
+
+  @Test
+  fun testResponsiveActivityWithKotlin() {
+    checkCreateTemplate("Responsive Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testNewComposeWearActivity() {
+    val withSpecificKotlin: ProjectStateCustomizer =
+      { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
+      }
+    checkCreateTemplate("Empty Wear App", withSpecificKotlin)
+  }
+
+  @Test
+  fun testNewComposeWearActivityWithTileAndComplication() {
+    val withSpecificKotlin: ProjectStateCustomizer =
+      { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
+      }
+    checkCreateTemplate("Empty Wear App With Tile And Complication", withSpecificKotlin)
+  }
+
+  @Test
+  fun testNewTvActivity() {
+    checkCreateTemplate("Android TV Blank Views Activity")
+  }
+
+  @Test
+  fun testNewTvActivityWithKotlin() {
+    checkCreateTemplate("Android TV Blank Views Activity", withKotlin)
+  }
+
+  @Test
+  fun testNewNativeCppActivity() {
+    checkCreateTemplate("Native C++")
+  }
+
+  @Test
+  fun testNewNativeCppActivityWithKotlin() {
+    checkCreateTemplate("Native C++", withKotlin)
   }
 }

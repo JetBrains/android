@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48sp"
+    android:background="@drawable/add_to_google_wallet_button_background_shape"
+    android:clickable="true"
+    android:contentDescription="@string/add_to_google_wallet_button_content_description"
+    android:focusable="true">
+
+    <ImageView
+        android:layout_width="227dp"
+        android:layout_height="26dp"
+        android:layout_gravity="center"
+        android:duplicateParentState="true"
+        android:src="@drawable/add_to_google_wallet_button_foreground" />
+</FrameLayout>

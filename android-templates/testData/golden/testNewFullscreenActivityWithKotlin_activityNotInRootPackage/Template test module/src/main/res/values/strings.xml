@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Template Test App Title</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+</resources>

@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Template Test App Title</string>
+
+    <!-- Wallet activity -->
+    <string name="title_activity_wallet">WalletActivity</string>
+    <string name="add_to_google_wallet_button_content_description">Add to Google Wallet</string>
+    <string name="sample_pass" translatable="false">Sample Pass</string>
+    <string name="google_wallet_status_unavailable" translatable="false">Unfortunately, Google
+        Wallet is not available on this phone.
+    </string>
+    <string name="add_google_wallet_success" translatable="false">The pass was added successfully!
+    </string>
+    <string name="add_google_wallet_cancelled" translatable="false">The user cancelled adding the
+        pass to Google Wallet.
+    </string>
+    <string name="add_google_wallet_unknown_error" translatable="false">An unknown error occurred
+        when adding pass to Google Wallet.
+    </string>
+</resources>
