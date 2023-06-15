@@ -11,7 +11,7 @@
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
+    <orderEntry type="library" scope="TEST" name="google-dexlib2" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
     <orderEntry type="library" scope="TEST" name="javax.annotation-api" level="project" />
