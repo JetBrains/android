@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.common.primaryPanelBackground
+import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBScrollBar
