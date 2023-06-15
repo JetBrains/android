@@ -152,7 +152,7 @@ class TimeDistributionTreeChart(
           super.layoutContainer(parent)
           // Re-Arrange components horizontally. We don't expect and support any other order.
           viewport?.apply { setLocation(0, y) }
-          rowHead?.apply { setLocation(viewport.width - tree.insets.right, y) }
+          rowHead?.apply { setLocation(viewport.width, y) }
           horizontalScrollBar?.apply { setLocation(0, y) }
         }
       }
