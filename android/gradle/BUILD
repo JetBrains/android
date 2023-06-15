@@ -53,7 +53,6 @@ iml_module(
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
-        "//tools/adt/idea/.idea/libraries:easymock[test]",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
