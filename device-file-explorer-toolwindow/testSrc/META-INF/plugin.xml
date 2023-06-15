@@ -17,6 +17,6 @@
   <name>Android Device File Explorer Tool Window Tests</name>
   <id>intellij.android.device-file-explorer-toolwindow.tests</id>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/intellij.android.device-file-explorer-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/android.device-file-explorer-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
