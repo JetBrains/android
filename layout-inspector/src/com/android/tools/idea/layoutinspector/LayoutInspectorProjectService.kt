@@ -105,7 +105,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         edtExecutor
       )
     val scheduledExecutor = createScheduledExecutor(disposable)
-    val model = InspectorModel(project, scheduledExecutor)
+    val model = InspectorModel(project, scheduledExecutor, processesModel)
 
     processesModel.addSelectedProcessListeners {
       // Reset notification bar every time active process changes, since otherwise we might leave up

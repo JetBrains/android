@@ -20,7 +20,11 @@ import com.android.io.readImage
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -28,6 +32,8 @@ import com.android.tools.idea.layoutinspector.window
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
@@ -576,6 +582,45 @@ class InspectorModelTest {
       )
     model.clear()
     assertThat(model.foldInfo).isNull()
+  }
+
+  @Test
+  fun testModelIsClearedOnProcessChange() {
+    val latch = CountDownLatch(1)
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val inspectorModel = InspectorModel(mock(), null, processModel)
+    assertThat(inspectorModel.isEmpty).isTrue()
+
+    val observedNewWindows = mutableListOf<AndroidWindow?>()
+    inspectorModel.modificationListeners.add(
+      object : InspectorModelModificationListener {
+        override fun invoke(
+          oldWindow: AndroidWindow?,
+          newWindow: AndroidWindow?,
+          isStructuralChange: Boolean
+        ) {
+          observedNewWindows.add(newWindow)
+
+          if (newWindow == null) {
+            latch.countDown()
+          }
+        }
+      }
+    )
+
+    // add first window
+    val newWindow =
+      window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
+        view(VIEW1, 8, 6, 4, 2, qualifiedName = "v1Type")
+      }
+    inspectorModel.update(newWindow, listOf(ROOT), 0)
+
+    assertThat(observedNewWindows).containsExactly(newWindow)
+
+    processModel.selectedProcess = MODERN_DEVICE.createProcess()
+    latch.await(2, TimeUnit.SECONDS)
+
+    assertThat(observedNewWindows).containsExactly(newWindow, newWindow, null)
   }
 
   private fun children(view: ViewNode): List<ViewNode> = ViewNode.readAccess { view.children }

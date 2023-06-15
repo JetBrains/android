@@ -50,8 +50,15 @@ enum class SelectionOrigin {
 /** Callback taking (oldWindow, newWindow, isStructuralChange */
 typealias InspectorModelModificationListener = (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
 
-class InspectorModel(val project: Project, val scheduler: ScheduledExecutorService? = null) :
-  ViewNodeAndResourceLookup {
+class InspectorModel(
+  val project: Project,
+  val scheduler: ScheduledExecutorService? = null,
+  processesModel: ProcessesModel? = null
+) : ViewNodeAndResourceLookup {
+  init {
+    processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) { clear() }
+  }
+
   override val resourceLookup = ResourceLookup(project)
   val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
 
