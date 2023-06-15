@@ -306,7 +306,7 @@
                         serviceImplementation="com.android.tools.idea.diagnostics.crash.ExceptionDataConfigurationImpl"/>
     <applicationService serviceInterface="com.android.tools.idea.serverflags.ServerFlagService"
                         serviceImplementation="com.android.tools.idea.serverflags.ServerFlagServiceImpl"/>
-    <applicationService serviceImplementation="com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService"/>
+<!--    <applicationService serviceImplementation="com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService"/>-->
 
     <projectTypesProvider implementation="com.android.tools.idea.project.AndroidProjectTypesProvider"/>
 

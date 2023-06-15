@@ -99,10 +99,10 @@
       <add-to-group group-id="Internal.HeapAnalysis"/>
     </action>
 
-    <action class="com.android.tools.idea.diagnostics.heap.CollectMemoryUsageStatisticsAction" id="CollectMemoryUsageStatistics"
-            text="Collect Studio Components Memory Usage Statistics" internal="true">
-      <add-to-group group-id="Internal.HeapAnalysis"/>
-    </action>
+<!--    <action class="com.android.tools.idea.diagnostics.heap.CollectMemoryUsageStatisticsAction" id="CollectMemoryUsageStatistics"-->
+<!--            text="Collect Studio Components Memory Usage Statistics" internal="true">-->
+<!--      <add-to-group group-id="Internal.HeapAnalysis"/>-->
+<!--    </action>-->
 
     <group id="Internal.JavaFlightRecorder" text="Java Flight Recorder" popup="true" internal="true">
       <add-to-group group-id="Internal" anchor="after" relative-to-action="Internal.HeapAnalysis"/>

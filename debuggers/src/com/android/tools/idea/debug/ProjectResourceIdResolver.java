@@ -18,7 +18,6 @@ package com.android.tools.idea.debug;
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
