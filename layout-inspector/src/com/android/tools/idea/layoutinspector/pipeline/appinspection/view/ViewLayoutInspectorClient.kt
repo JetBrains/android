@@ -32,10 +32,8 @@ import com.android.tools.idea.layoutinspector.snapshots.APP_INSPECTION_SNAPSHOT_
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotMetadata
 import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.AppContext
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Configuration
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.DisableBitmapScreenshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
@@ -181,8 +179,6 @@ class ViewLayoutInspectorClient(
   private var lastComposeParameters = ConcurrentHashMap<Long, GetAllParametersResponse>()
   private val recentLayouts =
     ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
-  private var lastConfiguration = Configuration.getDefaultInstance()
-  private var lastAppContext = AppContext.getDefaultInstance()
 
   init {
     scope.launch {
@@ -331,8 +327,6 @@ class ViewLayoutInspectorClient(
     if (!isFetchingContinuously) {
       lastData[layoutEvent.rootView.id] = data
     }
-    lastConfiguration = layoutEvent.configuration
-    lastAppContext = layoutEvent.appContext
     fireTreeEvent(data)
   }
 
@@ -401,8 +395,6 @@ class ViewLayoutInspectorClient(
       data,
       properties,
       composeParameters,
-      lastConfiguration,
-      lastAppContext,
       snapshotMetadata,
       model.foldInfo
     )
@@ -472,8 +464,6 @@ class ViewLayoutInspectorClient(
           path,
           snapshotResponse,
           composeInfo,
-          lastConfiguration,
-          lastAppContext,
           snapshotMetadata,
           model.foldInfo
         )
