@@ -68,28 +68,22 @@ private fun ExternalAndroidLibrary.getResolvedPackageName(): String? {
 /**
  * Register this [ExternalAndroidLibrary] with the [ResourceClassRegistry].
  */
-private fun ExternalAndroidLibrary.registerLibraryResources(
-  repositoryManager: StudioResourceRepositoryManager,
-  classRegistry: ResourceClassRegistry,
-  idManager: ResourceIdManager) {
-  val appResources = repositoryManager.appResources
+private fun ResourceClassRegistry.registerLibraryResources(
+  externalLib: ExternalAndroidLibrary,
+  idManager: ResourceIdManager,
+  repositoryManager: StudioResourceRepositoryManager) {
 
   // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
-  val rClassContents: ResourceRepository
-  val resourcesNamespace: ResourceNamespace
-  val packageName: String?
+  val (rClassContents: ResourceRepository, resourcesNamespace: ResourceNamespace, packageName: String?) =
   if (repositoryManager.namespacing === ResourceNamespacing.DISABLED) {
-    packageName = getResolvedPackageName() ?: return
-    rClassContents = appResources
-    resourcesNamespace = ResourceNamespace.RES_AUTO
+    val resolvedPackageName = externalLib.getResolvedPackageName() ?: return
+    Triple(repositoryManager.appResources, ResourceNamespace.RES_AUTO, resolvedPackageName)
   }
   else {
-    val aarResources = repositoryManager.findLibraryResources(this) ?: return
-    rClassContents = aarResources
-    resourcesNamespace = aarResources.namespace
-    packageName = aarResources.packageName
+    val aarResources = repositoryManager.findLibraryResources(externalLib) ?: return
+    Triple(aarResources, aarResources.namespace, aarResources.packageName)
   }
-  classRegistry.addLibrary(rClassContents, idManager, packageName, resourcesNamespace)
+  this.addLibrary(rClassContents, idManager, packageName, resourcesNamespace)
 }
 
 /**
@@ -124,7 +118,7 @@ private fun registerResources(module: Module) {
   }
   module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
     .filter { it.hasResources }
-    .forEach { it.registerLibraryResources(repositoryManager, classRegistry, idManager) }
+    .forEach { classRegistry.registerLibraryResources(it, idManager, repositoryManager) }
 }
 
 // matches foo.bar.R or foo.bar.R$baz
