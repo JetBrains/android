@@ -37,70 +37,35 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewNod
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewQuad
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewRect
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewString
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.GRAMMATICAL_GENDER_FEMININE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
-import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_HDR_YES
-import com.android.tools.idea.layoutinspector.resource.COLOR_MODE_WIDE_COLOR_GAMUT_YES
-import com.android.tools.idea.layoutinspector.resource.KEYBOARDHIDDEN_NO
-import com.android.tools.idea.layoutinspector.resource.KEYBOARD_QWERTY
-import com.android.tools.idea.layoutinspector.resource.NAVIGATIONHIDDEN_NO
-import com.android.tools.idea.layoutinspector.resource.NAVIGATION_WHEEL
-import com.android.tools.idea.layoutinspector.resource.ORIENTATION_PORTRAIT
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
-import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_LAYOUTDIR_RTL
-import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_LONG_YES
-import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_ROUND_YES
-import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_SMALL
-import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_STYLUS
-import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
-import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.BitmapType
 import com.android.tools.layoutinspector.InvalidPictureException
 import com.android.tools.layoutinspector.SkiaViewNode
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
-import java.awt.Dimension
 import java.awt.Image
 import java.awt.Polygon
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.fail
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class AppInspectionTreeLoaderTest {
 
-  @get:Rule val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = ProjectRule()
 
   private val sample565 = Screenshot("partiallyTransparentImage.png", BitmapType.RGB_565)
   private val sample8888 = Screenshot("partiallyTransparentImage.png", BitmapType.ABGR_8888)
-
-  private val themes =
-    """
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.BasicViews" parent="android:Theme.Dark" />
-</resources>
-  """
-      .trimIndent()
-
-  @Before
-  fun before() {
-    projectRule.fixture.addFileToProject("res/values/themes.xml", themes)
-    val facet = AndroidFacet.getInstance(projectRule.module)!!
-    AndroidModel.set(facet, TestAndroidModel("com.example"))
-  }
 
   /**
    * Generate fake data containing hand-crafted layout information that can be used for generating
@@ -123,34 +88,7 @@ class AppInspectionTreeLoaderTest {
           ViewString(5, "androidx.compose.ui.platform")
           ViewString(6, "ComposeView")
 
-          appContextBuilder.apply {
-            configurationBuilder.apply {
-              countryCode = 310
-              networkCode = 410
-              screenLayout =
-                SCREENLAYOUT_SIZE_SMALL or
-                  SCREENLAYOUT_LONG_YES or
-                  SCREENLAYOUT_LAYOUTDIR_RTL or
-                  SCREENLAYOUT_ROUND_YES
-              colorMode = COLOR_MODE_WIDE_COLOR_GAMUT_YES or COLOR_MODE_HDR_YES
-              touchScreen = TOUCHSCREEN_STYLUS
-              keyboard = KEYBOARD_QWERTY
-              keyboardHidden = KEYBOARDHIDDEN_NO
-              hardKeyboardHidden = KEYBOARDHIDDEN_NO
-              navigation = NAVIGATION_WHEEL
-              navigationHidden = NAVIGATIONHIDDEN_NO
-              uiMode = UI_MODE_TYPE_NORMAL or UI_MODE_NIGHT_NO
-              smallestScreenWidthDp = 200
-              density = 560
-              orientation = ORIENTATION_PORTRAIT
-              screenWidthDp = 480
-              screenHeightDp = 800
-              grammaticalGender = GRAMMATICAL_GENDER_FEMININE
-            }
-            screenHeight = 800
-            screenWidth = 480
-            themeString = "@style/Theme.BasicViews"
-          }
+          appContextBuilder.apply { configurationBuilder.apply { countryCode = 1 } }
 
           rootView = ViewNode {
             id = 1
@@ -323,9 +261,12 @@ class AppInspectionTreeLoaderTest {
       )
 
     val data = createFakeData(pendingRecompositionCountReset = pendingRecompositionCountReset)
-    val lookup = ResourceLookup(projectRule.project)
     val (window, generation) =
-      treeLoader.loadComponentTree(data, lookup, MODERN_DEVICE.createProcess())!!
+      treeLoader.loadComponentTree(
+        data,
+        ResourceLookup(projectRule.project),
+        MODERN_DEVICE.createProcess()
+      )!!
     assertThat(data.generation).isEqualTo(generation)
 
     window!!.refreshImages(1.0)
@@ -429,11 +370,6 @@ class AppInspectionTreeLoaderTest {
 
       assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
     }
-
-    assertThat(lookup.hasResolver).isTrue()
-    assertThat(lookup.defaultTheme?.resourceUrl?.toString()).isEqualTo("@style/Theme.BasicViews")
-    assertThat(lookup.dpi).isEqualTo(560)
-    assertThat(lookup.screenDimension).isEqualTo(Dimension(480, 800))
   }
 
   private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any) {

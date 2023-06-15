@@ -60,7 +60,7 @@ class ViewInspectorTreeLoader(
     val appContext = viewEvent.appContext
     folderConfig = configuration.convert(process.device.apiLevel)
     val context = appContext.convert()
-    val theme = context.createThemeReference(viewNodeCreator.strings, process.packageName)
+    val theme = context.theme.createReference(viewNodeCreator.strings)
     resourceLookup.updateConfiguration(
       folderConfig,
       theme,

@@ -443,7 +443,7 @@ class InspectorModelDescriptor(
       val strings = TestStringTable()
       val builder = ConfigurationParamsBuilder(strings)
       val context = builder.makeSampleContext(project)
-      val theme = context.theme?.createReference(strings)
+      val theme = context.theme.createReference(strings)
       val process = builder.makeSampleProcess(project)
       model.resourceLookup.updateConfiguration(
         FolderConfiguration.createDefault(),
