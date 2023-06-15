@@ -71,7 +71,8 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val nodeFactory = SystemTraceNodeFactory()
 
     for (thread in mainProcessModel.getThreads()) {
-      val threadInfo = CpuThreadSliceInfo(thread.id, thread.name, mainProcessModel.id, mainProcessModel.name)
+      val threadName = if (thread.id == mainProcessModel.id && thread.name.isEmpty()) mainProcessModel.name else thread.name
+      val threadInfo = CpuThreadSliceInfo(thread.id, threadName, mainProcessModel.id, mainProcessModel.name)
       val root = CaptureNode(nodeFactory.getNode(thread.name), ClockType.GLOBAL)
       root.startGlobal = model.getCaptureStartTimestampUs()
       root.endGlobal = model.getCaptureEndTimestampUs()

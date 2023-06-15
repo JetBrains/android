@@ -113,6 +113,32 @@ class SystemTraceCpuCaptureBuilderTest {
   }
 
   @Test
+  fun `buildThreadStateData - main thread name not present`() {
+    val mainThread = ThreadModel(1, 1, "",
+                                 listOf(),
+                                 listOf(
+                                   SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                   SchedulingEventModel(ThreadState.NO_ACTIVITY, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                 ))
+    val nonMainThread = ThreadModel(2, 2, "NON_MAIN_THREAD",
+                                    listOf(),
+                                    listOf())
+
+    val processes = mapOf(1 to ProcessModel(
+      1, "Main Process",
+      mapOf(1 to mainThread, 2 to nonMainThread),
+      mapOf(),
+    ))
+
+    val model = TestModel(processes, mapOf(), listOf(), listOf(), listOf())
+    val capture = SystemTraceCpuCaptureBuilder(model).build(1L, 1, Range(0.0, 5.0))
+    val systemTraceData = capture.systemTraceData
+
+    // Because the main thread name was not present, the main thread assumes the name of the process it belongs to.
+    assertThat(systemTraceData.threads.find { it.isMainThread }?.name).isEqualTo("Main Process")
+  }
+
+  @Test
   fun `buildCpuStateData - thread states`() {
     val processes = mapOf(
       1 to ProcessModel(
