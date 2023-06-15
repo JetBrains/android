@@ -51,7 +51,9 @@
     <fileEditorProvider implementation="com.android.tools.idea.layoutinspector.snapshots.LayoutInspectorFileEditor$Provider"/>
 
     <applicationConfigurable groupId="experimental" id="layout.inspector.configurable"
-                             provider="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableProvider"/>
+                             provider="com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurableProvider"
+                             bundle="messages.LayoutInspectorBundle"
+                             key="layout.inspector"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings"/>
 

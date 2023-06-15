@@ -16,9 +16,13 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable groupId="tools" id="emulator"
-                             provider="com.android.tools.idea.streaming.emulator.settings.EmulatorConfigurableProvider"/>
+                             provider="com.android.tools.idea.streaming.emulator.settings.EmulatorConfigurableProvider"
+                             bundle="messages.StreamingBundle"
+                             key="android.configurable.EmulatorConfigurable.displayName"/>
     <applicationConfigurable groupId="tools" id="device.mirroring"
-                             provider="com.android.tools.idea.streaming.device.settings.DeviceMirroringConfigurableProvider"/>
+                             provider="com.android.tools.idea.streaming.device.settings.DeviceMirroringConfigurableProvider"
+                             bundle="messages.StreamingBundle"
+                             key="android.configurable.DeviceMirroringConfigurable.displayName"/>
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 

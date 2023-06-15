@@ -52,7 +52,9 @@
     <applicationConfigurable
         parentId="tools"
         provider="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"
-        id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"/>
+        id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider"
+        bundle="messages.LogcatBundle"
+        key="logcat.settings.title"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.logcat.settings.AndroidLogcatSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions"/>
