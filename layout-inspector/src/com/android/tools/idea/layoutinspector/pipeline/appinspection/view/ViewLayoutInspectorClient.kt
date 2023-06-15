@@ -186,9 +186,9 @@ class ViewLayoutInspectorClient(
 
   init {
     scope.launch {
-      // Layout events are very expensive to process and we may get a bunch of intermediate layouts
-      // while still processing an older one.
-      // We skip over rendering these obsolete frames, which makes the UX feel much more responsive.
+      // Layout events are very expensive to process, so we may get a bunch of intermediate layouts
+      // while still processing an older one. We skip over rendering these obsolete frames,
+      // which makes the UX feel much more responsive.
       messenger.eventFlow
         .mapNotNull { eventBytes ->
           try {
@@ -203,15 +203,15 @@ class ViewLayoutInspectorClient(
           }
         }
         .onEach { event ->
+          // Keep track of the last LayoutEvent received.
           if (event.specializedCase == Event.SpecializedCase.LAYOUT_EVENT) {
             recentLayouts[event.layoutEvent.rootView.id] = event.layoutEvent
           }
         }
-        .buffer(
-          capacity = UNLIMITED
-        ) // Buffering allows event collection to keep happening even as we're still processing
-        // older ones
+        // Buffering allows event collection to happen even while we're processing older events.
+        .buffer(capacity = UNLIMITED)
         .filter { event ->
+          // Filter out all LayoutEvents that are not the last one received.
           event.specializedCase != Event.SpecializedCase.LAYOUT_EVENT ||
             event.layoutEvent === recentLayouts[event.layoutEvent.rootView.id]
         }
