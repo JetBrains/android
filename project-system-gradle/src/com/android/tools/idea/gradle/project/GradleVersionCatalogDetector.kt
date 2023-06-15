@@ -47,8 +47,10 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.gradle.util.GradleVersion
+import org.jetbrains.android.util.AndroidSlowOperations
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
@@ -134,7 +136,10 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
         if (project.isDisposed) throw ProcessCanceledException()
         val baseDir = project.baseDir ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
         val settingsFile = findGradleSettingsFile(baseDir) ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
-        val settingsVisitorResults = when (val settingsPsiFile = PsiManager.getInstance(project).findFile(settingsFile)) {
+        val settingsPsiFile = AndroidSlowOperations.allowSlowOperationsInIdea<PsiFile?, Throwable> {
+          PsiManager.getInstance(project).findFile(settingsFile)
+        }
+        val settingsVisitorResults = when (settingsPsiFile) {
           is GroovyFile -> visitGroovySettings(settingsPsiFile)
           is KtFile -> visitKtSettings(settingsPsiFile)
           else -> EMPTY_SETTINGS
