@@ -83,7 +83,7 @@ class ModelClassDumperDescriptor(klass: KClass<Any>) {
     private fun String.toCamelCase(): String = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, this)
 
     fun maybeMapJavaGetterToKotlinProperty(property: KProperty1<*, *>): String? {
-      if (property.javaGetter != null) return null
+      if (runCatching { property.javaGetter }.getOrNull() != null) return null
       val name = property.name
       return when {
         name.startsWith("get") -> name.removePrefix("get").toCamelCase()
