@@ -754,9 +754,9 @@ class EmulatorViewTest {
     var call: GrpcCallRecord? = null
     for (rotation in listOf(1, 1, -1, -1)) {
       ui.mouse.wheel(100, 100, rotation)
-      val call = call ?: emulator.getNextGrpcCall(2, TimeUnit.SECONDS).also {
-        assertThat(it.methodName).isEqualTo("android.emulation.control.EmulatorController/injectWheel")
-        call = it
+      if (call == null) {
+        call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+        assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/injectWheel")
       }
       assertThat(shortDebugString(call.getNextRequest(2, TimeUnit.SECONDS))).isEqualTo("dy: ${-rotation * 120}")
     }
