@@ -1163,7 +1163,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_LITE_MODE = Flag.create(
     COMPOSE, "preview.compose.lite.mode", "Enable Compose Preview Lite Mode",
     "If enabled, Preview Lite Mode will be enabled.",
-    false);
+    true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(
     COMPOSE, "preview.double.render", "Enable the Compose double render mode",
