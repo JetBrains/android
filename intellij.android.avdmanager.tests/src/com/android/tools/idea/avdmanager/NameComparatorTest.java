@@ -37,28 +37,28 @@ public final class NameComparatorTest {
   @Test
   public void comparePhone() {
     // Arrange
-    var expectedDevices = List.of(mockDevice("Resizable (Experimental)"),
-                                  mockDevice("7.6\" Fold-in with outer display"),
-                                  mockDevice("Pixel"),
-                                  mockDevice("Pixel XL"),
-                                  mockDevice("Pixel 2"),
-                                  mockDevice("Pixel 2 XL"),
-                                  mockDevice("Pixel 3"),
-                                  mockDevice("Pixel 3 XL"),
-                                  mockDevice("Pixel 3a"),
-                                  mockDevice("Pixel 3a XL"),
-                                  mockDevice("Pixel 4"),
-                                  mockDevice("Pixel 4 XL"),
-                                  mockDevice("Pixel 4a"),
-                                  mockDevice("Pixel 5"),
-                                  mockDevice("Pixel 6"),
-                                  mockDevice("Pixel 6 Pro"),
-                                  mockDevice("Pixel 6a"),
-                                  mockDevice("Pixel 7"),
-                                  mockDevice("Pixel 7 Pro"),
-                                  mockDevice("Pixel Fold"),
+    var expectedDevices = List.of(mockDevice("Small Phone"),
                                   mockDevice("Medium Phone"),
-                                  mockDevice("Small Phone"));
+                                  mockDevice("Pixel Fold"),
+                                  mockDevice("Pixel 7 Pro"),
+                                  mockDevice("Pixel 7"),
+                                  mockDevice("Pixel 6a"),
+                                  mockDevice("Pixel 6 Pro"),
+                                  mockDevice("Pixel 6"),
+                                  mockDevice("Pixel 5"),
+                                  mockDevice("Pixel 4a"),
+                                  mockDevice("Pixel 4 XL"),
+                                  mockDevice("Pixel 4"),
+                                  mockDevice("Pixel 3a XL"),
+                                  mockDevice("Pixel 3a"),
+                                  mockDevice("Pixel 3 XL"),
+                                  mockDevice("Pixel 3"),
+                                  mockDevice("Pixel 2 XL"),
+                                  mockDevice("Pixel 2"),
+                                  mockDevice("Pixel XL"),
+                                  mockDevice("Pixel"),
+                                  mockDevice("7.6\" Fold-in with outer display"),
+                                  mockDevice("Resizable (Experimental)"));
 
     var actualDevices = shuffle(expectedDevices);
 
@@ -72,9 +72,9 @@ public final class NameComparatorTest {
   @Test
   public void compareTablet() {
     // Arrange
-    var expectedDevices = List.of(mockDevice("Pixel C"),
+    var expectedDevices = List.of(mockDevice("Medium Tablet"),
                                   mockDevice("Pixel Tablet"),
-                                  mockDevice("Medium Tablet"));
+                                  mockDevice("Pixel C"));
 
     var actualDevices = shuffle(expectedDevices);
 
@@ -88,10 +88,10 @@ public final class NameComparatorTest {
   @Test
   public void compareWearOs() {
     // Arrange
-    var expectedDevices = List.of(mockDevice("Wear OS Large Round"),
-                                  mockDevice("Wear OS Rectangular"),
+    var expectedDevices = List.of(mockDevice("Wear OS Square"),
                                   mockDevice("Wear OS Small Round"),
-                                  mockDevice("Wear OS Square"));
+                                  mockDevice("Wear OS Rectangular"),
+                                  mockDevice("Wear OS Large Round"));
 
     var actualDevices = shuffle(expectedDevices);
 
@@ -105,9 +105,9 @@ public final class NameComparatorTest {
   @Test
   public void compareDesktop() {
     // Arrange
-    var expectedDevices = List.of(mockDevice("Large Desktop"),
+    var expectedDevices = List.of(mockDevice("Small Desktop"),
                                   mockDevice("Medium Desktop"),
-                                  mockDevice("Small Desktop"));
+                                  mockDevice("Large Desktop"));
 
     var actualDevices = shuffle(expectedDevices);
 
@@ -121,9 +121,9 @@ public final class NameComparatorTest {
   @Test
   public void compareTv() {
     // Arrange
-    var expectedDevices = List.of(mockDevice("Television (1080p)"),
+    var expectedDevices = List.of(mockDevice("Television (720p)"),
                                   mockDevice("Television (4K)"),
-                                  mockDevice("Television (720p)"));
+                                  mockDevice("Television (1080p)"));
 
     var actualDevices = shuffle(expectedDevices);
 
@@ -136,37 +136,37 @@ public final class NameComparatorTest {
 
   @Test
   public void compareLegacy() {
-    var expectedDevices = List.of(mockDevice("10.1\" WXGA (Tablet)"),
-                                  mockDevice("13.5\" Freeform"),
-                                  mockDevice("2.7\" QVGA"),
-                                  mockDevice("2.7\" QVGA slider"),
-                                  mockDevice("3.2\" HVGA slider (ADP1)"),
-                                  mockDevice("3.2\" QVGA (ADP2)"),
-                                  mockDevice("3.3\" WQVGA"),
-                                  mockDevice("3.4\" WQVGA"),
-                                  mockDevice("3.7\" FWVGA slider"),
-                                  mockDevice("3.7\" WVGA (Nexus One)"),
-                                  mockDevice("4\" WVGA (Nexus S)"),
-                                  mockDevice("4.65\" 720p (Galaxy Nexus)"),
-                                  mockDevice("4.7\" WXGA"),
-                                  mockDevice("5.1\" WVGA"),
-                                  mockDevice("5.4\" FWVGA"),
-                                  mockDevice("6.7\" Horizontal Fold-in"),
+    var expectedDevices = List.of(mockDevice("Nexus S"),
+                                  mockDevice("Nexus One"),
+                                  mockDevice("Nexus 9"),
+                                  mockDevice("Nexus 7 (2012)"),
+                                  mockDevice("Nexus 7"),
+                                  mockDevice("Nexus 6P"),
+                                  mockDevice("Nexus 6"),
+                                  mockDevice("Nexus 5X"),
+                                  mockDevice("Nexus 5"),
+                                  mockDevice("Nexus 4"),
+                                  mockDevice("Nexus 10"),
+                                  mockDevice("Galaxy Nexus"),
+                                  mockDevice("8\" Fold-out"),
                                   mockDevice("7\" WSVGA (Tablet)"),
                                   mockDevice("7.4\" Rollable"),
-                                  mockDevice("8\" Fold-out"),
-                                  mockDevice("Galaxy Nexus"),
-                                  mockDevice("Nexus 10"),
-                                  mockDevice("Nexus 4"),
-                                  mockDevice("Nexus 5"),
-                                  mockDevice("Nexus 5X"),
-                                  mockDevice("Nexus 6"),
-                                  mockDevice("Nexus 6P"),
-                                  mockDevice("Nexus 7"),
-                                  mockDevice("Nexus 7 (2012)"),
-                                  mockDevice("Nexus 9"),
-                                  mockDevice("Nexus One"),
-                                  mockDevice("Nexus S"));
+                                  mockDevice("6.7\" Horizontal Fold-in"),
+                                  mockDevice("5.4\" FWVGA"),
+                                  mockDevice("5.1\" WVGA"),
+                                  mockDevice("4\" WVGA (Nexus S)"),
+                                  mockDevice("4.7\" WXGA"),
+                                  mockDevice("4.65\" 720p (Galaxy Nexus)"),
+                                  mockDevice("3.7\" WVGA (Nexus One)"),
+                                  mockDevice("3.7\" FWVGA slider"),
+                                  mockDevice("3.4\" WQVGA"),
+                                  mockDevice("3.3\" WQVGA"),
+                                  mockDevice("3.2\" QVGA (ADP2)"),
+                                  mockDevice("3.2\" HVGA slider (ADP1)"),
+                                  mockDevice("2.7\" QVGA slider"),
+                                  mockDevice("2.7\" QVGA"),
+                                  mockDevice("13.5\" Freeform"),
+                                  mockDevice("10.1\" WXGA (Tablet)"));
 
     var actualDevices = shuffle(expectedDevices);
 

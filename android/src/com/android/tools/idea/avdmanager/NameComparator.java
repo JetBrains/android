@@ -16,6 +16,8 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
+import com.ibm.icu.text.Collator;
+import com.ibm.icu.util.ULocale;
 import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,29 +38,29 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("GrazieInspection")
 final class NameComparator implements Comparator<Device> {
   @NotNull
-  private static final Comparator<String> COMPARATOR = Comparator.comparing(SortKey::valueOfDeviceName)
-    .thenComparing(Comparator.naturalOrder());
+  private static final Comparator<Device> COMPARATOR = Comparator.comparing(SortKey::valueOfDevice)
+    .thenComparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT).reversed());
 
   private enum SortKey {
-    RESIZABLE_EXPERIMENTAL,
-    SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY,
-    PIXEL,
-    PIXEL_XL,
-    DEVICE,
-    MEDIUM_TABLET,
+    SMALL_PHONE,
     MEDIUM_PHONE,
-    SMALL_PHONE;
+    MEDIUM_TABLET,
+    DEVICE,
+    PIXEL_XL,
+    PIXEL,
+    SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY,
+    RESIZABLE_EXPERIMENTAL;
 
     @NotNull
-    private static SortKey valueOfDeviceName(@NotNull String deviceName) {
-      return switch (deviceName) {
-        case "Resizable (Experimental)" -> RESIZABLE_EXPERIMENTAL;
-        case "7.6\" Fold-in with outer display" -> SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY;
-        case "Pixel" -> PIXEL;
-        case "Pixel XL" -> PIXEL_XL;
-        case "Medium Tablet" -> MEDIUM_TABLET;
-        case "Medium Phone" -> MEDIUM_PHONE;
+    private static SortKey valueOfDevice(@NotNull Device device) {
+      return switch (device.getDisplayName()) {
         case "Small Phone" -> SMALL_PHONE;
+        case "Medium Phone" -> MEDIUM_PHONE;
+        case "Medium Tablet" -> MEDIUM_TABLET;
+        case "Pixel XL" -> PIXEL_XL;
+        case "Pixel" -> PIXEL;
+        case "7.6\" Fold-in with outer display" -> SEVEN_POINT_SIX_INCH_FOLD_IN_WITH_OUTER_DISPLAY;
+        case "Resizable (Experimental)" -> RESIZABLE_EXPERIMENTAL;
         default -> DEVICE;
       };
     }
@@ -66,12 +68,6 @@ final class NameComparator implements Comparator<Device> {
 
   @Override
   public int compare(@NotNull Device device1, @NotNull Device device2) {
-    var name1 = device1.getDisplayName();
-    assert !name1.isEmpty();
-
-    var name2 = device2.getDisplayName();
-    assert !name2.isEmpty();
-
-    return COMPARATOR.compare(name1, name2);
+    return COMPARATOR.compare(device1, device2);
   }
 }
