@@ -1049,20 +1049,30 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private inner class MirroringActivator(private val device: DeviceDescription) : MirroringHandle {
+
     override val mirroringState: MirroringState
       get() = MirroringState.INACTIVE
 
     override fun toggleMirroring() {
       activateMirroring(device)
     }
+
+    override fun toString(): String {
+      return "MirroringActivator for ${device.serialNumber}"
+    }
   }
 
   private inner class MirroringDeactivator(private val serialNumber: String) : MirroringHandle {
+
     override val mirroringState: MirroringState
       get() = MirroringState.ACTIVE
 
     override fun toggleMirroring() {
       deactivateMirroring(serialNumber)
+    }
+
+    override fun toString(): String {
+      return "MirroringDeactivator for $serialNumber"
     }
   }
 
