@@ -2726,6 +2726,7 @@ Android Studio Preview.app/Contents/plugins/directaccess/lib/ftl_client_java_pro
 Android Studio Preview.app/Contents/plugins/directaccess/resources/reverse_daemon.dex
 Android Studio Preview.app/Contents/plugins/editorconfig/lib/editorconfig.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/firebase-testing.jar
+Android Studio Preview.app/Contents/plugins/firebase-testing/lib/gmd-code-completion.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-testing-v1-revsnapshot-1.25.0.jar
 Android Studio Preview.app/Contents/plugins/firebase-testing/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
@@ -2735,7 +2736,6 @@ Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase_java_proto.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
-Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/gmd-code-completion.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar

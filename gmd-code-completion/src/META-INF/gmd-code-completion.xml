@@ -13,16 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<idea-plugin>
-  <id>com.android.gmdcodecompletion</id>
-  <name>Gradle managed device code completion</name>
-  <version>1.0</version>
-  <vendor>Google</vendor>
-
-  <description>Enables GMD code completion.</description>
-
-  <depends>org.jetbrains.android</depends>
-  <depends>com.google.gct.testing</depends>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <depends>org.intellij.groovy</depends>
   <depends>org.jetbrains.kotlin</depends>
 

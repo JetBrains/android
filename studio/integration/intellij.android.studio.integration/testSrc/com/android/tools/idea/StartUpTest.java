@@ -85,7 +85,6 @@ public class StartUpTest {
         "Google Cloud Tools Core",
         "Google Cloud Tools For Android Studio",
         "Gradle",
-        "Gradle managed device code completion",
         "Gradle-Java",
         "Groovy",
         "HTML Tools",

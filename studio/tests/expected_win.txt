@@ -2041,6 +2041,7 @@ android-studio/plugins/directaccess/lib/ftl_client_java_proto.jar
 android-studio/plugins/directaccess/resources/reverse_daemon.dex
 android-studio/plugins/editorconfig/lib/editorconfig.jar
 android-studio/plugins/firebase-testing/lib/firebase-testing.jar
+android-studio/plugins/firebase-testing/lib/gmd-code-completion.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-storage-v1-rev20230301-2.0.0.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-testing-v1-revsnapshot-1.25.0.jar
 android-studio/plugins/firebase-testing/lib/google-api-services-toolresults-v1beta3-rev20230410-2.0.0.jar
@@ -2050,7 +2051,6 @@ android-studio/plugins/firebase/lib/firebase.jar
 android-studio/plugins/firebase/lib/firebase_java_proto.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
 android-studio/plugins/git4insights/lib/git4insights.jar
-android-studio/plugins/gmd-code-completion/lib/gmd-code-completion.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 android-studio/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar

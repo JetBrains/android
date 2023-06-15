@@ -522,12 +522,16 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:tightvnc",
         "//tools/studio/google/cloud/testing/firebase-testing:google_api_services_testing",
     ],
-    modules = {"firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"]},
+    modules = {
+        "firebase-testing.jar": ["//tools/studio/google/cloud/testing/firebase-testing:firebase-testing"],
+        "gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"],
+    },
     visibility = ["//visibility:public"],
     deps = [
         ":com.google.gct.core",
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
     ],
 )
 
@@ -580,19 +584,6 @@ studio_plugin(
     directory = "smali",
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
     visibility = ["//visibility:public"],
-)
-
-studio_plugin(
-    name = "com.android.gmdcodecompletion",
-    directory = "gmd-code-completion",
-    modules = {"gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"]},
-    visibility = ["//visibility:public"],
-    deps = [
-        ":com.google.gct.testing",
-        ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-    ],
 )
 
 studio_plugin(
@@ -683,7 +674,6 @@ android_studio(
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
         ":org.jetbrains.android",
-        ":com.android.gmdcodecompletion",
         ":com.android.tools.studiobot",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
