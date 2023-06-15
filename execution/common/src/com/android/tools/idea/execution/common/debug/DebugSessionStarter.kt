@@ -25,6 +25,8 @@ import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.debug.utils.showError
 import com.android.tools.idea.execution.common.debug.utils.waitForClientReadyForDebug
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.track
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.configurations.RunConfiguration
@@ -49,6 +51,9 @@ object DebugSessionStarter {
 
   private val LOG = Logger.getInstance(DebugSessionStarter::class.java)
 
+  private val START_DEBUGGER_SESSION = "startDebuggerSession"
+  private val START_REATTACHING_DEBUGGER_SESSION = "startReattachingDebuggerSession"
+
   /**
    * Starts a new debugging session for given [Client].
    * Use this method only if debugging is started by using 'Debug' on configuration, otherwise use [AndroidDebugger.attachToClient]
@@ -66,34 +71,36 @@ object DebugSessionStarter {
     timeout: Long = 15
 
   ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
-    val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
+    RunStats.from(environment).track(START_DEBUGGER_SESSION) {
+      val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
 
-    val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
-      environment.project, client,
-      androidDebuggerState,
-      consoleView
-    )
-    val session = withContext(uiThread) {
-      indicator.text = "Attaching debugger"
-      XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter) as XDebugSessionImpl
-    }
-
-    val debugProcessHandler = session.debugProcess.processHandler
-    debugProcessHandler.startNotify()
-    debugProcessHandler.addProcessListener(object : ProcessAdapter() {
-      override fun processTerminated(event: ProcessEvent) {
-        executeOnPooledThread { destroyRunningProcess(device) }
-        super.processTerminated(event)
+      val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
+        environment.project, client,
+        androidDebuggerState,
+        consoleView
+      )
+      val session = withContext(uiThread) {
+        indicator.text = "Attaching debugger"
+        XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter) as XDebugSessionImpl
       }
-    })
-    val executor = environment.executor
-    AndroidSessionInfo.create(
-      debugProcessHandler,
-      environment.runProfile as? RunConfiguration,
-      executor.id,
-      environment.executionTarget
-    )
-    session
+
+      val debugProcessHandler = session.debugProcess.processHandler
+      debugProcessHandler.startNotify()
+      debugProcessHandler.addProcessListener(object : ProcessAdapter() {
+        override fun processTerminated(event: ProcessEvent) {
+          executeOnPooledThread { destroyRunningProcess(device) }
+          super.processTerminated(event)
+        }
+      })
+      val executor = environment.executor
+      AndroidSessionInfo.create(
+        debugProcessHandler,
+        environment.runProfile as? RunConfiguration,
+        executor.id,
+        environment.executionTarget
+      )
+      session
+    }
   }
 
   @WorkerThread
@@ -137,52 +144,54 @@ object DebugSessionStarter {
     consoleView: ConsoleView? = null,
     timeout: Long = 300
   ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
-    val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
-    val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
-      environment.project, client,
-      androidDebuggerState,
-      consoleView
-    )
-    indicator.text = "Attaching debugger"
-    val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
-
-    val reattachingListener = ReattachingDebuggerListener(
-      environment.project, masterProcessHandler, appId,
-      androidDebugger, androidDebuggerState, consoleView, environment,
-      reattachingProcessHandler
-    )
-    reattachingListener.addProcessedClientPid(client.clientData.pid)
-
-    LOG.info("Add reattaching listener")
-    AndroidDebugBridge.addClientChangeListener(reattachingListener)
-
-    masterProcessHandler.addProcessListener(object : ProcessAdapter() {
-      override fun processTerminated(event: ProcessEvent) {
-        // Stop the reattaching debug connector task as soon as the master process is terminated.
-        LOG.info("Delete reattaching listener")
-        AndroidDebugBridge.removeClientChangeListener(reattachingListener)
-      }
-    })
-    masterProcessHandler.startNotify()
-
-    LOG.info("Start first session")
-
-    withContext(uiThread) {
-      val session = XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter)
-
-      val debugProcessHandler = session.debugProcess.processHandler
-      debugProcessHandler.startNotify()
-      reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
-      session.runContentDescriptor.processHandler = reattachingProcessHandler
-
-      val executor = environment.executor
-      AndroidSessionInfo.create(
-        masterProcessHandler,
-        environment.runProfile as? RunConfiguration,
-        executor.id,
-        environment.executionTarget
+    RunStats.from(environment).track(START_REATTACHING_DEBUGGER_SESSION) {
+      val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
+      val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
+        environment.project, client,
+        androidDebuggerState,
+        consoleView
       )
-      session as XDebugSessionImpl
+      indicator.text = "Attaching debugger"
+      val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
+
+      val reattachingListener = ReattachingDebuggerListener(
+        environment.project, masterProcessHandler, appId,
+        androidDebugger, androidDebuggerState, consoleView, environment,
+        reattachingProcessHandler
+      )
+      reattachingListener.addProcessedClientPid(client.clientData.pid)
+
+      LOG.info("Add reattaching listener")
+      AndroidDebugBridge.addClientChangeListener(reattachingListener)
+
+      masterProcessHandler.addProcessListener(object : ProcessAdapter() {
+        override fun processTerminated(event: ProcessEvent) {
+          // Stop the reattaching debug connector task as soon as the master process is terminated.
+          LOG.info("Delete reattaching listener")
+          AndroidDebugBridge.removeClientChangeListener(reattachingListener)
+        }
+      })
+      masterProcessHandler.startNotify()
+
+      LOG.info("Start first session")
+
+      withContext(uiThread) {
+        val session = XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter)
+
+        val debugProcessHandler = session.debugProcess.processHandler
+        debugProcessHandler.startNotify()
+        reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
+        session.runContentDescriptor.processHandler = reattachingProcessHandler
+
+        val executor = environment.executor
+        AndroidSessionInfo.create(
+          masterProcessHandler,
+          environment.runProfile as? RunConfiguration,
+          executor.id,
+          environment.executionTarget
+        )
+        session as XDebugSessionImpl
+      }
     }
   }
 

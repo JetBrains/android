@@ -63,6 +63,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
+import com.intellij.xdebugger.impl.XDebugSessionImpl
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -259,14 +260,14 @@ class AndroidRunConfigurationExecutor(
 
   private fun startDebugSession(
     device: IDevice, packageName: String, indicator: ProgressIndicator, console: ConsoleView
-  ) = RunStats.from(env).track("startDebuggerSession") {
+  ):XDebugSessionImpl  {
     val debugger = configuration.androidDebuggerContext.androidDebugger
       ?: throw ExecutionException("Unable to determine debugger to use for this launch")
     LOG.info("Using debugger: " + debugger.id)
     val debuggerState = configuration.androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
       ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
 
-    DebugSessionStarter.attachDebuggerToStartedProcess(
+    return DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
       packageName,
       env,
