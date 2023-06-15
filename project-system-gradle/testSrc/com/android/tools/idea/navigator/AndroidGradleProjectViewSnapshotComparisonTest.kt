@@ -107,6 +107,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.NON_STANDARD_SOURCE_SETS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.CUSTOM_SOURCE_TYPE),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.ANDROID_KOTLIN_MULTIPLATFORM),
       AndroidProjectViewSnapshotComparisonTestDef(
         TestProject.MULTI_FLAVOR,
         projectViewSettings = ProjectViewSettings(hideEmptyPackages = true, flattenPackages = true)
