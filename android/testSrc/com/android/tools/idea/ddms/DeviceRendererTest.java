@@ -23,13 +23,14 @@ import static com.android.ddmlib.IDevice.PROP_DEVICE_MODEL;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.SimpleColoredText;
 import java.util.ArrayList;
 import java.util.List;
-import org.easymock.EasyMock;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -47,21 +48,20 @@ public final class DeviceRendererTest {
                                       String apiLevel,
                                       String serial,
                                       DeviceState state) {
-    IDevice d = EasyMock.createMock(IDevice.class);
-    EasyMock.expect(d.isEmulator()).andStubReturn(isEmulator);
+    IDevice d = mock(IDevice.class);
+    when(d.isEmulator()).thenReturn(isEmulator);
     if (isEmulator) {
-      EasyMock.expect(d.getAvdName()).andStubReturn(avdName);
+      when(d.getAvdName()).thenReturn(avdName);
     }
     else {
-      EasyMock.expect(d.getProperty(PROP_DEVICE_MANUFACTURER)).andStubReturn(manufacturer);
-      EasyMock.expect(d.getProperty(PROP_DEVICE_MODEL)).andStubReturn(model);
+      when(d.getProperty(PROP_DEVICE_MANUFACTURER)).thenReturn(manufacturer);
+      when(d.getProperty(PROP_DEVICE_MODEL)).thenReturn(model);
     }
-    EasyMock.expect(d.getProperty(PROP_BUILD_VERSION)).andStubReturn(buildVersion);
-    EasyMock.expect(d.getProperty(PROP_BUILD_API_LEVEL)).andStubReturn(apiLevel);
-    EasyMock.expect(d.getSerialNumber()).andStubReturn(serial);
-    EasyMock.expect(d.getState()).andStubReturn(state);
-    EasyMock.expect(d.getName()).andStubReturn(manufacturer + model);
-    EasyMock.replay(d);
+    when(d.getProperty(PROP_BUILD_VERSION)).thenReturn(buildVersion);
+    when(d.getProperty(PROP_BUILD_API_LEVEL)).thenReturn(apiLevel);
+    when(d.getSerialNumber()).thenReturn(serial);
+    when(d.getState()).thenReturn(state);
+    when(d.getName()).thenReturn(manufacturer + model);
     return d;
   }
 

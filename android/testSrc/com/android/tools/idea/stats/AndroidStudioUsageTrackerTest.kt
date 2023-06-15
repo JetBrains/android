@@ -16,6 +16,8 @@
 package com.android.tools.idea.stats
 
 import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.HostData.graphicsEnvironment
@@ -36,7 +38,6 @@ import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
 import com.google.wireless.android.sdk.stats.MachineDetails
 import junit.framework.TestCase
-import org.easymock.EasyMock
 import org.junit.Assert
 import java.awt.GraphicsDevice
 import java.io.File
@@ -325,18 +326,17 @@ class AndroidStudioUsageTrackerTest : TestCase() {
 
   companion object {
     fun createMockDevice(): IDevice {
-      val mockDevice = EasyMock.createMock<IDevice>(IDevice::class.java)
-      EasyMock.expect(mockDevice.serialNumber).andStubReturn("serial")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_BUILD_TAGS)).andStubReturn("release-keys")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_BUILD_TYPE)).andStubReturn("userdebug")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_BUILD_VERSION)).andStubReturn("5.1.1")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_BUILD_API_LEVEL)).andStubReturn("24")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_DEVICE_CPU_ABI)).andStubReturn("x86")
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)).andStubReturn("Samsung")
-      EasyMock.expect(mockDevice.isEmulator).andStubReturn(java.lang.Boolean.FALSE)
-      EasyMock.expect(mockDevice.getProperty(IDevice.PROP_DEVICE_MODEL)).andStubReturn("pixel")
-      EasyMock.expect(mockDevice.getHardwareCharacteristics()).andStubReturn(setOf("emulator", "watch"))
-      EasyMock.replay(mockDevice)
+      val mockDevice = mock<IDevice>()
+      whenever(mockDevice.serialNumber).thenReturn("serial")
+      whenever(mockDevice.getProperty(IDevice.PROP_BUILD_TAGS)).thenReturn("release-keys")
+      whenever(mockDevice.getProperty(IDevice.PROP_BUILD_TYPE)).thenReturn("userdebug")
+      whenever(mockDevice.getProperty(IDevice.PROP_BUILD_VERSION)).thenReturn("5.1.1")
+      whenever(mockDevice.getProperty(IDevice.PROP_BUILD_API_LEVEL)).thenReturn("24")
+      whenever(mockDevice.getProperty(IDevice.PROP_DEVICE_CPU_ABI)).thenReturn("x86")
+      whenever(mockDevice.getProperty(IDevice.PROP_DEVICE_MANUFACTURER)).thenReturn("Samsung")
+      whenever(mockDevice.isEmulator).thenReturn(java.lang.Boolean.FALSE)
+      whenever(mockDevice.getProperty(IDevice.PROP_DEVICE_MODEL)).thenReturn("pixel")
+      whenever(mockDevice.getHardwareCharacteristics()).thenReturn(setOf("emulator", "watch"))
       return mockDevice
     }
   }
