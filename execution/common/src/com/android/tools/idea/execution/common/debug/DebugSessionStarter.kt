@@ -68,9 +68,11 @@ object DebugSessionStarter {
   ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
 
-    val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(environment.project, client,
-                                                                                  androidDebuggerState,
-                                                                                  consoleView)
+    val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
+      environment.project, client,
+      androidDebuggerState,
+      consoleView
+    )
     val session = withContext(uiThread) {
       indicator.text = "Attaching debugger"
       XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter) as XDebugSessionImpl
@@ -85,10 +87,12 @@ object DebugSessionStarter {
       }
     })
     val executor = environment.executor
-    AndroidSessionInfo.create(debugProcessHandler,
-                              environment.runProfile as? RunConfiguration,
-                              executor.id,
-                              environment.executionTarget)
+    AndroidSessionInfo.create(
+      debugProcessHandler,
+      environment.runProfile as? RunConfiguration,
+      executor.id,
+      environment.executionTarget
+    )
     session
   }
 
@@ -107,10 +111,13 @@ object DebugSessionStarter {
   ): XDebugSessionImpl {
     val masterProcessHandler = AndroidProcessHandler(
       masterProcessName,
-      finishAndroidProcessCallback = destroyRunningProcess)
+      finishAndroidProcessCallback = destroyRunningProcess
+    )
     masterProcessHandler.addTargetDevice(device)
-    return attachReattachingDebuggerToStartedProcess(device, appId, masterProcessHandler, environment, androidDebugger,
-                                                     androidDebuggerState, indicator, consoleView, timeout)
+    return attachReattachingDebuggerToStartedProcess(
+      device, appId, masterProcessHandler, environment, androidDebugger,
+      androidDebuggerState, indicator, consoleView, timeout
+    )
   }
 
   /**
@@ -131,15 +138,19 @@ object DebugSessionStarter {
     timeout: Long = 300
   ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
-    val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(environment.project, client,
-                                                                                  androidDebuggerState,
-                                                                                  consoleView)
+    val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
+      environment.project, client,
+      androidDebuggerState,
+      consoleView
+    )
     indicator.text = "Attaching debugger"
     val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
 
-    val reattachingListener = ReattachingDebuggerListener(environment.project, masterProcessHandler, appId,
-                                                          androidDebugger, androidDebuggerState, consoleView, environment,
-                                                          reattachingProcessHandler)
+    val reattachingListener = ReattachingDebuggerListener(
+      environment.project, masterProcessHandler, appId,
+      androidDebugger, androidDebuggerState, consoleView, environment,
+      reattachingProcessHandler
+    )
     reattachingListener.addProcessedClientPid(client.clientData.pid)
 
     LOG.info("Add reattaching listener")
@@ -165,10 +176,12 @@ object DebugSessionStarter {
       session.runContentDescriptor.processHandler = reattachingProcessHandler
 
       val executor = environment.executor
-      AndroidSessionInfo.create(masterProcessHandler,
-                                environment.runProfile as? RunConfiguration,
-                                executor.id,
-                                environment.executionTarget)
+      AndroidSessionInfo.create(
+        masterProcessHandler,
+        environment.runProfile as? RunConfiguration,
+        executor.id,
+        environment.executionTarget
+      )
       session as XDebugSessionImpl
     }
   }
@@ -194,17 +207,17 @@ object DebugSessionStarter {
         XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
       }
       val debugProcessHandler = session.debugProcess.processHandler
-      AndroidSessionInfo.create(debugProcessHandler,
-                                null,
-                                DefaultDebugExecutor.getDebugExecutorInstance().id,
-                                ExecutionTargetManager.getActiveTarget(project))
+      AndroidSessionInfo.create(
+        debugProcessHandler,
+        null,
+        DefaultDebugExecutor.getDebugExecutorInstance().id,
+        ExecutionTargetManager.getActiveTarget(project)
+      )
       session
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       if (e is ExecutionException) {
         showError(project, e, sessionName)
-      }
-      else {
+      } else {
         LOG.error(e)
       }
       throw e
