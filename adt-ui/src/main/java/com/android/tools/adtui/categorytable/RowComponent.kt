@@ -45,14 +45,12 @@ sealed interface RowKey<T> {
 internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableComponent {
   init {
     isFocusCycleRoot = true
-    addFocusListener { updateBorder() }
   }
 
   private var rowSelected = false
     set(value) {
       field = value
       isOpaque = value
-      updateBorder()
     }
 
   /** Updates the display of the row based on the current selection status. */
@@ -64,9 +62,6 @@ internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableCompone
     manager.defaultApplyPresentation(this, presentation)
   }
 
-  private fun updateBorder() {
-    border = tableCellBorder(selected = rowSelected, focused = isFocusOwner)
-  }
 
   abstract var indent: Int
 
