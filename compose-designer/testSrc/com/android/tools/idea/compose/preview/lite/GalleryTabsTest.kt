@@ -47,7 +47,8 @@ class GalleryTabsTest {
   fun `first tab is selected`() {
     invokeAndWaitIfNeeded {
       val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-      val tabs = GalleryTabs(rootComponent, keys) {}
+      val tabs = GalleryTabs(rootComponent, { keys }, { _, _ -> })
+      val ui = FakeUi(tabs).apply { updateToolbars() }
       assertEquals(keys.first(), tabs.selectedKey)
     }
   }
@@ -56,8 +57,10 @@ class GalleryTabsTest {
   fun `second tab is selected if first removed`() {
     invokeAndWaitIfNeeded {
       val keys = setOf(TestKey("Second Tab"), TestKey("Third Tab"))
-      val tabs = GalleryTabs(rootComponent, setOf(TestKey("First Tab")) + keys) {}
-      tabs.updateKeys(keys)
+      var providedKeys = setOf(TestKey("First Tab")) + keys
+      val tabs = GalleryTabs(rootComponent, { providedKeys }, { _, _ -> })
+      providedKeys = keys
+      val ui = FakeUi(tabs).apply { updateToolbars() }
       assertEquals(keys.first(), tabs.selectedKey)
     }
   }
@@ -66,12 +69,13 @@ class GalleryTabsTest {
   fun `new tab is added `() {
     invokeAndWaitIfNeeded {
       val newTab = TestKey("newTab")
-      val keys = setOf(TestKey("Tab"), TestKey("Tab2"), TestKey("Tab3"))
-      val tabs = GalleryTabs(rootComponent, keys) {}
-      val ui = FakeUi(tabs).apply { updateToolbars() }
+      val providedKeys = mutableSetOf(TestKey("Tab"), TestKey("Tab2"), TestKey("Tab3"))
+      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      val ui = FakeUi(tabs)
+      ui.updateNestedActions()
       assertEquals(3, findAllActionButtons(tabs).size)
-      tabs.updateKeys(keys + newTab)
-      ui.updateToolbars()
+      providedKeys += newTab
+      ui.updateNestedActions()
       assertEquals(4, findAllActionButtons(tabs).size)
     }
   }
@@ -82,10 +86,11 @@ class GalleryTabsTest {
       val keyOne = TestKey("First")
       val keyTwo = TestKey("Second")
       val keyThree = TestKey("Third")
-      val tabs = GalleryTabs(rootComponent, setOf(keyTwo)) {}
-      val ui = FakeUi(tabs).apply { updateToolbars() }
-      tabs.updateKeys(setOf(keyOne, keyTwo, keyThree))
-      ui.updateToolbars()
+      var providedKeys = setOf(keyTwo)
+      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      providedKeys = setOf(keyOne, keyTwo, keyThree)
+      val ui = FakeUi(tabs)
+      ui.updateNestedActions()
       val allActions = findAllActionButtons(tabs)
       assertEquals(3, allActions.size)
       assertEquals("First", allActions[0].presentation.text)
@@ -95,28 +100,14 @@ class GalleryTabsTest {
   }
 
   @Test
-  fun `duplicates are not added`() {
-    invokeAndWaitIfNeeded {
-      val duplicate = TestKey("duplicate")
-      val keys = setOf(TestKey("Tab"), duplicate, duplicate, duplicate, duplicate, duplicate)
-      val tabs = GalleryTabs(rootComponent, keys) {}
-      assertEquals(keys.first(), tabs.selectedKey)
-
-      FakeUi(tabs).apply { updateToolbars() }
-      assertEquals(2, findAllActionButtons(tabs).size)
-    }
-  }
-
-  @Test
   fun `toolbar is not updated`() {
     invokeAndWaitIfNeeded {
-      val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-      val tabs = GalleryTabs(rootComponent, keys) {}
+      val providedKeys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
       val ui = FakeUi(tabs).apply { updateToolbars() }
       val toolbar = findTabs(tabs)
-      // Set exactly same keys
-      tabs.updateKeys(keys)
-      ui.updateToolbars()
+      // Update toolbars
+      ui.updateNestedActions()
       val updatedToolbar = findTabs(tabs)
       // Toolbar was not updated, it's same as before.
       assertEquals(toolbar, updatedToolbar)
@@ -126,13 +117,14 @@ class GalleryTabsTest {
   @Test
   fun `toolbar is updated with new key`() {
     invokeAndWaitIfNeeded {
-      val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-      val tabs = GalleryTabs(rootComponent, keys) {}
+      val providedKeys =
+        mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
+      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
       val ui = FakeUi(tabs).apply { updateToolbars() }
       val toolbar = findTabs(tabs)
       // Set new set of keys.
-      tabs.updateKeys(keys + TestKey("New Tab"))
-      ui.updateToolbars()
+      providedKeys += TestKey("New Tab")
+      ui.updateNestedActions()
       val updatedToolbar = findTabs(tabs)
       // New toolbar was created.
       assertNotEquals(toolbar, updatedToolbar)
@@ -142,13 +134,16 @@ class GalleryTabsTest {
   @Test
   fun `toolbar is updated with removed key`() {
     invokeAndWaitIfNeeded {
-      val keys = setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"))
-      val tabs = GalleryTabs(rootComponent, keys + TestKey("Key to remove")) {}
-      val ui = FakeUi(tabs).apply { updateToolbars() }
+      val keyToRemove = TestKey("Key to remove")
+      var providedKeys =
+        mutableSetOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab"), keyToRemove)
+      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      val ui = FakeUi(tabs)
+      ui.updateNestedActions()
       val toolbar = findTabs(tabs)
       // Set updated set of keys
-      tabs.updateKeys(keys)
-      ui.updateToolbars()
+      providedKeys.remove(keyToRemove)
+      ui.updateNestedActions()
       val updatedToolbar = findTabs(tabs)
       // New toolbar was created.
       assertNotEquals(toolbar, updatedToolbar)
@@ -167,8 +162,9 @@ class GalleryTabsTest {
       val tabs =
         GalleryTabs(
           rootComponent,
-          setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")),
-        ) {}
+          { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
+        ) { _, _ ->
+        }
       val root = JPanel(BorderLayout()).apply { size = Dimension(400, 400) }
       root.add(tabs, BorderLayout.NORTH)
       val ui = FakeUi(root)
@@ -185,17 +181,13 @@ class GalleryTabsTest {
       val tabs =
         GalleryTabs(
           rootComponent,
-          setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")),
-        ) {
-          selectedTab = it
+          { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
+        ) { _, key ->
+          selectedTab = key
         }
       val root = JPanel(BorderLayout()).apply { size = Dimension(400, 400) }
       root.add(tabs, BorderLayout.NORTH)
-      val ui =
-        FakeUi(root).apply {
-          updateToolbars()
-          layout()
-        }
+      val ui = FakeUi(root).apply { updateNestedActions() }
       val buttons = findAllActionButtons(root)
       assertEquals("First Tab", selectedTab?.title)
       assertEquals("First Tab", tabs.selectedKey?.title)
@@ -217,16 +209,14 @@ class GalleryTabsTest {
       val tabs =
         GalleryTabs(
           rootComponent,
-          setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")),
-        ) {}
+          { setOf(TestKey("First Tab"), TestKey("Second Tab"), TestKey("Third Tab")) },
+        ) { _, _ ->
+        }
       // Width is 100, so only first tab is actually visible.
       val root = JPanel(BorderLayout()).apply { size = Dimension(150, 400) }
       root.add(tabs, BorderLayout.NORTH)
 
-      FakeUi(root).apply {
-        updateToolbars()
-        layout()
-      }
+      FakeUi(root).apply { updateNestedActions() }
       val buttons = findAllActionButtons(root)
       val scrollPane = findScrollPane(root)
       // Only first button is visible
@@ -249,6 +239,12 @@ class GalleryTabsTest {
       assertFalse(scrollPane.bounds.contains(buttons[1].relativeBounds()))
       assertFalse(scrollPane.bounds.contains(buttons[2].relativeBounds()))
     }
+  }
+
+  private fun FakeUi.updateNestedActions() {
+    this.updateToolbars()
+    this.updateToolbars()
+    this.layoutAndDispatchEvents()
   }
 
   private fun ActionButtonWithText.relativeBounds(): Rectangle {

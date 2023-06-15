@@ -15,59 +15,58 @@
  */
 package com.android.tools.idea.compose.preview.lite
 
+import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.testFramework.MapDataContext
+import com.intellij.testFramework.TestActionEvent.createTestEvent
+import java.awt.Component
+import java.util.stream.Collectors
 import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
 class ComposeGalleryTest {
+
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private val element1 =
-    SingleComposePreviewElementInstance.forTesting("PreviewMethod1", groupName = "GroupA")
-  private val element2 =
-    SingleComposePreviewElementInstance.forTesting("PreviewMethod2", groupName = "GroupA")
-  private val element3 =
-    SingleComposePreviewElementInstance.forTesting("PreviewMethod3", groupName = "GroupB")
+  private class TestManager : TestComposePreviewManager() {
+    override var availableElements: Collection<ComposePreviewElementInstance> = emptyList()
+    override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
+  }
 
   @Test
   fun selectedComponent() {
-    var refreshNeededCalls = 0
-    val gallery = ComposeGallery(JPanel(), JPanel()) { refreshNeededCalls++ }
-    gallery.updateTabs(listOf(element1, element2, element3))
-    val selected = gallery.selectedKey!!.element
-    assertEquals(element1, selected)
-    assertEquals(1, refreshNeededCalls)
+    val firstElement =
+      SingleComposePreviewElementInstance.forTesting("PreviewMethod1", groupName = "GroupA")
+    val composePreviewManager =
+      TestManager().apply {
+        availableElements =
+          mutableListOf(
+            firstElement,
+            SingleComposePreviewElementInstance.forTesting("PreviewMethod2", groupName = "GroupA"),
+            SingleComposePreviewElementInstance.forTesting("PreviewMethod3", groupName = "GroupB"),
+          )
+      }
+    val context = MapDataContext().also { it.put(COMPOSE_PREVIEW_MANAGER, composePreviewManager) }
+    val gallery = ComposeGallery(JPanel(), JPanel())
+    val tabsToolbar = findTabs(gallery.component)
+    tabsToolbar.actionGroup.update(createTestEvent(context))
+
+    assertEquals(firstElement, gallery.selectedKey!!.element)
+    assertEquals(firstElement, composePreviewManager.singlePreviewElementInstance)
   }
 
-  @Test
-  fun selectedComponentRemoved() {
-    var refreshNeededCalls = 0
-    val gallery = ComposeGallery(JPanel(), JPanel()) { refreshNeededCalls++ }
-    gallery.updateTabs(listOf(element1, element2, element3))
-    var selected = gallery.selectedKey!!.element
-    assertEquals(element1, selected)
-    assertEquals(1, refreshNeededCalls)
-    gallery.updateTabs(listOf(element2, element3))
-    selected = gallery.selectedKey!!.element
-    assertEquals(element2, selected)
-    assertEquals(2, refreshNeededCalls)
-  }
-
-  @Test
-  fun sameSequenceSet() {
-    var refreshNeededCalls = 0
-    val gallery = ComposeGallery(JPanel(), JPanel()) { refreshNeededCalls++ }
-    gallery.updateTabs(listOf(element1, element2, element3))
-    var selected = gallery.selectedKey!!.element
-    assertEquals(element1, selected)
-    assertEquals(1, refreshNeededCalls)
-    gallery.updateTabs(listOf(element1, element2, element3))
-    selected = gallery.selectedKey!!.element
-    assertEquals(element1, selected)
-    // No refresh requested.
-    assertEquals(1, refreshNeededCalls)
-  }
+  private fun findTabs(parent: Component): ActionToolbarImpl =
+    TreeWalker(parent)
+      .descendantStream()
+      .filter { it is ActionToolbarImpl }
+      .collect(Collectors.toList())
+      .map { it as ActionToolbarImpl }
+      .first { it.place == "Gallery Tabs" }
 }

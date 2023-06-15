@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.gradle.preview
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.SurfaceInteractable
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
@@ -106,7 +105,4 @@ internal class TestComposePreviewView(
     }
 
   override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
-  override fun onUpdateAllPreviewElements(
-    previewElements: Collection<ComposePreviewElementInstance>
-  ) {}
 }

@@ -122,12 +122,6 @@ interface ComposePreviewView {
   fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit)
 
   /**
-   * Called when the full list of preview elements has been updated. The view will use this to
-   * update UI components that rely on the full list.
-   */
-  fun onUpdateAllPreviewElements(previewElements: Collection<ComposePreviewElementInstance>)
-
-  /**
    * Updates the list of previews to be rendered in this [ComposePreviewView], requests a refresh
    * and returns the list of [ComposePreviewElement] being rendered.
    *
@@ -314,18 +308,7 @@ internal class ComposePreviewViewImpl(
 
     // Initialize gallery if isLiteModeEnabled.
     if (ComposePreviewLiteModeManager.isLiteModeEnabled) {
-      gallery =
-        ComposeGallery(
-          content = mainSurface,
-          rootComponent = mainSurface,
-          tabChangeListener = { tab ->
-            val previewElement = tab?.element
-            findComposePreviewManagersForContext(
-                DataManager.getInstance().getDataContext(mainSurface)
-              )
-              .forEach { it.singlePreviewElementInstance = previewElement }
-          }
-        )
+      gallery = ComposeGallery(content = mainSurface, rootComponent = mainSurface)
     }
 
     val contentPanel =
@@ -406,15 +389,6 @@ internal class ComposePreviewViewImpl(
 
       notificationPanel.updateNotifications(psiFilePointer.virtualFile, parentEditor, project)
     }
-
-  override fun onUpdateAllPreviewElements(
-    previewElements: Collection<ComposePreviewElementInstance>
-  ) {
-    // TODO(b/287259320): Ideally we should remove onUpdateAllPreviewElements and rely on the
-    // update() method of Gallery once it is converted
-    // to an IntelliJ component.
-    gallery?.updateTabs(previewElements)
-  }
 
   /** Method called to ask all notifications to update. */
   private fun updateNotifications() =

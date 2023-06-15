@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.lite
 
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.intellij.openapi.actionSystem.DataContext
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -25,10 +26,24 @@ import org.jetbrains.annotations.TestOnly
 class ComposeGallery(
   content: JComponent,
   rootComponent: JComponent,
-  tabChangeListener: (PreviewElementKey?) -> Unit
 ) {
+
+  private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
+    val previewElement = tab?.element
+    findComposePreviewManagersForContext(dataContext).forEach {
+      it.singlePreviewElementInstance = previewElement
+    }
+  }
+
+  private val keysProvider: (DataContext) -> Set<PreviewElementKey> = { dataContext ->
+    findComposePreviewManagersForContext(dataContext)
+      .flatMap { it.availableElements }
+      .map { element -> PreviewElementKey(element) }
+      .toSet()
+  }
+
   private val tabs: GalleryTabs<PreviewElementKey> =
-    GalleryTabs(rootComponent, emptySet()) { tabChangeListener(it) }
+    GalleryTabs(rootComponent, keysProvider, tabChangeListener)
 
   /** [JPanel] that wraps tabs and content. */
   val component =
@@ -40,10 +55,4 @@ class ComposeGallery(
   @get:TestOnly
   val selectedKey: PreviewElementKey?
     get() = tabs.selectedKey
-
-  /** Update [GalleryTabs] with the list of available [ComposePreviewElementInstance]. */
-  fun updateTabs(previewElements: Collection<ComposePreviewElementInstance>) {
-    val tabKeys = previewElements.map { element -> PreviewElementKey(element) }.toSet()
-    tabs.updateKeys(tabKeys)
-  }
 }

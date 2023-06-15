@@ -440,6 +440,8 @@ class ComposePreviewRepresentation(
 
   @Volatile override var availableGroups: Set<PreviewGroup> = emptySet()
 
+  override var availableElements: Collection<ComposePreviewElementInstance> = emptySet()
+
   private val navigationHandler = ComposePreviewNavigationHandler()
 
   private val fpsCounter = FpsCalculator { System.nanoTime() }
@@ -1193,8 +1195,9 @@ class ComposePreviewRepresentation(
       }
         ?: return
 
-    // Cache available groups
+    // Cache available groups and elements.
     availableGroups = previewElementProvider.allAvailableGroups()
+    availableElements = previewElementProvider.allAvailablePreviewElements().toList()
 
     // Restore
     onRestoreState?.invoke()
@@ -1202,11 +1205,6 @@ class ComposePreviewRepresentation(
 
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 
-    // TODO(b/287259320): Do not call this method on refresh. Move it to be called only when the
-    // previews have been updated.
-    composeWorkBench.onUpdateAllPreviewElements(
-      previewElementProvider.allAvailablePreviewElements().toList()
-    )
     val showingPreviewElements =
       composeWorkBench.updatePreviewsAndRefresh(
         !quickRefresh,

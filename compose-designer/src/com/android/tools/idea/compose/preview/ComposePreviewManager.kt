@@ -98,6 +98,9 @@ interface ComposePreviewManager : Disposable {
    */
   val availableGroups: Collection<PreviewGroup>
 
+  /** List of available elements in this preview. */
+  val availableElements: Collection<ComposePreviewElementInstance>
+
   /**
    * Group name from [availableGroups] currently selected or null if we do not want to do group
    * filtering.
@@ -194,6 +197,7 @@ class NopComposePreviewManager : ComposePreviewManager {
     )
 
   override val availableGroups = emptyList<PreviewGroup>()
+  override val availableElements = emptySet<ComposePreviewElementInstance>()
   override var groupFilter = PreviewGroup.ALL_PREVIEW_GROUP
   override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
   override val interactivePreviewElementInstance: ComposePreviewElementInstance? = null
