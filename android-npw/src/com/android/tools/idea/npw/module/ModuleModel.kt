@@ -176,7 +176,7 @@ abstract class ModuleModel(
         // the toml file already exists. This needs to be before start rendering the template.
         WriteCommandAction.writeCommandAction(project).run<IOException> {
           executor.copy(
-            File(FileUtils.join("fileTemplates", "internal", "Version Catalog File.versions.toml.ft")),
+            File(FileUtils.join("fileTemplates", "internal", "Version_Catalog_File.versions.toml.ft")),
             File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)))
           if (executor is DefaultRecipeExecutor) {
             executor.applyChanges()
