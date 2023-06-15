@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.scene
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.rendering.ExecuteCallbacksResult
 import kotlinx.coroutines.future.await
+import java.util.concurrent.CancellationException
 
 /**
  * Suspendable equivalent to [LayoutlibSceneManager.executeCallbacks].
@@ -26,5 +27,10 @@ suspend fun LayoutlibSceneManager.executeCallbacks(): ExecuteCallbacksResult = e
 
 /**
  * Returns whether the [SceneView] has failed to render or has rendered with errors.
+ *
+ * Note that cancellations are not considered to be an error.
  */
-fun SceneView.hasRenderErrors() = (sceneManager as? LayoutlibSceneManager)?.renderResult?.logger?.hasErrors() == true
+fun SceneView.hasRenderErrors(): Boolean =
+  (sceneManager as? LayoutlibSceneManager)?.renderResult?.let {
+    it.logger.hasErrors() && it.renderResult.exception !is CancellationException
+  } == true

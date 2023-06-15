@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.ide.common.rendering.api.Result
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
@@ -67,6 +68,7 @@ class ComposePreviewStatusIconActionTest {
   private val sceneManagerMock = Mockito.mock(LayoutlibSceneManager::class.java)
   private val renderResultMock = Mockito.mock(RenderResult::class.java)
   private val renderLoggerMock = Mockito.mock(RenderLogger::class.java)
+  private val resultMock = Mockito.mock(Result::class.java)
   private var renderError = false
   init {
     Mockito.`when`(sceneViewMock.sceneManager).then {
@@ -80,6 +82,9 @@ class ComposePreviewStatusIconActionTest {
     }
     Mockito.`when`(renderLoggerMock.hasErrors()).then {
       return@then renderError
+    }
+    Mockito.`when`(renderResultMock.renderResult).then {
+      return@then resultMock
     }
   }
 
