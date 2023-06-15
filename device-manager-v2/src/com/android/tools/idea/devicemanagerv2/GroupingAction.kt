@@ -33,6 +33,7 @@ internal class GroupingAction(
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (state) {
+      table.groupByAttributes.forEach { table.removeGrouping(it) }
       table.addGrouping(column.attribute)
     } else {
       table.removeGrouping(column.attribute)
