@@ -16,12 +16,14 @@
 package com.android.tools.idea.streaming
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.intellij.openapi.components.Service
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  *  Provides access to mirroring functionality. To get an instance of [MirroringManager],
  *  call `project.service<MirroringManager>()`.
  */
+@Service(Service.Level.PROJECT)
 class MirroringManager {
   val mirroringHandles = MutableStateFlow(mapOf<DeviceHandle, MirroringHandle>())
 }
