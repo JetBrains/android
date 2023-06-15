@@ -24,6 +24,7 @@ import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
@@ -51,6 +52,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.android.download.AndroidProfilerDownloader
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.io.EOFException
@@ -155,6 +157,7 @@ internal class DeviceClient(
    */
   private suspend fun startAgentAndConnect(maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean) {
     startTime = System.currentTimeMillis()
+    AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
@@ -269,7 +272,7 @@ internal class DeviceClient(
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
     val soFile: Path
     val jarFile: Path
-    if (StudioPathManager.isRunningFromSources()) {
+    if (StudioPathManager.isRunningFromSources() && IdeInfo.getInstance().isAndroidStudio) {
       // Development environment.
       val projectDir = project.guessProjectDir()?.toNioPath()
       if (projectDir != null && projectDir.endsWith(SCREEN_SHARING_AGENT_SOURCE_PATH)) {
@@ -292,7 +295,7 @@ internal class DeviceClient(
     }
     else {
       // Installed Studio.
-      val pluginDir = PluginPathManager.getPluginHome("android").toPath()
+      val pluginDir = AndroidProfilerDownloader.getInstance().getHostDir("plugins/android").toPath()
       soFile = pluginDir.resolve("resources/screen-sharing-agent/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
       jarFile = pluginDir.resolve("resources/screen-sharing-agent/$SCREEN_SHARING_AGENT_JAR_NAME")
     }
