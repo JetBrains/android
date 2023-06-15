@@ -15,6 +15,7 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.intellij">
+    <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <applicationInitializedListener id="Startup.AndroidGradleDisableAutoImportInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
     <applicationInitializedListener id="Startup.AndroidGradleOpenProjectProcessorInitializer"
