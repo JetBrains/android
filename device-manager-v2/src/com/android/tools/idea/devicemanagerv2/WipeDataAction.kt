@@ -26,7 +26,7 @@ import icons.StudioIcons
 import kotlinx.coroutines.launch
 
 class WipeDataAction :
-  AnAction("Wipe Data", "Wipe the user data of this AVD", StudioIcons.Common.DELETE) {
+  AnAction("Wipe Data", "Wipe the user data of this AVD", StudioIcons.Common.CLEAR) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
