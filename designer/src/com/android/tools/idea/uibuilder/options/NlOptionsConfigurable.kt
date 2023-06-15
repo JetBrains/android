@@ -25,7 +25,7 @@ import javax.swing.JList
 import javax.swing.JSlider
 
 private const val CONFIGURABLE_ID = "nele.options"
-private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else "Android Design Tools"
+private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else AndroidDesignerBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
 
 @VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
 @VisibleForTesting const val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = "Magnify zooming (pinch) sensitivity"

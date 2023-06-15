@@ -33,7 +33,8 @@
     <notificationGroup id="Database Inspector" displayType="BALLOON"/>
 
     <applicationConfigurable groupId="tools" id="database.inspector"
-                             provider="com.android.tools.idea.sqlite.settings.DatabaseInspectorConfigurableProvider"/>
+                             provider="com.android.tools.idea.sqlite.settings.DatabaseInspectorConfigurableProvider"
+                             key="database.inspector"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.settings.DatabaseInspectorSettings"/>
   </extensions>

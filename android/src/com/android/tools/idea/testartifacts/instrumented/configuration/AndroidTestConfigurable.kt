@@ -20,8 +20,9 @@ import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
+import org.jetbrains.android.util.AndroidBundle
 
-class AndroidTestConfigurable : BoundSearchableConfigurable("Testing", "testing.instrumented.configuration") {
+class AndroidTestConfigurable : BoundSearchableConfigurable(AndroidBundle.message("configurable.AndroidTestingConfigurable.displayName"), "testing.instrumented.configuration") {
   override fun createPanel(): DialogPanel {
     val configuration = AndroidTestConfiguration.getInstance()
     return panel {

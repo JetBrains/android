@@ -205,7 +205,8 @@
 
     <!-- Note: in Idea this configurable has different groupId: build.android -->
     <applicationConfigurable groupId="build" id="instant.run"
-                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
+                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"
+                             key="configurable.DeploymentConfigurable.display.name"/>
 
     <statistic.eventLog.eventLoggerProvider implementation="com.android.tools.idea.stats.AndroidStudioStatisticsEventLoggerProvider"/>
     <projectService serviceInterface="com.intellij.codeInsight.NullableNotNullManager"

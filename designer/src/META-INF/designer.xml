@@ -76,7 +76,8 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.common.model.NlDependencyManager"/>
     <applicationConfigurable groupId="editor" groupWeight="115" id="nele.options"
-                             instance="com.android.tools.idea.uibuilder.options.NlOptionsConfigurable"/>
+                             instance="com.android.tools.idea.uibuilder.options.NlOptionsConfigurable"
+                             key="android.uibuilder.nloptionsconfigurable.displayName"/>/>
     <search.optionContributor
         implementation="com.android.tools.idea.uibuilder.options.NlOptionConfigurableSearchableOptionContributor"/>
     <moduleService serviceImplementation="com.android.tools.idea.uibuilder.palette.NlPaletteModel" />
