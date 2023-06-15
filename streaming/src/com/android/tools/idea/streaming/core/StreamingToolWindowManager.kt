@@ -672,7 +672,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     mirroredDevices.remove(serialNumber)
     val deviceClient = deviceClients.remove(serialNumber)
     if (deviceClient != null) {
-      updateMirroringHandlesFlow()
       devicesExcludedFromMirroring[serialNumber] =
           DeviceDescription(deviceClient.deviceName, serialNumber, deviceClient.deviceHandle, deviceClient.deviceConfig)
       Disposer.dispose(deviceClient)
