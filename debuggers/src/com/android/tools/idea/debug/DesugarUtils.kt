@@ -95,7 +95,7 @@ class DesugarUtils(
     // Find all interface classes that may have a companion class.
     val candidatesForDesugaringCompanion = types.filter { type ->
       ReadAction.compute<Boolean, RuntimeException> {
-        debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring()
+        debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring() == true
       }
     }
     if (candidatesForDesugaringCompanion.isEmpty()) {
