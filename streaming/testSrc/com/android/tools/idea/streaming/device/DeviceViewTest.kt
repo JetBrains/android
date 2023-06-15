@@ -709,7 +709,7 @@ internal class DeviceViewTest {
   }
 
   private fun isRunningInBazelTest(): Boolean {
-    return System.getenv().containsKey("TEST_WORKSPACE")
+    return false
   }
 }
 

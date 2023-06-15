@@ -393,7 +393,7 @@ public class TestUtils {
    * Checks if tests were started by Bazel.
    */
   public static boolean runningFromBazel() {
-    return System.getenv().containsKey("TEST_WORKSPACE");
+    return false;
   }
 
   /**

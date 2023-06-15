@@ -125,7 +125,7 @@ public class StudioPathManager {
    * Returns true if running inside a Bazel test environment.
    */
   private static boolean isRunningInBazelTest() {
-    return System.getenv().containsKey("TEST_WORKSPACE");
+    return false;
   }
 
   /**

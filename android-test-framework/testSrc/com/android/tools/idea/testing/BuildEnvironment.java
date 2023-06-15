@@ -51,7 +51,6 @@ public class BuildEnvironment {
       ourInstance = new BuildEnvironment(
         TestUtils.runningFromBazel() ? Version.ANDROID_GRADLE_PLUGIN_VERSION : LatestKnownPluginVersionProvider.INSTANCE.get(),
         CURRENT_BUILD_TOOLS_VERSION,
-
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         SdkVersionInfo.LOWEST_ACTIVE_API
