@@ -331,10 +331,8 @@ class ViewLayoutInspectorClient(
     if (!isFetchingContinuously) {
       lastData[layoutEvent.rootView.id] = data
     }
-    if (layoutEvent.hasConfiguration() && layoutEvent.hasAppContext()) {
-      lastConfiguration = layoutEvent.configuration
-      lastAppContext = layoutEvent.appContext
-    }
+    lastConfiguration = layoutEvent.configuration
+    lastAppContext = layoutEvent.appContext
     fireTreeEvent(data)
   }
 

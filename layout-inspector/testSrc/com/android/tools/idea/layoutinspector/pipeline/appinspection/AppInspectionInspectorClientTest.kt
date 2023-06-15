@@ -1077,7 +1077,7 @@ class AppInspectionInspectorClientTest {
     assertThat(inspectorRule.inspectorModel.resourceLookup.fontScale).isEqualTo(1.5f)
 
     modelUpdatedLatch = ReportingCountDownLatch(1)
-    inspectorState.triggerLayoutCapture(rootId = 1L, excludeConfiguration = true)
+    inspectorState.triggerLayoutCapture(rootId = 1L, excludeConfiguration = false)
     modelUpdatedLatch.await(TIMEOUT, TIMEOUT_UNIT)
 
     assertThat(inspectorRule.inspectorModel.resourceLookup.dpi).isEqualTo(Density.HIGH.dpiValue)

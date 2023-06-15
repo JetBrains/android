@@ -194,11 +194,7 @@ class AppInspectionSnapshotSupportTest {
       appInspectorRule.viewInspector.connection.sendEvent { rootsEventBuilder.apply { addIds(1L) } }
 
       appInspectorRule.viewInspector.connection.sendEvent {
-        if (inspectorRule.inspectorModel.lastGeneration == 0) {
-          createLayoutEventWithDeviceInfo(layoutEventBuilder)
-        } else {
-          createLayoutEvent(layoutEventBuilder)
-        }
+        createLayoutEventWithDeviceInfo(layoutEventBuilder)
       }
       appInspectorRule.viewInspector.connection.sendEvent {
         createPropertiesEvent(propertiesEventBuilder)

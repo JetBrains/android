@@ -58,22 +58,17 @@ class ViewInspectorTreeLoader(
   fun loadComponentTree(): AndroidWindow? {
     val configuration = viewEvent.configuration
     val appContext = viewEvent.appContext
-    if (
-      configuration !== LayoutInspectorViewProtocol.Configuration.getDefaultInstance() ||
-        appContext !== LayoutInspectorViewProtocol.AppContext.getDefaultInstance()
-    ) {
-      folderConfig = configuration.convert(process.device.apiLevel)
-      val context = appContext.convert()
-      val theme = context.createThemeReference(viewNodeCreator.strings, process.packageName)
-      resourceLookup.updateConfiguration(
-        folderConfig,
-        theme,
-        process,
-        configuration.fontScale,
-        context.mainDisplayOrientation,
-        context.screenSize
-      )
-    }
+    folderConfig = configuration.convert(process.device.apiLevel)
+    val context = appContext.convert()
+    val theme = context.createThemeReference(viewNodeCreator.strings, process.packageName)
+    resourceLookup.updateConfiguration(
+      folderConfig,
+      theme,
+      process,
+      configuration.fontScale,
+      context.mainDisplayOrientation,
+      context.screenSize
+    )
     val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
     return ViewAndroidWindow(
       notificationModel,
