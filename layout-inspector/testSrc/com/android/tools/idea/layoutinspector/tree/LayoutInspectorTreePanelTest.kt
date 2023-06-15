@@ -831,7 +831,7 @@ class LayoutInspectorTreePanelTest {
     )
     val model = inspector.inspectorModel
     model.windows.values.forEach { window ->
-      model.modificationListeners.forEach { it(window, window, false) }
+      model.modificationListeners.forEach { it.onModification(window, window, false) }
     }
     assertThat(columnDataChangeCount).isEqualTo(1)
     assertThat(treeChangeCount).isEqualTo(0)
@@ -941,7 +941,7 @@ class LayoutInspectorTreePanelTest {
     // Mimic that here:
     val model = inspector.inspectorModel
     model.windows.values.forEach { window ->
-      model.modificationListeners.forEach { it(window, window, true) }
+      model.modificationListeners.forEach { it.onModification(window, window, true) }
     }
   }
 

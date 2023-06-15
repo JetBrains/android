@@ -47,8 +47,13 @@ enum class SelectionOrigin {
   COMPONENT_TREE
 }
 
-/** Callback taking (oldWindow, newWindow, isStructuralChange */
-typealias InspectorModelModificationListener = (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
+fun interface InspectorModelModificationListener {
+  fun onModification(
+    oldWindow: AndroidWindow?,
+    newWindow: AndroidWindow?,
+    isStructuralChange: Boolean
+  )
+}
 
 class InspectorModel(
   val project: Project,
@@ -340,7 +345,7 @@ class InspectorModel(
 
     notifyUpdateCompleted()
     val window = if (newWindow != null) windows[newWindow.id] else null
-    modificationListeners.forEach { it(oldWindow, window, structuralChange) }
+    modificationListeners.forEach { it.onModification(oldWindow, window, structuralChange) }
   }
 
   private fun decreaseHighlights() {
@@ -356,7 +361,9 @@ class InspectorModel(
         maxHighlight = 0f
       }
     }
-    windows.values.forEach { window -> modificationListeners.forEach { it(window, window, false) } }
+    windows.values.forEach { window ->
+      modificationListeners.forEach { it.onModification(window, window, false) }
+    }
   }
 
   /** Build draw nodes */
@@ -370,10 +377,11 @@ class InspectorModel(
   }
 
   fun notifyModified(structuralChange: Boolean = false) {
-    if (windows.isEmpty()) modificationListeners.forEach { it(null, null, structuralChange) }
+    if (windows.isEmpty())
+      modificationListeners.forEach { it.onModification(null, null, structuralChange) }
     else
       windows.values.forEach { window ->
-        modificationListeners.forEach { it(window, window, structuralChange) }
+        modificationListeners.forEach { it.onModification(window, window, structuralChange) }
       }
   }
 

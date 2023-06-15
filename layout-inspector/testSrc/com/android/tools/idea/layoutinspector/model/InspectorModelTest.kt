@@ -594,7 +594,7 @@ class InspectorModelTest {
     val observedNewWindows = mutableListOf<AndroidWindow?>()
     inspectorModel.modificationListeners.add(
       object : InspectorModelModificationListener {
-        override fun invoke(
+        override fun onModification(
           oldWindow: AndroidWindow?,
           newWindow: AndroidWindow?,
           isStructuralChange: Boolean
