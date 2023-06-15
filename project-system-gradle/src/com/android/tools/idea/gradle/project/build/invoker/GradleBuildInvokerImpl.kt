@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.build.invoker
 import com.android.builder.model.AndroidProject
 import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter
-import com.android.tools.idea.gradle.filters.ExplainSyncOrBuildOutput
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionOutputLinkFilter

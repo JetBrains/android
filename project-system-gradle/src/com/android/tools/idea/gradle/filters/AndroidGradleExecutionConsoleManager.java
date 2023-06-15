@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWi
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_REQUEST_RERUN_WITH_ADDITIONAL_OPTIONS;
 
 import com.android.tools.idea.explainer.IssueExplainer;
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.intellij.execution.filters.Filter;

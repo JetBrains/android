@@ -18,39 +18,46 @@ package com.android.tools.idea.gradle.filters;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.getConsoleManagerFor;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.explainer.IssueExplainer;
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput;
 import com.android.tools.idea.gradle.filters.AndroidGradleExecutionConsoleManager.AndroidReRunSyncFilter;
+import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.importing.ImportSpecImpl;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
+import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTask;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.service.internal.AbstractExternalSystemTask;
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemRunConfiguration;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.execution.filters.ReRunSyncFilter;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
  * Test class for {@link AndroidGradleExecutionConsoleManager}.
  */
 public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestCase {
+  @SuppressWarnings("UnstableApiUsage")
   public void testGetConsoleManager() {
-    // Verify that AndroidGradleExecutionConsoleManager is used for resolve project task.
-    ExternalSystemTask resolveProjectTask = createExternalSystemTask(ExternalSystemResolveProjectTask.class);
+    ExternalSystemTask resolveProjectTask = createResolveProjectTask();
     assertThat(getConsoleManagerFor(resolveProjectTask)).isInstanceOf(AndroidGradleExecutionConsoleManager.class);
-
     // Verify that AndroidGradleExecutionConsoleManager is NOT used for execute task task.
-    ExternalSystemTask executeTaskTask = createExternalSystemTask(ExternalSystemExecuteTaskTask.class);
+    ExternalSystemTask executeTaskTask = executeTaskTask();
     assertThat(getConsoleManagerFor(executeTaskTask)).isNotInstanceOf(AndroidGradleExecutionConsoleManager.class);
   }
 
@@ -78,14 +85,63 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     assertThat(project.getUserData(EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY)).asList().containsExactly("--info");
   }
 
-  private <T extends AbstractExternalSystemTask> T createExternalSystemTask(Class<T> classToMock) {
-    T externalSystemTask = mock(classToMock);
-    ExternalSystemTaskId taskId = mock(ExternalSystemTaskId.class);
-    when(taskId.getProjectSystemId()).thenReturn(GradleConstants.SYSTEM_ID);
-    when(externalSystemTask.getId()).thenReturn(taskId);
-    when(externalSystemTask.getExternalSystemId()).thenReturn(GradleConstants.SYSTEM_ID);
-    when(externalSystemTask.getExternalProjectPath()).thenReturn("");
-    when(externalSystemTask.getIdeProject()).thenReturn(getProject());
-    return externalSystemTask;
+  public void testGetCustomContextActionsAndFilters() {
+    var disposable = Disposer.newDisposable("ApplicationServiceRule");
+    try {
+      ServiceContainerUtil.registerOrReplaceServiceInstance(ApplicationManager.getApplication(), IssueExplainer.class, myIssueExplainer,
+                                                            disposable);
+      var resolveProjectTask = createResolveProjectTask();
+      var consoleManager = getConsoleManagerFor(resolveProjectTask);
+      assertThat(consoleManager).isInstanceOf(AndroidGradleExecutionConsoleManager.class);
+      var environment = new ExecutionEnvironment();
+      var filters = consoleManager.getCustomExecutionFilters(getProject(), resolveProjectTask, environment);
+      assertThat(filters.length).isEqualTo(2);
+      assertThat(filters[0]).isInstanceOf(ReRunSyncFilter.class);
+      assertThat(filters[1]).isInstanceOf(ExplainBuildErrorFilter.class);
+      var actions = consoleManager.getCustomContextActions(getProject(), resolveProjectTask, environment);
+      assertThat(actions.length).isEqualTo(1);
+      assertThat(actions[0]).isInstanceOf(ExplainSyncOrBuildOutput.class);
+    }
+    finally {
+      Disposer.dispose(disposable);
+    }
+  }
+
+  private final IssueExplainer myIssueExplainer = new IssueExplainer() {
+    @Override
+    public boolean isAvailable() {
+      return true;
+    }
+  };
+
+  @NotNull
+  private ExternalSystemTask createResolveProjectTask() {
+    ExternalSystemTask resolveProjectTask = new ExternalSystemResolveProjectTask(
+      getProject(),
+      "SOME_PROJECT_NAME",
+      "/some/project/path",
+      new ImportSpecImpl(getProject(), GradleConstants.SYSTEM_ID)
+    );
+    return resolveProjectTask;
+  }
+
+  @NotNull
+  private ExternalSystemTask executeTaskTask() {
+    var settings = new ExternalSystemTaskExecutionSettings() {
+      @Override
+      public String getExternalProjectPath() {
+        return "/some/project/path";
+      }
+
+      @Override
+      public ProjectSystemId getExternalSystemId() {
+        return GradleConstants.SYSTEM_ID;
+      }
+    };
+    return new ExternalSystemExecuteTaskTask(
+      getProject(),
+      settings,
+      null,
+      new ExternalSystemRunConfiguration(GradleConstants.SYSTEM_ID, getProject(), null, "TestConfigurationName"));
   }
 }
