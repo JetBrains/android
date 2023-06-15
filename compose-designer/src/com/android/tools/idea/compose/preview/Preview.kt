@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.error.IssueNode
 import com.android.tools.idea.common.error.IssuePanelService
@@ -79,6 +80,8 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvide
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.rendering.RenderService
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
 import com.intellij.ide.ActivityTracker
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -87,6 +90,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -1126,11 +1130,37 @@ class ComposePreviewRepresentation(
 
   private fun onAfterRender() {
     composeWorkBench.hasRendered = true
-    hasRenderedAtLeastOnce.set(true)
+    if (!hasRenderedAtLeastOnce.getAndSet(true)) {
+      logComposePreviewLiteModeEvent(
+        ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER
+      )
+    }
     // Some Composables (e.g. Popup) delay their content placement and wrap them into a coroutine
     // controlled by the Compose clock. For that reason, we need to call executeCallbacksAsync()
     // once, to make sure the queued behaviors are triggered and displayed in static preview.
     surface.sceneManagers.forEach { it.executeCallbacksAsync() }
+  }
+
+  /**
+   * Logs a [ComposePreviewLiteModeEvent], which should happen after the first render and when the
+   * user enables or disables Compose Preview Essentials Mode.
+   *
+   * TODO(b/286416832): log the event when triggering it from other event types
+   */
+  private fun logComposePreviewLiteModeEvent(
+    eventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
+  ) {
+    ApplicationManager.getApplication().executeOnPooledThread {
+      UsageTracker.log(
+        AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.COMPOSE_PREVIEW_LITE_MODE)
+          .setComposePreviewLiteModeEvent(
+            ComposePreviewLiteModeEvent.newBuilder()
+              .setType(eventType)
+              .setIsComposePreviewLiteMode(ComposePreviewLiteModeManager.isLiteModeEnabled)
+          )
+      )
+    }
   }
 
   /**
