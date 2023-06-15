@@ -39,7 +39,7 @@ class ComposePluginIrGenerationExtension : IrGenerationExtension {
     } catch (e : ProcessCanceledException) {
       // From ProcessCanceledException javadoc: "Usually, this exception should not be caught, swallowed, logged, or handled in any way.
       // Instead, it should be rethrown so that the infrastructure can handle it correctly."
-      throw e;
+      throw e
     } catch (versionError : IncompatibleComposeRuntimeVersionException) {
       // We only rethrow version incompatibility when we are trying to CodeGen for Live Edit.
       for (s in versionError.stackTrace) {

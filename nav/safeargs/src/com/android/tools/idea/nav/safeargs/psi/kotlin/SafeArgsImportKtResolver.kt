@@ -95,8 +95,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
     if (file == null || editor == null) return false
     suggestions = collectSuggestions(file)
-    if (suggestions.isEmpty()) return false
-    return true
+    return suggestions.isNotEmpty()
   }
 
   override fun getText() = AndroidBundle.message("android.safeargs.fix.import")
@@ -166,7 +165,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       .filterIsInstance<ClassDescriptor>()
       .mapNotNull { it.companionObjectDescriptor }
       .flatMap {
-        ProgressManager.checkCanceled();
+        ProgressManager.checkCanceled()
         it.unsubstitutedMemberScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS).asSequence()
       }
       .filterIsInstance<FunctionDescriptor>()

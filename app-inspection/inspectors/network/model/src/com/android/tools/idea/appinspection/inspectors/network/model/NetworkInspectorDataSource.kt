@@ -152,14 +152,10 @@ private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intentio
 private fun intersectsRange(min: Long, max: Long, data: List<Event>): Boolean {
   val firstEventTimestamp = data.firstOrNull()?.timestamp ?: return false
   val lastEventTimestamp = data.last().timestamp
-  if (
-    firstEventTimestamp in min..max ||
+  return firstEventTimestamp in min..max ||
       lastEventTimestamp in min..max ||
       (firstEventTimestamp < min && lastEventTimestamp > max)
-  ) {
-    return true
-  }
-  return false
+
 }
 
 /**

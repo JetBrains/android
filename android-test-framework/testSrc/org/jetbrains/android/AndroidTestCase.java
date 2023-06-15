@@ -130,6 +130,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     Path jdkPath = TestUtils.getEmbeddedJdk17Path();
     WriteAction.runAndWait(() -> {
       cleanJdkTable();
+      VfsRootAccess.allowRootAccess(myFixture.getProjectDisposable(), jdkPath.toAbsolutePath().toString());
       setupJdk(jdkPath);
     });
     myFacet = addAndroidFacetAndSdk(myModule);

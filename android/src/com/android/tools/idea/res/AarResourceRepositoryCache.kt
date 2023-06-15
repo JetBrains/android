@@ -109,7 +109,7 @@ class AarResourceRepositoryCache private constructor() {
       try {
         val libraryPath = it.toPath()
         if (libraryPath == null) {
-          thisLogger().error("Library ${library.libraryName()} has an invalid location: \"$it\"");
+          thisLogger().error("Library ${library.libraryName()} has an invalid location: \"$it\"")
         } else {
           modificationTime = modificationTime.coerceAtLeast(Files.getLastModifiedTime(libraryPath))
         }

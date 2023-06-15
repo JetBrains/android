@@ -780,7 +780,7 @@ class ResourceExplorerListView(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT;
+      return ActionUpdateThread.BGT
     }
   }
 
@@ -802,7 +802,7 @@ class ResourceExplorerListView(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT;
+      return ActionUpdateThread.BGT
     }
   }
 
@@ -820,7 +820,7 @@ class ResourceExplorerListView(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT;
+      return ActionUpdateThread.BGT
     }
   }
 
@@ -838,7 +838,7 @@ class ResourceExplorerListView(
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
-      return ActionUpdateThread.BGT;
+      return ActionUpdateThread.BGT
     }
   }
 }

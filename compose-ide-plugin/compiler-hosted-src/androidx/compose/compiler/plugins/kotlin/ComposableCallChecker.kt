@@ -481,14 +481,9 @@ fun CallableDescriptor.isComposableCallable(bindingContext: BindingContext): Boo
         return true
     }
     val lambdaExpr = functionLiteral.parent as? KtLambdaExpression
-    if (
-        lambdaExpr != null &&
-        bindingContext[ComposeWritableSlices.INFERRED_COMPOSABLE_LITERAL, lambdaExpr] == true
-    ) {
-        // this lambda was marked as inferred to be composable
-        return true
-    }
-    return false
+  // this lambda was marked as inferred to be composable
+  return lambdaExpr != null &&
+         bindingContext[ComposeWritableSlices.INFERRED_COMPOSABLE_LITERAL, lambdaExpr] == true
 }
 
 // the body of this function can have composable calls in it, even if it itself is not

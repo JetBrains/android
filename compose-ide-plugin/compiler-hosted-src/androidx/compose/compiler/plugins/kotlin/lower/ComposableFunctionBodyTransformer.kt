@@ -977,9 +977,9 @@ class ComposableFunctionBodyTransformer(
         // safely mark this as `isVar = false`.
             changedParam.irCopyToTemporary(
                 // LLVM validation doesn't allow us to have val here.
-                isVar = if (context.platform.isJvm() || context.platform.isJs()) false else true,
-                nameHint = "\$dirty",
-                exactName = true
+              isVar = !(context.platform.isJvm() || context.platform.isJs()),
+              nameHint = "\$dirty",
+              exactName = true
             )
         else
             changedParam
@@ -1101,9 +1101,9 @@ class ComposableFunctionBodyTransformer(
         val dirty = if (scope.allTrackedParams.isNotEmpty())
             changedParam.irCopyToTemporary(
                 // LLVM validation doesn't allow us to have val here.
-                isVar = if (context.platform.isJvm() || context.platform.isJs()) false else true,
-                nameHint = "\$dirty",
-                exactName = true
+              isVar = !(context.platform.isJvm() || context.platform.isJs()),
+              nameHint = "\$dirty",
+              exactName = true
             )
         else
             changedParam

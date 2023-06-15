@@ -59,7 +59,7 @@ class PsiNavSource(private val project: Project): NavSource {
     //  Once the nullability of this value has been clarified, either remove this check or remove
     //  this TODO.
     if (location.className == null) {
-      return null;
+      return null
     }
 
     var className = location.className!!

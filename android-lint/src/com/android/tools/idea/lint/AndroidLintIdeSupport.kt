@@ -179,10 +179,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun canAnalyze(project: Project): Boolean {
     // Only run in Android projects. This is relevant when the Android plugin is
     // enabled in IntelliJ.
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
-      return false
-    }
-    return true
+    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
   // Projects

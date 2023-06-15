@@ -123,10 +123,6 @@ class DeviceSizeList {
     return null
   }
 
-  private fun isInRange(threshold: Int, x: Int, y: Int, px: Int, py: Int): Boolean {
-    if (abs(x - px) < threshold && abs(y - py) < threshold){
-      return true
-    }
-    return false
-  }
+  private fun isInRange(threshold: Int, x: Int, y: Int, px: Int, py: Int): Boolean =
+    abs(x - px) < threshold && abs(y - py) < threshold
 }

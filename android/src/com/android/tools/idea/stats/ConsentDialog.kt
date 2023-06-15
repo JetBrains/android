@@ -102,7 +102,7 @@ class ConsentDialog(private val consent: Consent) : DialogWrapper(null) {
       addHyperlinkListener { e ->
         if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
           if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().browse(e.url.toURI());
+            Desktop.getDesktop().browse(e.url.toURI())
           }
         }
       }

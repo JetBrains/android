@@ -19,11 +19,11 @@ import com.intellij.debugger.MultiRequestPositionManager
 import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcess
-import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.PositionManagerWithMultipleStackFrames
 import com.intellij.debugger.engine.evaluation.EvaluationContext
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
+import com.intellij.debugger.ui.impl.watch.StackFrameDescriptorImpl
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.util.ThreeState
@@ -31,8 +31,8 @@ import com.intellij.xdebugger.frame.XStackFrame
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
-import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
+import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.idea.debugger.KotlinPositionManager
 import org.jetbrains.kotlin.load.kotlin.PackagePartClassUtils
 import org.jetbrains.kotlin.psi.KtFile
@@ -53,8 +53,8 @@ class ComposePositionManager(
 ) : MultiRequestPositionManager by kotlinPositionManager, PositionManagerWithMultipleStackFrames  {
   override fun getAcceptedFileTypes(): Set<FileType> = KOTLIN_FILE_TYPES
 
-  override fun createStackFrames(frame: StackFrameProxyImpl, debugProcess: DebugProcessImpl, location: Location): List<XStackFrame> =
-    kotlinPositionManager.createStackFrames(frame, debugProcess, location)
+  override fun createStackFrames(descriptor: StackFrameDescriptorImpl): List<XStackFrame> =
+    kotlinPositionManager.createStackFrames(descriptor)
 
   override fun evaluateCondition(context: EvaluationContext,
                                  frame: StackFrameProxyImpl,

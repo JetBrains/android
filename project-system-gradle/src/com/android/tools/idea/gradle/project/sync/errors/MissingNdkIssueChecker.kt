@@ -67,7 +67,7 @@ class MissingNdkIssueChecker: GradleIssueChecker {
       return null
     }
 
-    val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion;
+    val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion
 
     if (gradleVersion != null && GradleVersion.version(gradleVersion).baseVersion <= GradleVersion.version("6.2")) {
       // If the version of AGP is too old to support android.ndkVersion then don't offer to download an NDK.

@@ -71,7 +71,7 @@ private fun handleCompilerErrors(e: Throwable) {
   // Given that the IDE already provide enough information about compilation errors, there is no
   // real need to surface any compilation exception. We will just print the true cause for the
   // exception for our own debugging purpose only.
-  var cause = e;
+  var cause = e
   while (cause.cause != null) {
     cause = cause.cause!!
 
@@ -226,7 +226,7 @@ private object CompileScopeImpl : CompileScope {
                                                          analysisResult.moduleDescriptor,
                                                          analysisResult.bindingContext,
                                                          input,
-                                                         compilerConfiguration);
+                                                         compilerConfiguration)
 
     if (useComposeIR) {
       generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
@@ -243,7 +243,7 @@ private object CompileScopeImpl : CompileScope {
       ))
     }
 
-    val generationState = generationStateBuilder.build();
+    val generationState = generationStateBuilder.build()
     inlineClassRequest?.forEach {
       it.fetchByteCodeFromBuildIfNeeded()
       it.fillInlineCache(generationState.inlineCache)

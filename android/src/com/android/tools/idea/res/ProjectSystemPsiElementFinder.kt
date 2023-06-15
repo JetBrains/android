@@ -81,7 +81,7 @@ class ProjectSystemPsiPackageFinder(private val project: Project) : ProjectSyste
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> = PsiClass.EMPTY_ARRAY
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
-    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return null;
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return null
 
     for (delegate in finders) {
       return delegate.findPackage(qualifiedName) ?: continue

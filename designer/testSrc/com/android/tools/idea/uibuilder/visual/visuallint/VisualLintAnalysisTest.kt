@@ -67,7 +67,7 @@ class VisualLintAnalysisTest {
                                         ButtonSizeAnalyzerInspection, WearMarginAnalyzerInspection)
     projectRule.fixture.enableInspections(*visualLintInspections)
     InspectionProfileManager.getInstance(projectRule.project).currentProfile.setErrorLevel(
-      HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName), HighlightDisplayLevel.ERROR, projectRule.project)
+      HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName)!!, HighlightDisplayLevel.ERROR, projectRule.project)
   }
 
   @After

@@ -106,10 +106,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     }
 
     val filterType = myComponent.scene.filterType
-    if (isConnectible(filterType) || filterType == Scene.FilterType.ALL) {
-      return true
-    }
-    return false
+    return isConnectible(filterType) || filterType == Scene.FilterType.ALL
   }
 
   override fun getDrawMode(): DrawAnchor.Mode {

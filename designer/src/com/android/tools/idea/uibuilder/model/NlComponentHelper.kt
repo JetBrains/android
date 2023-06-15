@@ -522,11 +522,7 @@ class NlComponentMixin(component: NlComponent)
     }
 
     val handler = ViewHandlerManager.get(component.model.project).getHandler(component)
-
-    if (handler != null && !handler.acceptsParent(receiver, component)) {
-      return false
-    }
-    return true
+    return handler == null || handler.acceptsParent(receiver, component)
   }
 
   /**

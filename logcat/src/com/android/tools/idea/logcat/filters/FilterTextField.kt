@@ -698,9 +698,7 @@ internal class FilterTextField(
 
         other as Item
 
-        if (filter != other.filter) return false
-
-        return true
+        return filter == other.filter
       }
 
       // Items have unique text, so we only need to check the "filter" field

@@ -182,7 +182,7 @@ private class AndroidDependenciesSetupContext(
       if (IdeInfo.getInstance().isAndroidStudio) {
         LOG.warnInProduction(ExternalSystemException("Cannot find module with id: $targetModuleGradlePath"))
       }
-      return null;
+      return null
     }
     return ModuleLibraryWorkItem(targetModuleGradlePath, targetData)
   }
