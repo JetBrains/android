@@ -54,6 +54,8 @@ import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionSt
 import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
+import com.android.utils.FlightRecorder
+import com.android.utils.TraceUtils
 import com.google.common.cache.CacheBuilder
 import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -73,6 +75,7 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -229,6 +232,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
   init {
+    FlightRecorder.initialize(1000)
     Disposer.register(toolWindow.disposable, this)
 
     if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
@@ -452,6 +456,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun addPanel(panel: RunningDevicePanel) {
+    FlightRecorder.log { "${TraceUtils.getSimpleId(this)}.addPanel(${TraceUtils.getSimpleId(panel)} ${panel.title})\n" +
+                         TraceUtils.getCurrentStack() }
     val contentManager = toolWindow.contentManager
     var placeholderContent: Content? = null
     if (panels.isEmpty()) {
@@ -478,7 +484,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     panel.zoomToolbarVisible = zoomToolbarIsVisible
 
     val index = panels.binarySearch(panel, PANEL_COMPARATOR).inv()
-    assert(index >= 0)
+    if (index < 0) {
+      thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(panel)} ${panel.title}\n" +
+                         FlightRecorder.getAndClear())
+    }
 
     if (index >= 0) {
       panels.add(index, panel)
