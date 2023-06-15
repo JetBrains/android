@@ -96,4 +96,12 @@ open class ProfilersTestBase {
     studio.executeAction("Android.StopProfilingSession")
     verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+stopped.*support\\s+level\\s+\\=.*", 180)
   }
+
+  protected fun startSystemTrace(studio: AndroidStudio) {
+    studio.executeAction("Android.StartSystemTrace")
+  }
+
+  protected fun stopCpuCapture(studio: AndroidStudio) {
+    studio.executeAction("Android.StopCpuCapture")
+  }
 }

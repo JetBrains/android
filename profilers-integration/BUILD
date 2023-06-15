@@ -35,12 +35,14 @@ iml_studio_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags = [
+    tags_linux = [
+        "very_flaky",  # b/282881259
         "block-network",
-        "no_crostini",  # Emulator testing not yet supported.
-        "no_windows",  # RBE environment doesn't allow emulation (requires nested virtualization).
-        "qa_smoke",  # b/282881259
-        "very_flaky",
+    ],
+    tags_mac = ["manual"],  # b/282881259: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.profilers.integration.ProfileWithCompleteDataTest",
 )
@@ -52,14 +54,35 @@ iml_studio_test(
         "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags = [
+    tags_linux = [
+        "very_flaky",  # b/282881259, b/260867011
         "block-network",
-        "no_crostini",  # Emulator testing not yet supported.
-        "no_windows",  # RBE environment doesn't allow emulation (requires nested virtualization).
-        "qa_smoke",  # b/282881259, b/260867011
-        "very_flaky",
+    ],
+    tags_mac = ["manual"],  # b/282881259, b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.profilers.integration.ProfileWithLowOverheadTest",
+)
+
+iml_studio_test(
+    name = "SystemTraceTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "very_flaky",  # b/260867011
+        "block-network",
+    ],
+    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.SystemTraceTest",
 )
 
 maven_repository(
