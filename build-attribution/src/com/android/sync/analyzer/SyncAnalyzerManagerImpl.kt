@@ -20,6 +20,7 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.output.DownloadInfoDataModel
 import com.android.build.output.DownloadsInfoPresentableBuildEvent
 import com.android.build.output.LongDownloadsNotifier
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.SyncAnalyzerManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -54,7 +55,7 @@ class SyncAnalyzerManagerImpl(
   override fun onSyncStarted(id: ExternalSystemTaskId?) {
     if (id == null) return
     val data = project.getService(SyncAnalyzerDataManager::class.java).getOrCreateDataForTask(id)
-    project.setUpDownloadsInfoNodeOnBuildOutput(id, data)
+    if (IdeInfo.getInstance().isAndroidStudio) project.setUpDownloadsInfoNodeOnBuildOutput(id, data)
   }
 
   override fun onSyncFinished(id: ExternalSystemTaskId?) {
