@@ -10,7 +10,6 @@
     <orderEntry type="library" name="intellij-core" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" exported="" name="asm-tools" level="project" />
-    <orderEntry type="library" exported="" name="asm-commons" level="project" />
     <orderEntry type="module" module-name="android.sdktools.base.layoutlib-api-base" />
     <orderEntry type="module" module-name="android.sdktools.base.layoutlib-loader" />
     <orderEntry type="library" name="layoutlib" level="project" />

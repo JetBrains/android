@@ -5,7 +5,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" exported="" name="asm-tools" level="project" />
-    <orderEntry type="library" exported="" name="asm-commons" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="module" module-name="android.sdktools.lint-model" exported="" />
     <orderEntry type="module" module-name="android.sdktools.common" />

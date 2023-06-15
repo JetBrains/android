@@ -26,7 +26,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.upgrade" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="asm-tools" level="project" />
-    <orderEntry type="library" scope="TEST" name="asm-commons" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
