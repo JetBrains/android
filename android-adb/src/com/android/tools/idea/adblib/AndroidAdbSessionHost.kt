@@ -26,6 +26,8 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.IdeFrame
+import com.intellij.util.concurrency.AppExecutorUtil
+import java.nio.channels.AsynchronousChannelGroup
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -43,6 +45,10 @@ internal class AndroidAdbSessionHost : AdbSessionHost() {
   private val disposable = Disposer.newDisposable("AndroidAdbSessionHost disposable")
 
   override val loggerFactory = AndroidAdbLoggerFactory()
+
+  override val asynchronousChannelGroup: AsynchronousChannelGroup? =
+    AsynchronousChannelGroup.withCachedThreadPool(
+      AppExecutorUtil.createBoundedScheduledExecutorService("AndroidAdbSessionHost", 4), 1)
 
   override val parentContext = androidCoroutineExceptionHandler
 
