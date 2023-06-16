@@ -24,7 +24,7 @@ import junit.framework.Assert
 
 
 class KeyMetaDecoderTest {
-  private val dataPath = TestUtils.getWorkspaceRoot().resolve("tools/adt/idea/android/testData/liveEdit/keyMeta").toString()
+  private val dataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/liveEdit/keyMeta").toString()
 
   @Test
   fun basicActivity() {

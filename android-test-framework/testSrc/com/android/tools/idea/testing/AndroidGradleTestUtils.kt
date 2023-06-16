@@ -23,9 +23,9 @@ import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
+import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getLatestAndroidPlatform
 import com.android.testutils.TestUtils.getSdk
-import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -2058,7 +2058,7 @@ interface GradleIntegrationTest : IntegrationTestEnvironment {
    * The base testData directory to be used in tests.
    */
   fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
-    val testDataDirectory = getWorkspaceRoot().resolve(toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+    val testDataDirectory = TestUtils.resolveWorkspacePath(toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
     return testDataDirectory.resolve(toSystemDependentName(testDataPath)).toFile()
   }
 
