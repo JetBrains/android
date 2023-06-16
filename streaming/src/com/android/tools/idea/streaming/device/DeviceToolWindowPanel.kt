@@ -24,7 +24,6 @@ import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
-import com.android.tools.idea.streaming.core.icon
 import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
@@ -37,7 +36,6 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import icons.StudioIcons
 import java.awt.EventQueue
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -57,10 +55,7 @@ internal class DeviceToolWindowPanel(
     get() = deviceClient.deviceName
 
   override val icon: Icon
-    get() {
-      val icon = deviceConfig.deviceProperties.deviceType?.icon ?: StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      return ExecutionUtil.getLiveIndicator(icon)
-    }
+    get() = ExecutionUtil.getLiveIndicator(deviceClient.deviceHandle.state.properties.icon)
 
   override val isClosable: Boolean = StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()
 

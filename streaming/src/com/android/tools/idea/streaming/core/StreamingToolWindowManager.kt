@@ -1028,7 +1028,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private inner class StartDeviceMirroringAction(
     private val device: DeviceDescription,
-  ) : DumbAwareAction(device.deviceName, null, device.config.deviceProperties.deviceType?.icon) {
+  ) : DumbAwareAction(device.deviceName, null, device.config.deviceProperties.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
       activateMirroring(device)
@@ -1039,7 +1039,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private inner class StartRemoteDeviceAction(
     private val device: DeviceHandle,
-  ) : DumbAwareAction(device.sourceTemplate?.properties?.composeDeviceName(), null, device.sourceTemplate?.properties?.deviceType?.icon) {
+  ) : DumbAwareAction(device.sourceTemplate?.properties?.composeDeviceName(), null, device.sourceTemplate?.properties?.icon) {
 
     override fun actionPerformed(event: AnActionEvent) {
       device.scope.launch { device.activationAction?.activate() }

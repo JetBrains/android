@@ -19,6 +19,13 @@ import com.android.adblib.DevicePropertyNames
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
+import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.Reservation
+import com.android.sdklib.deviceprovisioner.ReservationState
+import com.android.sdklib.deviceprovisioner.TemplateActivationAction
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -71,10 +78,8 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
@@ -113,9 +118,10 @@ class StreamingToolWindowManagerTest {
   private val emulatorRule = FakeEmulatorRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
   private val popupRule = JBPopupRule()
+  private val provisionerRule = DeviceProvisionerRule()
   @get:Rule
-  val ruleChain = RuleChain(agentRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule, EdtRule(),
-                            PortableUiFontRule(), HeadlessDialogRule(), popupRule)
+  val ruleChain = RuleChain(agentRule, provisionerRule, emulatorRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule,
+                            EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), popupRule)
 
   private val windowFactory: StreamingToolWindowFactory by lazy { StreamingToolWindowFactory() }
   private var nullableToolWindow: TestToolWindow? = null
@@ -372,6 +378,38 @@ class StreamingToolWindowManagerTest {
       deviceMirroringSettings.deviceMirroringEnabled = false
       assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).isEmpty()
     }
+  }
+
+  @Test
+  fun testRemoteDevice() {
+    val properties = DeviceProperties.build {
+      icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR
+      model = "Pixel 9000"
+    }
+    val device = provisionerRule.deviceProvisionerPlugin.newDevice(properties = properties)
+    device.sourceTemplate = object: DeviceTemplate {
+      override val properties = properties
+      override val activationAction: TemplateActivationAction = mock()
+      override val editAction = null
+    }
+    device.stateFlow.value = DeviceState.Disconnected(
+      properties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null))
+    provisionerRule.deviceProvisionerPlugin.addDevice(device)
+
+    val provisionerService: DeviceProvisionerService = mock()
+    whenever(provisionerService.deviceProvisioner).thenReturn(provisionerRule.deviceProvisioner)
+    project.replaceService(DeviceProvisionerService::class.java, provisionerService, agentRule.disposable)
+
+    toolWindow.show()
+    waitForCondition(2, TimeUnit.SECONDS) { toolWindow.tabActions.isNotEmpty() }
+    val newTabAction = toolWindow.tabActions[0]
+    newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
+    val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
+
+    assertThat(popup.actions.toString()).isEqualTo(
+      "[Separator (Remote Devices), Pixel 9000 (null), Separator (null), " +
+        "Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
+    assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR)
   }
 
   @Test

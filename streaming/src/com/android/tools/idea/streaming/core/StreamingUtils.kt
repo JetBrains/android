@@ -118,7 +118,7 @@ private fun Component.findComponentForAction(action: AnAction): Component? {
 private fun Component.isComponentForAction(action: AnAction): Boolean =
     this is AnActionHolder && this.action === action
 
-
+// TODO(b/289230363): use DeviceHandle.state.properties.icon, since it is the source of truth for device icons.
 internal val AvdInfo.icon: Icon
   get() {
     return when (tag) {
@@ -126,16 +126,6 @@ internal val AvdInfo.icon: Icon
       SystemImage.AUTOMOTIVE_TAG, SystemImage.AUTOMOTIVE_PLAY_STORE_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
       SystemImage.WEAR_TAG -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
       else -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
-    }
-  }
-
-internal val DeviceType.icon: Icon
-  get() {
-    return when (this) {
-      DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
-      DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
-      DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
-      DeviceType.HANDHELD -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
     }
   }
 
