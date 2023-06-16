@@ -33,6 +33,7 @@ import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
@@ -43,7 +44,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.xdebugger.XDebugSessionListener
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
@@ -58,13 +65,12 @@ import java.lang.ref.WeakReference
  *  * Locating SDK sources that match the user's current target device.
  *
  * Unlike [PositionManagerImpl], [AndroidPositionManager] is not a cover-all position
- * manager and should fallback to other position managers if it encounters a situation it cannot
+ * manager and should fall back to other position managers if it encounters a situation it cannot
  * handle.
  */
 class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : PositionManagerImpl(myDebugProcess) {
 
   private val myAndroidVersion: AndroidVersion? = myDebugProcess.processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
-  private val desugarUtils = DesugarUtils(this, myDebugProcess)
 
   init {
     val disposable = myDebugProcess.getDisposable()
@@ -86,7 +92,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   override fun getAllClasses(position: SourcePosition): List<ReferenceType> {
     // For desugaring, we also need to add the extra synthesized classes that may contain the source position.
     val classes = super.getAllClasses(position)
-    val companionClasses = desugarUtils.getCompanionClasses(position, classes)
+    val companionClasses = getCompanionClasses(position, classes)
     val allClasses = classes + companionClasses
     if (allClasses.isEmpty()) {
       throw NoDataException.INSTANCE
@@ -97,7 +103,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   @Throws(NoDataException::class)
   override fun createPrepareRequests(requestor: ClassPrepareRequestor, position: SourcePosition): List<ClassPrepareRequest> {
     // For desugaring, we also need to add prepare requests for the extra synthesized classes that may contain the source position.
-    val requests = super.createPrepareRequests(requestor, position) + desugarUtils.getExtraPrepareRequests(requestor, position)
+    val requests = super.createPrepareRequests(requestor, position) + getExtraPrepareRequests(requestor, position)
     if (requests.isEmpty()) {
       throw NoDataException.INSTANCE
     }
@@ -146,6 +152,113 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     }
   }
 
+  private fun refreshDebugSession() {
+    DumbService.getInstance(myDebugProcess.project).smartInvokeLater {
+      myDebugProcess.managerThread.invoke(PrioritizedTask.Priority.HIGH) {
+        // Clear the cache on the containing CompoundPositionManager.
+        myDebugProcess.positionManager.clearCache()
+
+        // After the cache is cleared, close the generated PsiFile instance if it's open and schedule a refresh of the debug session.
+        ApplicationManager.getApplication().invokeLater(
+          { myDebugProcess.session.refresh(true) },
+          { myDebugProcess.session.isStopped })
+      }
+    }
+
+  }
+
+  // TODO(b/269626310): Remove when DebugProcessImpl exposes a disposable
+  //   https://github.com/JetBrains/intellij-community/pull/2326
+  private fun DebugProcessImpl.getDisposable(): Disposable? {
+    return when {
+      ApplicationManager.getApplication().isUnitTestMode -> project
+      else -> try {
+        val field = DebugProcessImpl::class.java.getDeclaredField("myDisposable")
+        field.isAccessible = true
+        field.get(this) as Disposable
+      }
+      catch (e: Exception) {
+        thisLogger().warn("Could not get DebugProcessImpl.disposable")
+        null
+      }
+    }
+  }
+
+  /**
+   * Returns a list of [ClassPrepareRequest] that also contains references to types synthesized by desugaring.
+   *
+   *
+   * If the given requests list contains an interface type that requires desugaring, this method will add a prepare request that matches
+   * any inner type of the interface. Indeed, desugaring may have synthesized an inner companion class that contains the given position.
+   */
+  private fun getExtraPrepareRequests(
+    requestor: ClassPrepareRequestor,
+    position: SourcePosition,
+  ): List<ClassPrepareRequest> {
+    return ReadAction.compute<List<ClassPrepareRequest>, RuntimeException> {
+      val element = position.elementAt
+      val classHolder = element.getInterfaceParent() ?: return@compute emptyList()
+      if (element.isAbstractMethod()) {
+        return@compute emptyList()
+      }
+
+      // Breakpoint in a non-abstract method in an interface. If desugaring is enabled, we should have a companion class with the
+      // actual code.
+      // The companion class should be an inner class of the interface. Let's get notified of any inner class that is loaded and
+      // check if the class contains the position we're looking for.
+      val classPattern = classHolder.qualifiedName + "$*"
+      val trampolinePrepareRequestor = ClassPrepareRequestor { debuggerProcess, referenceType ->
+        if (referenceType.hasLocationsForPosition(position)) {
+          requestor.processClassPrepare(debuggerProcess, referenceType)
+        }
+      }
+      listOfNotNull(debugProcess.requestsManager.createClassPrepareRequest(trampolinePrepareRequestor, classPattern))
+    }
+  }
+  /**
+   * Returns a list of [ReferenceType] that also contains references to types synthesized by desugaring.
+   *
+   *
+   * If the given types list contains an interface type that requires desugaring, this method will add to the returned list any inner type
+   * that contains the given position in one of its methods.
+   */
+  private fun getCompanionClasses(
+    position: SourcePosition,
+    types: List<ReferenceType>,
+  ): List<ReferenceType> {
+    // Find all interface classes that may have a companion class.
+    val candidatesForDesugaringCompanion = types.filter { type ->
+      ReadAction.compute<Boolean, RuntimeException> {
+        debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring() == true
+      }
+    }
+    if (candidatesForDesugaringCompanion.isEmpty()) {
+      return emptyList()
+    }
+
+    // There is at least one interface that may have a companion class synthesized by desugaring.
+    val allLoadedTypes = debugProcess.virtualMachineProxy.allClasses()
+    val companions = allLoadedTypes.filter { loadedType ->
+      candidatesForDesugaringCompanion.any { candidate ->
+        loadedType.isCompanion(candidate.name(), position)
+      }
+    }
+
+
+    return companions
+  }
+
+
+  private fun ReferenceType.hasLocationsForPosition(position: SourcePosition) =
+    runCatching { locationsOfLine(this, position).isNotEmpty() }.getOrDefault(false)
+
+  private fun ReferenceType.isCompanion(className: String, position: SourcePosition) =
+    startsWith("$className$") && containsPosition(position)
+
+  private fun ReferenceType.containsPosition(position: SourcePosition) =
+    locationsOfLine(this, position).isNotEmpty()
+
+
   companion object {
     private val LOG = Logger.getInstance(AndroidPositionManager::class.java)
 
@@ -184,36 +297,18 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     fun String.changeClassExtensionToJava() =
       if (endsWith(SdkConstants.DOT_CLASS)) substring(0, length - SdkConstants.DOT_CLASS.length) + SdkConstants.DOT_JAVA else this
   }
-
-  private fun refreshDebugSession() {
-    DumbService.getInstance(myDebugProcess.project).smartInvokeLater {
-      myDebugProcess.managerThread.invoke(PrioritizedTask.Priority.HIGH) {
-        // Clear the cache on the containing CompoundPositionManager.
-        myDebugProcess.positionManager.clearCache()
-
-        // After the cache is cleared, close the generated PsiFile instance if it's open and schedule a refresh of the debug session.
-        ApplicationManager.getApplication().invokeLater(
-          { myDebugProcess.session.refresh(true) },
-          { myDebugProcess.session.isStopped })
-      }
-    }
-
-  }
-
-  // TODO(b/269626310): Remove when DebugProcessImpl exposes a disposable
-  //   https://github.com/JetBrains/intellij-community/pull/2326
-  private fun DebugProcessImpl.getDisposable(): Disposable? {
-    return when {
-      ApplicationManager.getApplication().isUnitTestMode -> project
-      else -> try {
-        val field = DebugProcessImpl::class.java.getDeclaredField("myDisposable")
-        field.isAccessible = true
-        field.get(this) as Disposable
-      }
-      catch (e: Exception) {
-        thisLogger().warn("Could not get DebugProcessImpl.disposable")
-        null
-      }
-    }
-  }
 }
+
+private fun PsiElement.isAbstractMethod() = PsiTreeUtil.getParentOfType(this, PsiMethod::class.java)?.body == null
+
+private fun PsiElement.getInterfaceParent(): PsiClass? {
+  val parent = PsiTreeUtil.getParentOfType(this, PsiClass::class.java)
+  return if (parent?.isInterface == true) parent else null
+}
+
+private fun Project.findClassInAllScope(type: ReferenceType) =
+  JavaPsiFacade.getInstance(this).findClass(type.name(), GlobalSearchScope.allScope(this))
+
+private fun PsiClass.canBeTransformedForDesugaring() = isInterface && methods.any { it.body != null }
+
+private fun ReferenceType.startsWith(prefix: String) = name().startsWith(prefix)
