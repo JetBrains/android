@@ -156,6 +156,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
  *   [LayoutlibSceneManager].
  */
 suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
+  tryReusingModels: Boolean,
   reinflate: Boolean,
   previewElements: Collection<T>,
   log: Logger,
@@ -179,9 +180,11 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   val existingModels = models.toMutableList()
   val previewElementsList = previewElements.toList().sortByDisplayAndSourcePosition()
   val modelIndices =
-    withContext(AndroidDispatchers.workerThread) {
-      matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
-    }
+    if (tryReusingModels) {
+      withContext(AndroidDispatchers.workerThread) {
+        matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
+      }
+    } else List(previewElementsList.size) { -1 }
   // Now we generate all the models (or reuse) for the PreviewElements.
   val models =
     previewElementsList.mapIndexed { idx, previewElement ->

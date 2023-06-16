@@ -147,6 +147,9 @@ interface ComposePreviewView {
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
   ): List<ComposePreviewElement> {
     return mainSurface.updatePreviewsAndRefresh(
+      // Don't reuse models when in lite mode to avoid briefly showing an unexpected/mixed
+      // state of the old and new preview.
+      tryReusingModels = !ComposePreviewLiteModeManager.isLiteModeEnabled,
       reinflate,
       previewElements,
       Logger.getInstance(ComposePreviewView::class.java),

@@ -238,7 +238,8 @@ class ComposePreviewViewImplTest {
       }
     runBlocking(workerThread) {
       surface.updatePreviewsAndRefresh(
-        true,
+        tryReusingModels = true,
+        reinflate = true,
         previewProvider.previewElements().toList(),
         Logger.getInstance(ComposePreviewViewImplTest::class.java),
         mainFileSmartPointer.element!!,
