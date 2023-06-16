@@ -317,8 +317,7 @@ private fun <T : Any> updateXmlDoc(manifestPath: Path, transform: (Document) -> 
 }
 
 private fun TemplateBasedTestProject.resolveTestDataPath(testDataPath: @SystemIndependent String): File {
-  val testDataDirectory = TestUtils.getWorkspaceRoot()
-    .resolve(FileUtilRt.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+  val testDataDirectory = TestUtils.resolveWorkspacePath(FileUtilRt.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
   return testDataDirectory.resolve(FileUtilRt.toSystemDependentName(testDataPath)).toFile()
 }
 
