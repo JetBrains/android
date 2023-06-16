@@ -15,15 +15,15 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.testutils.MockitoAwareLightPlatformTestCase
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.testFramework.LightPlatformTestCase
 import org.mockito.Mockito
 import java.io.File
 
-class GradleSignStepTest : LightPlatformTestCase() {
+class GradleSignStepTest : MockitoAwareLightPlatformTestCase() {
   private var myWizard = Mockito.mock(ExportSignedPackageWizard::class.java)
   override fun setUp() {
     super.setUp()
