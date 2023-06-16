@@ -35,6 +35,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -156,6 +157,7 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
   }
 
   @Test
+  @Ignore("nvuk revisit JDK difference")
   fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase() {
     setupTestProjectFromAndroidModel(
       project, File(myFixture.tempDirPath), rootModuleBuilder, appModuleBuilder, libModuleBuilder)
@@ -164,6 +166,7 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
   }
 
   @Test
+  @Ignore("nvuk revisit JDK difference")
   fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing() {
     val tempRoot = File(myFixture.tempDirPath)
     setupTestProjectFromAndroidModel(
