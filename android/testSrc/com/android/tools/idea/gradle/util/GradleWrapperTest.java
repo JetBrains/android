@@ -25,7 +25,9 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.SdkConstants;
 import com.android.Version;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.plugin.AndroidGradlePluginVersion;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -130,7 +132,13 @@ public class GradleWrapperTest extends HeavyPlatformTestCase {
     assertEquals("7.3.3", GradleWrapper.getGradleVersionToUse().getVersion());
 
     StudioFlags.AGP_VERSION_TO_USE.override("");
-    assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
+
+    String version = Version.ANDROID_GRADLE_PLUGIN_VERSION;
+    if(!IdeInfo.getInstance().isAndroidStudio())
+        // In IDEA we use latest stable version.
+        version = AndroidGradlePluginVersion.LATEST_STABLE_VERSION;
+
+    assertEquals(version, LatestKnownPluginVersionProvider.INSTANCE.get());
     assertEquals(SdkConstants.GRADLE_LATEST_VERSION, GradleWrapper.getGradleVersionToUse().getVersion());
   }
 
