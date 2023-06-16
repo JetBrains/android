@@ -3,6 +3,8 @@
 *.pyc
 Thumbs.db
 *.class
+!MainActivityKt$KeyMeta.class
+!ThemeKt$KeyMeta.class
 *.DS_Store
 test-temp
 tools-base
