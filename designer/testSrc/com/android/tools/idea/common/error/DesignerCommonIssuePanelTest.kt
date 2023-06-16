@@ -16,8 +16,13 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.error.IssuePanelService.Companion.SELECTED_ISSUES
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.utils.HtmlBuilder
 import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.impl.DataManagerImpl
@@ -35,6 +40,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import javax.swing.tree.TreePath
 import kotlin.test.assertNotNull
 
@@ -138,8 +144,21 @@ class DesignerCommonIssuePanelTest {
     val fileIssue = TestIssue(source = IssueSourceWithFile(file.virtualFile, "my_layout"), description = "layout issue")
     val noFileIssue = TestIssue(description = "other issue")
 
+    val composeFile = rule.fixture.addFileToProject("src/Compose.kt", "Compose file")
+    val nlModel = Mockito.mock(NlModel::class.java)
+    Mockito.`when`(nlModel.virtualFile).thenReturn(composeFile.virtualFile)
+    val navigatable = OpenFileDescriptor(rule.project, composeFile.virtualFile)
+    val component = NlComponent(nlModel, 651L).apply { setNavigatable(navigatable) }
+    val visualLintIssue = VisualLintRenderIssue.builder()
+      .summary("")
+      .severity(HighlightSeverity.WARNING)
+      .contentDescriptionProvider { HtmlBuilder() }
+      .model(nlModel)
+      .components(mutableListOf(component))
+      .type(VisualLintErrorType.BOUNDS)
+      .build()
 
-    val provider = DesignerCommonIssueTestProvider(listOf(fileIssue, noFileIssue))
+    val provider = DesignerCommonIssueTestProvider(listOf(fileIssue, noFileIssue, visualLintIssue))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
     val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
@@ -149,6 +168,7 @@ class DesignerCommonIssuePanelTest {
 
     tree.isRootVisible = false
     tree.expandRow(1)
+    tree.expandRow(3)
     tree.expandRow(0)
 
     // Now the tree structure becomes:
@@ -157,6 +177,8 @@ class DesignerCommonIssuePanelTest {
     //   |- IssueNode: fileIssue
     // NoFileNode: Layout Validation
     //   |- IssueNode: noFileIssue
+    //   |- VisualLintIssueNode: visualLintIssue
+    //     |- NavigatableFileNode
     // --------
 
     run {
@@ -193,7 +215,7 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<NoFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(noFileIssue), context.getData(SELECTED_ISSUES))
+      assertEquals(listOf(noFileIssue, visualLintIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
@@ -206,6 +228,31 @@ class DesignerCommonIssuePanelTest {
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
       assertEquals(listOf(noFileIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
+    }
+
+    run {
+      // Test VisualLintIssueNode: visualLintIssue
+      tree.setSelectionRow(4)
+      val context = DataManager.getInstance().getDataContext(tree)
+
+      assertInstanceOf<VisualLintIssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
+      assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
+      assertEquals(listOf(visualLintIssue), context.getData(SELECTED_ISSUES))
+    }
+
+    run {
+      // Test NavigatableFileNode
+      tree.setSelectionRow(5)
+      val context = DataManager.getInstance().getDataContext(tree)
+
+      assertInstanceOf<NavigatableFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
+      assertEquals(composeFile.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
+      assertEquals(listOf(visualLintIssue), context.getData(SELECTED_ISSUES))
+      val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
+      assertInstanceOf<OpenFileDescriptor>(navigatable)
+      val descriptor = navigatable as OpenFileDescriptor
+      assertEquals(rule.project, descriptor.project)
+      assertEquals(composeFile.virtualFile, descriptor.file)
     }
   }
 }

@@ -100,6 +100,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
           is IssuedFileNode -> node.getChildren().map { it.issue }.toList()
           is NoFileNode -> node.getChildren().map { it.issue }.toList()
           is IssueNode -> listOf(node.issue)
+          is NavigatableFileNode -> listOfNotNull((node.parentDescriptor as? IssueNode)?.issue)
           else -> emptyList()
         }
       }
