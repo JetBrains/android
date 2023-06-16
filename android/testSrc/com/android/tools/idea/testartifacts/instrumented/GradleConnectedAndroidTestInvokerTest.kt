@@ -456,7 +456,6 @@ class GradleConnectedAndroidTestInvokerTest {
   fun testTaskNamesCanHandleCompositeBuild() {
     // This is a regression test for b/117064606.
     whenever(mockModuleData.id).thenReturn(":includedModule")
-    whenever(mockModuleData.getProperty(eq("compositeBuildGradlePath"))).thenReturn(":ModulesSDK")
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
@@ -467,7 +466,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
     verify(mockGradleTaskManager).executeTasks(
       any(),
-      eq(listOf(":ModulesSDK:includedModule:connectedDebugAndroidTest")),
+      eq(listOf(":app:connectedDebugAndroidTest")),
       anyString(),
       any(),
       nullable(String::class.java),
