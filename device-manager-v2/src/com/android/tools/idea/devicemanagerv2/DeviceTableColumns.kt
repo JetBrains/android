@@ -49,8 +49,8 @@ internal object DeviceTableColumns {
     override fun value(t: DeviceRowData): DeviceType = t.type
   }
 
-  /** Renders the type of device as an icon. */
-  object Type : Column<DeviceRowData, DeviceType, IconLabel> {
+  /** Renders the type (form factor) of device as an icon. */
+  object FormFactor : Column<DeviceRowData, DeviceType, IconLabel> {
     override val name = DeviceManagerBundle.message("column.title.formfactor")
     override val columnHeaderName = "" // no room for a name
 
@@ -90,15 +90,11 @@ internal object DeviceTableColumns {
       stringAttribute { it.androidVersion?.apiStringWithExtension ?: "" }
     )
 
-  object IsVirtual :
+  object HandleType :
     LabelColumn<DeviceRowData>(
-      DeviceManagerBundle.message("column.title.isvirtual"),
+      DeviceManagerBundle.message("column.title.handletype"),
       Column.SizeConstraint(min = 20, max = 80),
-      stringAttribute {
-        DeviceManagerBundle.message(
-          if (it.isVirtual) "column.value.virtual" else "column.value.physical"
-        )
-      }
+      stringAttribute { it.handleType.toString() }
     )
 
   object Status : Column<DeviceRowData, DeviceRowData.Status, IconLabel> {
@@ -159,5 +155,5 @@ internal object DeviceTableColumns {
   }
 
   fun columns(project: Project?, coroutineScope: CoroutineScope) =
-    listOf(Status, Type, Name, Api, IsVirtual, Actions(project, coroutineScope))
+    listOf(Status, FormFactor, Name, Api, HandleType, Actions(project, coroutineScope))
 }

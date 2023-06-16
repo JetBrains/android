@@ -102,7 +102,7 @@ class DeviceNamePanelTest {
         abi = Abi.ARM64_V8A,
         status = DeviceRowData.Status.ONLINE,
         error = null,
-        isVirtual = false,
+        handleType = DeviceRowData.HandleType.PHYSICAL,
         wearPairingId = "abcd1234",
         pairingStatus = emptyList()
       )

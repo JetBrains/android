@@ -41,7 +41,7 @@ internal data class DeviceRowData(
   val abi: Abi?,
   val status: Status,
   val error: DeviceError?,
-  val isVirtual: Boolean,
+  val handleType: HandleType,
   val wearPairingId: String?,
   val pairingStatus: List<PairingStatus>,
 ) {
@@ -50,6 +50,9 @@ internal data class DeviceRowData(
   }
 
   fun key() = handle ?: template!!
+
+  val isVirtual
+    get() = handleType == HandleType.VIRTUAL
 
   companion object {
     fun create(handle: DeviceHandle, pairingStatus: List<PairingStatus>): DeviceRowData {
@@ -68,7 +71,13 @@ internal data class DeviceRowData(
             else -> Status.OFFLINE
           },
         error = state.error,
-        isVirtual = properties.isVirtual ?: false,
+        handleType =
+          when {
+            handle.reservationAction != null -> HandleType.REMOTE
+            properties.isVirtual == true -> HandleType.VIRTUAL
+            properties.isVirtual == false -> HandleType.PHYSICAL
+            else -> HandleType.UNKNOWN
+          },
         wearPairingId = properties.wearPairingId,
         pairingStatus = pairingStatus,
       )
@@ -85,7 +94,7 @@ internal data class DeviceRowData(
         abi = properties.abi,
         status = Status.OFFLINE,
         error = null,
-        isVirtual = properties.isVirtual ?: false,
+        handleType = HandleType.REMOTE,
         wearPairingId = properties.wearPairingId,
         pairingStatus = emptyList(),
       )
@@ -95,6 +104,15 @@ internal data class DeviceRowData(
   enum class Status {
     OFFLINE,
     ONLINE;
+    override fun toString() = name.titlecase()
+  }
+
+  enum class HandleType {
+    UNKNOWN,
+    PHYSICAL,
+    VIRTUAL,
+    REMOTE;
+
     override fun toString() = name.titlecase()
   }
 }
