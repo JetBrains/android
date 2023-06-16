@@ -51,16 +51,15 @@ class DesugarUtils(
    * If the given requests list contains an interface type that requires desugaring, this method will add a prepare request that matches
    * any inner type of the interface. Indeed, desugaring may have synthesized an inner companion class that contains the given position.
    */
-  fun addExtraPrepareRequestsIfNeeded(
+  fun getExtraPrepareRequests(
     requestor: ClassPrepareRequestor,
     position: SourcePosition,
-    requests: MutableList<ClassPrepareRequest>
   ): List<ClassPrepareRequest> {
-    ReadAction.compute<Unit, RuntimeException> {
+    return ReadAction.compute<List<ClassPrepareRequest>, RuntimeException> {
       val element = position.elementAt
-      val classHolder = element.getInterfaceParent() ?: return@compute
+      val classHolder = element.getInterfaceParent() ?: return@compute emptyList()
       if (element.isAbstractMethod()) {
-        return@compute
+        return@compute emptyList()
       }
 
       // Breakpoint in a non-abstract method in an interface. If desugaring is enabled, we should have a companion class with the
@@ -73,12 +72,8 @@ class DesugarUtils(
           requestor.processClassPrepare(debuggerProcess, referenceType)
         }
       }
-      val request = debugProcess.requestsManager.createClassPrepareRequest(trampolinePrepareRequestor, classPattern)
-      if (request != null) {
-        requests.add(request)
-      }
+      listOfNotNull(debugProcess.requestsManager.createClassPrepareRequest(trampolinePrepareRequestor, classPattern))
     }
-    return requests
   }
 
   /**
@@ -88,7 +83,7 @@ class DesugarUtils(
    * If the given types list contains an interface type that requires desugaring, this method will add to the returned list any inner type
    * that contains the given position in one of its methods.
    */
-  fun addExtraClassesIfNeeded(
+  fun getCompanionClasses(
     position: SourcePosition,
     types: List<ReferenceType>,
   ): List<ReferenceType> {
@@ -99,7 +94,7 @@ class DesugarUtils(
       }
     }
     if (candidatesForDesugaringCompanion.isEmpty()) {
-      return types
+      return emptyList()
     }
 
     // There is at least one interface that may have a companion class synthesized by desugaring.
@@ -111,7 +106,7 @@ class DesugarUtils(
     }
 
 
-    return types + companions
+    return companions
   }
 
   private fun ReferenceType.isCompanion(className: String, position: SourcePosition) =
@@ -130,6 +125,7 @@ private fun Project.findClassInAllScope(type: ReferenceType) =
   JavaPsiFacade.getInstance(this).findClass(type.name(), GlobalSearchScope.allScope(this))
 
 private fun PsiClass.canBeTransformedForDesugaring() = isInterface && methods.any { it.body != null }
+
 private fun PsiElement.getInterfaceParent(): PsiClass? {
   val parent = PsiTreeUtil.getParentOfType(this, PsiClass::class.java)
   return if (parent?.isInterface == true) parent else null

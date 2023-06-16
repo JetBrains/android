@@ -85,17 +85,19 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   @Throws(NoDataException::class)
   override fun getAllClasses(position: SourcePosition): List<ReferenceType> {
     // For desugaring, we also need to add the extra synthesized classes that may contain the source position.
-    val referenceTypes = desugarUtils.addExtraClassesIfNeeded(position, super.getAllClasses(position))
-    if (referenceTypes.isEmpty()) {
+    val classes = super.getAllClasses(position)
+    val companionClasses = desugarUtils.getCompanionClasses(position, classes)
+    val allClasses = classes + companionClasses
+    if (allClasses.isEmpty()) {
       throw NoDataException.INSTANCE
     }
-    return referenceTypes
+    return allClasses
   }
 
   @Throws(NoDataException::class)
   override fun createPrepareRequests(requestor: ClassPrepareRequestor, position: SourcePosition): List<ClassPrepareRequest> {
     // For desugaring, we also need to add prepare requests for the extra synthesized classes that may contain the source position.
-    val requests = desugarUtils.addExtraPrepareRequestsIfNeeded(requestor, position, super.createPrepareRequests(requestor, position))
+    val requests = super.createPrepareRequests(requestor, position) + desugarUtils.getExtraPrepareRequests(requestor, position)
     if (requests.isEmpty()) {
       throw NoDataException.INSTANCE
     }

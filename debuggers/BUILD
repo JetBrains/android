@@ -38,6 +38,7 @@ iml_module(
         "//prebuilts/studio/sdk:sources",
         "//tools/adt/idea/android/testData",
     ],
+    test_friends = ["//tools/adt/idea/debuggers:intellij.android.debuggers"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
