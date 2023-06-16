@@ -19,6 +19,7 @@
     <!-- Note: in AndroidStudio this configurable has different groupId: build -->
     <applicationConfigurable groupId="build.android" id="instant.run"
                              provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"
+                             bundle="messages.AndroidBundle"
                              key="configurable.DeploymentConfigurable.display.name"/>
 
     <projectConfigurable groupId="build.android"
