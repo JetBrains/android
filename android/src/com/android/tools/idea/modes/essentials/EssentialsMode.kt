@@ -16,12 +16,20 @@
 package com.android.tools.idea.modes.essentials
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.registry.RegistryManager
 
-object EssentialsMode {
+object EssentialsMode : ProjectActivity {
 
   private val applicationService = ApplicationManager.getApplication().getService(
     EssentialsModeMessenger::class.java)
+  private val essentialsModeLogger = logger<EssentialsMode>()
+  override suspend fun execute(project: Project) {
+    essentialsModeLogger.info("Essentials mode isEnabled on start-up: ${isEnabled()}")
+  }
+
   @JvmStatic
   fun isEnabled(): Boolean {
     return RegistryManager.getInstance().`is`("ide.essentials.mode");
@@ -32,6 +40,9 @@ object EssentialsMode {
     val beforeSet = isEnabled()
     RegistryManager.getInstance().get("ide.essentials.mode").setValue(value)
     // send message if the value changed
-    if (beforeSet != value) applicationService.sendMessage()
+    if (beforeSet != value) {
+      applicationService.sendMessage()
+      essentialsModeLogger.info("Essentials mode isEnabled set to $value")
+    }
   }
 }
