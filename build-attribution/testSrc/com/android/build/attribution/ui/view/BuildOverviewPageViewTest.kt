@@ -146,9 +146,10 @@ class BuildOverviewPageViewTest {
     val model = BuildOverviewPageModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val html = view.generateInfoPanelHtml()
+    val buildFinishedTimeString = DateFormatUtil.formatDateTime(mockData.buildSummary.buildFinishedTimestamp)
 
     Truth.assertThat(html).isEqualTo("""
-      <b>Build finished on 1/30/20, 12:21 PM</b><br/>
+      <b>Build finished on $buildFinishedTimeString</b><br/>
       Total build duration was 20.0s<br/>
       <br/>
       Includes:<br/>
@@ -189,9 +190,10 @@ class BuildOverviewPageViewTest {
     val model = BuildOverviewPageModel(mockData, warningSuppressions)
     val view = BuildOverviewPageView(model, mockHandlers)
     val html = view.generateInfoPanelHtml()
+    val buildFinishedTimeString = DateFormatUtil.formatDateTime(mockData.buildSummary.buildFinishedTimestamp)
 
     Truth.assertThat(html).isEqualTo("""
-      <b>Build finished on 1/30/20, 12:21 PM</b><br/>
+      <b>Build finished on $buildFinishedTimeString</b><br/>
       Total build duration was 20.0s<br/>
       <br/>
       Includes:<br/>

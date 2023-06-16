@@ -50,6 +50,10 @@ iml_module(
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
+            "tags": [
+                "no_test_mac",  # b/113099009
+                "no_test_windows",  # b/135665870
+            ],
         },
         "other": {
             "data": [
@@ -59,10 +63,6 @@ iml_module(
             ],
         },
     },
-    tags = [
-        "no_test_mac",  # b/113099009
-        "no_test_windows",  # b/135665870
-    ],
     test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",
     test_data = [
         ":test_deps",

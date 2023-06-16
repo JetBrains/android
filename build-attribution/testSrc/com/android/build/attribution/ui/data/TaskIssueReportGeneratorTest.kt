@@ -23,6 +23,8 @@ import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionRep
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
 import com.android.ide.common.repository.AgpVersion
 import com.google.common.truth.Truth
+import com.intellij.openapi.util.text.Strings
+import com.intellij.util.LineSeparator
 import com.intellij.util.text.DateFormatUtil
 import org.junit.Test
 
@@ -111,7 +113,8 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
 """.trimIndent()
 
     val task = buildReportData.findTaskUiDataFor(task1androidPlugin)
-    Truth.assertThat(reporter.generateReportText(task)).isEqualTo(expectedText)
+    Truth.assertThat(reporter.generateReportText(task))
+      .isEqualTo(Strings.convertLineSeparators(expectedText, LineSeparator.getSystemLineSeparator().separatorString))
   }
 
   @Test
@@ -144,7 +147,8 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
 
 
     val task = buildReportData.findTaskUiDataFor(taskAmodule1)
-    Truth.assertThat(reporter.generateReportText(task)).isEqualTo(expectedText)
+    Truth.assertThat(reporter.generateReportText(task))
+      .isEqualTo(Strings.convertLineSeparators(expectedText, LineSeparator.getSystemLineSeparator().separatorString))
   }
 
   @Test
@@ -187,7 +191,8 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
 """.trim()
 
     val task = buildReportData.findTaskUiDataFor(taskBmodule2)
-    Truth.assertThat(reporter.generateReportText(task)).isEqualTo(expectedText)
+    Truth.assertThat(reporter.generateReportText(task))
+      .isEqualTo(Strings.convertLineSeparators(expectedText, LineSeparator.getSystemLineSeparator().separatorString))
   }
 }
 

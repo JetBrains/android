@@ -18,6 +18,8 @@ package com.android.build.attribution.ui.data
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.percentageString
 import com.android.ide.common.repository.AgpVersion
+import com.intellij.openapi.util.text.Strings
+import com.intellij.util.LineSeparator
 import com.intellij.util.text.DateFormatUtil
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.text.SimpleDateFormat
@@ -32,7 +34,7 @@ class TaskIssueReportGenerator(
 ) {
 
   fun generateReportText(taskData: TaskUiData): String {
-    return """
+    return Strings.convertLineSeparators("""
 ${generateHeaderText(taskData.pluginName)}
 
 ${generateFoundIssuesText(taskData)}
@@ -45,7 +47,7 @@ ${generateTaskExecutionText(taskData)}
 ${generateBuildInformationText()}
 ====Platform information:====
 ${generatePlatformInformationText()}
-""".trim()
+""".trim(), LineSeparator.getSystemLineSeparator().separatorString)
   }
 
   private fun generateHeaderText(pluginName: String): String {
