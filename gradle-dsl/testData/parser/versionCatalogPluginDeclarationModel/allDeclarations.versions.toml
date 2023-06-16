@@ -1,0 +1,10 @@
+[versions]
+barVersion = "1.0.0"
+kotlin = "1.7.20"
+
+[plugins]
+fakePlugin = "\u0066\u0061\u006b\u0065\u002e\u0070\u006c\u0075\u0067\u0069\u006e\u003a\u0031\u002e\u0030" #fake.plugin:1.0
+foo = "com.example.foo:2.0"
+bar = { id = "com.example.bar", version.ref = "barVersion" }
+android_application = { id = "com.android.application", version = "8.0.0-beta01" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
