@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.psi.PsiFile
 import junit.framework.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -120,6 +121,7 @@ class ComposableCompileTest {
   }
 
   @Test
+  @Ignore("Fix java.lang.NoClassDefFoundError: kotlin/jvm/functions/Function2")
   fun testModuleName() {
     val output = compile(files["HasComposableSingletons.kt"], "hasLambdaA")
     val singleton = output.supportClassesMap.get("ComposableSingletons\$HasComposableSingletonsKt");

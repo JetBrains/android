@@ -76,7 +76,7 @@ class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
 
   @Test
   @Ignore("nvuk Nonnderterministic behaviour of test. Fix after merge.")
-  fun testAllVariantSyncWithV2() {
+  fun allVariantSyncWithV2() {
     // Load the project and run Sync (SVS in this case).
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     preparedProject.open { project ->
