@@ -3822,19 +3822,20 @@ public class GradleImportTest extends AndroidTestCase {
   }
 
   /** Latest build tools version */
-  private static final String BUILD_TOOLS_VERSION;
+  private static final String BUILD_TOOLS_VERSION = CURRENT_BUILD_TOOLS_VERSION;
 
-  static {
-    String candidate = CURRENT_BUILD_TOOLS_VERSION;
-    FakeProgressIndicator progress = new FakeProgressIndicator();
-    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, getSdk());
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
-    if (buildTool != null) {
-      candidate = buildTool.getRevision().toString();
-    }
-
-    BUILD_TOOLS_VERSION = candidate;
-  }
+  // TODO nvuk this method call resolves in flaky test.
+  //static {
+  //  String candidate = CURRENT_BUILD_TOOLS_VERSION;
+  //  FakeProgressIndicator progress = new FakeProgressIndicator();
+  //  AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, getSdk());
+  //  BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
+  //  if (buildTool != null) {
+  //    candidate = buildTool.getRevision().toString();
+  //  }
+  //
+  //  BUILD_TOOLS_VERSION = candidate;
+  //}
 
   private static final String DEFAULT_MOVED = ""
                                               + "* AndroidManifest.xml => app/src/main/AndroidManifest.xml\n"
