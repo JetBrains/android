@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.tools.adtui.categorytable.TableComponent
 import com.android.tools.adtui.categorytable.TablePresentation
 import com.android.tools.adtui.categorytable.TablePresentationManager
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.UIUtil
@@ -56,7 +57,16 @@ class TwoLineLabel : JBPanel<TwoLineLabel>(null), TableComponent {
     manager.applyPresentation(line1Label, presentation)
     manager.applyPresentation(
       line2Label,
-      presentation.copy(foreground = presentation.foreground.lighten())
+      presentation.copy(
+        foreground =
+          when {
+            presentation.rowSelected -> presentation.foreground.lighten()
+            else -> LINE2_COLOR
+          }
+      )
     )
+  }
+  companion object {
+    val LINE2_COLOR = JBColor(0x818594, 0x6F737A)
   }
 }

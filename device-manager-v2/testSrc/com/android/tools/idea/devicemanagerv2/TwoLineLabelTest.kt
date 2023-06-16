@@ -17,13 +17,12 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.tools.adtui.categorytable.TablePresentation
 import com.android.tools.adtui.categorytable.TablePresentationManager
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
-import java.awt.Color
 import javax.swing.UIManager
 import org.junit.Rule
 import org.junit.Test
@@ -47,20 +46,18 @@ class TwoLineLabelTest {
       TablePresentation(foreground = JBColor.BLACK, background = JBColor.WHITE, false)
     )
 
-    Truth.assertThat(panel.line1Label.foreground).isEqualTo(JBColor.BLACK)
-    Truth.assertThat(panel.line1Label.foreground.rgb and 0xFFFFFF).isEqualTo(0)
-    Truth.assertThat(panel.line2Label.foreground).isEqualTo(JBColor.BLACK.lighten())
-    Truth.assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF).isEqualTo(0x323232)
+    assertThat(panel.line1Label.foreground).isEqualTo(JBColor.BLACK)
+    assertThat(panel.line1Label.foreground.rgb and 0xFFFFFF).isEqualTo(0)
+    assertThat(panel.line2Label.foreground).isEqualTo(TwoLineLabel.LINE2_COLOR)
+    assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF).isEqualTo(0x818594)
 
     themeManagerRule.setDarkTheme(true)
 
     // This assertion is the same, but JBColor.BLACK means something different now:
-    Truth.assertThat(panel.line1Label.foreground).isEqualTo(JBColor.BLACK)
-    Truth.assertThat(panel.line1Label.foreground.rgb and 0xFFFFFF).isEqualTo(0xBBBBBB)
-    Truth.assertThat(panel.line2Label.foreground).isEqualTo(JBColor.BLACK.lighten())
-    @Suppress("UseJBColor")
-    Truth.assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF)
-      .isEqualTo(Color(0xBBBBBB).darker().rgb and 0xFFFFFF)
+    assertThat(panel.line1Label.foreground).isEqualTo(JBColor.BLACK)
+    assertThat(panel.line1Label.foreground.rgb and 0xFFFFFF).isEqualTo(0xBBBBBB)
+    assertThat(panel.line2Label.foreground).isEqualTo(TwoLineLabel.LINE2_COLOR)
+    assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF).isEqualTo(0x6F737A)
   }
 }
 
