@@ -167,7 +167,7 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
 
   @Test
   @Ignore("nvuk revisit JDK difference")
-  fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing() {
+  fun lightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing() {
     val tempRoot = File(myFixture.tempDirPath)
     setupTestProjectFromAndroidModel(
       project,
