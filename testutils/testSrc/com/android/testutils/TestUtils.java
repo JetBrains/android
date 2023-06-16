@@ -282,23 +282,6 @@ public class TestUtils {
     throw new UnsupportedOperationException("Multiple workspace roots are not supported");
   }
 
-  /**
-   * Returns a file at {@code path} relative to the root for {@link #getLatestAndroidPlatform}.
-   *
-   * @throws IllegalStateException    if the current OS is not supported.
-   * @throws IllegalArgumentException if the path results in a file not found.
-   */
-  @NonNull
-  public static Path resolvePlatformPath(@NonNull String path, @NonNull TestType testType) {
-    String latestAndroidPlatform = getLatestAndroidPlatform(testType);
-    Path file = getSdk().resolve(FD_PLATFORMS).resolve(latestAndroidPlatform).resolve(path);
-    if (Files.notExists(file)) {
-      throw new IllegalArgumentException(
-        "File \"" + path + "\" not found in platform " + latestAndroidPlatform);
-    }
-    return file;
-  }
-
   @NonNull
   private static Path legacyWorkspaceFile(@NonNull String path) {
     Path f = getWorkspaceRoot().resolve(path);
@@ -661,15 +644,7 @@ public class TestUtils {
 
   @NonNull
   public static String getLatestAndroidPlatform() {
-    return getLatestAndroidPlatform(TestType.AGP);
-  }
-
-  @NonNull
-  public static String getLatestAndroidPlatform(@NonNull TestType testType) {
-    if (testType == TestType.AGP) {
-      return "android-" + ANDROID_PLATFORM_FOR_AGP_UNIT_TESTS;
-    }
-    return "android-32";
+    return "android-" + ANDROID_PLATFORM_FOR_AGP_UNIT_TESTS;
   }
 
   /**
